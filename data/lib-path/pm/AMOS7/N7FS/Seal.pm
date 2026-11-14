@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.NEY5CFI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.PQWUMBA |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -1029,7 +1029,7 @@ sub head_survey {
                 or ( $r->{'t'} // '' ) !~ m|\A\d+\z|
                 or ( $r->{'n'} // '' ) !~ m|\A\d+\z|
                 or ( $r->{'c'} // '' )
-                !~ m{\A(?:sizes-only|sampled|full)\z} );
+                !~ m{\A(?:sizes-only|sampled|full|scrub)\z} );
             next if $peer->{'v'} <= $item->{'floor'};
             $item->{'floor'}   = $peer->{'v'};
             $item->{'witness'} = $other_name;
@@ -3443,8 +3443,8 @@ sub shred_node {
 
 1;
 
-#,,,,,.,,,..,,,.,,...,.,,,,,,,,..,.,.,,,,,,.,,..,,...,...,,,.,..,,,.,,.,,,..,,
-#SCFEZK5T3IDXQGCU3QV5UG3U6T32U62FCELRKF7WTPYTIC7V7JH5FNDXYL7NMO6CRMSAGM3SDU7QU
-#\\\|4TSMMK27LQPCTNRUW2RXAPOAO4H774SNLMB6RYOZXHE5KHZ6ESO \ / AMOS7 \ YOURUM ::
-#\[7]4CURQOGM7CP7UDOVH4DUC4K7JMBIUC5W2MKJLIPDNWP5MU7HR4DQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,,,,,,,,.,,,.,.,.,.,.,,,,,.,..,,...,...,,.,,.,,,...,.,,,...,
+#5OBSBC6TMNXT2QYOZY3ALIHLUCWDKOUXN5D2WQSFAEJ7JHPWVUDBAZWKQLK2WAAP5XP4YAGR67VJO
+#\\\|2NY36ZWL265RADNFS3SNEWDVW7UOWWPWDIG2CDL7IHT2YKRZTPK \ / AMOS7 \ YOURUM ::
+#\[7]DYXREVJNGW23ZD2P3NJBDCL2U5OWTYCCIPKPE7MSX5UPJUTJGEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

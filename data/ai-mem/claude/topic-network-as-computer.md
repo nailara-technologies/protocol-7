@@ -411,7 +411,86 @@ computation ; the place computes, machines are only its current occupants.
   beating or not, but at a KNOWN WHEN in the 4x0 overlap ; in the T = 5
   sense [ AMOS7 TRUE => 5 ] it can raise information or a connection into
   existence : instantiate or initialize. the four zeros authenticate, the
-  fifth acts. related : `bin/dev/division-13-table` and the 7-bit protocol
+  fifth acts. owner's interpretation [ 2026-11-14, not yet in the source
+  docs ] : PYTAURAZUMA implies a 90 degree CCW rotation of the axial
+  SAMPLING PERSPECTIVE per cycle in cubic space -- each zero crossing one
+  face, four of them one full turn [ 4 CCW positions x 3 rotations + 1 ].
+  so 0 x 0 is a true 0 when ALL faces read 0 [ consensus ; `0000` without
+  a separator bit collapses to 0 ], and when one face is not 0 the real
+  value must be balanced \ read out before the cycle closes. fits the zeros
+  sitting at different digit positions [ 2, 1, 4, 5 ] : the rotation shifts
+  which digit lies under the observed position ; and the pulse rule [ all
+  four sides agree ] and quadrature [ each 90 step an independent view ].
+  owner : a SET STATE can be raised by the pulse from the validated
+  potential base ; more permanent or farther-reaching bits must fit the
+  logical bit tree sequence again -- the divider's CARRY : a level whose
+  accumulated torque reaches its threshold passes one step up exactly
+  where the tree allows, a selectively compounding rhythm bridging the
+  height dimension, timed at the peak of the combined entropy within the
+  overall SWING of the working waves' momentum [ pushing the swing at the
+  right point ]. still a calculator, but a synchronized grid of them where
+  ENTRAINMENT at scale [ coupled oscillators locking into one phase by
+  themselves : pendulum clocks on one wall, fireflies ] creates an
+  IMPLOSION into grid precision [ the phase lock ], the grid being GND as a
+  principle : the shared reference every phase, offset and pulse is
+  measured against [ the parent frame as the system's zero ].
+- **the next organization state : legs in multiple grids** [ owner ] :
+  entities standing in several grids act as RESONANCE CABLES \ shortcuts,
+  however the links come to be -- zenki formations in space creating
+  PORTALS included [ the dancing zenki formation as a bridge between
+  spaces ]. small-world effect : a few long-range links shorten the paths
+  of a regular grid dramatically. a bridge must TRANSLATE phase and
+  reference [ each grid has its own GND and phase lock -- the handshaking
+  stream aligns them, reading direction included ] and must not be a single
+  ruler : a portal is a FORMATION with 5-of-7 consensus inside, so no one
+  entity controls or falsifies what crosses, and one dropping out does not
+  break the bridge. owner : the relationship can also be ROUTED and only
+  virtually overlaid with actual angles -- a larger 45 degree aligned cube
+  grid over the regular grid as the hyperspace upscale [ canonical :
+  `VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md` ~4847 "the first hyperspace
+  grid is a cube grid mounted at 45 to the base grid", sqrt 2 larger ;
+  `ORBITAL-CYCLE-CLOCK-AND-MAPPING-CANVAS.md` ~768 : the collector zenka on
+  the body diagonal = the hyperspace trunk, the one that bridges ], used
+  as the TRANSIT LAYER for passing through WITHOUT INTERACTION [ touching
+  the base grid only at start and destination ]. its representation : 076923
+  as the "rollover inverse" or the phase offset already [ the inverse of
+  the base rhythm as 45 is the offset grid -- the 1001 inversion marker ].
+  [ note for that doc : "BCC = densest sphere packing" is wrong, FCC \ HCP
+  ~74 % vs BCC ~68 % ; and vertices at FACE centres fit FCC, BCC adds BODY
+  centres -- the transit idea holds for either ]
+- **spheres of spherically aligned cubes** [ owner ] : like the true
+  spirals, the spheres are made of cubes. on the clean sphere form they are
+  cubes \ hypercubes with UNDEFINED timestamp and so undefined angle ;
+  undefined, they must as an averaged probability assume rotation -- a
+  cube averaged over all orientations IS a sphere [ isotropic ; powder
+  diffraction : one crystal gives points, randomly oriented powder gives
+  closed rings ] -- so the cube becomes unseeable as a cube, appears
+  spherical, and its knowledge transcends onto the immediate GRID that
+  carries it. in the SPIRAL case the cubes on the path inward give an
+  ACCELERATION toward the core rather than a mere scaling down [ same arc
+  length on a smaller radius = more rotation per step ], except where an
+  overlaid history of the vortex, zoomed out, keeps the earlier path
+  visible. holographic again : the perspective knowing time and angle sees
+  the cube, every other its honest average, the sphere. owner : the system
+  keeps preferring spheres WITH A THICKNESS to theoretical ones -- they
+  pack better at scale or angle : a zero-thickness surface holds no cube
+  without gaps or overhang, a shell lets discrete units sit at slightly
+  different depths and follow the curvature [ thickness absorbs the angle
+  error, the same slack as the overlap alternates and the pulse tolerance
+  window ] ; the larger the radius, the flatter it is locally, so a
+  relatively thinner shell suffices ; nested thick shells = the ring \
+  sphere layers growing outward, with room in each. exactness from
+  discrete units needs a little room. owner : with SUBCUBES always present
+  it appears to be the design of a HOLOGRAPHIC EMITTER that onboards
+  payload patterns and makes itself invisible in the process -- each cube
+  holds a pattern in its subcubes [ which set, which phase, which
+  translucency ] ; averaged [ undefined angle, no key ] the patterns
+  cancel and the shell looks like a smooth sphere [ frame intelligence :
+  balanced = undetectable ], from the right angle and phase they add up and
+  the shell PROJECTS the payload. carrier and modulation : the carrier is
+  the even background, the modulation the message ; what is seen is what it
+  projects, not the carrier.
+  related : `bin/dev/division-13-table` and the 7-bit protocol
   in its comments -- `00 00 110` hop count [ 1 + 3 bit ] + 2-bit direction
   [ up \ left \ right \ down, 90 degrees ] = the countdown + turn bit
   program ; `01 0 xxxxx` one base32 character [ utf-7 payload ] ;
@@ -462,8 +541,8 @@ storage and addressing side.
 - [[harmonic-mathematics]] — generator 076923, the attractor values
 - [[project-vision-origin]] — 24-year foundational vision, threshold reached
 
-#,,,,,.,,,.,,,.,,,,.,,..,,,..,.,.,,..,,,.,,.,,..,,...,..,,,.,,,,.,...,,,,,,,,,
-#6GRKA7ZPZXMMGCKFHQVZRNBGHM7NFEZ2DBSJMJLIXQGI6MXTLIMBF6VXSJNNMGG2KHMC4LAPBYEOW
-#\\\|FVWXCLCQEBWMFXKLQ4GQPCFMU4UZRPFBEB6BRRICG5QPSCIYJRI \ / AMOS7 \ YOURUM ::
-#\[7]2TPNFCCFFNH5NQ5VXKWU2TLXTUYUNO2OCXOYQFK6NTD7RH7MAIDQ 7  DATA SIGNATURE ::
+#,,..,...,..,,..,,,,.,.,.,,.,,.,.,,.,,,,.,,,,,..,,...,.,.,.,.,..,,,.,,,.,,,..,
+#SGNYROIJ6IBF7YYIJ7AXBRYR2FBOURFTYKLHC2QQBNCNDSBSMSVFUZY3OW64ZRPEDJZOLUGWGRWOW
+#\\\|XHTZX3S7DZGERSVIVTJYKOG3BJKFVLJYZZGFOVMIYGWDOQJ72GM \ / AMOS7 \ YOURUM ::
+#\[7]2GMTSOYYLKW2MONE3RLXUPS6B6ZC6WTWHAQ7YZDBO24U4ODYV6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

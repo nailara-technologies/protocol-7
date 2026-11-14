@@ -76,6 +76,9 @@ use warnings;
 ##                 [ -shrink-limit <percent> ] [ -snapshot-cmd <words> ]
 ## n7fs snapshot-confirm <disk> <prefix>
 ##                 confirm a shrink ; unfreeze retention for that snap: prefix
+## n7fs cycle <name> [ -status ]
+##                 additive snapshot, place, relay, check, refresh and drill ;
+##                 <host-dir>/cycle/<name>.cfg, state readable without a key
 ## n7fs assimilate -disk <disk> [ -remove | -keep ] [ -prune ] [ -dry-run ]
 ##                 [ -incoming ]    unclassified roots, each gets its own tree
 ##                 [ -tree <name> ] [ -category <name> ]
@@ -274,7 +277,7 @@ GetOptionsFromArray(
         list adopt seal-root=s also-root-key=s@ accept-clock show reset
         via=s access=s holders import-holders all-holders state-dir=s
         method=s snapshot-cmd=s staging=s keep-staging=i shrink-limit=f
-        hold=s no-hold for=s at=s |
+        hold=s no-hold for=s at=s status |
 ) or usage(2);
 usage(0) if $o{'help'};
 
@@ -360,6 +363,7 @@ my %run = (
     qw| relay |                => \&cmd_relay,
     qw| placement |            => \&cmd_placement,
     qw| place |                => \&cmd_place,
+    qw| cycle |                => \&cmd_cycle,
 );
 usage(2) if not exists $run{$command};
 
@@ -2995,6 +2999,28 @@ sub cmd_place {
     return $failed ? 1 : 0;
 }
 
+sub cmd_cycle {
+    require AMOS7::N7FS::Cycle;
+    my $name = shift // fail('cycle needs a name');
+    fail('cycle : unexpected arguments') if @ARG;
+    my $r
+        = $o{'status'}
+        ? AMOS7::N7FS::Cycle::cycle_status(
+        qw| name |     => $name,
+        qw| host_dir | => host_dir(%common)
+        )
+        : AMOS7::N7FS::Cycle::cycle_run(
+        %common,
+        qw| name |     => $name,
+        qw| host_dir | => host_dir(%common),
+        defined $o{'host-key'} ? ( qw| host_key | => $o{'host-key'} ) : (),
+        );
+    print STDERR $r->{'error'} if defined $r->{'error'};
+    say_line( 'cycle ', $name, ' : ', $r->{'state'}{'last.result'} )
+        if ref $r->{'state'} eq qw| HASH | and not $o{'status'};
+    return $r->{'exit'};
+}
+
 sub cmd_shred {
     require AMOS7::N7FS::Seal;
     my $disk    = disk_arg(shift);
@@ -3019,8 +3045,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,...,...,,,,,..,,...,,,,,..,,.,,,,,.,.,,,..,,...,..,,,.,,,,,,...,.,,,...,
-#MLQ3ENLWHG6YG7F4IXKG6H6ANKFKLRJJBXI2MVTP4AJ2KZMF3PRTTJO5576WV7SJTPOKKZZG3TJXK
-#\\\|I7PWERGM5K7EEBB2M5BVMHWDDYKJEDTCTAVJJQ5BMM5IOXA254A \ / AMOS7 \ YOURUM ::
-#\[7]ELVKZIU4AGXFW6KE6QP5GXQKVWHZBEHBMK5VRFXGH5MKJPGFLUCQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,.,.,,,.,,..,.,,,...,.,,,.,.,..,,...,..,,...,,,,,,.,,.,,,,,,,
+#LVFHHSWGAXAQEEY73XL2Y4TGBDLEF57AA2WOJBIIXQRNNKSNM2HQQQH7RV6WXPFNH2TCQLSYMI6WO
+#\\\|XCKXSBIWFDCDSY64TU3L4BXKCDQHUDH3CPIJGCJQYE6MOJTCUQS \ / AMOS7 \ YOURUM ::
+#\[7]7CN6UOHYBSQVBNCSDN44MMI7DVXHB3YCE4LITB6BKWSMUQU4FSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
