@@ -155,7 +155,8 @@ use warnings;
 ##                 keeps the vault note. -root-key also publishes sealed copies
 ## n7fs holder rename <old> <new> [ -spec <holder> -root-key <key> ]
 ##                 one registry write ; a new spec moves the rollback pin
-##                 [ its head must match ] and needs a new holder-check
+##                 [ its head must match ] and needs a new holder-check ;
+##                 [ -domain <label> ] moves it to another domain
 ## n7fs holder-receiver-line <holder> -root-key <key> [ -also-root-key <key>.. ]
 ##                 print the restricted authorized_keys command=...,restrict
 ##                 line ; one -root-pub \ -head-name pair per listed root, so
@@ -2922,10 +2923,17 @@ sub cmd_holder {
             defined $o{'spec'}
             ? ( qw| new_spec | => $o{'spec'}, qw| root | => _seal_root() )
             : (),
+            defined $o{'domain'} ? ( qw| new_domain | => $o{'domain'} ) : (),
             qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE
         );
-        say_line( $o{'dry-run'} ? 'would rename ' : 'renamed ',
-            $old, ' to ', $new, $r->{'respec'} ? " at $r->{'spec'}" : '' );
+        say_line(
+            $o{'dry-run'} ? 'would rename ' : 'renamed ',
+            $old,
+            ' to ',
+            $new,
+            $r->{'respec'}   ? " at $r->{'spec'}"   : '',
+            $r->{'redomain'} ? " in $r->{'domain'}" : ''
+        );
         say_line(
             'head version ',
             $r->{'version'}, ' matches the pin ; run holder-check ',
@@ -3126,8 +3134,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,...,.,,,,.,,..,,...,,.,,,,,,.,,,.,,,,.,,..,,...,..,,...,,,.,.,,,,..,...,
-#VA3PMHTE73CASI62SJEJCIY64MX7STZJLNFWQ473RABCIREBNNAI72YE6AC7RGIT5AMZBPOMNNTG2
-#\\\|HUVYN6MW3OMCSGJBXX2Q7RAKOYFPYTKAYDSPCAOZ63OK5BFWRAV \ / AMOS7 \ YOURUM ::
-#\[7]3XD34RM4BK7HWML3AHRFDLUMTB2ZYJOW7Q3DBHHZ77KMRVU54ICY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,..,,,.,,,..,.,,,.,.,,,,,,,,,,..,..,,...,...,...,,..,.,,,..,,.,,,
+#R6WAANQYW3UFCOFDUP6Z77U7I3XXRHJBGOI7F35LBS6FGWPKEIB2ILBDDX4QQT5YVQMPJV6NS4ZSO
+#\\\|WTLR34EWJJ4JXVHTFMT4FDSNIFLG4PSLFHAPCA3TZUBNTXV5DAO \ / AMOS7 \ YOURUM ::
+#\[7]PLFUR34HKVOMOL363G2DW45FKF2H2U42Y32JG2PT25T6BDCKMCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

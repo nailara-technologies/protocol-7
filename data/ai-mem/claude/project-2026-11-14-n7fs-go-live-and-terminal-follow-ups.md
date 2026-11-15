@@ -1,6 +1,6 @@
 ---
 name: n7fs-go-live-and-terminal-follow-ups
-description: 2026-11-14 n7fs go-live : v1 holders unreadable by head v2, re-seal from source ; sharded-map upload regression fixed [ 32383cdf4 ] ; follow-ups AMOS7::SSH, progress line, ncode-style confirm
+description: n7fs go-live DONE 2026-11-15 : 4 receiver holders, full scrub receipts, 4 copies ; pipelined holder sessions [ 1fdd862e4 a81070fa8 4dfc7f361 ] ; follow-ups AMOS7::SSH, send buffer, progress line
 metadata:
   type: project
 ---
@@ -9,7 +9,7 @@ metadata:
 - head v2 [ 3203321b7 ] refuses v1 heads : every old holder failed `outer authentication`.
   owner chose a RE-SEAL from the still present sources, with NO doubled remote space :
   remote old copies deleted before each new one ; only azurum keeps
-  `/data/disk/n7fs-2026-11-packed.v1-old` [ owned, fallback ]. local v1 key-side state :
+  v1-old fallback [ removed 2026-11-15 ]. local v1 key-side state [ removed ] :
   `~/.n/n7fs-v1-old-2026-11-14/`.
 - order : delta + yourum unregistered [ registry only, `holder remove` WITHOUT -root-key :
   with it the sealed-registry publish reads every holder and fails on a v1 head, AFTER the
@@ -55,28 +55,24 @@ metadata:
 - -check-full : 3 ssh range reads per node ; use holder-check -scrub for full coverage until
   it is batched.
 
-**receiver switch 2026-11-15 : STOPPED, delta head carries zulum's holder id** :
-- all four holders relayed + adopted, sampled receipts, placement 4 copies. dedicated key
-  ~/.ssh/n7fs-holder + Host n7fs-h-{zulum,delta,yourum,home} [ top of ~/.ssh/config,
-  HostKeyAlias pri.v7.ax \ azurum ] ; restricted lines installed [ /usr/bin/perl
-  /usr/local/protocol-7/bin/n7fs-receive ; azurum : separate clone /usr/local/protocol-7-n7fs,
-  its login-screen-auth runs from the old /usr/local/protocol-7 ] ; holder pri renamed zulum.
-- seal state [ ~/.n/n7fs/seal-roots/<root>.state/state, plain json ] : all four on
-  ssh-receiver:n7fs-h-* specs. pins : zulum IOKRYKX v209, home P3QCNWN v213, yourum UHG6UQU
-  v214, delta 5N4ESVV v216. head files [ r-5HPWKEH/3MCP5ZMU.. ] : srv-U v209 [ 22:11, its
-  registry publish refused : old holder id in the line ], srv-V **v215 written 05:16:25 with
-  holder IOKRYKX**, srv-A v214, azurum v213. every rename since refuses at delta.
-- backups : hosts /root/n7fs-backup-2026-11-15/ [ head files ], local ~/.n/n7fs-backup-2026-11-15/
-  [ state ]. run NOTHING that publishes or writes receipts until fixed ; never re-pin delta
-  to the head's id [ hands zulum's identity to delta's spec ].
-- causes found : [1] holder id = bmw of 'ssh-receiver:<alias>:<dir>' -- receiver lines are
-  per alias [ fixed by hand ] ; [2] n7fs mux ControlPath %C ignores the alias : srv-V and
-  n7fs-h-delta shared one socket [ fixed in tree : %n-%C, uncommitted ] ; [3] rename saves the
-  registry before the publish [ partial state on failure, like holder remove ] ; [4] scrub on
-  a full-shell holder sends 'scrub' to bash ; [5] the 05:16 publish [ registry_publish ->
-  head_refresh -> _context takes holder_id from the head READ at that spec ] sealed zulum's
-  id into delta's head : how is open -- reproduce in a git worktree with two holders.
-- also uncommitted : Seal.pm 'head belongs to another holder [ found, pinned ] at <spec>'.
+**go-live DONE 2026-11-15 10:3x** : zulum delta yourum home-packed all on ssh-receiver:n7fs-h-*
+specs, each 92486 nodes \ 16297969029 bytes, full scrub receipts [ v217-v220 ], placement
+"incoming target 2 : 92486 nodes at 4". delta was repaired afresh [ golive-7a : remove, drop pin
+5N4ESVV, head moved aside to srv-V /root/n7fs-backup-2026-11-15/, add, relay -list 0 blobs, adopt ].
+all old backups removed 2026-11-15 [ owner : first import state ] : head copies, azurum v1-old 18 G, local v1 + head state.
+- holder transport [ spec N7FS-SEALED-REPLICAS.md, holder transport section ] : the per-call
+  ssh design was unusable [ owner : 0.8 % cpu for hours, would have taken days ]. now
+  `n7fs-receive session` [ has \ get \ get-range \ put ], pipelined window 64, sets via
+  holder_read_many + _prefetch [ map shards, tree indices \ chunks ]. 31 ms per read, 1000 blobs
+  145 MB in 12 s. stall timeout 120 s, N7FS_SESSION_TRACE=<file>|1, per-pid channels.
+- still per call : scrub batches [ 400 names, remote hashes -- fine ], heads \ lists [ signed ].
+- unexplained : first delta scrub sat >10 min, both ends waiting on a read ; rerun passed. if it
+  recurs the stall warning + trace show the last request.
+- open : zulum holder domain still "pri" ; retire pri [ ssh Host pri, pri.v7.ax vhost \ cert,
+  memory files ] ; zenka restart on zulum ; scratchpad worktrees wt \ wt2 to remove.
+- I broke the live-tree rule twice this day [ edited Holder.pm while golive-7b \ 7d ran ; the
+  placement wrote a trace file named '1' into the repo root ]. n7fs edits : worktree only, copy
+  over between runs.
 
 **never edit the tree a live n7fs runs from** : n7fs requires some modules lazily [ Seal
 requires Drill at line 488 ] : my uncommitted json_codec edit made the live place fail on
@@ -89,8 +85,8 @@ empty. b611a3601 background uploads ; script now ~/.n/n7fs/golive-2.sh [ -bwlimi
 owner order : wire the LAN cable, finish the re-seal, then the native linux install.
 [[n7fs-host-migration-goal]] [[session-handover-n7fs-fable-design-built]]
 
-#,,,,,..,,,,,,,.,,,.,,,..,,,,,,,.,,.,,,,,,,,.,..,,...,...,.,.,,.,,,.,,,,,,,.,,
-#3QEJZFLI3ALFQ6GYRTZQQTPXZNX7LAB6P2YYUS73CTAJJ66CDL5WTH5JLWNU23JXRZX4C2XPTYPPE
-#\\\|A2D3FCUX6JY2TYOTRBEMGGTGWUOWMLZPNXFLNZDM3PIJHENU7CP \ / AMOS7 \ YOURUM ::
-#\[7]H7C3Q6C3NBT6FTMQEAEVGJ4GK7CL3M4C6AIYA3YNRYAFNMH3S4DY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,,..,...,,..,,.,,,.,,...,.,.,..,,...,...,..,,..,,.,.,,,,,.,,,
+#RJDDKOG54XIAOJ5LEHAR4A4CESSPEZTYNNUQTH7RWO7TJQY2DGVALL6S62I4YVIYCZMIBVZY5SA2C
+#\\\|FOYLDWESZVFHMWTLXG4YXM3BJ66FRBHGRQK4KKXKHOCSJW2PNWY \ / AMOS7 \ YOURUM ::
+#\[7]KPOQBSK4QJORIIZOFGG7AJR5SRVAJ4XJVXYOLFVRJ3UCNVUPTYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

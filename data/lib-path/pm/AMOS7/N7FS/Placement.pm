@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.PWKH7TI |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.WJSHA2I |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -339,8 +339,17 @@ sub holder_rename {
             $h{'spec'} = $spec;
         }
     }
-    refuse('nothing to rename') if $new eq $old and not $result->{'respec'};
-    return $result              if $opt{'dry_run'};
+    if ( defined $opt{'new_domain'} and $opt{'new_domain'} ne $h{'domain'} ) {
+        refuse( 'holder domain is invalid [ %s ]', $opt{'new_domain'} )
+            if $opt{'new_domain'} !~ m|\A[A-Za-z0-9_.:-]{1,64}\z|;
+        @{$result}{qw| domain redomain |} = ( $opt{'new_domain'}, TRUE );
+        $h{'domain'} = $opt{'new_domain'};
+    }
+    refuse('nothing to rename')
+        if $new eq $old
+        and not $result->{'respec'}
+        and not $result->{'redomain'};
+    return $result if $opt{'dry_run'};
     delete $holders->{$old};
     $holders->{$new} = \%h;
     _holders_changed( $holders, %opt );
@@ -1240,8 +1249,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,..,,,,,,..,,.,.,...,..,,,..,,,,,,..,,,.,..,,...,..,,.,.,...,,,,,.,,,.,.,
-#FIZ7JBZ6ADF4RUFVODGM4I4RLO2MXO7ZAN7U6OYTYTUBNY5LNOFU734MXDPM3PFUMXFOOR3XXG7XK
-#\\\|L6VK7D2QOEM3FHJIBORU5AZET7GFXHFL77U46VJKDEIUKAQ4WET \ / AMOS7 \ YOURUM ::
-#\[7]GPQZIDRO4T5HUZIL4HWHS43I6EVSVPBRLNXWJLIRI3FZ4P4EGSBI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,.,,,..,,.,.,..,,..,,.,,,..,,..,,...,..,,.,.,.,,,,..,.,,,.,,,
+#VBTRDS3DQPK4YPDEOJ5X545Q3EOILI4N2TVZ47DKUJ64KJWAQKNGEE4T2UBQPY2OJ43TO6ARSQ2SE
+#\\\|F6R2CUMTLP4SLEC7K5RBUW2QDCKSDMJZOP5PLUYGZOXJRSEQ5PQ \ / AMOS7 \ YOURUM ::
+#\[7]GTKCHJ6WEYXEHGALZ4R7LOR2U462P24A42KLUIPMIIHXP6CWL2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
