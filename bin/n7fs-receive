@@ -21,7 +21,8 @@ use warnings;
 ##   get-range <name> <offset> <length>
 ##   session                  reads on one channel : request lines
 ##                            'has <name>', 'get <name>', 'get-range <name>
-##                            <offset> <length>' on stdin, answered in order
+##                            <offset> <length>', 'put <name> <size>' + the
+##                            bytes [ add only, as put ] on stdin, answered in order
 ##                            as '<status> <length>' and the bytes. status 0
 ##                            ok, 44 missing. a sender pipelines requests, so
 ##                            many reads cost about one round trip
@@ -288,57 +289,6 @@ if ( $verb eq 'free' ) {
     exit 0;
 }
 
-## one blob range into a string, undef when missing ##
-sub _range_bytes {
-    my ( $name, $offset, $length ) = @ARG;
-    my $path = _blob($name);
-    return undef if not _safe_file($path);
-    sysopen( my $fh, $path, O_RDONLY ) or return undef;
-    binmode $fh;
-    $length //= ( -s $fh ) - $offset;
-    my $bytes = '';
-    sysseek( $fh, $offset, 0 ) if $offset;
-
-    while ( $length > length $bytes ) {
-        my $got
-            = sysread( $fh, $bytes, $length - length $bytes, length $bytes );
-        out('cannot read the blob') if not defined $got;
-        last                        if not $got;
-    }
-    close $fh;
-    return $bytes;
-}
-
-if ( $verb eq 'session' ) {
-    out('session takes no arguments') if @word;
-    binmode STDIN;
-    binmode STDOUT;
-    STDOUT->autoflush(1);
-    while ( defined( my $line = <STDIN> ) ) {
-        chomp $line;
-        my ( $op, @arg ) = split ' ', $line;
-        $op //= '';
-        my $bytes;
-        if ( $op eq 'has' and @arg == 1 ) {
-            my $path = _blob( $arg[0] );
-            $bytes = -s $path if _safe_file($path);
-        } elsif ( $op eq 'get' and @arg == 1 ) {
-            $bytes = _range_bytes( $arg[0], 0, undef );
-        } elsif ( $op eq 'get-range' and @arg == 3 ) {
-            out('invalid holder range')
-                if $arg[1] !~ m|\A\d+\z|
-                or $arg[2] !~ m|\A[1-9]\d*\z|;
-            $bytes = _range_bytes(@arg);
-        } else {
-            out('unknown session request');
-        }
-        print defined $bytes
-            ? '0 ' . length($bytes) . "\n" . $bytes
-            : "44 0\n";
-    }
-    exit 0;
-}
-
 if ( $verb eq 'get' ) {
     out('get needs at least one name') if not @word;
     binmode STDOUT;
@@ -474,6 +424,25 @@ sub _room {
 }
 
 ## stream into a new temporary in the final directory ; digest is raw bytes ##
+## stdin bytes : a session's line reader may hold some ahead of an upload   ##
+my $INBUF = '';
+
+sub _stdin_read {
+    my $max = shift;
+    return substr( $INBUF, 0, $max, '' ) if length $INBUF;
+    my $got = sysread( STDIN, my $buf, $max );
+    return defined $got ? $buf : undef;
+}
+
+sub _stdin_line {
+    while ( ( my $end = index $INBUF, "\n" ) < 0 ) {
+        my $got = sysread( STDIN, $INBUF, 65536, length $INBUF );
+        return undef if not $got;
+    }
+    my $end = index $INBUF, "\n";
+    return substr( $INBUF, 0, $end + 1, '' );
+}
+
 sub _upload {
     my ( $target, $size, $stem ) = @_;
     out('invalid size') if $size !~ m|\A\d+\z|;
@@ -488,8 +457,8 @@ sub _upload {
     my $left = $size;
 
     while ($left) {
-        my $got
-            = sysread( STDIN, my $buf, $left < 1048576 ? $left : 1048576 );
+        my $buf = _stdin_read( $left < 1048576 ? $left : 1048576 );
+        my $got = length( $buf // '' );
         if ( not $got ) {
             unlink $tmp;
             out( 'input ended early', 6 );
@@ -506,9 +475,9 @@ sub _upload {
     return ( $tmp, $ctx->digest );
 }
 
-if ( $verb eq 'put' ) {
-    out('put needs a name and a size') if @word != 2;
-    my ( $name, $size ) = @word;
+## a new blob, add only : its bytes follow on stdin ##
+sub _put_blob {
+    my ( $name, $size ) = @ARG;
     my $path = _blob($name);
     out('invalid size') if $size !~ m|\A\d+\z|;
     my $target = _target_dir($name);
@@ -516,7 +485,7 @@ if ( $verb eq 'put' ) {
     if ( -e $path ) {
         out('blob path is not a regular file')    if not _safe_file($path);
         out( 'blob exists with another size', 4 ) if -s $path != $size;
-        exit 0;
+        return;
     }
     _room($size);
     my ( $tmp, $digest ) = _upload( $target, $size, $bare );
@@ -527,11 +496,71 @@ if ( $verb eq 'put' ) {
     if ( not link $tmp, $path ) {
         my $err = $OS_ERROR;
         unlink $tmp;
-        exit 0 if _safe_file($path) and -s $path == $size;
+        return if _safe_file($path) and -s $path == $size;
         out("cannot publish : $err");
     }
     unlink $tmp;
     sync_dir($target) or out('directory sync failed');
+    return;
+}
+
+## one blob range into a string, undef when missing ##
+sub _range_bytes {
+    my ( $name, $offset, $length ) = @ARG;
+    my $path = _blob($name);
+    return undef if not _safe_file($path);
+    sysopen( my $fh, $path, O_RDONLY ) or return undef;
+    binmode $fh;
+    $length //= ( -s $fh ) - $offset;
+    my $bytes = '';
+    sysseek( $fh, $offset, 0 ) if $offset;
+
+    while ( $length > length $bytes ) {
+        my $got
+            = sysread( $fh, $bytes, $length - length $bytes, length $bytes );
+        out('cannot read the blob') if not defined $got;
+        last                        if not $got;
+    }
+    close $fh;
+    return $bytes;
+}
+
+if ( $verb eq 'session' ) {
+    out('session takes no arguments') if @word;
+    binmode STDIN;
+    binmode STDOUT;
+    STDOUT->autoflush(1);
+    while ( defined( my $line = _stdin_line() ) ) {
+        chomp $line;
+        my ( $op, @arg ) = split ' ', $line;
+        $op //= '';
+        my $bytes;
+        if ( $op eq 'has' and @arg == 1 ) {
+            my $path = _blob( $arg[0] );
+            $bytes = -s $path if _safe_file($path);
+        } elsif ( $op eq 'get' and @arg == 1 ) {
+            $bytes = _range_bytes( $arg[0], 0, undef );
+        } elsif ( $op eq 'get-range' and @arg == 3 ) {
+            out('invalid holder range')
+                if $arg[1] !~ m|\A\d+\z|
+                or $arg[2] !~ m|\A[1-9]\d*\z|;
+            $bytes = _range_bytes(@arg);
+        } elsif ( $op eq 'put' and @arg == 2 ) {
+            _put_blob(@arg);
+            $bytes = '';
+        } else {
+            out('unknown session request');
+        }
+        print defined $bytes
+            ? '0 ' . length($bytes) . "\n" . $bytes
+            : "44 0\n";
+    }
+    exit 0;
+}
+
+if ( $verb eq 'put' ) {
+    out('put needs a name and a size') if @word != 2;
+    _put_blob(@word);
     exit 0;
 }
 
@@ -737,8 +766,8 @@ if ( $verb eq 'delete' ) {
 
 out('unknown request');
 
-#,,,,,,.,,.,.,...,.,,,,..,..,,..,,..,,...,...,..,,...,..,,...,...,,,.,.,,,,,.,
-#HITCUY3PQ7NBHJLAMY32AXJZZ3BEJJGU5THD4U6DHYGFRVF66SE3VHMVQL7SH7AA4M7VWNUCWOZRO
-#\\\|KCLZ5CUKEN32FIZHW5G5DG7VXSYCAP53BQUC4664DXKQCUBYUSL \ / AMOS7 \ YOURUM ::
-#\[7]MYV6G63KD52N6MI2MSE3JT2GFNVM53DQ6VYWMDFXJAI2L3SCUKDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,,,,,.,,.,,...,,,,,,..,...,,,.,..,,...,...,..,,...,,,,,.,,,...,
+#CE3NKFXZVWNPW7K75LORPM2BYWVVFITOLNO6I4HK3GFSWOOSLKANUNZC244PLBIIHDNHOH2IJJE5U
+#\\\|KPYYHTN4UIIGIKWNPXX5PN7AEZQ75ZO76K5QJOGIQZ6PD4F2PFH \ / AMOS7 \ YOURUM ::
+#\[7]YJRIPVLML7XDA7ZF536RDRPHGWKH4NRR6JAGH7XXVOSVWABZ2UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.2JSRQBY |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.NUYDQKA |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -485,10 +485,19 @@ sub _session_call {
     my @todo = @{$requests};
     while (@todo) {
         my @part = splice @todo, 0, $SESSION_WINDOW;
-        my $ok;
+        ## a request is a line, or [ line, payload ] for a put ##
+        my $send = join '',
+            map { ref $ARG ? "$ARG->[0]\n$ARG->[1]" : "$ARG\n" } @part;
+        my $ok = 1;
         {
             local $SIG{'PIPE'} = 'IGNORE';
-            $ok = syswrite( $s->{'in'}, join( '', map {"$ARG\n"} @part ) );
+            my $at = 0;
+            while ( $ok and $at < length $send ) {
+                my $put
+                    = syswrite( $s->{'in'}, $send, length($send) - $at, $at );
+                $ok = 0 if not $put;
+                $at += $put // 0;
+            }
         }
         foreach my $request (@part) {
             my $line_end;
@@ -1164,6 +1173,7 @@ sub holder_put_batch {
         push @single, @batch;
         @batch = ();
     }
+    @single = _session_put_batch( $h, \@single ) if $h->{'receiver'};
     holder_put( $spec, $ARG->[0], $ARG->[1], $ARG->[2], 0 ) for @single;
     return if not @batch;
     ## a remote command string is capped at 128 KiB [ MAX_ARG_STRLEN ] : ##
@@ -1232,6 +1242,51 @@ sub holder_put_batch {
     return;
 }
 
+## receiver blobs on the session : sizes, the missing ones put, then every one
+## read back and compared, each step pipelined. heads and lists stay signed
+## single requests ; what the session cannot take is returned
+sub _session_put_batch {
+    my ( $h, $items ) = @_;
+    my @blobs = grep { $ARG->[2] ne qw| head | and $ARG->[2] ne qw| list | }
+        @{$items};
+    my @rest = grep { $ARG->[2] eq qw| head | or $ARG->[2] eq qw| list | }
+        @{$items};
+    return @{$items} if not @blobs or not _session($h);
+    my @remote = map { _recv_name( $h, $ARG->[1] ) } @blobs;
+    my %bytes;
+    foreach my $item (@blobs) {
+        $bytes{ $item->[1] } = read_file( $item->[0] )
+            // refuse( 'cannot read upload spool : %s', $item->[1] );
+    }
+    my $sizes = _session_call( $h, [ map {"has $ARG"} @remote ] )
+        or return @{$items};
+    my @put;
+    foreach my $i ( 0 .. $#blobs ) {
+        my $size = length $bytes{ $blobs[$i][1] };
+        if ( $sizes->[$i][0] == 0 ) {
+            refuse( 'holder final blob has the wrong size : %s',
+                $blobs[$i][1] )
+                if $sizes->[$i][1] != $size;
+            next;
+        }
+        push @put, [ "put $remote[$i] $size", $bytes{ $blobs[$i][1] } ];
+    }
+    if (@put) {
+        my $done = _session_call( $h, \@put )
+            or refuse( 'holder session put failed : %s', $h->{'alias'} );
+        refuse( 'receiver upload failed : %s', $ARG->[0] )
+            for grep { $ARG->[0] } @{$done};
+    }
+    my $back = _session_call( $h, [ map {"get $ARG"} @remote ] )
+        or refuse( 'holder session readback failed : %s', $h->{'alias'} );
+    foreach my $i ( 0 .. $#blobs ) {
+        refuse( 'holder readback checksum mismatch for %s', $blobs[$i][1] )
+            if $back->[$i][0]
+            or $back->[$i][1] ne $bytes{ $blobs[$i][1] };
+    }
+    return @rest;
+}
+
 sub holder_put {
     my ( $spec, $local, $name, $kind, $replace ) = @_;
     my $h = holder_parse($spec);
@@ -1282,6 +1337,8 @@ sub holder_put {
             holder_verify( $spec, $name, $local, $kind );
             return;
         }
+        return
+            if not _session_put_batch( $h, [ [ $local, $name, $kind ] ] );
         my @delays = _delays();
         my $status = 1;
         for my $try ( 0 .. $#delays ) {
@@ -1341,8 +1398,8 @@ sub holder_put {
 
 1;
 
-#,,,,,,,.,.,,,.,,,.,.,...,,,,,..,,..,,,.,,,.,,..,,...,...,.,.,...,...,..,,,,.,
-#CRBF2DVODWR5QGZRC3N2V6ESW3LX7BRUWFHQUIQB4T2DPZN2ZDZYRDF736BU5TT3FO5XAN7XLFIS6
-#\\\|ISD7YIKOWDL6ZWQP643PTHQH3ARC57UEVZ3VYZUXA2674OFTBZQ \ / AMOS7 \ YOURUM ::
-#\[7]ER74DJVROLGPPYZS7HY42GI262N3RA2P27U5FDTRIEYABNBYMICQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,...,...,,.,,,,.,,.,,,,.,,,.,..,,...,..,,.,,,,,.,...,.,.,,.,,
+#PMXQFDWDI3BSJWOIH237OGC5CBPKYSXK433SHY3RR3FD7ALE65VSWHQG2RPQNQCI74GELEZNAOB4M
+#\\\|ELWCEVWCQCEW32VMJIBCJ5EWQYB3XZZAFG33NCKZ6OF35XMPTHQ \ / AMOS7 \ YOURUM ::
+#\[7]4GZD7UH7SEAK7PNXW7R2X6H53KKUEUCT3FWZP5V33NNE64FKBOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
