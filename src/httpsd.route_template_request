@@ -65,9 +65,11 @@ $path = "/$path" unless $path =~ m|^/|;
 $path =~ s|/+$|| unless $path eq qw| / |;
 
 <[base.logs]>->(
-    2,           "[%s] routing %s %s [vhost=%s]",
-    $session_id, $method,
-    <[base.parser.ellipse_center]>->( $path, 160 ),
+    2,
+    "[%s] routing %s %s [vhost=%s]",
+    $session_id,
+    $method,
+    <[base.parser.ellipse_center]>->( $path, <httpd.cfg.log_path_max> // 80 ),
     $vhost // 'default'
 );
 
@@ -180,8 +182,8 @@ my $route = {
 <httpsd.route_cache>->{$cache_key} = $route;
 return { %$route, cached => 0 };
 
-#,,..,.,,,..,,..,,,.,,.,.,,.,,,.,,,.,,,,.,,,.,..,,...,...,,,.,.,.,.,,,..,,.,.,
-#EI2KI4XPOWCKD7RMHFYNIKZ4QQJDJBCSEPOBZNIWWCABNKO6DGFAD5WNUHVPR4MP46KIMEGPLMDLI
-#\\\|UBXYK2MX57WT6VBG3AK6TCCBU7RRYOQEQFB6M3HHZA6JE2BHODI \ / AMOS7 \ YOURUM ::
-#\[7]FICUKE7L7WZ5MWF5P7BFTH3RLCG3YEDBB3UWQORB5QWSYS6674AY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,..,,.,.,...,,,,,.,.,..,,,.,,..,,...,...,.,,,...,.,.,...,.,,,
+#YTPR6DMTJVEX366NVGAQBCEUSJK7QIU2MD5LCWIXT7LCYED5XTF7BZDLRUCMXBU4S4DZWE4FOYW54
+#\\\|4QHI4SPW6EO2DV3ENPKODLPAWTP5FHNCHNARHLVGRB4UTLEOCSQ \ / AMOS7 \ YOURUM ::
+#\[7]KWBEYVNE3NIULCXMF7AK36YJUV6LI4PPEJOYZR65GGC2QHCP2YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

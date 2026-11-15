@@ -158,10 +158,14 @@ if (    exists <httpd.classify>
 }
 
 ## a probe can send kilobytes of path : the log keeps its start and end ##
+## [ httpd.cfg.log_path_max, default 80 ]                               ##
 <[base.logs]>->(
-    2, ' < %s > %s%s',
+    2,
+    ' < %s > %s%s',
     $request->{'client'}->{'addr'},
-    <[base.parser.ellipse_center]>->( $request->{'uri'}, 160 ),
+    <[base.parser.ellipse_center]>->(
+        $request->{'uri'}, <httpd.cfg.log_path_max> // 80
+    ),
     $classify_tag
 );
 
@@ -208,8 +212,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,,,,..,,...,.,,,..,,.,.,,,.,...,,,.,,,.,,.,,..,,...,...,,,.,,.,,,.,,,.,,,,,,
-#QLJIXMHFEPZJBW5DU7C3RTMBMSOHG4CHQ255S7WDIKKCMWKBWRP2LZIFCPK2ESKGLTNZO76CYSOFY
-#\\\|3GGX7AJQM4VHKMCMVN2U5SVZGYHDDO45ZJP6SL5OBUNIZKAJSFZ \ / AMOS7 \ YOURUM ::
-#\[7]AL2EFQAXKCYGN2LPM4D2CG2QPCPZ62R3J2QBVGKFI7FPKRAG6GCI 7  DATA SIGNATURE ::
+#,,..,...,,,,,...,..,,,.,,...,..,,..,,,,.,..,,..,,...,...,..,,,,.,,..,..,,,..,
+#GJURIACGRTIOLMLBGG4PZ4R5246BUYTDP4IS6L5DNRJEQHGUBEJ3GP2SH2IZ4HTOKZLRL6BTLIQYK
+#\\\|CN4VNK575TILNKLE6NG57WRWSZ2OUAVSNZ4C5I7TUDGJEHBRRNJ \ / AMOS7 \ YOURUM ::
+#\[7]PQ2EU3CY5FOYPDXRVG4WGCOOGVJFK6TXJ632F675NOUKZ3W4T4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

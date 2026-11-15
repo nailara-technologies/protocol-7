@@ -45,8 +45,11 @@ unless ( defined $path and length $path ) {
 $path =~ s|/+$|| unless $path eq qw| / |;
 
 <[base.logs]>->(
-    2, "[%d] routing %s %s [vhost=%s]",
-    $session_id, $method, <[base.parser.ellipse_center]>->( $path, 160 ),
+    2,
+    "[%d] routing %s %s [vhost=%s]",
+    $session_id,
+    $method,
+    <[base.parser.ellipse_center]>->( $path, <httpd.cfg.log_path_max> // 80 ),
     $vhost
 );
 
@@ -179,8 +182,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,.,,.,,,,.,,.,,,,..,...,,.,,...,,.,,..,,,,.,..,,...,...,..,,.,.,.,,,...,...,
-#RS5GEIMYC4BHAS3L2XU3MEE5ZX45L6XYCNBBTVT2BUVBSKKY2QXHH2WGGHMJKV4UW7EICBCNTZOVS
-#\\\|IQLB3AGUKH2K56DRSBKZA42YNQAINHDAD3UXH7HVVYDIUH3MCJB \ / AMOS7 \ YOURUM ::
-#\[7]LSUY4WBMKD6IZN63OTODDQ6ASCTXK3FJCFXOX6CKS2PZBY636MDI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,..,,.,.,,,.,.,.,..,,..,,,,.,..,,...,...,,,,,,,,,.,.,,.,,,,,,
+#BMQZLN4C4ZXUGMPVKQSC3XKJEDY7NFB5M55NB2W4YVFCN7LSELNXIBKE4WWFOOUKL4WI434NEVRQG
+#\\\|2CXS5UX6C5H7CPOYMAUK32LCYGGQ2YZNEVX3KBP7YLCWVVBPOBD \ / AMOS7 \ YOURUM ::
+#\[7]QGK7JPXN6PJXSFZU5J7CHSV5B3LTFNEP46SHR4GGVXJ34BVS2MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
