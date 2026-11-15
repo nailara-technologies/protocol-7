@@ -9,7 +9,8 @@ my $reply_data = shift;
 my $domain = $reply_data->{'params'}{'domain'};
 my $mode   = $reply_data->{'cmd'};
 my $args   = $reply_data->{'call_args'}{'args'};
-my $data   = $reply_data->{'data'};
+## a one line reply carries its text in call_args, not 'data' ##
+my ( undef, $data ) = <[base.reply.mode_text]>->($reply_data);
 
 <[base.log]>->( 2, "renewal reply for domain : $domain, mode : $mode" );
 
@@ -29,7 +30,7 @@ if ( $mode eq 'TRUE' ) {
     if (   ( $args // q|| ) =~ m|rate.?limit|i
         or ( $data // q|| ) =~ m|rate.?limit|i
         or ( $args // q|| ) =~ m|rateLimited|i ) {
-        my $retry_after_str = $reply_data->{'data'} // '';
+        my $retry_after_str = $data // '';
         ## parse "retry after 2026-05-22 14:44:26 UTC" from data field
         my $delay = 3600;    ## default 1h if parse fails
         if ( $retry_after_str
@@ -208,8 +209,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,,..,..,,,..,,,.,,.,,...,,.,,,,,,.,,,.,.,..,,...,...,...,,,.,.,.,,,.,...,
-#A6S4EBXGWK72VJ5IE4NUCS22KIBA2DN6V5KBRMLXIJZHPDRKOXIP4WYHHCY2ETI6GIWDDNT2QJ4EW
-#\\\|D63JMVFDPCQN7E2HMDEUUYDEHI4OXFCFGUKILCW6WFVBVKKT7GH \ / AMOS7 \ YOURUM ::
-#\[7]D5KQHRFTRPAZRVTJM6ORME3HE2GLEMZ2RQPDMQRXPJF32LH7KACQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,.,,,,,,..,,,,,,.,,...,...,,,.,..,,...,...,...,,..,.,.,..,,...,
+#MSLQVFPZMLLN6U6NYKMUBGDDDYOLDHWO5IO55HAAKA7ZO5SZ7WLEDDX2DRG77FLPVV5ITCXG5C34I
+#\\\|TWC743QC66WFY2GVGXK27RSN5QL3JJIJC2W7VX7WIKF5EBKYJBI \ / AMOS7 \ YOURUM ::
+#\[7]TSPSMBGMTMGFGCCA3TB22MSSCAZLCTSLSLRINXWKLOZ4YIJ3GQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,8 @@ my $reply_data = shift;
 
 my $domain = $reply_data->{'params'}{'domain'};
 my $mode   = $reply_data->{'cmd'};
-my $data   = $reply_data->{'data'};
+## a one line reply carries its text in call_args, not 'data' ##
+my ( undef, $data ) = <[base.reply.mode_text]>->($reply_data);
 
 <[base.log]>->( 2, "revocation reply for domain : $domain, mode : $mode" );
 
@@ -65,8 +66,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,.,,,.,,,,.,,,.,...,,.,,,,.,,..,,.,,.,.,,,,,..,,...,...,,.,,,,.,...,.,.,,.,,
-#6JOPBTJKBBVCWJNOQSEA7MDD5FPRVNRA2UV5QOBD6LGEBX43CUMB2YD3CDMV37ZGHTF2D23SV2GDA
-#\\\|ISD3QCGW7OLAMPRUQCBRO65VDQYUNTEFLU4IQDLPUGONEPKA6AC \ / AMOS7 \ YOURUM ::
-#\[7]CRUT2YRL76YWWM32JMDKN2ZCJZP2ZQB4RZK3L2XMUPE3IU6E6EDI 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,,..,,,.,,,.,.,,,,,.,,..,..,,..,,...,..,,...,.,.,,..,.,,,,.,,
+#DYWVOZGNWDI5EIDPXMKAUIUWMKYKZIKJGFW53UXRNNGHRO3ACYPYO44AZ73W7KT3DYKBZXM4BN3IQ
+#\\\|UQZEZTYATOYPMYYJKAEKMHG3DXFZQZ4LKXMHEDMO5DS3RS3ILOR \ / AMOS7 \ YOURUM ::
+#\[7]L6MGOTEU6SU4ZGY2Q3IKZL6K3GEW3KHOGJJKRRYAAJUTL5JJ2OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

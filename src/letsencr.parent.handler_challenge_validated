@@ -37,7 +37,8 @@ if ( $mode eq 'TRUE' ) {
     $challenge->{validated_at} = <[base.ntime]>;
 
 } elsif ( $mode eq 'FALSE' ) {
-    my $error = $validation_data->{'data'} // 'validation failed';
+    my ( undef, $error ) = <[base.reply.mode_text]>->($validation_data);
+    $error = 'validation failed' if not length $error;
     <[base.logs]>->(
         1,       'challenge validation failed for %s: %s',
         $domain, $error
@@ -71,8 +72,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,,,,,..,,.,.,.,.,,,,,...,,,,,,..,,..,..,,..,,...,...,...,.,,,.,.,,.,,,.,,
-#PNNWFYRHGAPQJP3AGQGYH74DSBMMNZGVYOK4SV7UAMRZ2LI2WHOUOID43WATINW6RNKVQCUN663F4
-#\\\|IAGANXZDD77WT76R7HU43QDBRRUZPHTW642I53XSLKOHZJTFKGD \ / AMOS7 \ YOURUM ::
-#\[7]W7MKXEFSGEKNUX25QKJBFP6Z563AQCYAGC573POHQNMRA7ODG2AY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,.,.,...,.,.,..,,.,,,,..,,,.,..,,...,...,,..,..,,,..,.,,,.,,,
+#WYKONY2BPWA5NFJIZCVQ3HHEIXIEPUW7YJ22CHNBJJA3RAWV3YYAOJ3CCWDFFYBPB2FBJJPFGWF2Q
+#\\\|57E53UN2V2NIIQNLLNGXKXEBLYDZMG3CIN6W4DRRAIV3HELY747 \ / AMOS7 \ YOURUM ::
+#\[7]YVLAVCBK53SGGNW23U5YAWSGHVUTHJH46MDHONY3C7LIYVAF3AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

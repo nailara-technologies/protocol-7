@@ -7,10 +7,11 @@
 
 my $reply = shift;
 
-my $domain     = $reply->{'params'}->{'domain'};
-my $mode       = $reply->{'cmd'};
-my $args       = $reply->{'call_args'}->{'args'};
-my $reply_data = $reply->{'data'} // '';
+my $domain = $reply->{'params'}->{'domain'};
+my $mode   = $reply->{'cmd'};
+my $args   = $reply->{'call_args'}->{'args'};
+## a one line FALSE reply carries its text in call_args, not 'data' ##
+my ( undef, $reply_data ) = <[base.reply.mode_text]>->($reply);
 
 unless ($domain) {
     <[base.log]>->(
@@ -341,8 +342,8 @@ if ( $mode eq qw| TRUE | ) {
 
 return FALSE;
 
-#,,..,..,,...,,,,,,.,,.,,,,,,,.,.,,.,,,..,,..,..,,...,...,...,.,.,,.,,...,..,,
-#QGMHZKD556H6HJPICHIWJKH2I7YCWU77RUAUO3SVAXKL5I2MDAARE5RE7OZJ6ADYVJYU65JV3F67A
-#\\\|CRLMZVZYIYNWAW4HD2CLJYITZEU6XOSSMIXX25KRSLQRD2KI24G \ / AMOS7 \ YOURUM ::
-#\[7]6VLJJZ7PIJ65QTYMNA7CPYBITUEQMJUYYCYPTIAS24OVB6N7L6CA 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,,..,,,,,.,,,,,.,,..,,.,,,,,,..,,...,...,...,,,.,...,...,...,
+#RC47XCTHHOMOOWK6MKV3IORVEU3K3NAI6H72REU4TAILZM2LZI75NGXFAJYWRMVFYJ2OP7FNFJ32Q
+#\\\|AIWA4NE2QSHKXFEWUMCPHVUXJX2GJQUB4CR6FBMAPQKXFF2WOMQ \ / AMOS7 \ YOURUM ::
+#\[7]ZS2KIPCWMD3FWNZN7YP7CTHC4JCRW3MA2SFGATKR2HHNBRAAHIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
