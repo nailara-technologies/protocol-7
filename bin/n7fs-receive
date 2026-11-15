@@ -19,6 +19,12 @@ use warnings;
 ##   time                     holder unix time for age decisions
 ##   has <name> ..            prints '<name> <size>' for those present
 ##   get-range <name> <offset> <length>
+##   session                  reads on one channel : request lines
+##                            'has <name>', 'get <name>', 'get-range <name>
+##                            <offset> <length>' on stdin, answered in order
+##                            as '<status> <length>' and the bytes. status 0
+##                            ok, 44 missing. a sender pipelines requests, so
+##                            many reads cost about one round trip
 ##   get <name> ..            whole blobs : '<name> <size>' then the bytes,
 ##                            nothing for a missing one
 ##   put <name> <size>        reads exactly <size> bytes, add only
@@ -279,6 +285,57 @@ if ( $verb eq 'free' ) {
     close $fh;
     my @field = split ' ', ( split m|\n|, $line[-1] // '' )[-1] // '';
     say $field[3] * 1024 if ( $field[3] // '' ) =~ m|\A\d+\z|;
+    exit 0;
+}
+
+## one blob range into a string, undef when missing ##
+sub _range_bytes {
+    my ( $name, $offset, $length ) = @ARG;
+    my $path = _blob($name);
+    return undef if not _safe_file($path);
+    sysopen( my $fh, $path, O_RDONLY ) or return undef;
+    binmode $fh;
+    $length //= ( -s $fh ) - $offset;
+    my $bytes = '';
+    sysseek( $fh, $offset, 0 ) if $offset;
+
+    while ( $length > length $bytes ) {
+        my $got
+            = sysread( $fh, $bytes, $length - length $bytes, length $bytes );
+        out('cannot read the blob') if not defined $got;
+        last                        if not $got;
+    }
+    close $fh;
+    return $bytes;
+}
+
+if ( $verb eq 'session' ) {
+    out('session takes no arguments') if @word;
+    binmode STDIN;
+    binmode STDOUT;
+    STDOUT->autoflush(1);
+    while ( defined( my $line = <STDIN> ) ) {
+        chomp $line;
+        my ( $op, @arg ) = split ' ', $line;
+        $op //= '';
+        my $bytes;
+        if ( $op eq 'has' and @arg == 1 ) {
+            my $path = _blob( $arg[0] );
+            $bytes = -s $path if _safe_file($path);
+        } elsif ( $op eq 'get' and @arg == 1 ) {
+            $bytes = _range_bytes( $arg[0], 0, undef );
+        } elsif ( $op eq 'get-range' and @arg == 3 ) {
+            out('invalid holder range')
+                if $arg[1] !~ m|\A\d+\z|
+                or $arg[2] !~ m|\A[1-9]\d*\z|;
+            $bytes = _range_bytes(@arg);
+        } else {
+            out('unknown session request');
+        }
+        print defined $bytes
+            ? '0 ' . length($bytes) . "\n" . $bytes
+            : "44 0\n";
+    }
     exit 0;
 }
 
@@ -680,8 +737,8 @@ if ( $verb eq 'delete' ) {
 
 out('unknown request');
 
-#,,.,,,.,,,,.,.,,,,..,...,.,.,,.,,...,,,.,..,,..,,...,...,.,,,.,.,,,,,,,.,,,,,
-#TA6WN6UCI7M2QXRN2EDOY6PTQSGPQOQ7YJO7DFKBD5LHRBIPTUVCDBI7VTQQI3FWFZE42DEFGALRC
-#\\\|HRMQ5RVRMP4AMWKSJ3HNNKSGO444DAQZURQ5TDQLKQA45YA5WLG \ / AMOS7 \ YOURUM ::
-#\[7]X4L7ZPTUQCHSSHU6B4C5KXRWRPNXFCKY56CHFXYAWEWDAAYIDOBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,.,,,,..,..,,..,,..,,...,...,..,,...,..,,...,...,,,.,.,,,,,.,
+#HITCUY3PQ7NBHJLAMY32AXJZZ3BEJJGU5THD4U6DHYGFRVF66SE3VHMVQL7SH7AA4M7VWNUCWOZRO
+#\\\|KCLZ5CUKEN32FIZHW5G5DG7VXSYCAP53BQUC4664DXKQCUBYUSL \ / AMOS7 \ YOURUM ::
+#\[7]MYV6G63KD52N6MI2MSE3JT2GFNVM53DQ6VYWMDFXJAI2L3SCUKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

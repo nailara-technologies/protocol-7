@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.G3GGMVA |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.2JSRQBY |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -399,6 +399,9 @@ sub holder_read {
     my $h = holder_parse($spec);
     return read_file( _path( $h, $name ) ) if $h->{'type'} eq qw| local |;
     if ( $h->{'receiver'} ) {
+        my $reply
+            = _session_call( $h, [ 'get ' . _recv_name( $h, $name ) ] );
+        return $reply->[0][0] ? undef : $reply->[0][1] if $reply;
         my $size = holder_size( $spec, $name );
         return undef if not defined $size;
         return ''    if not $size;
@@ -410,6 +413,105 @@ sub holder_read {
     return undef                                   if $status == 44;
     refuse( 'ssh holder read failed : %s', $name ) if $status;
     return $out;
+}
+
+## reads on a receiver go through one long-lived 'session' channel per alias :
+## requests are pipelined, a window at a time, so a set of reads costs about
+## one round trip instead of one ssh start and round trip each. a receiver
+## without the verb ends the channel at once : the old per-call path takes
+## over for that alias
+my %SESSION;
+my $SESSION_WINDOW = 64;
+
+sub _session {
+    my $h     = shift;
+    my $alias = $h->{'alias'};
+    return undef if not $h->{'receiver'};
+    my $s = $SESSION{$alias};
+    return undef if $s and $s->{'broken'};
+    return $s    if $s;
+    my $program = $ENV{'N7FS_SSH'} // 'ssh';
+    my ( $in, $out ) = ( gensym, gensym );
+    my $pid = eval {
+        open3(
+            $in, $out, '>&STDERR', $program,
+            qw| -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=11
+                -o ServerAliveCountMax=7 |,
+            _mux_options(),
+            $alias, 'session'
+        );
+    };
+    return ( $SESSION{$alias} = { qw| broken | => 1 } ) && undef
+        if not $pid;
+    binmode $in;
+    binmode $out;
+    return $SESSION{$alias} = {
+        qw| pid | => $pid,
+        qw| in |  => $in,
+        qw| out | => $out,
+        qw| buf | => ''
+    };
+}
+
+sub _session_close {
+    my ( $alias, $broken ) = @_;
+    my $s = $SESSION{$alias} or return;
+    close $s->{'in'}  if $s->{'in'};
+    close $s->{'out'} if $s->{'out'};
+    waitpid $s->{'pid'}, 0 if $s->{'pid'};
+    $SESSION{$alias} = $broken ? { qw| broken | => 1 } : undef;
+    delete $SESSION{$alias} if not $broken;
+    return;
+}
+
+END { _session_close($ARG) for keys %SESSION }
+
+sub _session_fill {
+    my ( $s, $want ) = @_;
+    while ( length $s->{'buf'} < $want ) {
+        my $got = sysread( $s->{'out'}, $s->{'buf'}, 1048576,
+            length $s->{'buf'} );
+        return 0 if not $got;
+    }
+    return 1;
+}
+
+## [ status, bytes ] per request line, in order ; undef when the channel
+## failed before any reply : the caller then reads the old way
+sub _session_call {
+    my ( $h, $requests ) = @_;
+    my $s = _session($h) or return undef;
+    my @reply;
+    my @todo = @{$requests};
+    while (@todo) {
+        my @part = splice @todo, 0, $SESSION_WINDOW;
+        my $ok;
+        {
+            local $SIG{'PIPE'} = 'IGNORE';
+            $ok = syswrite( $s->{'in'}, join( '', map {"$ARG\n"} @part ) );
+        }
+        foreach my $request (@part) {
+            my $line_end;
+            while ( $ok
+                and ( $line_end = index $s->{'buf'}, "\n" ) < 0 ) {
+                $ok = _session_fill( $s, length( $s->{'buf'} ) + 1 );
+            }
+            if ( not $ok ) {
+                _session_close( $h->{'alias'}, 1 );
+                return undef if not @reply;
+                refuse( 'holder session ended : %s', $h->{'alias'} );
+            }
+            my ( $status, $size )
+                = substr( $s->{'buf'}, 0, $line_end ) =~ m|\A(\d+) (\d+)\z|
+                or refuse('holder session reply is invalid');
+            substr( $s->{'buf'}, 0, $line_end + 1, '' );
+            _session_fill( $s, $size )
+                or
+                refuse( 'holder session reply is short : %s', $h->{'alias'} );
+            push @reply, [ 0 + $status, substr( $s->{'buf'}, 0, $size, '' ) ];
+        }
+    }
+    return \@reply;
 }
 
 ## many whole blobs in a few ssh calls : { name => bytes }, a missing one is
@@ -424,6 +526,17 @@ sub holder_read_many {
             $got{$name} = $bytes if defined $bytes;
         }
         return \%got;
+    }
+    if ( $h->{'receiver'} ) {
+        my $reply = _session_call( $h,
+            [ map { 'get ' . _recv_name( $h, $ARG ) } @{$names} ] );
+        if ($reply) {
+            foreach my $i ( 0 .. $#{$names} ) {
+                $got{ $names->[$i] } = $reply->[$i][1]
+                    if $reply->[$i][0] == 0;
+            }
+            return \%got;
+        }
     }
     my @todo = @{$names};
     while (@todo) {
@@ -466,6 +579,8 @@ sub holder_size {
     return -s _path( $h, $name ) if $h->{'type'} eq qw| local |;
     if ( $h->{'receiver'} ) {
         my $remote = _recv_name( $h, $name );
+        my $reply  = _session_call( $h, ["has $remote"] );
+        return $reply->[0][0] ? undef : 0 + $reply->[0][1] if $reply;
         my ( $status, $out ) = _result( $h, "has $remote" );
         refuse( 'ssh holder size failed : %s', $name ) if $status;
         return undef                                   if not length $out;
@@ -767,6 +882,8 @@ sub holder_read_range {
     }
     if ( $h->{'receiver'} ) {
         my $remote = _recv_name( $h, $name );
+        my $reply  = _session_call( $h, ["get-range $remote $offset $len"] );
+        return $reply->[0][0] ? undef : $reply->[0][1] if $reply;
         my ( $status, $out )
             = _result( $h, "get-range $remote $offset $len" );
         return undef                                     if $status == 44;
@@ -1224,8 +1341,8 @@ sub holder_put {
 
 1;
 
-#,,..,.,.,,..,,,.,.,.,,..,,,.,,,,,,,.,...,,..,..,,...,...,...,.,,,..,,,,.,..,,
-#DJGTXPA6DDXRZ2Q7XLZEDRLDR22P6AMKGDIURIXRC3ICNAQYJ26MQCGGWCXEUVGWAE3M3YFC7KB3O
-#\\\|XDNZWXCUEENGQNDYBNV2ND6NHZH4TLI4OEDHQYQ3YEPUMKFATIW \ / AMOS7 \ YOURUM ::
-#\[7]RQVKYJFMBJGNU55ICI2LFNKS5Q7MYAFKYG2ZJ5YVFZIZZSB7HKCY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,,,.,.,...,,,,,..,,..,,,.,,,.,,..,,...,...,.,.,...,...,..,,,,.,
+#CRBF2DVODWR5QGZRC3N2V6ESW3LX7BRUWFHQUIQB4T2DPZN2ZDZYRDF736BU5TT3FO5XAN7XLFIS6
+#\\\|ISD7YIKOWDL6ZWQP643PTHQH3ARC57UEVZ3VYZUXA2674OFTBZQ \ / AMOS7 \ YOURUM ::
+#\[7]ER74DJVROLGPPYZS7HY42GI262N3RA2P27U5FDTRIEYABNBYMICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

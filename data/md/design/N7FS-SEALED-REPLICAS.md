@@ -429,6 +429,33 @@ drill is due every `3Y1` and immediately after `n7fs key-copy-moved <root-id>`
 records that a copy was made or moved. `n7fs status` and `cycle -status` report
 all three cadences and whether each is current or overdue.
 
+### holder transport : sessions, pipelining, sets [ 2026-11-15 ]
+
+the go-live showed the per-call design is unusable : every remote read forked
+one `ssh` client and waited a full round trip [ about 0.5 s through the
+proxy ], `has` then `get-range` per blob. `relay -list` sat at 0.8 % cpu for
+hours on 1024 map shards and thousands of manifest blobs. the rules now :
+
+- **one session per holder alias** : `n7fs-receive session` keeps one
+  channel for the whole run. request lines `has` \ `get` \ `get-range`,
+  replies `<status> <length>` and the bytes, in order. a receiver without the
+  verb ends the channel and the old per-call path takes over [ mixed
+  deployments keep working ].
+- **pipelined** : the sender writes a window of requests [ 64 ] before
+  reading their replies. a persistent channel alone would still wait one
+  round trip per read.
+- **sets, not loops** : callers hand over every name they need at once.
+  the first map shard read fetches all shard blobs ; relay fetches all tree
+  index blobs, then all their chunks [ `holder_read_many` ]. a measured 1000
+  blobs \ 145 MB took 12 s, bandwidth bound ; a single read 31 ms.
+- **next** : the same session behind `AMOS7::SSH` on Net::SSH2 [ in process,
+  `~/.ssh/config` subset, ProxyCommand over a socketpair, strict known_hosts ;
+  see LINK-ZENKI-AND-TRANSPORTS.md, the `ssh2` transport and the ssh zenka ],
+  writes on the session [ puts, signed requests ] with the send buffer
+  [ one sender per holder, a token bucket at the cap ], and scrub \
+  holder-check sampling as sets. a new remote step that loops over single
+  reads is a regression : measure calls per second and cpu before shipping.
+
 ## 6. acceptance
 
 built and covered by the drill tests : a clean context with only a read-only
@@ -708,8 +735,8 @@ stage 4 is the first that gets essential data off the host.
 - does a holder know a blob's priority at all, or does only home decide and
   send explicit move orders
 
-#,,..,,,,,,,.,,..,.,,,..,,...,.,,,,,.,,.,,,..,..,,...,...,,,.,,..,,..,...,..,,
-#XYID67CUM66FV34K27Y4FC7NT7NG2CP53UBXA7NHBND66SVZ6S5QLX3UBUI6VDY5MCTQWX6AV72DI
-#\\\|YX65OKLOYCEKWRFCBA4NWHYRP6ZGG4VMXLOVMKTSCZBXIOLDHKA \ / AMOS7 \ YOURUM ::
-#\[7]2DQFBEIKUUUM34W6ECTN4ZQRFKBHXYCTGDDENKLVUDZORWS2PMDI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,,,...,.,.,,..,.,,,,..,,,,,...,..,,...,...,.,,,,,,,,.,,,.,,,..,
+#WATGB5J75KASKQNUVAAI2RRQQ5W5PGYHFIR33LRNCDYRANDHMKIBLHLSFGDP52IHWYHWUGQCDNAQ2
+#\\\|RAL5DH5D7FDTHBNVCKHUQZGRP5VPF6DB5EYPUWKCD6GFNKTWXK7 \ / AMOS7 \ YOURUM ::
+#\[7]VAF4YOATPWUXP4B3BPGNPSGEWJ6IR34OEULFWFEM6SA4RXXGRMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

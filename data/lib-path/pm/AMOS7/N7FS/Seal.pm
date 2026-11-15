@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.SIDMAFQ |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.IUZYXCY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -742,6 +742,11 @@ sub _load {
     return $self->{'cache'}{$shard} if exists $self->{'cache'}{$shard};
     my $desc = $self->{'shards'}{$shard} // return $self->{'cache'}{$shard}
         = {};
+    ## the first shard read fetches every shard blob in one pipelined go ##
+    if ( not $self->{'prefetched'}++ ) {
+        AMOS7::N7FS::Seal::_prefetch( $self->{'base'},
+            [ map { $ARG->{'blob'} } values %{ $self->{'shards'} } ] );
+    }
     my $key = join "\0", $shard, @{$desc}{qw| blob writer version |};
     $self->{'plain'}{$key}
         //= AMOS7::N7FS::Seal::_map_plain( @{$self}{qw| root base alt |},
@@ -3555,8 +3560,8 @@ sub shred_node {
 
 1;
 
-#,,..,,..,...,,..,,,,,,.,,,..,,.,,,,,,,,,,,,,,..,,...,..,,,.,,,,.,,,.,,..,,..,
-#BDXPY6YXIPTOPPQIMA4ZUIZUF7PZ4KXILL4LTBRUBAOXKBWJPTLBOC5H632VQ6KK2DUKGNV6QF3YQ
-#\\\|JFS7X3VACM5NCURA32EH46AKNDXUCBS5TY5NLMIHLQCQ36KIICW \ / AMOS7 \ YOURUM ::
-#\[7]JQ5JL2DCLGBSH2E2JLFNAQQMHYTBREIAIYHOEHATZT3AWEKXZ6BA 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,,.,,,.,,,..,..,,,,.,.,.,,,,,..,,...,...,...,.,.,.,.,..,,,,.,
+#D6S7LEXCHYVTMNHDFTYUPOKR7DXKEKAZUCRV3W7W7L5NC44JTXSVWDAITJO42KHSESPIW2RIXVQQ6
+#\\\|V5T6BO6DPVCCQV66G6PIRQLOAPXUZ6SGBNGOQOQSF5MJ4ILFZA6 \ / AMOS7 \ YOURUM ::
+#\[7]SC24TBG5UM277M7EGTBUUWSY7DMMQJMHODFPHFXOUTT7F7FRACDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
