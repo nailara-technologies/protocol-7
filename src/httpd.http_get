@@ -31,7 +31,7 @@ my $uri_path = $uri_obj->path // '/';
 
 <[base.logs]>->(
     2,   "[%d] route_dispatcher : GET %s [vhost=%s]",
-    $id, $uri_path, $http_host
+    $id, <[base.parser.ellipse_center]>->( $uri_path, 160 ), $http_host
 );
 
 # Call route_dispatcher to determine the appropriate handler
@@ -90,8 +90,8 @@ if ( $handler_name eq qw| httpd.process_template | ) {
 <[base.logs]>->( 0, "[%d] http_get : unexpected fallthrough", $id );
 return <[httpd.send_error_page]>->( $id, 500 );
 
-#,,.,,,..,.,.,,,.,,..,...,.,,,,.,,,,,,.,,,.,,,..,,...,...,,..,,,.,,,.,,..,.,,,
-#BIYZOCUGPZSKHQ6YSEYEQHCIQTPWTLKRPAKXZHSUEU7AWQ5EAS336B3UA7BWXYD7FUNOOI7ISKFY2
-#\\\|GM7LL75433NVXWN27ENXIRFMN3P5PRVB3DWG2TX3TJAHAPANAKC \ / AMOS7 \ YOURUM ::
-#\[7]KDVVFURGRATNMS4ECE4NHNOEKRF4NIYDBKI2BWGXKS7DYIXD7KCY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,..,..,,,,,,,..,.,,,.,,,...,.,.,..,,...,...,,..,.,.,,.,,...,.,,,
+#IVTNCD4B4ND2YX3KP5AJZ22CWTI6GFVN6GFHZE3CSSJUJNIV5RQ22PZRUK2L6BZRDGQ4YKMFPSMEW
+#\\\|6DVKZP4AUYIO5OYW27CCIUUPLQF6GTE6UK6ASUBTQVYWXCMEOWQ \ / AMOS7 \ YOURUM ::
+#\[7]LMPM4MIQXCQQZQLTDS6DAXMVGUMCOQRPHULI5HMIPPKTMFRUZGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

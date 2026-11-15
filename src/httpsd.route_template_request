@@ -65,8 +65,10 @@ $path = "/$path" unless $path =~ m|^/|;
 $path =~ s|/+$|| unless $path eq qw| / |;
 
 <[base.logs]>->(
-    2, "[%s] routing %s %s [vhost=%s]",
-    $session_id, $method, $path, $vhost // 'default'
+    2,           "[%s] routing %s %s [vhost=%s]",
+    $session_id, $method,
+    <[base.parser.ellipse_center]>->( $path, 160 ),
+    $vhost // 'default'
 );
 
 # Initialize route cache if needed
@@ -178,8 +180,8 @@ my $route = {
 <httpsd.route_cache>->{$cache_key} = $route;
 return { %$route, cached => 0 };
 
-#,,.,,.,,,.,,,,.,,,,.,,,.,.,,,,,.,.,,,.,.,,.,,..,,...,.,,,.,.,...,,,,,,.,,...,
-#7ASQ4NQJVYQXA7I27WBS7SDUECOWF2OTWFCFSZXPWWIRFWIVEJL6DRVYRLCJVZOW3OFPQ2O5DC4UM
-#\\\|ZH34AJCFK7KJFRS7KZVE2NXCKK6JLXJA7LCYD7QZ7ANQSTPEGAK \ / AMOS7 \ YOURUM ::
-#\[7]FAP4SY7EVU6BRI6YL7HC6U2A2D4MHYKVUXCGCBKNHKWNOJBDOYBY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,.,,.,.,,.,,,.,,,.,,,,.,,,.,..,,...,...,,,.,.,.,.,,,..,,.,.,
+#EI2KI4XPOWCKD7RMHFYNIKZ4QQJDJBCSEPOBZNIWWCABNKO6DGFAD5WNUHVPR4MP46KIMEGPLMDLI
+#\\\|UBXYK2MX57WT6VBG3AK6TCCBU7RRYOQEQFB6M3HHZA6JE2BHODI \ / AMOS7 \ YOURUM ::
+#\[7]FICUKE7L7WZ5MWF5P7BFTH3RLCG3YEDBB3UWQORB5QWSYS6674AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
