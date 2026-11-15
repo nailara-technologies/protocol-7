@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.IUZYXCY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.BTKPIJY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -2535,6 +2535,13 @@ sub holder_check {
         ? holder_sub_spec( $top, root_subdir( $opt{'root'} ) )
         : undef;
     $opt{'holder'} = $base;
+    ## tree indices in one pipelined go, not one round trip per tree ##
+    _prefetch(
+        $base,
+        [   grep {defined}
+            map  { $ARG->{'index'}{'blob'} } values %{ $map->{'trees'} // {} }
+        ]
+    );
     my $sizes     = holder_sizes($base);
     my @addresses = sort keys $map->{'nodes'}->%*;
     my %blobs     = map { $ARG => TRUE }
@@ -3560,8 +3567,8 @@ sub shred_node {
 
 1;
 
-#,,..,..,,,..,...,,.,,,.,,,..,..,,,,.,.,.,,,,,..,,...,...,...,.,.,.,.,..,,,,.,
-#D6S7LEXCHYVTMNHDFTYUPOKR7DXKEKAZUCRV3W7W7L5NC44JTXSVWDAITJO42KHSESPIW2RIXVQQ6
-#\\\|V5T6BO6DPVCCQV66G6PIRQLOAPXUZ6SGBNGOQOQSF5MJ4ILFZA6 \ / AMOS7 \ YOURUM ::
-#\[7]SC24TBG5UM277M7EGTBUUWSY7DMMQJMHODFPHFXOUTT7F7FRACDY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,.,.,.,..,,.,.,.,,,,,.,,.,,,,.,..,,...,...,,,,,,,,,,..,,,.,...,
+#JJDIJUJPLB2DUMICPN5R2UKVWQSRJUDUQ36HSGEFYSTGNZWAXKTJABIG7YAZPE2MHL46SE6MYH7OO
+#\\\|24PXXWBKC4ND2YRC3SDFDPU6NKAA7CEDQ65MSPNCIF25I6XGEBW \ / AMOS7 \ YOURUM ::
+#\[7]CEITAIPG4PJFVFEY4G2X4LYFTQFZIPFA6FCBXMKGR5LFZADJ4CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

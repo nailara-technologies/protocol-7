@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.NUYDQKA |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.2F3QGXY |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -428,6 +428,10 @@ sub _session {
     my $alias = $h->{'alias'};
     return undef if not $h->{'receiver'};
     my $s = $SESSION{$alias};
+    ## a forked worker never shares its parent's channel : replies would go ##
+    ## to whichever process reads first                                     ##
+    $s = $SESSION{$alias} = undef
+        if $s and ( $s->{'owner'} // $PID ) != $PID;
     return undef if $s and $s->{'broken'};
     return $s    if $s;
     my $program = $ENV{'N7FS_SSH'} // 'ssh';
@@ -446,10 +450,11 @@ sub _session {
     binmode $in;
     binmode $out;
     return $SESSION{$alias} = {
-        qw| pid | => $pid,
-        qw| in |  => $in,
-        qw| out | => $out,
-        qw| buf | => ''
+        qw| pid |   => $pid,
+        qw| in |    => $in,
+        qw| out |   => $out,
+        qw| buf |   => '',
+        qw| owner | => $PID
     };
 }
 
@@ -464,11 +469,46 @@ sub _session_close {
     return;
 }
 
-END { _session_close($ARG) for keys %SESSION }
+END {
+    _session_close($ARG)
+        for grep { ( $SESSION{$ARG}{'owner'} // -1 ) == $PID } keys %SESSION;
+}
+
+## a reply silent for this long ends the session instead of hanging ##
+my $SESSION_STALL = $ENV{'N7FS_SESSION_STALL'} // 120;
+## N7FS_SESSION_TRACE=<file> appends every request and reply header there, ##
+## =1 writes them to stderr                                                ##
+my $TRACE;
+
+sub _trace {
+    my $path = $ENV{'N7FS_SESSION_TRACE'} // return;
+    if ( not $TRACE ) {
+        ## 1 is stderr, anything else a file to append to ##
+        open(
+            $TRACE,
+            $path eq '1' ? '>&STDERR' : '>>:raw',
+            $path eq '1' ? ()         : $path
+        ) or return;
+        $TRACE->autoflush(1);
+    }
+    print {$TRACE} @_, "\n";
+    return;
+}
 
 sub _session_fill {
     my ( $s, $want ) = @_;
     while ( length $s->{'buf'} < $want ) {
+        if ( not IO::Select->new( $s->{'out'} )->can_read($SESSION_STALL) ) {
+            warn ": n7fs : holder session silent for "
+                . "$SESSION_STALL s, waiting for $want bytes with "
+                . length( $s->{'buf'} )
+                . " buffered after "
+                . ( $s->{'sent'} // 0 )
+                . " requests and "
+                . ( $s->{'answered'} // 0 )
+                . " replies\n";
+            return 0;
+        }
         my $got = sysread( $s->{'out'}, $s->{'buf'}, 1048576,
             length $s->{'buf'} );
         return 0 if not $got;
@@ -488,6 +528,9 @@ sub _session_call {
         ## a request is a line, or [ line, payload ] for a put ##
         my $send = join '',
             map { ref $ARG ? "$ARG->[0]\n$ARG->[1]" : "$ARG\n" } @part;
+        $s->{'sent'} += @part;
+        _trace( "$PID $h->{'alias'} > ", ref $ARG ? $ARG->[0] : $ARG )
+            for @part;
         my $ok = 1;
         {
             local $SIG{'PIPE'} = 'IGNORE';
@@ -518,6 +561,8 @@ sub _session_call {
                 or
                 refuse( 'holder session reply is short : %s', $h->{'alias'} );
             push @reply, [ 0 + $status, substr( $s->{'buf'}, 0, $size, '' ) ];
+            $s->{'answered'}++;
+            _trace("$PID $h->{'alias'} < $status $size");
         }
     }
     return \@reply;
@@ -1398,8 +1443,8 @@ sub holder_put {
 
 1;
 
-#,,,.,...,.,.,...,...,...,,.,,,,.,,.,,,,.,,,.,..,,...,..,,.,,,,,.,...,.,.,,.,,
-#PMXQFDWDI3BSJWOIH237OGC5CBPKYSXK433SHY3RR3FD7ALE65VSWHQG2RPQNQCI74GELEZNAOB4M
-#\\\|ELWCEVWCQCEW32VMJIBCJ5EWQYB3XZZAFG33NCKZ6OF35XMPTHQ \ / AMOS7 \ YOURUM ::
-#\[7]4GZD7UH7SEAK7PNXW7R2X6H53KKUEUCT3FWZP5V33NNE64FKBOBA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,..,,..,,,..,,.,,..,,,,.,.,.,.,.,..,,...,..,,.,,,,..,...,,..,,,.,
+#T5VCVHWZC5UKAVBQ5O4YDGFTFZHSPY7VYCR777XCFAKFFWZVXP4DCBBKIRGLYGIJZHPKG6PSONHXG
+#\\\|OOTZ3CZBBFJVNDFSZRZM5D6MDYLULYKROPWT2THG54ZUQZQJQ46 \ / AMOS7 \ YOURUM ::
+#\[7]5LZCGIPFWLYFI7YUHJTPWHUWMELCEPN32IPYCPRLAJBI264BQMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
