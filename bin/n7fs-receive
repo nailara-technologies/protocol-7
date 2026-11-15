@@ -19,6 +19,8 @@ use warnings;
 ##   time                     holder unix time for age decisions
 ##   has <name> ..            prints '<name> <size>' for those present
 ##   get-range <name> <offset> <length>
+##   get <name> ..            whole blobs : '<name> <size>' then the bytes,
+##                            nothing for a missing one
 ##   put <name> <size>        reads exactly <size> bytes, add only
 ##   put-head <name> <size> <request>
 ##   put-list <name> <size> <request>
@@ -277,6 +279,29 @@ if ( $verb eq 'free' ) {
     close $fh;
     my @field = split ' ', ( split m|\n|, $line[-1] // '' )[-1] // '';
     say $field[3] * 1024 if ( $field[3] // '' ) =~ m|\A\d+\z|;
+    exit 0;
+}
+
+if ( $verb eq 'get' ) {
+    out('get needs at least one name') if not @word;
+    binmode STDOUT;
+    foreach my $name (@word) {
+        my $path = _blob($name);
+        next if not _safe_file($path);
+        sysopen( my $fh, $path, O_RDONLY ) or next;
+        binmode $fh;
+        my $size = -s $fh;
+        print "$name $size\n";
+        my $left = $size;
+        while ($left) {
+            my $got
+                = sysread( $fh, my $buf, $left < 1048576 ? $left : 1048576 );
+            out('cannot read the blob') if not $got;
+            print $buf;
+            $left -= $got;
+        }
+        close $fh;
+    }
     exit 0;
 }
 
@@ -655,8 +680,8 @@ if ( $verb eq 'delete' ) {
 
 out('unknown request');
 
-#,,..,.,,,..,,,,,,.,,,,.,,,.,,.,,,.,.,...,,..,..,,...,...,,,,,..,,...,.,,,,,,,
-#7FARVUU6DUKJV4RVIODM3CSR32CZIKGQ7PG6OU5M2URSB3FDSQUCRBB7TVYV6XTOIBGY42K2H7WDK
-#\\\|7HJDTJHL5ENDOB7OCZHFMQUDBP5GKFBREJI2G44DCQCHT52XMQW \ / AMOS7 \ YOURUM ::
-#\[7]PEYTT7CCCCMKDZBFQFRQD5O2ID7UOTPBJ5WQCJZ5MYHVWXGOFICQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,,..,...,.,.,,.,,...,,,.,..,,..,,...,...,.,,,.,.,,,,,,,.,,,,,
+#TA6WN6UCI7M2QXRN2EDOY6PTQSGPQOQ7YJO7DFKBD5LHRBIPTUVCDBI7VTQQI3FWFZE42DEFGALRC
+#\\\|HRMQ5RVRMP4AMWKSJ3HNNKSGO444DAQZURQ5TDQLKQA45YA5WLG \ / AMOS7 \ YOURUM ::
+#\[7]X4L7ZPTUQCHSSHU6B4C5KXRWRPNXFCKY56CHFXYAWEWDAAYIDOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,14 +13,14 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.N5MOF3I |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.G3GGMVA |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
     holder_make_path holder_move holder_trash_days holder_trash_list
     holder_remove_day holder_authorize
     holder_size holder_put holder_delete holder_verify holder_download
-    holder_read_range holder_scrub holder_put_batch |;
+    holder_read_range holder_scrub holder_put_batch holder_read_many |;
 
 use Cwd qw| abs_path |;
 use IO::Select;
@@ -410,6 +410,54 @@ sub holder_read {
     return undef                                   if $status == 44;
     refuse( 'ssh holder read failed : %s', $name ) if $status;
     return $out;
+}
+
+## many whole blobs in a few ssh calls : { name => bytes }, a missing one is
+## left out. one call per read waits a full round trip each time
+sub holder_read_many {
+    my ( $spec, $names ) = @_;
+    my $h = holder_parse($spec);
+    my %got;
+    if ( $h->{'type'} eq qw| local | ) {
+        foreach my $name ( @{$names} ) {
+            my $bytes = read_file( _path( $h, $name ) );
+            $got{$name} = $bytes if defined $bytes;
+        }
+        return \%got;
+    }
+    my @todo = @{$names};
+    while (@todo) {
+        my @part = splice @todo, 0, 200;
+        my ( %local, $command );
+        if ( $h->{'receiver'} ) {
+            %local   = map { _recv_name( $h, $ARG ) => $ARG } @part;
+            $command = join ' ', 'get', sort keys %local;
+        } else {
+            %local   = map { _path( $h, $ARG ) => $ARG } @part;
+            $command = join ' ', 'for f in',
+                ( map { _quote($ARG) } sort keys %local ),
+                '; do [ -f "$f" ] || continue ; '
+                . q!printf '%s %s\n' "$f" "$(wc -c < "$f")" ; !
+                . 'cat -- "$f" ; done';
+        }
+        my ( $status, $out ) = _result( $h, $command );
+        refuse( 'holder batch read failed : %s', $part[0] ) if $status;
+        my $at = 0;
+        while ( $at < length $out ) {
+            my $end = index $out, "\n", $at;
+            refuse('holder batch read reply is invalid') if $end < 0;
+            my ( $remote, $size )
+                = substr( $out, $at, $end - $at ) =~ m|\A(\S+) (\d+)\z|
+                or refuse('holder batch read reply is invalid');
+            refuse('holder batch read reply names an unasked blob')
+                if not exists $local{$remote};
+            refuse('holder batch read reply is short')
+                if $end + 1 + $size > length $out;
+            $got{ $local{$remote} } = substr $out, $end + 1, $size;
+            $at = $end + 1 + $size;
+        }
+    }
+    return \%got;
 }
 
 sub holder_size {
@@ -1176,8 +1224,8 @@ sub holder_put {
 
 1;
 
-#,,,,,,..,,..,,,,,,..,,,.,...,,..,.,.,.,.,...,..,,...,..,,...,,,.,.,.,.,,,..,,
-#RNDV23ROCSJXDOPFYJIFWC6YPL522JEDBYMWPCROLFZOC4YGCNZGIYJTG4CIJKXJF3S7M7ASD5PDO
-#\\\|GRDPTNSDL7D5ZKV3FZP2G6RXZQN5EWNJS5EJBRWZZIEYTCECJ5P \ / AMOS7 \ YOURUM ::
-#\[7]6RIO7HLANH22ZNFN63NBT4RV75AN4DG5HN3HM6QUPC3KRJLIPQCI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,.,.,,..,,,.,,,,,,,.,...,,..,..,,...,...,...,.,,,..,,,,.,..,,
+#DJGTXPA6DDXRZ2Q7XLZEDRLDR22P6AMKGDIURIXRC3ICNAQYJ26MQCGGWCXEUVGWAE3M3YFC7KB3O
+#\\\|XDNZWXCUEENGQNDYBNV2ND6NHZH4TLI4OEDHQYQ3YEPUMKFATIW \ / AMOS7 \ YOURUM ::
+#\[7]RQVKYJFMBJGNU55ICI2LFNKS5Q7MYAFKYG2ZJ5YVFZIZZSB7HKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

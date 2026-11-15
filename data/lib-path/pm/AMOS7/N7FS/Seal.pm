@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.CZSHSQI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.SIDMAFQ |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -44,7 +44,7 @@ use AMOS7::N7FS::Journal  qw| journal_replay |;
 use AMOS7::N7FS::Category qw| category_report category_definitions |;
 use AMOS7::N7FS::Holder   qw| holder_parse holder_canonical holder_mkdir
     holder_read holder_size holder_put holder_delete holder_verify
-    holder_download holder_read_range holder_sizes holder_stats holder_now holder_put_batch
+    holder_download holder_read_range holder_read_many holder_sizes holder_stats holder_now holder_put_batch
     holder_scrub holder_isdir holder_sub_spec holder_make_path holder_move
     holder_trash_days holder_trash_list holder_remove_day holder_authorize |;
 
@@ -399,10 +399,23 @@ sub _write_blob {
     return $name;
 }
 
+## blobs fetched ahead in bulk, per holder : _read_blob takes them first ##
+my %PREFETCHED;
+
+sub _prefetch {
+    my ( $dir, $names ) = @_;
+    my $have = $PREFETCHED{$dir} //= {};
+    my @want = grep { not exists $have->{$ARG} } @{$names};
+    return if not @want;
+    my $got = holder_read_many( $dir, \@want );
+    $have->{$ARG} = $got->{$ARG} for keys %{$got};
+    return;
+}
+
 sub _read_blob {
     my ( $dir, $name ) = @_;
     refuse('bad blob name') if ( $name // '' ) !~ m|\A[A-Z2-7]{77}\z|;
-    my $bytes = holder_read( $dir, $name )
+    my $bytes = $PREFETCHED{$dir}{$name} // holder_read( $dir, $name )
         // refuse( 'missing blob %s', $name );
     refuse( 'blob address mismatch %s', $name )
         if bmw_b32( bmw384_bytes($bytes) ) ne $name;
@@ -3342,6 +3355,29 @@ sub relay_nodes {
     }
     my %incoming = map { $ARG => TRUE } @addresses;
     my ( @tree_names, @tree_merges, %tree_files );
+    ## manifests come in bulk : indices first, then every chunk they name ##
+    my @fresh = grep {
+        ( $tmap->{'trees'}{$ARG}{'manifest'}     // '' ) ne
+            ( $fmap->{'trees'}{$ARG}{'manifest'} // '' )
+    } sort keys %{ $fmap->{'trees'} // {} };
+    _prefetch(
+        $fbase,
+        [   grep { defined and defined $fsizes->{$ARG} }
+            map  { $fmap->{'trees'}{$ARG}{'index'}{'blob'} } @fresh
+        ]
+    );
+    _prefetch(
+        $fbase,
+        [   grep { defined $fsizes->{$ARG} }
+            map {
+                my $tree  = $fmap->{'trees'}{$ARG};
+                my @names = eval {
+                    _manifest_blob_names( $root, $fbase, undef, $tree );
+                };
+                @names;
+            } @fresh
+        ]
+    );
     foreach my $name ( sort keys %{ $fmap->{'trees'} // {} } ) {
         my $tree = $fmap->{'trees'}{$name};
         if ( ( $tmap->{'trees'}{$name}{'manifest'} // '' ) eq
@@ -3519,8 +3555,8 @@ sub shred_node {
 
 1;
 
-#,,..,.,,,.,.,,..,,.,,,,,,,..,,,,,,..,..,,...,..,,...,...,.,,,...,..,,,..,...,
-#XVTMQEUD2NQ6K6Z43WUIU65VGCO3YTFBC7NCVV5IAN7X7C4JXDBH55H3VWHJSRMLMD7Y6VOTXY752
-#\\\|YJUHNDBW2N6HOPTO6KBLOVX7QRL7IF6NU6QZVPUTRKHWIZVOS3Q \ / AMOS7 \ YOURUM ::
-#\[7]WHWYND6SACCYL455IEW4P4IDDZ3UEVQWBO7FVXGDMEWCPKNOUGBI 7  DATA SIGNATURE ::
+#,,..,,..,...,,..,,,,,,.,,,..,,.,,,,,,,,,,,,,,..,,...,..,,,.,,,,.,,,.,,..,,..,
+#BDXPY6YXIPTOPPQIMA4ZUIZUF7PZ4KXILL4LTBRUBAOXKBWJPTLBOC5H632VQ6KK2DUKGNV6QF3YQ
+#\\\|JFS7X3VACM5NCURA32EH46AKNDXUCBS5TY5NLMIHLQCQ36KIICW \ / AMOS7 \ YOURUM ::
+#\[7]JQ5JL2DCLGBSH2E2JLFNAQQMHYTBREIAIYHOEHATZT3AWEKXZ6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
