@@ -127,8 +127,11 @@ if ( index( $h_req->uri, qw| %0 |, 0 ) >= 0
     or $request->{'uri'} !~ m|^[[:print:]\\]+$| ) {  ##  backslash allowed  ##
     undef $request->{'uri'};
     my $err_reason_str = 'non printable characters in URI';
-    <[base.logs]>                                    ## Bad Request ##
-        ->( 0, "[%d] request 'malformed' [ %s ]", $id, $err_reason_str );
+    ## bad request ##
+    <[base.logs]>->(
+        0,   "[%d] request 'malformed' [ %s ]",
+        $id, $err_reason_str
+    );
     <[httpd.send_error_page]>->( $id, 400, $err_reason_str );
     return 2;
 }
@@ -154,9 +157,12 @@ if (    exists <httpd.classify>
         if ref $match eq qw| HASH |;
 }
 
+## a probe can send kilobytes of path : the log keeps its start and end ##
 <[base.logs]>->(
-    2, ' < %s > %s%s', $request->{'client'}->{'addr'},
-    $request->{'uri'}, $classify_tag
+    2, ' < %s > %s%s',
+    $request->{'client'}->{'addr'},
+    <[base.parser.ellipse_center]>->( $request->{'uri'}, 160 ),
+    $classify_tag
 );
 
 $session->{'http'}->{'close'}      = 1;
@@ -202,8 +208,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,,,,...,.,.,.,,,,..,..,,,.,,,,.,..,,.,,,.,.,..,,...,...,.,.,.,.,...,,.,,.,,,
-#HGLIV5HMF6YOEBZ327KFZKSL63LGWZHVRZW6UGZGAINKD4HQC4LANSVVUWCKQSC5IU7YPDITKSQXO
-#\\\|GP5OYOQTHWYMAQ5L2SXVA2PT53S423LKKIYZCEKNA7M6YOW5B24 \ / AMOS7 \ YOURUM ::
-#\[7]UVJRD6XNCTCKVPQ54H44RW4YSPV6TYHPUK5Y6PMGBBVTXTJOP6BI 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,,,..,,.,.,,,.,...,,,.,,,.,,.,,..,,...,...,,,.,,.,,,.,,,.,,,,,,
+#QLJIXMHFEPZJBW5DU7C3RTMBMSOHG4CHQ255S7WDIKKCMWKBWRP2LZIFCPK2ESKGLTNZO76CYSOFY
+#\\\|3GGX7AJQM4VHKMCMVN2U5SVZGYHDDO45ZJP6SL5OBUNIZKAJSFZ \ / AMOS7 \ YOURUM ::
+#\[7]AL2EFQAXKCYGN2LPM4D2CG2QPCPZ62R3J2QBVGKFI7FPKRAG6GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
