@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.YUXFXII |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.N5MOF3I |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -236,7 +236,10 @@ sub holder_free {
 
 ## one shared ssh connection per holder host : a blob costs about ten ssh
 ## calls [ sizes, upload, readback, sync, rename ], each a full handshake
-## without it. off with N7FS_SSH_MUX=0 ; a test ssh [ N7FS_SSH ] gets none
+## without it. off with N7FS_SSH_MUX=0 ; a test ssh [ N7FS_SSH ] gets none.
+## the alias [ %n ] is part of the socket name : %C alone hashes user, host
+## and port, so two aliases with different keys for one account shared a
+## connection [ a full-shell spec rode the restricted receiver key ]
 sub _mux_options {
     return ()
         if defined $ENV{'N7FS_SSH'}
@@ -250,7 +253,7 @@ sub _mux_options {
     chmod 0700, $dir;
     return (
         qw| -o ControlMaster=auto |, '-o',
-        "ControlPath=$dir/%C",       qw| -o ControlPersist=60 |
+        "ControlPath=$dir/%n-%C",    qw| -o ControlPersist=60 |
     );
 }
 
@@ -1173,8 +1176,8 @@ sub holder_put {
 
 1;
 
-#,,,.,,.,,,,,,.,,,,.,,,,,,..,,,,.,...,,,.,,,,,..,,...,...,.,.,.,.,..,,,.,,,.,,
-#YNPENSEEH7LYCGHESSL2ZI2MORU3LBRODAOYHAOIQJWTZCZNDJPJ45YB72WIDHI7PXJXP75NDA2TU
-#\\\|AETHVE54Q5HFRZBXLAVODV3H5ZKE2LOCK23BY357462CBNKIMKA \ / AMOS7 \ YOURUM ::
-#\[7]MTPFY5AMGCSVIM4JL77NW2FACUTDJC63LYTSXGU2KCVGZZGCG4DQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,,,,..,,,.,...,,..,.,.,.,.,...,..,,...,..,,...,,,.,.,.,.,,,..,,
+#RNDV23ROCSJXDOPFYJIFWC6YPL522JEDBYMWPCROLFZOC4YGCNZGIYJTG4CIJKXJF3S7M7ASD5PDO
+#\\\|GRDPTNSDL7D5ZKV3FZP2G6RXZQN5EWNJS5EJBRWZZIEYTCECJ5P \ / AMOS7 \ YOURUM ::
+#\[7]6RIO7HLANH22ZNFN63NBT4RV75AN4DG5HN3HM6QUPC3KRJLIPQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

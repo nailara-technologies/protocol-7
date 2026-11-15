@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.AZ6L3AI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.CZSHSQI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -626,10 +626,14 @@ sub _context {
     refuse('pinned holder head is missing')
         if not defined $head and defined $known_spec;
     if ( defined $head ) {
-        my $holder       = $head->{'holder'};
-        my $wrong_holder = 'head belongs to another holder [ %s ]';
-        refuse( $wrong_holder, substr $holder, 0, 7 )
-            if defined $known_spec and $known_spec ne $holder;
+        my $holder = $head->{'holder'};
+        my $wrong_holder
+            = 'head belongs to another holder [ %s, pinned %s ] at %s';
+        refuse(
+            $wrong_holder,
+            substr( $holder,     0, 7 ),
+            substr( $known_spec, 0, 7 ), $dir
+        ) if defined $known_spec and $known_spec ne $holder;
         my $known  = $state->{'holders'}{$holder} // {};
         my $pinned = $known->{'version'}          // 0;
         refuse( 'pinned head rollback [ holder %d, pinned %d ]',
@@ -815,9 +819,9 @@ sub holder_respec {
     my ($head) = _head_locate( $root, $new );
     refuse('no sealed head under the new spec') if not defined $head;
     refuse(
-        'head belongs to another holder [ %s ]',
-        substr $head->{'holder'},
-        0, 7
+        'head belongs to another holder [ %s, pinned %s ] at %s',
+        substr( $head->{'holder'}, 0, 7 ),
+        substr( $old_id, 0, 7 ), $new
     ) if defined $old_id and $head->{'holder'} ne $old_id;
     refuse( 'the new spec serves an older head [ %d, pinned %d ]',
         $head->{'version'}, $pinned )
@@ -3515,8 +3519,8 @@ sub shred_node {
 
 1;
 
-#,,,.,.,.,,,,,,.,,..,,,..,,..,.,.,,.,,,,.,.,.,..,,...,...,,,,,.,,,.,.,..,,...,
-#HOP6X25K2TM5ZBB2NG5357HH35QAE4XSSAZJGERDFNKJTJA6YMLQEYABKS35NGE2SO6NOMUVJ2V7I
-#\\\|XR7IWCK4ERQRHLXUQKIPN4WMLOVJXO27G7MDWEDPU5FWT6TQPL7 \ / AMOS7 \ YOURUM ::
-#\[7]UMYA2JV6BQIGJ6VSBF4AQCGVEGSWE2LG47JL75YQHWA3DMZLRMBI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,,.,,,,,,,..,,,,,,..,..,,...,..,,...,...,.,,,...,..,,,..,...,
+#XVTMQEUD2NQ6K6Z43WUIU65VGCO3YTFBC7NCVV5IAN7X7C4JXDBH55H3VWHJSRMLMD7Y6VOTXY752
+#\\\|YJUHNDBW2N6HOPTO6KBLOVX7QRL7IF6NU6QZVPUTRKHWIZVOS3Q \ / AMOS7 \ YOURUM ::
+#\[7]WHWYND6SACCYL455IEW4P4IDDZ3UEVQWBO7FVXGDMEWCPKNOUGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
