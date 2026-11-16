@@ -17,7 +17,7 @@ use vars qw| @EXPORT $VERSION |;
 
 use AMOS7::CHKSUM qw| amos_template_chksum |;
 
-$VERSION = qw| AMOS7::CHKSUM::Nested-VERSION.MZOSTEI |;
+$VERSION = qw| AMOS7::CHKSUM::Nested-VERSION.CZPHQTY |;
 
 @EXPORT = qw|
     child_chksum
@@ -35,9 +35,11 @@ sub child_chksum {
 
     return undef
         if not defined $parent_chksum
-        or not length $parent_chksum
+        or ( length $parent_chksum
+        and $parent_chksum !~ m|^[A-Z0-9]{7}$| )
         or not defined $child_name
-        or not length $child_name;
+        or not length $child_name
+        or index( $child_name, qw| . | ) >= 0;
 
     ## bracketed and bare notation shapes as comma-joined truth templates [ ##
     ## split_truth_templates splits on unescaped commas and                 ##
@@ -93,6 +95,9 @@ sub verify_nesting {
 
     my $parsed = parse_nested($notation);
     return FALSE if not defined $parsed;
+    return FALSE
+        if not defined $parent_chksum
+        or $parsed->{'parent'} ne $parent_chksum;
 
     my $expected = child_chksum( $parent_chksum, $child_name );
     return FALSE if not defined $expected;
@@ -129,8 +134,8 @@ sub reconstruct_chain {
 
 return TRUE ##################################################################
 
-#,,,,,,.,,...,..,,..,,,.,,.,,,.,.,.,,,.,.,.,,,..,,...,...,,,.,,..,,..,.,.,.,,,
-#4O6RDQNI4GOFA4NCIT5CFRFKMJDG237DZAAL5DVWKMKTKIQVVLTZLAWMPKFXOLBZOSYUAKOOGNBJ2
-#\\\|VIGJOVPDVFHDACUGEALMMZ6WJD5J74WABPTOXHFKYEE6U4OC43I \ / AMOS7 \ YOURUM ::
-#\[7]MQQEIVUBJDG2SD5U6KNTJ76SPVOCXWGKSXTIFZXSRMRLVSDC6OBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,..,,,,,,.,,,,.,,,.,,,,.,.,,,..,,...,...,..,,,.,,,..,...,,,,,
+#5KYR7JJT4GKLR33OTUUBQAVWA4HLDG3IHOLBCSD3A2JN6P7TPHNYCTULTMAM6B7GS7XYBYN6XPDD6
+#\\\|U54F4TCLZUL76I7J5QDGXH5MLAUV2LD6MKZ4GRHKIFWVOW4TMKD \ / AMOS7 \ YOURUM ::
+#\[7]5V64CDYSYG5E5LHKPKPEK42EJZQJGPBR2BUFKO2XCLUO5PC6FMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

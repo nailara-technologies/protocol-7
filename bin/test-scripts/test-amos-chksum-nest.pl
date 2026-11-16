@@ -4,9 +4,10 @@ use strict;
 use warnings;
 
 ## Test amos-chksum -nest truth harmonization  Tests: bracketed [child:parent]
-## notation passes is_true on the full string, bare child:parent form [
-## brackets stripped, e.g. terminal  double-click copy-paste ] passes is_true
-## independently,  verify_nesting round-trip, parse_nested, reconstruct_chain
+## notation passes is_true on the full string, bare child:parent form
+## [ brackets stripped, e.g. terminal  double-click copy-paste ] passes
+## is_true independently,  verify_nesting round-trip, parse_nested,
+## reconstruct_chain
 
 ##[ LOCAL PM LIB PATH ]#######################################################
 
@@ -54,16 +55,18 @@ say '';
 say '=== testing amos-chksum -nest truth harmonization ===';
 say '';
 
-##[ arbitrary parent \ child pairs ]##
+##[ arbitrary parent \ child pairs with checksums from the original code ]##
 ##
 my @input_pairs = (
-    [qw| LOVES SWEETIE   |], [qw| PROTOCOL SEVEN  |],
-    [qw| AMOS TRUTH      |], [qw| alpha beta      |],
-    [qw| gamma delta     |],
+    [ qw| LOVES SWEETIE   |, qw| B5JI5LY | ],
+    [ qw| PROTOCOL SEVEN  |, qw| TUAPJYY | ],
+    [ qw| AMOS TRUTH      |, qw| SRF3MJI | ],
+    [ qw| alpha beta      |, qw| JIBAA3I | ],
+    [ qw| gamma delta     |, qw| MLNLC7A | ],
 );
 
 foreach my $pair (@input_pairs) {
-    my ( $parent_in, $child_in ) = $pair->@*;
+    my ( $parent_in, $child_in, $expected_chksum ) = $pair->@*;
 
     my $parent_chksum = amos_chksum($parent_in);
     my $child_name    = amos_chksum( join( ' ', $parent_in, $child_in ) );
@@ -71,6 +74,10 @@ foreach my $pair (@input_pairs) {
     my $child_chksum = child_chksum( $parent_chksum, $child_name );
     my $notation     = format_nested( $child_chksum, $parent_chksum );
 
+    check(
+        sprintf( '%s : checksum remains byte-identical', $notation ),
+        ( defined $child_chksum and $child_chksum eq $expected_chksum )
+    );
     check( sprintf( '%s : full notation is_true', $notation ),
         is_true( $notation, 0, 1, 4, 7 ) );
     check(
@@ -102,14 +109,39 @@ foreach my $pair (@input_pairs) {
         sprintf( '%s : reconstruct_chain', $notation ),
         ( defined $chain and $chain->@* == 1 )
     );
+
+    check(
+        sprintf( '%s : parent mismatch refused', $notation ),
+        not verify_nesting( $notation, qw| AAAAAAA |, $child_name )
+    );
 }
+
+##[ empty parent root ]##
+##
+my $root_chksum = child_chksum( '', qw| root | );
+check( 'empty parent builds root checksum',
+    ( defined $root_chksum and length $root_chksum == 7 ) );
+check(
+    'root checksum remains deterministic',
+    (   defined $root_chksum
+            and $root_chksum eq child_chksum( '', qw| root | )
+    )
+);
 
 ##[ invalid input handling ]##
 ##
-check( 'empty parent returns undef',
-    not defined child_chksum( '', qw| child | ) );
+check( 'undefined parent returns undef',
+    not defined child_chksum( undef, qw| child | ) );
+check( 'short parent returns undef',
+    not defined child_chksum( qw| PKHKHV |, qw| child | ) );
+check( 'long parent returns undef',
+    not defined child_chksum( qw| PKHKHVAA |, qw| child | ) );
+check( 'lowercase parent returns undef',
+    not defined child_chksum( qw| pkhkhva |, qw| child | ) );
 check( 'empty child name returns undef',
     not defined child_chksum( qw| PKHKHVA |, '' ) );
+check( 'dotted child name returns undef',
+    not defined child_chksum( qw| PKHKHVA |, qw| parent.child | ) );
 check( 'malformed notation rejected',
     not defined parse_nested(qw| [not-valid] |) );
 check(
@@ -132,8 +164,8 @@ exit( $tests_passed == $tests_run ? 0 : 1 );
 #\[7]TESTAMOSCHKSUMNESTTRUTHHARMONIZATIONREGRESSIONSCRIPT0 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,.,,,.,.,,.,,...,.,,,.,.,,.,,..,,.,.,.,.,..,,...,...,..,,,,,,.,.,,.,,,,,,
-#7YV5ETFZWF6ETG5TOZ6FJRA3B57EMVZQJZS5IR3KNKVUH3XBHD6SGJS4MWGUOXLPV6OOP4BXCX2EI
-#\\\|X6FU4O7TYKJSLLCGMIUYV34MRYQBTZDGYZ5WXFTEKHJNNO3UOA6 \ / AMOS7 \ YOURUM ::
-#\[7]7JXW4GLJ4XK5VZCZ54NTYEUUDC6MSP6PPDG4KHASSUH4UMYW4SBI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,..,,...,,.,,...,..,,,..,,..,,.,,..,,...,...,...,,.,,..,,..,,..,,
+#FZALWSEKOP67TDAM76KZO3MHTA3WNV5ILHOI53WPFGIXJ4XR3XDM3XC34FR33ZK6KNUV6JQ5EDIZU
+#\\\|JHLIDYWUOBSYCRVNNRFG4P4GYYDTHA5JXKXYOC2Z7ROQ7PW4LWR \ / AMOS7 \ YOURUM ::
+#\[7]CZCUPNRQXZMC3N2VKHC3XOC4GOS34OI2EDTLAJFXHVCZMJANWEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
