@@ -122,3 +122,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #\\\|BVU27CWVRZHP5ONODZKZGYWZKJ7YTNU7RCX5Z3MNLEP4JR5XCRR \ / AMOS7 \ YOURUM ::
 #\[7]NLZO53QHSGNSAONT4W2XAXDE7GCACLKEROWDCGAMLTTWAWQDLIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [harmony-names-hint-not-rule](feedback-harmony-names-hint-not-rule.md) — names : bin/harmony \ is-true as oracle hint, not rule ; NRT ledger = lowercase nested under AMOS7::NRT [ 2026-11-16 ]
+
+#,,,,,,..,...,...,..,,..,,,,,,,.,,,,.,.,.,..,,..,,...,...,,.,,,,.,,,,,,.,,..,,
+#JATOUWBPVCBUXEJNKEJSJBYRZLZLRNXT3HZ3VDT3NTDAR3APMNMD5GMR6VN3ACMNESP4725DCAM5K
+#\\\|DFOW6P5NQELMGJXIMQCYPEVTWBP2KUYV3CBFHKTQWVRENVYQAH5 \ / AMOS7 \ YOURUM ::
+#\[7]6QFNP3GQ54EAG3F3BRP3R7J4VU7HIIYMJ42FB5JOQXV4I2JHSIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

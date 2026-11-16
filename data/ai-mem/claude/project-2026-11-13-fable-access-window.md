@@ -34,3 +34,15 @@ RUN 1 DONE 2026-11-13 : ~/.n/private-notes/fable-n7fs-design-7-8-9-2026-11-13.md
 #\\\|JKO5CZXQEAUW5AEFHSEXJ4KKYDUBWJWE3ZXS6DHFCB2CHVXYY7J \ / AMOS7 \ YOURUM ::
 #\[7]XBOK5KSLUBTCCVCGPVR2BQOCIAQDM5HVH53KC56US6GWJ2RFJ2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+2026-11-16 : Fable plan access confirmed until 2026-11-16 23:59 PT [ = 2026-11-17 08:59 CET ], Fable may use up to 50 % of the weekly limit, at FULL cost [ a cap, not a discount ] ; Fable reset REDEEMED this day. after that : usage credits or a higher plan only.
+
+RULE [ owner + claude 2026-11-16 ] : a Fable-type reset refunds ALL Fable use, so every Fable window before redeeming is free work ; the only costs are time and having prepared Fable briefs. delay redeeming while prepared work + energy exist ; keep a queue of ready Fable briefs. a full reset only pays off if it starts a new 7-day window [ check the wording ].
+CONFIRMED [ owner 2026-11-16 ] : the full reset does NOT start a new 7-day window, it only zeroes usage inside the current one -> redeem it EARLY in a week that runs out fast, never near a week end. expires 2026-12-10.
+LESSON 2026-11-16 : check the 7d window END against a fixed clock reading before planning resets [ owner was off by one day ; ~8 points of Fable use after the redeem went unrefunded ].
+
+#,,,,,.,.,,..,,,,,.,,,..,,..,,.,.,,,.,.,,,.,.,..,,...,..,,,.,,..,,,,,,,.,,,..,
+#WDA66LVRGSHLGE6TRQAH7VGKCQDIBZ37JXV4PGRRLF2ZCWT34B2AHZQROGBLW6T7HTZOCOBQLGIOK
+#\\\|KD75SR523L6Y3VCUYG5SUYSTVQVZZP2DUZKAB4FDRM7UPRQDV74 \ / AMOS7 \ YOURUM ::
+#\[7]2RNVRRFIJILYLWIKWCDJKNWCYZLCKG77NTNGHE7TXRJRADTJZUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

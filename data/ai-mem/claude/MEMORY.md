@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [resource-accounting-design](project-2026-11-16-resource-accounting-design.md) — NEWEST 2026-11-16 : RESOURCE-ACCOUNTING-UNIFIED.md [ untracked ] by Fable + K3.1 review ; owner answers in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md ; next fable pass + irrigation
 - [no-sha-no-json-internal](feedback-no-sha-no-json-internal.md) — internal code : BMW \ AMOS checksums, no sha, no json ; sha only for external formats ; say it in every kimi prompt [ plan data/tasks/sha-to-amos-checksum-transition.md ]
 - [n7fs-go-live-and-terminal-follow-ups](project-2026-11-14-n7fs-go-live-and-terminal-follow-ups.md) — NEWEST : go-live DONE 2026-11-15, 4 holders full scrub, 4 copies ; pipelined holder sessions ; never edit the live n7fs tree [ broke it twice ]
 - [session-handover-n7fs-fable-design-built](project-2026-11-14-session-handover-n7fs-fable-design-built.md) — NEWEST, START HERE : Fable N7FS design 5 7 8 9 10 fully built + pushed ; nothing live until owner all-clear ; Fable window plan
@@ -99,8 +100,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,,,,,,.,,...,,..,,..,,.,,.,,,...,,..,.,.,..,,...,...,,..,..,,...,,.,,,..,
-#A7OUDP3PMMJEKCY4H4WLTTJYNNSD62MA555SJ6G3INW3GA42YGAXOFJTEXI3IZRAWLCP5JDLMNGGM
-#\\\|7235AQPUM5EQANUTNEXXAR4CXEUOIEBFWUHAJHS2POML5QYFJDI \ / AMOS7 \ YOURUM ::
-#\[7]LLZSAY5XD5G2VJTBYQIYMDL6JEV7QPUM2BFXP6JE6RDZWXNW2UBI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,..,,,,.,.,.,...,.,.,...,...,..,,...,...,..,,,,,,,,.,.,.,.,.,
+#GDI4IEFKWYC3I4SAS6RKUUWYQKPXDN6YZB6DR4NNCXKTGEZK7ZYM5AAPUEXLJBJVBPX5YK35XI42M
+#\\\|GDEX3QJGEJ6YNY3JXVHRE6FCPPDYP5D266DWZCEU7X2DBGK4H7E \ / AMOS7 \ YOURUM ::
+#\[7]NBII3VZPVVUWEZ5553M4N5VODH6JW2J7XGFRN6LTGJ7JGEJYYWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
