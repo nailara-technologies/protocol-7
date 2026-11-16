@@ -1,0 +1,292 @@
+#!/usr/bin/perl
+use v5.32.0;
+use strict;
+use English;
+use warnings;
+
+use FindBin;
+BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
+
+use Cwd               qw| abs_path |;
+use File::Basename    qw| basename |;
+use AMOS7::N7FS::Sign qw| key_file_signer |;
+use AMOS7::NRT::journal
+    qw| refuse read_file lock init common replay verify_head
+    commit recover |;
+use AMOS7::NRT::transaction                qw| prepare_issue |;
+use AMOS7::NRT::user::account              qw| NETWORK prepare resolve |;
+use AMOS7::NRT::user::account::transaction qw| prepare_transfer |;
+
+my $USAGE = <<'USAGE';
+usage :
+  nrt init <dir> -witness <keyfile> [ -frame-level <n> ]
+  nrt [ -dir <dir> ] account add <name> -key <keyfile>
+  nrt [ -dir <dir> ] issue <account> <drops> -witness <keyfile> -test
+  nrt [ -dir <dir> ] transaction <from> <to> <drops> [ <to> <drops> .. ]
+                     -key <keyfile>
+  nrt [ -dir <dir> ] balance [ <account> ]
+  nrt [ -dir <dir> ] journal [ -account <account> ]
+  nrt [ -dir <dir> ] verify
+  nrt [ -dir <dir> ] recover [ -witness <keyfile> ]
+  writing commands accept -accept-clock ; NRT_DIR sets the default directory
+USAGE
+
+sub options {
+    my ( $args, $boolean ) = @ARG;
+    my %boolean = map { $ARG => 1 } $boolean->@*;
+    my %opt;
+    my @left;
+    while ( $args->@* ) {
+        my $arg = shift $args->@*;
+        if ( $arg =~ m|\A-([a-z][a-z-]*)\z| ) {
+            my $name = $1;
+            if ( $boolean{$name} ) {
+                $opt{$name} = 1;
+            } else {
+                refuse( 'option -%s needs a value', $name ) if not $args->@*;
+                $opt{$name} = shift $args->@*;
+            }
+        } else {
+            push @left, $arg;
+        }
+    }
+    @{$args} = @left;
+    return \%opt;
+}
+
+sub default_dir {
+    my $given = shift;
+    return $given          if defined $given;
+    return $ENV{'NRT_DIR'} if defined $ENV{'NRT_DIR'};
+    refuse('HOME is not set [ use -dir or NRT_DIR ]')
+        if not length( $ENV{'HOME'} // '' );
+    return "$ENV{'HOME'}/.n/nrt/default";
+}
+
+sub signer {
+    my $path = shift // refuse('missing key file option');
+    return key_file_signer($path);
+}
+
+sub head_signer {
+    my $dir  = shift;
+    my $path = read_file("$dir/.witness-key");
+    refuse('witness key path cache is missing') if not defined $path;
+    $path =~ s|\n\z||;
+    return signer($path);
+}
+
+sub loaded {
+    my $dir   = shift;
+    my $state = replay($dir);
+    verify_head( $dir, $state );
+    return $state;
+}
+
+sub verify_output {
+    my $state = shift;
+    say 'verified : ', $state->{'ledger'};
+    say 'records  : ', scalar $state->{'records'}->@*;
+    say 'zero sum : 0';
+    say 'supply   : ', $state->{'supply'}, ' drops';
+    say 'head     : ', $state->{'last'};
+    return;
+}
+
+sub run {
+    my @args = @_;
+    my $dir_opt;
+    my $accept_clock = 0;
+    my @rest;
+    while (@args) {
+        my $arg = shift @args;
+        if ( $arg eq qw| -dir | ) {
+            refuse('-dir needs a directory') if not @args;
+            $dir_opt = shift @args;
+        } elsif ( $arg eq qw| -accept-clock | ) {
+            $accept_clock = 1;
+        } else {
+            push @rest, $arg;
+        }
+    }
+    my $command = shift @rest // '';
+    if ( $command eq qw| init | ) {
+        my $opt = options( \@rest, [] );
+        refuse('usage : nrt init <dir> -witness <keyfile>')
+            if @rest != 1
+            or not defined $opt->{'witness'};
+        my $dir = $rest[0];
+        ( my $clean = $dir ) =~ s|/+\z||;
+        my $ledger = basename($clean);
+        my ( $state, $record, $lock ) = init(
+            $dir, signer( $opt->{'witness'} ),
+            ledger       => $ledger,
+            frame_level  => $opt->{'frame-level'} // 3,
+            accept_clock => $accept_clock,
+            witness_path => abs_path( $opt->{'witness'} ),
+        );
+        say 'ledger : ', $state->{'ledger'};
+        say 'init   : ', $record->{'address'};
+        return;
+    }
+
+    my $dir = default_dir($dir_opt);
+    if ( $command eq qw| account | ) {
+        my $action = shift @rest // '';
+        refuse('usage : nrt account add <name> -key <keyfile>')
+            if $action ne qw| add |;
+        my $opt = options( \@rest, [] );
+        refuse('usage : nrt account add <name> -key <keyfile>')
+            if @rest != 1
+            or not defined $opt->{'key'};
+        my $lock  = lock($dir);
+        my $state = loaded($dir);
+        my $name  = $rest[0];
+        refuse( 'account name already exists [ %s ]', $name )
+            if exists $state->{'accounts'}{$name};
+        my $signer = signer( $opt->{'key'} );
+        my $values = common( $state, accept_clock => $accept_clock );
+        $values->{'name'}      = $name;
+        $values->{'name-time'} = $values->{'ntime'};
+        my $address = prepare( $values, $signer );
+        my $record  = commit( $dir, $state, qw| account |, $values, $signer,
+            q||, head_signer($dir) );
+        say 'account : ', $name;
+        say 'address : ', $address;
+        say 'seq     : ', $record->{'values'}{'seq'};
+        return;
+    }
+    if ( $command eq qw| issue | ) {
+        my $opt = options( \@rest, [qw| test |] );
+        refuse(   'usage : nrt issue <account> '
+                . '<drops> -witness <keyfile> -test' )
+            if @rest != 2
+            or not defined $opt->{'witness'}
+            or not $opt->{'test'};
+        my $lock   = lock($dir);
+        my $state  = loaded($dir);
+        my $signer = signer( $opt->{'witness'} );
+        refuse('issue key is not the ledger witness')
+            if $signer->public ne $state->{'witness'};
+        my $values = common( $state, accept_clock => $accept_clock );
+        my $body   = prepare_issue( $state, @rest, $signer, $values );
+        my $record = commit( $dir, $state, qw| transaction |, $values,
+            $signer, $body );
+        say 'issue  : ', $record->{'values'}{'drops'},
+            ' drops [ trusted test ]';
+        say 'seq    : ', $record->{'values'}{'seq'};
+        say 'supply : ', $state->{'supply'};
+        return;
+    }
+    if ( $command eq qw| transaction | ) {
+        my $opt = options( \@rest, [] );
+        refuse('transaction needs -key <keyfile>')
+            if not defined $opt->{'key'};
+        refuse(   'usage : nrt transaction <from> '
+                . '<to> <drops> [ .. ] -key <key>' )
+            if @rest < 3
+            or @rest % 2 != 1;
+        my $from = shift @rest;
+        my @receivers;
+        push @receivers, [ splice @rest, 0, 2 ] while @rest;
+        my $lock   = lock($dir);
+        my $state  = loaded($dir);
+        my $signer = signer( $opt->{'key'} );
+        my $values = common( $state, accept_clock => $accept_clock );
+        my $body   = prepare_transfer( $state, $from, \@receivers, $signer,
+            $values );
+        my $record = commit( $dir, $state, qw| transaction |,
+            $values, $signer, $body, head_signer($dir) );
+        say 'transaction : ', $record->{'values'}{'drops'}, ' drops';
+        say 'seq         : ', $record->{'values'}{'seq'};
+        return;
+    }
+    if ( $command eq qw| balance | ) {
+        my $opt = options( \@rest, [] );
+        refuse('usage : nrt balance [ <account> ]') if @rest > 1;
+        my $lock  = lock($dir);
+        my $state = loaded($dir);
+        if (@rest) {
+            my $account = resolve( $state, $rest[0] );
+            my $address
+                = $account eq NETWORK ? NETWORK : $account->{'address'};
+            say $rest[0], ' : ', $state->{'balances'}{$address};
+        } else {
+            for my $name ( sort keys $state->{'accounts'}->%* ) {
+                my $address = $state->{'accounts'}{$name}{'address'};
+                say $name, ' : ', $state->{'balances'}{$address};
+            }
+            say NETWORK, ' : ', $state->{'balances'}{ NETWORK() };
+        }
+        return;
+    }
+    if ( $command eq qw| journal | ) {
+        my $opt = options( \@rest, [] );
+        refuse('usage : nrt journal [ -account <account> ]') if @rest;
+        my $lock  = lock($dir);
+        my $state = loaded($dir);
+        my $wanted;
+        if ( defined $opt->{'account'} ) {
+            my $account = resolve( $state, $opt->{'account'} );
+            $wanted = $account eq NETWORK ? NETWORK : $account->{'address'};
+        }
+        for my $record ( $state->{'records'}->@* ) {
+            if ( defined $wanted ) {
+                my $match = $record->{'kind'} eq qw| account |
+                    && $state->{'accounts'}{ $record->{'values'}{'name'} }
+                    {'address'} eq $wanted;
+                if ( $record->{'kind'} eq qw| transaction | ) {
+                    $match
+                        = grep { $ARG->[1] eq $wanted } $record->{'rows'}->@*;
+                }
+                next if not $match;
+            }
+            print $record->{'bytes'};
+        }
+        return;
+    }
+    if ( $command eq qw| verify | ) {
+        refuse('usage : nrt verify') if @rest;
+        my $lock  = lock($dir);
+        my $state = loaded($dir);
+        verify_output($state);
+        return;
+    }
+    if ( $command eq qw| recover | ) {
+        my $opt = options( \@rest, [] );
+        refuse('usage : nrt recover [ -witness <keyfile> ]') if @rest;
+        my $result = recover(
+            $dir,
+            defined $opt->{'witness'}
+            ? ( witness      => signer( $opt->{'witness'} ),
+                accept_clock => $accept_clock
+                )
+            : (),
+        );
+        say 'torn : ', $result->{'torn'} if defined $result->{'torn'};
+        say 'void : ', $result->{'void'}{'values'}{'seq'}
+            if defined $result->{'void'};
+        say 'head : rebuilt' if $result->{'head'};
+        verify_output( $result->{'state'} );
+        return;
+    }
+    if ( $command eq qw| help | or $command eq qw| -help | ) {
+        print $USAGE;
+        return;
+    }
+    refuse( 'unknown command [ %s ]', $command || 'none' );
+}
+
+my $ok = eval { run(@ARGV); 1 };
+if ( not $ok ) {
+    my $error = $EVAL_ERROR // "nrt : unknown failure\n";
+    print STDERR $error;
+    exit 1;
+}
+exit 0;
+
+#,,..,.,,,.,,,...,,.,,,,,,,,,,..,,,,,,,..,,..,..,,...,...,..,,,.,,.,.,,,.,...,
+#ADTXFZE4FKGOBUJ5MC7XQLRKRJN73H7J5UYB7FABDEFEAB3LXASTIDQIKPWJ3ZVHWMTZG4L7OKEP2
+#\\\|GSBY4H7Y6X6FX7P3IG5MKLL2LO3UE3BKUJRPD7CDCKV45LSTQQ4 \ / AMOS7 \ YOURUM ::
+#\[7]HW5AG3CDBWO3JULH6C4IVLVBMJQIGSCUXYYZVPWSTBLOA5AT4ODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
