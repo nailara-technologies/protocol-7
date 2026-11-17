@@ -145,8 +145,27 @@ $code{'httpd.send_error_page'} = sub {
     push @sent_error, [ $sid, $error_code ];
     return 2;
 };
-$code{'protocol-7.route-send'} = sub {
+$code{'plugin.web.auth.secure_transport'} = sub { return TRUE };
+$code{'protocol-7.route-send'}            = sub {
     my $call = shift;
+    if ( $call->{'command'} eq qw| web.auth-bearer | ) {
+        my $param = $call->{'call_args'}{'param'} // {};
+        my $token = '';
+        if ( ( $param->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)|i ) {
+            $token = $LAST_PAREN_MATCH;
+        } elsif (
+            ( $param->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| )
+        {
+            $token = $LAST_PAREN_MATCH;
+        }
+        my $reply = $call->{'reply'}{'params'} // {};
+        if ( defined $code{'plugin.web.auth.verify_session'}->($token) ) {
+            push @relayed, $reply->{'relay'};
+        } else {
+            push @sent_error, [ $reply->{'http_sid'}, 401 ];
+        }
+        return 0;
+    }
     push @relayed, $call;
     return 0;
 };
@@ -162,6 +181,7 @@ compile_module($_) for qw|
     plugin.web.auth.destroy_session
     plugin.web.auth.create_session
     plugin.web.auth.verify_session
+    plugin.web.auth.admin_caller
     base.session.user
     base.has_access
     jobsite.sync.token_for_url
@@ -469,8 +489,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,..,.,.,...,,.,,..,,,,.,,,,,.,.,..,,,,,,..,,...,...,.,.,,.,,,,,,,.,,,..,
-#FYXQFDE7HM3XZ637KEXKOZ7FYWLGUEFO6LBGWOYY5CURVUDPLPXSBVRV6AIR3VGDKAY6REL5GVLTK
-#\\\|UYQCOZAHQVABVHU2DO3CGCERDNMKBUP5HMFKWK4ZLJA4DMF6C4Y \ / AMOS7 \ YOURUM ::
-#\[7]RSZZD5PWFYTW5SNMAYIDT46QD7ARBD24ORXJCJ3XPTZGIQQYREBY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,.,.,,,.,,,,.,,.,,,...,,,.,,,,,..,,...,...,.,.,...,...,.,,,..,,
+#DSSHDUFH3PXLFWV5PFKFMBHI2I4IHZFUT4G2XYCDDEG43WVC4EQ4D7D5CIYCXNIQRCIQKKNB4VRCC
+#\\\|Y4VCJIIJIAWQUO3K7AVF67HY24KNSO3KZYJLPYE3SQNH5W7BLTW \ / AMOS7 \ YOURUM ::
+#\[7]5H7QXD54GRZRT27UHQMHPPQ2PICKIZ47JFHABSMTUKNV5PCEUOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
