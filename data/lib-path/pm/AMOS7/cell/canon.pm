@@ -1,5 +1,5 @@
 package AMOS7::cell::canon;
-our $VERSION = qw| AMOS7::cell::canon-VERSION.DGO2UDY |;
+our $VERSION = qw| AMOS7::cell::canon-VERSION.J4BOGFY |;
 
 use v5.32.0;
 use strict;
@@ -154,8 +154,21 @@ sub _decode_value {
     return _word( $field, $value ) if $type eq q|word|;
     if ( $type eq q|address| ) {
         return $value if $value eq q|0|;
-        if ( $value =~ m|\A[A-Z2-7]{7}/[A-Z2-7]{7}/([A-Z2-7]{77})\z| ) {
-            _decode_b32( $name, $1, 48 );
+        if ( $value =~ m|\A([A-Z2-7]{7})/([A-Z2-7]{7})/([A-Z2-7]{77})\z| ) {
+            my ( $epoch, $amos, $bmw ) = ( $1, $2, $3 );
+            _refuse( 'key %s has a noncanonical address epoch [ %s ]',
+                $name, $epoch )
+                if $epoch !~ m|\AV7[A-Z2-7]{5}\z|;
+            _decode_b32( $name, $amos, 4 );
+            _decode_b32( $name, $bmw,  48 );
+            my $epoch_bytes = _decode_b32( $name, $epoch );
+            my $stored_num  = unpack q|w|, $epoch_bytes;
+            my $epoch_num = defined $stored_num ? 99999999 - $stored_num : -1;
+            _refuse( 'key %s has a noncanonical address epoch [ %s ]',
+                $name, $epoch )
+                if $epoch_num < 0
+                or $epoch_num >= 385280
+                or encode_b32r( pack( q|w|, $stored_num ) ) ne $epoch;
             return $value;
         }
         return $value
@@ -461,8 +474,8 @@ sub record_address {
 
 1;
 
-#,,,,,,,.,.,.,,..,,.,,...,,,,,.,.,,,.,...,,.,,..,,...,...,.,,,,,.,.,,,,,.,,,.,
-#ZMN3IACHUIP5MZ6FDJ27DVRZF7HS6QN62VYX25SLXCXBYNJRMFVVOZZCTTY6NS3I52WHMKOEWYK72
-#\\\|C4Q245B3GSX236WJNJXWH4R2HUR6KHA3DU45XROVAGGYPSK7TD6 \ / AMOS7 \ YOURUM ::
-#\[7]RKARBYQTSBAJZSZPWEG64MGNPWSC4GUWAVAT4IVRJJUYS73RTOBI 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,,,,,...,..,,.,.,,..,,.,,,,.,..,,...,...,...,..,,.,.,..,,,,.,
+#7FAHGY25CAM6J5ZDRGDMAG2EZQFQBWOJQC33BWC635TOYSDSOGZ3ETFFNWUUAHH2BU22WX4UCO3WM
+#\\\|IBBWECTPIJ4AZ34H6RBIQJGDCKSVMIMAUXXJHWO3UZWDGBSNWEB \ / AMOS7 \ YOURUM ::
+#\[7]JB4LQ7WAC2HEK3OQPJXEG3RCFWO4BOBXNKT4QOIH4YXIKNOR4KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

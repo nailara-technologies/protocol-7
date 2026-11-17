@@ -1,5 +1,5 @@
 package AMOS7::N7FS::Prior;
-our $VERSION = qw| AMOS7::N7FS::Prior-VERSION.ICWXDUY |;
+our $VERSION = qw| AMOS7::N7FS::Prior-VERSION.5BV7XPQ |;
 
 use v5.32.0;
 use strict;
@@ -14,7 +14,7 @@ use JSON::PP;
 use AMOS7::B32       qw| encode_b32r decode_b32r |;
 use AMOS7::N7FS::Sum qw| amos_of_bytes |;
 
-@EXPORT_OK = qw| read read_id |;
+@EXPORT_OK = qw| read read_id validate_json3_lines |;
 
 my $JSON = JSON::PP->new->utf8->canonical;
 
@@ -79,8 +79,34 @@ sub _refuse {
     die "n7fs prior : $message\n";
 }
 
+sub _reject_float_exponents {
+    my ( $kind, $bytes ) = @ARG;
+    my ( $outside, $in_string, $escaped ) = ( q||, 0, 0 );
+    for my $char ( split q||, $bytes ) {
+        if ($in_string) {
+            if ($escaped) {
+                $escaped = 0;
+            } elsif ( $char eq q|\\| ) {
+                $escaped = 1;
+            } elsif ( $char eq q|"| ) {
+                $in_string = 0;
+            }
+            next;
+        }
+        if ( $char eq q|"| ) {
+            $in_string = 1;
+            next;
+        }
+        $outside .= $char;
+    }
+    _refuse( '%s payload has a float exponent number', $kind )
+        if $outside =~ m{-?(?:0|[1-9][0-9]*)(?:[.][0-9]+)?[eE][+-]?[0-9]+};
+    return;
+}
+
 sub _decode {
     my ( $kind, $bytes ) = @ARG;
+    _reject_float_exponents( $kind, $bytes );
     my $data = eval { $JSON->decode($bytes) };
     _refuse( '%s payload is not valid json', $kind ) if $EVAL_ERROR;
     return $data;
@@ -104,6 +130,98 @@ sub _b32 {
     _refuse( '%s %s has the wrong decoded length', $kind, $field )
         if defined $length and length($decoded) != $length;
     return $decoded;
+}
+
+sub _manifest_scalar {
+    my ( $field, $value ) = @ARG;
+    _refuse( 'manifest entry field %s is not a scalar string', $field )
+        if not defined $value or ref $value;
+    return $value;
+}
+
+sub _manifest_path {
+    my $encoded = _manifest_scalar( 'p', shift );
+    return '' if $encoded eq q||;
+    my $path = _b32( 'manifest entry', 'path', $encoded );
+    _refuse('manifest path is absolute')  if $path =~ m|\A/|;
+    _refuse('manifest path contains nul') if index( $path, "\0" ) >= 0;
+    my @parts = split m|/|, $path, -1;
+    _refuse('manifest path has an unsafe component')
+        if grep { not length $ARG or $ARG eq q|.| or $ARG eq q|..| } @parts;
+    return $path;
+}
+
+sub _manifest_entry {
+    my $entry = shift;
+    _refuse('manifest entry is not an object') if ref $entry ne q|HASH|;
+    my %allowed = map { $ARG => 1 }
+        qw| p t mode uid gid mtime mtime_ns size a l h user_b32 group_b32
+        xattrs xattr_errors why |;
+    for my $key ( keys %{$entry} ) {
+        _refuse( 'manifest entry has unknown key [ %s ]', $key )
+            if not $allowed{$key};
+    }
+    _manifest_path( $entry->{'p'} );
+    my $type = _manifest_scalar( 't', $entry->{'t'} );
+    _refuse( 'manifest entry has a bad type [ %s ]', $type )
+        if $type !~ m{\A(?:file|dir|symlink|hardlink|skipped)\z};
+    for my $field (qw| mode uid gid mtime mtime_ns size |) {
+        next if not defined $entry->{$field};
+        my $count = _manifest_scalar( $field, $entry->{$field} );
+        _refuse( 'manifest entry field %s is not a canonical count', $field )
+            if $count !~ m{\A(?:0|[1-9][0-9]*)\z};
+    }
+    for my $field (qw| l h user_b32 group_b32 |) {
+        _b32( 'manifest entry', $field, $entry->{$field} )
+            if defined $entry->{$field};
+    }
+    if ( defined $entry->{'a'} ) {
+        my $address = _manifest_scalar( 'a', $entry->{'a'} );
+        _refuse('manifest entry address is invalid')
+            if $address !~ m|\AV7[A-Z2-7]{5}/[A-Z2-7]{7}/([A-Z2-7]{77})\z|;
+        _b32( 'manifest entry', 'a', $1, 48 );
+    }
+    _manifest_scalar( 'why', $entry->{'why'} ) if defined $entry->{'why'};
+    if ( defined $entry->{'xattrs'} ) {
+        _refuse('manifest entry xattrs is not an object')
+            if ref $entry->{'xattrs'} ne q|HASH|;
+        for my $name ( keys %{ $entry->{'xattrs'} } ) {
+            _b32( 'manifest entry', 'xattr name', $name );
+            _b32( 'manifest entry', 'xattr value',
+                $entry->{'xattrs'}{$name} );
+        }
+    }
+    if ( defined $entry->{'xattr_errors'} ) {
+        _refuse('manifest entry xattr_errors is not a list')
+            if ref $entry->{'xattr_errors'} ne q|ARRAY|;
+        for my $error ( @{ $entry->{'xattr_errors'} } ) {
+            _refuse('manifest xattr error is not an object')
+                if ref $error ne q|HASH|;
+            _refuse('manifest xattr error has unknown keys')
+                if keys %{$error} != 2
+                or not exists $error->{'name_b32'}
+                or not exists $error->{'why'};
+            _b32( 'manifest xattr error', 'name_b32', $error->{'name_b32'} );
+            _manifest_scalar( 'xattr error why', $error->{'why'} );
+        }
+    }
+    return $entry;
+}
+
+sub validate_json3_lines {
+    my $bytes = shift;
+    _refuse('json3 lines are missing') if ref $bytes or not defined $bytes;
+    _refuse('json3 lines have no final LF')
+        if length $bytes and $bytes !~ m|\n\z|;
+    my @lines = split m|(?<=\n)|, $bytes;
+    for my $line (@lines) {
+        _refuse('json3 manifest entry is empty') if $line eq "\n";
+        my $entry = _object( 'json3 manifest entry', $line );
+        _manifest_entry($entry);
+        _refuse('json3 manifest entry is not canonical json')
+            if $JSON->encode($entry) . "\n" ne $line;
+    }
+    return $bytes;
 }
 
 sub _verified {
@@ -229,7 +347,7 @@ sub _manifest {
     my @entries;
     for my $line (@lines) {
         _refuse('manifest entry is empty') if $line eq "\n";
-        push @entries, _object( 'manifest entry', $line );
+        push @entries, _manifest_entry( _object( 'manifest entry', $line ) );
     }
     return {
         kind     => q|manifest|,
@@ -399,13 +517,15 @@ sub read {
     $record->{'raw_lines'} = join '',
         map { $JSON->encode($ARG) . "\n" } @{$payload}
         if $kind eq q|manifest-chunk|;
+    validate_json3_lines( $record->{'raw_lines'} )
+        if $kind eq q|manifest-chunk|;
     return $record;
 }
 
 1;
 
-#,,,.,,..,.,,,...,,.,,.,.,..,,...,,..,,.,,...,..,,...,...,...,.,,,,,.,..,,.,.,
-#ZEHQXATZMYMCJZELCSVBNNWD3KZ64Y3GOSAGJ6F2ZTDSPXPHXCN3OXH6O34LTOVY2GUK7RFZCP5UK
-#\\\|V5QHJ256U5FIKF5RY67QESE3TBT754ZF2JMFYVW4O4ZJ44OKLSH \ / AMOS7 \ YOURUM ::
-#\[7]B2OG6HJVIZXHRZU7UMHMN6JUDEZQ6I76XAZDQBVAPT47NHIQE4CI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,..,,,,,.,.,,,.,,..,,,.,...,...,..,,...,...,..,,,,.,..,,...,,..,
+#5JDKQX57X4T3APTBN5APQ2I7S5XNPFNAFIYKEGVQ63RMLTQJ7X7FB7N6FIIJWJN3UXQUBIOHAQEAK
+#\\\|6EPWFLUT7SGSS7DIO72F5QDLI5JD2W4ZFBAWLDYTQOWBBJ4C77C \ / AMOS7 \ YOURUM ::
+#\[7]P7UZEDF7VJFYPTP2LJVCFGEUF5VJYCJVIMYV72U74R2PJHU2HYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

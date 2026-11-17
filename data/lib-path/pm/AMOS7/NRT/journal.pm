@@ -1,5 +1,5 @@
 package AMOS7::NRT::journal;
-our $VERSION = qw| AMOS7::NRT::journal-VERSION.Z5M3I4Q |;
+our $VERSION = qw| AMOS7::NRT::journal-VERSION.BFI5KAY |;
 
 use v5.32.0;
 use strict;
@@ -403,19 +403,44 @@ sub _append {
     return;
 }
 
+sub _committed_seq {
+    my ( $dir, $state, $bytes, $error ) = @ARG;
+    my $journal = read_file("$dir/journal");
+    return 0 if not defined $journal or length $journal < length $bytes;
+    return 0 if substr( $journal, -length $bytes ) ne $bytes;
+    chomp $error;
+    die sprintf "nrt : record committed seq %s, head "
+        . "stale -- run recover, do not retry : %s\n",
+        $state->{'seq'}, $error;
+}
+
 sub commit {
     my ( $dir, $state, $name, $values, $signer, $record_body, $head_signer )
         = @_;
     $record_body //= q||;
     $head_signer //= $signer;
+    refuse('head rebuild requires the witness key')
+        if defined $state->{'witness'}
+        and $head_signer->public ne $state->{'witness'};
     my $bytes
         = pack_head( kind($name), $values, signer => $signer ) . $record_body;
     my $record = eval { _decode( $bytes, $name ) };
     die $EVAL_ERROR if not $record;
     eval { _accept( $state, $record ) };
     die $EVAL_ERROR if $EVAL_ERROR;
-    _append( $dir, $bytes );
-    _write_head( $dir, $state, $head_signer );
+    my $append_ok = eval { _append( $dir, $bytes ); 1 };
+
+    if ( not $append_ok ) {
+        my $error = $EVAL_ERROR;
+        _committed_seq( $dir, $state, $bytes, $error );
+        die $error;
+    }
+    my $head_ok = eval { _write_head( $dir, $state, $head_signer ); 1 };
+    if ( not $head_ok ) {
+        my $error = $EVAL_ERROR;
+        _committed_seq( $dir, $state, $bytes, $error );
+        die $error;
+    }
     return $record;
 }
 
@@ -515,8 +540,8 @@ sub recover {
 
 1;
 
-#,,,,,,.,,.,,,,.,,.,,,,,,,...,.,,,..,,.,,,,,.,..,,...,...,.,.,,,,,,.,,,..,...,
-#TD33DMFLNA3UMI2JITATNO7MHWZJM6ASFPYFIFCK7SXP2PF7LF4AVZVJ7FPVSPLFH2JURZIMTXX72
-#\\\|366LH63ULMO26Q57YBKOA2DQRFUN5NTHIKZB5VWJ2VFOW4DBCCH \ / AMOS7 \ YOURUM ::
-#\[7]WAC726ZARQSFD3BUWREJUTNNKGOVBO2U2VBOLP3VU74CJHVR4MCY 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,.,,,,,,,,..,,.,,,,.,,,.,,..,..,,...,...,...,,,.,...,...,,,,,
+#W3RKN46T6SMKP7OJ5EWYDACMTTA4WVIKNB3TEXTKTXYW5THRMNBPQXPVKLO3XEQ2QKWSJXRUZFGL4
+#\\\|4L5NTYC7VQ257V26PEUMCOJSBLJLKEL2SECVXVQBCFIAJWARQGW \ / AMOS7 \ YOURUM ::
+#\[7]M3KFVMGBXE2KEMTG3NQSAPZBWO2R5I7F4Z7HWT5CXMXYILS2KKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

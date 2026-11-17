@@ -22,11 +22,11 @@ my $tmp = tempdir( 'n7fs-format4-stage2-XXXXXX', TMPDIR => 1, CLEANUP => 1 );
 my $signer   = seed_signer( "\x42" x 32 );
 my $pub      = $signer->public;
 my $disk     = 'AAAAAAA';
-my $root_id  = bmw384_b32('synthetic root');
+my $root_id  = bmw384_b32( 'p7 n7fs seal root id v1' . $pub );
 my $blob_a   = bmw384_b32('blob a');
 my $blob_b   = bmw384_b32('blob b');
-my $addr_a   = 'V7AAAAA/' . amos_of_bmw($blob_a) . "/$blob_a";
-my $addr_b   = 'V7AAAAA/' . amos_of_bmw($blob_b) . "/$blob_b";
+my $addr_a   = 'V7L4C7Y/' . amos_of_bmw($blob_a) . "/$blob_a";
+my $addr_b   = 'V7L4C7Y/' . amos_of_bmw($blob_b) . "/$blob_b";
 my $ntime    = '00031703855078';
 my $raw16    = "\x17" x 16;
 my $raw32    = "\x23" x 32;
@@ -212,7 +212,7 @@ subtest 'disk id, mount, use, state and meta' => sub {
         mtime        => 1700000000,
         import_ntime => $ntime,
         epoch_num    => epoch_num(31703855078),
-        epoch        => 'V7AAAAA',
+        epoch        => 'V7L4C7Y',
         source       => "$tmp/source/synthetic.txt",
         host         => 'synthetic-host',
         amos         => amos_of_bmw($blob_a),
@@ -772,7 +772,7 @@ subtest 'prior type checks and new module source boundaries' => sub {
         mtime        => 1700000000,
         import_ntime => $ntime,
         epoch_num    => epoch_num(31703855078),
-        epoch        => 'V7AAAAA',
+        epoch        => 'V7L4C7Y',
         source       => "$tmp/source/bad.txt",
         host         => 'synthetic-host',
         amos         => amos_of_bmw($blob_a),
@@ -833,7 +833,8 @@ subtest 'request token, vault registry and root suite' => sub {
         'put-head', $args, 9 );
     my ($head_bytes)
         = roundtrip( 'holder-request', $token, prior => { pub => $pub }, );
-    my $new_token    = encode_token( 'holder-request', $head_bytes );
+    my $new_token = encode_token( 'holder-request', $head_bytes,
+        verify => \&verify_signature, );
     my $parsed_token = parse( 'holder-request', $new_token,
         verify => \&verify_signature, );
     is( $parsed_token->{'head'}{'counter'}, 9, 'v2 token transport parses' );
@@ -901,6 +902,234 @@ subtest 'request token, vault registry and root suite' => sub {
     $seen{'root-file'}++;
 };
 
+subtest 'security regression checks' => sub {
+    my $binding = {
+        v       => 1,
+        disk    => $disk,
+        root_id => $root_id,
+        pub     => b32($pub),
+        sig     => b32(
+            $signer->sign(
+                AMOS7::N7FS::Seal::_binding_signed(
+                    { root_id => $root_id }, $disk
+                )
+            )
+        ),
+    };
+    my ($binding_bytes)
+        = roundtrip( 'seal-root-binding', raw($binding),
+        parse => { disk => $disk, root_id => $root_id }, );
+    my $changed_binding = $binding_bytes;
+    $changed_binding =~ s|^disk\s+= \Q$disk\E$|disk    = BBBBBBB|m;
+    refusal(
+        'seal binding stored disk differs from verified disk',
+        sub {
+            parse(
+                'seal-root-binding', $changed_binding,
+                disk    => $disk,
+                root_id => $root_id,
+                verify  => \&verify_signature,
+            );
+        },
+        qr|stored disk differs|,
+    );
+
+    my $other = seed_signer( "\x43" x 32 );
+    my $other_proof
+        = AMOS7::N7FS::Seal::_binding_signed( { root_id => $root_id },
+        $disk );
+    my $wrong_root = AMOS7::cell::canon::pack_head(
+        kind('seal-root-binding'),
+        {   suite     => 1,
+            disk      => $disk,
+            'root-id' => $root_id,
+            pub       => $other->public,
+            sig       => $other->sign($other_proof),
+        },
+    );
+    refusal(
+        'seal binding root id must derive from its signer',
+        sub {
+            parse(
+                'seal-root-binding', $wrong_root,
+                disk    => $disk,
+                root_id => $root_id,
+                verify  => \&verify_signature,
+            );
+        },
+        qr|root id.*signer|,
+    );
+    my $signed_roundtrip = eval {
+        my $new = pack(
+            'seal-root-binding',
+            { head => { suite => 1, disk => $disk, 'root-id' => $root_id } },
+            signer => $signer,
+        );
+        parse(
+            'seal-root-binding', $new,
+            disk    => $disk,
+            root_id => $root_id,
+            verify  => \&verify_signature,
+        );
+        1;
+    };
+    ok( $signed_roundtrip, 'seal binding signer round trip' )
+        or diag $EVAL_ERROR;
+
+    my $entry = {
+        p        => b32('dir/file.txt'),
+        t        => 'file',
+        mode     => 420,
+        uid      => 1000,
+        gid      => 1000,
+        mtime    => 1700000000,
+        mtime_ns => 0,
+        size     => 1,
+        a        => $addr_a,
+    };
+    refusal( 'json3 refuses a scalar manifest entry',
+        sub { read( 'manifest-chunk', raw( ['not an object'] ) ) },
+        qr|object|, );
+    refusal(
+        'json3 refuses an unknown manifest entry key',
+        sub {
+            read( 'manifest-chunk', raw( [ { %{$entry}, unknown => 1 } ] ) );
+        },
+        qr|unknown key|,
+    );
+    refusal(
+        'json3 refuses an unsafe manifest path',
+        sub {
+            read( 'manifest-chunk',
+                raw( [ { %{$entry}, p => b32('../escape') } ] ) );
+        },
+        qr|unsafe component|,
+    );
+    my $exact_lines = raw($entry) . "\n";
+    refusal(
+        'json3 cannot be built from unverified raw lines',
+        sub {
+            pack(
+                'manifest-chunk',
+                {   head => {
+                        lines     => 'json3',
+                        path      => 'dir',
+                        part      => 0,
+                        positions => [0],
+                    },
+                    raw_lines => $exact_lines,
+                },
+            );
+        },
+        qr|verified legacy conversion|,
+    );
+    my $not_json        = "not-json\n";
+    my $not_json_record = AMOS7::cell::canon::pack_head(
+        kind('manifest-chunk'),
+        {   lines     => 'json3',
+            path      => 'dir',
+            part      => 0,
+            positions => [0],
+            rows      => 1,
+            body      => bmw384_b32($not_json),
+        },
+    ) . $not_json;
+    refusal( 'json3 parser validates every line',
+        sub { parse( 'manifest-chunk', $not_json_record ) }, qr|json|, );
+    my $chunk_prior         = read( 'manifest-chunk', raw( [$entry] ) );
+    my $chunk_bad_positions = from_prior(
+        'manifest-chunk', $chunk_prior,
+        path      => 'dir',
+        part      => 0,
+        positions => [ 0, 1 ],
+    );
+    refusal(
+        'manifest chunk positions must match its row count',
+        sub { pack( 'manifest-chunk', $chunk_bad_positions ) },
+        qr|positions.*row count|,
+    );
+
+    my $request_head = pack(
+        'holder-request',
+        {   head => {
+                op        => 'delete',
+                'root-id' => $root_id,
+                holder    => $blob_a,
+                counter   => 9,
+                nonce     => $raw16,
+                path      => $blob_a,
+                size      => undef,
+                digest    => undef,
+                version   => undef,
+                writer    => undef,
+                from      => undef,
+                to        => undef,
+                name      => undef,
+                tag       => undef,
+            },
+        },
+        signer => $signer,
+    );
+    refusal(
+        'token production requires signature verification',
+        sub { encode_token( 'holder-request', $request_head ) },
+        qr|requires verify|,
+    );
+    my $request_token = encode_token( 'holder-request', $request_head,
+        verify => \&verify_signature, );
+    my ($request_head_b32) = split m|[.]|, $request_token;
+    my $wrong_detached     = $request_head_b32 . q|.| . b32( "\0" x 64 );
+    refusal(
+        'holder token detached signature must match the head',
+        sub {
+            parse( 'holder-request', $wrong_detached,
+                verify => \&verify_signature, );
+        },
+        qr|detached signature|,
+    );
+    refusal(
+        'token production refuses unsigned trailing bytes',
+        sub {
+            encode_token(
+                'holder-request',
+                $request_head . 'unsigned trailer',
+                verify => \&verify_signature,
+            );
+        },
+        qr|trailing bytes|,
+    );
+
+    my %large_kdf = (
+        kdf  => 'argon2id',
+        t    => '4294967297',
+        m    => 1,
+        p    => 1,
+        salt => $raw16,
+    );
+    refusal(
+        'root kdf counts cannot wrap at 32 bits',
+        sub {
+            pack( 'root-file', { head => \%large_kdf, secret => 'secret' } );
+        },
+        qr|32 bit|,
+    );
+    refusal(
+        'prior exponent float is not a count',
+        sub {
+            my $exponent_prior = read(
+                'reservation',
+                '{"root_id":"'
+                    . $root_id
+                    . '","writer":"'
+                    . b32($raw16)
+                    . '","version":1e3}',
+            );
+            from_prior( 'reservation', $exponent_prior );
+        },
+        qr|float|,
+    );
+};
+
 subtest 'switch record and complete kind inventory' => sub {
     my $switch = {
         head => {
@@ -949,8 +1178,8 @@ subtest 'switch record and complete kind inventory' => sub {
 
 done_testing;
 
-#,,,.,,,,,,..,...,..,,,.,,,,.,,,.,..,,,,.,,.,,..,,...,..,,.,,,.,.,,,,,.,.,..,,
-#7JJC4IIA43PKA3KPUPMKJY22DYEUM6PL3YGURIUQQUIA23CWQJS6NZMVIEFFDUCXZ4KVA2RPHA6IE
-#\\\|KYXMCACSWLSF2UCO3QSMQ7ZF5MZYB2KWMLG74VZVSJE6ZXJGOBN \ / AMOS7 \ YOURUM ::
-#\[7]LV3ATHRE567FKHZEBY2T5KKBQI2Z6G3ZFCWN6MC3OWFZRV5SR6DI 7  DATA SIGNATURE ::
+#,,..,..,,...,,,,,...,,..,.,,,,.,,.,,,,,,,..,,..,,...,...,.,,,.,.,...,,,.,,,.,
+#S3LFBMGTY5H77QFC2T3ZVMKOMWNKJILNAXLHSC7GMDILVFA4PIYFD2LPZ7G743KPHVYY3UJNZ2JZS
+#\\\|2N5OXSG4QJWYAD42GIRHSDKF6KJ4455FHIGTWSJNPGL4ZMXGBA7 \ / AMOS7 \ YOURUM ::
+#\[7]EJKQSM4DRA6SB55NJ3JBNBZX7RMFP6MLNS6Z5C6OQOSKIA3YDCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

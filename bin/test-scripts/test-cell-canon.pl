@@ -102,8 +102,8 @@ my $ledger_kind = {
     label  => 'p7 nrt transaction v1',
     fields => \@fields,
 };
-my $address_a = 'V7AAAAA/AAAAAAA/' . bmw384_b32('node a');
-my $address_b = 'V7AAAAA/BBBBBBB/' . bmw384_b32('node b');
+my $address_a = 'V7L4C7Y/AAAAAAA/' . bmw384_b32('node a');
+my $address_b = 'V7L4C7Y/BBBBBBA/' . bmw384_b32('node b');
 
 my $operations = {
     shape   => 'operations',
@@ -362,7 +362,15 @@ subtest 'strict value types and canonical base32' => sub {
         [ 'decimal missing fraction', 'epoch-num', '1.',   qr|decimal text| ],
         [ 'bad word',                 'operation', 'Node', qr|bad word| ],
         [ 'bad address', 'disk', 'not-an-address', qr|canonical address| ],
-        [ 'short key',   'pub',  'AA',             qr|decodes to| ],
+        [   'noncanonical address epoch',
+            'disk',
+            'AAAAAAA/AAAAAAA/' . bmw384_b32('bad epoch'),
+            qr|canonical address epoch|
+        ],
+        [   'nonzero address amos padding bits',         'disk',
+            'V7L4C7Y/AAAAAAB/' . bmw384_b32('bad amos'), qr|base32|
+        ],
+        [ 'short key',                   'pub',     'AA',    qr|decodes to| ],
         [ 'short signature',             'sig',     'AA',    qr|decodes to| ],
         [ 'base32 padding character',    'payload', 'AP74=', qr|base32| ],
         [ 'base32 lowercase',            'payload', 'ap74',  qr|base32| ],
@@ -622,7 +630,7 @@ sub run_benchmark {
         for ( 0 .. 89 ) {
             my $serial  = pack q|N|, $entry;
             my $raw     = $serial x 12;
-            my $address = 'V7AAAAA/AAAAAAA/' . encode_b32r($raw);
+            my $address = 'V7L4C7Y/AAAAAAA/' . encode_b32r($raw);
             my @wraps   = map { encode_b32r( $_ x 12 ) }
                 ( $serial, $serial, $serial );
             my $meta = encode_b32r( ( $serial x 16 ) . ( $serial x 16 ) );
@@ -789,8 +797,8 @@ subtest '1024 shard benchmark' => \&run_benchmark;
 
 done_testing;
 
-#,,,,,.,.,,,,,,,.,.,,,,,,,,..,,,,,,,.,,,,,,..,..,,...,...,...,,.,,...,,.,,,.,,
-#W3SUUMTHD5XPLLJC77SC5VG3UCVTCL2SVPCODEJIODGQJTO35KVYIPUIGWJDWM67CRFZNX6XIDNWA
-#\\\|WAI3SVZQX7LAYGSFE4X2GLL2QT7JI5XGCM4NOEBRKCSTMWIUZVH \ / AMOS7 \ YOURUM ::
-#\[7]APJVQF4J65RTJ62VWVD75L42KU5V7SI66EWBT54EWJL6TROLQSAY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,,,,..,,,.,,,,,..,,,,.,,,,,,.,,..,,...,.,.,.,.,..,,,,.,..,,,..,
+#EFJBSLX6F5TAOEHRAS6WQUTZVAG2QFDHOM4ZXEHGJPWGCDEMQLHRBOW5GJWISF5Q4YBSXLFTLR346
+#\\\|ZAV4VW4ZINLBEWSNJOSY3XKRBLMWJNORUKF2XSCEVBY6JSBF7Z6 \ / AMOS7 \ YOURUM ::
+#\[7]SFQ7YELWHB4MZDWWDFHEW6DJD774TAJGRKTWVYSG63P6QOV3XUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

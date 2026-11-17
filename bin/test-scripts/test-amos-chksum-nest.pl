@@ -138,6 +138,20 @@ check( 'long parent returns undef',
     not defined child_chksum( qw| PKHKHVAA |, qw| child | ) );
 check( 'lowercase parent returns undef',
     not defined child_chksum( qw| pkhkhva |, qw| child | ) );
+check( 'non-base32 parent returns undef',
+    not defined child_chksum( qw| 0000000 |, qw| child | ) );
+check(
+    'nonzero parent padding bits return undef',
+    not defined child_chksum( qw| AAAAAAB |, qw| child | )
+);
+check(
+    'nonzero parent padding bits fail verification',
+    not verify_nesting( qw| [NUFY2TI:AAAAAAB] |, qw| AAAAAAB |, qw| child | )
+);
+check(
+    'nonzero parent padding bits fail parsing',
+    not defined parse_nested(qw| [NUFY2TI:AAAAAAB] |)
+);
 check( 'empty child name returns undef',
     not defined child_chksum( qw| PKHKHVA |, '' ) );
 check( 'dotted child name returns undef',
@@ -164,8 +178,8 @@ exit( $tests_passed == $tests_run ? 0 : 1 );
 #\[7]TESTAMOSCHKSUMNESTTRUTHHARMONIZATIONREGRESSIONSCRIPT0 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,,,,,..,,..,,...,,.,,...,..,,,..,,..,,.,,..,,...,...,...,,.,,..,,..,,..,,
-#FZALWSEKOP67TDAM76KZO3MHTA3WNV5ILHOI53WPFGIXJ4XR3XDM3XC34FR33ZK6KNUV6JQ5EDIZU
-#\\\|JHLIDYWUOBSYCRVNNRFG4P4GYYDTHA5JXKXYOC2Z7ROQ7PW4LWR \ / AMOS7 \ YOURUM ::
-#\[7]CZCUPNRQXZMC3N2VKHC3XOC4GOS34OI2EDTLAJFXHVCZMJANWEDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,.,,,,,.,.,.,.,,..,,.,,.,.,,,,,..,,...,...,...,.,.,,,.,..,,.,,,
+#GL4JBLTIITZFWX72WKTMGZU7OY5JPUFQEHMGPH7BP7345HRGL6XAQ675Y5QWQDWGJ7CNUMMDNKGZW
+#\\\|T2NEYTEMO4KT44BZ4CKCMAPFCQCZ7ECGBTUPCLCUWVI6OG5XWAN \ / AMOS7 \ YOURUM ::
+#\[7]P4CI5QZFEV2TSJ2GOGPPO22AKCSA6D4XFOJHMCROOJS7RFJZB6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

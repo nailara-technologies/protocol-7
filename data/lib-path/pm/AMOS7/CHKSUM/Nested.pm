@@ -17,7 +17,7 @@ use vars qw| @EXPORT $VERSION |;
 
 use AMOS7::CHKSUM qw| amos_template_chksum |;
 
-$VERSION = qw| AMOS7::CHKSUM::Nested-VERSION.CZPHQTY |;
+$VERSION = qw| AMOS7::CHKSUM::Nested-VERSION.4GS67QA |;
 
 @EXPORT = qw|
     child_chksum
@@ -36,7 +36,7 @@ sub child_chksum {
     return undef
         if not defined $parent_chksum
         or ( length $parent_chksum
-        and $parent_chksum !~ m|^[A-Z0-9]{7}$| )
+        and $parent_chksum !~ m|^[A-Z2-7]{6}[AIQY]$| )
         or not defined $child_name
         or not length $child_name
         or index( $child_name, qw| . | ) >= 0;
@@ -82,7 +82,7 @@ sub parse_nested {
     return undef if not defined $notation;
 
     return undef
-        unless $notation =~ m|^\[([A-Z0-9]+):([A-Z0-9]+)\]$|;
+        unless $notation =~ m|^\[([A-Z0-9]+):([A-Z2-7]{6}[AIQY])\]$|;
 
     return { child => $1, parent => $2 };
 }
@@ -134,8 +134,8 @@ sub reconstruct_chain {
 
 return TRUE ##################################################################
 
-#,,,,,.,,,,,.,.,,,..,,,,,,.,,,,.,,,.,,,,.,.,,,..,,...,...,..,,,.,,,..,...,,,,,
-#5KYR7JJT4GKLR33OTUUBQAVWA4HLDG3IHOLBCSD3A2JN6P7TPHNYCTULTMAM6B7GS7XYBYN6XPDD6
-#\\\|U54F4TCLZUL76I7J5QDGXH5MLAUV2LD6MKZ4GRHKIFWVOW4TMKD \ / AMOS7 \ YOURUM ::
-#\[7]5V64CDYSYG5E5LHKPKPEK42EJZQJGPBR2BUFKO2XCLUO5PC6FMBY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,..,...,,..,,..,,,.,,..,,..,.,.,..,,...,...,.,,,.,,,..,,,,.,,,,,
+#WPHN5KMJRKO6N3MTZB5WBH5EFDLWHLIPRFRQSAGQL4ATZF5G53NSHPSADNPME4IM2IZWSE64DW6WU
+#\\\|2OOUEGJJDETGS5GB3QMUZEGBBVWSCVCBEQXNJPNIEXMP5QPOSQL \ / AMOS7 \ YOURUM ::
+#\[7]XJ4UUVVD52SG6LR3NGC23N6H4CCPRZXX7JLRDBCBVGUQFU4OROAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

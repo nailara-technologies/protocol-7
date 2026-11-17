@@ -1,5 +1,5 @@
 package AMOS7::N7FS::Canon;
-our $VERSION = qw| AMOS7::N7FS::Canon-VERSION.C6WT7NY |;
+our $VERSION = qw| AMOS7::N7FS::Canon-VERSION.QI5QLVI |;
 
 use v5.32.0;
 use strict;
@@ -883,8 +883,7 @@ sub _count {
         if $text !~ m{\A(?:0|[1-9][0-9]*)\z};
     my $flags = B::svref_2object( \$value )->FLAGS;
     _refuse( '%s field %s is a float, not a count', $kind, $name )
-        if ( $flags & B::SVp_NOK() )
-        and not( $flags & B::SVp_IOK() );
+        if $flags & B::SVp_NOK();
     return $text;
 }
 
@@ -1398,6 +1397,8 @@ sub from_prior {
     } elsif ( $kind eq q|manifest-chunk| ) {
         _refuse('manifest-chunk prior payload is not an array')
             if ref $record->{'payload'} ne q|ARRAY|;
+        require AMOS7::N7FS::Prior;
+        AMOS7::N7FS::Prior::validate_json3_lines( $record->{'raw_lines'} );
         $meaning = {
             head => {
                 lines     => 'json3',
@@ -1407,7 +1408,8 @@ sub from_prior {
                 rows      => 0,
                 body      => '0',
             },
-            raw_lines => $record->{'raw_lines'},
+            raw_lines      => $record->{'raw_lines'},
+            json3_verified => 1,
         };
     } elsif ( $kind eq q|sealed-journal| ) {
         $meaning = _sealed_journal($record);
@@ -1466,8 +1468,20 @@ sub _pack_table {
 
 sub _body_bytes {
     my ( $kind, $meaning ) = @ARG;
-    return $meaning->{'raw_lines'} // '' if $kind eq q|manifest-chunk|;
-    return ''                            if not exists $BODY{$kind};
+    if ( $kind eq q|manifest-chunk| ) {
+        my $lines = $meaning->{'head'}{'lines'} // q|canon2|;
+        if ( $lines eq q|json3| ) {
+            _refuse('json3 requires verified legacy conversion')
+                if not $meaning->{'json3_verified'};
+            require AMOS7::N7FS::Prior;
+            return AMOS7::N7FS::Prior::validate_json3_lines(
+                $meaning->{'raw_lines'} // '' );
+        }
+        _refuse( 'manifest-chunk has unknown line mode [ %s ]', $lines )
+            if $lines ne q|canon2|;
+        return _pack_table( $MANIFEST_BODY, $meaning->{'rows'} // [] );
+    }
+    return '' if not exists $BODY{$kind};
     my $rows = $meaning->{'rows'} // [];
     _refuse( '%s rows are not an array', $kind ) if ref $rows ne q|ARRAY|;
     return $BODY{$kind}{'shape'} eq q|table|
@@ -1482,7 +1496,14 @@ sub _root_pack {
     _refuse('root-file kdf is not argon2id')
         if ( $head->{'kdf'} // '' ) ne q|argon2id|;
     my @values = @{$head}{qw| t m p |};
-    _count( q|root-file|, $ARG, $values[$ARG] ) for 0 .. 2;
+    for my $index ( 0 .. 2 ) {
+        my $name = (qw| t m p |)[$index];
+        _count( q|root-file|, $name, $values[$index] );
+        my $count = $values[$index];
+        _refuse( 'root-file %s exceeds the 32 bit count bound', $name )
+            if length $count > 10
+            or length $count == 10 and $count gt q|4294967295|;
+    }
     _refuse('root-file salt is not 16 raw bytes')
         if length( $head->{'salt'} // '' ) != 16;
     return
@@ -1501,6 +1522,26 @@ sub _vault_pack {
     return AMOS7::N7FS::Placement::holders_config( $payload->{'holders'} );
 }
 
+sub _seal_binding_message {
+    my ( $disk, $root_id ) = @ARG;
+    return "p7 n7fs disk seal binding v1\0" . $disk . "\0" . $root_id;
+}
+
+sub _check_seal_binding {
+    my ( $values, %opt ) = @ARG;
+    _refuse('seal-root-binding stored disk differs from the verified disk')
+        if defined $opt{'disk'} and $values->{'disk'} ne $opt{'disk'};
+    _refuse('seal-root-binding stored root id differs from the verified root')
+        if defined $opt{'root_id'}
+        and $values->{'root-id'} ne $opt{'root_id'};
+    _refuse('seal-root-binding root id is not derived from its signer')
+        if not defined $values->{'pub'}
+        or length $values->{'pub'} != 32
+        or $values->{'root-id'} ne
+        bmw384_b32( 'p7 n7fs seal root id v1' . $values->{'pub'} );
+    return;
+}
+
 sub pack {
     my ( $kind, $meaning, %opt ) = @ARG;
     return _root_pack($meaning)  if $kind eq q|root-file|;
@@ -1514,12 +1555,30 @@ sub pack {
     if ( $kind eq q|manifest-chunk| ) {
         $values{'rows'} = () = $body =~ m|\n|g;
         $values{'body'} = length $body ? bmw384_b32($body) : '0';
+        my $positions = $values{'positions'} // [];
+        _refuse('manifest-chunk positions are not a list')
+            if ref $positions ne q|ARRAY|;
+        _refuse('manifest-chunk positions do not match the row count')
+            if $values{'rows'} != scalar @{$positions};
     } elsif ( exists $BODY{$kind} and $kind ne q|manifest| ) {
         $values{'rows'} = scalar @{ $meaning->{'rows'} // [] };
         $values{'body'} = length $body ? bmw384_b32($body) : '0';
     }
     return pack_head( $table, \%values ) . $body
         if not defined $opt{'signer'};
+    if ( $kind eq q|seal-root-binding| ) {
+        _refuse('seal-root-binding needs disk and root-id')
+            if not defined $values{'disk'}
+            or not defined $values{'root-id'};
+        $values{'pub'} = $opt{'signer'}->public;
+        _check_seal_binding( \%values );
+        $values{'sig'} = $opt{'signer'}
+            ->sign( _seal_binding_message( @values{qw| disk root-id |} ) );
+        _refuse('seal-root-binding signature is not 64 raw bytes')
+            if not defined $values{'sig'}
+            or length $values{'sig'} != 64;
+        return pack_head( $table, \%values ) . $body;
+    }
     return pack_head( $table, \%values, signer => $opt{'signer'} ) . $body;
 }
 
@@ -1546,10 +1605,7 @@ sub _binding_verify {
         or not defined $opt{'root_id'};
     return sub {
         my ( $pub, undef, $sig ) = @ARG;
-        my $signed
-            = "p7 n7fs disk seal binding v1\0"
-            . $opt{'disk'} . "\0"
-            . $opt{'root_id'};
+        my $signed = _seal_binding_message( @opt{qw| disk root_id |} );
         return $verify->( $pub, $signed, $sig );
     };
 }
@@ -1568,12 +1624,21 @@ sub parse {
         };
     }
     my $table = kind($kind);
+    my $detached_sig;
     if ( $kind eq q|holder-request| and $bytes !~ m|\n| ) {
         my ( $head, $sig ) = split m|[.]|, $bytes, -1;
         _refuse('holder-request token is malformed')
             if not defined $sig or $sig =~ m|[.]|;
-        $bytes = decode_b32r($head)
+        my $head_bytes = decode_b32r($head)
             // _refuse('holder-request head is not base32');
+        _refuse('holder-request head is not canonical base32')
+            if encode_b32r($head_bytes) ne $head;
+        $detached_sig = decode_b32r($sig)
+            // _refuse('holder-request detached signature is not base32');
+        _refuse('holder-request detached signature is not canonical')
+            if length $detached_sig != 64
+            or encode_b32r($detached_sig) ne $sig;
+        $bytes = $head_bytes;
     }
     my $verify = $opt{'verify'};
     if ( defined $verify ) {
@@ -1581,13 +1646,20 @@ sub parse {
             if ref $verify ne q|CODE|;
         $opt{'verify'} = _binding_verify( $kind, $verify, %opt );
     }
-    my $record  = parse_head( $bytes, $table, %opt );
-    my $body    = $record->{'body_bytes'};
-    my $values  = $record->{'values'};
+    my $record = parse_head( $bytes, $table, %opt );
+    my $body   = $record->{'body_bytes'};
+    my $values = $record->{'values'};
+    _check_seal_binding( $values, %opt ) if $kind eq q|seal-root-binding|;
     my $meaning = {
         head   => $values,
         record => $record,
     };
+    if ( $kind eq q|holder-request| ) {
+        _refuse('holder-request has trailing bytes') if length $body;
+        _refuse('holder-request detached signature differs from the head')
+            if defined $detached_sig and $detached_sig ne $values->{'sig'};
+        return $meaning;
+    }
     if ( $kind eq q|manifest-chunk| ) {
         my $count = () = $body =~ m|\n|g;
         _refuse('manifest-chunk row count does not match')
@@ -1597,8 +1669,15 @@ sub parse {
             $values->{'body'};
         _refuse('manifest-chunk has no final LF')
             if length $body and $body !~ m|\n\z|;
+        my $positions = $values->{'positions'} // [];
+        _refuse('manifest-chunk positions do not match the row count')
+            if $count != scalar @{$positions};
         $meaning->{'raw_lines'} = $body;
-        if ( $values->{'lines'} eq q|canon2| and length $body ) {
+        if ( $values->{'lines'} eq q|json3| ) {
+            require AMOS7::N7FS::Prior;
+            AMOS7::N7FS::Prior::validate_json3_lines($body);
+            $meaning->{'json3_verified'} = 1;
+        } elsif ( length $body ) {
             my $list = AMOS7::cell::canon::list->new(
                 $MANIFEST_BODY, $body,
                 rows => $values->{'rows'},
@@ -1624,18 +1703,23 @@ sub parse {
 }
 
 sub encode_token {
-    my ( $kind, $bytes ) = @ARG;
+    my ( $kind, $bytes, %opt ) = @ARG;
     _refuse('only holder-request has token transport')
         if $kind ne q|holder-request|;
-    my $record = parse_head( $bytes, $KIND{$kind}, unverified => 1 );
-    return encode_b32r($bytes) . q|.|
+    _refuse('token production requires verify callback')
+        if $opt{'unverified'}
+        or not defined $opt{'verify'};
+    my $record = parse_head( $bytes, $KIND{$kind}, %opt );
+    _refuse('holder-request has trailing bytes')
+        if length $record->{'body_bytes'};
+    return encode_b32r( $record->{'head_bytes'} ) . q|.|
         . encode_b32r( $record->{'values'}{'sig'} );
 }
 
 1;
 
-#,,..,.,,,.,,,,.,,.,,,,.,,,.,,.,.,,,.,..,,...,..,,...,..,,.,.,.,.,.,,,,,.,,..,
-#V6HHR5MMZCZQENJIPDQZP7TFB4AUEBOWT4TJSEZHL46UQK5T47VZ34JQFQXNNHIFDAKPJ3EGHVNTQ
-#\\\|R55PSY2VW2JZQRJR7ZNEXPDMIRFNN5UAAGXKNDTRX6IBNFOKNDG \ / AMOS7 \ YOURUM ::
-#\[7]DOYANCVOLPNY4GPZGN57BUYA25F5H5VX46ESYEOSKX7LB4MFIOAI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,,.,,.,.,.,.,...,,.,,.,.,.,,,..,,...,...,..,,...,.,,,.,.,,,.,
+#FFKD55ECH22OGOCBSQ5OZUWXQNA3YTBVAFXLVEDBRQTQMXB6AKJZ4S26T2CO5CYV2PDZZERWFBRFS
+#\\\|CLFBMZ77RM3KY7FI4E5CADEQ2YNRMHVPCMSGMHELIF2KP5JKUDD \ / AMOS7 \ YOURUM ::
+#\[7]KTAHY222KSL3EJOKCSWHEJ5ROM4VPUAUQ7ASPNUVGHHHTL4MKECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

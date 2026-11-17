@@ -612,6 +612,58 @@ subtest '27 : one giver and three receivers in one record' => sub {
     raw_transaction_attempt( $dir, $two_body, 200, 3 );
 };
 
+subtest 'head signer precheck and post-append error reporting' => sub {
+    my $dir   = ledger('wrong-head-before-append');
+    my $state = replay($dir);
+    verify_head( $dir, $state );
+    my $values = common($state);
+    my $body   = prepare_transfer( $state, 'alice', [ [ 'bob', 1 ] ],
+        $signer{'alice'}, $values );
+    my $before = snapshot($dir);
+    my $error  = do {
+        local $EVAL_ERROR;
+        eval {
+            commit( $dir, $state, 'transaction', $values, $signer{'alice'},
+                $body, $signer{'other'} );
+            1;
+        } ? undef : $EVAL_ERROR;
+    };
+    like(
+        $error,
+        qr|head rebuild requires the witness key|,
+        'wrong head signer is refused before append'
+    );
+    same_snapshot( 'wrong head signer changes no bytes', $before, $dir );
+
+    $dir   = ledger('head-stale-after-append');
+    $state = replay($dir);
+    verify_head( $dir, $state );
+    $values = common($state);
+    $body   = prepare_transfer( $state, 'alice', [ [ 'bob', 1 ] ],
+        $signer{'alice'}, $values );
+    my $expected_seq = Math::BigInt->new( $state->{'seq'} )->badd(1)->bstr;
+    unlink "$dir/head" or die $OS_ERROR;
+    mkdir "$dir/head"  or die $OS_ERROR;
+    $error = do {
+        local $EVAL_ERROR;
+        eval {
+            commit( $dir, $state, 'transaction', $values, $signer{'alice'},
+                $body, $signer{'witness'} );
+            1;
+        } ? undef : $EVAL_ERROR;
+    };
+    like(
+        $error,
+        qr|record committed seq \Q$expected_seq\E, head stale -- run recover, do not retry|,
+        'head publication failure reports the committed sequence'
+    );
+    my $after = replay($dir);
+    is( $after->{'seq'}, $expected_seq,
+        'whole record remains after head failure' );
+    is( $after->{'balances'}{ $after->{'accounts'}{'bob'}{'address'} },
+        1, 'committed transfer is not presented as an ordinary refusal' );
+};
+
 subtest '28 : torn recovery preserves every whole record' => sub {
     my $dir      = ledger('torn-recovery');
     my $whole    = read_file("$dir/journal");
@@ -685,8 +737,8 @@ subtest '13 : scratch state is cleaned' => sub {
 
 done_testing;
 
-#,,,,,..,,,.,,,,,,,.,,.,,,.,,,,..,,,.,,.,,,,.,..,,...,...,.,.,.,,,...,,.,,,,.,
-#KHOIT6IQDF7BPQQ2DOPLX5BOHZPWEZXBUMN2JTOTIMDCJ35PSJ3S7N6NNZ7QRWSDDYM4HXJCRA2SQ
-#\\\|6BNTPHAGUEXFS7JXLLIKS4B7TDECQYI64W7ABSXF3KMNWFPVQCQ \ / AMOS7 \ YOURUM ::
-#\[7]PMA7QHULVJPKHIVMVI3LG7CFAYJHPG326CK7HTCBPMQXRJJNCYBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,...,...,.,.,,,.,.,,,.,,,..,,.,.,..,,...,..,,..,,.,,,,..,.,.,...,
+#TUVUV6QWYFPLDDSGX6Y4VMMRX4Z4FPGPBTSSS4DC4VFLCLPFFLBZVHITXFKP46DMYKGKJ4QMXU6XC
+#\\\|DKI3UZ6QXBX6LUJXOFYIBBTOOZKAWPRJH7KC2LBVSB3QHBQFC3E \ / AMOS7 \ YOURUM ::
+#\[7]BFP5OFDXHITBB7RL4GL4IQGXOIPNV2S3ANVNOQAL7A2DGGSVE4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
