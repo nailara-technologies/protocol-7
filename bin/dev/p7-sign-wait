@@ -53,6 +53,7 @@ while (1) {
             say sprintf 'signed : %d of %d', $state->{'signed'} // 0,
                 scalar @{ $state->{'paths'} // [] }
                 if $state->{'paths'};
+            print $state->{'report'} if length( $state->{'report'} // '' );
             say "reason : $state->{'denied_reason'}"
                 if length( $state->{'denied_reason'} // '' );
             exit( $status =~ m{^(?:approved|committed)$} ? 0 : 1 );
@@ -77,8 +78,8 @@ while (1) {
     select( undef, undef, undef, 2 );
 }
 
-#,,,,,,,.,,..,.,,,...,,..,,,.,,,,,..,,...,,,,,..,,...,...,...,..,,..,,,,,,,,,,
-#BEANRSW2ZTFTEO44WU3VE6DKSFW3Z6GY44QS3O477GI7BZKQOTQWWMO5FJHH7G64OIBJFPPJHX3AE
-#\\\|E3JGMRAFDK242BMVOAY7FKZE3PB6P4S3O3JHQNHS4XYHRMUACKN \ / AMOS7 \ YOURUM ::
-#\[7]OAES6CXTL4YX5YF7Y7XXGRYI244V5Z6DQWAKU262JVVLJD7H3ODI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,..,,..,,,..,,.,,..,,.,,,...,..,,...,...,..,,,,.,...,,,.,.,.,
+#CXSQD7QVQIWAUREX4VASEQ3HMIJZK732O3J4Q32FBDEGIIKDCUBPTJTF6XW4YAA43QJHFEEQ44XYS
+#\\\|FTC7D2BD3DAFURGD7RGL7JM6HVFM5HUIVCTIC5OEQPJQZ42TE2G \ / AMOS7 \ YOURUM ::
+#\[7]3QN2BKV3BKKOYR73CCYJCEHY7IXU5OMKR2QSWEGUM2SWPK6BOGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

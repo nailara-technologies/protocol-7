@@ -57,11 +57,18 @@ while ( defined( my $arg = shift @ARGV ) ) {
 die "p7-sign-run -state <file.json> [ -version ] [ -plan ] <path> ..\n"
     if not defined $state_path or not @paths;
 ## a slash-less name resolves in src/ [ source.cmd.get-code-signed ] : a ##
-## top-level file would abort the run later as 'code file not found'     ##
-die "p7-sign-run : '$ARG' has no slash and is not in src/ -- the sign chain "
-    . "looks up slash-less names there ; an unsigned file is staged by "
-    . "hand\n"
-    foreach grep { index( $ARG, '/' ) < 0 and not -f "src/$ARG" } @paths;
+## top-level file would abort the run later as 'code file not found'.    ##
+## checked after the first state write : a waiter sees failed + reason   ##
+my @bad_paths = map {
+          index( $ARG, '/' ) < 0
+        ? not( -f "src/$ARG" )
+            ? "'$ARG' has no slash and is not in src/ -- the sign chain "
+            . "looks up slash-less names there ; an unsigned file is "
+            . "staged by hand"
+            : ()
+        : not( -f $ARG ) ? "'$ARG' is not a file"
+        : ()
+} @paths;
 
 my %version_mode = (
     qw| new |           => [],
@@ -121,6 +128,13 @@ sub notify_approval_request {
 sub finish {
     state_write(@ARG);
     exit( $state->{'status'} eq qw| approved | ? 0 : 1 );
+}
+
+state_write();
+if (@bad_paths) {
+    my $report = join q||, map {"p7-sign-run : $ARG\n"} @bad_paths;
+    print {*STDERR} $report;
+    finish( qw| status | => qw| failed |, qw| report | => $report );
 }
 
 ## the agent's run log : the same resolution as bin/p7-sign-agent ##
@@ -237,8 +251,6 @@ sub pending_version_bump {
         strip_signature_footer( $head_text{ $bump_files[0] } );
     return ( $new_ver, '' );
 }
-
-state_write();
 
 ##[ 0 : the automatic requirement plan ]######################################
 
@@ -434,8 +446,8 @@ finish(
     qw| report | => $report
 );
 
-#,,,,,,..,..,,,,.,.,,,,.,,,.,,.,.,,..,.,,,..,,..,,...,...,.,.,,,.,..,,,,,,,.,,
-#6UWCEDDN3LEH3NERZXZJCW6PKO7EKRV7VNLITBXZCKEEE7YGCE6EZPB4CSU5N7E3PEPTYHM4UTD3Y
-#\\\|ZAR3ATK4I6YNEY4P2RH6TMRIZP5XIQDYOVXWV5X4DDB66XERQ6N \ / AMOS7 \ YOURUM ::
-#\[7]WTA5QE6744J5LUPJYRGOVNOAQADJEVP5256MYHZWKIC4HBOLH4AI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,,,,..,,,.,,.,,,..,,,..,...,..,,...,...,...,,..,,,.,.,.,,..,
+#IY7GNJIGELFELOJTQSWNVLZXSOLXFIO42HHZFFXIBXLWWWMEDWXGH4C3NHS3J2GRISPSKTQRXRG24
+#\\\|JOPBCXRBBXC6AL3KQSDDP22OK2BOD2ERQBZS6M4W6MRKD5W3EKG \ / AMOS7 \ YOURUM ::
+#\[7]7HYYGSL7TC2N6AUKOA6UOXVXGRYGQLN65A7QDIC3KWBFG47CQ4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
