@@ -37,6 +37,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [mcp-sign-commit-workflow](reference-mcp-sign-commit-workflow.md) — 2026-10-30 : sign via p7_sign [ -> p7-signing-agent ], commit via p7_commit_prepare \ p7_commit [ + _status tools ] -- not the old manual path
 - [sign-amend-before-commit-drops-version](feedback-sign-amend-before-commit-drops-version.md) — p7_sign op amend before the commit exists rewinds the version, hook refuses : use op new + version true until committed
 - [warn-dont-restrict-user-choices](feedback-warn-dont-restrict-user-choices.md) — user-facing tools : support every reasonable usage form, WARN on weak choices, never refuse them [ restrictions get circumvented / block adoption ] ; special set-ups = wrappers. protocol verification stays fail-closed
+- [inline-code-security-graceful](feedback-inline-code-security-graceful.md) — RCM \ NCW : inline C stays user-workable, security layers graceful + always functional, strict only for key holders
 - [remote-root-ssh-restart-authorized](feedback-remote-root-ssh-restart-authorized.md) — 2026-10-21 : root@ ssh to the four servers [ srv-U F V A : Host aliases in ~/.ssh/config, label = amos-chksum -L1 <alias> ] any time ; remote zenka restarts \ reloads need no per-step ask [ still name them ; never print host.cfg whole ]
 - [token-budget-pacing-early-week](feedback-token-budget-pacing-early-week.md) — pace Claude token use from the START of each 7-day usage window, not reactively once tight — flagged 2026-09-17 after ~50%/7d on day 1. Favor one targeted check over repeated live Monitor-polling loops, delegate implementation-heavy/low-risk work to kimi_dispatch/subagents. NOT license to leave a real defect half-fixed to save tokens (user explicitly confirmed this, see [[feedback-fix-immediately-reduces-cognitive-load]]) — trim redundant procedural overhead only, never real fixes/verification.
 - [init-code-runs-before-drop-privs](feedback-init-code-runs-before-drop-privs.md) — init_code runs BEFORE root.drop_privs : $ENV{HOME} \ getpwuid resolve as the launching user ; use a post-drop .v7 callback, re-arm only if $reinit [ a hard invariant ]
@@ -103,8 +104,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,.,,...,...,,,,,,..,,,,,.,.,.,.,..,,,..,..,,...,...,...,.,,,..,,...,..,,
-#GGHKCGOMWKBQQJSPY5UYJSLZSBIDALQMNPPWTNFYRGFNEK4CNWE5EAH3PLIRKPXQUWOUYKG2IDELA
-#\\\|CRC2O3FGLZZDHEMTUYOZZVPP5PW5I5YZQ566LSHBIJM27BSMIUF \ / AMOS7 \ YOURUM ::
-#\[7]KAXSCQ7CZT6JQ56IV42EXWKK7TCS3XNXMWEUCSMMTAL2XAXGDEDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,.,,,,,,,.,.,,,.,..,,.,,,..,,..,,...,...,..,,...,,..,,,.,,.,,
+#TQMUVPB35MNM7QLW7HHNC6PFCK3N2IORL4BQOWSNBKBG37NOWDHX64DDUETPFQZTTJRQCMMOPXFOI
+#\\\|BDVSVC5G7RYDR4F2B54U5BM34WWMDGHKSNFN4EBK7O3PWA7H2Q5 \ / AMOS7 \ YOURUM ::
+#\[7]OT6QFULD7HF2E3RL6N3TF22PSTFQJKCYAVB3BFKMOWGN4TQMHUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

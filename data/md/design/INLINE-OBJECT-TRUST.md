@@ -255,6 +255,49 @@ shares its mechanism with todo 7SE [ reproducible inference ] and the
 distributed re-signing of VERSION-BRANCHES.md : independent hosts produce
 the same bytes from checksummed inputs.
 
+## build path requirements [ owner 2026-11-17 ]
+
+always functional, never a lockout : the user builds \ edits \ rebuilds
+objects transparently ; every trust layer is graceful [ warn + pure perl
+fallback ], strict only for key holders.
+
+reproducibility blockers found 2026-11-17 :
+- the build dir is embedded in the object [ debug info ] and the gnu build
+  id hashes it : -ffile-prefix-map=<build dir>=. + --build-id=none [ or no
+  -g ]
+- 'COMPILE::%03d::' is a per-process counter [ load order ] : it lands in
+  the build path AND the boot symbol, the same source at 003 vs 004 gives
+  different bytes -- derive it from the source chksum instead
+- the dir key is 5 bytes of BMW over the source only : a toolchain change
+  rebuilds in place ; add a short toolchain key, old dirs never pruned
+
+concurrency [ today : Inline 0.87 flocks only its config file ; parallel
+cold starts at the same counter share one build/ dir -> make races, a
+reader can map a half-installed .so ] :
+- the lock only saves duplicate work, never correctness : a bounded
+  wait [ ~ a normal build time ], then pure perl as a BRIDGE only
+- pure perl is never a lasting state : a fresh server would run degraded
+  until some restart. the sub re-checks [ rate-limited stat ] for a
+  published object and swaps the compiled sub in, in process ; with no
+  builder running, a forked child builds while the parent bridges ; still
+  pure perl after minutes -> one logged warning, retries back off
+- no event loop assumed [ standalone scripts : n7fs and others ] : the
+  re-check is call-driven [ time() gap, then one stat ], a zenka timer only
+  an optional extra ; the build child is double-forked or reaped by
+  waitpid WNOHANG at the check -- never a SIGCHLD handler. short scripts
+  prefer the bounded wait, long runners bridge sooner
+- p7-deps install \ host deploy pre-build every inline object : a fresh
+  server starts compiled, the bridge covers only the odd case
+- lock file opened O_NOFOLLOW, regular file + owner checked ; flock dies
+  with its holder, no stale lock state
+- each build in a fresh 0700 mkdtemp dir, never a shared build/ dir
+- publish by one rename, after the chksum check ; key holders load only
+  a signed-list match, others warn on unverified
+- compiler time limit + a host cap on concurrent builds ; any failure ->
+  pure perl
+- result : a same-uid attacker can delay the compiled upgrade [ logged ],
+  never block a process, never make pure perl permanent, or get an object into a verified loader
+
 ## evidence pointers
 
 - no .so in the sign agent : /proc/<pid>/maps assertion in
@@ -271,8 +314,8 @@ the same bytes from checksummed inputs.
   contract input away from the compiled sub, so the DISPATCH surface is
   the one that must [ and does ] agree everywhere.
 
-#,,.,,...,,,,,..,,.,,,...,,,.,...,.,,,.,,,..,,..,,...,...,,,,,,..,,,,,...,,.,,
-#3K3BUKOUEYOQDUTBC6J5BQLGOMHSI4542DMHAJYYBHLNKDNFKHGJHUF2FUXYZGIJJOHZC2RQIQJ5C
-#\\\|Z2HU7XPV27LQZJSKCIO4RJIH4YPWS3ZYK32Z5ZZ3NQOA7OLD3JF \ / AMOS7 \ YOURUM ::
-#\[7]KBBM2CPXDD6SSNPLBDBRYJJWGVZJWUMD6L6BSWY7EUEP5UB6YGCI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,.,,,,,,.,,,,.,,.,,..,,...,.,,,..,,...,...,,,.,,,,,.,.,.,,,,,,,
+#6P3BSJLQOHDDXAAMRP3H2XW2RUW6TVJVFXNRN4IJXYHE46GQSZJPPRV3QA524AUCETADA54ALGUHW
+#\\\|2ULXCFGQ2ORUXVYO5IM5RUG54GRW2O3Q5KVAPGP4RHGY3NVUBHL \ / AMOS7 \ YOURUM ::
+#\[7]K33PAFRONVC5TZCNHYBY75CD3LPZXZMCGCLN3IFCOIMWIDJZ2KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
