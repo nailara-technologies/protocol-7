@@ -2171,10 +2171,10 @@ items:
     remote delegation host [ user 2026-10-29 ] : the delegation can live on a machine the coding model has NO access to during the session -- not even through prepared code updates for that host. it runs a light consensus-based security review [ several review zenki \ models ] before it signs. so a coding model works all night and pushes to a dev branch ; the review zenki catch issues and send them back to it ; only reviewed work gets a valid signature. the model never holds or reaches signing power -- the review host is the gate [ cf. VERSION-BRANCHES.md : re-signing as the hand-over gate ; llm.service.consensus_vote for the voting ].
     switchable posture [ user ] : whether the coding model may alter the coding zenka \ the gpu host itself changes over time -- the system has to KNOW the current case and adapt the review : when the model can touch its own runtime [ or the review host's inputs ], the review must assume the reviewers may be influenced too -> stricter mode [ more reviewers, an independent host, the human click \ PIN ] ; when it cannot, the light consensus review suffices. the mode is an explicit, logged switch with its own signed start \ end, not an inferred state.
     review levels [ user ] : a fast LOCAL review lets single changes be committed [ dev branch ] ; the result of a whole session additionally needs the slower REMOTE models [ e.g. the srv-U \ srv-A workers ] to agree with the review before it is signed for base. two speeds : quick feedback while working, a broader consensus for what is kept.
-  done_at: null
+  done_at: 32VLP2XSIE
   id: HX4
   priority: high
-  status: open
+  status: done
   tags:
   - vault
   - signing
@@ -2652,9 +2652,105 @@ items:
   - todo
   - tools
   text: 'todo : archive done items by epoch into per-epoch files'
+- added: 32VLP2NYA4
+  details: |-
+    split from HX4 2026-11-17 : slice 1 landed [ p7-sign-agent, update-signatures :agent:, per-run approval y \ n \ d, p7_sign MCP ]. open : signed end timestamp [ PBS ], worker pool chunks through the agent, delegation shapes [ per step \ step count \ idle timeout, signed clear ], PIN as heightened mode, review window [ diff overview ] ; menu <-> agent : B2K. original HX4 notes :
+    vault agent : sourcecode signing without passphrase prompts [
+    first slice of Y7O's agent ]
+     
+    user 2026-10-29 : fingers hurt from typing signature passphrases
+    -- prioritized. the plan is filed in Y7O's details and
+    data/md/design/CREDENTIAL-LAYERS.md [ vault agent layer ] : an
+    unlocked p7-vault session in the user's OWN process serves
+    requests over a local socket [ ssh-agent model ], the vault key
+    never goes to a zenka. first slice : update-signatures asks the
+    agent instead of prompting ; the agent signs and returns only
+    signatures [ the key never leaves it ] ; approval per run [ no
+    'always', at most a short window ], the request shows file count +
+    list. the unlock ends with a signed end timestamp [ immutable
+    capability reduction, todo PBS ] ; the parallel worker pool [
+    149b7a0ba ] sends its chunks to the agent. menu <-> agent session
+    : B2K. a good kimi lane with claude review [ security-sensitive :
+    the agent socket's peer check is the gate ].
+    approval types [ user 2026-10-29 ] : delegation for a working
+    session, in more than one form -- e.g. a protocol-7-menu zenka
+    event that authorizes with an IDLE timeout [ the window stays open
+    while work continues, closes after idle, with a signed end ]. the
+    regular step of the normal workflow : a review window -- code
+    highlighting + a good change overview [ files, per-file diff ] --
+    approving it is the authorization. matches
+    data/md/design/DEVELOPER-WORKFLOW-ACCELERATION.md [ graphical diff
+    + signing client ]. the review is the security gate made pleasant,
+    not an extra step.
+    delegation shapes [ user 2026-10-29 ] : (1) per step -- each
+    signing approved by a mouse event in the review window ; no idle
+    timeout needed. (2) planned multi-commit work -- a delegation
+    sized to the plan : a signing STEP COUNT and \ or an idle timeout
+    fitting the task ; the model clears it early when it marks the
+    plan done [ signed end ]. the grant \ step \ clear events also
+    feed visual notification : the notify zenka, or the ticker zenka
+    showing a status line [ 'signing delegated : 3 of 5 steps left' ].
+    hybrid mode [ user 2026-10-29 ] : approve with a short numerical
+    PIN instead of the passphrase -- already planned in ai-mem
+    topic-write-access-security-infrastructure [ 'PIN auth' for many
+    small approvals, e.g. batches of code-signing requests ; reuse
+    ui.caller.security-level \ cred-mesh ui-show levels, not a
+    parallel mechanism ; a styled diff image rendered by another zenka
+    for the review window ]. so three tiers : mouse click per step \
+    PIN \ full passphrase [ unlock ], plus the sized delegations
+    above.
+    correction [ user ] : the PIN is a HEIGHTENED mode, not a lighter
+    one -- it adds a check on top of the click. configurable by
+    security level : off for the session \ auto-enabled after a medium
+    idle timeout [ returning after a pause asks for the PIN ] \ on for
+    every commit. the passphrase stays the unlock.
+    both, precisely [ user ] : click and PIN are each a time- or
+    session-bound replacement for the passphrase ; a click is easy for
+    a model to perform, a keyboard can be sniffed -- no single layer
+    is unforgeable. layers raise the VISIBILITY an attacker [ or an
+    accident ] needs : every approval is an event in a known window. a
+    vigilant system knows its current security levels exactly and
+    adapts : tighter scan intervals and more forensics investment for
+    the windows in which malicious or accidental activity would have
+    to happen [ open delegations, PIN-off periods ], less outside
+    them.
+    remote delegation host [ user 2026-10-29 ] : the delegation can
+    live on a machine the coding model has NO access to during the
+    session -- not even through prepared code updates for that host.
+    it runs a light consensus-based security review [ several review
+    zenki \ models ] before it signs. so a coding model works all
+    night and pushes to a dev branch ; the review zenki catch issues
+    and send them back to it ; only reviewed work gets a valid
+    signature. the model never holds or reaches signing power -- the
+    review host is the gate [ cf. VERSION-BRANCHES.md : re-signing as
+    the hand-over gate ; llm.service.consensus_vote for the voting ].
+    switchable posture [ user ] : whether the coding model may alter
+    the coding zenka \ the gpu host itself changes over time -- the
+    system has to KNOW the current case and adapt the review : when
+    the model can touch its own runtime [ or the review host's inputs
+    ], the review must assume the reviewers may be influenced too ->
+    stricter mode [ more reviewers, an independent host, the human
+    click \ PIN ] ; when it cannot, the light consensus review
+    suffices. the mode is an explicit, logged switch with its own
+    signed start \ end, not an inferred state.
+    review levels [ user ] : a fast LOCAL review lets single changes
+    be committed [ dev branch ] ; the result of a whole session
+    additionally needs the slower REMOTE models [ e.g. the srv-U \
+    srv-A workers ] to agree with the review before it is signed for
+    base. two speeds : quick feedback while working, a broader
+    consensus for what is kept.
+  done_at: null
+  id: DLS
+  priority: normal
+  status: open
+  tags:
+  - vault
+  - signing
+  - keys
+  text: 'sign agent : delegations \ PIN \ review window [ HX4 ]'
 
-#,,,.,,..,,..,...,,.,,,,,,,.,,.,,,,.,,,.,,,..,..,,...,...,.,,,,,,,,..,..,,.,,,
-#5GB7LHSRZHNOZFEO2ACT3SSWT45LBZYRN2S63CUWVX4EPESGK2D6YQVPAWB74ZYDFMPNRZMZFGGOI
-#\\\|UYQXEWKUJJIKFTO2QOWVK2EF7WBSNE7WV3SLGGDMOPXTQWAO6LM \ / AMOS7 \ YOURUM ::
-#\[7]KFY64QZYOAQXCYOKWZWRYV4S3LPLPCDDOGEAISJZKEXM7ESXSUCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,.,,,,,,..,,..,,,.,,..,.,,,.,.,..,,...,...,...,,,,,...,.,,,..,,
+#LEG7MANHUKJZ47QUYCDHUS6ES4IP2O6N6JARC6SASZKZ7VYS3GTZX6JM3DBYZE63CW5OZEPMZUJVC
+#\\\|TADQOIXYRWOMIIFZBSLNXYHGLWCSVYN2IPAXYHEQXRLOONAFLCB \ / AMOS7 \ YOURUM ::
+#\[7]HBJTX3Z3I53LVONMFFANCH23VQBSC7TF5FCHQESJGX3CRYG5Z6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
