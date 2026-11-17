@@ -16,6 +16,12 @@ the AMOS 7 checksum is 32 bits wide ; stage 1a waits for the shared canon
 parser [ format 4 stage 1 ] ; receipts are in the canon form before stage 2,
 so the ledger never reads json.
 
+added 2026-11-17 : the owner's idea set of 2026-11-16 as sections 15 to 22
+[ remainders, nested units, clean units and trunks, shadow accounts, buffer
+pools, fairness curves, the design test ; section 22 is the map and the
+conflicts ], questions 35 to 47. stage 1a is built [ b41ef81db ] and
+unchanged ; the status line above predates it.
+
 sources read : `read-me/documentation/dev/NRT.NRD.asc`,
 `RESOURCE-ECONOMY-DEMYSTIFICATION.md`, `NETWORK-RESOURCE-TOKEN-ARCHITECTURE.md`,
 `TASK-CUBE-CONSENSUS-ARCHITECTURE.md`, `N7FS-SEALED-REPLICAS.md`,
@@ -127,7 +133,8 @@ lost : it flows on or back, and the next cycle distributes again.
   is kept per stream [ pool, provider, class, rate version ] and derived from
   the journal on replay, never stored beside it. a stream ends with its rate
   version or its pool ; its remainder is then closed by a record that states
-  it [ always worth less than one drop ]
+  it [ always worth less than one drop ]. the same pattern one step up, for
+  drops divided among parties, is section 15
 - **frame** : the settlement interval on the ntime Y grid, proposed Y3 [ about
   4 h ]. the ntime year is 4200 x 86400 x 365 = 132 451 200 000 units, which
   13 does not divide, so a frame boundary is not a whole ntime. the frame of
@@ -261,7 +268,9 @@ choices [ owner ] :
 whoever serves the slot may act. overfill is allowed, overpay is not defined :
 when more is reserved than required, only the requirement is taken. the
 surplus stays with the givers, reduced in proportion by default, or exactly
-per channel where the reservations can be told apart.
+per channel where the reservations can be told apart. a division that does
+not come out even is never settled by a tie-break : the leftover stays in
+the slot and flows to its pool at the close [ section 15 ].
 
 a slot is paid out to the provider on proof, up to what it holds, at the rate
 version fixed in the slot. what an ended slot still holds returns the same
@@ -668,6 +677,9 @@ non-exclusive groups of section 3.
     takes the five scores as given weights and does not compute them. which
     numbers are meant is the owner's.
 
+17 to 29 : what the owner idea set of 2026-11-16 met in this document
+itself, with a proposed resolution each, stand in section 22.
+
 ## 10. threats
 
 - **sybil** : nothing is divided by a head count ; an account without proven
@@ -1005,6 +1017,11 @@ quotes ;
 7 witness and worker sets, after a membership design ; 8 real issuance ;
 9 the bridge.
 
+the owner idea set of 2026-11-16 adds to this list without renumbering it
+[ section 22 ] : the remainder rule and the design test join 1b, with the
+checks 31 to 35 of section 21 ; buffer pools, fairness curves and shadow
+accounts join 4 ; layers, gates, clean units and trunks join 6.
+
 ## 12. owner questions
 
 status marks : **answered** = by the owner ; **proposed** = this document
@@ -1110,6 +1127,96 @@ new, from the second review and the canon form :
 34. **several givers by key** : one key signs for one giver, several givers
     go through a slot [ proposed ]. or is a record with several signatures
     wanted, which the canon form does not carry ?
+
+new, from the owner idea set of 2026-11-16 [ sections 15 to 22 ] :
+
+every question below carries a recommendation ; a plain "yes" takes it.
+
+35. **the root pool** : where does the leftover chain end, and must every
+    pool name a parent for it ?
+    recommend : the first core pool of a domain that names no parent is the
+    root pool, and a pool without an accounting parent hands it its
+    leftover only [ no aggregate, no accounting edge ] -- because the
+    network account may change only by an `issue` [ rule 11 ], and this
+    leaves synthesis question 4 and question 29 open instead of forcing
+    them.
+36. **the unit carry at a stream's end** : taken over by the successor
+    stream, or closed and stated as now ?
+    recommend : taken over by the successor stream of the next rate
+    version, stated in the `close` record as before -- because it is the
+    owner's one pattern, costs no drop, and check 20 keeps its wording.
+37. **nested units** : wanted as a direction, and with which numbers ?
+    recommend : yes as the direction for stage 6, with a fixed 4200 per
+    layer, one Y level coarser per layer up, and supply lent downward by
+    lock and issue -- because 4200 is already the ntime second, a parent
+    at its 13 digits then fills exactly 4200 children, and a child's fault
+    stays bounded by its own lock. nothing is built before stage 6.
+38. **what may cross a boundary** : whole units or primes, who sets the
+    unit, is the constant unit wanted ?
+    recommend : whole transmission units with a cap per frame, both stated
+    in the gate's definition by whoever writes the gate ; the constant
+    unit per frame as an option a trunk may choose, not the default --
+    because primes leak almost as much as any amount and cannot be netted,
+    and the constant unit costs a buffer not every edge can hold.
+    **decided [ owner 2026-11-17 ]** : the constant unit is the DEFAULT for
+    trunks [ a trunk buffers at both ends by its nature, and the privacy aim
+    wants every crossing alike ] ; capped whole units stay the default for
+    every other gate.
+39. **refunds** : exactly what is owed, or with a penalty ?
+    recommend : exactly what is owed, no penalty -- because a penalty moves
+    value between groups on a failure, which the fairness aim rules out ;
+    a service may still state a higher required cover.
+40. **the first fill of a buffer** : intent and share part, or a margin on
+    the price ?
+    recommend : by intent or a `buffer` part of a share, then by its own
+    gains ; no margin -- because a margin is a second price beside the
+    rate version and would have to pass the design test as one more curve.
+41. **the earmark of a promise** : the worst case per order, or a
+    statistical bound ?
+    recommend : the worst case, added up per order, for stage 4 ; a
+    statistical bound only after the simulation has shown one that never
+    fails the buffer -- because the worst case is exact, replayable and
+    cannot over-promise, at the price of shorter horizons.
+42. **the entry curve** : its numbers, the account that signs less, and
+    what age is.
+    recommend : a factor of 2 on the public part that sinks to 1 in even
+    steps over 13 frames of the next coarser Y level ; an account that
+    signs a lower part is warned and draws at ordinary terms, not newcomer
+    terms ; age in frames now, by the weight of question 3 once it exists
+    -- because the numbers are small, on the grid and easy to change in
+    the simulation, and the condition keeps the commons from being drawn
+    on for nothing.
+43. **shadow accounts** : who may require cover, the default, the delay for
+    taking cover out.
+    recommend : any workload may state a required cover in its pool
+    definition, value-moving ones must ; 1 : 1 by default ; free cover is
+    returned at the next settle, one frame late -- because a cover below
+    the amount in flight covers no full refund, and the one frame is what
+    stops cover being pulled from under a running operation.
+44. **buffer overflow** : the split and who states the numbers.
+    recommend : `vendor : customer` 1 : 1 by default, and band, step and
+    window stated by the service in the pool's definition -- because the
+    definition is the address, so every customer sees the rule before it
+    fills and nobody can change it afterwards.
+45. **the cap on a return** : the largest part of its own spending in the
+    window an account may receive back.
+    recommend : one half -- because it keeps every return a lower price
+    and never an income, makes self-payment through a pool lose at least
+    half of what it puts through, and still empties an overfill within a
+    few windows.
+    **decided [ owner 2026-11-17 ]** : questions 35 to 47 as recommended,
+    with 38 changed as stated there. the numbers of 42 [ factor 2 over 13
+    frames ], 44 [ 1 : 1 ] and 45 [ one half ] are STARTING values, tuned by
+    the design-test simulation [ section 21 ], not fixed constants.
+46. **the aggregate across a domain edge** : whole units, or exact ?
+    recommend : whole units with a carry, one unit late at most ; exact
+    inside one domain -- because an exact aggregate hands every
+    fingerprint to the parent, and nothing is lost by the carry.
+47. **the design test as a gate**, and where the view is built.
+    recommend : a rule that fails a property blocks its stage, and the
+    view is a task of its own after 1b -- because the test is only worth
+    its name if it can stop a rule, and the view needs nothing but the
+    series file.
 
 ## 13. recommendations [ second pass, revised with the review ]
 
@@ -1364,8 +1471,852 @@ section 10 ; these are the findings that changed this document :
 and by the owner : contradiction 12, question 13 and recommendation 13 are
 closed ; stage 1a waits for format 4 stage 1, stage 2 for format 4 stage 3.
 
-#,,,,,,.,,...,.,,,.,.,..,,,,.,,,.,.,.,...,.,.,..,,...,..,,...,,..,,,.,,.,,,.,,
-#QSNFLBMJ2TOYYVXNYCEI4YCCBK6D4TKRDFTSLDNA6QLTVI6TBFR7YTPA6GOPOGXHXRSR6S2GT7AG4
-#\\\|Y4RNMUTTQ5CQZIMDWN4C2F2UUKIHEFBW2ZPQMYTYBFTI4WM5WIS \ / AMOS7 \ YOURUM ::
-#\[7]2VK7OKYFCH2OE7EFGTHLC35PEJ7K6FNCJV3X7A6CKXGWAALZVAAY 7  DATA SIGNATURE ::
+## 15. remainders of proportional splits [ owner 2026-11-16, for stage 1b ]
+
+sections 15 to 21 fold the owner's idea set of 2026-11-16 into the design ;
+section 22 maps each idea to its place and lists the conflicts. stage 1a
+[ `AMOS7::NRT`, `bin/nrt`, b41ef81db ] is built and not changed by any of
+it : every rule below lands in 1b or a later stage.
+
+**the rule.** whenever drops are divided by weights, every party receives the
+floor of its exact part, and what the floors leave over is handed to nobody :
+
+    part of party i  =  floor( amount x weight i / sum of weights )
+    leftover         =  amount - sum of parts          0 <= leftover < parties
+
+- **no tie-break** : no leftover drop ever goes to one party by a rule of
+  order, size or address. "largest remainder, ties by address" is out
+- **the leftover stays in its channel**, the account that did the dividing,
+  and is part of the amount of that channel's next division. it accumulates
+  with future inflow until it fits a dissemination
+- **when the channel closes, the leftover flows to its parent** : a slot's to
+  its pool, a pool's to its accounting parent, a channel that belongs to one
+  account back to that account
+- **at the top it joins the network's own proportions** : the domain's
+  **root pool**, a core pool with no parent, whose definition is what the
+  network spends on all accounts [ the template user ]. never one user. the
+  root pool never closes, so the chain ends there
+- finer units only move the leftover ; accumulation and the parent flow
+  resolve it
+
+this is the carry of section 2, one step up. it is one pattern at every
+scale [ owner ] :
+
+| scale | what is divided | what is left | where it waits | when it moves on |
+|---|---|---|---|---|
+| units -> drops | measured units by a rate | units worth less than one drop | the carry stream | with the next usage of the stream |
+| drops -> parties | drops by weights | fewer drops than parties | the dividing channel | with the channel's next division |
+| channel -> parent | a closing channel's leftover | the same drops | the parent channel | with the parent's next division |
+| drops -> token | 4200 drops | fewer than 4200 | the layer [ section 16 ] | when a whole token is reached |
+
+**the invariant**, checked on replay for every channel :
+
+    entered  =  given out + leftover held          leftover held < parties of the last division
+
+the leftover is derived from the journal like the unit carry, never stored
+beside it. it is drops in the balance of the channel account, earmarked for
+that channel's next division : it is not free balance, not spent on a
+category, and it does not count against a pool's capacity.
+
+**where divisions occur**, and which channel keeps the leftover :
+
+| division | channel | note |
+|---|---|---|
+| a share's budget per category [ section 4 ] | the giving account | a reservation is local : the leftover was never earmarked and is simply free |
+| dissemination, the re-offer in equal parts [ step 4 ] | the giving account | same : it "stays with the giver" already |
+| overfill, the surplus given back in proportion | the slot | see below |
+| `earn` to several providers by proven units | the slot | |
+| `return` of an ended slot to those who filled it | the slot, then its pool at the `close` | |
+| overflow and fairness returns [ sections 19, 20 ] | the pool | joins the release of the next frame |
+| a gate's crossing in whole units [ section 17 ] | the gate | the buffered amount below one unit |
+
+**overfill without a tie-break.** three reservations of 40 on a requirement
+of 100 cannot take 33 + 33 + 33 : the slot would hold 99 and never
+saturate. so the division is made on what flows **out**, never on what must
+be complete : the surplus of 20 is divided, each giver keeps 6 of it, and
+the slot takes 100 + 2. the 2 are the slot's leftover. the slot is
+saturated at 100, pays at most 100, and at its `close` the 2 flow to the
+pool. so the sentence of section 4, "only the requirement is taken", reads :
+the requirement, and a leftover of fewer drops than there are givers.
+
+**the record.** a leftover moves only at a `close`, as one transaction of
+the new reason `remainder` : one `-` row, the closing channel, one `+` row,
+its parent, by the authority of the closed record. a leftover of zero
+writes nothing. inside a living channel nothing moves at all, so no record
+is needed.
+
+**the root pool.** the network account cannot be the top of the chain : it
+is the counter of supply and changes only by an `issue` [ rule 11 ]. the top
+is a pool : the first `pool` record of a domain that is marked core and
+names no parent. a pool without an accounting parent has the root pool as
+the parent of its leftover and of nothing else : no aggregate is told, no
+accounting edge follows from it [ question 35 ]. until a root pool exists,
+a closing pool's leftover waits in the closed pool's account and is listed
+by `verify` [ rule 12 ].
+
+**the unit carry at a stream's end.** section 2 closes an ended stream's unit
+remainder by a record that states it. units are measured work, not drops,
+so there is nothing to move ; under the pattern the stated remainder is
+taken over by the successor stream [ same pool, provider and class, the
+next rate version ] and counts there. where no successor exists it stays
+stated in the `close` record and is named to the accounting parent as
+units. proposed, question 36.
+
+**the token question** [ owner : does a pool that reaches 4200 drops become a
+token record ? ]. inside one layer : no, the token stays the counting unit
+and no record is written at 4200. the place where 4200 drops do become one
+thing is the layer boundary of section 16.
+
+## 16. nested units [ owner idea, not decided ; stage 6 ]
+
+**the idea.** the token of a layer is the drop of its parent layer :
+
+    1 drop of layer n+1  =  1 token of layer n  =  R drops of layer n          R = 4200 [ proposed ]
+
+a **layer** is a ledger domain : one witness, one journal, one supply
+counter, its own 13 digits. nothing in a domain is ever written in another
+layer's unit. what follows shows that the idea holds together ; it is not
+built before stage 6 [ several domains ], and stage 1b needs nothing from
+it.
+
+**conservation across layers : lock above, issue below.** supply exists at
+the top and is lent downward, never created at the bottom :
+
+- the parent keeps one **layer account** per child domain : a pool whose
+  definition names the child's ledger id, so its address follows from it
+- **lowering** : `k` parent drops move into the child's layer account [ a
+  transaction of the parent ]. that record is the basis of one `issue` of
+  `k x R` drops in the child, to the child's **gate** [ below ]. a lock
+  record is used once, forever, like a proof [ rule 8 ]
+- **lifting** : `k x R` child drops move into the child's gate and stay
+  there ; that record is the basis on which the parent releases `k` drops
+  from the layer account. used once, forever
+- the child never un-issues. rule 11 stays as it is : only an `issue`
+  changes a network account, and amounts are positive. what came up waits in
+  the gate and goes out again with the next lowering ; the child issues
+  only when its gate is empty
+
+the invariant that ties two layers, checked by whoever holds both heads :
+
+    R x locked in the layer account  =  supply of the child - held in the child's gate
+
+every domain keeps its own zero sum and supply check unchanged. the sum
+total over all layers, counted in drops of the lowest layer, is the top
+layer's supply times R per step down, and no lock or lift changes it.
+
+**what a parent risks.** the layer account never goes below zero [ rule 3 ],
+so a child whose witness lies can take out of the parent at most what was
+locked for that child. a compartment's fault is bounded by its own lock :
+localization is also the safety property.
+
+**the 13 digit bound per layer.** each layer holds at most
+9 999 999 999 999 of its own drops. a child at its bound has locked
+floor( 9 999 999 999 999 / 4200 ) = 2 380 952 380 parent drops, and
+4200 x 2 380 952 380 = 9 999 999 996 000 : with R = 4200 a parent at its
+bound fills exactly R children to theirs. the bound is never widened, the
+tree grows instead : `n` layers above the lowest count up to
+9 999 999 999 999 x 4200^n lowest drops without any number of more than 13
+digits in any record. a child at its bound takes no more ; what is offered
+to it overflows to its siblings or stays above [ section 4, the same
+water-filling ].
+
+**the carry between layers.** fewer than R child drops cannot cross : they
+are the remainder of the layer and wait in the gate until a whole parent
+drop is reached. the stream invariant is the one of the unit carry :
+
+    lifted x R + waiting in the gate  =  entered for lifting
+
+so the last row of the table in section 15 is this section : drops are the
+remainder of tokens, and a whole token is one thing again, one level up.
+that also answers the owner's open point : the "token that is also an
+account" of NRT.NRD is the layer account entry, and inside one layer the
+token stays a counting unit.
+
+**fixed 4200 or a ratio per layer.** proposed : fixed.
+
+- 4200 is already in the grid : one second is 4200 ntime units, the year is
+  4200 x 86400 x 365 [ `AMOS7::cell::time`, `NTIME_YEAR` ]. the same number
+  steps value that steps the second
+- one rule for every edge : the fan-out identity above, one carry bound,
+  and an amount converts between any two layers by a power of one number
+- a ratio per layer would have to stand in a record both layers verify and
+  makes every crossing a lookup. 13^3 = 2197 or 13^4 = 28561 would line the
+  value step up with the Y grid, at the price of leaving the 4200 of
+  NRT.NRD ; the two axes do not need the same number [ next paragraph ]
+
+**fit with `AMOS7::cell::time` and the cell tree.** value and time nest on
+separate axes, and both are exact :
+
+- **time** steps by 13 : a frame of level `l` is 13 frames of level `l+1`
+  [ `frame`, `window`, `path` ]. proposed : a layer up settles one Y level
+  coarser [ level - 1 ], so one parent frame is 13 child frames
+- **value** steps by 4200
+- a crossing happens **once per parent frame**, as one aggregate of whole
+  parent drops. the child's 13 frames in between collect ; that is the
+  batch per frame the clean units of section 17 want
+- in the cell tree a pool is a cell and a slot a child cell [ synthesis ].
+  a layer is a cell whose journal is a whole domain ; its layer account is
+  the downward channel, the gate the gated transaction state. the parent
+  learns whole parent drops per parent frame and nothing else, which is
+  the **accounting parent** role exactly [ section 3 ]. the child's witness
+  stays the only party that replays the child
+- `path` gives the frame of every level for one ntime, so a record of a
+  child states its place in the parent's frame without arithmetic of its
+  own
+
+**what it brings** [ owner ] : efficiency [ most records never leave their
+layer ; a parent holds one row per child per frame ], portability [ a child
+runs on its lock while it is cut off and reconciles at the gate ],
+localization [ spatial and temporal compartments are domains with a bound
+fault ].
+
+**what it needs that does not exist** : a record kind that binds a child to
+its parent [ ledger id, R, the level difference ], an `issue` basis other
+than `test` [ the lock record ], an `issue` to a pool [ 1a issues to a key
+account only ], and a reader of the other layer's signed head. all of it
+is stage 6 and needs its own design ; the `init` record of 1a is not
+changed.
+
+## 17. clean units across compartment boundaries, and trunks [ stage 6 ]
+
+**why.** an odd amount is a fingerprint : 17 351 drops seen on two sides of a
+boundary are the same payment with near certainty. kept local, the
+remainders buffer that entropy out, and only clean values cross [ owner ].
+a **compartment** is a ledger domain ; a boundary is every edge between two
+domains, up the tree or to a parallel branch.
+
+**the gate.** every edge has a **gate** at each end : a pool with no key,
+whose definition states the edge [ the two ledger ids ], the **transmission
+unit** `U` [ a whole number of parent drops ], the frame it crosses on and
+its caps. the definition is its address, so the rule of a gate cannot be
+changed.
+
+- inside, an account pays into the gate with an ordinary transaction, any
+  amount. only the local witness sees it
+- the gate crosses **only whole units, only at a frame boundary, only as
+  one aggregate** : `k x U`, with no payer, no payee and no single amount
+- opposing directions of one frame are **netted first** ; only the
+  difference crosses [ the net unwinding of section 6, on an edge ]
+- what is below one unit **waits at both ends** and joins the next frame.
+  it is the gate's leftover [ section 15 ] :
+
+      crossed x U + waiting  =  net entered          waiting < U
+
+- the far gate pays the receivers inside its own compartment, in exact
+  amounts, **from what it holds**. where it holds too little the payment
+  waits [ prepaid, rule 7 ; waiting time, never debt ]. how much a gate
+  holds ahead is a buffer pool [ section 19 ], and what stands in for a
+  payment that is still on its way is a shadow account [ section 18 ]
+- the instruction "pay this account that much" travels sealed to the far
+  gate. it is not part of what crosses in the ledger
+
+**who learns what**, stated plainly, because no arrangement hides everything
+from everybody :
+
+| party | sees | does not see |
+|---|---|---|
+| the near witness | the payer, the amount, "into the gate" | the receiver |
+| the parent, every observer of the edge | `k` units per frame | payers, receivers, single amounts, the count of payments |
+| the far witness | the receiver, the amount, "from the gate" | the payer |
+
+the two witnesses together can match an amount of one frame on both sides.
+the gate removes the fingerprint for the edge and for everything above it,
+not for two colluding ends. a sender who wants more splits the amount over
+frames, or pays in units itself.
+
+**how clean is clean.** what an edge leaks per frame is the choice among the
+values it may carry : about `log2( number of allowed values )` bits.
+
+| rule for what may cross | allowed values up to N | leak per frame |
+|---|---|---|
+| any amount | N | about log2 N |
+| prime amounts only [ owner, hypothetical ] | about N / ln N | about log2 N - log2 ln N : little less |
+| whole units, `k x U` | N / U | log2( N / U ) |
+| whole units, `k` capped at `c` per frame | c + 1 | log2( c + 1 ) |
+| one unit every frame, or none | 2 | 1 bit |
+| one unit every frame, always | 1 | nothing |
+
+proposed : whole units with a cap per frame, both in the gate's definition.
+primes still leave many distinct values and cannot be netted or summed [ a
+sum of primes is rarely prime ], so they fit a crossing that is added up
+badly. the strongest form is the last row : a gate that always sends
+exactly one unit per frame and buffers the difference in both directions
+carries no information at all, and is the entropy-free base workload of
+`topic-latency-algorithmic-authority-entropy-toll`. it needs a buffer of
+the size of its traffic's swing ; the cap `c` is the dial between the two.
+
+**what an accounting parent is told** changes with this. section 3 gives it
+exact amounts per class per frame, which hands every odd amount upward.
+under clean units the aggregate is stated in whole units of the edge, and
+the report keeps its own carry : `told x U + carried = actual`. nothing is
+lost to the parent, it arrives one unit late at most. within one domain
+[ stage 1b ] the parent and the child share a witness and the exact
+aggregate stays.
+
+**a layer edge is the smallest gate** : `U` is one parent drop, that is `R`
+child drops, and the gate of section 16 is this gate.
+
+**trunks** [ owner : "wormholes" ]. a **trunk** is a standing pair of gates
+between two regions that are not parent and child :
+
+- value moves on the nearest layer both regions share : a transaction of
+  that ancestor between the two layer accounts, in whole drops of the
+  ancestor. the trunk's unit is therefore a whole number of ancestor drops,
+  and each end collects until one unit is reached, buffered below that at
+  both ends
+- between regions with no common ancestor nothing native moves. that is
+  the outside bridge [ stage 9 ], not a trunk
+- a trunk's definition states both gates, `U`, the frame, a cap per frame
+  and per direction, and the cover it requires [ section 18 ]
+- **a trunk is a native workload** : keeping the two gates, sealing and
+  delivering the instructions and holding the buffer is work of the class
+  `transport`, signalled as a slot per frame and paid on proof. its proof
+  is of the ready kind : the crossing stands in two signed records, one of
+  each end, that state the same units for the same frame, as two n7fs
+  receipts bound an interval. a trunk that is paid for clean, constant
+  traffic is paid for exactly the property the latency note asks of a
+  relay
+
+**threats that come with it** [ to section 10 when this is designed ] : a far
+gate that pays out ahead of the crossing lends ; it may do so only from
+what it holds, and the cover of section 18 is what it draws on if the near
+side never crosses. a thin trunk leaks by timing : few payers per frame
+make the aggregate one payment again, so a gate states a smallest crowd or
+keeps the constant unit. the sealed instruction is outside the ledger and
+needs its own delivery proof.
+
+## 18. shadow accounts [ owner 2026-11-16 ; local form stage 4, across domains stage 6 ]
+
+**what it is.** a **shadow account** is the network-side shadow of one
+account : a cover the network holds for it. it covers the refund of a
+failed transaction, in both directions the same way, and it replaces trust
+in the user plus a handshake per transaction by trust in the network, which
+checks that the transacted amount is covered. workloads that transport or
+translate value [ trunks, the converting zenka ] may require it as their
+handshake.
+
+**its form : a pool, no new account kind.** the shadow of account `A` is a
+pool whose definition names `A` as the one it stands for, its **target**
+[ the capacity ] and its cover rule. so :
+
+- its address follows from its definition ; nobody grants it and its rule
+  cannot be changed
+- it has no secret key. it moves only by the witness, under its own
+  definition, and every such move is replayed and refused when the
+  definition does not carry it
+- what it holds are `A`'s own drops, earmarked. the sum total does not
+  change : a shadow is a place, not a source
+
+**filling.** by intent : a transaction of `A`'s key into the shadow, reason
+`cover`. automatically : a part of `A`'s share named `cover` fills it per
+cycle like any pool, up to the target ; at the target it takes no more and
+the part stays with `A` [ capacity and overflow, section 4 ].
+
+**"covered" replaces the handshake.** a workload that moves value states in
+its pool definition `cover = <n> : <d>`, the cover it requires per drop in
+flight [ proposed default 1 : 1 ]. then, per operation of amount `a` :
+
+1. the witness checks that the free cover of the shadow is at least the
+   required cover, and earmarks it : a `reserve` on the shadow towards the
+   operation's slot. reserved cover cannot be reserved again [ rule 6 ]
+2. the operation runs with no further signature of the user. the agreed
+   proportion authorized it [ section 1 ], the cover makes it safe to act
+   on before the user's own drops have arrived
+3. the slot closes, and exactly one of three things happens
+
+| outcome | fact in the journal | what moves |
+|---|---|---|
+| done | the usage is proven before the slot's deadline frame | the earmark ends ; the user's payment settles through the slot as usual |
+| the user's side failed | the slot was acted on, and at the deadline it holds less than was acted on | the missing amount, from the user's shadow to the party owed |
+| the service's side failed | drops left the slot towards the service, and no proof stands at the deadline | the slot returns what it still holds ; what had left comes from the service's shadow to those who filled |
+
+**symmetric.** both sides of a value-moving operation hold a shadow, and the
+same rule draws on either : the same record kinds, the same deadline, the
+amount that is owed and not one drop more. the refund is a transaction of
+the new reason `refund`, from a shadow, by the authority of the closed slot.
+no penalty is added by default : a refund makes the owed party whole and
+moves nothing else, so no group gains from another's failure [ question
+39 ].
+
+**what a failure is.** only what the journal itself shows : a deadline frame
+that passed without the record that was due. the ledger does not judge
+whether a pizza arrived ; what counts as proof of an outside delivery is
+question 26 and stays open. so a shadow covers every failure that shows as
+a missing record, and an outside fact only through the proof its slot
+names.
+
+**it does not bend the prepaid rule.** cover is prepayment made earlier and
+held network-side. a draw is bounded by what the shadow holds [ rule 3 ],
+so there is still no debt ; an operation whose cover cannot be earmarked is
+not started, and says so at once [ section 19, fail fast ].
+
+**no key account is ever drawn on.** section 6 states that a key account
+moves only by its own key or its own share. the shadow keeps that true : the
+account moved its drops into the shadow itself, and from there on the
+network draws on a pool.
+
+**release.** an earmark ends with its slot. free cover above the target
+flows back to `A` at the next settle [ overflow ]. `A` takes free cover out
+by a signed `close` naming the amount ; it is returned at the next settle,
+after every earmark of that frame, so cover cannot be pulled from under an
+operation that already counts on it.
+
+**size.** the cover per drop in flight comes from the workload's definition ;
+the target is `A`'s choice. the most that can be in flight for `A` at once
+is its free cover divided by the required cover : the shadow is also the
+per-account cap of value-moving work, beside the share budget.
+
+**across compartments and layers.** a cover is of use only where the party
+that relies on it can check it. so cover for a trunk or a layer edge is
+held **at the layer the edge settles on**, in that layer's whole drops, and
+it is the **gate's** shadow, not a user's : the user's shadow covers the
+gate inside the compartment, the gate's shadow covers the trunk one level
+up. cover nests like the units, each layer covers the next, and no user is
+named above its own compartment [ section 17 ].
+
+**who is trusted.** "the network validates" means the witness of the domain
+replays the rule ; with one witness per domain that is one party
+[ contradiction 6 ]. the shadow moves the trust from every counterparty to
+that witness, it does not remove it. a shadow's definition names its
+account and so links the two for everyone who sees the domain's pools
+[ question 14 ].
+
+## 19. buffer pools [ owner 2026-11-16 ; stage 4 ]
+
+**what it is for.** between the moment an order is committed and the moment
+it completes, its cost can move : a conversion rate swings, a vendor
+re-prices, the proven units differ from the estimate. a user cannot
+influence that and suffers when a tiny underrun forces a re-price it may
+never see. a **buffer pool** stands between : the customer pays what was
+promised, the service receives what it cost, and the pool takes or gives
+the difference. that makes promises on completion reliable and decouples
+the inside from outside spikes and manipulation.
+
+**generic, and no new mechanism.** any service runs its own, the network
+needs none natively : a buffer is a pool with one category of the rule
+`buffer`, whose definition names the service pool it serves and carries
+the numbers below. address by definition, no key, capacity, overflow and
+the per-frame proportion budget are those of every pool.
+
+**symmetric fill and drain.** for an order promised at `p` drops that
+completes at a proven cost of `c` drops :
+
+    c <= p    the slot pays the service c, and p - c goes from the slot into the buffer
+    c >  p    the slot pays the service p, and c - p goes from the buffer to the service
+
+both are transactions of the new reason `buffer`. the customer pays exactly
+`p`, the service receives exactly `c`, the buffer moves by `p - c`, and the
+three add up in every case. a gain in the network's favour fills the
+buffer and stays local to the intent it came from [ owner ]. only a slot
+and a pool are ever debited, never a key account.
+
+`c` is a **proven** number : the proven units at the slot's rate version
+for native work, or, for an outside purchase, the proven outside price at
+the rate version active at completion [ the proof of question 26 ]. a
+service that may state its own cost empties the buffer ; without a proof
+of `c` there is no buffer, only the fixed slot.
+
+**noise, not drift.** a buffer is a low-pass filter : it turns steps into
+ramps. it can absorb what averages out and nothing else, so the
+**reference rate**, the rate promises are priced with, must follow
+sustained trends :
+
+- the reference is an ordinary rate version, written by the witness for the
+  next frame from the journal alone : the proven costs of the last `W`
+  frames as one ratio of sums, `sum of drops : sum of units`. whole
+  numbers, no division, no float, the same on every replay
+- under a steady trend of `s` per unit and frame the reference lags by
+  about `( W + 1 ) / 2` frames, and the buffer loses about
+  `s x ( W + 1 ) / 2` per unit. it is drained at a known pace : the buffer
+  divided by that pace is the **warning time**
+- a short `W` follows fast and filters little, a long `W` filters well and
+  is drained by arbitrage against its lag. `W` stands in the definition
+
+**promises sized to capacity.** the definition states a **band** `b`, the
+largest adverse move per unit the buffer covers, taken from the spread of
+the same `W` frames. a promise is a **reservation in the buffer** :
+
+- an order of `u` units is committed only when `u x b` can be earmarked in
+  the buffer towards its slot. earmarked drops are not promised twice
+  [ rule 6 ]
+- so what can be promised is exact at every moment :
+  `floor( free buffer / b )` units, and with a volume of `v` units per frame
+  the firm **horizon** is `floor( free buffer / ( v x b ) )` frames
+- parallel orders add their exposure, so the size of the buffer bounds how
+  far ahead agreements can go [ owner ]. the earmark is the worst case and
+  adds up linearly ; many independent orders vary less than that, and a
+  statistical earmark is a later curve [ question 41 ]
+- the horizon shrinks smoothly with the fill level and reaches zero with
+  the buffer. that is the warning : every settle states the fill level and
+  the horizon, and a strategy sees its room shrink long before an order
+  fails
+- band, reference and horizon are recalculated every frame from the
+  journal : the short, statistics-based agreement of the owner's note
+
+**committed orders only.** a buffer serves saturated slots and nothing else.
+a quote is no promise ; a reservation that can still be redirected
+[ `buy = complete`, before saturation ] holds no earmark. once committed, an
+order is not withdrawn to pick the better side of a move : a promise that
+can be cancelled for free is an option, and the buffer would pay for it.
+
+**caps per frame.** two, both existing rules : an account converts at most
+the budget of the matching category of its share per frame, and the buffer
+gives out at most its own proportion budget per frame. the proportions
+bound how fast a pool can be drained [ section 1 ] ; for a buffer that
+bound is the worst case of one frame.
+
+**fail fast, with a refund, never a silent stall.** an order is in one of
+three states and says which :
+
+- **refused at once** : the earmark does not fit. the order may still be
+  placed unbuffered, and is then marked as one that can be re-priced [ a
+  warning, not a refusal ]
+- **cleared** : the proof stands before the deadline frame and the move was
+  within the band
+- **failed** : the move exceeded the earmark, or the deadline frame passed
+  without proof. in the same settle the slot is closed with that reason,
+  what it holds returns in full to those who filled it, and what had
+  already left is covered by the service's shadow [ section 18 ]. a
+  buffered slot always carries a deadline, never beyond the horizon it was
+  promised under, so "open and waiting" does not exist past it [ rule 12 ]
+
+**overflow lowers the price, with hysteresis.** a buffer above its capacity
+gives the excess back through the price [ owner ] : the irrigation
+overflow, applied to a rate. the definition states a band around the
+capacity, `low < high`, and a **step** :
+
+    above high        the discount rises by one step per frame
+    low to high       the discount stays what it was
+    below low         the discount falls by one step per frame, down to zero
+
+the discount is the next rate version, so its state is in the journal. the
+dead band is the hysteresis : the price does not chatter around the
+capacity. the step is the largest change per frame : the price moves in
+ramps and never jumps, which a plain on \ off switch would [ the design
+test, section 21 ].
+
+**split between vendor and customer.** the excess released per frame is
+divided by a share rule of the pool's definition, `vendor : customer`
+[ proposed default 1 : 1 ]. the customers' part is the discount ; the
+vendor's part is paid to the service over the same window, by its proven
+units. both go by use over a window and never to whoever comes first
+[ section 20 ]. floors leave a leftover, which stays in the buffer
+[ section 15 ].
+
+**the two ends.** empty : no promise, every order unbuffered and marked,
+gains refill. full : the price sinks until inflow and outflow meet. in
+between every readout [ horizon, discount, fill level ] moves by bounded
+steps. an empty buffer starts by intent or by a `buffer` part of a share,
+and from the first favourable move by itself [ question 40 ].
+
+**where it sits.** the converting zenka and a trunk's gates [ section 17 ]
+are the first users ; the bridge questions 12, 26 and 30 decide the
+outside edge. a public pool's drops do not fill a buffer of an outside
+edge [ the proposed answer to 30, unchanged ].
+
+## 20. fairness curves [ owner 2026-11-16 ; stage 4 ]
+
+**the aim.** curves for pricing, overflow return, latency and priority that
+balance incentives and keep the sum total : they move when and to whom
+drops flow, they never create or remove one, and they never siphon value
+from one group to another [ owner ].
+
+**two overflows, kept apart.** section 4 describes a pool that **refuses**
+what is offered above its capacity : the offer is a local reservation, so
+the refused part never left the giver and nothing has to be returned. this
+section is about a pool that already **holds** more than its capacity,
+because of buffer gains, returned fills, leftovers, or a capacity that
+shrank. those drops are in the pool and have to flow back.
+
+**overflow returns over a window, pro rata to use, never first-come.**
+
+- the excess of a frame is released over the next `W` frames, per frame
+  `floor( excess still held / frames left )`. no rush to empty an overfill
+- each release is divided over the accounts **by their use of the pool in
+  the window** : the drops each paid through it in the last `W` frames.
+  the moment of an order has no weight at all, so there is nothing for a
+  prediction model to be first at
+- what the floors leave stays in the pool and joins the next release
+  [ section 15 ]
+- the release is a transaction of the new reason `overflow`, written by
+  the witness in the settle pass, by the authority of the pool's
+  definition. `W` and the use rule are part of that definition
+- an account receives per window at most a stated fraction of what it
+  spent through the pool in that window, below the whole. so a return is
+  always a lower price for real use and never an income, and the rest
+  stays for the following windows. this cap is what stops use that is
+  inflated by paying oneself through the pool [ rule 10 makes that free ]
+  from farming the return
+
+**what it does over time.** when the network's resources rise against the
+outside, buffers overflow, prices sink, and those who use the network are
+rewarded through cheaper workloads, in proportion to their use. that is
+one way long-term users and new accounts are balanced without a transfer
+between them.
+
+**public pools overflow back to the users** [ owner ], never a permanent
+drain. a public pool at capacity refuses further fills [ section 4 ], and
+what it holds above capacity returns by the rule above. new accounts
+profit too, most when many join quickly while the commons is full.
+
+**new accounts fill public pools proportionally higher** [ owner idea ]. an
+**entry curve** : the public part of a share is multiplied by a factor that
+starts above one for a new account and sinks to one over a stated number
+of frames, in even steps.
+
+- it is **sum-neutral** : a larger local reservation of the account's own
+  drops towards the commons, nothing issued, nothing taken by anyone
+- it is a **proportion, not a fee** : an account that holds nothing fills
+  nothing. the barrier to enter stays where the irrigation principle puts
+  it, at zero, and a newcomer's net position at entry stays positive : it
+  draws from the public pools from its first frame and fills them only out
+  of what it later holds
+- it is **self-limiting** : once the commons is at capacity the higher part
+  is refused like any other and stays with the newcomer. the entry
+  contribution bites only while the commons is actually short
+- it raises the price of many fresh accounts, each of which pays in more
+- **where the curve stands** : in the share of the generic template user,
+  the default a new account starts under, and in a public pool's
+  definition as the condition of its newcomer category. an account's own
+  signed share still states its part : the owner's rule that a user
+  defines exactly what it gives is kept. an account that signs a lower
+  part is warned and not refused ; whether it then still draws at newcomer
+  terms is question 42
+- **age** is counted in frames since the `account` record. age alone is
+  cheap to fake by opening accounts early and leaving them idle, so the
+  factor should follow the same weight as the NRT index [ question 3 : a
+  long-existing account with good values ] once that exists
+
+**the form of every curve.** a curve is a short table of points in a pool's
+definition [ input -> value, whole numbers ], read by exact interpolation
+with the floor, the leftover handled by section 15. changing a curve gives
+another pool. every curve states its largest change per frame. the curves
+of this design :
+
+| curve | input | value | section |
+|---|---|---|---|
+| price | fill level of a buffer | discount, as the next rate version | 19 |
+| horizon | free buffer | frames a promise is firm | 19 |
+| return | frames since the overflow | part released | 20 |
+| entry | age \ weight of an account | factor on its public part | 20 |
+| latency | depth of a balance | delay of a `thaw` | 6 |
+| priority | loves_it weight | part of one budget | 4 |
+
+latency and priority exist already ; they are listed because the same test
+applies to them [ section 21 ]. rate curves per pool were stage 4 before
+this section ; these are those curves.
+
+**what a curve may never do** : pay a group out of another group's balance.
+every curve above either moves an account's own drops later or elsewhere
+[ entry, latency ], divides one fixed budget [ priority ], or returns to
+users what a pool holds above its need, by use [ price, return ]. a curve
+that needs a source of its own is refused by the zero sum.
+
+## 21. the design test : from empty to saturated, smooth in time [ owner ; stage 1b on ]
+
+**the test.** a clean design looks good starting at zero and saturated, and
+proportionally smooth in between, with time as the horizontal axis
+[ owner ]. it becomes an **acceptance property** of every stage from 1b on :
+a rule that moves drops is not accepted until a simulation has run it from
+empty to saturated and back, and the properties below held in every frame.
+
+**one simulation, the real code.** the simulation is a driver, not a model :
+it writes a journal with the ledger's own modules [ a scratch ledger, test
+issue, test proofs ], settles frame after frame, and reads every value
+back by replay. there is no second implementation of a rule that could
+agree with itself. per frame it writes one row of a **series** : fill
+level, held, reserved, given out, leftover, horizon and price per pool,
+and the checked sums. the series is a plain column file with a p7 config
+style head [ no json ].
+
+**scenarios**, each a fixed, seeded script of inflow per frame :
+
+| scenario | what it shows |
+|---|---|
+| ramp : constant inflow into an empty system until nothing more is taken | the empty end, the way up, the saturated end |
+| drain : inflow stops at saturation | the way down, nothing stuck |
+| step : inflow jumps once | how a step is turned into a ramp |
+| noise : inflow and cost vary around a fixed mean | a buffer holds its level |
+| drift : cost rises steadily | the reference follows, the warning time is the predicted one |
+| wave : many new accounts in few frames | entry curve, public pools, overflow back |
+| overfill : more is offered than every capacity | refusals, returns, leftovers |
+
+**properties**, asserted on the series in every frame of every scenario :
+
+1. **the sum** : zero sum and supply hold after every record ; over the
+   whole run, entered = held + given out + leftover, per pool and in total
+2. **no step without a cause** : every readout changes per frame by no more
+   than its stated largest change, or by no more than its input changed in
+   that frame. an output that jumps while its inputs moved smoothly fails
+3. **the empty end** : the first drop into an empty system has a defined
+   result. no division by zero, no refused first order for lack of a
+   history, no value undefined at fill level zero
+4. **the saturated end** : under constant inflow every pool reaches a level
+   where what enters equals what leaves, and stays there. nothing grows
+   without bound
+5. **no hoarding** : no pool holds more than its capacity for longer than
+   its return window, and no leftover reaches the number of its parties
+6. **monotone where the rule says so** : under constant inflow a fill level
+   never falls, under none it never rises ; a discount moves towards its
+   band and not away from it
+7. **order and time of arrival mean nothing** : the same inflow written in
+   another order inside a frame gives the same series. the first of a
+   frame receives what the last receives for the same use
+8. **nobody pays for another group** : per group of accounts [ new, long
+   existing, heavy, light ], what a curve returned never exceeds what a
+   pool held above its need, and no group's total falls by a curve alone
+9. **nothing waits silently** : no order is open past its deadline frame ;
+   every refusal and every failure stands in a record with its reason
+
+a property that cannot hold for a rule is a finding about the rule, not
+about the test.
+
+**the same simulation drives the picture** [ owner ]. every series can be
+drawn and animated in true proportions : the curves that balance each
+other are the picture, so clean and self-sustaining is visible at a
+glance. the view reads the series the tests assert on and computes nothing
+of its own : a view is a checked readout [ synthesis contradiction 13 ],
+and a picture that looks wrong is a failed property or a missing one. by
+default a dark violet \ blue theme and a slow, calm animation whose speed
+is easily lowered ; print stays light. later the same views become
+perspectives and layers of the live network state, as a basic workload
+[ background images, dashboard content ] ; that is a readout of real
+journals in place of scratch ones, and not part of this design.
+
+**what 1b takes from sections 15 to 21.** the remainder rule and this test.
+everything else waits for its stage. added to the 1b task, after the
+checks of section 11 :
+
+31. no tie-break : three reservations of 40 on a requirement of 100 leave
+    each giver 6 of the surplus, the slot holds 102, pays at most 100, and
+    its `close` writes one `remainder` transaction of 2 to its pool. the
+    same case with the givers written in every order gives the same
+    records. the ledger files hold no comparison of addresses or amounts
+    that decides who receives a drop
+32. the leftover accumulates : a channel dividing 10 drops by three equal
+    weights three times gives out 9, then 9, then 12, and holds 1, 2, 0 ;
+    entered = given out + leftover after every division
+33. a closing pool's leftover flows to its accounting parent, or to the
+    root pool where it names none ; with no root pool it stays and `verify`
+    lists it. a leftover of zero writes no record
+34. the design test, scenarios ramp, drain, step and overfill, on the
+    dissemination and slot rules of 1b : properties 1 to 7 and 9 hold in
+    every frame
+35. the series of check 34 is written twice from the same seed and is equal
+    byte for byte, on both perls
+
+the simulation's home [ a module beside the test script, its name with the
+1b task ] and the view are new files of their own ; no file of 1a changes.
+
+## 22. owner idea set 2026-11-16 : where each idea landed, and what it met
+
+source : the owner's notes of 2026-11-16 late [ remainders downward ]. decided
+direction unless marked idea.
+
+| idea | status | landed in | stage |
+|---|---|---|---|
+| remainders : accumulate in the channel, close -> parent -> network proportions, no tie-break | decided | section 15 ; reason `remainder` ; the root pool ; checks 31 to 33 | 1b |
+| one pattern at every scale ; is a token a record | decided \ answered | section 15 table ; section 16 : counting unit inside a layer, a thing at the layer edge | 1b \ 6 |
+| nested units : a layer's token is the parent's drop | idea | section 16 : lock above, issue below ; fixed 4200 proposed ; 13 digits per layer ; carry in the gate | 6 |
+| clean units cross boundaries [ anonymization ] ; primes | decided \ hypothetical | section 17 : gates, whole units with a cap, the leak table | 6 |
+| transaction trunks to other regions | idea | section 17 : a pair of gates over the nearest shared layer ; a `transport` workload | 6 |
+| shadow accounts | decided | section 18 : a pool that stands for one account ; `cover`, `refund` ; cover in place of the handshake | 4 \ 6 |
+| buffer pools : generic, sized promises, symmetric, noise not drift, committed only, caps, overflow price with hysteresis, vendor \ customer split, fail fast | decided | section 19 ; reason `buffer` | 4 |
+| fairness curves : return over a window by use ; new accounts fill higher ; public pools overflow back ; sum-neutral | decided \ idea | section 20 ; reason `overflow` ; the entry curve | 4 |
+| the design test ; the simulation is the visualization | decided | section 21 ; checks 34, 35 | 1b on |
+| irrigation as the guiding picture | decided earlier | section 1 ; used by 15, 19, 20 | |
+
+**new words** : `remainder`, `cover`, `refund`, `buffer`, `overflow` as
+transaction reasons ; **root pool**, **layer**, **layer account**, **gate**,
+**transmission unit**, **trunk**, **shadow**, **band**, **horizon**, **entry
+curve**, **series**. no new account kind and no new record kind inside one
+domain : every new thing is a pool with a rule in its definition. stage 6
+needs one record kind that binds a child domain to its parent.
+
+**the stages after this**, in place of the list at the end of section 11 :
+1b + the remainder rule and the design test ; 2 and 3 unchanged ; 4 rate
+curves and quotes + buffer pools, fairness curves, shadow accounts inside
+one domain ; 5 unchanged ; 6 several domains + layers, gates, clean units,
+trunks, cover across layers ; 7 and 8 unchanged ; 9 the bridge, which needs
+the shadows and buffers of stage 4.
+
+**conflicts with existing rules, and the proposed resolution.** numbered on
+from the contradictions of section 9.
+
+17. **the network as the last parent, against rule 11.** the owner's chain
+    ends "at the network" ; the network account is the supply counter and
+    changes only by an `issue`. a leftover paid into it would un-issue.
+    -> the chain ends at the **root pool**, a core pool holding the
+    network's own proportions [ section 15 ]. rule 11 is untouched.
+18. **no tie-break, against "only the requirement is taken".** section 4 and
+    check 21 let nothing above the requirement into a slot ; dividing what
+    is taken can leave the slot one drop short for ever. -> divide the
+    surplus that flows back, not the requirement ; the slot takes the
+    requirement and a leftover of fewer drops than givers, pays at most
+    the requirement, and passes the leftover to its pool at the `close`.
+    the numbers of check 21 are unchanged, its sentence is widened by
+    check 31.
+19. **the unit carry is closed and stated, against "the leftover flows
+    on".** section 2 ends a stream's unit remainder with a record. -> units
+    are not drops and nothing moves ; the stated remainder is taken over
+    by the successor stream. check 20 keeps its wording [ the record still
+    states it ]. question 36.
+20. **a buffer, against rule 10** [ "what a slot fixed, it pays ; no second
+    rate and no spread" ] **and against the return of an ended slot.** a
+    buffered slot pays its service the proven cost, not the promised
+    amount, and gives the difference to the buffer instead of back to
+    those who filled it. -> rule 10 holds for every slot that names no
+    buffer. a slot that names one says so in its record : the givers
+    agreed to pay exactly the promise, the difference is one stated
+    transaction of the reason `buffer`, bounded by the earmark, and no
+    party receives more than a proven cost. the spread rule 10 forbids
+    went to somebody ; this one stays in a pool with no key and flows back
+    by section 20.
+21. **refunds and network draws, against "a key account moves only by its
+    own key or its own share"** [ section 6 ]. -> nothing is ever drawn
+    from a key account. the account moves cover into its shadow itself ;
+    the network draws on that pool. in a buffer the gain is taken from the
+    slot before it reaches the service, never back out of the service.
+22. **acting before the user has paid, against prepaid** [ rule 7 ]. a far
+    gate that pays out before the crossing, a workload that starts on
+    cover alone. -> cover is prepayment held network-side ; a gate pays
+    only from what it holds ; the draw is bounded by the shadow. where
+    neither holds enough, the operation waits or is refused at once.
+    still no debt anywhere.
+23. **lifting between layers, against positive amounts and rule 11.** value
+    going up a layer looks like supply leaving the child. -> the child
+    never un-issues : what goes up waits in its gate, the parent releases
+    from the layer account, and the child issues only against a lock when
+    its gate is empty [ section 16 ].
+24. **clean units, against the exact aggregate an accounting parent is
+    told** [ section 3 ]. exact amounts per class per frame carry every
+    fingerprint upward. -> across a domain edge the aggregate is told in
+    whole units with a carry of its own ; inside one domain, where parent
+    and child share a witness, it stays exact [ section 17 ].
+25. **hysteresis, against the design test.** a switch between "lower the
+    price" and "stop" is a step with no step in its input. -> a dead band
+    plus a largest change per frame : the price ramps, holds, ramps
+    [ section 19 ].
+26. **a higher fill for new accounts, against "a user defines exactly which
+    share it gives".** -> the entry curve is the default of the template
+    user and a condition of a public pool's newcomer category, never a
+    change to a share an account signed. a proportion of what is held, so
+    the barrier to enter stays zero [ section 20, question 42 ].
+27. **return by use, against free self-payment** [ rule 10 : "paying
+    yourself through a pool returns your own drops" ]. use that costs
+    nothing could farm a return that follows use. -> a return per window
+    is capped below what the account spent through the pool in it, and
+    only proven usage counts as use. to section 10 as a threat.
+28. **committed orders only, against the freedom of `buy = complete`.** no
+    conflict : that freedom ends at saturation, and a buffer promises
+    nothing before it.
+29. **the two overflows.** section 4 says overflow goes on or back "as the
+    share says", section 20 says by use over a window. -> different
+    things : what a pool refuses never left the giver ; what a pool holds
+    above its capacity returns by use.
+
+#,,.,,.,.,,,.,..,,..,,,,.,,..,.,,,,.,,.,.,.,,,..,,...,...,...,...,...,,..,,..,
+#ILJOR3WWAWCTEIFK3Y47UWET6OBCPRK2JTRXFR2NYZ4Z747WQXYDHAIOPJIVYZ3YWVNWSQWX7SF5I
+#\\\|EARPNVFLY53VIHP57IWQ5UX5GR4OQAUZKA2HJJTD3RVBMFTYBSS \ / AMOS7 \ YOURUM ::
+#\[7]3IQ6PYQ4HPL52BGLR6M7LT3SLGT5NW3IWHFDRPTBAUQDOCNWUYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

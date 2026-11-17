@@ -28,3 +28,14 @@ names : lowercase nested under AMOS7::NRT, see [[harmony-names-hint-not-rule]].
 #\\\|7ZH57ZCJRJNP2TKLSE33DO3YVCGRPCJPUAJA52MWKC75T4CBAY2 \ / AMOS7 \ YOURUM ::
 #\[7]3ASTMAWLCBLZZIU2PU2IO4NFXSQLAXS4RNKHJ6VEETHLSUS56GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2026-11-16 late : owner ACCEPTED data/md/design/DECISION-GUIDE-2026-11-16.md [ all 12 + section 2 confirms ] -> format 4 stage 1 [ AMOS7::cell::canon ] ready for kimi.
+2026-11-16 late : committed format 4 stage 1 AMOS7::cell::canon + ::list [ fail-closed verify, lazy rows faster than json::xs ] + DECISION-GUIDE. next : format 4 stage 2 [ kind tables + Prior ] or ledger 1a.
+2026-11-16 late : committed ledger stage 1a [ AMOS7::NRT, bin/nrt ]. owner ideas recorded in private note : remainders flow to parent, nested units, clean-unit anonymization, trunks, SHADOW ACCOUNTS, BUFFER POOL -> next ledger design pass.
+2026-11-17 : owner position note grew a full ledger idea set [ fairness curves, buffer pools, shadow accounts, nested units, design test zero..saturated, visualization -> realtime perspectives \ layers ] -- read ~/.n/private-notes/owner-pool-authorization-2026-11-16.md before the next ledger pass.
+2026-11-17 : fable folded the owner idea set into the ledger [ sections 15-22, conflicts 17-29, q35-47 with recommendations ] ; owner accepted q35-47. doc needs re-sign + commit.
+
+#,,.,,...,,..,.,.,.,,,,,.,..,,,,.,,,.,.,,,...,..,,...,...,.,.,,,.,...,.,,,...,
+#QHSCHZ7EIGG4AHWR23GJFSAXFWLTCJURJLVBM7Y5XM24CYFHLGLQDZP27SBB5WFN3OKZWE5WDKIH2
+#\\\|IEAUGNVUVGJU6J3N26TPWS7WGB3CIMZZTZW2VJMA5FYDMDT7QDJ \ / AMOS7 \ YOURUM ::
+#\[7]TAV6LGV4LAS6BD3HOH7MD6P2ADBUTNJ4UYHQMDNGYSOQIJSCZUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
