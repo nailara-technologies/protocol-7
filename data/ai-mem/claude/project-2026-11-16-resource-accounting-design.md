@@ -39,3 +39,11 @@ names : lowercase nested under AMOS7::NRT, see [[harmony-names-hint-not-rule]].
 #\\\|IEAUGNVUVGJU6J3N26TPWS7WGB3CIMZZTZW2VJMA5FYDMDT7QDJ \ / AMOS7 \ YOURUM ::
 #\[7]TAV6LGV4LAS6BD3HOH7MD6P2ADBUTNJ4UYHQMDNGYSOQIJSCZUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2026-11-17 : committed format 4 stage 2 [ AMOS7::N7FS::Canon + Prior, json3 caveat for carried-over manifest chunks ]. next : format 4 stage 3 [ wire + home state ] or ledger 1b.
+2026-11-17 : committed 47a902d23 [ 10 k3.1 security findings fixed ; nested parents end A I Q Y ]. kimi week at 91 % -- no more kimi before reset.
+
+#,,,,,.,.,.,.,..,,,..,,,.,,,,,...,,.,,.,.,,,.,..,,...,...,...,,.,,...,.,,,,.,,
+#TLVXCFWS64HFTDV5VSZDDATFHASUC3XVAGMTKEY6PLOE5CPOBDA6RCBSPDNDS54DBA2VW5VCV33RQ
+#\\\|HBXAUHZI55G5CZTOFAUXDJ47IIQLBBZRJGFMLRQAANFIEMJCU7P \ / AMOS7 \ YOURUM ::
+#\[7]4HD4VFBBYN2OYE2MCGPSIIBOZJH3W2VMZDQJMPAS73BZYBSGLUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
