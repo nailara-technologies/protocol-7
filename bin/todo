@@ -194,7 +194,8 @@ sub ntime_b32_decode {
 
 sub chk3 {
     my $seed = shift;
-    local $AMOS7::CHKSUM::str_length = 3;
+    my $len  = shift // 3;
+    local $AMOS7::CHKSUM::str_length = $len;
     ## amos_chksum returns a 2-elem list in list context [ encoded, numeric ]
     ## -- force scalar here or a hash-literal caller silently gets 2 values
     return scalar AMOS7::CHKSUM::amos_chksum("$seed");
@@ -206,12 +207,19 @@ sub gen_id {
     my %used;
     $used{ uc( $_->{id} // '' ) } = 1 foreach $items->@*;
 
+    ## id length grows with the ids in use : amos checksums are harmonized, ##
+    ## so only ~0.29 of 32^n codes are reachable                            ##
+    ## [ measured 2026-11-17 : 3 chars ~9.4k, 4 chars ~313k ] ; lengthen at ##
+    ## ~25 % of that space                                                  ##
+    my $id_len = 3;
+    $id_len++ while keys(%used) >= 0.0725 * 32**$id_len;
+
     my $want_harmony = 1;
     my $max_retries  = 200;
 
     for my $try ( 1 .. $max_retries ) {
         my $seed      = join( '-', time, $PID, rand(1e9), $try );
-        my $candidate = chk3($seed);
+        my $candidate = chk3( $seed, $id_len );
         ## exclude anything that could be mistaken for a legacy numeric id on
         ## a future load_data() call [ same pattern load_data uses to detect
         ## legacy items -- measured ~0.57% of candidates land here ]
@@ -227,7 +235,7 @@ sub gen_id {
     ## retries failed, drop the harmony gate rather than fail outright    ##
     for my $try ( 1 .. $max_retries ) {
         my $seed      = join( '-', time, $PID, rand(1e9), 'noharm', $try );
-        my $candidate = chk3($seed);
+        my $candidate = chk3( $seed, $id_len );
         next if $candidate =~ m{^\d+$};
         return $candidate unless $used{ uc($candidate) };
     }
@@ -1342,8 +1350,8 @@ if ( $cmd eq 'list' or $cmd eq '' ) {
 
 exit 0;
 
-#,,..,,.,,,..,..,,.,,,..,,.,.,,.,,,.,,...,,..,..,,...,...,.,.,,..,...,,,.,,,,,
-#FWDX5SCK4QJG5EBJGNFBHSFKQ2AQVJUU5IS4UQTVHUDABGYQ2QLLFBPRQZ7MWBECB3DPFJ6CKRVVG
-#\\\|CY4JQEPCLUIJMLABGGWVVRBH7UK7CNY5C2DQ4WQXAU5ADHZDLN2 \ / AMOS7 \ YOURUM ::
-#\[7]VBNBTGXKYCFM53UPR25JNL6BNESAXE5SMN2GXJD45VKI4KQKMMAY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,,,.,,..,,.,,,..,,..,.,.,,..,..,,...,...,,..,,,.,.,.,.,,,...,
+#QOMLKVEDB4ONA4LTDNXQH6A4NHKSUTA5VHNWDJNRYHU7SACQSQ74WEEJBTGCW5RJF7XVJSHNHPLSY
+#\\\|3Z2GHUBFGPVVDMFHNU6JX5MTF3PZH6NEY36X42HX6FEACOQMC5L \ / AMOS7 \ YOURUM ::
+#\[7]77XAVRVOMP23U7PFP5CX4M5FF2AUXM6VCP3O23VJQUVEF7DWZIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

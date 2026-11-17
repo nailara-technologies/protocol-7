@@ -1202,10 +1202,10 @@ items:
   text: 'cube : cancelled streams leak routes ; full id table blocks v7-zenki'
 - added: 3X4NFMPZNI
   details: "start profiles stay generic ; a host's own choices [ e.g. srv-F : no nameserv \\ web \\ system ] go into /etc/protocol-7/host-config/v7-zenki.cfg as additions \\ removals on top of the selected profile [ incl. an automatic -lowram one ], so no host needs a profile edit in its local-modifications commit. found 2026-10-12 : the auto -lowram profile overrode srv-F's local edit of start-set-up.remote-server."
-  done_at: null
+  done_at: 32VKRYPVNW
   id: DYK
   priority: normal
-  status: open
+  status: done
   tags:
   - v7-zenka
   - host
@@ -1226,10 +1226,10 @@ items:
   text: 'debian zenka : host bootstrap [ mirror, suite, dist-upgrade ]'
 - added: 3X4N7NUKJ4
   details: "found 2026-10-12 : ipv6 between srv-A and srv-U does not route in either direction, both stacks work otherwise. nameserv.sync.peer.arm and nameserv.sync.client.start create ONE non-blocking IO::Socket::IP to the peer name : it takes the first address [ ipv6 ] and a connect stuck in SYN-SENT never falls back to ipv4 -- the peer loop stalls silently [ no log line ]. fix : resolve the name, try each address with a short connect timeout [ ipv6 first, then ipv4 ], remember the address that worked per peer, log once which family failed. then srv-A's /etc/protocol-7/host-config/nameserv.cfg goes back from the plain ip address to srv-U [ comment there ]."
-  done_at: null
+  done_at: 32VKRYPVNW
   id: YJP
   priority: normal
-  status: open
+  status: done
   tags:
   - nameserv
   - sync
@@ -1407,10 +1407,10 @@ items:
     correction : records DID exist [ hosts/srv-U.json since 2026-10-20 : name, ssh, ssh_port only ] -- the dry-run listing was cut by head. 2026-10-21 : srv-F record saved [ transports ssh, ssh_port set ] and add-host ran live : done : pinned [ key TWVQ6QL · srv-F.cube ]. still empty on both : roles, link_user.
     - 2026-10-21 : the same us nodes are the alternate proxy exits of HS4 [ blocked ranges, 3 TB budget ] -- one node set, two uses
     - ssh zenka [ owner 2026-10-22 ] : a valid link transport, not suspect code -- its strength is heartbeat-based fast recovery [ ssh.handler.connection_heartbeat \ heartbeat_timeout \ connection_retry ] ; deleted in 561cf8e9a [ 2021-09-16, connection resets ], recovered in f01b9a9df [ 2026-02-23, 21 ssh.* modules, Net::SSH2 ] ; the recovery message names the cause as blocking socket writes stalling the event loop, fixed in 2D64177A -- that hash is in no ref of the history, so the cause is unverified. transport comparison in data/md/design/LINK-ZENKI-AND-TRANSPORTS.md [ cloud session 011tbj7p ]
-  done_at: null
+  done_at: 32VKNHMRNE
   id: 3W5
   priority: normal
-  status: open
+  status: done
   tags:
   - jobsite
   - infra
@@ -1733,10 +1733,10 @@ items:
     coding startup self-test blocks the backend for an hour+ on a cpu-only host [ srv-U : prompt 2 ttft 635 s ]
 
     srv-U 2026-10-22 : after a coding restart the self-test [ task 7511497, prompts #1..#3 ] holds the backend [ self_test_pending ] ; on the cpu backend prompt 1 ttft 46 s, prompt 2 ttft 635 s -- an hour+ before any assessment runs, after EVERY coding restart. options : a short cpu self-test profile [ one small prompt ], skip tier1 reformat on cpu, or run the self-test without blocking non-pinned tasks
-  done_at: null
+  done_at: 32VKRYPVNW
   id: C6U
   priority: normal
-  status: open
+  status: done
   tags:
   - coding
   - self-test
@@ -1806,10 +1806,10 @@ items:
     jobsite watchdog re-arms on pending \ in progress before giving up
 
     jobsite assess watchdog asks task for the task's state before giving up ; re-arm while pending \ in progress
-  done_at: null
+  done_at: 32VKRYPVNW
   id: JMG
   priority: normal
-  status: open
+  status: done
   tags:
   - jobsite
   - coding
@@ -1836,10 +1836,10 @@ items:
   text: 'ncode transform : continue the waves after an llm wave [ wave_reply ]'
 - added: 32D4544YB4
   details: 'a task whose claimer is gone stays in_progress : a models restart left GVK25BY claimed and the jobsite watchdog waited on it [ release or fail claimed tasks of a disconnected claimer ]'
-  done_at: null
+  done_at: 32VKRYPVNW
   id: TDA
   priority: normal
-  status: open
+  status: done
   tags:
   - task
   - models
@@ -2042,10 +2042,10 @@ items:
     jobsite : assess_parallel config for N tasks in flight [ default 1 ]
 
     jobsite dispatches assessments strictly one at a time [ dispatch.release_slot -> dispatch.next ] -- so a remote claimer [ ZYH : local models on external.pri.task, live 2026-10-23 ] never sees a second pending task. add jobsite.cfg.assess_parallel [ N tasks in flight, default 1 ] ; pending_count \ watchdog \ release_slot per job already. then the local gpu takes every 2nd job
-  done_at: null
+  done_at: 32VKRYPVNW
   id: XNB
   priority: normal
-  status: open
+  status: done
   tags:
   - jobsite
   - models
@@ -2074,10 +2074,10 @@ items:
   text: 'jobsite.progress overcounts after deletes : release slot on job.trash'
 - added: 32EPXCEMLM
   details: "models.cfg.task_zenka as a LIST of task zenki [ e.g. 'task external.pri.task', later fed dynamically over a channel ] : since ZYH live 2026-10-24 local models polls only external.pri.task, so local jobsite's own tasks are never claimed [ 'peek BYQSQFQ : no task details, left alone', the local cycle hangs in assessing ]. claim from every listed zenka, peek \\ subscribe per entry ; with assess_parallel on pri this is the gpu accelerator path"
-  done_at: null
+  done_at: 32VKRYPVNW
   id: HWO
   priority: normal
-  status: open
+  status: done
   tags:
   - models
   - task
@@ -2220,10 +2220,10 @@ items:
     found 2026-10-29 : the current cli is installed at ~/.kimi-code/bin/kimi [ 2.3.3 ] -- flags -S\--session [id] to resume, -y\--yolo, -m\--model, -p\--prompt + --output-format ; its --help shows NO effort or thinking flag, so effort may be a config or in-session setting there too -- check before building the parameter. K3.1 is registered in ~/.kimi/config.toml [ kimi-code/k3.1-pro, k3.1-pro-highspeed at 2x ] ; mcp-server-p7 aliases k3.1 \ k3.1-fast added the same day.
     next try [ user 2026-10-29 ] : a nested dispatch -- kimi dispatching itself [ kimi_dispatch or its own subagent, its choice ] with a token-efficiency focus : a short coordinating session hands each piece out as a FRESH dispatch with a short brief, so no step re-sends a large context [ the HX4 slice's resume cost ~340k input tokens per step, 11 % of kimi's week ]. first candidate : the HX4 follow-up [ content-bound approval + the client's join( qw| |, .. ) ].
     RXG done 2026-10-29 : kimi_dispatch + kimi_continue moved from kimi-legacy to the current cli [ ~/.kimi-code/bin/kimi 2.3.3 ]. commands now : kimi -p <prompt> --model <m> --output-format text and kimi -S <session_id> -p <prompt> ... [ no -y/--auto : -p print mode auto-approves routine tools and rejects both flags -- verified ]. thinking mechanism found : NO cli flag exists ; the env var KIMI_MODEL_THINKING_EFFORT=low|high|max reaches the model loop [ verified via llm.request thinkingEffort in the session wire.jsonl ] ; unset = [thinking] effort in ~/.kimi-code/config.toml [ currently low ] and the tool reply states which level ran. both tools gained a validated thinking param [ medium rejected : provider 400 ]. kimi_check_status now supports both trees : new ~/.kimi-code/sessions/wd_<cwd>/session_<uuid>/ with wire at agents/main/wire.jsonl + per-session logs/kimi-code.log activity tail ; legacy ~/.kimi tree still scanned as fallback. resumed sessions verified running DETACHED to completion [ the legacy idle-after-attach bug is gone with the new cli ]. model aliases unchanged [ k2.8/k3/k3-1m/k3.1/k3.1-fast/k2.7-fast all resolve to registered kimi-code/* aliases ]. perl -C31 -c passes ; e2e tested via raw MCP jsonrpc [ dispatch->check_status->continue all green ]. untested : very long multi-hour dispatch ; thinking on k2.7-fast [ no support_efforts in its config entry ] ; AskUserQuestion-type prompt behavior in print mode [ believed unreachable ] ; uuid attribution can miss when the session dir appears later than the 6s window [ observed 27s once -- documented fallback path covers it ].
-  done_at: null
+  done_at: 32VKRYPVNW
   id: RXG
   priority: normal
-  status: open
+  status: done
   tags:
   - kimi
   - dispatch
@@ -2416,10 +2416,10 @@ items:
     - reuse the site-yaml fetch path for it [ same 404 \ 410 rule, same client \ rate limit on the fetch host ], jobsite only acts on the verdict -> status expired, no assessment
     - the same check as a periodic sweep over review \ to_apply
     - unreachable portal = unknown, the job stays queued [ rule of d7ab4301d ]
-  done_at: null
+  done_at: 32VKRYPVNW
   id: Q2K
   priority: normal
-  status: open
+  status: done
   tags:
   - jobsite
   - assessment
@@ -2620,25 +2620,41 @@ items:
   text: 'p7-deps : an os/pip dependency kind with per conda env targets'
 - added: 32PI5FVRDQ
   details: status stays at cycle scanning over a day after the stream closed [ imports had no errors, 2026-11-08 ]. the closed stream likely never clears the scanning state, so hourly jobsite.scan requests do nothing. hypothesis, not checked in code. 2026-11-11 [ not deployed, not committed ] -- DONE -- 1. visibility -- jobsite.queue_poll counts sent polls \ replies [ set in jobsite.handler.fetch-done ], queue-poll logs level 0 when a poll had no reply before the next one [ first miss, then every 100 ], queue-depth-reply logs level 1 every 100 unchanged depths, jobsite.status shows 'poll -- sent X replies Y last reply Zs ago' + the poll timer while scanning. 2. on_eof in jobsite.handler.fetched-stream resubscribes via jobsite.fetched.subscribe-retry while the cycle is not idle [ remote fetch zenka only ]. 3. backstop in queue-poll -- scanning with no queue-depth reply for jobsite.cfg.queue_poll_timeout [ default 900 s ] logs level 0 'a cause was missed', cancels the poll timer, records it in jobsite.last_fetch, ends the cycle like a nothing-queued fetch. UNPROVEN -- the root cause -- whether the poll timer stopped or its replies were lost ; the new counters tell which on the next stall. live 2026-11-11 after the fix deployed, no poll at all for 15 s while the remote queue was empty, so the drain poll TIMER itself was gone [ not lost replies ]. why it died is still open ; jobsite.scan now resets a scanning cycle without a live poll timer after the limit. ruled out 2026-11-11 -- a dying callback [ Event keeps the watcher, base.event.handler.exceptions only logs, nothing was logged ], a restart and a source reload [ both set the cycle idle ], the jobsite cancel points and a rescan [ each logs first, none did ]. left -- the timer dropped from outside jobsite, for example its data subtree replaced. the status line shows it next time.
-  done_at: null
+  done_at: 32VKRYPVNW
   id: UFG
   priority: normal
-  status: open
+  status: done
   tags:
   - jobsite
   text: 'jobsite : cycle stays scanning after the stream closed'
 - added: 32PI5FWBKM
   details: the timetable entry jobsite-scan at HH:13:07 sent jobsite.scan twice, 3.8 ms apart in the same second [ 2026-11-08 15:13:07 ]. likely no already-fired-this-second guard, or a double registration. check the other timetable entries too. 2026-11-11 [ not deployed, not committed ] -- found in code -- events.set_up_timers cancelled old timers through <event.timers> [ typo, never filled ] and overwrote <events.timers>->{id} without cancelling, so every recalc [ after any at \ end event ] added a second live timer for each pending entry. fixed for ALL entries -- cancel an entry's previous timers before re-adding, cancel timers of entries gone from the timetable ; plus an already-fired-this-slot guard [ id -- type -- second ] in events.handler.event_triggered. UNPROVEN live -- that this recalc path is what happened at 15:13:07 [ fits the 3.8 ms gap, not traced in a log ].
-  done_at: null
+  done_at: 32VKRYPVNW
   id: NZ2
   priority: normal
-  status: open
+  status: done
   tags:
   - events
   text: 'events : a timetable entry fires twice in one second'
+- added: 32VKTF5OIM
+  details: |-
+    base.yaml is 224K and grows with every closed item. archive done items once done_at is 2 epochs [ ~56 days ] old. one archive file per epoch, named \ grouped by the V7 epoch timestamp encoding [ e.g. data/yaml/todo/archive/base/<epoch>.yaml ] ; ids stay unchanged so references keep resolving. todo show \ search fall back to the archive files [ -all or an id not found in the live list ]. open : the right split if one epoch file still grows too large [ sub-split by tag or by size ].
+    id space [ 2026-11-17 ] : ids are 3-char amos-chksum codes [ 32^3 = 32768 ], gen_id checks a %used hash [ O(1), retries ~ 1/(1-fill) ] but only over items in the live file -- archived ids must go into %used too, or a moved id gets reused. keep a small id index [ archive/base/ids, one line per id ] instead of loading every epoch file. when fill nears ~25 % widen new ids to 4 chars [ 1M ] ; old 3-char ids stay valid, the length keeps them distinct.
+    measured 2026-11-17 [ 40000 draws, str_length set per call as chk3 does ] : all 3 chars, only ~9400 distinct codes reached [ saturated : the real 3-char space is ~9.4k, not 32768 ], 99.6 % of them pass is_true. so the space is ~9.35k usable : widen to 4 chars around ~2300 ids [ 25 % ], or earlier. chk3 itself is fine -- my first test set str_length once outside the loop and the module resets it after a call.
+    confirmed 2026-11-17 : amos_chksum output covers only the is_true subset of the code space -- reachable \ full = 3 chars ~9.4k \ 32768 [ 0.29 ], 4 chars ~313k \ 1.05M [ 0.30 ], 5 chars ~10.5M \ 33.5M [ 0.31 ] ; uniform random base32 strings pass is_true at 0.27-0.29 ; checksum output passes at 99.6-100 %. the gen_id harmony gate is nearly a no-op ; usable space = ~0.3 x 32^n. 4 chars [ ~313k ] is ample for the archive.
+    mechanism [ owner ] : amos checksums are harmonized by construction [ elf truth modes 4 7, iteration counter until TRUE, also for short lengths ] -- that is why output only lands on the ~0.3 TRUE share of the raw base32 space. the 0.47 figure came from another measurement [ true-false-stats \ Fortuna values ], not comparable.
+    note : src/base.gen_id already lengthens ids automatically as the hash fills [ length(max_ids)+2, + int(count \ (max_ids\5)) ] -- if the archive id index moves into a zenka, use it with archive ids in the used set instead of a manual 3 -> 4 char switch.
+  done_at: null
+  id: 2YG
+  priority: low
+  status: open
+  tags:
+  - todo
+  - tools
+  text: 'todo : archive done items by epoch into per-epoch files'
 
-#,,,.,.,,,,,,,,,.,,,.,,..,,,,,,..,.,.,,,,,,..,..,,...,...,...,,.,,...,,.,,...,
-#4JYKAOC3VBKOPAIN7XE66REDWY7FYOFTGOTMEACMINNAOH2WTZVZMCNKRXWEOIWTUDICJM7JPTE5O
-#\\\|PRZC6IL7IIT3HYGEHTR7J74WT7QH5PJS23OPLVVO6RPJI5QXDW2 \ / AMOS7 \ YOURUM ::
-#\[7]Q5XHM4C35HYLUZWNPSKCFVVOHYLJ2FPWGLRS3ZKCGKIJJP2TVICI 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,.,,,...,...,...,,..,...,..,,..,,...,...,..,,,,.,,..,..,,.,.,
+#5UVMF2Y5JQQ7F2WYVFQAIX7R5QU6AYQN7UOHXE3SKDJ2KA7KWPPOZUVIJDJNJ7BS4MCNRR2OVYDYY
+#\\\|PDOTOFWGKEJZWQV4IFG2WPBW22PXDVKB7UUJKXGXKOUH6LVULJJ \ / AMOS7 \ YOURUM ::
+#\[7]YCI64USCIZS53SZZTNKCHG2RXVRXKZKM4UVMPRVSGXNJVJGL4SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
