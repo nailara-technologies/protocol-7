@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = base.indexcube.verify
+# descr = verify every C25519 signature and link in @INDEXCUBE
+
+my $key_vars = <[crypt.C25519.key_vars]>;
+my $key_name = ref $key_vars eq qw| HASH | ? $key_vars->{'key_name'} : '';
+
+return { 'mode' => qw| false |, 'data' => 'C25519 public key not loaded' }
+    unless length($key_name)
+    and ref $keys{'C25519'}{$key_name} eq qw| HASH |
+    and defined $keys{'C25519'}{$key_name}{'public'};
+
+return { 'mode' => qw| false |, 'data' => 'stack empty' } unless @INDEXCUBE;
+
+my $previous_signature = '';
+for my $depth ( 0 .. $#INDEXCUBE ) {
+    my $entry = $INDEXCUBE[$depth];
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid entry at depth %d', $depth )
+        }
+        unless ref $entry eq qw| HASH |
+        and defined $entry->{'p7ref'}
+        and !ref $entry->{'p7ref'}
+        and $entry->{'p7ref'} =~ m{^\w+:\w+:\w+$}
+        and defined $entry->{'timestamp'}
+        and !ref $entry->{'timestamp'}
+        and $entry->{'timestamp'} =~ m{^\d+(?:\.\d+)?$}
+        and defined $entry->{'depth'}
+        and !ref $entry->{'depth'}
+        and $entry->{'depth'} =~ m{^(?:0|[1-9]\d*)$}
+        and $entry->{'depth'} == $depth
+        and defined $entry->{'prev'}
+        and !ref $entry->{'prev'}
+        and defined $entry->{'signature'}
+        and !ref $entry->{'signature'}
+        and $entry->{'signature'} =~ m|^[A-Z2-7]{103}=?$|;
+
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'chain link mismatch at depth %d', $depth )
+        }
+        unless $entry->{'prev'} eq $previous_signature;
+
+    my $entry_str = sprintf '%s:%s:%d',
+        $entry->{'p7ref'}, $entry->{'timestamp'}, $entry->{'depth'};
+    my $digest = Digest::BMW::bmw_384(
+        join( "\0",
+            qw| protocol-7.indexcube.entry.v1 |, $entry_str,
+            $entry->{'prev'} )
+    );
+    my $signature = $entry->{'signature'};
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( 'invalid signature at depth %d', $depth )
+        }
+        unless defined $digest
+        and <[crypt.C25519.verify_sign]>->( \$digest, \$signature );
+
+    $previous_signature = $entry->{'signature'};
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => { 'depth' => scalar(@INDEXCUBE), 'valid' => TRUE }
+};
+
+#,,,.,..,,,..,.,,,,,.,,,,,,..,.,,,,,.,...,,,.,..,,...,...,...,,,,,..,,,.,,,,.,
+#HUCM7NUJRHD5ESGAIV7HXROATP62AIR4E3WRKXL3N3DA36ZLR5HEOLIKRDWS3HTMHXGXE3FLBOK66
+#\\\|T2BQJ6OECCLV62YFZSA5JCZ6TBX73OUXJVLQR4BWHRWOEDK7HMW \ / AMOS7 \ YOURUM ::
+#\[7]F4DOD2KMGO3BKENJOUUFRF4CSUXNU6CHBBZ2EAWQS4GWPR57YEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ return {
     }
     unless length($p7ref) && $p7ref =~ m{^\w+:\w+:\w+$};
 
-## Validate P7REF format ##
+## validate p7ref format ##
 my ( $type, $chksum7, $addr_b32 ) = split( m|:|, $p7ref, 3 );
 return {
     'mode' => qw| false |,
@@ -21,19 +21,64 @@ return {
     }
     unless length($type) && length($chksum7) && length($addr_b32);
 
-## Sign the entry with current timestamp ##
+my $key_vars = <[crypt.C25519.key_vars]>;
+my $key_name = ref $key_vars eq qw| HASH | ? $key_vars->{'key_name'} : '';
+return { 'mode' => qw| false |, 'data' => 'C25519 private key not loaded' }
+    unless length($key_name)
+    and ref $keys{'C25519'}{$key_name} eq qw| HASH |
+    and defined $keys{'C25519'}{$key_name}{'public'}
+    and defined $keys{'C25519'}{$key_name}{'private'};
+
+my $sign_entry = sub {
+    my $entry     = shift;
+    my $entry_str = sprintf '%s:%s:%d',
+        $entry->{'p7ref'}, $entry->{'timestamp'}, $entry->{'depth'};
+    my $digest = Digest::BMW::bmw_384(
+        join( "\0",
+            qw| protocol-7.indexcube.entry.v1 |, $entry_str,
+            $entry->{'prev'} )
+    );
+    return undef unless defined $digest;
+    my $signature = <[crypt.C25519.sign_data]>->( \$digest, $key_name );
+    return undef unless defined $signature and length($signature) == 64;
+    return encode_b32r($signature);
+};
+
+## the startup anchor predates key loading ; sign only that known anchor ##
+if ( @INDEXCUBE == 1 ) {
+    my $anchor = $INDEXCUBE[0];
+    if (    ref $anchor eq qw| HASH |
+        and ( $anchor->{'signature'} // '' ) eq ''
+        and ( $anchor->{'prev'}      // '' ) eq ''
+        and ( $anchor->{'depth'}     // -1 ) == 0
+        and ( $anchor->{'p7ref'}     // '' ) eq <[base.p7ref.self]> ) {
+        $anchor->{'prev'}      = '';
+        $anchor->{'signature'} = $sign_entry->($anchor);
+        return { 'mode' => qw| false |, 'data' => 'anchor signing failed' }
+            unless defined $anchor->{'signature'};
+    }
+}
+
+if (@INDEXCUBE) {
+    my $verification = <[base.indexcube.verify]>;
+    return {
+        'mode' => qw| false |,
+        'data' => 'refusing to extend an invalid chain'
+        }
+        unless ref $verification eq qw| HASH |
+        and $verification->{'mode'} eq qw| true |;
+}
+
 my $entry = {
     'p7ref'     => $p7ref,
     'timestamp' => <[base.ntime]>,
     'depth'     => scalar(@INDEXCUBE),
+    'prev'      => @INDEXCUBE ? $INDEXCUBE[-1]{'signature'} : '',
 };
+$entry->{'signature'} = $sign_entry->($entry);
+return { 'mode' => qw| false |, 'data' => 'entry signing failed' }
+    unless defined $entry->{'signature'};
 
-## Serialize and sign ##
-my $entry_str
-    = sprintf( "%s:%d:%d", $p7ref, $entry->{'timestamp'}, $entry->{'depth'} );
-$entry->{'signature'} = <[chk-sum.amos]>->($entry_str);
-
-## Push onto stack ##
 push @INDEXCUBE, $entry;
 
 my $new_depth = scalar(@INDEXCUBE);
@@ -45,12 +90,13 @@ return {
     'data' => {
         'p7ref'     => $p7ref,
         'depth'     => $new_depth,
+        'prev'      => $entry->{'prev'},
         'signature' => $entry->{'signature'},
     }
 };
 
-#,,,,,.,,,..,,,..,,,,,,..,,,.,..,,..,,,,.,,.,,.,.,...,..,,..,,.,.,,,.,...,,,,,
-#7LTU3RJSVUI6NB52BD7NEJA32KSOR32MV2EGSGYU7WGIXVTHPMPR6DN7PE2E4FA5GMFTNIJWL2JLG
-#\\\|QS5R3XOU22H3HIVQ5D7APCV43FEE3PGPLLL62U4ZKCHI3I4XW2B \ / AMOS7 \ YOURUM ::
-#\[7]CGBIY3I47PRRV77H647EYA65THCHD5VJ2GPVTIHSEODI3NP7P6AA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,...,...,.,.,,,.,.,,,.,.,..,,.,.,...,...,.,.,...,,..,,,,,.,.,
+#S3M2DQKZ6ZNUVIDPT3X5XXGRCKI2MPZTFGPYRNFZM5Q5L2SFEBYGDQYB2V6HMX7BODBSLA7LGCIN6
+#\\\|KAUITYVYRLJVG6DIA3BV7OTSHCRRE2ODSXFFJYCSMB2MWYJ3DID \ / AMOS7 \ YOURUM ::
+#\[7]NZDVYX65LPB23ELGQUDQLOGM6NXYHJYLBHUCQ37VXLHBAWLAYOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

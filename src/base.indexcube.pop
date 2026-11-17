@@ -13,35 +13,42 @@ return {
     }
     if scalar(@INDEXCUBE) == 1;
 
-## Pop top entry ##
+## verify the complete chain before changing the stack ##
+my $verification = <[base.indexcube.verify]>;
+if ( ref $verification ne qw| HASH |
+    or $verification->{'mode'} ne qw| true | ) {
+    my $reason
+        = ref $verification eq qw| HASH |
+        ? $verification->{'data'}
+        : 'chain verification failed';
+    <[base.logs]>->( 0, '[indexcube.pop] chain INVALID : %s', $reason );
+    return {
+        'mode' => qw| false |,
+        'data' => { 'valid' => FALSE, 'reason' => $reason }
+    };
+}
+
 my $entry = pop @INDEXCUBE;
 
-## Verify signature ##
-my $entry_str = sprintf( "%s:%d:%d",
-    $entry->{'p7ref'}, $entry->{'timestamp'}, $entry->{'depth'} );
-my $expected_sig = <[chk-sum.amos]>->($entry_str);
-
-my $sig_valid = ( $entry->{'signature'} eq $expected_sig );
-
 <[base.logs]>->(
-    $sig_valid ? 2 : 0,
-    "[indexcube.pop] %s depth %d - signature %s",
-    $entry->{'p7ref'}, $entry->{'depth'}, $sig_valid ? 'valid' : 'INVALID'
+    2,                 '[indexcube.pop] %s depth %d - signature valid',
+    $entry->{'p7ref'}, $entry->{'depth'}
 );
 
 return {
-    'mode' => $sig_valid ? qw| true | : qw| false |,
+    'mode' => qw| true |,
     'data' => {
         'p7ref'     => $entry->{'p7ref'},
         'depth'     => $entry->{'depth'},
         'timestamp' => $entry->{'timestamp'},
+        'prev'      => $entry->{'prev'},
         'signature' => $entry->{'signature'},
-        'valid'     => $sig_valid,
+        'valid'     => TRUE,
     }
 };
 
-#,,,,,,,,,,,,,,,.,..,,,,,,,,.,...,..,,,,,,,..,.,.,...,.,.,..,,,..,.,.,,,,,.,,,
-#W3HCI4WJBIROBIAKNNKC5YE3YAUT2VO4TMKQMLHZL5CI343Z6ABXTT5VQLSJFRDOKBCGOSTJ3LQPK
-#\\\|IMG2R3WJJLGU6SIRQOQDE7UWQ4F3KJDA67YLOF4KNKE3FNVQW4Q \ / AMOS7 \ YOURUM ::
-#\[7]K3PWTXS54NHUQ275U3KU2MNPMHS4RLJJM2SVHVJ3TAXFMYSE4WAI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,,,,,...,.,.,,.,,,.,,,,,,,..,.,.,...,..,,,..,..,,,..,,..,,,,,
+#QOWOCJ2R4BTYYRSNIVV5HCRBKSTENBERC3GUD6ZDR7ULLWDRHZL2EOGWDGVU3TH6WUKDH7M3UWLH6
+#\\\|HGRJZSUEMDAEJ65ASSZ2LWAIIICSQBFNUNIR4CCFYV3YVRTIXWQ \ / AMOS7 \ YOURUM ::
+#\[7]BIMZIOXMFRYW6BFJW77S3JJURWQ2YSEWLMJ4DSSR2EZB3PARNMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
