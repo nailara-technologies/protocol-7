@@ -47,3 +47,10 @@ names : lowercase nested under AMOS7::NRT, see [[harmony-names-hint-not-rule]].
 #\\\|HBXAUHZI55G5CZTOFAUXDJ47IIQLBBZRJGFMLRQAANFIEMJCU7P \ / AMOS7 \ YOURUM ::
 #\[7]4HD4VFBBYN2OYE2MCGPSIIBOZJH3W2VMZDQJMPAS73BZYBSGLUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+2026-11-17 end : see [[session-handover-resource-ledger]].
+
+#,,..,,,.,.,.,,..,.,.,.,,,.,,,...,.,.,.,.,.,,,..,,...,...,...,..,,,..,..,,..,,
+#D3LTLGVCODQARKLVJ25OVYK6UQ232RDVWUNZXEFUERZ7GMAYFF5S3BZCPO6YOH3LGH4DGDEQMKPEO
+#\\\|ZINUIMSBRMZEZE43WWQZVXUK5EERCLITQ7KPMMLRRT7ANXLME3Z \ / AMOS7 \ YOURUM ::
+#\[7]BQULZVDF2U2JQDP6ISMRQVLESPZB2OXBHWZ3Z7N4HVCTJUDBLKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
