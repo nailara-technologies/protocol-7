@@ -1,0 +1,173 @@
+## todo cross-check against commits [ kimi K3.1, 2026-11-17 ] -- CLOSABLE ones closed in 76d5d66ce ; PARTIAL : split the still-open sub-items, then close the parent ; NO-EVIDENCE : untouched
+
+PARTIAL
+
+- key : 4ZW
+  line : 1300
+  title : nameserv[cache] \ nameserv[cache-local] : forwarding dns cache instance
+  evidence:
+  - 01c411aea : implements loopback-only forwarding, TTL/negative caching, upstream fallback, TCP retry, and cache tests.
+  still-open:
+  - "started as a sub-named instance : v7-zenki.start nameserv[cache] [ server ] or nameserv[cache-local] [ linux desktop ]."
+  note : the commit explicitly says the nameserv[cache] instance is not yet wired; current-tree search finds no instance configuration.
+
+- key : VDS
+  line : 1249
+  title : nameserv : consistency check [ own records, glue, NS sets, ptr ]
+  evidence:
+  - 46a9fc05a : implements the timed read-only own-address, public-answer glue, NS/SOA, and PTR checks plus nameserv.consistency.
+  - d821d4ec5 : fixes IPv6 normalization, SOA serial selection, and short-name PTR false positives.
+  still-open:
+  - "add [ 2026-10-12 ] : compare each served zone's PARENT delegation [ NS at the parent's servers ] with the zone's own NS set, and check that every delegated name resolves -- typos 'dn010.v7.ax' and 'dn1110.protocol-7.nnetwork' at the registrar stayed invisible to the check [ it compared our own NS sets only ] ; finding : 'fix NS <name> in the delegation of <zone> [ registrar \\ dns ui ]'."
+
+- key : DJ2
+  line : 1263
+  title : cloud session bootstrap : backend + own signing key in one step
+  evidence:
+  - 1e2cc08f5 : adds cloud-session-setup and vendored Digest::BMW/Crypt::Ed25519 installation when CPAN is unreachable.
+  - dba7cf12e : completes apt dependencies needed by p7-deps and verifies the vendored builds in a real cloud session.
+  still-open:
+  - "backend start, a check that format-code -c \\ the standalone tests \\ a live zenka work."
+  - "vm pushes requests/<session>.req [ temp pubkey, nonce, session id ] ; a zenka here watches the repo [ git-watch ], approval by the user or a rule, pushes grants/<session>.dlg [ short-lived delegation over the nonce, narrow scope e.g. commits on cloud/* only ]"
+
+- key : 4CJ
+  line : 1146
+  title : signed timestamp delta sync [ nameserv to nameserv first ]
+  evidence:
+  - 540211911 : implements stage 1 timestamps, tombstones, and zone checksums.
+  - dd356e004 : implements the stage 2 nameserv sync transport.
+  - da5157594 : implements stage 3a sync keys and host-root delegation.
+  - 68b93b97d : adds acme grant patterns and re-pull on grant changes.
+  still-open:
+  - "5 generic %data \\ N7FS [ 4EO ]."
+
+- key : Y7O
+  line : 1345
+  title : p7-vault : file import \ export -- encrypted blob store
+  evidence:
+  - d36724870 : implements stage 1 import/export/files, keyed-MAC blob names, chunked encryption, and blob sync.
+  - 1755b5295 : adds archive mode, export -d, sync scaling, and file-list handling.
+  still-open:
+  - "gc of unreferenced blobs, then the agent \\ grants \\ menu \\ code-signing stages."
+
+- key : Q7O
+  line : 1436
+  title : host-edit : style + usability pass [ after functionality ]
+  evidence:
+  - 9b4878b44 : adds hints candidates from SSH config and hosts data.
+  - 50aaec5ae : records earlier-Match shadowing for candidates.
+  - b4815589c : adds known_hosts and server-pin hint sources.
+  still-open:
+  - "result oriented : offer the best candidate, prefilled ; a sanity filter drops invalid \\ contradicting values [ name syntax, port range, a pin that disagrees ] and says why ; the user confirms, nothing applied silently."
+  note : current 3CQ details still describe hints prefill as having no caller.
+
+- key : WNF
+  line : 958
+  title : work-mode presets : nested modes pick model
+  evidence:
+  - 5eec8c26d : implements nested mode lookup, prompt tags, model/settings/template selection, and model-grouped queue draining.
+  - c207c1391 : adds mode per batch task and models:auto candidate grouping.
+  still-open:
+  - "mode: field in batch specs and todo items [ XOJ ]" [ batch specs are done; todo-item mode remains ]
+  - "automatic mode choice [ RC7 ]"
+  - "reasoning budget per mode [ a server start flag today ]"
+
+- key : X33
+  line : 861
+  title : isolated loop assertion before failing a task
+  evidence:
+  - d62169e07 : implements the isolated no-tools child verdict with DONE/NOT_LOOP/LOOP outcomes and per-task loop counters.
+  still-open:
+  - "advanced version [ user idea ] : a 'not a loop' verdict also proposes a whitelist regex for the content that fooled the detector [ ascii art, tables, box frames, repeated structured lines ]. the loop detector checks the whitelist first and skips the assertion for matching repetition."
+  - "a pattern must match the flagged repetition and must not match a generic case [ test it against a few known real loops before storing ]"
+  - "anchored and specific [ refuse .* style patterns ], length-limited"
+  - "stored with origin [ model, task, date ] and a hit counter ; patterns that never match again expire"
+  - "reviewable list [ e.g. a command to show / drop them ] so a bad pattern cannot silently disable loop detection"
+
+- key : XOJ
+  line : 883
+  title : overnight mode : keep model batch results
+  evidence:
+  - c207c1391 : adds retained replies/diffs, list/show/apply/drop review, safe apply checks, and an overnight-quality spec.
+  still-open:
+  - "input : todo items with acceptance details [ see BYM ], routed to the model that scored best on that kind of work [ RC7 ]"
+
+- key : ZA2
+  line : 2246
+  title : commit manager : a commit as a requirement chain
+  evidence:
+  - e3ea8bbd2 : implements prepared commits, staged-diff staleness checks, commit status, and operation types.
+  - 18d2a1363 : implements the automatic requirement chain and integrates rewritten files into p7_sign.
+  still-open:
+  - "the stale redraft"
+  note : current bin/dev/p7-commit refuses stale prepared content but contains no redraft path.
+
+- key : RCM
+  line : 2279
+  title : inline C objects [ ~/.7/inline-code ] are user-writable
+  evidence:
+  - 2820ca3aa : forces pure Perl for the signing agent and verifies no inline objects are mapped.
+  - 648051956 : extends the pure-Perl guard to the sourcecode console zenka.
+  still-open:
+  - "inline C objects [ ~/.7/inline-code ] are user-writable and loaded by every AMOS7 process incl. p7-sign-agent -- not covered by signatures ; same at a passphrase start"
+  note : only the agent and sourcecode processes are covered; the general AMOS7/attested-binary target remains.
+
+- key : ZRK
+  line : 2322
+  title : editor keys bar : cell row, border scroll, hybrid modes
+  evidence:
+  - c5914614a : implements whole-cell rendering, border scroll markers and paging, F1 modes, and clickable dispatch.
+  still-open:
+  - "usage order : ONE flat table of counts per leaf action, keyed by its stable action name [ not label \\ position ] ; key AND click count the same action ; slow decay [ half-life weeks ] ; reorder only at startup ; no pinned anchors -- the counts decide. nested menus : parents = sum of their leaves at draw time, never stored -> any tree shape maps back without loss"
+  note : current Editor.pm explicitly marks usage-count ordering as later work.
+
+- key : WY5
+  line : 2303
+  title : jobsite assessment queue : review the 100-cap, 0-skipped dedup
+  evidence:
+  - c5914614a : fixes dedup skip IDs being truncated to one ID by joining with commas and splitting on whitespace/commas at import.
+  still-open:
+  - "a 2026-10-29 scan imported exactly 100 new \\ 0 skipped in 6 of 9 categories [ a fetch \\ page cap ? ]"
+  - "630 queued, the drain ended with 'no new untracked jobs to assess' [ were any assessed ? ]"
+
+- key : 5WI
+  line : 1663
+  title : jobsite relay mode : local jobsite mirrors the hub [ outbound only ]
+  evidence:
+  - 536a365f7 : implements replica pull, local scan/assess gating, forwarded UI actions, durable retry, and tests.
+  still-open:
+  - "relay mode grows a fetch-and-forward variant : fetch locally, upsert upstream [ like the outbox stream ]"
+
+- key : J5F
+  line : 1685
+  title : p7c \ p-7-r : argument with newline splits the protocol line
+  evidence:
+  - a7f46506a : implements multi-line client transport and shared coding input decoding with repo-confined file reads.
+  - 198c82f6a : hardens refused multi-line heads and reply templates.
+  still-open:
+  - "forms per caller [ :file: never for link identities ] + per-form enable in the coding config, the configured task dir root, excluded paths inside the tree, whitespace-only prompt, task scratch files into coding's var dir."
+
+NO-EVIDENCE
+
+- key : T3I ; line : 1730 ; title : inference.backend.gpu.enabled=auto : detect once in coding.init_code
+- key : WFC ; line : 1803 ; title : measure prefill + ttft per backend and model
+- key : 5UC ; line : 1827 ; title : review 15 reply handlers outside jobsite reading mode \ data keys
+- key : SN3 ; line : 2039 ; title : test-web-auth-gate.pl dies at web-relay line 46 [ since 6CJ gate ]
+- key : FVO ; line : 2074 ; title : jobsite.progress overcounts after deletes : release slot on job.trash
+- key : O3O ; line : 1921 ; title : salary unit : read baseSalary unitText
+- key : 3RS ; line : 2029 ; title : letsencr parent -> child : send addresses as param, multi-line
+- key : R6D ; line : 2514 ; title : p7-sign-run dies on a bad path before its first state write : p7_sign_status
+- key : PCJ ; line : 2532 ; title : ned : ctrl-v ignores the cursor column, inserts at 0,Y
+- key : 5FI ; line : 2454 ; title : zenka dying before its log link : keep early stderr \ start-up lines
+- key : QMH ; line : 2464 ; title : system zenka : per-disk stats from /proc/diskstats
+- key : ASF ; line : 2474 ; title : clean refusal logging : a link label's repeated 'no perm.'
+- key : ETE ; line : 2494 ; title : coding : start_model names a srv-U model [ OFSQC4I:QDBKEXY ]
+- key : QZE ; line : 2620 ; title : p7-deps : an os/pip dependency kind with per conda env targets
+- key : XAH ; line : 2591 ; title : gpu lease : 'render queue empty' repeats between images, parked items never release
+- key : ILS ; line : 2601 ; title : gpu lease : redundant handover request right after a release
+
+#,,,,,..,,,,,,,..,,.,,,..,..,,,,.,,..,.,,,.,.,..,,...,..,,,,,,...,,..,,,,,.,.,
+#BFGEPICTS5LXMOETV3DZJWPRA7DDAP66JAVXANASTKPCOVQODSHNKVQXTM2ITUBXTYNM7SL6673D2
+#\\\|KVW2OEOY5O43MNYM5WZ52Z47MKHTIGQGV5M3VM7FKYUROFTRWMH \ / AMOS7 \ YOURUM ::
+#\[7]J5V4IDYEPA6GSNS6DWU5LAM7JUFCU4BVPMH7KZ3X3F5HPNQCNGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
