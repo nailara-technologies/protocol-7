@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="dark">
+<title>protocol-7 view v15 : checked readout</title>
+<!--
+    grid-v15.html : stage 0 shell + stage 1 flat series layer
+    design : data/md/design/VISUALIZATION-3D-RECOMMENDATIONS.md [ sections 2, 4, 6, 7, 8 ]
+
+    calm by construction [ a hard constraint, not a setting ] :
+      - one palette table, dark violet \ blue, one warning hue
+      - one brightness factor, a hard lightness ceiling no role can pass
+      - one speed factor for everything that moves, motion in time [ dt ], not frames
+      - draw on demand : an idle page draws nothing
+      - rotation off by default, prefers-reduced-motion starts paused with fades off
+      - no blink, no pulse, no cycling palette, no moving dash
+      - no element changes its lightness faster than once per 400 ms
+
+    the readout rule : every number on the canvas is a field of a row of the feed.
+    the view scales, places and colours ; it adds, divides and predicts nothing.
+
+    no colour literal outside PALETTE below [ css reads it through variables ].
+-->
+<script>
+// ======================================================
+//  palette : the one table. [ hue, saturation, lightness, alpha, area ]
+//  area = 1 marks a filled surface [ print inverts it to paper ]
+// ======================================================
+var PALETTE = {
+    'bg'              : [ 258, 60,  3, 1.00, 1 ],
+    'panel'           : [ 262, 55,  7, 0.88, 1 ],
+    'panel.edge'      : [ 250, 50, 22, 0.60, 0 ],
+    'text'            : [ 222, 45, 56, 1.00, 0 ],
+    'text.dim'        : [ 230, 25, 40, 1.00, 0 ],
+    'text.key'        : [ 200, 55, 50, 1.00, 0 ],
+    'button'          : [ 258, 50,  9, 0.85, 1 ],
+    'button.edge'     : [ 240, 50, 32, 1.00, 0 ],
+    'button.on'       : [ 250, 50, 16, 0.90, 1 ],
+    'grid.x'          : [ 232, 60, 34, 0.34, 0 ],
+    'grid.z'          : [ 262, 55, 34, 0.34, 0 ],
+    'grid.y'          : [ 205, 50, 30, 0.22, 0 ],
+    'grid.far'        : [ 245, 50, 28, 0.16, 0 ],
+    'strip'           : [ 250, 55,  5, 0.80, 1 ],
+    'strip.edge'      : [ 240, 40, 22, 0.50, 0 ],
+    'axis'            : [ 230, 30, 34, 0.80, 0 ],
+    'cap'             : [ 215, 30, 40, 0.60, 0 ],
+    'cursor'          : [ 225, 60, 30, 0.22, 1 ],
+    'series.fill'     : [ 205, 65, 50, 1.00, 0 ],
+    'series.held'     : [ 232, 60, 54, 1.00, 0 ],
+    'series.reserved' : [ 265, 50, 54, 1.00, 0 ],
+    'series.given'    : [ 185, 45, 42, 1.00, 0 ],
+    'series.leftover' : [ 290, 35, 48, 1.00, 0 ],
+    'series.entered'  : [ 215, 40, 46, 1.00, 0 ],
+    'prop.pass'       : [ 220, 30, 34, 0.90, 0 ],
+    'warn'            : [ 322, 55, 46, 1.00, 0 ]    // the one warning hue : over capacity \ failed property only
+};
+
+// the hard upper bound on lightness, in percent. it is applied in the one
+// place a colour string is built, so no layer and no factor can pass it.
+// [ v14 drew up to about 81 ; every default above stays below 60 ]
+var LIGHT_CEILING   = 60;
+var BRIGHTNESS_MIN  = 0.5;
+var BRIGHTNESS_MAX  = 1.5;
+var BRIGHTNESS_STEP = 1.12;
+
+var p7Theme      = 'dark';    // 'print' only between beforeprint and afterprint
+var p7Brightness = 1;
+var p7MaxLight   = 0;         // highest lightness handed out since the last reset
+
+// the one function that makes a colour. alpha_mul is quantised to 16 steps
+// so a layer strokes few distinct styles
+function paint( role, alpha_mul ) {
+    var p = PALETTE[role];
+    var l, a = p[3];
+    if ( p7Theme === 'print' ) l = p[4] ? 100 - p[2] : Math.min( p[2], 32 );
+    else {
+        l = p[2] * p7Brightness;
+        if ( l > LIGHT_CEILING ) l = LIGHT_CEILING;
+        if ( l > p7MaxLight ) p7MaxLight = l;
+    }
+    if ( alpha_mul !== undefined ) a = a * Math.round( alpha_mul * 16 ) / 16;
+    return 'hsla(' + p[0] + ',' + p[1] + '%,' + l.toFixed( 1 ) + '%,' + a.toFixed( 3 ) + ')';
+}
+
+// css reads the same table : one variable per role
+function palette_to_css() {
+    var style = document.documentElement.style;
+    for ( var role in PALETTE )
+        style.setProperty( '--p7-' + role.replace( '.', '-' ), paint( role ) );
+}
+palette_to_css();
+</script>
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: var(--p7-bg); }
+    body { overflow: hidden; font-family: monospace; color: var(--p7-text); }
+    canvas { display: block; width: 100%; height: 100vh; cursor: crosshair; }
+
+    .panel {
+        position: fixed;
+        background: var(--p7-panel);
+        border: 1px solid var(--p7-panel-edge);
+        padding: 12px;
+        border-radius: 12px;
+        z-index: 100;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+    .panel h3 { margin: 0 0 8px 0; color: var(--p7-text-dim); font-size: 12px; font-weight: normal; }
+    .info-panel  { top: 16px; left: 16px; width: 300px; }
+    .layer-panel { top: 16px; right: 16px; min-width: 170px; }
+    .controls    { bottom: 16px; left: 16px; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100vw - 32px); }
+
+    .k    { color: var(--p7-text-dim); }
+    .v    { color: var(--p7-text-key); }
+    .note { color: var(--p7-text-dim); }
+    .warn { color: var(--p7-warn); }
+    .keys { margin-top: 8px; color: var(--p7-text-dim); }
+    .bmw  { word-break: break-all; }
+
+    button {
+        background: var(--p7-button);
+        border: 1px solid var(--p7-button-edge);
+        color: var(--p7-text);
+        padding: 6px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 11px;
+    }
+    button.active { background: var(--p7-button-on); }
+
+    .layer-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .layer-toggle input { accent-color: var(--p7-button-edge); }
+
+    .hidden { display: none; }
+
+    @media print {
+        .controls, .layer-panel { display: none; }
+    }
+</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+
+<div class="panel info-panel" id="info-panel">
+    <h3>protocol-7 view v15 [ checked readout ]</h3>
+    <div><span class="k">speed      </span> <span class="v" id="d-speed"></span> <span class="note" id="d-speed-note"></span></div>
+    <div><span class="k">brightness </span> <span class="v" id="d-bright"></span> <span class="note" id="d-bright-note"></span></div>
+    <div><span class="k">rotation   </span> <span class="v" id="d-rot"></span></div>
+    <div><span class="k">frame      </span> <span class="v" id="d-frame"></span> <span class="note" id="d-play"></span></div>
+    <div><span class="k">source     </span> <span class="v" id="d-source"></span></div>
+    <div><span class="k">unit       </span> <span class="v" id="d-unit"></span></div>
+    <div><span class="k">rows       </span> <span class="v" id="d-rows"></span></div>
+    <div><span class="k">skipped    </span> <span class="v" id="d-skipped"></span></div>
+    <div><span class="k">props      </span> <span id="d-props"></span></div>
+    <div><span class="k">body.bmw   </span> <span class="v bmw" id="d-bmw"></span></div>
+    <div><span class="k">draws      </span> <span class="v" id="d-draws"></span></div>
+    <div id="d-feed-note" class="warn"></div>
+    <div class="keys">
+        [ ] speed : 0 pause : . , step : home end<br>
+        - + brightness : r rotate : c center<br>
+        o open feed : i l b panels : drag \ wheel
+    </div>
+</div>
+
+<div class="panel layer-panel" id="layer-panel">
+    <h3>layers</h3>
+    <div id="layer-list"></div>
+</div>
+
+<div class="panel controls" id="controls">
+    <button id="b-pause">pause</button>
+    <button id="b-slower">[ slower</button>
+    <button id="b-faster">faster ]</button>
+    <button id="b-back">, back</button>
+    <button id="b-fwd">forward .</button>
+    <button id="b-first">first</button>
+    <button id="b-last">last</button>
+    <button id="b-rot">rotate</button>
+    <button id="b-dim">- dimmer</button>
+    <button id="b-bright">brighter +</button>
+    <button id="b-open">open feed</button>
+</div>
+<input type="file" id="feed-file" class="hidden">
+
+<script src="p7-view-feed.js"></script>
+<script>
+( function () {
+    'use strict';
+
+    // ======================================================
+    //  constants : calm defaults [ design section 6 ]
+    // ======================================================
+    var FRAME_MS        = 2000;   // one frame of the series per 2 seconds at speed 1
+    var FADE_MS         = 800;    // a fade at speed 1
+    var LIGHT_CHANGE_MS = 400;    // no element changes lightness faster than this
+    var ROT_DEG_PER_S   = 4;      // rotation at speed 1, degrees per second
+    var SPEED_MIN       = 1 / 16;
+    var SPEED_MAX       = 16;
+    var SPEED_NOTE_AT   = 2;      // above it : a plain note, nothing refused
+    var DRAW_MIN_MS     = 1000 / 30 - 2;   // frame cap : 30 draws per second
+    var DT_MAX_MS       = 100;    // a stalled tab does not jump the motion
+    var DEFAULT_FEED    = 'p7-view-fixture-ramp.txt';
+    var STORE_PREFIX    = 'p7-view.';
+    var FONT            = '11px monospace';
+
+    var canvas = document.getElementById( 'view' );
+    var ctx    = canvas.getContext( '2d' );
+    var width = 0, height = 0;
+
+    // ======================================================
+    //  settings : query argument over stored value over default.
+    //  storage may be absent or volatile [ an ephemeral browser ] : every
+    //  access is guarded, and the page is whole without it
+    // ======================================================
+    var query = {};
+    location.search.replace( /^\?/, '' ).split( '&' ).forEach( function ( pair ) {
+        if ( !pair ) return;
+        var at = pair.indexOf( '=' );
+        var k = at < 0 ? pair : pair.substring( 0, at );
+        query[ decodeURIComponent( k ) ]
+            = at < 0 ? '1' : decodeURIComponent( pair.substring( at + 1 ) );
+    } );
+
+    function stored( key ) {
+        try { return window.localStorage.getItem( STORE_PREFIX + key ); }
+        catch ( e ) { return null; }
+    }
+    function store( key, value ) {
+        try { window.localStorage.setItem( STORE_PREFIX + key, String( value ) ); }
+        catch ( e ) { /* no storage : the setting lives for this page only */ }
+    }
+    function setting_number( key, fallback, min, max ) {
+        var raw = query[key] !== undefined ? query[key] : stored( key );
+        var v = raw === null || raw === undefined ? NaN : parseFloat( raw );
+        if ( !isFinite( v ) ) return fallback;
+        return v < min ? min : v > max ? max : v;
+    }
+
+    var reduced_motion = !!( window.matchMedia
+        && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches );
+
+    var speed    = setting_number( 'speed', 1, SPEED_MIN, SPEED_MAX );
+    p7Brightness = setting_number( 'brightness', 1, BRIGHTNESS_MIN, BRIGHTNESS_MAX );
+    var paused   = reduced_motion || query.paused === '1';
+    var fades    = !reduced_motion && query.fades !== '0';
+    var rotating = query.rotate === '1';    // off unless asked for
+    var ui_on    = query.ui !== '0';
+    palette_to_css();
+
+    // ======================================================
+    //  counters : read by the panel and by `web-browser.graph-params`
+    //  [ plain window.* numbers ]. p7ViewDraws standing still = an idle page
+    // ======================================================
+    window.p7ViewDraws      = 0;    // canvas draws since load
+    window.p7ViewTicks      = 0;    // animation ticks since load [ a tick may draw nothing ]
+    window.p7ViewFrame      = -1;   // the frame number shown [ field of a frame row ]
+    window.p7ViewFrameIndex = -1;   // its position in the series
+    window.p7ViewSpeed      = speed;
+    window.p7ViewBrightness = p7Brightness;
+    window.p7ViewPaused     = paused ? 1 : 0;
+    window.p7ViewRotY       = 0;    // degrees
+    window.p7ViewDrawMs     = 0;    // duration of the last draw
+    window.p7ViewSegments   = 0;    // stroked segments of the last draw
+    window.p7ViewMaxLight   = 0;    // highest lightness of the last draw, percent
+    window.p7ViewSkipped    = 0;    // rows of an unknown kind
+
+    // ======================================================
+    //  draw on demand
+    // ======================================================
+    var dirty   = true;
+    var raf     = 0;
+    var last_ts = 0;
+    var last_draw_ts = -1e9;
+
+    function invalidate() { dirty = true; schedule(); }
+
+    // anything that still moves keeps the loop alive ; nothing else does
+    function active() {
+        return dirty || rotating || playing() || fade.on || pending_at >= 0;
+    }
+    function schedule() {
+        if ( !raf && active() ) raf = window.requestAnimationFrame( tick );
+    }
+
+    function tick( ts ) {
+        raf = 0;
+        window.p7ViewTicks++;
+        var dt = last_ts ? Math.min( ts - last_ts, DT_MAX_MS ) : 0;
+        last_ts = ts;
+
+        advance( dt, ts );
+
+        if ( dirty && ts - last_draw_ts >= DRAW_MIN_MS ) {
+            dirty = false;
+            last_draw_ts = ts;
+            draw();
+        }
+        if ( active() ) schedule();
+        else last_ts = 0;    // idle : the next motion starts with dt 0
+    }
+
+    // ======================================================
+    //  camera [ projection as in v14 : y, x, then perspective ]
+    // ======================================================
+    var CAM_HOME = { rotX : 22, rotY : 32, zoom : 1 };
+    var FOCAL = 700, NEAR = 20;
+    var rotX = CAM_HOME.rotX, rotY = CAM_HOME.rotY, zoom = CAM_HOME.zoom;
+    var cosY = 1, sinY = 0, cosX = 1, sinX = 0;
+    var cam = new Float64Array( 6 );    // two camera-space points of one segment
+
+    function update_projection() {
+        var xr = rotX * Math.PI / 180, yr = rotY * Math.PI / 180;
+        cosY = Math.cos( yr ); sinY = Math.sin( yr );
+        cosX = Math.cos( xr ); sinX = Math.sin( xr );
+    }
+    function to_camera( px, py, pz, at ) {
+        var x1 = px * cosY - pz * sinY;
+        var z1 = px * sinY + pz * cosY;
+        cam[at]     = x1 * zoom;
+        cam[at + 1] = ( py * cosX - z1 * sinX ) * zoom;
+        cam[at + 2] = FOCAL + ( py * sinX + z1 * cosX ) * zoom;
+    }
+    // one world segment into the open path, clipped at the near plane
+    function path_segment( ax, ay, az, bx, by, bz ) {
+        to_camera( ax, ay, az, 0 );
+        to_camera( bx, by, bz, 3 );
+        var d0 = cam[2], d1 = cam[5];
+        if ( d0 < NEAR && d1 < NEAR ) return 0;
+        if ( d0 < NEAR || d1 < NEAR ) {
+            var t = ( NEAR - d0 ) / ( d1 - d0 );
+            var cx = cam[0] + ( cam[3] - cam[0] ) * t;
+            var cy = cam[1] + ( cam[4] - cam[1] ) * t;
+            if ( d0 < NEAR ) { cam[0] = cx; cam[1] = cy; cam[2] = NEAR; }
+            else             { cam[3] = cx; cam[4] = cy; cam[5] = NEAR; }
+        }
+        var s0 = FOCAL / cam[2], s1 = FOCAL / cam[5];
+        ctx.moveTo( width / 2 + cam[0] * s0, height / 2 + cam[1] * s0 );
+        ctx.lineTo( width / 2 + cam[3] * s1, height / 2 + cam[4] * s1 );
+        return 1;
+    }
+
+    // ======================================================
+    //  layer : grid [ the stage 0 shell picture ]
+    //  a plain lattice with all three line directions : X and Z lines on
+    //  three levels, Y lines at every second crossing. v14 drew two of the
+    //  three directions ; the third is here, kept sparse so it stays quiet.
+    //  the segments are built once, as typed columns per style bucket
+    // ======================================================
+    var GRID_CELL = 110, GRID_HALF = 5, GRID_LEVEL = 2;
+    var grid_buckets = ( function () {
+        var b = { 'grid.x' : [], 'grid.z' : [], 'grid.y' : [], 'grid.far' : [] };
+        var e = GRID_HALF * GRID_CELL, i, j, lv;
+        for ( lv = -1 ; lv <= 1 ; lv++ ) {
+            var y = lv * GRID_LEVEL * GRID_CELL;
+            for ( i = -GRID_HALF ; i <= GRID_HALF ; i++ ) {
+                var o = i * GRID_CELL;
+                ( lv ? b['grid.far'] : b['grid.x'] ).push( -e, y, o, e, y, o );
+                ( lv ? b['grid.far'] : b['grid.z'] ).push( o, y, -e, o, y, e );
+            }
+        }
+        var ey = GRID_LEVEL * GRID_CELL;
+        for ( i = -GRID_HALF + 1 ; i < GRID_HALF ; i += 2 )
+            for ( j = -GRID_HALF + 1 ; j < GRID_HALF ; j += 2 )
+                b['grid.y'].push( i * GRID_CELL, -ey, j * GRID_CELL,
+                    i * GRID_CELL, ey, j * GRID_CELL );
+        var out = {};
+        for ( var role in b ) out[role] = new Float32Array( b[role] );
+        return out;
+    } )();
+
+    function draw_grid() {
+        update_projection();
+        ctx.lineWidth = 1;
+        ctx.setLineDash( [] );
+        for ( var role in grid_buckets ) {
+            var seg = grid_buckets[role];
+            ctx.strokeStyle = paint( role );
+            ctx.beginPath();    // one path per style bucket
+            for ( var i = 0 ; i < seg.length ; i += 6 )
+                segments += path_segment( seg[i], seg[i + 1], seg[i + 2],
+                    seg[i + 3], seg[i + 4], seg[i + 5] );
+            ctx.stroke();
+        }
+    }
+
+    // ======================================================
+    //  the feed : loaded once as text, parsed once, held as typed columns
+    // ======================================================
+    var feed  = null;    // the parsed feed, only when it was accepted
+    var model = null;    // what the series layer draws, built once per feed
+    var feed_note = '';
+
+    // which columns of a kind are curves, and how each is drawn. a name the
+    // head does not carry is left out : the head decides, not this table.
+    // form [ the dash ] carries the difference as much as the hue does
+    var CURVES = {
+        pool : [ [ 'fill', 'series.fill', [], 2 ],
+                 [ 'held', 'series.held', [], 1 ],
+                 [ 'reserved', 'series.reserved', [ 7, 4 ], 1 ],
+                 [ 'given', 'series.given', [ 2, 3 ], 1 ],
+                 [ 'leftover', 'series.leftover', [ 10, 3, 2, 3 ], 1 ] ],
+        sum  : [ [ 'entered', 'series.entered', [], 2 ],
+                 [ 'held', 'series.held', [], 1 ],
+                 [ 'given', 'series.given', [ 2, 3 ], 1 ],
+                 [ 'leftover', 'series.leftover', [ 10, 3, 2, 3 ], 1 ] ]
+    };
+
+    function build_model( f ) {
+        var m = { strips : [], frames : [], marks : [], props : [], total : 0 };
+        var i, k, c;
+        for ( i = 0 ; i < f.frames.length ; i++ ) m.frames.push( f.frames[i].n );
+
+        function strip( kind, key, label ) {
+            var s = { label : label, cap : null, curves : [], top : 0 };
+            if ( P7ViewFeed.col_index( f, kind, 'cap' ) >= 0 )
+                s.cap = P7ViewFeed.column( f, kind, key, 'cap' );
+            for ( c = 0 ; c < CURVES[kind].length ; c++ ) {
+                var def = CURVES[kind][c];
+                if ( P7ViewFeed.col_index( f, kind, def[0] ) < 0 ) continue;
+                s.curves.push( { name : def[0], role : def[1], dash : def[2],
+                    width : def[3], data : P7ViewFeed.column( f, kind, key, def[0] ) } );
+            }
+            // the largest field of the strip : only to place pixels, never shown
+            var all = s.curves.map( function ( cv ) { return cv.data; } );
+            if ( s.cap ) all.push( s.cap );
+            for ( c = 0 ; c < all.length ; c++ )
+                for ( i = 0 ; i < all[c].length ; i++ )
+                    if ( all[c][i] > s.top ) s.top = all[c][i];
+            if ( s.top < 1 ) s.top = 1;
+            m.total += s.top;
+            m.strips.push( s );
+        }
+
+        if ( f.cols.pool ) {
+            var pools = P7ViewFeed.keys_of( f, 'pool' );
+            for ( k = 0 ; k < pools.length ; k++ ) strip( 'pool', pools[k], 'pool ' + pools[k] );
+        }
+        if ( f.cols.sum && P7ViewFeed.keys_of( f, 'sum' ).length ) strip( 'sum', '', 'sum' );
+
+        // prop rows are events of their frame : drawn where they were written
+        var ni = P7ViewFeed.col_index( f, 'prop', 'number' );
+        var ri = P7ViewFeed.col_index( f, 'prop', 'result' );
+        if ( ni >= 0 && ri >= 0 ) {
+            var rows = P7ViewFeed.rows_of( f, 'prop' );
+            for ( i = 0 ; i < rows.length ; i++ )
+                m.props.push( { at : rows[i].at, number : rows[i].fields[ni],
+                    result : rows[i].fields[ri] } );
+            m.marks = P7ViewFeed.prop_marks( f, 'false' );
+        }
+        return m;
+    }
+
+    function take_feed( text, name ) {
+        var f = P7ViewFeed.parse( text );
+        if ( !f.ok ) {
+            // a refused feed draws nothing : the reasons go to the panel
+            feed_note = name + ' refused [ ' + f.refused + ' lines ] : '
+                + f.errors.slice( 0, 3 ).map( function ( e ) {
+                    return 'line ' + e.line + ' ' + e.reason;
+                } ).join( ' ; ' );
+            update_panel();
+            return;
+        }
+        feed = f;
+        model = build_model( f );
+        feed_note = '';
+        window.p7ViewSkipped = f.skipped;
+        cur = -1; fade.on = false; pending_at = -1; play_acc = 0;
+        var start = parseInt( query.frame, 10 );
+        show_frame( isFinite( start ) ? index_of_frame( start ) : 0, true );
+        invalidate();
+    }
+
+    function load_feed( url ) {
+        function failed( why ) {
+            feed_note = 'feed ' + url + ' not loaded [ ' + why
+                + ' ] : press o to open a feed file';
+            update_panel();
+        }
+        // plain xhr : it also reads a file beside a page opened from disk,
+        // where the browser allows that
+        try {
+            var x = new XMLHttpRequest();
+            x.open( 'GET', url, true );
+            x.overrideMimeType( 'text/plain; charset=utf-8' );
+            x.onload = function () {
+                if ( ( x.status === 200 || x.status === 0 ) && x.responseText )
+                    take_feed( x.responseText, url );
+                else failed( 'status ' + x.status );
+            };
+            x.onerror = function () { failed( 'no access' ); };
+            x.send();
+        } catch ( e ) { failed( 'no access' ); }
+    }
+
+    // ======================================================
+    //  playback : frames of the feed, in time
+    // ======================================================
+    var cur = -1;           // index of the frame shown
+    var pending_at = -1;    // a frame asked for inside the 400 ms window
+    var last_change = -1e9; // time of the last shown frame change
+    var play_acc = 0;       // ms of speed-scaled time since the last frame
+    var fade = { on : false, t : 1, from : -1 };
+
+    function last_index() { return model ? model.frames.length - 1 : -1; }
+    function playing() { return !!model && !paused && cur < last_index(); }
+    function index_of_frame( n ) {
+        if ( !model ) return -1;
+        var best = 0;
+        for ( var i = 0 ; i < model.frames.length ; i++ )
+            if ( model.frames[i] <= n ) best = i;
+        return best;
+    }
+    function fade_ms() { return Math.max( LIGHT_CHANGE_MS, FADE_MS / speed ); }
+
+    // show a frame now. the only place the shown frame changes
+    function show_frame( at, at_once ) {
+        if ( !model ) return;
+        if ( at < 0 ) at = 0;
+        if ( at > last_index() ) at = last_index();
+        if ( at === cur ) return;
+        fade.from = cur;
+        fade.on = fades && !at_once && cur >= 0;
+        fade.t = fade.on ? 0 : 1;
+        cur = at;
+        last_change = window.performance.now();
+        window.p7ViewFrameIndex = cur;
+        window.p7ViewFrame = model.frames[cur];
+        dirty = true;
+    }
+
+    // ask for a frame. inside 400 ms of the last change the request waits :
+    // presses add up exactly, the picture changes once
+    function want_frame( at ) {
+        if ( !model ) return;
+        at = at < 0 ? 0 : at > last_index() ? last_index() : at;
+        if ( window.performance.now() - last_change < LIGHT_CHANGE_MS ) pending_at = at;
+        else { pending_at = -1; show_frame( at, false ); }
+        play_acc = 0;
+        schedule();
+    }
+    function step( by ) { want_frame( ( pending_at >= 0 ? pending_at : cur ) + by ); }
+
+    function advance( dt, ts ) {
+        if ( rotating ) {
+            rotY = ( rotY + ROT_DEG_PER_S * speed * dt / 1000 ) % 360;
+            window.p7ViewRotY = rotY;
+            dirty = true;
+        }
+        if ( pending_at >= 0
+            && window.performance.now() - last_change >= LIGHT_CHANGE_MS ) {
+            var at = pending_at;
+            pending_at = -1;
+            show_frame( at, false );
+        }
+        if ( playing() && pending_at < 0 ) {
+            // above the rate that 400 ms allows, frames are skipped, not
+            // shown faster : the picture steps, it does not flicker
+            var frame_ms = FRAME_MS / speed;
+            var skip = Math.max( 1, Math.ceil( LIGHT_CHANGE_MS / frame_ms ) );
+            play_acc += dt;
+            if ( play_acc >= frame_ms * skip ) {
+                play_acc = 0;
+                show_frame( cur + skip, false );
+            }
+        }
+        if ( fade.on ) {
+            fade.t += dt / fade_ms();
+            if ( fade.t >= 1 ) { fade.t = 1; fade.on = false; }
+            dirty = true;
+        }
+    }
+
+    // ======================================================
+    //  layer : series [ stage 1 ]. the flat picture : one strip per pool,
+    //  curves against the frame, one shared vertical unit for all strips.
+    //  values are drawn as steps : a row holds until the next row, nothing
+    //  is drawn between two values that no row states.
+    //  every number written here is a field of a row, as the row has it
+    // ======================================================
+    var STRIP_GAP = 16, LABEL_W = 78, LEGEND_W = 118, PROP_H = 46;
+
+    function series_area() {
+        if ( !ui_on ) return { x : 24, y : 24, w : width - 48, h : height - 48 };
+        var left = width > 900 ? 336 : 16, right = width > 900 ? 206 : 16;
+        return { x : left, y : 16, w : width - left - right, h : height - 16 - 76 };
+    }
+
+    function field_text( v ) { return v === v ? String( v ) : '-'; }    // NaN : no row holds
+
+    function draw_series() {
+        if ( !model || !model.strips.length || cur < 0 ) return;
+        var a = series_area();
+        if ( a.w < 260 || a.h < 160 ) return;
+        var n = model.frames.length;
+        var px = a.x + LABEL_W, pw = a.w - LABEL_W - LEGEND_W;
+        var col_w = pw / n;
+        var strips = model.strips;
+        var plot_h = a.h - PROP_H - 24 - STRIP_GAP * strips.length;
+        var unit = plot_h / model.total;    // pixels per one of unit.amount, shared
+        var s, c, i;
+
+        ctx.font = FONT;
+        ctx.textBaseline = 'middle';
+
+        // backing of the whole readout : the grid stays quiet behind it
+        ctx.fillStyle = paint( 'strip' );
+        ctx.fillRect( a.x, a.y, a.w, a.h );
+        ctx.strokeStyle = paint( 'strip.edge' );
+        ctx.lineWidth = 1;
+        ctx.setLineDash( [] );
+        ctx.strokeRect( a.x + 0.5, a.y + 0.5, a.w - 1, a.h - 1 );
+
+        var top = a.y + 12;
+        var bottom = top + plot_h + STRIP_GAP * strips.length;
+
+        // the cursor : the column of the shown frame. a change is one slow fade
+        var k_new = fade.on ? fade.t : 1;
+        ctx.fillStyle = paint( 'cursor', k_new );
+        ctx.fillRect( px + cur * col_w, top, col_w, bottom - top + PROP_H - 6 );
+        if ( fade.on && fade.from >= 0 ) {
+            ctx.fillStyle = paint( 'cursor', 1 - fade.t );
+            ctx.fillRect( px + fade.from * col_w, top, col_w, bottom - top + PROP_H - 6 );
+        }
+
+        var y = top;
+        for ( s = 0 ; s < strips.length ; s++ ) {
+            var st = strips[s];
+            var h = st.top * unit;
+            var base = y + h;    // the line of zero
+
+            // zero line and the capacity line, with the capacity as the row has it
+            ctx.setLineDash( [] );
+            ctx.strokeStyle = paint( 'axis' );
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo( px, Math.round( base ) + 0.5 );
+            ctx.lineTo( px + pw, Math.round( base ) + 0.5 );
+            ctx.stroke();
+            segments++;
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = paint( 'text' );
+            ctx.fillText( st.label, a.x + 10, Math.max( y + 6, base - 20 ) );
+            if ( st.cap ) {
+                var cap_now = st.cap[cur];
+                ctx.fillStyle = paint( 'text.dim' );
+                ctx.fillText( 'cap ' + field_text( cap_now ), a.x + 10, base - 6 );
+                ctx.strokeStyle = paint( 'cap' );
+                ctx.setLineDash( [ 1, 5 ] );
+                ctx.beginPath();
+                for ( i = 0 ; i < n ; i++ ) {
+                    if ( st.cap[i] !== st.cap[i] ) continue;
+                    var cy = Math.round( base - st.cap[i] * unit ) + 0.5;
+                    ctx.moveTo( px + i * col_w, cy );
+                    ctx.lineTo( px + ( i + 1 ) * col_w, cy );
+                    segments++;
+                }
+                ctx.stroke();
+            }
+
+            // the curves : the played part at full weight, the rest quiet.
+            // two clipped passes, one path per curve and pass
+            for ( var pass = 0 ; pass < 2 ; pass++ ) {
+                var x_split = px + ( cur + 1 ) * col_w;
+                ctx.save();
+                ctx.beginPath();
+                if ( pass === 0 ) ctx.rect( px, y - 4, x_split - px, h + 8 );
+                else ctx.rect( x_split, y - 4, px + pw - x_split, h + 8 );
+                ctx.clip();
+                for ( c = st.curves.length - 1 ; c >= 0 ; c-- ) {
+                    var cv = st.curves[c];
+                    ctx.strokeStyle = paint( cv.role, pass === 0 ? 1 : 0.375 );
+                    ctx.lineWidth = cv.width;
+                    ctx.setLineDash( cv.dash );
+                    ctx.beginPath();
+                    var open = false;
+                    for ( i = 0 ; i < n ; i++ ) {
+                        var v = cv.data[i];
+                        if ( v !== v ) { open = false; continue; }
+                        var vy = base - v * unit;
+                        if ( open ) ctx.lineTo( px + i * col_w, vy );
+                        else ctx.moveTo( px + i * col_w, vy );
+                        ctx.lineTo( px + ( i + 1 ) * col_w, vy );
+                        open = true;
+                        segments += 2;
+                    }
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // the legend : each curve with its field at the shown frame
+            var lx = px + pw + 12;
+            var rows_h = st.curves.length * 13;
+            var ly = Math.max( y + 6, Math.min( base - rows_h + 6, base - 6 ) );
+            if ( rows_h > h + STRIP_GAP ) ly = base - rows_h + 6;
+            for ( c = 0 ; c < st.curves.length ; c++ ) {
+                var lc = st.curves[c];
+                ctx.strokeStyle = paint( lc.role );
+                ctx.lineWidth = lc.width;
+                ctx.setLineDash( lc.dash );
+                ctx.beginPath();
+                ctx.moveTo( lx, ly + c * 13 + 0.5 );
+                ctx.lineTo( lx + 22, ly + c * 13 + 0.5 );
+                ctx.stroke();
+                segments++;
+                ctx.fillStyle = paint( 'text.dim' );
+                ctx.textAlign = 'left';
+                ctx.fillText( lc.name, lx + 28, ly + c * 13 );
+                ctx.fillStyle = paint( 'text' );
+                ctx.textAlign = 'right';
+                ctx.fillText( field_text( lc.data[cur] ), a.x + a.w - 8, ly + c * 13 );
+            }
+            y = base + STRIP_GAP;
+        }
+
+        // a failed property : one steady line through the strips at its frame
+        ctx.setLineDash( [] );
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = paint( 'warn', 0.5 );
+        ctx.beginPath();
+        for ( i = 0 ; i < model.marks.length ; i++ ) {
+            var mx = Math.round( px + ( model.marks[i].at + 0.5 ) * col_w ) + 0.5;
+            ctx.moveTo( mx, top );
+            ctx.lineTo( mx, bottom );
+            segments++;
+        }
+        ctx.stroke();
+
+        // the frame axis : a tick per frame, the frame number as the row has it
+        var ay = bottom + 0.5;
+        var every = Math.max( 1, Math.ceil( 30 / col_w ) );
+        ctx.strokeStyle = paint( 'axis' );
+        ctx.beginPath();
+        ctx.moveTo( px, ay ); ctx.lineTo( px + pw, ay );
+        for ( i = 0 ; i <= n ; i++ ) {
+            var tx = Math.round( px + i * col_w ) + 0.5;
+            ctx.moveTo( tx, ay ); ctx.lineTo( tx, ay + 3 );
+            segments++;
+        }
+        ctx.stroke();
+        ctx.textAlign = 'center';
+        for ( i = 0 ; i < n ; i++ ) {
+            if ( i % every && i !== cur ) continue;
+            if ( i !== cur && Math.abs( i - cur ) < every ) continue;
+            ctx.fillStyle = paint( i === cur ? 'text' : 'text.dim' );
+            ctx.fillText( String( model.frames[i] ), px + ( i + 0.5 ) * col_w, ay + 11 );
+        }
+        ctx.textAlign = 'left';
+        ctx.fillStyle = paint( 'text.dim' );
+        ctx.fillText( 'frame', a.x + 10, ay + 11 );
+        ctx.fillText( 'prop', a.x + 10, ay + 30 );
+
+        // the properties : passing ones a quiet row of ticks, a failed one a
+        // marker with its number, at its frame and nowhere else
+        var py = ay + 30;
+        ctx.strokeStyle = paint( 'prop.pass' );
+        ctx.beginPath();
+        var slot = {};
+        for ( i = 0 ; i < model.props.length ; i++ ) {
+            var p = model.props[i];
+            if ( p.result === 'false' ) continue;
+            var nth = slot[p.at] = ( slot[p.at] || 0 ) + 1;
+            var tk = Math.round( px + p.at * col_w + 2 + nth * Math.max( 2, ( col_w - 4 ) / 10 ) ) + 0.5;
+            if ( p.result === 'true' ) { ctx.moveTo( tk, py - 3 ); ctx.lineTo( tk, py + 3 ); }
+            else { ctx.moveTo( tk, py - 3 ); ctx.lineTo( tk, py - 1 );      // unknown : a broken tick
+                   ctx.moveTo( tk, py + 1 ); ctx.lineTo( tk, py + 3 ); }
+            segments++;
+        }
+        ctx.stroke();
+        ctx.textAlign = 'center';
+        for ( i = 0 ; i < model.marks.length ; i++ ) {
+            var mk = model.marks[i];
+            var cx = px + ( mk.at + 0.5 ) * col_w;
+            ctx.strokeStyle = paint( 'warn' );
+            ctx.beginPath();    // a steady diamond outline, never a blink
+            ctx.moveTo( cx, py - 7 ); ctx.lineTo( cx + 7, py );
+            ctx.lineTo( cx, py + 7 ); ctx.lineTo( cx - 7, py );
+            ctx.closePath();
+            ctx.stroke();
+            segments += 4;
+            ctx.fillStyle = paint( 'warn' );
+            ctx.fillText( String( mk.number ), cx + 15, py );
+        }
+        ctx.textAlign = 'left';
+    }
+
+    // ======================================================
+    //  layer registry : one entry, one draw function
+    // ======================================================
+    var layers = [
+        { key : 'grid',   name : 'grid [ lattice ]',  on : true, draw : draw_grid },
+        { key : 'series', name : 'series [ pools ]',  on : true, draw : draw_series }
+    ];
+    if ( query.layers !== undefined ) {
+        var wanted = query.layers.split( ',' );
+        layers.forEach( function ( l ) { l.on = wanted.indexOf( l.key ) >= 0; } );
+    }
+
+    var segments = 0;
+
+    function draw() {
+        var t0 = window.performance.now();
+        segments = 0;
+        p7MaxLight = 0;
+        ctx.setTransform( dpr, 0, 0, dpr, 0, 0 );
+        ctx.fillStyle = paint( 'bg' );
+        ctx.fillRect( 0, 0, width, height );
+        for ( var i = 0 ; i < layers.length ; i++ )
+            if ( layers[i].on ) layers[i].draw();
+        window.p7ViewDraws++;
+        window.p7ViewSegments = segments;
+        window.p7ViewMaxLight = p7MaxLight;
+        window.p7ViewDrawMs = window.performance.now() - t0;
+        update_panel();
+    }
+
+    // ======================================================
+    //  panels [ dom text, not a canvas draw ]
+    // ======================================================
+    function el( id ) { return document.getElementById( id ); }
+    function set_text( id, text ) {
+        var node = el( id );
+        if ( node.textContent !== text ) node.textContent = text;
+    }
+    function speed_text( v ) {
+        return ( v >= 1 ? String( v ) : '1/' + Math.round( 1 / v ) ) + ' x';
+    }
+
+    function update_panel() {
+        set_text( 'd-speed', speed_text( speed ) );
+        set_text( 'd-speed-note', speed > SPEED_NOTE_AT
+            ? '[ above ' + SPEED_NOTE_AT + ' x : frames are skipped, not shown faster ]' : '' );
+        set_text( 'd-bright', p7Brightness.toFixed( 2 ) );
+        set_text( 'd-bright-note', '[ ceiling ' + LIGHT_CEILING + ' ]' );
+        set_text( 'd-rot', rotating ? 'on' : 'off' );
+        set_text( 'd-draws', String( window.p7ViewDraws ) + ' [ '
+            + window.p7ViewSegments + ' segments, '
+            + window.p7ViewDrawMs.toFixed( 1 ) + ' ms ]' );
+        set_text( 'd-feed-note', feed_note );
+        el( 'b-pause' ).textContent = paused ? 'play' : 'pause';
+        el( 'b-pause' ).className = paused ? 'active' : '';
+        el( 'b-rot' ).className = rotating ? 'active' : '';
+        if ( !feed || !model || cur < 0 ) {
+            set_text( 'd-frame', '-' ); set_text( 'd-play', '' );
+            set_text( 'd-source', '-' ); set_text( 'd-unit', '-' );
+            set_text( 'd-rows', '-' ); set_text( 'd-skipped', '-' );
+            set_text( 'd-props', '-' ); set_text( 'd-bmw', '-' );
+            return;
+        }
+        var hm = feed.headMap;
+        set_text( 'd-frame', model.frames[cur] + ' of ' + model.frames[ last_index() ] );
+        set_text( 'd-play', paused ? '[ paused ]'
+            : cur >= last_index() ? '[ at the last frame ]' : '[ playing ]' );
+        set_text( 'd-source', ( hm.source || '-' ) + ' : ' + ( hm.scenario || '-' ) );
+        set_text( 'd-unit', hm['unit.amount'] || '-' );
+        set_text( 'd-rows', feed.frames[cur].rows.length + ' in this frame, '
+            + feed.rowCount + ' in the feed' );
+        var kinds = Object.keys( feed.skippedKinds );
+        set_text( 'd-skipped', feed.skipped + ( kinds.length
+            ? ' [ unknown kind : ' + kinds.join( ' ' ) + ' ]' : '' ) );
+        var props = el( 'd-props' );
+        var ptxt = model.marks.length
+            ? model.marks.map( function ( m ) {
+                return 'prop ' + m.number + ' false at frame ' + m.frame;
+            } ).join( ' ; ' )
+            : 'no failed property in the feed';
+        if ( props.textContent !== ptxt ) props.textContent = ptxt;
+        props.className = model.marks.length ? 'warn' : 'v';
+        set_text( 'd-bmw', hm['body.bmw'] ? hm['body.bmw'] + ' [ shown, not verified here ]' : '-' );
+    }
+
+    function build_layer_panel() {
+        var list = el( 'layer-list' );
+        layers.forEach( function ( l ) {
+            var label = document.createElement( 'label' );
+            label.className = 'layer-toggle';
+            var box = document.createElement( 'input' );
+            box.type = 'checkbox';
+            box.checked = l.on;
+            box.addEventListener( 'change', function () {
+                l.on = box.checked;
+                invalidate();
+            } );
+            label.appendChild( box );
+            label.appendChild( document.createTextNode( l.name ) );
+            list.appendChild( label );
+        } );
+    }
+
+    // ======================================================
+    //  controls : one function per action, keys and buttons call the same
+    // ======================================================
+    var last_bright_change = -1e9;
+
+    function set_speed( v ) {
+        speed = v < SPEED_MIN ? SPEED_MIN : v > SPEED_MAX ? SPEED_MAX : v;
+        window.p7ViewSpeed = speed;
+        store( 'speed', speed );
+        update_panel();
+        schedule();
+    }
+    function set_brightness( v ) {
+        // brightness changes every lightness on the page : at most one step per 400 ms
+        var now = window.performance.now();
+        if ( now - last_bright_change < LIGHT_CHANGE_MS ) return;
+        last_bright_change = now;
+        p7Brightness = v < BRIGHTNESS_MIN ? BRIGHTNESS_MIN : v > BRIGHTNESS_MAX ? BRIGHTNESS_MAX : v;
+        window.p7ViewBrightness = p7Brightness;
+        store( 'brightness', p7Brightness.toFixed( 3 ) );
+        palette_to_css();
+        invalidate();
+    }
+    function toggle_pause() {
+        paused = !paused;
+        window.p7ViewPaused = paused ? 1 : 0;
+        play_acc = 0;
+        update_panel();
+        schedule();
+    }
+    function toggle_rotation() {
+        rotating = !rotating;
+        update_panel();
+        schedule();
+    }
+    function center_camera() {
+        rotX = CAM_HOME.rotX; rotY = CAM_HOME.rotY; zoom = CAM_HOME.zoom;
+        window.p7ViewRotY = rotY;
+        invalidate();
+    }
+    function toggle_panel( id ) {
+        el( id ).classList.toggle( 'hidden' );
+    }
+
+    var actions = {
+        '['        : function () { set_speed( speed / 2 ); },
+        ']'        : function () { set_speed( speed * 2 ); },
+        '0'        : toggle_pause,
+        '.'        : function () { step( 1 ); },
+        ','        : function () { step( -1 ); },
+        'Home'     : function () { want_frame( 0 ); },
+        'End'      : function () { want_frame( last_index() ); },
+        '-'        : function () { set_brightness( p7Brightness / BRIGHTNESS_STEP ); },
+        '+'        : function () { set_brightness( p7Brightness * BRIGHTNESS_STEP ); },
+        '='        : function () { set_brightness( p7Brightness * BRIGHTNESS_STEP ); },
+        'r'        : toggle_rotation,
+        'c'        : center_camera,
+        'i'        : function () { toggle_panel( 'info-panel' ); },
+        'l'        : function () { toggle_panel( 'layer-panel' ); },
+        'b'        : function () { toggle_panel( 'controls' ); },
+        'o'        : function () { el( 'feed-file' ).click(); }
+    };
+
+    document.addEventListener( 'keydown', function ( e ) {
+        if ( e.ctrlKey || e.metaKey || e.altKey ) return;
+        var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+        var act = actions[key];
+        if ( !act ) return;
+        e.preventDefault();
+        act();
+    } );
+
+    [ [ 'b-pause', '0' ], [ 'b-slower', '[' ], [ 'b-faster', ']' ], [ 'b-back', ',' ],
+      [ 'b-fwd', '.' ], [ 'b-first', 'Home' ], [ 'b-last', 'End' ], [ 'b-rot', 'r' ],
+      [ 'b-dim', '-' ], [ 'b-bright', '+' ], [ 'b-open', 'o' ] ].forEach( function ( pair ) {
+        el( pair[0] ).addEventListener( 'click', function ( e ) {
+            actions[ pair[1] ]();
+            e.currentTarget.blur();
+        } );
+    } );
+
+    el( 'feed-file' ).addEventListener( 'change', function ( e ) {
+        var file = e.target.files && e.target.files[0];
+        if ( !file ) return;
+        var reader = new FileReader();
+        reader.onload = function () { take_feed( String( reader.result ), file.name ); };
+        reader.readAsText( file );
+        e.target.value = '';
+    } );
+
+    // the camera : drag turns, the wheel zooms. input draws, nothing else does
+    var dragging = false, drag_x = 0, drag_y = 0;
+    canvas.addEventListener( 'mousedown', function ( e ) {
+        dragging = true; drag_x = e.clientX; drag_y = e.clientY;
+    } );
+    window.addEventListener( 'mouseup', function () { dragging = false; } );
+    canvas.addEventListener( 'mousemove', function ( e ) {
+        if ( !dragging ) return;
+        rotY = ( rotY + ( e.clientX - drag_x ) * 0.3 ) % 360;
+        rotX = Math.max( -89, Math.min( 89, rotX + ( e.clientY - drag_y ) * 0.3 ) );
+        drag_x = e.clientX; drag_y = e.clientY;
+        window.p7ViewRotY = rotY;
+        invalidate();
+    } );
+    canvas.addEventListener( 'wheel', function ( e ) {
+        e.preventDefault();
+        zoom = Math.max( 0.3, Math.min( 3, zoom * ( e.deltaY > 0 ? 0.92 : 1.08 ) ) );
+        invalidate();
+    }, { passive : false } );
+
+    // ======================================================
+    //  size, print, start
+    // ======================================================
+    var dpr = 1;
+    function resize() {
+        dpr = Math.min( window.devicePixelRatio || 1, 2 );
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.round( width * dpr );
+        canvas.height = Math.round( height * dpr );
+        invalidate();
+    }
+    window.addEventListener( 'resize', resize );
+
+    // print stays light : the palette turns to paper for the print only
+    window.addEventListener( 'beforeprint', function () {
+        p7Theme = 'print'; palette_to_css(); dirty = false; draw();
+    } );
+    window.addEventListener( 'afterprint', function () {
+        p7Theme = 'dark'; palette_to_css(); invalidate();
+    } );
+
+    if ( !ui_on ) [ 'info-panel', 'layer-panel', 'controls' ].forEach( toggle_panel );
+    build_layer_panel();
+    update_panel();
+    resize();
+    load_feed( query.feed || DEFAULT_FEED );
+} )();
+</script>
+</body>
+</html>

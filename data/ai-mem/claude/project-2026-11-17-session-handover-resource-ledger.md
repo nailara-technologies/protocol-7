@@ -68,3 +68,19 @@ RT[..] output : keep the `RT` tag [ decoder.zenka.receive_entropy keys on it ].
 #\\\|75OAID7VXOKN4APNLD67FFF3PCD4BXYOTLNVQF5YEDBSJY3WYJG \ / AMOS7 \ YOURUM ::
 #\[7]377BN2MK7R3O3QLJW4K7U2NTBGV6LLVEDQFWYAP4DAVI3PA3A6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+**grid-v15 [ Fable, stage 0 + 1 ]** : data/web-root/vhosts/visual.v7.ax/grid-v15.html + p7-view-feed.js
++ fixture ; renders a dark lattice fast, controls work [ owner checked in the web-browser zenka ].
+open : the feed shows "not loaded [ no access ]" under file:// -- serve via the vhost or let the
+page fetch over http ; then stages 2+ [ pools, lattice, holds ] for k3.1. test : node test lives in
+visual.v7.ax/tests/ [ js gets no '#' signature footer ], run by bin/test-scripts/test-p7-view-feed.pl.
+
+**lesson [ owner ]** : when the 5h window is about to hit its limit with a long gap to the reset,
+keep MY OWN session alive with a background sleep shorter than 1 h before the limit hits -- the
+460k context expired by 3 minutes this time ; a subagent's cache cannot be kept alive that way.
+
+#,,..,,..,.,.,,,,,,,.,.,.,,..,,.,,.,.,.,,,...,..,,...,...,...,,,,,..,,,.,,,,,,
+#5BUUU5M6UCF2XO4Q75UKSQMJRQVO4ZQVINL76SPXHFED2HIHN7T2KETV7GRTLZ4BQXTH2J7VC6M3U
+#\\\|66F4W7GNRAR77UFMJU6BKKDC3HX4XLGIZFJ7B6XGY6A4TP27P4A \ / AMOS7 \ YOURUM ::
+#\[7]6XC4WSVTXBRUFN7ZOA7SRR6NAXZ4JYSHQRC4H7QAEJYBTDV452AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
