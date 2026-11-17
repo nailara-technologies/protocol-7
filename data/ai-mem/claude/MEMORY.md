@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [session-handover-todo-cleanup](project-2026-11-17-session-handover-todo-cleanup.md) — NEWEST 2026-11-17 evening : todo cross-check [ 11 closed, partial list in data/tasks ], todo id auto-length, p7-sign-wait unknown-job exit ; next R6D, then RCM 4ZW WY5 SN3
 - [session-handover-resource-ledger](project-2026-11-17-session-handover-resource-ledger.md) — NEWEST, START HERE 2026-11-17 : ledger 1a + canon + n7fs format 4 stages 1-2 built, reviewed, fixed, on all hosts [ b9e3d3b6d ] ; next : format 4 stage 3, ledger 1b ; owner positions in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md
 - [unanchored-cli-flag-backgrounds-commands](feedback-unanchored-cli-flag-backgrounds-commands.md) — silent sign abort, empty report = a console command backgrounded itself [ -B inside a file name, fixed b9e3d3b6d ] ; run with -v after the zenka name
 - [resource-accounting-design](project-2026-11-16-resource-accounting-design.md) — 2026-11-16 detail log : RESOURCE-ACCOUNTING-UNIFIED.md [ untracked ] by Fable + K3.1 review ; owner answers in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md ; next fable pass + irrigation
@@ -102,8 +103,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,.,,,.,.,..,,,.,,.,.,,,.,,..,,.,,,,.,.,,,..,,...,.,.,.,,,,,.,..,,...,,..,
-#TNWN3KUAUY2WNYZXFOJDL6CY6B5HSY342UUHG7D6A25ITDLK6YOZ4EQSKYWGXGAUSRXKYZNOKC62O
-#\\\|5TM6CYCRAO5H4JXW7E3A6EF4ZDUV5AQATVL4P6CA6XYCBITWFX4 \ / AMOS7 \ YOURUM ::
-#\[7]A52UGUXZUUKLFAMYXUUQ4ZJB3K4WKPDU7WROLXVBHL54MEBWXECY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,,,,,,..,,,,,.,.,.,.,..,,,..,..,,...,...,...,.,,,..,,...,..,,
+#GGHKCGOMWKBQQJSPY5UYJSLZSBIDALQMNPPWTNFYRGFNEK4CNWE5EAH3PLIRKPXQUWOUYKG2IDELA
+#\\\|CRC2O3FGLZZDHEMTUYOZZVPP5PW5I5YZQ566LSHBIJM27BSMIUF \ / AMOS7 \ YOURUM ::
+#\[7]KAXSCQ7CZT6JQ56IV42EXWKK7TCS3XNXMWEUCSMMTAL2XAXGDEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
