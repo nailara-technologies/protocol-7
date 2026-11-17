@@ -11,8 +11,10 @@ use warnings;
 
 ## wait for a p7_sign job [ bin/dev/p7-sign-run ] or a p7_commit
 ## [ bin/dev/ p7-commit ] to reach its final state,  then print it and exit --
-## 0 approved, 1 otherwise. for callers that get notified when a background
-## command ends  [ the p7_sign mcp tool itself never waits ] :
+## 0 approved, 1 otherwise, 2 unknown job
+## [ no state file after 15 s, the newest job ids are listed ]. for callers
+## that get notified when a background command ends
+## [ the p7_sign mcp tool itself never waits ] :
 ##
 ## p7-sign-wait <job> [ <timeout seconds, default 3600> ]
 
@@ -56,6 +58,18 @@ while (1) {
             exit( $status =~ m{^(?:approved|committed)$} ? 0 : 1 );
         }
     }
+    ## unknown job : no state file after a short grace -- say so and name ##
+    ## the newest jobs of that kind, instead of waiting the full timeout  ##
+    if ( not -e $state_path and time() > $deadline - $timeout + 15 ) {
+        my ($kind) = $job =~ m{^(p7-(?:sign|commit))-};
+        my @recent
+            = map { m{/([^/]+)\.json$} ? $1 : () }
+            ( sort { -M $a <=> -M $b }
+                glob("$root_path/data/state/$kind-*.json") )[ 0 .. 2 ];
+        say "$job : unknown job [ no state file ]";
+        say "newest : $_" foreach grep {defined} @recent;
+        exit 2;
+    }
     if ( time() > $deadline ) {
         say "$job : still waiting after $timeout s";
         exit 1;
@@ -63,8 +77,8 @@ while (1) {
     select( undef, undef, undef, 2 );
 }
 
-#,,..,,,,,.,.,..,,,.,,.,.,...,,,.,..,,.,,,...,..,,...,...,.,.,.,.,..,,...,,,.,
-#RI26R4Z7TIXMN3JPXT62GQRJE3UTLFD4HHGCGP5HZJ3XQVDA2HIQHT5ADDIFD3R5DXDSFK3KHTLWC
-#\\\|JORCBJFN5NJK3TCEIJXE5J5WAHOQQNMH55DQTDEPCKM33AV3VHV \ / AMOS7 \ YOURUM ::
-#\[7]DU4PSPMJNVT6H4PXN4LJIZK3JJXXKLOHB4JPYMCVLIZ3LNF6QSBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,...,,..,,,.,,,,,..,,...,,,,,..,,...,...,...,..,,..,,,,,,,,,,
+#BEANRSW2ZTFTEO44WU3VE6DKSFW3Z6GY44QS3O477GI7BZKQOTQWWMO5FJHH7G64OIBJFPPJHX3AE
+#\\\|E3JGMRAFDK242BMVOAY7FKZE3PB6P4S3O3JHQNHS4XYHRMUACKN \ / AMOS7 \ YOURUM ::
+#\[7]OAES6CXTL4YX5YF7Y7XXGRYI244V5Z6DQWAKU262JVVLJD7H3ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
