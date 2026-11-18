@@ -17,10 +17,20 @@ my $known_dir    = $key_vars_ref->{'known_hosts_dir'};
 
 return {} if not defined $known_dir or not -d $known_dir;
 
+## another user's pins [ USER=<name> as a different unix user ] : one clean ##
+## note, no pins listed -- never a failed start                             ##
+if ( not -r $known_dir or not -x $known_dir ) {
+    <[base.logs]>->(
+        1, "host pins in '%s' not readable as this user [ skipped ]",
+        $known_dir
+    );
+    return {};
+}
+
 my $default_port = 42;    ## hidden in the display name ##
 
 my %remote_keys;
-foreach my $file ( <[file.all_files]>->($known_dir)->@* ) {
+foreach my $file ( ( <[file.all_files]>->($known_dir) // [] )->@* ) {
     next if $file !~ m|^.*/([^/]+)\.public$|;
     my $stem = $1;
     next if -l $file or not -f $file or not -r $file;
@@ -61,8 +71,8 @@ foreach my $file ( <[file.all_files]>->($known_dir)->@* ) {
 
 return \%remote_keys;
 
-#,,..,.,,,,,.,,,.,,.,,.,.,.,.,.,.,,,.,,.,,..,,..,,...,...,,.,,,.,,..,,,,,,.,,,
-#G4MNTWMHKCQFGKN2BHVRJ7DINDGODSCMKCSYZV6FUSYGNEXHZXYJ6UEUY3PA5RPRANYWTENYZO3XQ
-#\\\|GKNVP3HPRV2J5DYTTWELICW6ILPEEGTOO6QHJHG4EZ3VQJHBNQE \ / AMOS7 \ YOURUM ::
-#\[7]YQ5D7YWLBXDXTSQO55UZSZR6OKLQLKB4GQ3DQOCXYIAWCCZPIABA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,.,.,.,..,,,,.,...,.,,,,,.,.,.,..,,...,...,..,,.,.,,.,,.,.,,,,,
+#QIZUFGBB5C4Z2PE34BBQAHMHADO3FIW3UOZBHR2AIVNAQ57B5JLYGFD4NJ6NUVNKX7PZXSCAOR6RE
+#\\\|2C5RKOIM7U4WPRR324BCKNOCJHAQTHDR677FLGTYCDOH2E3LUVK \ / AMOS7 \ YOURUM ::
+#\[7]B27443JRIQIWNO67X6KUMUHF4F24MJ4KP56DTZ25XYJKN4YGXMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
