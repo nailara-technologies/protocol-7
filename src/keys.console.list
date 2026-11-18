@@ -172,11 +172,15 @@ $names_len = max(
     (   map { length sprintf( "'%s' [ root-held ]", $ARG ) }
             keys %root_key_files
     ),
-    map {
-        length sprintf( "'%s' [%s]",
-            $ARG, $remote_keys_ref->{$ARG}->{'label'} // '' )
-    } keys %{$remote_keys_ref},
-    keys %owner_pins
+    (   map {
+            length sprintf( "'%s' [%s]",
+                $ARG, $remote_keys_ref->{$ARG}->{'label'} // '' )
+        } keys %{$remote_keys_ref}
+    ),
+    ## owner headers : "'<name>' [<7 char label>]" ##
+    ( map { length($ARG) + 12 } keys %owner_pins ),
+    ## the root-held note sits in the left column too ##
+    ( defined $root_note ? length sprintf( '[ %s ]', $root_note ) : () )
 );
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
@@ -383,8 +387,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,,,,,..,,,,,...,,..,,..,,,.,.,.,.,,,.,,,,,.,.,.,...,...,..,,.,,,,.,,.,,,,..,
-#IIWXWYUP7FARCTHBQAQBTKNE2VEZIA7W2BCLRCTSJ22L67LPRGDVRQONFO6C7PJR3DAKR7JGXDPYG
-#\\\|EP5UQYCNCDOXSWDNZMRKZQ2ZLBYIWWZDW6SER3PYVNF5FCH7SEB \ / AMOS7 \ YOURUM ::
-#\[7]7FPOMCID2H7TZAJ2Z4Z7WHAL5PCU3SZC5VLWUAATPUPO2VZIJWCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,...,...,...,,,,,,,.,,,.,...,.,.,...,...,,..,,.,,..,,,.,,...,
+#SITRF2R7EDKDRTKL4BW6CYRJN6PMGGR4JHNCPK7VBWPVWAF53UG2TFVM2UX6LRTZNIGNJOHN2LNAS
+#\\\|HNUDRJH4ERMCRXPM5Y5OAXSEWZ7XJZOMBRAUINTJDZ2B5SIFARK \ / AMOS7 \ YOURUM ::
+#\[7]CPCPCCCWDYTDJO2MDLHZGLOQ36OWW3P2KAXYUXZA5DENQODR5AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
