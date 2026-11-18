@@ -1,6 +1,6 @@
 ---
 name: session-handover-rcm-builds
-description: 2026-11-18 handover : RCM reproducible + race-free inline builds, 4ZW cache instances wired, format-code stub fix, todo split
+description: 2026-11-18 handover : RCM builds, 4ZW wired, base.interval helper [ WEQ step 1 ], -core-subs fixed, UDT 5UR ; next first timer conversion
 metadata:
   type: project
 ---
@@ -13,14 +13,21 @@ done :
 - 5c6afa117 : 4ZW nameserv[cache] \ [cache-local] wired by kimi [ by_subname, loopback only ] ; format-code stub hook only answers own uses + lib-path/pm requires [ an empty stub broke Net::DNS's optional probe ] ; todo ZA2 5WI 4CJ closed -> K3E 2BI
 - floor perl ~/.local/perl-5.32.1 now has Net::DNS
 
+- f0df10bce 4edecfd5e : todos 5UR [ UDT under the external link, high ; discover heartbeat pairs ] + WEQ [ shared interval helper, owner rhythm rules ] ; 4ZW upstream follow-up [ measure, cross-check, forward over link, server recursion ]
+- 762377185 ab75cf57f : base.interval.next + base.interval.rhythm.non-linear \ golden-blink [ WEQ step 1, built by claude_dispatch sonnet, reviewed ] ; 13 filter via base.assert.harmony ; CLAUDE.md + CONVENTIONS.yaml timer line ; test 35 pass. src modules compile on demand : no zenka.v7 edits needed
+- a2c1f4105 : Protocol-7 -core-subs lists all 78 core subs [ trailing comment after '{', one-line subs ], styled no match
+- kimi hit its 7d limit mid WEQ inventory [ nothing written ] : resume session_b986c2e8-537f-40b8-8209-bf5ee2f74ace after its reset
+
 next :
+- WEQ step 2 : convert a first simple timer onto base.interval.next [ site-yaml.fetch.backoff or the huggingface linear retry ] ; discover + dpms stay hand-tuned
+- WEQ step 3 : kimi sweep after its reset [ resume the session above, then convert ]
 - RCM : call-driven pure perl -> compiled upgrade in process, compiler time limit + host build cap, pre-build at install, prune old 2-part cache dirs
 - 4ZW : live start ; on servers the authoritative wildcard :53 bind likely blocks a 127.0.0.1:53 cache instance ; owner to pick upstreams [ default 1.1.1.1 9.9.9.9 ]
 - WY5 : close after a live rescan shows skips
 - a sign run aborts when update-amos-versions bumps a modified .pm not in the run : include every modified signed file
 
-#,,..,...,,.,,,,,,..,,...,,,,,...,...,,.,,.,.,..,,...,...,..,,...,,,,,..,,..,,
-#YQ3QGT6QCXJHO4ZY2HSDTYO3HJNARPF3BVGFHQXATOPEE2EH7LZRX6VQNENCOU2HWBKF7YVIPFSO4
-#\\\|YJJDV3EQOGHULEMD7HHOOKWDCJXNPQ3ER63APDTIE52HN7II2FH \ / AMOS7 \ YOURUM ::
-#\[7]JRVKIP3TSHJPAWZ7AWH3V7CU7K7YASG7ALICZT75TIT5FBP7UMBA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,...,.,.,.,,,,,,,..,,,,,,..,,,..,..,,...,...,.,,,.,,,,,,,.,.,...,
+#4FKRLASZNKPGQRQAUCFDSFRDBRYLBDPMV6QZHZ6H3DBKN43IATSUQNZUS5X7R2FV2SAMRIF4VDDQG
+#\\\|OB2FXVPFRDAEWLE4XRTPOZL326Q6B2YJ6NCKZTLGZTKMFCLBATR \ / AMOS7 \ YOURUM ::
+#\[7]OJCDX3EE2J4ZDXEQIGAD3Z6GT6XDQ4YFC7JWQIDDZFDYEQSXLKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

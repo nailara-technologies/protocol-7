@@ -5,7 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-rcm-builds](project-2026-11-18-session-handover-rcm-builds.md) — NEWEST 2026-11-18 : RCM reproducible + race-free builds, 4ZW wired, format-code stub fix ; next RCM bridge, 4ZW live
+- [session-handover-rcm-builds](project-2026-11-18-session-handover-rcm-builds.md) — NEWEST, START HERE 2026-11-18 : RCM builds, 4ZW wired, base.interval [ WEQ 1 ], -core-subs fixed ; next WEQ 2 first timer, RCM bridge, 4ZW live
 - [session-handover-todo-cleanup](project-2026-11-17-session-handover-todo-cleanup.md) — 2026-11-17 : todo cross-check, partial list in data/tasks
 - [session-handover-resource-ledger](project-2026-11-17-session-handover-resource-ledger.md) — NEWEST, START HERE 2026-11-17 : ledger 1a + canon + n7fs format 4 stages 1-2 built, reviewed, fixed, on all hosts [ b9e3d3b6d ] ; next : format 4 stage 3, ledger 1b ; owner positions in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md
 - [unanchored-cli-flag-backgrounds-commands](feedback-unanchored-cli-flag-backgrounds-commands.md) — silent sign abort, empty report = a console command backgrounded itself [ -B inside a file name, fixed b9e3d3b6d ] ; run with -v after the zenka name
@@ -107,8 +107,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,.,.,...,,,.,.,.,.,.,.,.,,..,.,.,.,.,,.,,..,,...,...,,,.,,.,,..,,,,.,.,.,
-#3MDZ3OHZLGLG6VRWY3QQURTS3YT4HMRAL44LGJV3JP6RE24R4C6IJIJMTYBYFEC27IBS3FO32EDUA
-#\\\|S3CPOCXMV5AYRG6RYKNOF7VDROJFQKJ2K57NJK3XHWPVNLNDNBC \ / AMOS7 \ YOURUM ::
-#\[7]KV3CBCHZOBNROPQQSAIPEAFSZD3XENYMPAKM3RNPSB5AX2IQ2YDI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,.,,,...,,..,..,,...,..,,.,,,..,,...,..,,.,.,,..,,..,...,,..,
+#NPA76RKUGGTKX7IHO5QUKTF74YCZWMEC5EMF2ITB5ECA4H6RSGXC2ED44WETOUEGUCXVIVHJLVLQ4
+#\\\|5PRT5ZJNJFGKBF4JF73R57GAJP72BE4XJZX2ISAWD5ETGEQTEGF \ / AMOS7 \ YOURUM ::
+#\[7]RNX43E5TMASWCJ65FG3UFAUVKPTIOWXVOLSE5GLIDAZE5QKNZQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
