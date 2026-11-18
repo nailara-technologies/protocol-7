@@ -5329,6 +5329,8 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
     my $prev_src_line;
     my $loaded_routines = 0;
     my $src_comp;    ## within BASE32 ##
+    my $section;     ## '.: prefix :.' of the following entries ##
+    my $loaded_files = 0;
     $INPUT_LINE_NUMBER = 0;
 
     $data_block_filehandle->clearerr;
@@ -5344,7 +5346,17 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
         ##  skipping empty and comment lines  ##
         next if not length $line or $line =~ m|^\s*[#\n]|;
 
-        if ( $line !~ m|^.:\[ ([\w\d\-\_\.]+) \]:.$| ) {
+        ## '.: prefix :.' section : later entry names are relative to it ##
+        ## [ '.: :.' closes it ] ; joined with '/' when the prefix is a  ##
+        ## category path, else with '.' [ dotted subroutine namespace ]  ##
+        if ( not defined $subroutine and $line =~ m|^\.: ([\w\-./]*) ?:\.$| )
+        {
+            $section = length ${^CAPTURE}[0] ? ${^CAPTURE}[0] : undef;
+            $section =~ s|/+$|/| if defined $section;
+            next;
+        }
+
+        if ( $line !~ m|^.:\[ ([\w\d\-\_\./]+) \]:.$| ) {
             if ( not defined $subroutine ) {
                 $code{'base.error_exit.inline_loading'}
                     ->( 'expected inline subroutine header', $line );
@@ -5356,7 +5368,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                 $subsrc_linenum //= 0;
 
                 if (not defined $source_encoding       ## first BASE32 line ##
-                    and $line =~ m|^: [02-9A-Z]{76}|   ## 0 prefix padding
+                    and $line =~ m|^: [0-9A-Z]{76}|    ## 0 \ 1 filler
                 ) {
                     substr( $line, 0, 2, '' );         ## remove prefix ##
 
@@ -5369,13 +5381,15 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                         index( $line, qw| EMRSAWZ2HQQCGIYK |, 0 ) == 0
                     ) {
                         $src_comp = qw| none |;
+                    } elsif ( index( $subroutine, qw| / | ) != -1 ) {
+                        $src_comp = qw| raw |;    ## category entry data ##
                     } else {
                         $code{'base.error_exit.inline_loading'}
                             ->( 'unknown compression or src header', $line );
                     }
                 } elsif ( not defined $source_encoding
                     and index( $line, ': ## [:< ##', 0 ) == 0 ) {
-                    substr( $line, 0, 2, '' );         ## remove prefix ##
+                    substr( $line, 0, 2, '' );    ## remove prefix ##
                     $source_encoding = qw| plain |;
                 } elsif ( not defined $source_encoding ) {
                     $code{'base.error_exit.inline_loading'}
@@ -5384,7 +5398,7 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                     $code{'base.error_exit.inline_loading'}
                         ->( 'inline source format error', $line );
                 } elsif ( index( $line, qw| :. |, 0 ) == -1 ) {
-                    substr( $line, 0, 2, '' );         ## remove prefix ##
+                    substr( $line, 0, 2, '' );    ## remove prefix ##
                 } else {
                     ## correction of encoding ? ##
                     if ( not length $prev_src_line ) {
@@ -5435,219 +5449,115 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
                 } elsif ($end_of_subsrc) {
                     if ( $source_encoding eq qw| BASE32 | ) {
 
-                        # Save the original encoded form before modification
+                        ## decode \ uncompress \ verify : shared routine ##
+                        ## [ inline entries now, DATA frames later ]     ##
                         my $original_encoded = $sub_source_line;
-                        $sub_source_line =~ s|[01]||g;
+                        $sub_source_line = p7_inline_decode_entry(
+                            $sub_source_line,
+                            $src_comp,
+                            {   'chksum' => $loader_state->{'sub-src-chksum'},
+                                'lines'  => $loader_state->{'sub-src-lines'},
+                                'words'  =>
+                                    $loader_state->{'sub-src-word-count'},
+                                'bytes' => $loader_state->{'sub-src-bytes'},
+                            },
+                            $subroutine
+                        )->$*;
 
-                        ## load module first if not done ##
-                        $code{'base.load_B32_routines'}->()
-                            if not defined &decode_b32r;
-
-                        my $srcstr_decoded
-                            = eval { decode_b32r($sub_source_line) };
-
-                        if ( not defined $srcstr_decoded
-                            or length $EVAL_ERROR ) {
-
-                            my $err_reason_str
-                                = defined &decode_b32r
-                                ? 'need Crypt::Misc module'
-                                : sprintf( 'inline-subroutine : %s',
-                                $subroutine );
-
-                            $code{'base.error_exit.inline_loading'}->(
-                                sprintf( 'BASE32 decoding error [ %s ]',
-                                    $err_reason_str ),
-                                $sub_source_line
-                            );
-                        }
-                        if ( $src_comp ne qw| none | ) {
-
-                            my $decomp_buffer_sref
-                                = $code{'base.uncompress_subroutine_str'}
-                                ->( \$srcstr_decoded, $src_comp );
-
-                            $code{'base.error_exit.inline_loading'}
-                                ->( 'decompression error', $subroutine )
-                                if not defined $decomp_buffer_sref->$*
-                                or not length $decomp_buffer_sref->$*;
-
-                            ### validate checksum ###
-                            $code{'base.error_exit.inline_loading'}->(
-                                'subroutine chksum not present', $subroutine
-                                )
-                                if not
-                                defined $loader_state->{'sub-src-chksum'};
-
-                            ##  decoded subroutine number of bytes  ##
-                            $code{'base.error_exit.inline_loading'}->(
-                                sprintf(
-                                    'decoded subroutine '
-                                        . 'size mismatch [%d!=%d]',
-                                    length $decomp_buffer_sref->$*,
-                                    $loader_state->{'sub-src-bytes'}
-                                ),
-                                $subroutine
-                                )
-                                if length $decomp_buffer_sref->$*
-                                != $loader_state->{'sub-src-bytes'};
-
-                            ## subroutine word count ##
-                            my $word_count = scalar( split m|\s+|,
-                                $decomp_buffer_sref->$* );
-                            $code{'base.error_exit.inline_loading'}->(
-                                sprintf(
-                                    'subroutine word-count '
-                                        . 'mismatch [ %d != %d ]',
-                                    $word_count,
-                                    $loader_state->{'sub-src-word-count'}
-                                ),
-                                $subroutine
-                                )
-                                if
-                                defined $loader_state->{'sub-src-word-count'}
-                                and $word_count
-                                != $loader_state->{'sub-src-word-count'};
-
-                            ## subroutine line count ##
-                            my $line_count = scalar( split "\n",
-                                $decomp_buffer_sref->$* );
-                            $code{'base.error_exit.inline_loading'}->(
-                                sprintf(
-                                    'subroutine has wrong '
-                                        . 'number of lines [ %d != %d ]',
-                                    $line_count,
-                                    $loader_state->{'sub-src-lines'}
-                                ),
-                                $subroutine
-                                )
-                                if defined $loader_state->{'sub-src-lines'}
-                                and $line_count
-                                != $loader_state->{'sub-src-lines'};
-
-                            ##  BMW chksum  ##
-                            ##
-                            ## verification requires the BMW digest : a    ##
-                            ## degraded host                               ##
-                            ## [ Digest::BMW absent, no opt-in install ]   ##
-                            ## cannot reproduce trailer checksums -- the   ##
-                            ## byte \ word \ line checks above still guard ##
-                            ## integrity, the signature itself is skipped  ##
-                            p7_ensure_bmw_digest();    ## on demand ##
-
-                            if ( defined &Digest::BMW::bmw_256 ) {
-
-                                my $sub_bmw_chksum = eval {
-                                    ## encode_b32r [ idempotent ] ##
-                                    p7_load_B32_routines();
-                                    encode_b32r(
-                                        Digest::BMW::bmw_256(
-                                            $decomp_buffer_sref->$*
-                                        )
-                                    );
-                                };
-                                $code{'base.error_exit.inline_loading'}->(
-                                    sprintf(
-                                        'chksum calculation failed [ %s ]',
-                                        scalar $code{'base.format_error'}
-                                            ->( $EVAL_ERROR, -1 ) ),
-                                    $subroutine
-                                    )
-                                    if not defined $sub_bmw_chksum
-                                    or not length $sub_bmw_chksum
-                                    or length $EVAL_ERROR;
-
-                                $code{'base.error_exit.inline_loading'}->(
-                                    'subroutine chksum mismatch', $subroutine
-                                    )
-                                    if $sub_bmw_chksum ne
-                                    $loader_state->{'sub-src-chksum'};
-
-                            } else {
-                                warn ': BMW digest unavailable : skipping '
-                                    . "inline-subroutine signature "
-                                    . "verification .,\n"
-                                    if not $data{'base'}{'warned'}
-                                    {'bmw_chksum_verification_skipped'}++;
-                            }
-
-                            ##  verifified  ##
-                            $sub_source_line = $decomp_buffer_sref->$*;
-
-                            # Store original source code for later export
-                            p7_store_original_source(
-                                $subroutine, $sub_source_line,
-                                $src_comp,   $original_encoded
-                            );
-
-                        }
+                        ## store original source code for later export ##
+                        p7_store_original_source(
+                            $subroutine, $sub_source_line,
+                            $src_comp,   $original_encoded
+                        ) if index( $subroutine, qw| / | ) == -1;
                     }
                     $EVAL_ERROR = '';
 
            # Store original source code for later export if not already stored
            # (BASE32 encoded subroutines are already stored within that block)
-                    if ( $source_encoding ne qw| BASE32 | ) {
+                    if ( $source_encoding ne qw| BASE32 |
+                        and index( $subroutine, qw| / | ) == -1 ) {
                         p7_store_original_source( $subroutine,
                             $sub_source_line, 'none' );
                     }
 
-                    ### compiling subroutine into %code reference ###
+                    if ( index( $subroutine, qw| / | ) != -1 ) {
 
-                    my $sub_cref = eval sprintf "sub {\n%s\n}",
-                        $sub_source_line;
-
-                    if ( ref $sub_cref ne qw| CODE |
-                        or length $EVAL_ERROR ) {
-
-                        my $data_start_lnum
-                            = $loader_state->{'data-block-start-line'};
-
-                        my $s_lnum = 0;
-                        $s_lnum = $LAST_PAREN_MATCH
-                            if $EVAL_ERROR =~ m| at \(eval \d+\) line (\d+),|;
-
-                        chomp $sub_source_line;
-                        my @lines = $sub_source_line =~ m|(\n)|g;
-
-                        my $sub_end_line =    ##  exact end us sub code  ##
-                            $data_start_lnum + $INPUT_LINE_NUMBER - 1;
-                        ## error location from end ##
-                        my $line_offset = scalar @lines - $s_lnum;
-                        my $abs_err_pos = $sub_end_line - $line_offset;
-                        undef @lines;
-
-                        my $err_str
-                            = defined $code{'base.format_error'}
-                            ? scalar $code{'base.format_error'}
-                            ->( $EVAL_ERROR, -1 )
-                            : lcfirst($EVAL_ERROR);
-                        $err_str =~ s|\"|\'|g;
-                        $err_str =~ s|at \(eval \d+\) line \d, ||g;
-                        my $lnum;    ## another error line number ##
-                        $lnum = ${^CAPTURE}[0]
-                            if $err_str =~ s| \<DATA\> line (\d+)\.$||g;
-                        ## from <DATA> block ##
-                        $abs_err_pos = $data_start_lnum + $lnum
-                            if $data_start_lnum + $lnum
-                            < $abs_err_pos;    ##  adjusting backward  ##
-
-                        $code{'base.error_exit.inline_loading'}->(
-                            $err_str // 'subroutine was not compiled',
-                            sprintf( '%s : %d', $subroutine, $s_lnum ),
-                            $abs_err_pos
-                        );
+                        ## category entry [ cfg\.. data\.. ] : kept as file ##
+                        ## content, never compiled                          ##
+                        $data{'base'}{'inline_files'}{$subroutine} = {
+                            'content'  => $sub_source_line,
+                            'encoding' => $source_encoding,
+                            'comp'     => $src_comp // qw| none |,
+                            'loaded'   => $code{'base.time'}->(5)
+                        };
+                        $loaded_files++;
 
                     } else {
 
-                        ## registering with compilation time ##
-                        $data{'base'}{'inline_subs'}{'sub-name'}{$subroutine}
-                            = { 'loaded' => $code{'base.time'}->(5) };
+                        ### compiling subroutine into %code reference ###
 
-                        ## collect them first ? ## [LLL]
-                        $code{$subroutine} = $sub_cref;
-                        $loaded_routines++;
-                    }
+                        my $sub_cref = eval sprintf "sub {\n%s\n}",
+                            $sub_source_line;
+
+                        if ( ref $sub_cref ne qw| CODE |
+                            or length $EVAL_ERROR ) {
+
+                            my $data_start_lnum
+                                = $loader_state->{'data-block-start-line'};
+
+                            my $s_lnum = 0;
+                            $s_lnum = $LAST_PAREN_MATCH
+                                if $EVAL_ERROR
+                                =~ m| at \(eval \d+\) line (\d+),|;
+
+                            chomp $sub_source_line;
+                            my @lines = $sub_source_line =~ m|(\n)|g;
+
+                            my $sub_end_line =   ##  exact end us sub code  ##
+                                $data_start_lnum + $INPUT_LINE_NUMBER - 1;
+                            ## error location from end ##
+                            my $line_offset = scalar @lines - $s_lnum;
+                            my $abs_err_pos = $sub_end_line - $line_offset;
+                            undef @lines;
+
+                            my $err_str
+                                = defined $code{'base.format_error'}
+                                ? scalar $code{'base.format_error'}
+                                ->( $EVAL_ERROR, -1 )
+                                : lcfirst($EVAL_ERROR);
+                            $err_str =~ s|\"|\'|g;
+                            $err_str =~ s|at \(eval \d+\) line \d, ||g;
+                            my $lnum;    ## another error line number ##
+                            $lnum = ${^CAPTURE}[0]
+                                if $err_str =~ s| \<DATA\> line (\d+)\.$||g;
+                            ## from <DATA> block ##
+                            $abs_err_pos = $data_start_lnum + $lnum
+                                if $data_start_lnum + $lnum
+                                < $abs_err_pos;    ##  adjusting backward  ##
+
+                            $code{'base.error_exit.inline_loading'}->(
+                                $err_str // 'subroutine was not compiled',
+                                sprintf( '%s : %d', $subroutine, $s_lnum ),
+                                $abs_err_pos
+                            );
+
+                        } else {
+
+                            ## registering with compilation time ##
+                            $data{'base'}{'inline_subs'}{'sub-name'}
+                                {$subroutine}
+                                = { 'loaded' => $code{'base.time'}->(5) };
+
+                            ## collect them first ? ## [LLL]
+                            $code{$subroutine} = $sub_cref;
+                            $loaded_routines++;
+                        }
+                    }    ## category entry \ subroutine ##
+
                     ## resetting parameters ##
+                    delete $loader_state->{$ARG} for qw|
+                        sub-src-chksum   sub-src-lines
+                        sub-src-word-count sub-src-bytes |;
                     $src_comp        = undef;
                     $subroutine      = undef;
                     $prev_src_line   = undef;
@@ -5658,7 +5568,11 @@ DO_NOT_WRITE_PROTECT_DATA_FH:
             }
         } elsif ( not defined $subroutine ) {
             $subroutine = $LAST_PAREN_MATCH;    ## start of new subroutine ##
-            $line       = '';                   ## forgetting header line ##
+            $subroutine
+                = join( index( $section, qw| / | ) != -1 ? qw| / | : qw| . |,
+                $section =~ s|[/.]$||r, $subroutine )
+                if defined $section;
+            $line = '';                         ## forgetting header line ##
         } else {
             $code{'base.error_exit.inline_loading'}
                 ->( 'encountered not expected sub header str', $line );
@@ -5705,6 +5619,152 @@ END {
 ##############################################################################
 
 ##############################################################################
+##[ inline entry decoding ]###################################################
+##                                                                          ##
+## decode one BASE32 entry body : 0 \ 1 filler stripped, base32r decoded,   ##
+## uncompressed [ xz \ gzip ], or taken as is [ none \ raw ]. raw bodies    ##
+## may have lost trailing 'A' padding : zero bytes up to the byte count are ##
+## restored. then byte \ word \ line counts and the BMW checksum are        ##
+## checked when the meta line carries them. returns a scalar ref, exits     ##
+## through base.error_exit.inline_loading on any mismatch.                  ##
+##                                                                          ##
+sub p7_inline_decode_entry {
+    my ( $encoded, $comp, $meta, $entry_name ) = @ARG;
+    $meta //= {};
+    $comp //= qw| none |;
+    my $fail = $code{'base.error_exit.inline_loading'};
+
+    $encoded =~ s|[01]||g;
+
+    ## raw : stripped 'A' padding made the length one base32 can not ##
+    ## produce -- re-padded with 'A' [ zero bits ] before decoding   ##
+    my $stripped_length = length $encoded;
+    if ( $comp eq qw| raw | ) {
+        $encoded .= qw| A |
+            while not grep { length($encoded) % 8 == $ARG } 0, 2, 4, 5, 7;
+    }
+
+    ## load module first if not done ##
+    $code{'base.load_B32_routines'}->() if not defined &decode_b32r;
+
+    my $decoded = eval { decode_b32r($encoded) };
+
+    $fail->(
+        sprintf( 'BASE32 decoding error [ %s ]',
+            defined &decode_b32r
+            ? sprintf( 'inline entry : %s', $entry_name )
+            : 'need Crypt::Misc module' ),
+        $encoded
+    ) if not defined $decoded or length $EVAL_ERROR;
+
+    my $content_sref;
+    if ( $comp eq qw| xz | or $comp eq qw| gzip | ) {
+        $content_sref
+            = $code{'base.uncompress_subroutine_str'}->( \$decoded, $comp );
+        $fail->( 'decompression error', $entry_name )
+            if not defined $content_sref->$*
+            or not length $content_sref->$*;
+    } else {
+        $content_sref = \$decoded;
+    }
+
+    ## stripped 'A' padding : the byte count restores trailing zero bytes ##
+    if ( $comp eq qw| raw | ) {
+        my $lower_bound = int( $stripped_length * 5 / 8 );
+        my $bytes       = $meta->{'bytes'} // $lower_bound;
+        $fail->(
+            sprintf(
+                'raw entry byte count below encoded length [ %d < %d ]',
+                $bytes, $lower_bound
+            ),
+            $entry_name
+        ) if $bytes < $lower_bound;
+        $content_sref->$* .= "\0" x ( $bytes - length $content_sref->$* )
+            if length $content_sref->$* < $bytes;
+
+        ## re-padding decoded more zero bytes than the count says ##
+        if ( length $content_sref->$* > $bytes ) {
+            my $surplus = substr( $content_sref->$*, $bytes );
+            $fail->( 'raw entry has data beyond its byte count', $entry_name )
+                if $surplus =~ m|[^\0]|;
+            substr( $content_sref->$*, $bytes ) = '';
+        }
+    }
+
+    $fail->( 'entry chksum not present', $entry_name )
+        if $comp ne qw| raw | and not defined $meta->{'chksum'};
+
+    $fail->(
+        sprintf(
+            'decoded entry size mismatch [%d!=%d]',
+            length $content_sref->$*,
+            $meta->{'bytes'}
+        ),
+        $entry_name
+        )
+        if defined $meta->{'bytes'}
+        and length $content_sref->$* != $meta->{'bytes'};
+
+    if ( defined $meta->{'words'} ) {
+        my $word_count = scalar( split m|\s+|, $content_sref->$* );
+        $fail->(
+            sprintf(
+                'entry word-count mismatch [ %d != %d ]',
+                $word_count, $meta->{'words'}
+            ),
+            $entry_name
+        ) if $word_count != $meta->{'words'};
+    }
+
+    if ( defined $meta->{'lines'} ) {
+        my $line_count = scalar( split "\n", $content_sref->$* );
+        $fail->(
+            sprintf(
+                'entry has wrong number of lines [ %d != %d ]',
+                $line_count, $meta->{'lines'}
+            ),
+            $entry_name
+        ) if $line_count != $meta->{'lines'};
+    }
+
+    ##  BMW chksum  ##
+    ##
+    ## verification requires the BMW digest : a degraded host             ##
+    ## [ Digest::BMW absent, no opt-in install ] cannot reproduce trailer ##
+    ## checksums -- the byte \ word \ line checks above still guard       ##
+    ## integrity, the signature itself is skipped                         ##
+    if ( defined $meta->{'chksum'} ) {
+        p7_ensure_bmw_digest();    ## on demand ##
+
+        if ( defined &Digest::BMW::bmw_256 ) {
+            my $bmw_chksum = eval {
+                p7_load_B32_routines();    ## encode_b32r [ idempotent ] ##
+                encode_b32r( Digest::BMW::bmw_256( $content_sref->$* ) );
+            };
+            $fail->(
+                sprintf( 'chksum calculation failed [ %s ]',
+                    scalar $code{'base.format_error'}->( $EVAL_ERROR, -1 ) ),
+                $entry_name
+                )
+                if not defined $bmw_chksum
+                or not length $bmw_chksum
+                or length $EVAL_ERROR;
+
+            $fail->( 'entry chksum mismatch', $entry_name )
+                if $bmw_chksum ne $meta->{'chksum'};
+        } else {
+            warn ': BMW digest unavailable : skipping '
+                . "inline entry signature verification .,\n"
+                if not $data{'base'}{'warned'}
+                {'bmw_chksum_verification_skipped'}++;
+        }
+    }
+
+    return $content_sref;
+}
+
+##############################################################################
+
 sub p7_store_original_source {
     my ( $sub_name, $source_code, $compression_type, $original_encoded )
         = @ARG;
@@ -6952,8 +7012,8 @@ __DATA__
 :
 :.
 
-#,,,,,,.,,,,.,,..,,.,,,.,,...,,,,,.,,,,,,,,..,..,,...,...,.,.,.,.,,..,.,,,,,.,
-#257QR5MK5TFQBOWWKL4IYTI7KXBTPGY2KTVHKWDW6NDW7WZXQ356WJHE2SJUM5GAPM24ERDH7RPIS
-#\\\|MOBPDJXF7IWMG4SQFSKBSOWMINC5TPALRUBZ3IHJFOQQN3XWOOS \ / AMOS7 \ YOURUM ::
-#\[7]5UWDRHQMHMIFVOQQGZ5TKRZJ2FTWG4EKJRNSKFBNMIYB7XELSUAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,..,.,.,,.,,,..,.,,,.,.,,..,..,,...,...,..,,,..,.,.,,..,.,,,
+#YA2Z747NS74E3TUFHAOMINARZQM2TRPH4H2FOFAZWPKPYDWWEG7JZEZW6QVMMXGUBR2SZUC557CW4
+#\\\|M24ACAHO4JJWBR2FGNYIDWJLCS7Z46OOMR3IQZ54XYHYKZG57B5 \ / AMOS7 \ YOURUM ::
+#\[7]YCZYXHSMUIDRB5OVLPU5VRKE2TEKN3QE7CUSQGESPOEOQDIQ5GAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
