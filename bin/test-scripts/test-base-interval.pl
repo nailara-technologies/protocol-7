@@ -84,13 +84,15 @@ sub load_module {
 
 my $real_truth    = eval { require AMOS7::Assert::Truth; 1 };
 my $harmony_calls = 0;
-my $real_is_true  = $real_truth ? \&AMOS7::Assert::Truth::is_true : undef;
-my $harmony = sub { my $s = shift; return $real_is_true->( \$s, 1, 1 ) };
-
-sub set_is_true {    ## swap the function the module calls ##
-    no warnings qw| redefine |;
-    *AMOS7::Assert::Truth::is_true = shift;
-}
+## base.assert.harmony is bin/Protocol-7's p7_assert__harmony : without ##
+## visualization it is is_true [ \$value, 1, 1 ] -- the same here       ##
+my $harmony = sub {
+    my $s = shift;
+    $harmony_calls++;
+    return AMOS7::Assert::Truth::is_true( \$s, 1, 1 );
+};
+$code{'base.assert.harmony'} = $harmony if $real_truth;
+sub set_is_true { $code{'base.assert.harmony'} = shift }
 if ( not $real_truth ) {
     say "# AMOS7::Assert::Truth not loadable : filter tests skipped";
 }
@@ -228,7 +230,7 @@ SKIP: {
     ok( $n <= 27 && $n > 1,
         "always failing filter stays bounded [ $n calls ]" );
     ok( near( $v, 0.77 ), 'unfiltered value used when nothing passes' );
-    set_is_true($real_is_true);
+    set_is_true($harmony);
 
     ## nudge is small : failing value moves up a few steps ##
     my $first = 0;
@@ -236,7 +238,7 @@ SKIP: {
     my %st2;
     my $w = $next->( { type => 'harm', state => \%st2 } );
     ok( abs( $w - 0.77 ) < 0.77 * 0.13 + 0.001, "nudge is small [ $w ]" );
-    set_is_true($real_is_true);
+    set_is_true($harmony);
 }
 
 ## golden-blink ##
@@ -303,8 +305,8 @@ SKIP: {
 say "# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,.,.,,,.,,,...,,,.,,..,.,.,..,,,.,,,..,,,,,..,,...,...,...,.,.,,.,,,.,,,,.,
-#VXSJWO45YAMLP5KVOM6TZGOEBWTU2DUJMZE3SWDHYEXOYVGYNKJLDGL5V7HZM3KO4KFAZLYQZCW7E
-#\\\|2RVDTZRJ2BYDWOFRVI6DMRQW7HKHVMTGRYSL5TBUJZUD2GYNR5D \ / AMOS7 \ YOURUM ::
-#\[7]TRMD357BK2WKRCDIFDQA4ZYGZXJU6JSAX2UQHIT6T34IJ3QKSIDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,..,,...,,..,,,,,..,,...,,,,,...,..,,...,..,,...,,,.,,,.,.,,,..,,
+#F7C7BEZOJFRJ7LJOKLOOM7ZKOXXZAEHXUHNQJ6U6RZEHH3JASOPV4BDVHT7IJ7AKUJWCU5VLSFEIC
+#\\\|3AT7SJIX5RKRWDR3NYUKC3HDBF6RCP3PYF7WQASAGT5KYUYPMG3 \ / AMOS7 \ YOURUM ::
+#\[7]TXAP4QCJUE2M5YQP6J7S2BFVVO4PHUZDQ3U5H43BLWOGK2Y6TGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

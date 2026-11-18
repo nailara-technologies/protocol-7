@@ -47,16 +47,15 @@ my $harmonize = sub {
     my $seconds = shift;
     my $ms      = int( $seconds * 1000 + 0.5 );
     $ms++             if $ms == 600000;    ## no round 10 minutes ##
-    return $ms / 1000 if not defined &AMOS7::Assert::Truth::is_true;
+    return $ms / 1000 if not defined $code{'base.assert.harmony'};
     my $step = int( $ms / 100 );
     $step = 1 if $step < 1;
     foreach my $try ( 0 .. 26 ) {
         my $offset = ( $try % 2 ? 1 : -1 ) * int( ( $try + 1 ) / 2 ) * $step;
         my $candidate = $ms + $offset;
         next if $candidate < 1 or $candidate == 600000;
-        my $candidate_str = sprintf '%d', $candidate;
         return $candidate / 1000
-            if AMOS7::Assert::Truth::is_true( \$candidate_str, 1, 1 );
+            if <[base.assert.harmony]>->( sprintf '%d', $candidate );
     }
     return $ms / 1000;                     ## gave up : original value ##
 };
@@ -78,8 +77,8 @@ $state->{'type'} = $type;
 $state->{'last'} = $delay;
 return $delay;
 
-#,,..,,..,...,,..,..,,...,,,,,.,,,,,,,.,,,,,,,..,,...,...,.,,,...,...,,,.,.,,,
-#NY7CUCEQCDZEMMVX65GNUG5CO6MWC37PR74D7SBBJZ2OSJDA4KH4J5XTYJOFWXASZQU3UNYL3OT2C
-#\\\|YIA3RJXRYOY44XH5SWBK4WCIHIUOUCZCRSZKTSTIEGLFXCY5SHS \ / AMOS7 \ YOURUM ::
-#\[7]ZUHMMJMKFZO3JVIEKJ3OYKA6XWBVJ42TN5NYZBLAWVHSSP4N5OBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,..,,,,.,.,,,,,,,...,,..,,.,,..,,...,...,.,,,,.,,,.,,,..,...,
+#RQGEKOFIW47FMNT46BZVJ4MPQRZJZM6AMM7UQMS2ARMZMUFH3JXPFHGUUZJV6667XABIHMVKRQ6YS
+#\\\|RQTMZPRMOL7DPMAWYONBKAXVCUFJNXFLXWJ22LU37WAMSN2NKY7 \ / AMOS7 \ YOURUM ::
+#\[7]AV3MLTQ5OMW334KVXVMSS6ZUWA2MSKN4JTPI3R3HD2T2SHZYSMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
