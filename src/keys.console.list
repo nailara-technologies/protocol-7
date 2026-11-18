@@ -361,7 +361,7 @@ if ( <system.ansi_color> or <system.force_colors> ) {
         <$C{0}$C{b}$1$C{T}  $C{o}$2$C{T}>mg;
 
     ##  user name after 'user' text  ##
-    $key_list_string =~ s|(?<=user)( \S+ )|$C{B}$C{b}$1$C{T}|gm;
+    $key_list_string =~ s|(?<=user )(\S+)(?= )|$C{B}$C{b}$1$C{R}$C{T}|gm;
 
     ##  seed-phrase and virtual  ##
     $key_list_string =~ s{($name_regex\Q:seed-phrase\E)}
@@ -390,8 +390,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,..,..,,.,.,...,,,.,.,.,,,,,,.,,,..,..,,,..,.,.,...,..,,...,,,.,.,.,,.,,,.,,
-#XO2XMZBUTY23ZBOYEUK3CPBN4D3LY46FDXX5OSD4SH7PKV7NEANGGFA6SIK6BYXKVFDFGE2CK5XNW
-#\\\|BVYKFS6ECBN7ZPC3DXJRVH2MJUAMEWLWLHIZGK6VDLRJK4DS76T \ / AMOS7 \ YOURUM ::
-#\[7]E6ILR4QTTXHVF7FITQDQN72ENHWI5LKUFJ3MAYQFMLJ47IRHGQBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,.,,...,.,.,..,,.,,,.,.,.,,,,.,,.,.,...,...,.,.,...,..,,,,,,...,
+#JSO5433CCK4KHHJIRNQ625PH3WSLAPDZ4OFYS2NZPSEB5C4HMPYX2Q6MC3LK4JSU46QXLI3NHWTWO
+#\\\|UF4PSHCZASXVEBLOJFAIDZCHVJDZRVTTBQQZUYAO6JVOD7ZEWJN \ / AMOS7 \ YOURUM ::
+#\[7]KLRXERJMR4XKNQEDPPO6CIJJHJMFUVIDL7H74HPZJFO53IDB3QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
