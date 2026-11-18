@@ -18,12 +18,12 @@ servers : all four on a9cbcec19, cold starts clean [ srv-F 6 online, system \ na
 
 next [ agreed order ] : config reader step 2 [ sources + layers + explain ], inline exporter [ cfg/ entries + sections ], then the hardware steps.
 
-open : power stages 3-4 [ casio XJ-V2 rs232, x11 coupling ] ; azurum always-on or WoL decides the archive disk place ; base.prng lazy reseed ; untested live : wol + pinning [ store write as power user, host key mapping ].
+open : power stages 3-4 [ casio XJ-V2 rs232 LOW until cables are wired, x11 coupling ] ; azurum always-on or WoL decides the archive disk place ; base.prng lazy reseed ; untested live : wol + pinning [ store write as power user, host key mapping ].
 
 lessons : sign gate runs perl 5.32 -- `map { $h{..} = .. }` and `map { $x => 1 }` blocks parse as hash constructors there ; descr lines max 55 chars [ commit hook ] ; plan step regenerates base.list.subroutines \ load-early \ dep graph unsigned : sign them before the commit.
 
-#,,.,,...,..,,..,,,.,,,..,,,,,,..,.,.,.,,,...,..,,...,..,,.,,,.,.,.,,,..,,..,,
-#FAGGYDYFYMC7IIFOGYM4BWZ3GB2DZIQEQXI2RS2FAZM2ZRPZOUNW42PZNODZYVSG3VKKSU7JXZKFI
-#\\\|HFAXH6UJ5654N2WEJXD2WJGGMY2RWE7EBFHLZ6NKQI2XLHCODVL \ / AMOS7 \ YOURUM ::
-#\[7]LBYOW4QWDQRET5LGBELU5QLIFP65KJJBNOZZG6A4TTMLGQAWNGCA 7  DATA SIGNATURE ::
+#,,.,,..,,...,..,,,.,,.,.,,,,,..,,.,,,,,,,,.,,..,,...,...,,..,,,.,,,.,,..,..,,
+#OOWPAR7S7Q7VV5R5RS7S4N2WV5DUM6VNSP4KJXGCSGKSW5JTGGZD3YZRJ6W3T5KWSZDXQMVYVT7O4
+#\\\|GDTBWBPYNF66CAUNH3YDGP77AIS5KQ7SPOPUBRTM64CJYDLBLQJ \ / AMOS7 \ YOURUM ::
+#\[7]KGRWRCX3GI5NZ7LI3W73O62ENFBI2VQISINWFHJDG3LXFGVXDYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

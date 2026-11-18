@@ -145,7 +145,7 @@ $data{'system'}{'args'} = '';    ##  recording options in <system.args>  ##
 if (@ARGV) {
     my %remove_param = map { sprintf( qw| -%s |, $ARG ) => TRUE } qw[
         c B nc nb BK stdin console use-http-src
-        core-subs export-inline-subs encode-inline-sub
+        core-subs export-inline-subs encode-inline-sub export-inline-files
     ];
     $data{'system'}{'args'} = join ' ',
         grep { not exists $remove_param{$ARG} } @ARGV;
@@ -1110,6 +1110,16 @@ sub p7_init_exec {    ##  main variable initialization  ##
             # Encode and output the subroutine
             p7_encode_subroutine( $sub_name, $compression_type );
             exit(0);
+        }
+        if ( $arg eq qw| -export-inline-files | ) {
+
+            ## category entries [ cfg/.. data/.. ] for the __DATA__ block ##
+            p7_import_main_subroutines();
+            my $comp = qw| auto |;
+            my @paths
+                = grep { not( m|^-comp=(\w+)$| and $comp = ${^CAPTURE}[0] ) }
+                split ' ', $data{'system'}{'args'} // '';
+            exit( p7_export_inline_files( $comp, @paths ) ? 0 : 1 );
         }
     }
 
@@ -5764,6 +5774,193 @@ sub p7_inline_decode_entry {
 }
 
 ##############################################################################
+##                                                                         ##
+## p7_inline_encode_entry : counterpart of p7_inline_decode_entry. builds  ##
+## one '.:[ name ]:.' entry the loader reads back unchanged : base32 body  ##
+## in 76 char lines [ '0' filler ], meta '<chksum:lines:words:bytes>'.     ##
+## comp : xz gzip none raw, or auto                                        ##
+## [ category entries : raw unless xz is shorter ; subroutines : xz ]. the ##
+## content is octets. returns the entry text, or undef and an error string ##
+## in list context.                                                        ##
+##                                                                         ##
+sub p7_inline_encode_entry {
+    my ( $content, $comp, $entry_name, $header_name ) = @ARG;
+    $comp        //= qw| auto |;
+    $header_name //= $entry_name;
+    my $is_category = index( $entry_name, qw| / | ) != -1;
+
+    return ( undef, 'content has wide characters' )
+        if utf8::is_utf8($content)
+        and not utf8::downgrade( $content, 1 );
+
+    p7_load_B32_routines();
+    state %prefix = (
+        qw| xz |   => qw| 7U3XU |,
+        qw| gzip | => qw| D6FQQ |,
+        qw| none | => qw| EMRSAWZ2HQQCGIYK |    ## '## [:< ##' ##
+    );
+
+    my $compressed = sub {
+        my ($method) = @ARG;
+        my $module
+            = $method eq qw| xz |
+            ? qw| IO::Compress::Xz |
+            : qw| IO::Compress::Gzip |;
+        return undef if not p7_soft_require($module);
+        my $output = '';
+        my $ok     = eval {
+            no strict 'refs';
+            my $routine = sprintf '%s::%s', $module,
+                $method eq qw| xz | ? qw| xz | : qw| gzip |;
+            &{$routine}( \$content => \$output );
+        };
+        return $ok && length $output ? encode_b32r($output) : undef;
+    };
+
+    ## raw : trailing 'A' [ zero bits ] stripped, the byte count restores ##
+    my $raw = sub {
+        my $encoded = encode_b32r($content);
+        $encoded =~ s|A+$||;
+        return $encoded;
+    };
+
+    my $body;
+    if ( $comp eq qw| auto | ) {
+        my $xz = $compressed->(qw| xz |);
+        if ($is_category) {
+            my $plain = $raw->();
+            my $looks_compressed
+                = grep { index( $plain, $ARG ) == 0 } values %prefix;
+            ( $comp, $body )
+                = ( defined $xz
+                    and ( $looks_compressed or length $xz < length $plain ) )
+                ? ( qw| xz |, $xz )
+                : ( qw| raw |, $plain );
+            return ( undef, 'raw body starts with a compression prefix' )
+                if $comp eq qw| raw | and $looks_compressed;
+        } else {
+            ( $comp, $body ) = ( qw| xz |, $xz );
+        }
+    } elsif ( $comp eq qw| xz | or $comp eq qw| gzip | ) {
+        $body = $compressed->($comp);
+    } elsif ( $comp eq qw| none | ) {
+        $body = encode_b32r($content);
+        return ( undef, "'none' content must start with '## [:< ##'" )
+            if index( $body, $prefix{'none'} ) != 0;
+    } elsif ( $comp eq qw| raw | ) {
+        return ( undef, 'raw is for category entries [ cfg/.. data/.. ]' )
+            if not $is_category;
+        $body = $raw->();
+        return ( undef, 'raw body starts with a compression prefix' )
+            if grep { index( $body, $ARG ) == 0 } values %prefix;
+    } else {
+        return ( undef, sprintf "unknown compression '%s'", $comp );
+    }
+
+    return ( undef, sprintf '%s encoder not available', $comp )
+        if not defined $body;
+    ## the prefixes are the encoded magic bytes : never added first line is ##
+    ## matched as 76 base32 chars : '0' filler at the end                   ##
+    $body .= '0' x ( 76 - length($body) % 76 )
+        if length($body) % 76 or not length $body;
+
+    my $meta = sprintf ': <%s:%04d:%06d:%09d>',
+        p7_generate_subroutine_checksum( $content, $entry_name ),
+        scalar( split "\n",   $content ),
+        scalar( split m|\s+|, $content ),
+        length $content;
+
+    return join "\n", sprintf( '.:[ %s ]:.', $header_name ), ':',
+        ( map { sprintf ': %s', $ARG } unpack '(A76)*', $body ),
+        ':', $meta, ':.', '';
+}
+
+##############################################################################
+##                                                                          ##
+## p7_export_inline_files : category entries for __DATA__. with paths :     ##
+## files [ directories recursively ] below the project root, named by their ##
+## path [ cfg/.. data/.. ], one '.: dir :.' section per directory. without  ##
+## paths : the loaded inline_files entries again [ round trip check ].      ##
+##                                                                          ##
+sub p7_export_inline_files {
+    my ( $comp, @paths ) = @ARG;
+    require Cwd;
+    require File::Find;
+
+    my $root = Cwd::realpath( catfile( $FindBin::RealBin, '..' ) );
+    my %content;    ## entry name -> octets ##
+    my @errors;
+
+    if ( not @paths ) {
+        my $loaded = $data{'base'}{'inline_files'} // {};
+        $content{$ARG} = $loaded->{$ARG}{'content'} for keys %{$loaded};
+    }
+
+    my @files;
+    foreach my $path (@paths) {
+        my $real = Cwd::realpath($path);
+        if ( not defined $real or not -e $real ) {
+            push @errors, sprintf 'not found : %s', $path;
+        } elsif ( -d $real ) {
+            File::Find::find(
+                {   'no_chdir' => 1,
+                    'wanted'   => sub {
+                        push @files, $File::Find::name
+                            if -f $File::Find::name;
+                    }
+                },
+                $real
+            );
+        } else {
+            push @files, $real;
+        }
+    }
+
+    foreach my $file (@files) {
+        my $name = $file;
+        if ( index( $name, $root . '/' ) != 0 ) {
+            push @errors, sprintf 'outside the project root : %s', $file;
+            next;
+        }
+        substr( $name, 0, length($root) + 1, '' );
+        if ( $name !~ m|^[a-z][\w\-]*/[\w\-./]+$| or $name =~ m|^src/| ) {
+            push @errors, sprintf 'not a category entry name : %s', $name;
+            next;
+        }
+        if ( open( my $fh, '<:raw', $file ) ) {
+            local $INPUT_RECORD_SEPARATOR = undef;
+            $content{$name} = readline($fh) // '';
+            close($fh);
+        } else {
+            push @errors, sprintf 'cannot read %s [ %s ]', $name, $OS_ERROR;
+        }
+    }
+
+    my ( $section, $count ) = ( '', 0 );
+    foreach my $name ( sort keys %content ) {
+        my ( $dir,   $base ) = $name =~ m|^(.+)/([^/]+)$|;
+        my ( $entry, $error )
+            = p7_inline_encode_entry( $content{$name}, $comp, $name, $base );
+        if ( not defined $entry ) {
+            push @errors, sprintf '%s : %s', $name, $error;
+            next;
+        }
+        ## a one word section joins with '.' : the '/' marks a category ##
+        printf "\n.: %s :.\n", index( $dir, qw| / | ) == -1 ? "$dir/" : $dir
+            if $dir ne $section;
+        $section = $dir;
+        print "\n", $entry;
+        $count++;
+    }
+    print "\n.: :.\n" if length $section;
+
+    printf "\n# :: %d inline file entr%s ::\n", $count,
+        $count == 1 ? 'y' : 'ies';
+    print STDERR map { sprintf ": %s .,\n", $ARG } @errors;
+    return @errors ? FALSE : TRUE;
+}
+
+##############################################################################
 
 sub p7_store_original_source {
     my ( $sub_name, $source_code, $compression_type, $original_encoded )
@@ -7012,8 +7209,8 @@ __DATA__
 :
 :.
 
-#,,.,,,.,,,..,...,,..,.,.,,.,,,..,.,,,.,.,,..,..,,...,...,..,,,..,.,.,,..,.,,,
-#YA2Z747NS74E3TUFHAOMINARZQM2TRPH4H2FOFAZWPKPYDWWEG7JZEZW6QVMMXGUBR2SZUC557CW4
-#\\\|M24ACAHO4JJWBR2FGNYIDWJLCS7Z46OOMR3IQZ54XYHYKZG57B5 \ / AMOS7 \ YOURUM ::
-#\[7]YCZYXHSMUIDRB5OVLPU5VRKE2TEKN3QE7CUSQGESPOEOQDIQ5GAY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,,,,,..,,,..,..,,..,,...,...,..,,...,...,..,,.,,,..,,,,.,...,
+#4LTSTOHQECQ36SXZCZNSEASBFEPA2BNGGWZEJOQ7KBLGGMXW5ZCAX4OMG45TKMQ6L7MF5Z3GDYKIE
+#\\\|YKTLMZSXSBV5I4FSVCEMS6HTVHEQE2I6FXTVGXIBB2EP3HD66RY \ / AMOS7 \ YOURUM ::
+#\[7]RO3APQ42F62RH7A5VFVT2MHZETAJMCYLMYL4B3CMHUQQML4C5KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
