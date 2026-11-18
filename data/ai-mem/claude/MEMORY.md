@@ -11,6 +11,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [unanchored-cli-flag-backgrounds-commands](feedback-unanchored-cli-flag-backgrounds-commands.md) — silent sign abort, empty report = a console command backgrounded itself [ -B inside a file name, fixed b9e3d3b6d ] ; run with -v after the zenka name
 - [resource-accounting-design](project-2026-11-16-resource-accounting-design.md) — 2026-11-16 detail log : RESOURCE-ACCOUNTING-UNIFIED.md [ untracked ] by Fable + K3.1 review ; owner answers in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md ; next fable pass + irrigation
 - [timer-intervals-non-linear](feedback-timer-intervals-non-linear.md) — new timers : no round \ linear intervals ; start short, x1.2, jittered cap, 13\15 min not 10, blink near golden ratio [ WEQ ]
+- [p7-namespace-subs-not-in-src](feedback-p7-namespace-subs-not-in-src.md) — a base.x.y with no src file may be bin/Protocol-7 sub p7_x__y : grep that before calling it missing [ base.assert.harmony ]
 - [no-sha-no-json-internal](feedback-no-sha-no-json-internal.md) — internal code : BMW \ AMOS checksums, no sha, no json ; sha only for external formats ; say it in every kimi prompt [ plan data/tasks/sha-to-amos-checksum-transition.md ]
 - [n7fs-go-live-and-terminal-follow-ups](project-2026-11-14-n7fs-go-live-and-terminal-follow-ups.md) — NEWEST : go-live DONE 2026-11-15, 4 holders full scrub, 4 copies ; pipelined holder sessions ; never edit the live n7fs tree [ broke it twice ]
 - [session-handover-n7fs-fable-design-built](project-2026-11-14-session-handover-n7fs-fable-design-built.md) — NEWEST, START HERE : Fable N7FS design 5 7 8 9 10 fully built + pushed ; nothing live until owner all-clear ; Fable window plan
@@ -106,8 +107,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,,,,,.,,,,,,.,.,.,,,..,,,..,..,,,,,,.,.,..,,...,...,...,...,..,,..,,,,,,
-#Y2EVJLMVQ3NJPOJ6KDVVTMT5CHNTU4R3LE62ZFSCK2STHGCERTWYTYFDF4C4U7G5ZA65H3QUY2GPG
-#\\\|DQR3OZBRC4BSYVIEUXRMJDWLSTFGY43IZ6GEOKNU5APMQLCBNWE \ / AMOS7 \ YOURUM ::
-#\[7]HZL5L6TF7FTBPLO6YG7K55CQILSBWGELRNNTGTYB62TXH764ZABI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,.,.,.,.,.,.,,..,.,.,.,.,,.,,..,,...,...,,,.,,.,,..,,,,.,.,.,
+#3MDZ3OHZLGLG6VRWY3QQURTS3YT4HMRAL44LGJV3JP6RE24R4C6IJIJMTYBYFEC27IBS3FO32EDUA
+#\\\|S3CPOCXMV5AYRG6RYKNOF7VDROJFQKJ2K57NJK3XHWPVNLNDNBC \ / AMOS7 \ YOURUM ::
+#\[7]KV3CBCHZOBNROPQQSAIPEAFSZD3XENYMPAKM3RNPSB5AX2IQ2YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

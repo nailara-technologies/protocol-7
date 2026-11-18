@@ -1516,8 +1516,6 @@ sub p7__dump_core_subs {
     my $has_ph = -x $ph_bin ? TRUE : FALSE;
 
     foreach my $src_line (<$p7_fh>) {
-        $sub_name =~ s|__|\.|g if defined $sub_name;
-        $sub_name =~ s|^_+||   if defined $sub_name;
         if ( defined $sub_name ) {
             if ( index( $src_line, qw| } |, 0 ) == 0 ) {
                 $last_sub  = $sub_name;
@@ -1525,9 +1523,6 @@ sub p7__dump_core_subs {
                 $last_line = TRUE;
             }
             if ( defined $sub_name and length $sub_name ) {
-                $sub_name = sprintf 'base.%s', $sub_name
-                    if length $sub_name and $sub_name !~ m|\.|;
-
                 next if length $pattern and $sub_name !~ m|($pattern)|;
 
                 $sub_src{$sub_name} //= [];
@@ -1542,9 +1537,24 @@ sub p7__dump_core_subs {
                 if index( $src_line, ' ', 0 ) != 0;
             $last_sub = undef;
         }
-        $sub_name //= ${^CAPTURE}[0]
-            if length $src_line
-            and $src_line =~ m|^\s*sub\s+p7_([^\n]*)\s*\{\s*?\n$|;
+        ## a trailing comment after '{' is allowed ; the name is built as ##
+        ## p7_import_main_subroutines does : p7__x.. -> x.. , p7_x.. ->   ##
+        ## base.x.. , '__' -> '.'                                         ##
+        ## [ p7_assert__harmony -> base.assert.harmony ]                  ##
+        if (    not defined $sub_name
+            and length $src_line
+            and $src_line =~ m|^\s*sub\s+p7_(\w+)\s*\{| ) {
+            my $raw = $LAST_PAREN_MATCH;
+            $sub_name = $raw =~ s|^_|| ? $raw : "base.$raw";
+            $sub_name =~ s|__|\.|g;
+            ## one-line sub [ 'sub p7__dev__null { }' ] : listed, no body ##
+            ## -- else it swallows the next sub as its own                ##
+            if ( $src_line =~ m|\{[^{}]*\}\s*(?:#.*)?$| ) {
+                $sub_src{$sub_name} //= []
+                    if not length $pattern or $sub_name =~ m|($pattern)|;
+                $sub_name = undef;
+            }
+        }
 
         if ( defined $sub_name ) {
             $has_match = TRUE if not $has_match;
@@ -1576,7 +1586,12 @@ sub p7__dump_core_subs {
         if ( $has_ph and $pid > 1 ) { close($ph_in); waitpid( $pid, 0 ) }
     }
     if ( not keys %sub_src ) {
-        say '  :: no match ::', "\n";
+        if ( $data{'system'}{'ansi_color'} ) {    ## as the pattern header ##
+            say sprintf "%s%s  :: no match ::%s\n",
+                "\e[38;2;68;39;172m", "\e[48;2;9;5;42m", "\e[0m";
+        } else {
+            say '  :: no match ::', "\n";
+        }
 
         print "\e[0m" if $data{'system'}{'ansi_color'};
 
@@ -6937,8 +6952,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,,,..,,.,.,.,.,,.,,..,,.,,,,..,,,,,,..,..,,...,.,.,,,.,.,.,.,,,.,.,..,,
-#V3CRYVGF5C5WMYFNC3KUYL5VUZ64AHX3DF643Y6KI3744TQNCXUIJIDEUOCDTHLAGW2OUW3D6Z7P4
-#\\\|GXYBFGYY4TGNLARHDXAVZBYBVISIH6V4CBQNTY4F3QM476KEIP4 \ / AMOS7 \ YOURUM ::
-#\[7]K4S5GJHNZAUQ77FNYGCSRGAZGUIXSHNHI65ITHRNP4ZUDE2F7UCI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,,.,,,.,,...,,,,,.,,,,,,,,..,..,,...,...,.,.,.,.,,..,.,,,,,.,
+#257QR5MK5TFQBOWWKL4IYTI7KXBTPGY2KTVHKWDW6NDW7WZXQ356WJHE2SJUM5GAPM24ERDH7RPIS
+#\\\|MOBPDJXF7IWMG4SQFSKBSOWMINC5TPALRUBZ3IHJFOQQN3XWOOS \ / AMOS7 \ YOURUM ::
+#\[7]5UWDRHQMHMIFVOQQGZ5TKRZJ2FTWG4EKJRNSKFBNMIYB7XELSUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
