@@ -143,6 +143,7 @@ if ( $cmd eq 'check' ) {
         push @installed, $profile_name if not $profile_failed;
     }
     record_profiles(@installed);
+    prebuild_inline_sources() if not $failed;
     exit( $failed ? 1 : 0 );
 } elsif ( $cmd eq 'list' ) {
     list_profiles();
@@ -354,6 +355,19 @@ sub check_profile {
 
 ## once per run : shared includes, repeated names ##
 my %installed_profiles;
+
+## the perl deps are in : compile the AMOS7 inline sources for the invoking ##
+## user, so the first real call finds them [ never fails the install ].     ##
+## root builds nothing : its cache is not the zenki's -- v7-zenki does that ##
+## for the zenki user at start [ bin/dev/inline-prebuild ]                  ##
+sub prebuild_inline_sources {
+    return if $EUID == 0;
+    my $prebuild = catdir( $RealBin, 'dev' ) . '/inline-prebuild';
+    return if not -x $prebuild;
+    system( $EXECUTABLE_NAME, $prebuild ) == 0
+        or say 'inline sources : not all compiled [ pure perl is used ]';
+    return;
+}
 
 sub install_profile {
     my ( $profile_name, $opts ) = @_;
@@ -1514,8 +1528,8 @@ sub show_help {
 EOL
 }
 
-#,,,.,...,,.,,,,.,,..,,..,,.,,,,,,...,...,...,..,,...,...,,.,,.,,,.,,,,,,,,,.,
-#VZ4AJ2P3DGRIM367QJ3QQHV5DRQWBPBOCPUBIP7JUUAKCOGSWJRCAMYIJVZQBMAB7KJD5JKJLA7XA
-#\\\|4OGEJNXSGBLXCJLZTY3ZPV7NVJUJZA32RQVCWVP2KBCEA4PAV7W \ / AMOS7 \ YOURUM ::
-#\[7]WJJM6HRNW25NLRPLADW3J2PWM3TYWZL7WDNSCOO4ETT5XPL7AYCI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,,.,,,,,,.,.,,..,,..,...,,,,,..,,...,...,,,,,.,,,.,,,,..,.,,,
+#HQW2HU277C4QBORAGB7VF64AP7PUTMUYTPDB7SJU6AS5UIN46TLS7GA2OFRRYWCOCY3BYTFM777E2
+#\\\|JY5RSQ7XBMZPPTXQCDXWIKYWIOFBOX75J7AYKOACPDELNTRMWUN \ / AMOS7 \ YOURUM ::
+#\[7]L5B5WMWRET5YTLJ7U3CRMOCBDMLQRU57RZVV4BKPTIZ4TQYG7YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

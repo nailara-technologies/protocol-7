@@ -77,6 +77,9 @@ if ( <system.zenka.verbosity.console> > 1 ) {
     //= $UID == 0 ? qw| yes | : qw| no |;    ## when root ##
 <v7-zenki.cfg.p7r_bin_path> //= qw| /usr/local/bin/p-7-r |;
 
+<v7-zenki.cfg.prebuild_inline>
+    //= $UID == 0 ? qw| yes | : qw| no |;    ## when root ##
+
 ## gcc \ bin/p7c & bin/p-7-r ##
 <v7-zenki.gcc_bin> = <[base.required_bin_path]>->('gcc');
 if ( !-x <v7-zenki.gcc_bin> ) {
@@ -97,6 +100,28 @@ if ( !-x <v7-zenki.gcc_bin> ) {
     if ( <[base.cfg_bool]>->(<v7-zenki.cfg.install_bin_p7r>)
         and not <[v7-zenki.bin_p7r_chksum_current]> ) {
         <[v7-zenki.compile_bin_p7r]>;
+    }
+
+    ## compile the AMOS7 inline sources [ RCM ] into the cache of the user ##
+    ## the zenki run as, never into a root-owned one :                     ##
+    ## bin/dev/inline-prebuild drops to that user itself. detached through ##
+    ## the shell -- init does not wait for the compiler, the zenki upgrade ##
+    ## on a call                                                           ##
+    if ( <[base.cfg_bool]>->(<v7-zenki.cfg.prebuild_inline>) ) {
+        my $prebuild_bin = join '/', <system.root_path>,
+            qw| bin dev inline-prebuild |;
+        my $zenka_user = <system.amos-zenka-user>;
+        if ( -x $prebuild_bin and length( $zenka_user // '' ) ) {
+            system(
+                qw| /bin/sh -c |,
+                'exec "$@" </dev/null >/dev/null 2>&1 &',
+                qw| sh |, $prebuild_bin, '-user', $zenka_user, '-q'
+            );
+            <[base.log]>->(
+                1,
+                ": inline sources compiling for '$zenka_user' [ detached ]"
+            );
+        }
     }
 }
 
@@ -309,8 +334,8 @@ delete <list.users>;
 
 return 0;    ## successful init ##
 
-#,,,,,.,.,,,.,,.,,.,,,,,,,,.,,,,,,..,,,..,.,.,..,,...,...,.,.,,,.,.,.,...,,,.,
-#FFYHK2UVZG7UEYE2D3SKDZQ44BRA75WI3FCCNPN3WAATFS77EHYDULNW4WQZEX23RNT6BQZZAC7E4
-#\\\|FWDC3CHLQXIYJAP4PJ6QQ2LDCNNRIUU4SSSHISCCNL463CXUJR2 \ / AMOS7 \ YOURUM ::
-#\[7]BSJTDKJXK3FL5KSAU2RXN3TEXTVOUS74YCAETPZFYZQLCJP7MMAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,.,.,..,,,,.,,.,,,..,...,.,,,.,.,..,,...,...,,,.,,..,.,,,,,,,...,
+#QEXKZN2R3DIIKBVWXQ7A72NCCEEKPU2XFH72JFV7EZDP3FWR44JN3WZ365BCWO2TII7ZSXHAMX3SY
+#\\\|3BLHJBEKG3344WY2472EPR2B2RPC2EIVORIIY2VBZ4XU5D6QN4E \ / AMOS7 \ YOURUM ::
+#\[7]OPBNICHFKTUI6L5CHR6PKSJOEK443Q2LTQYRDU4ILNSWPU27SOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,6 +42,11 @@ our $devmod_output_to_console = FALSE;    ##  display build warnings  ##
 ##  set TRUE before this module compiles : pure-perl alternatives only   ##
 our $force_pure_perl;
 
+## set before this module compiles : no detached builds -- every build   ##
+## blocks in process [ bin/dev/inline-prebuild : modules that compile at ##
+## load must not start a builder each ]                                  ##
+our $no_detached_build;
+
 ## build \ upgrade settings                                                 ##
 ## [ declared above the load-time return, so the defaults are assigned ] -- ##
 ## see the call-driven upgrade section                                      ##
@@ -72,6 +77,9 @@ my $source_registry = {
 ##  internal code_ref registry  ##
 my $subroutines_installed //= {};
 
+##  object dir of each routine seen by compile_inline_source  ##
+my $built_dirs = {};
+
 ##  without Inline::C every subroutine takes its pure-perl alternative  ##
 ##
 ## $force_pure_perl : set before this module compiles                       ##
@@ -97,7 +105,7 @@ warn_err(
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-$VERSION = qw| AMOS7::INLINE-VERSION.FGDHT4Y |;
+$VERSION = qw| AMOS7::INLINE-VERSION.FH5ON2Y |;
 
 return TRUE;    ## true ##
 
@@ -266,7 +274,10 @@ sub compile_inline_source {
             and not $force_pure_perl
             and ref $fallback_ref eq qw| CODE |
             and defined &{$fallback_ref}
-            and not _object_published($custom_inline_dir) ) {
+            and not $params->{'foreground'}    ## pre-build : wait for it ##
+            and not $no_detached_build
+            and not _object_published($custom_inline_dir)
+        ) {
             $deferred = _defer_build(
                 {   qw| dir |      => $custom_inline_dir,
                     qw| parent |   => $parent_dir,
@@ -307,6 +318,9 @@ sub compile_inline_source {
         ## final installation target ##
         my $target_subname
             = sprintf( '%s::%s', $target_package, $subroutine_name );
+
+        ## the pre-build reads where the object went ##
+        $built_dirs->{$current_sub_name} = $custom_inline_dir;
 
         ## keep own registry
         $subroutines_installed->{$target_subname} = \&$current_sub_name
@@ -431,6 +445,103 @@ sub compile_inline_source {
     return \&{"${target_package}::$subroutine_name"} if $single_func;
 
     return $sub_coderefs;    ## returning hash with code references ##
+}
+
+##[ PRE-BUILD AND PRUNE ]#####################################################
+
+## the inline cache parent of this user [ HOME based, as gen_inline_path ] ##
+sub inline_cache_parent {
+    ( my $parent = gen_inline_path('x') ) =~ s|/x$||;
+    return $parent;
+}
+
+## compile every registered source in the FOREGROUND : no detached build,  ##
+## no wrapper -- the same compile_inline_source \ _build_slot \            ##
+## _publish_build path, one source at a time. for installers and the zenki ##
+## start : the first real call finds the object published. never as root   ##
+## for another user's cache                                                ##
+## [ bin/dev/inline-prebuild drops to the target user first ]. returns {   ##
+## built failed total pruned } or { unavailable => reason }                ##
+sub prebuild_all {
+    return { qw| unavailable | => 'force_pure_perl' } if $force_pure_perl;
+    return { qw| unavailable | => 'no Inline::C' }
+        if not $inline_c_available;
+    ## a key holder never compiles in process ##
+    return { qw| unavailable | => 'key holder' } if $require_trusted;
+
+    my ( $built, $failed ) = ( 0, 0 );
+    foreach my $name ( sort keys $source_registry->%* ) {
+        delete $built_dirs->{$name};
+        eval {
+            compile_inline_source(
+                {   qw| subroutine-name | => $name,
+                    qw| foreground |      => TRUE,
+                    qw| update-routine |  => TRUE,
+                }
+            );
+        };
+        my $dir = $built_dirs->{$name};
+        if ( defined $dir and _object_published($dir) ) {
+            $built++;
+        } else {
+            $failed++;
+        }
+    }
+    ## after building : the current objects exist, the old ones can go ##
+    my $pruned = prune_cache();
+    return {
+        qw| built |  => $built,
+        qw| failed | => $failed,
+        qw| total |  => $built + $failed,
+        qw| pruned | => $pruned,
+    };
+}
+
+## remove stale object dirs from the cache parent : the old 2-part name    ##
+## [ <sub>.<chksum> ] and other toolchain keys older than 13 days.  only   ##
+## plain dirs owned by this uid [ lstat, links never followed ], never the ##
+## current key, never a dir whose lock is held. returns the number removed ##
+sub prune_cache {
+    my $params  = shift               // {};
+    my $parent  = $params->{'parent'} // inline_cache_parent();
+    my $max_age = ( $params->{'max-age-days'} // 13 ) * 86400;
+    my $now     = $params->{'now'} // time;
+    my $current = toolchain_key();
+
+    opendir( my $dir_fh, $parent ) or return 0;
+    my @names = grep { $ARG ne qw| . | and $ARG ne qw| .. | } readdir $dir_fh;
+    closedir $dir_fh;
+
+    my $removed = 0;
+    foreach my $name ( sort @names ) {
+        my ( $sub_name, $chksum, $key )
+            = $name =~ m|^(\w+)\.([A-Z2-7]+)(?:\.([A-Z2-7]+))?$|
+            or next;    ## locks, build dirs, slots, strangers : not ours ##
+        next if defined $key and $key eq $current;
+
+        my $object_dir = "$parent/$name";
+        my @stat       = lstat $object_dir or next;
+        next if -l _ or not -d _ or $stat[4] != $UID;
+        ## the 3-part form : only when old enough ##
+        next if defined $key and $now - $stat[9] < $max_age;
+
+        ## a held lock : somebody is building or loading this one ##
+        my $lock_path = "$object_dir.lock";
+        my $lock_fh;
+        if ( -e $lock_path or -l $lock_path ) {
+            sysopen( $lock_fh, $lock_path, O_RDWR | O_NOFOLLOW ) or next;
+            my @lock_stat = stat $lock_fh;
+            next if not -f _ or $lock_stat[4] != $UID;
+            next if not flock $lock_fh, LOCK_EX | LOCK_NB;
+        }
+        File::Path::remove_tree($object_dir);
+        if ( not -e $object_dir ) {
+            $removed++;
+            unlink $lock_path if defined $lock_fh;
+        }
+        close $lock_fh if defined $lock_fh;
+    }
+    return $removed;
 }
 
 ##[ SOURCE CODE CLEAN-UP ]####################################################
@@ -936,8 +1047,8 @@ sub _src_digest {
 
 return TRUE ##################################################################
 
-#,,..,,.,,.,.,,,.,,..,,.,,,,.,...,...,...,...,..,,...,...,...,.,,,.,.,,,,,,..,
-#5AAXZHMS6Z5DBAYQDZKDIWD5ST533O5DJCAD3AB6AM2SMZGBA2AB4GJFL6QQMXCOXHC7XF5MWO4HY
-#\\\|VZ5GSLPJCTCYKCOVVNNXG7GUPCIKOFN2PAD5OLRL7UNN4T5SOTP \ / AMOS7 \ YOURUM ::
-#\[7]UAEJWGL57KD5IOHUCWCPWFQZHYP3AGSGPS5ZIPCRW32YIX4FNQDY 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,.,.,,.,,,.,,,.,,..,,,.,,.,,,..,,...,...,...,,,,,...,,.,,,,.,
+#IJAU2DHLIPFEJJFLBMYZXD6ES6IVLA6F2OEHK6SDV3IGD3W4DGFAZCFZNQJQ7PSPK4H3ZVE6HFWMW
+#\\\|4HN2BGBUHTJUKGDBUSJOIWKSL7T2ZMDPWXWYMKH3LAPSZA4EAOC \ / AMOS7 \ YOURUM ::
+#\[7]IWZVGUPMCK53QGHLZHUGMVIT2S72BCVVQ3USN7ZK25P5JUWLZ2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,8 +5,8 @@ use English;
 use warnings;
 
 ###                                                                  ###
-## AMOS7::INLINE call-driven upgrade                                  ##
-## [ data/tasks/rcm-inline-call-driven-upgrade.md, points 1 2 3 4 7 ] ##
+## AMOS7::INLINE call-driven upgrade                                      ##
+## [ data/tasks/rcm-inline-call-driven-upgrade.md, points 1 2 3 4 5 6 7 ] ##
 ###
 
 ## each scenario runs in its own perl                                    ##
@@ -18,6 +18,11 @@ use warnings;
 ## - timelimit : a hung compiler is killed with its process group
 ## - cap       : no free build slot stays pure perl, a freed slot upgrades
 ## - force     : force_pure_perl never forks, never creates a dir
+## - prebuild  : every registered source compiled in the foreground, no
+##               fork, objects published under the throwaway HOME, a second
+##               run only loads
+## - prune     : 2-part dirs and stale foreign-key dirs go ; the current key,
+##               young dirs, links, other-uid dirs, locked dirs stay
 ## - trust-*   : key holder without \ with \ not on a list, plain caller
 ##               with a list that does not match
 
@@ -43,6 +48,8 @@ BEGIN {
     }
     ## count forks of the whole process ##
     no warnings qw| once |;
+    $AMOS7::INLINE::no_detached_build = 1
+        if defined $scenario and $scenario eq 'prebuild';
     *CORE::GLOBAL::fork = sub { $main::forks++; return CORE::fork() };
 }
 
@@ -66,7 +73,7 @@ if ( not defined $scenario ) {
     my $all_failed = 0;
     ## upgrade first : the trust scenarios reuse its published object ##
     foreach my $name (
-        qw| upgrade timelimit cap force trust-nolist
+        qw| upgrade timelimit cap force prebuild prune trust-nolist
         trust-listed trust-foreign trust-plain |
     ) {
         printf "scenario %s\n", $name;
@@ -251,6 +258,102 @@ if ( $scenario eq 'upgrade' ) {
         !defined &AMOS7::INLINE::bit_string_to_num
     );
 
+} elsif ( $scenario eq 'prebuild' ) {
+    $ENV{'HOME'} = $base;    ## the cache parent : $base/.7/inline-code ##
+    my $parent = AMOS7::INLINE::inline_cache_parent();
+    check(
+        'cache parent under the throwaway home',
+        $parent eq "$base/.7/inline-code"
+    );
+    my $result = AMOS7::INLINE::prebuild_all();
+    check( 'no unavailable reason', !defined $result->{'unavailable'} );
+    check( 'every source built',
+        ( $result->{'built'} == 5 and $result->{'failed'} == 0 ) );
+    ## the compiler tools may fork : a detached builder takes a cap slot ##
+    check( 'foreground : no detached builder',
+        !glob "$parent/.build-slot.*" );
+    my @objects   = grep { -d $ARG and !-l $ARG } glob "$parent/*.*.*";
+    my @published = grep { AMOS7::INLINE::_object_published($ARG) } @objects;
+    check( 'five published object dirs',
+        ( @published == 5 and @objects == 5 ) );
+    my $key = AMOS7::INLINE::toolchain_key();
+    check(
+        'objects carry the toolchain key',
+        5 == grep {m|\.\Q$key\E$|} @objects
+    );
+    check( 'no build dir left',
+        0 == grep { -d $ARG } glob "$parent/*.build-*" );
+    my $again = AMOS7::INLINE::prebuild_all();
+    check( 'second run : all present, loaded only',
+        ( $again->{'built'} == 5 and $again->{'failed'} == 0 ) );
+    check( 'second run : still no detached builder',
+        !glob "$parent/.build-slot.*" );
+    check( 'nothing pruned from a clean cache', $again->{'pruned'} == 0 );
+
+} elsif ( $scenario eq 'prune' ) {
+    require Fcntl;
+    my $parent = "$base/cache";
+    mkdir $parent;
+    my $key = AMOS7::INLINE::toolchain_key();
+    my $old = time - 20 * 86400;
+    my %want_gone;
+    my %want_kept;
+    my $make = sub {
+        my ( $name, $age ) = @_;
+        mkdir "$parent/$name";
+        mkdir "$parent/$name/lib";
+        utime $age, $age, "$parent/$name" if defined $age;
+        return "$parent/$name";
+    };
+    $want_gone{ $make->('foo.AAAAAAAAAAAAAAA') } = '2-part form';
+    $want_gone{ $make->( 'foo.CCCCCCCCCCCCCCC.OLDKY', $old ) }
+        = 'old foreign key';
+    $want_kept{ $make->('foo.DDDDDDDDDDDDDDD.NEWKY') } = 'young foreign key';
+    $want_kept{ $make->( "foo.EEEEEEEEEEEEEEE.$key", $old ) }
+        = 'current key, old';
+    $want_kept{ $make->( 'foo.FFFFFFFFFFFF' . 'FFF.build-abc123' ) }
+        = 'build dir name';
+    ## a lock file next to a removed dir goes with it ##
+    open my $gone_lock, '>', "$parent/foo.AAAAAAAAAAAAAAA.lock" or die;
+    close $gone_lock;
+    ## a link, even named like a 2-part dir, is never followed ##
+    mkdir "$base/outside";
+    open my $marker, '>', "$base/outside/marker" or die;
+    close $marker;
+    symlink "$base/outside", "$parent/foo.GGGGGGGGGGGGGGG" or die;
+    ## a locked dir : somebody is building \ loading it ##
+    my $locked = $make->('foo.HHHHHHHHHHHHHHH');
+    open my $lock_fh, '>', "$locked.lock" or die;
+    flock $lock_fh, Fcntl::LOCK_EX() | Fcntl::LOCK_NB() or die;
+    ## other uid : only a root run can make one ##
+    my $foreign;
+    if ( $UID == 0 ) {
+        $foreign = $make->('foo.IIIIIIIIIIIIIII');
+        chown 65534, 65534, $foreign;
+    }
+    open my $slot, '>', "$parent/.build-slot.0" or die;
+    close $slot;
+
+    my $removed = AMOS7::INLINE::prune_cache( { 'parent' => $parent } );
+    check( 'two dirs removed',           $removed == 2 );
+    check( "removed : $want_gone{$ARG}", !-e $ARG )
+        foreach sort keys %want_gone;
+    check( "kept : $want_kept{$ARG}", -d $ARG ) foreach sort keys %want_kept;
+    check( 'removed dir took its lock file',
+        !-e "$parent/foo.AAAA" . "AAAAAAAAAAA.lock" );
+    check( 'link kept',             -l "$parent/foo.GGGGGGGGGGGGGGG" );
+    check( 'link target untouched', -f "$base/outside/marker" );
+    check( 'locked dir kept',       -d $locked );
+    check( 'other-uid dir kept',    -d $foreign ) if defined $foreign;
+    print "  skip : other-uid dir [ not root ]\n" if not defined $foreign;
+    check( 'slot file kept', -e "$parent/.build-slot.0" );
+    close $lock_fh;
+    my $second = AMOS7::INLINE::prune_cache( { 'parent' => $parent } );
+    check( 'lock released : the locked 2-part dir goes',
+        ( $second == 1 and !-e $locked ) );
+    check( 'the current-key dir still stays after the second run',
+        -d "$parent/foo.EEEEEEEEEEEEEEE.$key" );
+
 } elsif ( $scenario =~ m|^trust-| ) {    ## object published by 'upgrade' ##
     check(
         'object from the upgrade scenario present',
@@ -310,8 +413,8 @@ if ( $scenario eq 'upgrade' ) {
 
 exit( $failed ? 1 : 0 );
 
-#,,..,.,.,,..,,.,,..,,.,.,,,,,.,.,.,.,,,,,...,..,,...,.,.,.,.,,..,,.,,.,,,,.,,
-#VIMCTTBQ3XGACFE5Y3W5E3QDDHTWBC2QKI5DALZEV6OEJD5SPXJB5VDGR2ENCS72A7UJNDGXH4MX2
-#\\\|FM5TUFEDLGNF44NOPUZRZ4MAFMZG5DBQWEO6SIZFNEQBPUCCEAY \ / AMOS7 \ YOURUM ::
-#\[7]ENHI7OFO6NCSF47X4SFNVMPVYLYTXT77KFNHNM3Z2P5MX4QABCAQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,.,.,.,,,.,,,.,,,.,..,,,..,,.,,..,,...,..,,..,,,.,,...,..,,.,,,
+#XWW376YMUZ2GH2CSIDCIFRPMZUQOBNGRKQYZAELICLM62FQDNK3L77RJ5R3WMFSV3SKCAIXY3KUDE
+#\\\|VJOYUDAMGVNSJ64ZQG23HJPAJLLCPWOFNP4EUX6YD4Z3SWF7BTD \ / AMOS7 \ YOURUM ::
+#\[7]HG6LUHXAUFFFWTUZMZDODE5SDSUCLUUCRTBXNKEDJZYFFRUXNCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

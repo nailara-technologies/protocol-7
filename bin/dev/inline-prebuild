@@ -1,0 +1,91 @@
+#!/usr/bin/env perl
+use v5.32.0;
+use strict;
+use English;
+use warnings;
+
+###                  ###
+##  inline-prebuild   ##   [ compile every AMOS7 inline source for one user ]
+###                  ###
+
+## shared entry of the zenki start [ v7-zenki.init_code ] and the           ##
+## installers [ bin/p7-deps install, bin/p7-install ] : calls               ##
+## AMOS7::INLINE::prebuild_all in the foreground, which prunes stale object ##
+## dirs after building                                                      ##
+##
+## inline-prebuild              the invoking user's cache  inline-prebuild
+## -user <name> root only : drop to <name> first, then build
+## [ the zenki cache is the 'protocol-7' user's ]
+##
+## as root the cache is always the target's : without -user the root home   ##
+## is used, never a HOME inherited from sudo -- no root-owned file may land ##
+## in a user cache. exit 0 : built or nothing to do, 1 : a source did not   ##
+## build                                                                    ##
+
+use File::Spec;
+use POSIX   ();
+use Cwd     qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+BEGIN {
+    unshift @INC,
+        abs_path( File::Spec->catdir( $RealBin, ( File::Spec->updir ) x 2 ) )
+        . '/data/lib-path/pm';
+    ## modules that compile at load : no detached builder each, the build ##
+    ## is this process's job                                              ##
+    no warnings qw| once |;
+    $AMOS7::INLINE::no_detached_build = 1;
+}
+
+my $target_user;
+my $quiet = 0;
+while ( my $arg = shift @ARGV ) {
+    if    ( $arg eq '-user' ) { $target_user = shift @ARGV }
+    elsif ( $arg eq '-q' )    { $quiet = 1 }
+    else { die "unknown argument '$arg' [ -user <name> -q ]\n" }
+}
+
+## the account whose cache is built ##
+my $account = defined $target_user ? $target_user : scalar getpwuid($UID);
+my @passwd  = getpwnam( $account // '' );
+die "no such user : '" . ( $account // '' ) . "'\n" if not @passwd;
+my ( $uid, $gid, $home ) = @passwd[ 2, 3, 7 ];
+die "user '$account' has no home directory '$home'\n" if not -d $home;
+
+if ( $UID == 0 or $EUID == 0 ) {
+    $ENV{'HOME'} = $home;    ## never one inherited from sudo ##
+    ## root : drop everything before any file is created ; building for ##
+    ## root itself uses its own home, never one inherited from sudo     ##
+    if ( $uid != 0 ) {
+        $ENV{'USER'} = $ENV{'LOGNAME'} = $account;
+        $)           = "$gid $gid"; ## primary group, no supplementary ones ##
+        $(           = $gid;
+        POSIX::setuid($uid) or die "cannot drop to '$account' : $OS_ERROR\n";
+        die "still root after the drop [ refusing ]\n"
+            if $UID == 0
+            or $EUID == 0
+            or POSIX::setuid(0);
+    }
+} elsif ( $uid != $UID ) {
+    die "-user '$account' needs root\n";
+}
+
+require AMOS7::INLINE;
+my $result = AMOS7::INLINE::prebuild_all();
+
+if ( defined $result->{'unavailable'} ) {
+    printf "inline-prebuild : nothing built [ %s ]\n",
+        $result->{'unavailable'}
+        if not $quiet;
+    exit 0;
+}
+printf "inline-prebuild : %s : %d of %d sources built, %d old dirs removed\n",
+    $account, @{$result}{qw| built total pruned |}
+    if not $quiet;
+exit( $result->{'failed'} ? 1 : 0 );
+
+#,,..,..,,,,,,.,,,,,.,,,,,..,,.,,,,.,,,.,,,,,,..,,...,...,...,,,,,,..,,..,,,.,
+#HU7JAR7PCLFBUJZ2DJDURHHZMNEUEM3CODED6KUFCIW6INM2AJ5T2L4RNWQT5NVYNFCDA3U42FFO6
+#\\\|NEOLUYQ2TXPLLIBKOHO5HJEU5ZRICNTDJFBNYSNWXQYPTWN4ZY5 \ / AMOS7 \ YOURUM ::
+#\[7]36A5XSF4D6ZAVGD5CPTKZC65JNQCBUX7KM3PGNOCSO3NFIHURWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
