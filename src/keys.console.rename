@@ -1,12 +1,16 @@
 ## [:< ##
 
 # name  = keys.console.rename
-# param = <from> <to> [::yes::] \ <host pin> <new host> [<leaf name>]
+# param = [user:]<from> <to> [::yes::] \ [known:]<pin> <new host> [<leaf name>]
 # descr = change a user key name, or a host pin's host [ 'list' cmd for names ]
 
 my $param_str = shift // '';
 
 ( my $srckey, my $to_keyname, my $confirm ) = split m| +|, $param_str;
+
+## 'user:' \ 'known:' picks the category [ the keys.console.remove form ] ##
+my $category;
+$category = $1 if defined $srckey and $srckey =~ s{^(user|known):}{};
 
 if ( not defined $srckey or not defined $to_keyname ) {
     say "\n  << expected <from> and <to> parameters >>\n";
@@ -22,11 +26,31 @@ if ( not defined $srckey or not defined $to_keyname ) {
 ## a host pin [ no user key of that name ] : the pin file follows the new ##
 ## host name, port kept ; the pinned leaf name changes ONLY when given    ##
 ## [ trust.pin_decide never rewrites it -- this is the owner's step ]     ##
-if ( not <[crypt.C25519.key_exists]>->($srckey) ) {
+my $user_key_exists = <[crypt.C25519.key_exists]>->($srckey);
+my $pin;
+if ( ( $category // '' ) ne qw| user | ) {
     my $remote_keys_ref = <[keys.list_remote_keys]>;
-    my ($pin) = grep {defined}
-        $remote_keys_ref->{$srckey},
-        grep { $ARG->{'stem'} eq $srckey } values %{$remote_keys_ref};
+    $pin = $remote_keys_ref->{$srckey};
+    if ( not defined $pin ) {    ## the file stem form [ 'pri_42' ] ##
+        foreach my $info ( values %{$remote_keys_ref} ) {
+            next if $info->{'stem'} ne $srckey;
+            $pin = $info;
+            last;
+        }
+    }
+}
+## both match : never guess which one is meant ##
+if ( not defined $category and $user_key_exists and defined $pin ) {
+    printf "\n  << '%s' is ambiguous -- a user key and a host pin "
+        . "; prefix 'user:' or 'known:' [ e.g. 'known:%s' ] >>\n\n",
+        $srckey, $srckey;
+    <[base.exit]>->(qw| 0010 |);
+}
+if ( ( $category // '' ) eq qw| known | and not defined $pin ) {
+    printf "\n  << no host pin '%s' >>\n\n", $srckey;
+    <[base.exit]>->(qw| 0010 |);
+}
+if ( ( $category // '' ) eq qw| known | or not $user_key_exists ) {
     if ( defined $pin ) {
         my $leaf_name
             = ( $confirm // '' ) eq qw| ::yes:: | ? undef : $confirm;
@@ -177,8 +201,8 @@ foreach my $file_name (@k_files) {
 printf " :\n  .: successfully renamed %02d file%s\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,.,,,..,.,,,,.,,.,,,,,,,.,,,,.,,..,,,,,,...,..,,...,...,...,,,,,,.,,,..,..,,
-#SOJPVYX72IPJPMQEKVKBFT3I3ACSR35OGAJLHC2K7I35ZB7FPN2ZJODLUUNHC4C6FKW3QT4HGOYEG
-#\\\|4VPGIFZ5NKFFGWYE7WRG34FZNFXAFEQJ6YAGKI53CRDX7DNHZDQ \ / AMOS7 \ YOURUM ::
-#\[7]YIVZVBBNV66UYOX62QL72IMCSD7LUVICY65KQGQJRHWUUEMTUQBY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,.,,.,,,.,,...,..,,,.,,.,.,..,,..,,...,...,.,,,..,,,.,,..,,,,,,
+#ALDI2D3QKJKHIELY7GOFURF6X56FMRCQFOHSCUPZPXFVHF6L4WWAVUZGHVP2WOCUIKRL63KQNNNZO
+#\\\|CJ6C64HFCYNGDPEDVZ7O5WWBN3B5AVF47QV3CL4QOQO2JUWZUYB \ / AMOS7 \ YOURUM ::
+#\[7]XTM7TM3MXSKY7OSSGZY7X2Z5WM3AUZ6PNSYWY2LHCX3G2RJH52CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
