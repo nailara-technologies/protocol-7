@@ -1,5 +1,5 @@
 package AMOS7::Config;
-our $VERSION = qw| AMOS7::Config-VERSION.H6AMSWY |;
+our $VERSION = qw| AMOS7::Config-VERSION.QX2VL6A |;
 
 use v5.32;
 use strict;
@@ -84,6 +84,12 @@ sub normalize_lines {
         $record{'descr'} = ${^CAPTURE}[0]
             if $want_descr and $conf_line =~ m|\.:\[ +([^:]+) +\]:\.|;
 
+        ## `key : value` is `key = value` [ p7 config style ] : a key word at
+        ## line start, blank, colon, blank -- `: section :`, `[cmd:arg]` and
+        ## `host:port` never match [ no key word before \ no blanks around ]
+        $conf_line =~ s{^( *[\w<>][\w.\-<>]*)[ \t]+:[ \t]+(?=\S)}{$1 = }
+            if not length $last_line;
+
         ## for key=value lines, preserve .: patterns [ may be literal values ]
         if ( $conf_line =~ m|^[^=]+=| ) {
             $conf_line =~ s{^ +| *(#.*)$|[\r\n\t]+}{}g;
@@ -125,8 +131,8 @@ sub normalize_lines {
 
 1;    ##  AMOS7::Config  ##
 
-#,,,.,..,,..,,...,,,,,.,,,...,,,.,,,,,,.,,,.,,..,,...,.,,,...,,.,,,..,.,.,,..,
-#P4CBEFI2KKYBG3L6ULBLVENY6DSBT7UQ2NT7E3RPNGGXYAE3UYMCX3EHVQIUXKTTFTZKGOC2R3AVC
-#\\\|JMY72QGQDVZYMJKDQ5YLHL765XD4IULO2NQDJK25RJQOYWCICAO \ / AMOS7 \ YOURUM ::
-#\[7]IJM5677BSP4G56EXCXRQMA2JXPNYOIGAMAXEAL3K53JLBRDTQYBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,.,,...,...,.,,,,,.,,,.,,.,,.,.,..,,...,...,.,,,,..,,,.,...,.,.,
+#47KXWETW5ZLOGMNX3W5XJT2H72GC44L26SCYXAUTIWUGM5325SGLTXNIVJ3V7ENTC4VPHLX7EEZIU
+#\\\|C3BYQMBLTEIC3THEDEXH3P3UGENUJTIS62WSEMTBZSKUH5QRUCP \ / AMOS7 \ YOURUM ::
+#\[7]US6AOXNRH6PTMN4YBEFBMOEFC4HIFF77GIWDI7ZQOPGQPNEQUIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

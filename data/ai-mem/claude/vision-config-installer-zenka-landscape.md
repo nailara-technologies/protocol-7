@@ -87,9 +87,12 @@ request to fill it.
 - reattach design sketch [ owner 2026-11-18 ] : v7-zenki creates the socket, one per detaching zenka, and hands it a random secret the way the cube key flows today [ start.cfg `: v7-init :` makes `cube.key = [base.prng.chars-anum:44]`, v7-zenki.callback.setup_zenka_key registers it, `: zenka-init :` applies it via base.auth.set_zenka_key ] -- a `stdout.key` beside it. on top : kernel peer user check [ SO_PEERCRED, as unix auth since 5afa981f2 ], socket 0600 for the zenka user, one-shot key renewed per reattach
 - two socket modes [ owner 2026-11-18 ] : `reattach` -- the socket stays after a disconnect, the zenka can come back [ key renewed each time ] ; `once` -- unlinked the moment the right zenka is accepted : the live connection keeps working, the path is gone, nothing else can find or dial it. a later reattach in `once` mode needs a new socket requested over the cube link
 - returning zenki [ owner 2026-11-18 ] : a zenka sent out [ investigate \ assimilate ] brings data back ; before it reattaches anywhere, its carried contents pass a security scan -- a filter zenka between socket and v7, not only protocol filtering but content [ forensics \ security zenki, Torektra appliance ] ; quarantine until the scan passes. findings it brought back are split off cleanly at that step and stay quarantined [ evidence kept, not loaded ] -- the zenka itself then continues clean or self-terminates
+- quarantine store sealed [ owner 2026-11-18 ] : findings encrypted on write to the quarantine's known public key [ C25519 ] ; only authorized security \ forensics zenki hold the private key. the scanning filter zenka can write but never read back -- a compromised filter can not open earlier findings ; payloads stay inert at rest
+- nested sealing by category [ owner 2026-11-18 ] : an inner layer per category [ e.g. identified exploits ] inside the quarantine layer -- forensics zenki can open the outer layer and see metadata [ category, origin, size, checksums ] but the inner layer needs a separate, intentional unlock [ own key \ explicit step ] : no accidental exposure even for authorized readers
+- convergence [ owner 2026-11-18 ] : these pieces form an actual resource pool, most likely held by the nodes zenka -- nodes = presence + MAC + P0-P3 priority, power = how to wake \ switch [ wol, rs232, plugs ], appliances = what each host is for, N7FS = where data and caches sit, the resource ledger [ [[resource-accounting-design]], read-me/documentation/dev/NRT.NRD.asc ] = what using it costs. a demand [ model run, forensics job ] picks a node by capacity + cost, wakes it, runs, lets it sleep
 
-#,,..,.,,,,,.,,..,..,,...,,,.,.,,,,,,,,..,.,.,...,...,...,,,,,,..,,,,,,..,.,.,
-#XFIBN5CDYQ7G4Q3DQVTAKC253GUO3SELXEPBDEDRYDLEGKMK5Q2JLNNWATBWMKPGF3Z7AP2J6YUEA
-#\\\|7U24PY6FE2V2JNRDG6OBYDEMBD56FQUO2DKYWSYQKSOGJ3W2VW6 \ / AMOS7 \ YOURUM ::
-#\[7]3M5Z3EIUILIQRGZ636JYUGC5V5N52YF5UO2W3DINWTEAJLDVB4BQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,,,..,,,.,,,..,..,,.,,,...,,..,...,...,...,,..,,,,,,.,,.,,,..,,
+#NJ4YXOCGWQLVUTNG42POZDRX5UKOYBKUJU6D6LNZPJHZAOSQ3T4JLLARWC6MTI5HPEEJ4HVENFRJS
+#\\\|IAJJOK4CYNQSCKH2MGP5DQGGBFELHMOOFWMC7Q6T2KHWDT5P6L4 \ / AMOS7 \ YOURUM ::
+#\[7]HJRSWQIRHHFFOUAA7WJLIJPJBILZIQY2QOD6ZTIVKZFTPXZEFCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
