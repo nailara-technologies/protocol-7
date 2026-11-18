@@ -17,8 +17,10 @@ my $job = <[jobsite.job.read]>->($job_id) // {};
 ## build repair prompt via shared builder ##
 my $prompt = <[jobsite.util.build_prompt]>->( $job, $defects );
 
-## dispatch repair task ##
-my $encoded = ':B32:' . encode_b32r( Encode::encode( 'UTF-8', $prompt ) );
+## dispatch repair task ; ':no_tools:' as in dispatch.next -- a foreign     ##
+## models zenka claims only pure inference tasks [ models.task.peek-claim ] ##
+my $encoded = ':B32:'
+    . encode_b32r( Encode::encode( 'UTF-8', ":no_tools:\n$prompt" ) );
 
 ## fresh attempt token for this new round trip -- see dispatch.next for the ##
 ## full rationale ; re-arms the watchdog rather than leaving the original   ##
@@ -39,8 +41,8 @@ my $attempt = 1 + ( ( <jobsite.tasks>->{$job_id} // {} )->{'attempt'} // 0 );
 
 <[jobsite.dispatch.arm_watchdog]>->( $job_id, $attempt, qw| repair | );
 
-#,,..,...,.,,,.,,,.,,,.,.,,.,,,,.,.,.,..,,..,,..,,...,...,,,.,,.,,..,,,.,,..,,
-#SLQASUEFJ7XLZZB5GRSDG4HSU36KDW7KUCJ53SJWT5NHZHOJVRT4MMNOEZO6A3A42LGFD46AKZFXI
-#\\\|K5MQ3UBHPRZVZMKSCX2VDB7PARTFFHIUCZPCOFFYPO6LZZCME2T \ / AMOS7 \ YOURUM ::
-#\[7]LDLIF3TYAMNYDQWSY6TAXMCMS7MGHFSSBCALUQ6P27Z3VULQYGAQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,...,.,,,,..,,..,,,,,,,.,..,,.,,,..,,...,...,...,,,,,.,.,...,..,,
+#CKN2G5VZ5JNUGAHOG22W3PF5OMZGM7LXD7GBTNODCNCPCT57YUB7UEIYK5HKLTO36MULNJWZ4W2DC
+#\\\|QQE7LVVS2RJFG4IIYNEGFLRJG3SJ6VHFFPQMOXEPB4MNGY6GLYC \ / AMOS7 \ YOURUM ::
+#\[7]HTBEX3XVV264ZHLEU56DQTE5YMJEEFQI2WYIMAL6NRLFJX7YEGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
