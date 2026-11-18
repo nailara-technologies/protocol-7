@@ -202,16 +202,37 @@ REENTER_GEN_ENTROPY:
     return FALSE;
 
 } elsif (
-    -r $secret_key_file    ## load missing files from .secret ##
-    and ( not -r $private_key_file or not -r $public_key_file )
+    ## .secret first : one unlock derives both halves ##
+    -r $secret_key_file
     and (  defined $key_password
         or $ask_for_password
         or not <[crypt.C25519.encrypted_key]>->($name) )
+    and defined(
+        my $secret_status = do {
+            my $status = <[crypt.C25519.load_keys_from_secret]>->(
+                $name, $key_password, $pwd_retry_on_error, $test_key_chksum
+            );
+            ## undef : .secret unusable, no password asked yet -> the ##
+            ## .private branch below is the fallback ; FALSE          ##
+            ## [ wrong password ] \ TRUE end here                     ##
+            if (    not defined $status
+                and -r $private_key_file
+                and -r $public_key_file ) {
+                <[base.logs]>->(
+                    0, "'%s' .secret unusable, falling back to .private",
+                    $name
+                );
+            }
+            $status // (
+                -r $private_key_file && -r $public_key_file
+                ? undef
+                : FALSE
+            );
+        }
+    )
 ) {
 
-    return <[crypt.C25519.load_keys_from_secret]>->(
-        $name, $key_password, $pwd_retry_on_error, $test_key_chksum
-    );
+    return $secret_status;
 
 } elsif (
     -r $public_key_file    ##  load public key only  ##
@@ -423,8 +444,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,.,,.,.,,..,...,,,.,,,.,.,.,,,,,.,,,,..,.,,,..,,...,...,..,,.,.,..,,,,.,...,
-#BRMC55XFOBKIJKL5FWOL6QRUHJRKCPI5QS23XP3OCKW5SF4MRSYSO5OE4LYGKUKFTC2FPHOLVQUWU
-#\\\|DNIH5IXSIZBSY5X645UCHIJVITL4B3R3SCZW7PMW6NZ5PKTQWOR \ / AMOS7 \ YOURUM ::
-#\[7]MPYCTYSNZJ6IWCRH7CRL2KR5WL3N6BFNHZGDP7224SLT64F4MWAI 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,,..,.,,,,..,,.,,,,.,,,.,,,.,..,,...,...,...,..,,,,.,,.,,...,
+#UEATHWDHEDF73H2MZAFMAILEFKLSYYXBBHSH66HBAFCEKHYUU5XEFLGRLNKQZEH5QKUNBHA5DSZQS
+#\\\|A3KL4WLQNZ3TENKWTOXXUMEBLGCKYEMXFVICRRLKXYFEPAMKLIL \ / AMOS7 \ YOURUM ::
+#\[7]VLUHTX7UEZKFU5F3EYVY5VKRPTG6JKRLHJZ3ORKBVJRLTXLT7ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
