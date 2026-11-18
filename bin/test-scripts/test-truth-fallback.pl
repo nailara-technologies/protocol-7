@@ -17,7 +17,7 @@ use warnings;
 ##     2. cross-process : this script re-executes itself with Inline::C     ##
 ##     hidden                                                               ##
 ##     [ PERL5OPT=-MBlockInlineC via fixtures/truth/BlockInlineC ] so       ##
-##     AMOS7::INLINE installs the pure-perl fallbacks -- calc_true,         ##
+##     AMOS7::INLINE installs the pure-perl fallbacks -- pure_true_int,     ##
 ##     is_true, elf_chksum, amos_chksum, bit_string_to_num and              ##
 ##     num_to_bit_string results on identical vectors must agree with       ##
 ##     the compiled parent process                                          ##
@@ -273,7 +273,7 @@ sub result_lines {
 if ( @ARGV and $ARGV[0] eq qw| -child | ) {
     my $fallback_active
         = \&AMOS7::Assert::Truth::true_int eq
-        \&AMOS7::Assert::Truth::calc_true
+        \&AMOS7::Assert::Truth::pure_true_int
         ? 1
         : 0;
     printf "child-mode\tperl=%s\tfallback=%d\n", $^V, $fallback_active;
@@ -286,7 +286,9 @@ if ( @ARGV and $ARGV[0] eq qw| -child | ) {
 my $compiled_available
     = ( defined &AMOS7::Assert::Truth::true_int
         and \&AMOS7::Assert::Truth::true_int ne
-        \&AMOS7::Assert::Truth::calc_true );
+        \&AMOS7::Assert::Truth::calc_true
+        and \&AMOS7::Assert::Truth::true_int ne
+        \&AMOS7::Assert::Truth::pure_true_int );
 
 printf ":: test-truth-fallback [ perl %s ]%s\n", $^V,
     $compiled_available
@@ -441,7 +443,7 @@ my $child_header = shift @child_lines // '';
 check( 'child process produced output', scalar @child_lines > 0 );
 
 my ($child_fallback_flag) = $child_header =~ m{fallback=(\d+)};
-check( 'child runs with pure-perl ' . 'fallbacks installed',
+check( 'child runs with pure-perl fallbacks installed',
     $child_fallback_flag );
 
 my @parent_lines = result_lines();
@@ -469,8 +471,8 @@ printf ":: tests run : %d -- passed : %d -- failed : %d\n",
 
 exit( scalar @failures ? 1 : 0 );
 
-#,,,,,.,.,,..,.,.,.,.,..,,,.,,..,,,,,,,.,,,..,..,,...,..,,..,,,,.,,.,,.,,,.,.,
-#6UGBXUDLOL2PA5UMQ7JOSHL7AQV2I4OSIK4WPIBAPXXVM56ZLZWNBVWWENPG7CW76GPESZUM7KE6K
-#\\\|YIDZ4BD4PKEZJXDR7ZFIQR2ZTQSOPBLJOU5QOFFEX5S2BDRKQSE \ / AMOS7 \ YOURUM ::
-#\[7]2PNSCQEV6TZ7H7YYCTNTFMKDRYWHGRX5SINHCTFMS36SZXSHEABQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,.,.,..,,,.,,,,.,.,,,,..,.,.,..,,...,...,,..,..,,,,,,..,,...,
+#4VBA7KNDKO4D7YNDXCKC2YDKTJYWON3R6XEVAD6PVFXQMNPEJR5YY7BAQRV5FPNZRQLAKGMQGEBH4
+#\\\|LBMPQVX4OANZQ4NRVGFGFJODK2CGTSWDT7JPWPPYRTY4VIEH43U \ / AMOS7 \ YOURUM ::
+#\[7]6YYCCDZ6AJF2ZGH4ERAPTW6P72ENURQPHGMK3YCTAXTYBXGJ7CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

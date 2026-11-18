@@ -105,7 +105,7 @@ warn_err(
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-$VERSION = qw| AMOS7::INLINE-VERSION.FH5ON2Y |;
+$VERSION = qw| AMOS7::INLINE-VERSION.TNKAMGY |;
 
 return TRUE;    ## true ##
 
@@ -977,7 +977,15 @@ sub _defer_build {
             local ( $EVAL_ERROR, $OS_ERROR, $CHILD_ERROR );
             eval { _upgrade_check($state) };
         }
-        goto &{ $state->{'compiled'} // $state->{'fallback'} };
+        goto &{ $state->{'compiled'} } if defined $state->{'compiled'};
+        ## bridging : a fallback that calls its own target again would loop ##
+        ## until the C stack breaks [ a SEGV, 2026-11-18 ] -- a clear error ##
+        ## instead                                                          ##
+        local $state->{'depth'} = ( $state->{'depth'} // 0 ) + 1;
+        die sprintf "AMOS7::INLINE : the fallback of '%s' re-enters it\n",
+            $state->{'name'}
+            if $state->{'depth'} > 3;
+        return $state->{'fallback'}->(@ARG);
     };
     $state->{'wrapper'} = refaddr $wrapper;
     return $wrapper;
@@ -1047,8 +1055,8 @@ sub _src_digest {
 
 return TRUE ##################################################################
 
-#,,..,...,..,,,,,,.,.,,.,,,.,,,.,,..,,,.,,.,,,..,,...,...,...,,,,,...,,.,,,,.,
-#IJAU2DHLIPFEJJFLBMYZXD6ES6IVLA6F2OEHK6SDV3IGD3W4DGFAZCFZNQJQ7PSPK4H3ZVE6HFWMW
-#\\\|4HN2BGBUHTJUKGDBUSJOIWKSL7T2ZMDPWXWYMKH3LAPSZA4EAOC \ / AMOS7 \ YOURUM ::
-#\[7]IWZVGUPMCK53QGHLZHUGMVIT2S72BCVVQ3USN7ZK25P5JUWLZ2DQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,,,.,,,,..,,,,,...,..,,.,,,,..,..,,...,...,..,,,..,.,.,...,.,.,
+#VCXM2CXTJ3BFWSCASWUFMZ3AJEIPZBVQ7DKO65ABYZBYX2KAETHXR6L3A22ZOLIW6RS3N5OLB7EXW
+#\\\|ILUBMCTX3KQC6XA4RW4YVWGVJTQHDWASS7GHHCDEMXSAFEJMT3K \ / AMOS7 \ YOURUM ::
+#\[7]FD4JAHZO46Y44R4PQRQ7ZBQTJDTVB6KW2HAI7V2A2KPPFYHF4MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -85,6 +85,29 @@ if ( not defined $scenario ) {
         print $out;
         $all_failed++ if $CHILD_ERROR != 0 or $out =~ m|FAIL|;
     }
+
+    ## a cold cache with the real modules : the truth fallbacks once were  ##
+    ## the dispatcher calc_true -> the bridging wrapper looped into itself ##
+    ## [ deep recursion, a SEGV in v7-zenki, 2026-11-18 ]                  ##
+    printf "scenario cold-dispatcher\n";
+    my $home = "$root/cold-home";
+    mkdir $home;
+    my $lib = abs_path(
+        File::Spec->catdir( $RealBin, qw| .. .. data lib-path pm | ) );
+    my $probe
+        = 'use AMOS7; use AMOS7::Assert::Truth; my $n = 0; for ( 1 .. 13 ) { '
+        . 'AMOS7::Assert::Truth::is_true("x$_"); $n++; select undef, '
+        . 'undef, undef, 0.2 } print "calls $n\n"';
+    my $cold = qx| HOME=$home $EXECUTABLE_NAME -I$lib -e '$probe' 2>&1 |;
+    my $cold_ok
+        = (     $CHILD_ERROR == 0
+            and $cold =~ m|calls 13|
+            and $cold !~ m|Deep recursion\|re-enters| );
+    printf "  %s : cold cache, dispatcher fallbacks : no recursion\n",
+        $cold_ok ? 'ok  ' : 'FAIL';
+    print $cold   if not $cold_ok;
+    $all_failed++ if not $cold_ok;
+
     system 'rm', '-rf', '--one-file-system', '--', $root;
     printf "\n%s\n",
         $all_failed ? "$all_failed scenario(s) FAILED" : 'all passed';
@@ -413,8 +436,8 @@ if ( $scenario eq 'upgrade' ) {
 
 exit( $failed ? 1 : 0 );
 
-#,,,,,...,,..,,,.,.,.,,,.,,,.,,,.,..,,,..,,.,,..,,...,..,,..,,,.,,...,..,,.,,,
-#XWW376YMUZ2GH2CSIDCIFRPMZUQOBNGRKQYZAELICLM62FQDNK3L77RJ5R3WMFSV3SKCAIXY3KUDE
-#\\\|VJOYUDAMGVNSJ64ZQG23HJPAJLLCPWOFNP4EUX6YD4Z3SWF7BTD \ / AMOS7 \ YOURUM ::
-#\[7]HG6LUHXAUFFFWTUZMZDODE5SDSUCLUUCRTBXNKEDJZYFFRUXNCAY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,..,,...,...,,,,,..,,,,.,.,.,,..,..,,...,...,..,,.,,,,..,,,,,,,,,
+#EXSIDVX3UY4ZB33ZDG4DZL6RZRZ4YD3LZ6KQ7IDWIX3FMFHHFYKWBRP2MZ5RD5GPXBZL2EUZ47E5Y
+#\\\|2SBJXGIADGYZRSL2DDISBS3EPA4SB22OMZUFZOE3D4KQKYJD3IT \ / AMOS7 \ YOURUM ::
+#\[7]QDRGYQQQJ3DNREFMQBEEAID2VOB7H6HE3AVWRPCTYT2VISI2BMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

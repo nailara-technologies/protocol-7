@@ -13,7 +13,7 @@ use vars qw| @EXPORT |;
 use base qw| Exporter |;
 @EXPORT = qw| $VERSION |;
 
-our $VERSION = qw| AMOS7::INLINE::src::TruthAssertion-VERSION.34IXAGA |;
+our $VERSION = qw| AMOS7::INLINE::src::TruthAssertion-VERSION.XRDBNQY |;
 
 ##[ NUMERICAL TRUE \ FALSE ASSERTION ]########################################
 
@@ -83,8 +83,9 @@ sub true_int {    ##[  numerical div by 13 truth assertion  ]##
 
         qw| package | => qw| AMOS7::Assert::Truth |,    ##  true_int  ##
 
-        ## pure-perl is_true_num alternative [ arbitary number length ] ##
-        qw| fallback | => \&AMOS7::Assert::Truth::calc_true
+        ## the bit-exact pure-perl twin -- never calc_true : it dispatches ##
+        ## back to true_int, a bridging wrapper would loop into itself     ##
+        qw| fallback | => \&AMOS7::Assert::Truth::pure_true_int
     };
 }
 
@@ -154,8 +155,8 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
 
         qw| package | => qw| AMOS7::Assert::Truth |,    ##  true_float  ##
 
-        ## pure-perl is_true_num alternative [ arbitary number length ] ##
-        qw| fallback | => \&AMOS7::Assert::Truth::calc_true,
+        ## the bit-exact pure-perl twin [ see true_int above ] ##
+        qw| fallback | => \&AMOS7::Assert::Truth::pure_true_float,
     };
 }
 
@@ -163,8 +164,8 @@ sub true_float {    ##[  numerical div by 13 truth assertion  ]##
 
 return 5;    ##  true  ##
 
-#,,,,,...,.,,,..,,,..,..,,,..,..,,,,.,,..,.,,,..,,...,..,,..,,.,,,,,.,.,,,.,,,
-#OA4SGKMZ4LA747JGE2FDJ7G5BH363PMFYJVOHPN6T7OC3RDFQSSMRZO3QLUET46NKXA2TKLEO7DTU
-#\\\|BQZ7VGCXA3YDM2PVQRDJ26L7X52QFYDOR5RR3Q2TENJ7C5JMNI7 \ / AMOS7 \ YOURUM ::
-#\[7]LKBE32353JU6HEBPKFUYV6X3YTKYX2VMJPS3YWZJMSPEK24AA4CA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,,.,,.,,,.,,.,.,,..,,.,,,,.,..,,..,,...,...,,.,,,.,,.,.,...,,,,,
+#CZ65LMPJUR3ICJCT3LAWMIG65NBTDADDR2XLWQFSLLTOQKFYIE6PJEIH5NH3BVHZB4ZY7ROQPFCX4
+#\\\|OAYMPMRSNZIR6WBN7XLOU4MES34SEHZDSLQFPLTSNR2AZ3K7KW2 \ / AMOS7 \ YOURUM ::
+#\[7]FBLLZDZQLT7PZS3L4GXSTKNFTP6S22JSJMWZ5TGEILLTDPNPTICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
