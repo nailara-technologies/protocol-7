@@ -504,8 +504,16 @@ sub install_profile {
             if ( not length $installed_from
                 and $resolved->{method} eq 'debian' ) {
                 my $result = install_apt( $resolved->{pkg} );
-                if ( @{ $result->{ok} } ) {
+                if ( @{ $result->{ok} } and module_loads($module) ) {
                     $installed_from = 'apt';
+                } elsif ( @{ $result->{ok} } ) {
+                    ## the package went in, the module still does not load ##
+                    ## [ a build header only, a wrong mapping ] -> cpan    ##
+                    $row->(
+                        $module,
+                        "apt $resolved->{pkg} : module not provided",
+                        'falling back to cpan', 'warn'
+                    );
                 } else {
                     $failed += @{ $result->{failed} };
                     $row->(
@@ -740,11 +748,15 @@ sub run_dist_upgrade {
     my $eol      = -t STDOUT ? "\r\n" : "\n";
     my $line_out = sub { print $_[0], $eol };
 
-    ## streamed : condensed lines arrive as they are produced, styled to  ##
-    ## match the rest of the report -- step headers as framed sections,   ##
-    ## package lines as status rows [ installed \ upgraded ], the '.. '   ##
-    ## meta lines as status rows ; errors and unknown lines stay verbatim ##
-    ## [ colours only on a terminal, plain rows in a pipe ]               ##
+    ## streamed : condensed lines arrive as they are produced, styled to   ##
+    ## match the rest of the report -- step headers as framed sections,    ##
+    ## package lines as status rows [ installed \ upgraded ], the '.. '    ##
+    ## meta lines as status rows ; errors and unknown lines stay verbatim  ##
+    ## [ colours only on a terminal, plain rows in a pipe ]  the system    ##
+    ## perl before : an upgraded perl leaves every cpan \ xs module of the ##
+    ## old one unusable [ found 2026-11-18 on two servers ]                ##
+    my $perl_before = system_perl_version();
+
     my $result = AMOS7::deps::dist_upgr::run(
         $action,
         {   'emit' => sub {
@@ -814,7 +826,62 @@ sub run_dist_upgrade {
         ]
     );
     say frame_column_line();
-    exit( $result->{'ok'} ? 0 : 1 );
+
+    ## complete what the upgrade left uninstalled : the recorded profiles ##
+    ## again [ install only adds what is missing ]                        ##
+    my $deps_failed = 0;
+    $deps_failed = deps_after_upgrade($perl_before)
+        if $result->{'ok'} and $action eq qw| dist-upgrade |;
+    exit( ( $result->{'ok'} and not $deps_failed ) ? 0 : 1 );
+}
+
+## the module loads with the system perl [ what the zenki run on ] ##
+sub module_loads {
+    my $module = shift;
+    return 0 if $module !~ m{\A[A-Za-z_][\w:]*\z};    ## shell safe ##
+    return system("/usr/bin/perl -M$module -e 1 >/dev/null 2>&1") == 0
+        ? 1
+        : 0;
+}
+
+sub system_perl_version {
+    my $version = qx{/usr/bin/perl -e 'print \$^V' 2>/dev/null} // '';
+    return length $version ? $version : '?';
+}
+
+## after a dist-upgrade : every profile this host recorded, installed again ##
+## -- a perl upgrade needs its modules rebuilt, any upgrade may have        ##
+## removed a package a profile needs. returns the failed count              ##
+sub deps_after_upgrade {
+    my $perl_before = shift;
+    my $perl_after  = system_perl_version();
+
+    my $recorded
+        = eval { AMOS7::deps::tracked::recorded_profiles($P7_ROOT) } // [];
+    my %seen;
+    my @profiles
+        = grep { not $seen{$ARG}++ } map { $ARG->{'pkg'} } @{$recorded};
+
+    banner('dependencies after the upgrade');
+    print_rows(
+        [   'perl',
+            $perl_before eq $perl_after
+            ? $perl_after
+            : "$perl_before -> $perl_after",
+            undef,
+            $perl_before eq $perl_after ? 'ok' : 'warn'
+        ],
+        [   'profiles', @profiles ? join( ' ', @profiles ) : 'none recorded',
+            undef,      @profiles ? 'ok'                   : 'warn'
+        ]
+    );
+    say frame_column_line();
+    return 0 if not @profiles;
+
+    my $failed = 0;
+    $failed += install_profile($ARG) foreach @profiles;
+    prebuild_inline_sources() if not $failed;
+    return $failed;
 }
 
 ##[ INTROSPECTION COMMANDS ]##################################################
@@ -1528,8 +1595,8 @@ sub show_help {
 EOL
 }
 
-#,,,.,,,.,...,.,.,,.,,,,,,.,.,,..,,..,...,,,,,..,,...,...,,,,,.,,,.,,,,..,.,,,
-#HQW2HU277C4QBORAGB7VF64AP7PUTMUYTPDB7SJU6AS5UIN46TLS7GA2OFRRYWCOCY3BYTFM777E2
-#\\\|JY5RSQ7XBMZPPTXQCDXWIKYWIOFBOX75J7AYKOACPDELNTRMWUN \ / AMOS7 \ YOURUM ::
-#\[7]L5B5WMWRET5YTLJ7U3CRMOCBDMLQRU57RZVV4BKPTIZ4TQYG7YCA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,.,,,..,,,.,,,.,,,.,,..,,,.,,..,,...,...,..,,...,...,.,,,...,
+#MYFXMKDXCP4YYJE3S7ITNPC3RDIKECHIWSU6KLAF3S6UN5YLDIBAWHJQ7T6JZCALD7GTLHWNJDYCU
+#\\\|WTVRLR2OMEOA2DCEROYM55VUPH3MD52HPTU3XR5LDVJN4LEDFXB \ / AMOS7 \ YOURUM ::
+#\[7]QU5HDGT2PCL6R6I5YQZLIBNWLFYJFK6TX7CEJKN5JDGFAR3CYWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
