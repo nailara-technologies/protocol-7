@@ -66,10 +66,22 @@ so the only format change needed is the category expansion of the entry name.
 nesting [ owner ] : `.: parent.namespace :.` sections, child entries drop the prefix -- works for
 category paths too [ `.: cfg/appliances :.` ].
 status : nesting not implemented yet ; owner sees the inline format as a native general format [ unambiguous enough ], not only bin/Protocol-7's data block.
+third source [ 2026-11-18 ] : bin/Protocol-7 ~2164 has an http src loading path [ .v7/file-list/base, http_src_base_urls ], deactivated in p7_httpc__remote_file ~4199. same source interface : inline < disk < remote ; signed entries make remote safe, over a p7 link [ e.g. the pi serving appliances ] rather than plain http.
+fourth source : stdin [ p7_stdin_configuration ] -- today zenka.v7 only [ `cat cfg/zenki/cube/zenka.v7 | Protocol-7` = `Protocol-7 cube` = p7-cube ] ; in the inline frame format stdin could carry a whole bundle [ cfg \ src \ data entries ], e.g. `cat bundle | ssh host Protocol-7` boots a zenka with nothing on disk ; signatures still checked.
+stdin multiplex [ owner plan, recalled 2026-11-18, NOT written down before ] : send a zenka to a host to assimilate or investigate it -- one stdin stream multiplexes the zenka's code + cfg [ inline file routing : entries routed to their category ] AND its credentials. wire layer = data/md/design/STDIO-MULTIPLEX-PROTOCOL.md [ 3-bit type tags : META frames scope, SIN 001 = silent input fits the credentials ] ; that doc has no file routing yet -- an inline-entry tag \ META scope for `.:[ name ]:.` entries is the missing piece. credentials never touch disk on the target.
+line grammar [ owner plan ] : '  ' prefixed lines = inlined payload [ stdio passthrough ] ; lines without it = protocol ; ':' or a group of ':' = special meaning [ inline file access ]. converges with data/md/design/DATA-PROTOCOL-SYNC.md [ DATA open \ 76-char base32 chunk lines \ DATA END + AMOS checksum, DELTA from a base checksum, branch.file.* access ] -- same 76 width and checksum close as the __DATA__ entries : inline entry = DATA at rest, DATA frame = inline entry in motion. sync side : data/md/research/GENERIC-DATA-SYNCHRONIZATION-FABRIC.md. not connected yet.
 frame [ checked 2026-11-18 ] : `.:[ name ]:.` opens an entry, every content line starts with `:`, `:.` closes ; meta = a `:` line told apart by its form [ `: <chksum:..>` today ]. `.: name :.` [ no brackets ] stays free for section \ nesting syntax. header regex bin/Protocol-7 ~5347 `[\w\d\-\_\.]+` : needs `/` for category paths.
 
-#,,,,,,,.,.,.,.,,,...,,..,..,,.,,,.,,,..,,.,,,..,,...,..,,...,.,,,.,,,...,.,,,
-#M6VMNHMWHHWVEQEF5TB4JEXYVQHDGL2QACS5NIKHLUVYPBNQU6JPUWY7JWLEQSHFRVHG2IFFKIEXY
-#\\\|N34IXSWSB2JLIY5QNGU2HVDKE4VZDRGHJIAHNN2DLANTWR7ITBL \ / AMOS7 \ YOURUM ::
-#\[7]ARYB6CFKHIWDXBIATD3DL3LY6DB4BZP4BP6AR7IZTRSUCZ5QBIDA 7  DATA SIGNATURE ::
+## src routines for external scripts [ owner 2026-11-18 ]
+
+an AMOS7 module [ AMOS7::Config context first ] can import regular src/ routines the way the loader
+imports inline subroutines -- as a TIGHT profile : only the routines a script needs plus their
+dependency closure [ data/md/documentation/module-dependency-graph.asc, gen-sub-whitelist logic ],
+none unused. a script loading it then has nearly a zenka's capabilities without being one.
+AMOS7 is essential already, so no new dependency.
+
+#,,,,,,,,,..,,..,,,.,,,.,,.,,,...,.,,,,.,,,..,..,,...,...,,.,,.,,,...,,..,,,.,
+#U7NDZ6RJ6BVYGY7SQEYM4PSE5RP2DL4WRE2H2E7IP5Q4MUTAWSMBY6U32IG6XFLFDQLBIBRN5JWM4
+#\\\|HTBL223PS3XQET6R3GSL2QR2D4SZLDBVLEQD365DZPULRE22E6A \ / AMOS7 \ YOURUM ::
+#\[7]IF65EJIWY355V3BMV5DI2BMDJMU33LCB6CX52I5VLVJ6NDTJWKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -66,3 +66,18 @@ in step 1 [ compare parsed output of every cfg/zenki/*/zenka.v7 before \ after ]
 #\\\|7H6QTRWWGNK7NEIIWMWX3N5BJGI37DBBXRIHM4EUUQVECL66LKU \ / AMOS7 \ YOURUM ::
 #\[7]WZOMFY2JPHD26FPIWCAYKUGAXEAXT4CD6YKOI5T27BENOC6SH6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## later : the settings zenka rides on this [ owner 2026-11-18 ]
+
+data/md/design/SETTINGS-STATISTICS-ZENKA.md resolves personal < branch < network <
+hardcoded -- the same stacked layers as this reader, with `explain(key)` as provenance.
+personal settings live in N7FS [ sealed, synced across own hosts, never leave them in
+plain ] ; branch \ network defaults arrive as signed inline \ DATA entries ; appliance
+recipes [ cfg/appliances/ ] are one kind of branch default. the `settings` namespace
+is held open for it [ set-up was renamed to free it ].
+
+#,,,.,,..,,,.,,,.,,,,,.,,,.,.,.,.,.,,,.,,,,,,,..,,...,...,,.,,,,.,,,.,,..,...,
+#C5EPGR3Q3U3T3VF33QFSLAEDL5KCH5QGA67SDQJMB46ZL6K7IFJRNKOBV5KWS6JZFLRNFNR7MFGUM
+#\\\|XK5MVCRCFYTBGF3T7LVFOZ5CSKTH3VY2SLSYU6C5RGSGKIPDHDP \ / AMOS7 \ YOURUM ::
+#\[7]FOM4PXZMEGTRTKVSUKTEBJQCZ7WTANJPHC2U7ZOXBMOXXRVYESDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
