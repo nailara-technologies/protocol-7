@@ -32,8 +32,10 @@ if ( exists $pending->{$key} ) {
 
 my $state = {
     'key'     => $key,
+    'query'   => $q,
     'qname'   => lc $questions[0]->qname,
     'qtype'   => $questions[0]->qtype,
+    'qclass'  => $questions[0]->qclass,
     'waiters' => [
         {   'id'       => $q->header->id,
             'question' => $questions[0],
@@ -52,8 +54,8 @@ $pending->{$key} = $state;
 
 return <[nameserv.cache.forward.try]>->($state);
 
-#,,.,,,,,,..,,,.,,...,,..,,..,...,.,,,..,,,.,,..,,...,...,.,.,,.,,,,.,,,.,,,.,
-#EJW6STKEK3AISKCNS3WRM4Q5SATAOEWWD2TVN2TXYLT5KEHEFLL5GYVUY4SFHGTJLPFLHFA64HSBK
-#\\\|3L2YKOIROONPAKS5EVMIA432YYEAFRJNY43SW5WPNYM7GCCM56Z \ / AMOS7 \ YOURUM ::
-#\[7]CN7IVJ5GISID6VMV3M4ABW5LTDMV6EHSNJZ6GSOTYALETLQJPCBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,,,.,.,.,..,,,..,...,,,,,..,,..,,...,...,,,,,,,.,,.,,..,,.,.,
+#G677BKFATOUBPZACMY6A2AKGQN4BPGPQ6QIFOT4XXPIHL4DYF4Z2UMENSRO3RMEDEX7PE5YC7P3IW
+#\\\|3YUDPCRPRVPPVFMKAUVLJ7UQHIUNFDET7GEYFFT7X4HDU7ZBE45 \ / AMOS7 \ YOURUM ::
+#\[7]AMBPL4ULU7LPMWPIAQ4R3Y4DT65FX5UBTW6G5WFKYUGD4LRKB6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

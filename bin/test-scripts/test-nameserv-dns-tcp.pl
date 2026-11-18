@@ -108,6 +108,7 @@ sub load_module {
 
 for my $mod (
     qw|
+    base.cfg_bool
     nameserv.zone.lookup
     nameserv.handler.p7ref_lookup
     nameserv.answer
@@ -368,7 +369,7 @@ my $tcp_ask = sub {    ## framed read of one reply from the client side ##
     while ( length $len_buf < 2 ) {
         my $b = sysread( $client, $len_buf, 2 - length $len_buf,
             length $len_buf );
-        die "tcp reply length read " . "failed : $OS_ERROR"
+        die "tcp reply length read failed : $OS_ERROR"
             if not defined $b or $b == 0;
     }
     my $msg_len = unpack qw| n |, $len_buf;
@@ -576,8 +577,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,,,,,,,..,,.,.,.,,,,.,,.,,,,,.,,,,,.,,,..,,...,...,..,,.,.,.,,,,,.,,.,,
-#NAQLFG3Z5DRJZLEG4RPP7CIBDAVUWQCQMSXEMCHNVCAUR66RSUPSWX76RHGRS5AIMQCBNHXPFO2XM
-#\\\|5XTC3A3Z6R7Y3KW4ZVP5DFJBD5MP2NMBGSAFBXZH2ZIHTQGE2A2 \ / AMOS7 \ YOURUM ::
-#\[7]WR3VKGKIXOMGHCESYZ5U4PRO3CCG2PTMTTN33TX2UMQPWNL3B4CQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,..,,...,..,,...,.,.,..,,..,,..,,...,...,.,.,,..,,,.,.,.,,.,,
+#N5KJCVI7XFCO6DHFANZKPCH3WA4RC3DT4ZWIFXUJIRZLVGUP6T6BQDIETSVKYKG7KNJA63A2ASIJ6
+#\\\|KTBJHYUVWGRPCV2XC2A4L2XDPWBRA37X4XO3OKDMZ6A6ZQUH4WU \ / AMOS7 \ YOURUM ::
+#\[7]YYHUKREUWLUJ4U3ORKJMYVHML6ZSO4S77B7EUSJ2P6I6VIK4NADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

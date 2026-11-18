@@ -1,9 +1,11 @@
 ## [:< ##
 
 # name  = nameserv.cache.handler.answer
-# descr = read an upstream reply for the forwarding cache [ bgread ]
+# descr = read and validate an upstream reply for the forwarding cache
 
-## io watcher handler : the event carries the state hash ##
+## io watcher handler : the event carries the state hash. malformed packets ##
+## and id \ question \ source mismatches are dropped without consuming the  ##
+## pending attempt ; only a socket failure advances to the next upstream.   ##
 
 my $state = shift->w->data;
 return unless ref $state eq qw| HASH |;
@@ -13,18 +15,103 @@ my $key = $state->{'key'} // return;
 my $pending = <nameserv.cache.in_flight> // return;
 return unless ref $pending->{$key} and $pending->{$key} == $state;
 
-my $pkt = $state->{'resolver'}->bgread( $state->{'sock'} );
+require Socket;
 
-if ( not defined $pkt ) {
-    ## socket error : try the next upstream ##
-    <[nameserv.cache.forward.next]>->($state);
-    return;
+my $sock  = $state->{'sock'}  // return;
+my $phase = $state->{'phase'} // qw| udp |;
+
+if ( $phase eq qw| tcp_connect | or $phase eq qw| tcp_write | ) {
+    if ( $phase eq qw| tcp_connect | ) {
+        my $sock_err
+            = $sock->getsockopt( Socket::SOL_SOCKET(), Socket::SO_ERROR() );
+        my $connect_err
+            = defined $sock_err ? unpack( qw| i |, $sock_err ) : 1;
+        if ($connect_err) {
+            <[nameserv.cache.forward.next]>->($state);
+            return;
+        }
+        $state->{'phase'} = $phase = qw| tcp_write |;
+    }
+
+    while ( length $state->{'out'} ) {
+        my $written = syswrite $sock, $state->{'out'};
+        if ( not defined $written ) {
+            return if $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK};
+            <[nameserv.cache.forward.next]>->($state);
+            return;
+        }
+        if ( $written == 0 ) {
+            <[nameserv.cache.forward.next]>->($state);
+            return;
+        }
+        substr( $state->{'out'}, 0, $written ) = '';
+    }
+    $state->{'phase'} = $phase = qw| tcp_read |;
 }
 
-if ( $pkt->header->tc and not $state->{'usevc'} ) {
+my $wire = '';
+if ( $phase eq qw| tcp_read | ) {
+    my $chunk = '';
+    my $read  = sysread $sock, $chunk, 65536;
+    if ( not defined $read ) {
+        return if $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK};
+        <[nameserv.cache.forward.next]>->($state);
+        return;
+    }
+    if ( $read == 0 ) {
+        <[nameserv.cache.forward.next]>->($state);
+        return;
+    }
+    $state->{'in'} .= $chunk;
+    if ( length $state->{'in'} > 65537 ) {
+        <[nameserv.cache.forward.next]>->($state);
+        return;
+    }
+    return if length $state->{'in'} < 2;
+    my $msg_len = unpack qw| n |, $state->{'in'};
+    if ( $msg_len < 12 ) {
+        <[nameserv.cache.forward.next]>->($state);
+        return;
+    }
+    return if length $state->{'in'} < 2 + $msg_len;
+    $wire = substr $state->{'in'}, 2, $msg_len;
+} else {
+    my $from = recv $sock, $wire, 65535, 0;
+    if ( not defined $from ) {
+        return if $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK};
+        <[nameserv.cache.forward.next]>->($state);
+        return;
+    }
+
+    my ( $gai_err, $from_ip, $from_port )
+        = Socket::getnameinfo( $from,
+        Socket::NI_NUMERICHOST() | Socket::NI_NUMERICSERV() );
+    return if length $gai_err;
+    return if ( $from_port // 0 ) != $state->{'upstream_port'};
+
+    my $family
+        = index( $state->{'upstream_ip'}, qw| : | ) >= 0
+        ? Socket::AF_INET6()
+        : Socket::AF_INET();
+    my $want_addr = Socket::inet_pton( $family, $state->{'upstream_ip'} );
+    my $from_addr = Socket::inet_pton( $family, $from_ip // '' );
+    return if not defined $want_addr or not defined $from_addr;
+    return if $want_addr ne $from_addr;
+}
+
+my $pkt = eval { Net::DNS::Packet->new( \$wire ) };
+return if not defined $pkt or not $pkt->header->qr;
+return if $pkt->header->id != $state->{'query_id'};
+my @questions = $pkt->question;
+return if scalar @questions != 1;
+return if lc( $questions[0]->qname ) ne $state->{'qname'};
+return if $questions[0]->qtype ne $state->{'qtype'};
+return if $questions[0]->qclass ne $state->{'qclass'};
+
+if ( $pkt->header->tc and $phase ne qw| tcp_read | ) {
     ## truncated over udp : retry the same upstream over tcp ##
     <[base.logs]>->(
-        2, ': cache reply truncated, ' . 'retry over tcp [ %s %s ]',
+        2, ': cache reply truncated, retry over tcp [ %s %s ]',
         $state->{'qname'}, $state->{'qtype'}
     );
     $state->{'usevc'} = TRUE;
@@ -52,8 +139,8 @@ if ( $rcode eq qw| SERVFAIL | or $rcode eq qw| REFUSED | ) {
 
 return;
 
-#,,,.,,..,,.,,.,.,,.,,.,.,.,,,,..,,.,,.,.,,..,..,,...,...,..,,,,,,..,,.,.,.,.,
-#MPEFG3MHU6Q5XHOEXG7O2QPTUSDTX5FIUPCD772FPE54EQ5WDJ747YHZWKFLKMNMHQWHPMVNO4QAG
-#\\\|YSSKEZNMMY446N42BGUYXGO5LDGTESURZTAUEQMO4WKAJRFBWZG \ / AMOS7 \ YOURUM ::
-#\[7]F3XHGIJ24U6ZF6LZGF3JCBJ5MQKCAQPMOYXC4TN53LVOA3IJMSBY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,,..,.,,,,,,,,,,,,..,..,,,.,,..,,...,...,...,,..,.,.,,.,,,,.,
+#DSVTMMVOAIH45XLP7K52IQQRVFZD2MBZYPJXK66XTR2BATPDVOHSDVZKNMOBZNZ2T7JC7KHBC3ITU
+#\\\|XHULCQJPVKFGPUYDD35POO7WJ7GYSHKLL4VRGMHLSISDULCQQS2 \ / AMOS7 \ YOURUM ::
+#\[7]2XRJISP6BAAUTEAJ54T3DZWQPROWPPSHUITDFYM5HTRSUAFVQ2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

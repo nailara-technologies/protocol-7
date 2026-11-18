@@ -60,10 +60,20 @@ while ( length $conn->{'in'} >= 2 ) {
     my $reply = <[nameserv.answer]>->($query);
     next if not defined $reply;
 
+    ## cache profiles answer loopback clients only, including zone answers ##
+    my $cache_enabled
+        = <[base.cfg_bool]>->( <nameserv.cfg.cache.enabled> // FALSE );
+    my $cache_client = $cache_enabled
+        && <[nameserv.cache.client_allowed]>->( $conn->{'peer'} // '' );
+    if ( $cache_enabled and not $cache_client ) {
+        $reply->header->aa(0);
+        $reply->header->rcode(qw| REFUSED |);
+    }
+
     ## forwarding cache mode [ same conditions as the udp handler ] ##
-    if (    $reply->header->rcode eq qw| REFUSED |
-        and <[base.cfg_bool]>->( <nameserv.cfg.cache.enabled> // FALSE )
-        and <[nameserv.cache.client_allowed]>->( $conn->{'peer'} // '' ) ) {
+    if (    $cache_enabled
+        and $cache_client
+        and $reply->header->rcode eq qw| REFUSED | ) {
 
         my $q_packet = eval { Net::DNS::Packet->new( \$query ) };
         if ( defined $q_packet and $q_packet->header->rd ) {
@@ -139,8 +149,8 @@ if ($activity) {
 
 return;
 
-#,,..,,.,,.,,,,.,,,,.,...,.,,,,..,,.,,,..,,,,,..,,...,...,.,.,,..,,,.,,..,,.,,
-#6SB7OSN2F3IC22DTAGPOZ6JWVUKPI7D3FS2XUN36UW4JRGXZUUSO56N6E3PBBOIHS37QG33OBCC2U
-#\\\|ZVNWPHBGCTKZPV4P2FMOM4NTZELASU4TJEPNVRA4XRATEXPKU2I \ / AMOS7 \ YOURUM ::
-#\[7]DYTJNRX5NDTLHMQPSM4NB24LIHQVPZH5RAQM5E7XSNEE2LPMKSAI 7  DATA SIGNATURE ::
+#,,..,...,,..,,,.,..,,,,,,,,.,..,,.,.,,,,,,..,..,,...,...,.,.,,,,,,.,,,,.,,,.,
+#2FQGHJ2CQ7EK7RV3IAANH62UL537JEASGU6RD7M4UZ4TP7XGSXRKQ7OPWNWSWUZ7KAMF6XLCGAYHS
+#\\\|CPXT34MCN2PGCCW2D3NY2EMGGSZGZLYYBMILKSLKADCY4KW5ZPT \ / AMOS7 \ YOURUM ::
+#\[7]UFHHK7COTK2MXHDMGHRVOQHAC2L43UMSJBXVS3ZKYYGZG4PPCSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

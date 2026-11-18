@@ -7,14 +7,25 @@
 
 my $ip = shift // return FALSE;
 
-return TRUE if $ip =~ m|^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$|;
-return TRUE if $ip eq qw| ::1 |;
-return TRUE if $ip =~ m|^::ffff:127\.\d{1,3}\.\d{1,3}\.\d{1,3}$|i;
+require Socket;
+
+my $v4 = Socket::inet_pton( Socket::AF_INET(), $ip );
+return TRUE if defined $v4 and ord( substr $v4, 0, 1 ) == 127;
+
+my $v6 = Socket::inet_pton( Socket::AF_INET6(), $ip );
+return FALSE if not defined $v6;
+return TRUE
+    if $v6 eq
+    pack( qw| C16 |, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 );
+return TRUE
+    if substr( $v6, 0, 12 ) eq
+    pack( qw| C12 |, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 255 )
+    and ord( substr $v6, 12, 1 ) == 127;
 
 return FALSE;
 
-#,,..,...,..,,,.,,,,,,.,,,..,,.,.,,..,,..,,,.,..,,...,...,.,,,,,,,,,,,...,.,.,
-#N2HDYWVCYHORPT2NDAX4PJGQIYQUKMGA5O7PMDA5SCNHHNUAI7MVF5U7HXZ73WZPXQN6FDZRLUVRQ
-#\\\|V5ROMZ2EIPKN7KYDHG3VTXYOAT32MNIOQLPEU4SY5RGBQ7FQODT \ / AMOS7 \ YOURUM ::
-#\[7]T5XA22M6L7XTNUZDTC55KI5SPKU6FXVF2OFOPKRPGGI4DBRFB6AA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,..,.,,,..,,,..,,..,,,,,.,.,,,,,..,,...,...,,.,,,,,,,..,,,,,,.,,
+#H5EBQZK7EFDTMGVE2ORT47RMMFLJRHAM3OEKUQHRA6GGLB6FNZFTNCHNNQOPV6QWS7GA54PWCAQPY
+#\\\|JFRNANM7WAYPE2CX2I72ZDSSL62VKS2NYZP6EYLWUBMQCGYVYML \ / AMOS7 \ YOURUM ::
+#\[7]OIJ4X3QYMZ25UPDW2Z5OJ4JXKXWCHFTPENPPN3V5HHEM76ADVSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,6 +20,8 @@ for my $name (qw| watcher timer |) {
         $state->{$name} = undef;
     }
 }
+close $state->{'sock'} if defined $state->{'sock'};
+$state->{'sock'} = undef;
 delete <nameserv.cache.in_flight>->{$key}
     if ref <nameserv.cache.in_flight>;
 
@@ -48,8 +50,8 @@ if ( defined $pkt ) {
 
 return TRUE;
 
-#,,,.,..,,..,,.,.,,..,,,,,.,,,,,.,..,,.,,,.,.,..,,...,...,.,.,,..,.,.,.,,,.,.,
-#JJYJOWN4UEUYBQVQTVRQ4U3BXAP5B4GFIAQ4JNKGXEXLDVPRPACTMNI5BEUAZZKNUWF43NT6IM2OO
-#\\\|CNK6QTOOXLTN2DGQL5C7ZBVHMETFV66ISNATKJYTYPA2QYS6Y53 \ / AMOS7 \ YOURUM ::
-#\[7]JPDZ3IMJO3WFRBLLUI4PMRA7IN2BW5D77JXC7KX3XC7I74JKS6CA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,,..,...,,..,...,,,,,..,,...,..,,...,...,..,,,,.,,,.,,.,,.,,,
+#KAWIOP53ZOF5QMKBF3P37DIZO4MP3TP5VHANYG3GJCCBQ3CS2JETUPOD4EMEB2YJ6OHDBRGJQ4BOM
+#\\\|KYYG2RHV4JFLM7F2IRREDI4AGRKPW4L76L47GAYPZM2QRYX5MQJ \ / AMOS7 \ YOURUM ::
+#\[7]SA3PCODIESEI3JZJ73IK5GVAZJK7M377BLHNQPPHU2RVI42D5QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

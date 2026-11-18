@@ -3,14 +3,17 @@
 # name  = nameserv.cache.forward.try
 # descr = send one async upstream query try for a cache-miss state
 
-## one Net::DNS::Resolver bgsend + io watcher + timeout timer per try, so ##
-## the zenka never blocks on dns. a trailing :port on an upstream address ##
-## is honoured [ plain ipv4 a.b.c.d:port or bracketed [v6]:port form ] ;  ##
-## without one the resolver default port 53 applies                       ##
+## one connected non-blocking socket + io watcher + timeout timer per try.  ##
+## both the transaction id and source port come from base.prng. a trailing  ##
+## :port is honoured [ ipv4 a.b.c.d:port or bracketed [v6]:port ] ; without ##
+## one port 53 applies. udp truncation retries the same address over tcp.   ##
 
 my $state = shift // return FALSE;
 
-## drop the previous attempt's watcher + timer ##
+require IO::Socket::IP;
+require Socket;
+
+## drop the previous attempt's watcher + timer + socket ##
 for my $name (qw| watcher timer |) {
     if ( ref $state->{$name} ) {
         $state->{$name}->cancel
@@ -19,6 +22,8 @@ for my $name (qw| watcher timer |) {
         $state->{$name} = undef;
     }
 }
+close $state->{'sock'} if defined $state->{'sock'};
+$state->{'sock'} = undef;
 
 my @upstreams = <[nameserv.cache.upstreams]>;
 
@@ -29,35 +34,60 @@ if ( $state->{'upstream_idx'} >= scalar @upstreams ) {
 
 my $server = $upstreams[ $state->{'upstream_idx'} ];
 my $ip     = $server;
-my $port   = undef;
+my $port   = 53;
 if ( $server =~ m{^\[(.+)\]:(\d+)$} ) {
     ( $ip, $port ) = ( $1, $2 );
 } elsif ( $server =~ m{^([\d.]+):(\d+)$} ) {
     ( $ip, $port ) = ( $1, $2 );
 }
 
-my $resolver = Net::DNS::Resolver->new(
-    'nameservers' => [$ip],
-    'recurse'     => 1,       ## rd = 1 to the upstream ##
-    'udp_timeout' => 3,
-    'tcp_timeout' => 3,
-    'igntc'       => 1,       ## the tc retry is ours, over tcp [ below ] ##
-);
-$resolver->port($port) if defined $port;
-$resolver->usevc(1)    if $state->{'usevc'};
+my $query_id   = unpack qw| n |, <[base.prng.bytes]>->(2);
+my $query_wire = $state->{'query'}->data(65535);
+my $query      = eval { Net::DNS::Packet->new( \$query_wire ) };
+return <[nameserv.cache.forward.next]>->($state) if not defined $query;
+$query->header->id($query_id);
+$query->header->qr(0);
+$query->header->aa(0);
+$query->header->tc(0);
+$query->header->rd(1);
+$query_wire = $query->data(65535);
 
-my $sock = $resolver->bgsend( $state->{'qname'}, $state->{'qtype'} );
-$state->{'resolver'} = $resolver;
-$state->{'sock'}     = $sock;
-
+my $protocol   = $state->{'usevc'}          ? qw| tcp | : qw| udp |;
+my $local_host = index( $ip, qw| : | ) >= 0 ? qw| :: |  : qw| 0.0.0.0 |;
+my $sock;
+for my $try ( 1 .. 13 ) {
+    my $local_port
+        = 49152 + unpack( qw| n |, <[base.prng.bytes]>->(2) ) % 16384;
+    $sock = IO::Socket::IP->new(
+        'LocalHost' => $local_host,
+        'LocalPort' => $local_port,
+        'PeerHost'  => $ip,
+        'PeerPort'  => $port,
+        'Proto'     => $protocol,
+        'Blocking'  => 0,
+    );
+    last if defined $sock;
+}
 if ( not defined $sock ) {
-    ## send failure : try the next upstream ##
     return <[nameserv.cache.forward.next]>->($state);
+}
+
+@{$state}{qw| sock upstream_ip upstream_port query_id query_wire in out |}
+    = ( $sock, $ip, $port, $query_id, $query_wire, '', '' );
+$state->{'phase'} = $state->{'usevc'} ? qw| tcp_connect | : qw| udp |;
+
+if ( not $state->{'usevc'} ) {
+    my $sent = send $sock, $query_wire, 0;
+    if ( not defined $sent or $sent != length $query_wire ) {
+        return <[nameserv.cache.forward.next]>->($state);
+    }
+} else {
+    $state->{'out'} = pack( qw| n |, length $query_wire ) . $query_wire;
 }
 
 $state->{'watcher'} = <[event.add_io]>->(
     {   'fd'      => $sock,
-        'poll'    => 'r',
+        'poll'    => $state->{'usevc'} ? qw| rw | : qw| r |,
         'handler' => qw| nameserv.cache.handler.answer |,
         'data'    => $state,
         'desc'    => "cache upstream query [ $state->{'qname'} "
@@ -77,8 +107,8 @@ $state->{'timer'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,.,,,,.,,,.,,,,,.,.,..,,.,.,,..,..,,.,,,,..,..,,...,..,,...,,,,,...,,,,,...,
-#IISCNT7XZSHV53JED6QUBVBZIUHNTWYDPZFQGCPOBH66LDTQJM3FDSFMFQXNBFCZPDDRXP3MUWSMQ
-#\\\|KFZKVBHCLVLYZJJVM4NVN46L4FYQLBZSRFLMCFMCSTGBDHN5DW6 \ / AMOS7 \ YOURUM ::
-#\[7]TCNG5NMO5THVDBQYSIVBZAK6GCDIJ7HRVK2WHKYPJQG42TCRAOAA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,...,,..,...,..,,,,.,..,,,..,,,,,..,,...,...,.,,,,,,,.,,,..,,.,.,
+#ZRTKXTZN2TTEQON6W2QOES5Y2CT6AIX5QI2PPLEVMPR2FZDPZI6J5JB2SW467EL4FXBZGOF5GRAHC
+#\\\|EMK4H5RCBU5E5FZAVSAB7JNLFL2M53E24RZCUXQIKSWCWJVD7GX \ / AMOS7 \ YOURUM ::
+#\[7]XVVAVVTTXPI42XMF5OIRYR757VPIYJH4AHFIXLYDFJPS54BJ2UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

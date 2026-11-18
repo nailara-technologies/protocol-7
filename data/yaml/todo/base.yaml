@@ -1135,10 +1135,11 @@ items:
   details: |-
     design : data/md/design/TIMESTAMP-DELTA-SYNC.md [ 2026-10-11 ]. signed entries, not a secured channel : any peer relays, any transport carries, writer grants per key [ a host's letsencr writes only its own _acme-challenge names ]. queries last-data-timestamp \ next-data-timestamp \ since \ full, signed state checksum. stages : 1 timestamps + tombstones + checksum [ kimi ], 2 tcp line protocol [ kimi ], 3 signing \ grants \ accept rules [ claude, security ], 4 letsencr writes to every nameserv, 5 generic %data \ N7FS [ 4EO ]. replaces axfr for DN0000 \ DN0110 \ DN1110.
     stage 4 [ 2026-10-12 ] : not needed as designed -- add-txt on the primary signs the entry and the peers pull it. the real gap was the propagation check : unset nameserv.addresses meant no check at all with three authoritative servers. now letsencr asks the resolved letsencr.dns.alias_ns addresses, skipping servers that do not answer [ the ca's resolver moves on too ]. expansion, when transport is simpler : dns-01 from any host [ its own nameserv signs, srv-U pulls from it, name: grants on every peer ; srv-F has no nameserv ].
-  done_at: null
+    closed 2026-11-18 : stages 1-3a landed [ 540211911 dd356e004 da5157594 68b93b97d ] ; the generic %data \ N7FS part continues in 4EO
+  done_at: 32VP5Z4KJI
   id: 4CJ
   priority: normal
-  status: open
+  status: done
   tags:
   - nameserv
   - sync
@@ -1653,10 +1654,10 @@ items:
     - alternative transport later : the p7 link instead of https [ LINK-ZENKI-AND-TRANSPORTS ]
     - related : 2IA [ the desktop helping with assessments ]
     - generalised [ owner 2026-10-22 ] : it then does not matter which jobsite fetched a job -- fetched jobs merge by their stable source id [ job-upsert ], so a local jobsite fetching through the home connection [ rarely blocked ] and srv-V fetching for srv-U meet in the same record. fetch location becomes a routing choice like an HS4 exit : home connection as fallback when server ranges are blocked, srv-V \ us nodes while the desktop is off. the hub [ srv-U ] keeps the canonical store + assessments ; EDITS [ status, notes, applied ] still settle at the hub only. relay mode grows a fetch-and-forward variant : fetch locally, upsert upstream [ like the outbox stream ]
-  done_at: null
+  done_at: 32VP5Z4KJI
   id: 5WI
   priority: normal
-  status: open
+  status: done
   tags:
   - jobsite
   - web
@@ -2235,10 +2236,10 @@ items:
 
     first live finding of dep-graph -affected-zenki [ 2026-10-29 ] : sourcecode.agent.sign is reachable from 'work' but missing from cfg/zenki/work/subroutines.load-early -- exactly the stale list the sub-list step must catch [ gen-sub-whitelist work ]
     slice 2 landed 2026-10-29 : p7_commit_prepare \ p7_commit \ p7_commit_status [ bin/dev/p7-commit ], op on p7_sign. open : the requirement chain, the stale redraft
-  done_at: null
+  done_at: 32VP5Z4KJI
   id: ZA2
   priority: high
-  status: open
+  status: done
   tags:
   - commit
   - signing
@@ -2748,9 +2749,30 @@ items:
   - signing
   - keys
   text: 'sign agent : delegations \ PIN \ review window [ HX4 ]'
+- added: 32VP5ZWYLU
+  details: a prepared commit refused as stale [ staged diff changed since prepare ] gets a redraft path instead of a dead end. bin/dev/p7-commit has no redraft today.
+  done_at: null
+  id: K3E
+  priority: normal
+  status: open
+  tags:
+  - commit
+  - signing
+  - tooling
+  text: 'commit manager : stale redraft [ split from ZA2 ]'
+- added: 32VP5ZXKAQ
+  details: fetch locally, upsert upstream [ like the outbox stream ].
+  done_at: null
+  id: 2BI
+  priority: normal
+  status: open
+  tags:
+  - jobsite
+  - web
+  text: 'jobsite relay : fetch-and-forward variant [ split from 5WI ]'
 
-#,,,,,,.,,..,,,,.,,,,,,..,,..,,,.,,..,.,,,.,.,..,,...,...,...,,,,,...,.,,,..,,
-#LEG7MANHUKJZ47QUYCDHUS6ES4IP2O6N6JARC6SASZKZ7VYS3GTZX6JM3DBYZE63CW5OZEPMZUJVC
-#\\\|TADQOIXYRWOMIIFZBSLNXYHGLWCSVYN2IPAXYHEQXRLOONAFLCB \ / AMOS7 \ YOURUM ::
-#\[7]HBJTX3Z3I53LVONMFFANCH23VQBSC7TF5FCHQESJGX3CRYG5Z6AY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,..,,,.,,,,,,,,.,..,,,,,,,,.,..,,...,...,..,,.,.,,.,,,,,,,..,
+#K2INLXSWWSXWIXEJFGMNJH4E26EZIUFRMLIQTHYBBYB2QOBRVDTZ6CJYMKQP4FN3WJTBQGRYSE6I4
+#\\\|BMCKKL2YTSSBN665M4NG725ZIBOSJS5RLRNGLOSDFVLL3YCA37Z \ / AMOS7 \ YOURUM ::
+#\[7]CSFRQZFCFZXYBMIZO5DAGNKCHTJ2XPEVGCMKOIK7TUDXF6DYZQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

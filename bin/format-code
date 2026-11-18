@@ -3059,6 +3059,14 @@ BEGIN {
         my $pkg = $fname;
         $pkg =~ s{/}{::}g;
         $pkg =~ s{\.pm\z}{};
+        ## the file's own 'use's and the project's lib-path modules only : ##
+        ## an installed module probing an optional one in eval            ##
+        ## [ Net::DNS -> Net::DNS::Resolver::linux ] must see it missing, ##
+        ## an empty stub breaks the real module                           ##
+        my $from = ( caller 0 )[1] // '';
+        return
+            if not $main::FC_OWN_MODULES{$pkg}
+            and $from !~ m{/lib-path/pm/};
         my $code = "package $pkg;\nour \$AUTOLOAD;\n"
             . "sub AUTOLOAD { return; }\nsub import { return; }\n1;\n";
         open my $fh, '<', \$code or return;
@@ -3424,8 +3432,8 @@ sub show_progress {
         $perc_chars, $filename );
 }
 
-#,,..,...,...,,.,,,,.,...,..,,,,.,...,,,,,..,,..,,...,...,,,,,.,,,.,.,,,.,.,,,
-#O246BEC6AJDIIQHAV4YXGT3QIH6QFSCCWRDY2K7I3AFCSQKKBCTSO3ORKOXCY5PKQB6PQVNYHV376
-#\\\|75D2QCBS4G7ZNVMGF2WMBUCJH6624BJ6PW6L7D6LPLEZNZ3GLDW \ / AMOS7 \ YOURUM ::
-#\[7]RFODMHFF2AUWDDZ4TTTOGXII4SVMEZANM5VIDI5SVZICJ2737ABY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,.,.,.,.,...,...,,,,,,,,,..,,..,,...,...,,..,,,.,...,.,,,.,,,
+#WZ3DEJFBIULUEXI44Y3IGENG2EWKQUBOXAL36WQH4RTYBCESYMZC7N3OHMNHZT2YWL3FXIX5TGIE6
+#\\\|B3YQPS5EBMPW6POTNZUOBWXIMCXBGJUIJ2SX23PWTWOO5Z3BNCB \ / AMOS7 \ YOURUM ::
+#\[7]KXT624PQPGW4YXIO622PYYM4DHZL7N5VBCB3ZGFZ24BZ5LK6SQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

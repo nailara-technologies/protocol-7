@@ -17,7 +17,7 @@ for my $server ( split m|\s+|, $configured ) {
 }
 
 if ( not scalar @upstreams ) {
-    if ( open my $fh, '<', '/etc/resolv.conf' ) {
+    if ( open my $fh, '<:encoding(UTF-8)', '/etc/resolv.conf' ) {
         while ( my $line = <$fh> ) {
             next unless $line =~ m{^\s*nameserver\s+(\S+)}i;
             my $ip = $1;
@@ -32,8 +32,8 @@ if ( not scalar @upstreams ) {
 
 return @upstreams;
 
-#,,..,,.,,.,.,,..,,..,,,.,..,,.,.,...,,..,...,..,,...,..,,...,,..,,..,.,.,,..,
-#5OX3YGYFDTONQRBEPLGHTY7LE3LYB6GUFH4P6ZPO764R7HGOCOWSNLFFJN3DPGQXRER2XEAWXXGVK
-#\\\|N2JZKIVDSEXMHQUE5EZHOBN6ZBOPZ2N5RRCHPM3KQZQLV6XYLIV \ / AMOS7 \ YOURUM ::
-#\[7]ACXRHNAJXBGC4IGRKTY5EMLXR77BNTT4OSCTY3SMESUWIMTOQADQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,.,.,.,.,,,.,...,.,,,...,,,.,..,,...,...,,.,,,,.,,..,.,,,,,,,
+#OR2HSV4R3364J4A4CAKLG5IA2IGUG3IVXMWAJK56YLISJXUF3CD3J4SHRXTHZQXZWLT5O2UCJQFJM
+#\\\|HTEFO4JPZV3NZUBTBABT6YALK3JZK3MWFAMGDHOZK2FXDAQH74Y \ / AMOS7 \ YOURUM ::
+#\[7]AINSBXFPIVAURIXD2IOICFSZKNSKLVK7DDP5RK3IHCGH7MEOZ2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,6 +9,24 @@ my $reinit = shift;
 <[base.perlmod.load]>->('Net::DNS::Packet');
 <[base.perlmod.load]>->('Net::DNS::RR');
 
+## per-subname instance configuration [ nameserv[cache] \ cache-local ] ##
+my $subname = <system.zenka.subname> // '';
+my $sub_cfg
+    = length $subname
+    ? ( <nameserv.cfg.by_subname> // {} )->{$subname} // {}
+    : {};
+
+<nameserv.bind.addr> = $sub_cfg->{'bind_addr'}
+    if defined $sub_cfg->{'bind_addr'};
+<nameserv.bind.port> = $sub_cfg->{'bind_port'}
+    if defined $sub_cfg->{'bind_port'};
+<nameserv.zone_dir> = $sub_cfg->{'zone_dir'}
+    if defined $sub_cfg->{'zone_dir'};
+<nameserv.cfg.cache.enabled> = $sub_cfg->{'enabled'}
+    if defined $sub_cfg->{'enabled'};
+<nameserv.cfg.cache.upstream> = $sub_cfg->{'upstream'}
+    if defined $sub_cfg->{'upstream'};
+
 ## nameserv configuration
 <nameserv.bind.addr> //= '0:0:0:0:0:0:0:0';
 <nameserv.bind.port> //= 53;
@@ -117,8 +135,8 @@ for my $timer ( @{ <nameserv.consistency.timers> // [] } ) {
 
 0;
 
-#,,.,,..,,,.,,.,,,...,,,.,..,,..,,.,,,.,.,,,,,..,,...,..,,.,,,,,.,...,.,,,.,,,
-#5ASKPQOKT2NNSYD5FVT5QAKQDAP4XHBFXKXLGL5KYEDDDHVRTLJSIYML373GVGJZUNRHTVGX2DYYA
-#\\\|D7DHB7RMFZVOPC6ICFFDOZHCT2Z3BEBCC2V4KIHZQQFUJRDQR2I \ / AMOS7 \ YOURUM ::
-#\[7]XUEZXWGL4PAYV653I2JHUHNOJTYH24PJVDX4MF35Q6E33H2JI6CA 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,,,..,,.,.,.,.,...,.,.,...,...,..,,...,...,...,.,.,..,,.,.,.,.,
+#EWMCIREZEGWOZKEEXN53DZ7ZCWUFHDEP47ZUN5ZQ7N66AYY2V6CB7ZJJU5LI3OQI7CAPXVFFM4XZY
+#\\\|AGWYZL5RI3VRDQNSM4YKUDIZD54SXPUMNZT25NOJK4CHXDZ6HY5 \ / AMOS7 \ YOURUM ::
+#\[7]ZU36LLTIPSVZ7DJVPQSWZYCPXC3AWNPZOZC4L4DWMJXEYCJUNYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

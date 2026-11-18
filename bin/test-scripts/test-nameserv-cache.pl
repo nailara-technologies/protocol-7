@@ -114,6 +114,7 @@ for my $mod (
     nameserv.zone.lookup
     nameserv.handler.p7ref_lookup
     nameserv.answer
+    nameserv.reply.echo_question
     nameserv.cache.client_allowed
     nameserv.cache.key
     nameserv.cache.get
@@ -145,6 +146,14 @@ $code{'base.logs'}
 $code{'base.s_warn'}
     = sub { push @logs, sprintf $_[0], @_[ 1 .. $#_ ]; return TRUE };
 $code{'base.str.os_err'} = sub { return "$OS_ERROR" };
+
+my $prng_counter = 30000;
+$code{'base.prng.bytes'} = sub {
+    my $amount = shift // 0;
+    die 'test prng only supplies two-byte values' if $amount != 2;
+    $prng_counter = ( $prng_counter + 1 ) & 65535;
+    return pack qw| n |, $prng_counter;
+};
 
 ## the real base.s_read \ base.s_write, minus the utf8 handling ##
 $code{'base.s_read'} = sub {
@@ -300,6 +309,8 @@ check 'client_allowed : 2001:db8::1 refused',
     $code{'nameserv.cache.client_allowed'}->('2001:db8::1') == FALSE;
 check 'client_allowed : empty refused',
     $code{'nameserv.cache.client_allowed'}->('') == FALSE;
+check 'client_allowed : invalid 127.999.1.1 refused',
+    $code{'nameserv.cache.client_allowed'}->('127.999.1.1') == FALSE;
 
 ## --- shared zenka-side udp socket + clients ##
 ## ------------------------------             ##
@@ -374,6 +385,13 @@ reset_state();
 my $real_client_allowed = $code{'nameserv.cache.client_allowed'};
 $code{'nameserv.cache.client_allowed'} = sub { return FALSE };
 
+udp_ask( make_query( 'www.example.com', 'A', 7104, 1 ) );
+$reply = client_recv();
+check 'client check : cache profile refuses non-loopback zone query too',
+    (       ref $reply
+        and $reply->header->rcode eq qw| REFUSED |
+        and $reply->header->aa == 0 );
+
 udp_ask( make_query( 'elsewhere.org', 'A', 7103, 1 ) );
 $reply = client_recv();
 check 'client check : non-loopback rd query -> REFUSED',
@@ -432,7 +450,7 @@ sub make_upstream_reply {
     my ($question) = $req->question;
     my $reply = Net::DNS::Packet->new( $question->qname, $question->qtype,
         $question->qclass );
-    $reply->header->id( $req->header->id );
+    $reply->header->id( $opts{'id'} // $req->header->id );
     $reply->header->qr(1);
     $reply->header->aa( $opts{'aa'}       // 1 );
     $reply->header->rcode( $opts{'rcode'} // qw| NOERROR | );
@@ -504,6 +522,27 @@ my $req = upstream_recv_query();
 check 'forward : upstream got the query with rd = 1',
     ( lc( ( $req->question )[0]->qname ) eq 'cached.example.org'
         and $req->header->rd == 1 );
+my ($state) = in_flight_states();
+check 'forward : base.prng id and ephemeral source port selected',
+    (       $req->header->id == $state->{'query_id'}
+        and $state->{'sock'}->sockport >= 49152
+        and $state->{'sock'}->sockport <= 65535 );
+
+my $wrong_id = ( $req->header->id + 1 ) & 65535;
+$upstream->send(
+    make_upstream_reply(
+        $req,
+        'id'     => $wrong_id,
+        'answer' => [ answer_a_rr( 'cached.example.org', 60, '192.0.2.66' ) ]
+    )
+);
+die "upstream socket not readable"
+    unless wait_readable( $state->{'sock'}, 3 );
+$code{'nameserv.cache.handler.answer'}->( FakeEvent->new($state) );
+check 'forward : mismatched reply id dropped, attempt stays pending',
+    (       scalar in_flight_states() == 1
+        and scalar keys %{ cache_entries() } == 0
+        and not wait_readable( $udp_client, 0.1 ) );
 
 $upstream->send(
     make_upstream_reply(
@@ -511,8 +550,7 @@ $upstream->send(
         'answer' => [ answer_a_rr( 'cached.example.org', 60, '192.0.2.77' ) ]
     )
 );
-my ($state) = in_flight_states();
-die "resolver socket " . "not readable"
+die "upstream socket not readable"
     unless wait_readable( $state->{'sock'}, 3 );
 my $held_watcher = $state->{'watcher'};
 my $held_timer   = $state->{'timer'};
@@ -686,11 +724,13 @@ check 'truncated : still in flight after the tc reply, no delivery yet',
 ## the same upstream, retried over tcp ##
 die "no tcp retry arrived" unless wait_readable( $upstream_tcp, 3 );
 my $tcp_peer = $upstream_tcp->accept;
-my $len_buf  = '';
+($state) = in_flight_states();
+$code{'nameserv.cache.handler.answer'}->( FakeEvent->new($state) );
+my $len_buf = '';
 while ( length $len_buf < 2 ) {
     my $b = sysread( $tcp_peer, $len_buf, 2 - length $len_buf,
         length $len_buf );
-    die "tcp retry length read " . "failed : $OS_ERROR"
+    die "tcp retry length read failed : $OS_ERROR"
         if not defined $b or $b == 0;
 }
 my $msg_len = unpack qw| n |, $len_buf;
@@ -708,7 +748,7 @@ my $tcp_reply = make_upstream_reply( $tcp_req,
 $tcp_peer->send( pack( qw| n |, length $tcp_reply ) . $tcp_reply );
 
 ($state) = in_flight_states();
-die "resolver tcp " . "socket not readable"
+die "resolver tcp socket not readable"
     unless wait_readable( $state->{'sock'}, 3 );
 $code{'nameserv.cache.handler.answer'}->( FakeEvent->new($state) );
 
@@ -965,6 +1005,18 @@ check 'tcp : second query is a cache hit, no second forward',
         and $data{'nameserv'}{'stats'}{'cache_forwarded'} == 1
         and scalar in_flight_states() == 0 );
 
+$code{'nameserv.cache.client_allowed'} = sub { return FALSE };
+my $tcp_refused_q = make_query( 'www.example.com', 'A', 6404, 1 );
+$client->send(
+    pack( qw| n |, length $tcp_refused_q->data ) . $tcp_refused_q->data );
+pump($conn_id);
+my $tcp_refused = $tcp_ask->();
+check 'tcp : non-loopback client refused without forwarding',
+    (       $tcp_refused->header->rcode eq qw| REFUSED |
+        and $data{'nameserv'}{'stats'}{'cache_forwarded'} == 1
+        and scalar in_flight_states() == 0 );
+$code{'nameserv.cache.client_allowed'} = $real_client_allowed;
+
 ## a tcp connection closed before the upstream reply : no error at all ##
 
 my $client2_b = IO::Socket::INET->new(
@@ -1102,8 +1154,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,.,,,,,...,,,.,.,,,...,,,,,..,,..,,,,,,..,,...,...,..,,..,,..,,,..,,,,,
-#EF5Q47XMY2O7JHFVNJ3B6FSMNW6VVHT6CSS4ACLWCYWQ34A4WAM5XO3DOB63SLKXZOZ5ULLR3RMFQ
-#\\\|TZLGVPGELERBZNBBU25XZAQA6BDAFJJPHHPSRH72B74FEYIMM4Q \ / AMOS7 \ YOURUM ::
-#\[7]ONG3YM2QE5UJ432LZINOUSI3HDNGNA6X3GBL5RPROPVVG2UDVQBA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,,,,,.,,..,..,,,,.,,,,,,..,...,..,,...,..,,.,.,...,.,,,...,..,,
+#3QPR6UV7CDSNBBRW6TXRFXW6R7SWUY2TGMQZFUOXOVKRAP4FFVONBBHSUFK3P5OFMTCGZRBIHKAZI
+#\\\|7L7DOAUDOID3EOSKOJT37RHUAR5RDAVUSCWVOS7N7ZIHGGM72BX \ / AMOS7 \ YOURUM ::
+#\[7]4ZJLHMYHDHOSUKSYUVQ7J3L5DKUEWGYS32Z7SXSAFUAFHX23LCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
