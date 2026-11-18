@@ -5,6 +5,7 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [session-handover-release-6-77-7](project-2026-11-18-session-handover-release-6-77-7.md) — NEWEST, START HERE 2026-11-18 pm : release 6.77.7, SEGV fix ; all 4 servers deployed clean
 - [session-handover-rcm-builds](project-2026-11-18-session-handover-rcm-builds.md) — NEWEST, START HERE 2026-11-18 : RCM builds, 4ZW wired, base.interval [ WEQ 1 ], -core-subs fixed ; next WEQ 2 first timer, RCM bridge, 4ZW live
 - [session-handover-todo-cleanup](project-2026-11-17-session-handover-todo-cleanup.md) — 2026-11-17 : todo cross-check, partial list in data/tasks
 - [session-handover-resource-ledger](project-2026-11-17-session-handover-resource-ledger.md) — NEWEST, START HERE 2026-11-17 : ledger 1a + canon + n7fs format 4 stages 1-2 built, reviewed, fixed, on all hosts [ b9e3d3b6d ] ; next : format 4 stage 3, ledger 1b ; owner positions in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md
@@ -56,6 +57,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [tool-probe-empty-args-destructive-default](feedback-tool-probe-empty-args-destructive-default.md) — 2026-09-16: `note_delete({})`, called to see what a missing param would do, silently wiped 38 note sections instead of erroring. The lesson is NOT "read source before probing" (a documentation compensation) — a destructive default on missing input is the tool's bug; fix the tool (explicit confirm_all + xz-trash on every note.* destructive op, landed same session, see [[project-note-trash-ntime-tools-landed-2026-09-16]]), don't just caution around it, matching [[feedback-upgrade-substrate-not-revert-on-tool-limits]]
 - [fix-immediately-reduces-cognitive-load](feedback-fix-immediately-reduces-cognitive-load.md) — user's stated *why* for always taking the correct-but-more-work path immediately over a quick patch/caution-note: resolving fully now leaves less unresolved state to track/remember later, a "trainable fog-removal technique" for staying focused across sessions, not just a correctness preference
 - [user-screen-brightness-sensitivity](feedback-user-screen-brightness-sensitivity.md) — real physical reaction to bright screens, not aesthetic; default new HTML/UI work to dark violet/blue-toned themes proactively, keep print forced light
+- [console-highlight-confined](feedback-console-highlight-confined.md) — console colours : background on the element only, plain spaces around it, one look per column [ select by position ]
 - [rapid-pattern-visual-disruption-risk](feedback-rapid-pattern-visual-disruption-risk.md) — real, lasting adverse effect (temporary inability to read text) from sustained attentive exposure to dense high-entropy ANSI-cycling visuals (bin/atom-delta-term); default any future rapid/psychedelic visual work (incl. vision-orbital-hop-sequence-hyperspace-flight-animation) to conservative, easily-slowed cycling rate, not max intensity
 - [no-personal-data-in-repo-tree](feedback-no-personal-data-in-repo-tree.md) — never hardcode emails/PII, or real hostnames/IPs of live deployments, into any repo-tracked file — src, gitignored, or memory files (`data/ai-mem/claude/*.md` is git-tracked too); use `<[file.zenka_dir.load]>->('cfg-dir:<zenka>/file')`, `/data/<project>-data/` external dirs, or generic phrasing instead
 - [never-invent-attribution-headers](feedback-never-invent-attribution-headers.md) — never write copyright \ license \ author \ email headers : a session invented one [ real name + NON-EXISTENT email + AGPL claim, jobs-normalize-titles, removed 2026-10-15 ]. project is free ; authorship only in read-me/author + license, by the owner's choice
@@ -107,8 +109,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,.,.,,,.,,,,,.,,,...,,..,..,,...,..,,.,,,..,,...,..,,.,.,,..,,..,...,,..,
-#NPA76RKUGGTKX7IHO5QUKTF74YCZWMEC5EMF2ITB5ECA4H6RSGXC2ED44WETOUEGUCXVIVHJLVLQ4
-#\\\|5PRT5ZJNJFGKBF4JF73R57GAJP72BE4XJZX2ISAWD5ETGEQTEGF \ / AMOS7 \ YOURUM ::
-#\[7]RNX43E5TMASWCJ65FG3UFAUVKPTIOWXVOLSE5GLIDAZE5QKNZQBI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,...,.,,,.,.,,,,,.,,,.,.,.,.,..,,...,.,.,...,.,.,,.,,.,.,,.,,
+#PI4MBU7GFNKXMGRSTFHATHF5YU3FNYG5IGXZGEJANOWX2DUHGOLUSZPXJVC5WKPVLZ7COLQS2D4MY
+#\\\|PLNU3G5KKUB6I4XXCXHKMQO5JHQ2G65OG6AYBV4XFS6KIVCSS6A \ / AMOS7 \ YOURUM ::
+#\[7]KHHTOOKZQ5MT6EHZIYAOQLAYLFPHBASM3IEWVYJDDJQ2POWIOCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
