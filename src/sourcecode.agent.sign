@@ -51,7 +51,11 @@ if ( $op eq qw| socket-path | ) {
         : sprintf( qw| %s/.n/run |,
         $ENV{'HOME'} // <[base.get_homedir]>
             ->( <crypt.C25519.usr_name> // $ENV{'USER'} ) );
-    return sprintf qw| %s/p7-sign-agent.sock |, $runtime_dir;
+    ## the agent's own dir ; an older agent's socket in the run dir itself ##
+    ## while it still runs                                                 ##
+    my $socket = sprintf qw| %s/p7-sign-agent/agent.sock |, $runtime_dir;
+    my $legacy = sprintf qw| %s/p7-sign-agent.sock |,       $runtime_dir;
+    return ( !-S $socket and -S $legacy ) ? $legacy : $socket;
 }
 
 my $socket_path = $call->{'socket'} // return undef;
@@ -70,9 +74,8 @@ my $handle = IO::Socket::UNIX->new(
 );
 
 if ( not defined $handle ) {
-    <[base.logs]>->(
-        0, ': signing agent ' . 'not reachable [ %s ]', $socket_path
-    );
+    <[base.logs]>
+        ->( 0, ': signing agent not reachable [ %s ]', $socket_path );
     return undef;
 }
 $handle->autoflush(1);
@@ -180,8 +183,8 @@ if (    $op eq qw| begin |
 
 return undef;
 
-#,,,.,...,,,.,.,.,,.,,,.,,,..,,.,,.,,,,,,,.,.,.,.,...,..,,..,,...,,..,,,.,,,.,
-#HY6CM5KY2JO773THERRV5PFHWC7V7MJ7PAW6ZIFFYNYIMZQMXY56RAPW423VT6H46MMQLC5BT4DJI
-#\\\|NMGOZGKME5MZBTPVRAIFOE66GJFCHNVD7VJACHPENEW3WREMF4T \ / AMOS7 \ YOURUM ::
-#\[7]3HT3CNYWIMMHP7DQHN3OB34PWB5MSNDVNNBUS6CKUK2Z4COXAIBQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,..,.,.,.,.,,,,,,.,,,.,,...,.,,,.,.,...,..,,.,,,,,,,..,,...,.,.,
+#ZSWYFPJUW4QPOILVNWYPK64UCWQMEOS4FEI7RJCAVIBDLUYSHWQH2MTHEA4342RQZMD2HFQG54WY4
+#\\\|VG5VBWVZZPO5EQI4CYJG2GNDZ76VXDXB2DXNIESTEMGCB33OLFG \ / AMOS7 \ YOURUM ::
+#\[7]VU42UV5BJLFS4WWDLREPGFOFYAYKD3SC7VI6X5ZGEIMVMZQCVEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

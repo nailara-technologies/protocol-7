@@ -152,7 +152,8 @@ use strict;
 use warnings;
 my @paths = @ARGV[ 3 .. $#ARGV ];
 my $run = 'test-run';
-my $log = $ENV{'XDG_RUNTIME_DIR'} . '/runs.log';
+my $log = $ENV{'XDG_RUNTIME_DIR'} . '/p7-sign-agent/runs.log';
+mkdir $ENV{'XDG_RUNTIME_DIR'} . '/p7-sign-agent';
 open my $fh, '>>', $log or die $!;
 print {$fh} "0 request $run\n0 begin $run\n";
 print {$fh} "0 sign $run $_\n" foreach @paths;
@@ -376,8 +377,8 @@ ok( $result->{'written_count'} == 0, 'valid files are not rewritten' );
 say $fail_count ? "FAILED : $fail_count checks" : 'all checks passed';
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,,.,.,,,,,.,.,.,..,,..,,...,.,.,,.,,...,..,,...,.,.,,..,,..,,,.,,..,..,,
-#VA7IQBQRB6T7RUIG6TIGHIT222HPTZHHZUTI6AIQXRJ4RFU6XSWVP2QDI4Y6Q575XAPNL5JRJWL2U
-#\\\|2PH7FD4KLK2KMV4IZJRHP7XXDEP5Z74WZTMKUOK4MEJYVGMFHOT \ / AMOS7 \ YOURUM ::
-#\[7]JP7NQ32UVBEYMBT5BWMZ7UMMJQ5VMK4BG5LK7FA7YKPYXIZY7QDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,..,,..,..,,...,,.,,...,..,,.,.,..,,...,...,,,,,...,..,,,,,,,,.,
+#RJT4UW4ZRYTJ7FHZVDOJM6CNYWSANEDEKI4HZPBWG6MNKR4GH3MHXZJNKF23633YWYC2DNO33ANCG
+#\\\|OQX2PFRIYDFVLKEFZQ4OOGSTVIWIKQ64UUB2WKJ6MEX5PRR7QDQ \ / AMOS7 \ YOURUM ::
+#\[7]TJ5OTQBHGHTASJJLZIASZZRV33V2M76MMLV4HOEUENCB72LGEMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

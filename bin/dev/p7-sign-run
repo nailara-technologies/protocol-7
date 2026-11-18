@@ -144,7 +144,11 @@ my $run_base
         and -w _ )
     ? $ENV{'XDG_RUNTIME_DIR'} =~ s|/+$||r
     : sprintf( qw| %s/.n/run |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
-my $runs_log = "$run_base/runs.log";
+## the agent's own dir [ older agents : the run dir itself ] ##
+my $runs_log
+    = -e "$run_base/p7-sign-agent/runs.log" || !-e "$run_base/runs.log"
+    ? "$run_base/p7-sign-agent/runs.log"
+    : "$run_base/runs.log";
 
 sub git_changed {    ## modified tracked files, staged or not ##
     my %changed;
@@ -351,7 +355,7 @@ if ( $sign_pid == 0 ) {
 }
 
 ## the run log tells the phase : 'begin' only after the user approved ##
-my ( $run_id, %signed, $denied_reason, $ended, $output );
+my ( $run_id, %signed, $denied_reason, $ended, $output, $crash_reason );
 my $poll_run_log = sub {
     open( my $log_fh, '<:raw', $runs_log ) or return;
     seek( $log_fh, $log_offset, 0 );
@@ -389,6 +393,11 @@ my $poll_denial = sub {
     while ( my $line = <$log_fh> ) {
         chomp $line;
         my ( undef, $kind, $id, $count, $reason_b32 ) = split m| |, $line;
+        ## the agent died during this job : its own last words ##
+        if ( ( $kind // '' ) eq qw| crash | ) {
+            $crash_reason = ( split m| |, $line, 4 )[3] // '?';
+            next;
+        }
         next if ( $kind // '' ) ne qw| denied |;
         $run_id        = $id;
         $denied_reason = '';
@@ -423,6 +432,13 @@ $output =~ s|\e\[[0-9;]*m||g;
 my @report = grep { length and not m|^\s*:?\s*$| } split m|\n|, $output;
 my $report = join "\n", @report[ ( @report > 25 ? -25 : 0 ) .. $#report ];
 
+if ( defined $crash_reason and not $ended ) {
+    finish(
+        qw| status | => qw| failed |,
+        qw| run_id | => $run_id,
+        qw| report | => "signing agent crashed : $crash_reason\n$report"
+    );
+}
 if ( defined $denied_reason ) {
     finish(
         qw| status |        => qw| denied |,
@@ -446,8 +462,8 @@ finish(
     qw| report | => $report
 );
 
-#,,,.,.,.,...,...,,,,,..,,,.,,.,,,..,,,..,...,..,,...,...,...,,..,,,.,.,.,,..,
-#IY7GNJIGELFELOJTQSWNVLZXSOLXFIO42HHZFFXIBXLWWWMEDWXGH4C3NHS3J2GRISPSKTQRXRG24
-#\\\|JOPBCXRBBXC6AL3KQSDDP22OK2BOD2ERQBZS6M4W6MRKD5W3EKG \ / AMOS7 \ YOURUM ::
-#\[7]7HYYGSL7TC2N6AUKOA6UOXVXGRYGQLN65A7QDIC3KWBFG47CQ4CA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,,,,,,,,,.,,,.,,.,,.,,,.,.,.,.,..,,...,...,...,...,,,.,.,,,...,
+#UYICWGMTALZGFEFLLISNBB57RSTW4OJTH4QONEZN4HP2RY7VUTTHJR5MNAOULSWBFF6722UKAD272
+#\\\|UWCPY4VSVPOTSKKOB7CRSADWASYCCZ7SRGXDFMP4PIE5IGZLB6H \ / AMOS7 \ YOURUM ::
+#\[7]SHYIUWKTC4NKGHXBEQP4OKVLIKFJ5CZH3FCCJCIIXFY2KZ3DT6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

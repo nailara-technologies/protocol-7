@@ -115,8 +115,7 @@ my $run_base
         and -w _ )
     ? $ENV{'XDG_RUNTIME_DIR'} =~ s|/+$||r
     : sprintf( qw| %s/.n/run |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
-my $socket_path = $ENV{'P7_SIGN_AGENT_SOCKET'}
-    // sprintf qw| %s/p7-sign-agent.sock |, $run_base;
+my $socket_path = $ENV{'P7_SIGN_AGENT_SOCKET'};    ## default below ##
 ## the C25519 keypair store [ crypt.C25519.get_usr_keys_dir ] ##
 my $key_dir
     = sprintf( qw| %s/.n/user-keys |,
@@ -137,7 +136,7 @@ Getopt::Long::GetOptions(
     'key=s'               => \$key_name,
     'socket=s'            => \$socket_path,
     'key-dir=s'           => \$key_dir,
-    'run-dir=s'           => \$run_base,
+    'run-dir=s'           => \my $run_dir_option,
     'test-stdin-approval' => \$test_stdin_approval,
     'key-fd=i'            => \$key_fd,
 ) or die "p7-sign-agent : option error\n";
@@ -147,9 +146,24 @@ $test_stdin_approval = TRUE
     and defined $ENV{'P7_SIGN_AGENT_TEST_STDIN'}
     and $ENV{'P7_SIGN_AGENT_TEST_STDIN'} eq '1';
 
+## the agent's own 0700 dir inside the run dir : socket + runs.log, not ##
+## loose among other programs' runtime files                            ##
+$run_base = $run_dir_option if defined $run_dir_option;
+my $agent_dir = sprintf qw| %s/p7-sign-agent |, $run_base;
+$socket_path //= sprintf qw| %s/agent.sock |, $agent_dir;
+## durable : crash \ denied \ restart lines survive a reboot              ##
+## [ the run dir is tmpfs ] -- the full run log stays live only. an       ##
+## explicit --run-dir [ tests, a second instance ] keeps it there instead ##
+my $events_log_path
+    = defined $run_dir_option
+    ? sprintf( qw| %s/events.log |, $agent_dir )
+    : sprintf( qw| %s/.7/p7-sign-agent/events.log |,
+    $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+my %durable_event = map { $ARG => 1 } qw| crash denied agent-restart |;
+
 ## unlocked key material [ wiped on every exit path ] ##
 my ( $key_public, $key_private );
-my $runs_log_path = sprintf qw| %s/runs.log |, $run_base;
+my $runs_log_path = sprintf qw| %s/runs.log |, $agent_dir;
 my $run_log_fh;
 my %run_approved;    ## run id -> { tree, paths, last, peer_pid } ##
 
@@ -539,10 +553,7 @@ sub run_log_open {
     ## the runtime dir may not exist yet                                  ##
     ## [ first start on the ~/.n/run fallback ] -- and no audit log means ##
     ## no signing : fail closed                                           ##
-    if ( not -d $run_base ) {
-        make_path( $run_base, { qw| mode | => 0700 } );
-        chmod 0700, $run_base;
-    }
+    agent_dir_ready();
     open( $run_log_fh, qw| >> |, $runs_log_path )
         or die "p7-sign-agent : cannot open $runs_log_path : $OS_ERROR\n";
     chmod 0600, $runs_log_path;
@@ -550,11 +561,52 @@ sub run_log_open {
     return TRUE;
 }
 
+## the agent dir : created 0700, never a link, owned by us -- fail closed ##
+sub agent_dir_ready {
+    make_path( $agent_dir, { qw| mode | => 0700 } ) if not -e $agent_dir;
+    my @st = lstat $agent_dir;
+    die "p7-sign-agent : $agent_dir is not a directory owned by uid $EUID\n"
+        if not @st
+        or -l _
+        or not -d _
+        or $st[4] != $EUID;
+    chmod 0700, $agent_dir;
+    return TRUE;
+}
+
 sub run_log_line {
-    return if not defined $run_log_fh;
-    print {$run_log_fh} join( ' ', ntime_b32_now(5), @ARG ) . "\n";
+    my $line = join( ' ', ntime_b32_now(5), @ARG ) . "\n";
+    print {$run_log_fh} $line if defined $run_log_fh;
+    events_log_line($line)    if $durable_event{ $ARG[0] // '' };
     return;
 }
+
+## best effort : a durable copy must never stop the agent ##
+sub events_log_line {
+    my $line = shift;
+    my ($dir) = $events_log_path =~ m|^(.*)/[^/]+$|;
+    eval { make_path( $dir, { qw| mode | => 0700 } ) } if not -d $dir;
+    return if -l $dir or -l $events_log_path;
+    open( my $fh, qw| >> |, $events_log_path ) or return;
+    chmod 0600, $events_log_path;
+    print {$fh} $line;
+    close $fh;
+    return;
+}
+
+## a crash leaves its reason behind : runs.log [ p7-sign-run reports it ] ##
+## and the durable events log. not inside an eval [ handled there ]       ##
+my $crash_logged;
+$SIG{'__DIE__'} = sub {
+    return if $EXCEPTIONS_BEING_CAUGHT // 1;
+    return if $crash_logged++;
+    my $why = join( '', @ARG ) =~ s|\s+| |gr =~ s|^\s+\|\s+$||gr;
+    run_log_line(
+        qw| crash |,
+        join( ',', sort keys %run_approved ) || '-',
+        substr( $why, 0, 300 )
+    );
+};
 
 ## the signed end : an immutable capability-reduction statement. anyone with
 ## the public key verifies when a run's signing window closed
@@ -728,10 +780,7 @@ sub socket_set_up {
             or die "p7-sign-agent : cannot replace "
             . "$socket_path : $OS_ERROR\n";
     }
-    if ( not -d $run_base ) {
-        make_path( $run_base, { qw| mode | => 0700 } );
-        chmod 0700, $run_base;
-    }
+    agent_dir_ready();
     my $server = IO::Socket::UNIX->new(
         qw| Type   | => SOCK_STREAM,
         qw| Listen | => 64,
@@ -1414,8 +1463,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,.,,.,.,...,,,.,,.,,.,.,.,.,,..,,..,.,,,.,,,..,,...,...,,.,,,.,,,..,,,,,,..,
-#QC7WJ3ZUP3ISKJESRSU4MEZL32DJDW4VTWW4655Q3OROF2CBQPI22RPXK3XBAYUIH6CZCZNXVDZWW
-#\\\|DOQUM2U7XPT5YEECP2IDZURDLR5THY27AQ37LJIDEG6GTAM4UXM \ / AMOS7 \ YOURUM ::
-#\[7]XP2S7OCUF7S4LOF46GRMRZNST2EIJOHKFUYP2XL3XUTRKU2DOABI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,..,,,,,,.,,.,.,,,,,..,,,.,,,.,,..,,...,...,...,,..,...,.,.,,,,,
+#EJO7GCKDGOWDK6DWIKGC2V4U5LVQXQURB6DEIAAVEXK2A5CWBPJEUWOPGEBNEY7UK4J5X5X6B3KWC
+#\\\|QXZO2OGIOSI4ANDT3WNVV6GBRZXV6MRBQIV3YTJAOOPISFX3PSK \ / AMOS7 \ YOURUM ::
+#\[7]JUSLRHC5HSQ5N3JXC7JPZVHZXCFJ3PHWEMGIQXKHICJ6OLBBNMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

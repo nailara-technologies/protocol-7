@@ -364,7 +364,8 @@ ok( defined $end_reply && $end_reply =~ m|^OK |,
 
 stop_agent($pid_one);
 
-my $runs_log_one = File::Spec->catfile( $temp_one, qw| runs.log | );
+my $runs_log_one
+    = File::Spec->catfile( $temp_one, qw| p7-sign-agent runs.log | );
 open( my $runs_fh_one, qw| < |, $runs_log_one )
     or die "read $runs_log_one : $OS_ERROR\n";
 my @sign_lines = grep {m| sign \Q$run_id\E \Q$file_rel\E |} <$runs_fh_one>;
@@ -519,8 +520,8 @@ if ( $fail_count == 0 ) {
 say "$fail_count check(s) FAILED";
 exit 1;
 
-#,,,.,.,,,,..,,,,,,..,...,...,.,,,,,,,,..,...,..,,...,...,.,.,.,,,,.,,,..,,.,,
-#FA544A5Y4FA6KOAT45V3S6BZHJ354BGDJ2LVHRCUD3AWBXONCSSQEXHXTKSBDNEB3DELBWML4EFH6
-#\\\|KCDGZ6TGO22GOIA4NHIGZ3IZRISPYSOKEEXWGO32PE3RVXDVIZC \ / AMOS7 \ YOURUM ::
-#\[7]HPX56NODNTLHFHUM3JULKX5V4E6ZZZVAUSV52APPIXBY57VCCGCY 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,...,,..,,,.,,.,,.,.,...,.,.,..,,...,...,,..,,..,.,,,,.,,,.,,
+#GYNPSSLCCTR5DYKBZQLMMICDERYNS4777CJN7CLVMYZI3ESIZDUIDC5MHEZWCO7I2ZEMKGD2KRPOU
+#\\\|ZBVMKQMUNPBXSMOGJUCVMY73VMPR5ANYS56IQ2MSYN45VG6U4RN \ / AMOS7 \ YOURUM ::
+#\[7]MRNWKYJI6RRBFQK3DO52RIK6QXP6QJYGYVKM67XK6SJB7C23O2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
