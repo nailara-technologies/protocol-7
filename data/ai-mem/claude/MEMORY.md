@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-release-6-77-7](project-2026-11-18-session-handover-release-6-77-7.md) — NEWEST, START HERE 2026-11-18 pm : release 6.77.7, SEGV fix ; all 4 servers deployed clean
+- [session-handover-host-prep-inline-config](project-2026-11-18-session-handover-host-prep-inline-config.md) — NEWEST, START HERE 2026-11-18 eve : power drivers, inline categories, AMOS7::Config ; servers clean on a9cbcec19
+- [session-handover-release-6-77-7](project-2026-11-18-session-handover-release-6-77-7.md) — 2026-11-18 pm : release 6.77.7, SEGV fix ; all 4 servers deployed clean
 - [session-handover-rcm-builds](project-2026-11-18-session-handover-rcm-builds.md) — NEWEST, START HERE 2026-11-18 : RCM builds, 4ZW wired, base.interval [ WEQ 1 ], -core-subs fixed ; next WEQ 2 first timer, RCM bridge, 4ZW live
 - [session-handover-todo-cleanup](project-2026-11-17-session-handover-todo-cleanup.md) — 2026-11-17 : todo cross-check, partial list in data/tasks
 - [session-handover-resource-ledger](project-2026-11-17-session-handover-resource-ledger.md) — NEWEST, START HERE 2026-11-17 : ledger 1a + canon + n7fs format 4 stages 1-2 built, reviewed, fixed, on all hosts [ b9e3d3b6d ] ; next : format 4 stage 3, ledger 1b ; owner positions in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md
@@ -109,8 +110,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,.,.,,,,,...,.,,,,..,,..,,..,,,,,,,.,.,,,..,,...,...,...,,,.,,,,,..,,,,.,
-#A547NAULZ7MRXM2HBTAV4MSQI3TSQWYRQTFKZIBSNK7II4PSJFXJNJ4GTF56TTGJKHHBXSBSTWF2Q
-#\\\|MA37UCKZ3JMTK5VTYQJE4FCC2X573PK7CBUCJSDBDMKFZMW4IYB \ / AMOS7 \ YOURUM ::
-#\[7]OR7QS4GOBDPQPMID3DGC5VVORBLSH34NCAZS2ARG5GFG74JHH6BI 7  DATA SIGNATURE ::
+#,,..,.,,,...,,.,,,,,,,,.,,,,,,,,,...,.,.,..,,..,,...,...,...,,,,,,..,,,,,,,.,
+#2QZ4PRKH7EYESPZZNRA4QJMHMG3WDKJG72JNIOFK7XU3C5AVW7TDNUQJQ7NH3T2KD67FWILR7HPKI
+#\\\|ENZFQ2PXH63IGEWQX5RCLMXVWWMU3EGKG3SALT7YIRGINU2YTRR \ / AMOS7 \ YOURUM ::
+#\[7]GFCCFKFMZYDIEIEHZO2A7MKM4526P4GTQLWYXUMXDSTIJALFVCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
