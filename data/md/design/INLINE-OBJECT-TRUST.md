@@ -261,7 +261,9 @@ always functional, never a lockout : the user builds \ edits \ rebuilds
 objects transparently ; every trust layer is graceful [ warn + pure perl
 fallback ], strict only for key holders.
 
-reproducibility blockers found 2026-11-17 :
+reproducibility blockers found 2026-11-17 [ all three fixed 2026-11-18 in
+AMOS7::INLINE : the same source builds byte-identical objects in two
+different dirs ; old 2-part cache dirs stay unused, pruning still open ] :
 - the build dir is embedded in the object [ debug info ] and the gnu build
   id hashes it : -ffile-prefix-map=<build dir>=. + --build-id=none [ or no
   -g ]
@@ -314,8 +316,8 @@ reader can map a half-installed .so ] :
   contract input away from the compiled sub, so the DISPATCH surface is
   the one that must [ and does ] agree everywhere.
 
-#,,,,,,.,,,,.,.,.,,,,,,.,,,,.,,.,,..,,...,.,,,..,,...,...,,,.,,,,,.,.,.,,,,,,,
-#6P3BSJLQOHDDXAAMRP3H2XW2RUW6TVJVFXNRN4IJXYHE46GQSZJPPRV3QA524AUCETADA54ALGUHW
-#\\\|2ULXCFGQ2ORUXVYO5IM5RUG54GRW2O3Q5KVAPGP4RHGY3NVUBHL \ / AMOS7 \ YOURUM ::
-#\[7]K33PAFRONVC5TZCNHYBY75CD3LPZXZMCGCLN3IFCOIMWIDJZ2KBY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,,,...,,..,,.,,..,,.,.,..,,.,.,..,,...,...,..,,...,...,..,,.,.,
+#SM3GHVGZPAZFSZYD2WIJJ66M7LYNXTDWNQSYMM63MZSU7QH336TKSZC5Z7KK5ESBOLPDUO4KI3R6S
+#\\\|KI46DBGM6Q6YIE5OMHRYYC4EW3WMIZCLRKWQYH4BX3VYVQH5YPO \ / AMOS7 \ YOURUM ::
+#\[7]HB7GGXZDQJGYLFWXEZADMP4EUZEGYBTVXRQAFZZMIQA3ER3B26CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

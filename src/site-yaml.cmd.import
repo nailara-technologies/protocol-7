@@ -129,8 +129,8 @@ if ( @{$queue} ) {
 my $queue_preload     = scalar @{ <site-yaml.fetch_queue> // [] };
 my $allow_early_break = ( not $full_mode and not $queue_preload ) ? 1 : 0;
 
-my $max_pages = 20;    ## hard ceiling [ WY5 ] : the loop stops at the ##
-## first empty \ all-duplicate page long before  ##
+my $max_pages = <site-yaml.import_max_pages> // 20;
+$max_pages = 1 if $max_pages < 1;
 
 my $delay_search = <site-yaml.import_delay_search> // 1.5;
 
@@ -157,8 +157,8 @@ my $import_id = <[base.gen_id]>->( <site-yaml.import_state> //= {} );
 
 return { 'mode' => qw| deferred | };
 
-#,,.,,,,,,,,.,.,,,...,..,,,,,,.,.,,.,,.,,,,.,,.,.,...,...,.,.,.,,,,,.,.,.,..,,
-#S5ZVXROXNTYZJV5232Q2UR7IFEO4MXB2H3NDYQPHU7X4TRFJOFAHWAMST45DGYKUZM5XUHXPS22QE
-#\\\|UF7LYIZQXBOBI5EPDS4H4WICUWMSF6V42ZB55PZRW2JGKIGNZSU \ / AMOS7 \ YOURUM ::
-#\[7]KBNA5GCI2HP72JBBRAWRG4MQCUG7JJSHEDOEURMMF2URKPQRBABY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,.,.,.,,,.,.,,,,,..,,,,,,.,,,.,.,...,.,.,..,,,,,,,..,,..,,.,,
+#KQZJAITQ377UUK4H3QN66R32WDR6CB7OLE26V2ULOVKUKWJ7OVWOFQWDXRMU3HXAOP4ACEQVMBJ3K
+#\\\|JQ2OBTMCZAY7E7JWO2QRS74JKH5WEPR63OXKHIVGAQDCSAVDQWJ \ / AMOS7 \ YOURUM ::
+#\[7]HDG5ZLGDTSZJAFXTP4GTWSPVYQOFXZOTGQHXZQW7KK2CMGS6O4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,6 +14,7 @@ use v5.24;
 use strict;
 use English;
 use warnings;
+use Config;
 use Cwd             qw| abs_path |;
 use File::Path      qw| make_path |;
 use List::MoreUtils qw| minmax |;
@@ -78,7 +79,7 @@ warn_err(
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-$VERSION = qw| AMOS7::INLINE-VERSION.3UFELCI |;
+$VERSION = qw| AMOS7::INLINE-VERSION.6HGLZCA |;
 
 return TRUE;    ## true ##
 
@@ -176,8 +177,10 @@ sub compile_inline_source {
 
         } else {    ##  generate based on elf-chksum of subroutine source  ##
 
-            $custom_inline_dir = gen_inline_path( sprintf qw| %s.%s |,
-                $current_sub_name, encoded_bmw_chksum($cleaned_source) );
+            $custom_inline_dir = gen_inline_path(
+                sprintf qw| %s.%s.%s |,              $current_sub_name,
+                encoded_bmw_chksum($cleaned_source), toolchain_key()
+            );
         }
 
         ## check \ create inline directory ##
@@ -190,7 +193,10 @@ sub compile_inline_source {
             0, $custom_inline_dir )
             if -d $custom_inline_dir and not -r $custom_inline_dir;
 
-        if ( !-d $custom_inline_dir ) {
+        ## no build without Inline::C : a pure-perl process creates no dir ##
+        if (    !-d $custom_inline_dir
+            and $inline_c_available
+            and not $force_pure_perl ) {
 
             make_path( $custom_inline_dir, {@params} )
                 or return warn_err( ': %s : %s', 1,
@@ -208,11 +214,13 @@ sub compile_inline_source {
         eval "undef \\&$current_sub_name";
         eval "undef *${target_package}::$subroutine_name";
 
-        state $iteration //= 0;
-
-        ## temporary namespace to avoid subroutine 'redefined' ##
-        my $compilation_namespace = sprintf 'COMPILE::%03d::%s',
-            $iteration++, $target_package;
+        ## temporary namespace to avoid subroutine 'redefined' : keyed on   ##
+        ## the source chksum, not a load-order counter -- the name lands in ##
+        ## the object [ boot symbol, build path ], so the same source       ##
+        ## builds the same bytes in every process                           ##
+        ## [ INLINE-OBJECT-TRUST.md ]                                       ##
+        my $compilation_namespace = sprintf 'COMPILE::K%s::%s',
+            encoded_bmw_chksum($cleaned_source), $target_package;
 
         my $compilation_target = sprintf '%s::%s',
             $compilation_namespace, $current_sub_name;
@@ -228,7 +236,8 @@ sub compile_inline_source {
                 qw|  C  |         => $cleaned_source,
                 qw| name |        => $compilation_target,
                 qw|  directory  | => $custom_inline_dir,
-                qw| BUILD_NOISY | => $devmod_output_to_console
+                qw| BUILD_NOISY | => $devmod_output_to_console,
+                reproducible_build_flags($custom_inline_dir)
             );
         };
         ## keep compilation errors ##
@@ -259,7 +268,7 @@ sub compile_inline_source {
         ## to do with the dynamically numbered 'COMPILE::NNN::..' namespace ##
         ## actually created above -- both were silent no-ops, leaking one   ##
         ## full package stash [ sub + XS/DynaLoader glue ] on every compile ##
-        my ($iteration_key) = $compilation_namespace =~ m|^COMPILE::(\d+::)|;
+        my ($iteration_key) = $compilation_namespace =~ m|^COMPILE::(\w+?::)|;
         ## 'exists' first : without a compilation the stash was never made, ##
         ## and the nested delete would autovivify %main::'s 'COMPILE::' as  ##
         ## a plain hash ref [ not a glob -- breaks %main:: symbol scans ]   ##
@@ -387,6 +396,41 @@ sub gen_inline_path {
     return $abs_path;
 }
 
+##[ REPRODUCIBLE BUILDS ]#####################################################
+
+## short key over the toolchain : a compiler \ perl \ flags change gets a ##
+## new directory instead of rebuilding in place over the old object       ##
+sub toolchain_key {
+    state $key;
+    return $key if defined $key;
+    my $toolchain = join "\n", map { $_ // '' } $Config{'cc'},
+        $Config{'gccversion'}, $Config{'archname'}, $Config{'version'},
+        $Config{'ccflags'}, $Config{'lddlflags'},
+        $Inline::C::VERSION, _reproducible_flag_set();
+    $key = encode_b32r( substr( _src_digest($toolchain), 0, 3 ) );
+    return $key;
+}
+
+## gcc 8 \ clang 10 know -ffile-prefix-map, older ones the debug variant ##
+sub _reproducible_flag_set {
+    my ($gcc_major) = ( $Config{'gccversion'} // '' ) =~ m|^(\d+)|;
+    return ( $gcc_major // 0 ) >= 8
+        ? qw| -ffile-prefix-map |
+        : qw| -fdebug-prefix-map |;
+}
+
+## the build dir is embedded in the debug info and the gnu build id hashes ##
+## it : map it to '.' and drop the build id                                ##
+sub reproducible_build_flags {
+    my $build_dir = shift // return;
+    return (
+        qw| CCFLAGSEX | =>
+            sprintf( '%s=%s=.', _reproducible_flag_set(), $build_dir ),
+        qw| LDDLFLAGS | =>
+            sprintf( '%s -Wl,--build-id=none', $Config{'lddlflags'} // '' ),
+    );
+}
+
 ##[ SOURCECODE CHECKSUM ]#####################################################
 
 sub encoded_bmw_chksum {
@@ -416,8 +460,8 @@ sub _src_digest {
 
 return TRUE ##################################################################
 
-#,,..,..,,,,,,,..,...,,,,,,.,,..,,,..,.,.,,..,..,,...,...,.,,,..,,,.,,..,,...,
-#B7BNOIC7WNTUG3PBK6BK73A5SLM7MKJJLODX6AK2MI4T7JTMJBJ45X7OFYDF4HTB7IND2WVVIGDNY
-#\\\|H2B7ZGWVX2YY6OPYSFV2ER6M4NW4SJ3TIVY3FASEJIPKGR7J6O7 \ / AMOS7 \ YOURUM ::
-#\[7]NSFTJB2IGPBOQEJAZVIGHGOFNWWI67QTFLJNONH5T3TTL3P4XSAI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,.,.,..,,,,.,,,.,...,..,,,.,,..,,...,...,..,,,,,,...,...,,..,
+#3Y42WM2XS3JZEM6GURAYKOH55IFG73TFQNGPW672A6D2MR32PDK6PQMKORK4GOGT5SM5OKAC4OA6W
+#\\\|ADGCQOEG2VOWE5E5YE6G3IHDAZC67IW4EAJ55LIMMMVK2RGVY2O \ / AMOS7 \ YOURUM ::
+#\[7]P6P2YD7STXK4BR7AU2ZMTKN6J2Q3227MUFA66RVP5SQEWZVIFKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
