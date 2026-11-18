@@ -18,11 +18,15 @@ my $zenka_name = <system.zenka.name>;
     if !@check_dirs
     or @check_dirs == 1 and not defined $check_dirs[0];
 
+## not imported into every zenka [ the pm-src build broke on it ] ##
+<[base.perlmod.load]>->('File::Path')
+    if not <[base.perlmod.loaded]>->('File::Path');
+
 foreach my $chk_dir (@check_dirs) {
     my $subdir_path = catfile( $chk_dir, $zenka_name );
     <[base.logs]>->( 2, ':. tmp-dir-chck :. %s', $subdir_path );
     if ( -d $subdir_path and -w $subdir_path
-        or make_path( $subdir_path, { 'mode' => 0750 } ) ) {
+        or File::Path::make_path( $subdir_path, { 'mode' => 0750 } ) ) {
         $first_dir = $subdir_path;
         last;
     }
@@ -94,8 +98,8 @@ if ($register) {
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,,.,,.,,,.,,..,,,,,,,.,,.,,,,,,,,..,,,,,,,.,..,,...,...,,.,,,..,..,,,,.,.,,,
-#CPTOUUTPZYUYT7GGEGTJM5JIEXFKMGI5VUYJBN7OL6CZO3YWTIQBHKSBQMO73JOHPGI54SW6Y67N2
-#\\\|6Q4IAM7PWMO4VC4RATZP2VU3F6L7AZJKHPQLOV5E7BHTVNFS34J \ / AMOS7 \ YOURUM ::
-#\[7]2EGFQTDLAFZEBCHXGHRYT2C6L6JFY4BDWZKBURUBFWQFK2VZTQDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,..,,...,...,..,,,.,,.,.,,,.,..,,...,...,..,,.,,,..,,.,,,.,,,
+#PLJN3KBSUIELBLSC5ZZE7MYV3HQMMSC5GYNPLGJRME7UHGR2RMF3XBEPQIM5QGRGMFWJT2NGIRNE4
+#\\\|36TB7HYXCGDQEKZ72SFGXEJW3MML6I2XG65JYPHWT2STQBYJBTK \ / AMOS7 \ YOURUM ::
+#\[7]QCFFNLJKOJXOIUBUMJHE46TGTSQKJPKR7WCX3EHCYTOM6S2OTGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
