@@ -12,15 +12,21 @@ map {
 
     ## a device without states [ driver module missing, no connection ] ##
     ## keeps its row, every outlet unknown                              ##
+    my $driver = <power.cfg.devices>->{$ARG}->{'driver'} // qw| gembird |;
     my $row_states
         = ref $states eq qw| HASH | && lc $states->{'mode'} eq qw| true |
         ? $states->{'data'}
-        : join( ' ', ('E') x 4 );
+        : join( ' ', ('E') x ( $driver eq qw| gembird | ? 4 : 1 ) );
+
+    ## rows keep 4 state columns for power-x11 : pad with '-' ##
+    my @row = split( m| |, $row_states );
+    push @row, '-' while @row < 4;
+    $row_states = join( ' ', @row );
 
     $reply_str .= join( ' ',
         $ARG,
-        <power.cfg.devices>->{$ARG}->{'mac'},
-        <power.cfg.devices>->{$ARG}->{'ip'}, $row_states )
+        <power.cfg.devices>->{$ARG}->{'mac'} // '-',
+        <power.cfg.devices>->{$ARG}->{'ip'} // '-', $row_states )
         . "\n"
 } sort {
     <power.cfg.devices>->{$a}->{'added'} <=>
@@ -29,8 +35,8 @@ map {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,.,,,,,,..,..,,..,,,..,..,,...,..,,..,,.,.,..,,...,...,..,,,,,,...,...,.,.,
-#CUXFTC42CMP2IBCKC5FURTFYORFP5X4X5FJWR6EIGLVEPPEN3VMHO53ZX7ELSMSG6V7SY5Y3CV3MQ
-#\\\|HHIA3DO7YB2JVVPBKHZ34KJARCT6WDDAF5S4QBVGCYGT6QY3AZ4 \ / AMOS7 \ YOURUM ::
-#\[7]55D3B4OFDXAF6F2FMLGKG3EXWTRFCRVK2MXMYDMUMAKFKIQBV2AA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,,.,,,..,,.,,...,..,,..,,,.,,..,,...,...,...,,,,,.,.,,,.,,..,
+#ODINFKJTTNVIKFO2MOMIHCIRGUJL22YQ6ZAYGNHE2P2ZVCAUQKF7BBO6CIHPBGVZON6A7D66IZKG2
+#\\\|A4AMGUCUA25L3IVKN2UMZIPSL6ICQYQHI4TFIPNIO63LH7Q2GQS \ / AMOS7 \ YOURUM ::
+#\[7]5EPWPPGRNKLKC5K63WINT4QXFNGBDTCVMTRITCQTUO62XGSKYSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

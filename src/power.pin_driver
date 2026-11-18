@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = power.pin_driver
+# descr = pin a driver's deps profile after its first successful use
+# param = ( $driver, \@states ) -- states from the driver's get \ set
+
+my ( $driver, $states ) = @ARG;
+
+return if ref $states ne qw| ARRAY |;
+
+## valid : at least one real state, not only E \ undef ##
+return if not grep { defined $ARG and $ARG =~ m|^[01]$| } $states->@*;
+
+my $profile = <[power.driver_info]>->($driver)->{'profile'};
+
+return if not defined $profile;
+
+<power.pinned_run> //= {};
+return if <power.pinned_run>->{$driver}++;
+
+<[base.deps.pin_first_use]>->($profile);
+
+return;
+
+#,,..,,,.,,.,,,,,,.,,,.,.,...,.,.,,,,,.,,,.,,,..,,...,...,,..,..,,,.,,,,.,,,.,
+#YUPRPKMIYIGB5ZTNI4LVPFKOKE2ZYFHNMP6UITZXIA5WG5EFEREESKUFHDJP45JPKPBJOKNIRIVIY
+#\\\|HXW4W2HTO3ISK24EA3TZL27W3G2OM6MMADH46GVGPIY4WPGSHXW \ / AMOS7 \ YOURUM ::
+#\[7]KKZPZPE25I3EYMJ56C7V6ZIHK5AEP4EQQGVPPJ3UHOJ3TWPZ3MCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

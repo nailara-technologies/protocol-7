@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = power.plugin.wol.open
+# descr = power driver 'wol' : wake on lan target from the device config
+# param = ( $device_cfg ) -> handle, or ( undef, reason )
+
+my $device_cfg = shift;
+
+return ( undef, 'device config expected' )
+    if ref $device_cfg ne qw| HASH |;
+
+my $mac = $device_cfg->{'mac'} // '';
+my $hex = $mac;
+$hex =~ s|[:-]||g;
+
+## six octets, separators all ':' or all '-' or none ##
+return ( undef, "invalid mac address '$mac'" )
+    if $mac  !~ m|^(?:[0-9a-f]{2}([:-]))(?:[0-9a-f]{2}\1){4}[0-9a-f]{2}$|i
+    and $mac !~ m|^[0-9a-f]{12}$|i;
+
+my $broadcast = $device_cfg->{'broadcast'} // qw| 255.255.255.255 |;
+return ( undef, "invalid broadcast address '$broadcast'" )
+    if $broadcast !~ m|^\d{1,3}(?:\.\d{1,3}){3}$|
+    or grep { $ARG > 255 } split( m|\.|, $broadcast );
+
+my $port = $device_cfg->{'port'} // 9;
+return ( undef, "invalid port '$port'" )
+    if $port !~ m|^\d+$|
+    or $port < 1
+    or $port > 65535;
+
+return {
+    'mac'       => lc $hex,
+    'broadcast' => $broadcast,
+    'port'      => $port + 0,
+    'ip'        => $device_cfg->{'ip'},
+};
+
+#,,,.,,,.,..,,,,,,..,,,.,,,.,,,..,,.,,..,,.,.,..,,...,...,...,,.,,,..,...,.,,,
+#ICYBGWD2Z7YYIQ4XHBBRVBY2OKFBX4HL7VQYNUPWFMLJPW2GVCVA65725MSZU5V4S6FLTAPTP6M5U
+#\\\|HHRNCO6KJXPIC4MGQUA4BMQWDEYYLLKZGT2ZOYNE2THGQ57G5OW \ / AMOS7 \ YOURUM ::
+#\[7]GY3YDIUFCN4LNYWQIRM6ZY46GGHROSUUNSOBGWZDVIYKCU27D2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

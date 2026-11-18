@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = power.cmd.drivers
+# descr = power drivers : module present, devices, pinned
+# reply = one row per driver : `driver module_present devices pinned`
+
+<power.cfg.devices> //= {};
+
+my %drivers;
+foreach my $sub_name ( keys %code ) {
+    $drivers{$1} = 1
+        if $sub_name =~ m|^power\.plugin\.([a-z0-9-]+)\.open$|;
+}
+
+my $recorded = {};
+if ( eval { <[base.perlmod.load]>->(qw| AMOS7::deps::tracked |); 1 } ) {
+    my $profiles = eval {
+        AMOS7::deps::tracked::recorded_profiles(<system.root_path>);
+    } // [];
+    $recorded->{ $ARG->{'pkg'} } = 1 foreach $profiles->@*;
+}
+
+my $reply_str = '';
+
+foreach my $driver ( sort keys %drivers ) {
+    my $info = <[power.driver_info]>->($driver);
+
+    ## present : loaded already, or findable in @INC [ never loads it ] ##
+    my $present = 'yes';
+    if ( defined $info->{'module'} ) {
+        my $file = join( '/', split( m|::|, $info->{'module'} ) ) . '.pm';
+        $present = (
+            exists $INC{$file}
+                or grep { not ref $ARG and -f "$ARG/$file" } @INC
+        ) ? 'yes' : 'no';
+    }
+
+    my @devices = sort grep {
+        ( <power.cfg.devices>->{$ARG}->{'driver'} // qw| gembird | ) eq
+            $driver
+    } keys <power.cfg.devices>->%*;
+
+    ## a driver needing no profile counts as pinned : nothing to pin ##
+    my $pinned
+        = not defined $info->{'profile'}    ? '-'
+        : $recorded->{ $info->{'profile'} } ? 'yes'
+        :                                     'no';
+
+    $reply_str .= join( ' ',
+        $driver, $present, ( @devices ? join( ',', @devices ) : '-' ),
+        $pinned ) . "\n";
+}
+
+return { 'mode' => qw| size |, 'data' => $reply_str };
+
+#,,.,,,.,,,,.,.,.,,,.,,,.,...,,..,..,,.,,,,,.,..,,...,...,,.,,,,.,,.,,..,,,,.,
+#IMAJJOROPA5AXCCL3PPQFNIOOQJAWHKHQYFS5ZHPVUZ4GORTMF67HKSISR2WCMMOWRLN3ITOM33GE
+#\\\|QVH6PEAFQO7GT6NPAJVEWTETXJLTQXBEHGI6V7UO6SND34HC27O \ / AMOS7 \ YOURUM ::
+#\[7]5CFGVNSDKAGYZKDUEFBRUHEHTMLFT5NM3X7BOIGNQK6OQSPVUQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

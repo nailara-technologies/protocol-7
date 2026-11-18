@@ -227,11 +227,17 @@ profiles:
       - firmware-iwlwifi        # intel centrino 6205 \ 6300 wifi
       - intel-microcode         # cpu microcode updates
 
+  power-reach:
+    description: "optional : power zenka reachability [ power.host_reachable, wol state ] -- install on demand"
+    cpan:
+      - Net::Oping            # icmp reachability check
+
   power-gembird:
     description: "optional : power zenka driver gembird [ LAN power sockets ] -- install on demand, never silently"
+    includes:
+      - power-reach
     cpan:
       - Device::Gembird
-      - Net::Oping            # reachability check [ power.host_reachable ]
       - Net::Libdnet::Arp     # mac lookup [ power.cmd.add_device ]
 
   coding:

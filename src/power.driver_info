@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = power.driver_info
+# descr = static facts about a power driver [ perl module, deps profile ]
+# param = ( $driver ) -> { module => name or undef, profile => name or undef }
+
+my $driver = shift // '';
+
+## a driver needing nothing beyond core perl has neither module nor profile ##
+my %info = (
+    'gembird' => {
+        'module'  => qw| Device::Gembird |,
+        'profile' => qw| power-gembird |
+    },
+    ## wol sends with core perl ; its state check uses Net::Oping ##
+    'wol' => {
+        'module'  => qw| Net::Oping |,
+        'profile' => qw| power-reach |
+    },
+);
+
+return $info{$driver} // { 'module' => undef, 'profile' => undef };
+
+#,,.,,,.,,,,.,,.,,,,,,,,,,,.,,.,.,,.,,..,,.,,,..,,...,...,,,.,,..,,..,.,,,,,,,
+#5P4AC2ANJXNZVUNO5TOX63FMJUYRYHZVCGNBG6N2ZO4H6AX5XDNE2ONCYO5G3XWKTLMC5HMUFMSBE
+#\\\|2W6QWV6LW7VRSILVC3MMJQTJG4H42ZKKZFSWWOXNPZCYBZKR64C \ / AMOS7 \ YOURUM ::
+#\[7]R2JEC5JDIVHQI7WBCBVQPK3Q2GZ56PED4T7ZLPAU5C4SDBUKXUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

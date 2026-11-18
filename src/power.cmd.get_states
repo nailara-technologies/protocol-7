@@ -33,10 +33,12 @@ my $states = $code{"power.plugin.$driver.get"}->($dev);
 return { 'mode' => qw| false |, 'data' => 'unable to read states' }
     if ref $states ne qw| ARRAY |;
 
+<[power.pin_driver]>->( $driver, $states );
+
 return { 'mode' => qw| TRUE |, 'data' => join( ' ', $states->@* ) }
 
-#,,,.,,.,,,..,.,.,,,.,...,..,,,,.,,..,,..,..,,..,,...,...,...,,,.,..,,...,,,.,
-#CYIJ4OZZD52Y7NEU4DWXVYJ72ZYS4QUIBA7O7MRRU3JDYBZHOWXY3CMP7GLZAKHD3WIDQ3EYOUQUE
-#\\\|EKUJG7VX3NT6UHIZ2JXZUBQGAADTDWX3YP73TTPXCHEU2G64ZXJ \ / AMOS7 \ YOURUM ::
-#\[7]OHXDVP5X3CR4HYKWVEIOHVXAGLMQKRX3XZ4J7VULWCGZOOKBBEDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,,,,..,.,.,,,.,,.,,.,.,...,,.,,..,,...,.,.,...,.,,,.,,,,.,,,,,,
+#EFQ4LGKLVF4VDAGTRZ4MCVR3POTSRTPERUN4Q4RKKCUDBSTVFGX3TXWCWB3HKJKXVAJJ5MUNUIQMW
+#\\\|R3PNC7IXIO57PNBFH2N2LGEJCGDSBVJD4AGC2Q7T7BZDU7RIUUE \ / AMOS7 \ YOURUM ::
+#\[7]B3JWUPFOGUZGSTNZBNNTPUSNCEH7YIIJP5EFPK474KJS4EDPNODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

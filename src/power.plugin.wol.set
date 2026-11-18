@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = power.plugin.wol.set
+# descr = power driver 'wol' : send the magic packet [ on ] ; off needs the host
+# param = ( $handle, \@states ) [ 1 on, 0 off, undef skip ] -> new states
+
+my ( $dev, $want ) = @ARG;
+
+return undef if ref $dev ne qw| HASH | or ref $want ne qw| ARRAY |;
+
+my $state = $want->[0];
+
+if ( defined $state and $state eq '0' ) {
+    ## off is not supported here : the host itself has to do it ##
+    <[base.log]>->(
+        0,
+        "wol device $dev->{'mac'} : off needs the host "
+            . "itself [ suspend \\ poweroff through p7 on it ]"
+    ) if not <power.warned.wol_off>++;
+    return <[power.plugin.wol.get]>->($dev);
+}
+
+return <[power.plugin.wol.get]>->($dev)
+    if not defined $state or $state ne '1';
+
+## magic packet : 6 x 0xFF, then the mac 16 times ##
+my $packet = ( "\xFF" x 6 ) . ( pack( 'H12', $dev->{'mac'} ) x 16 );
+
+<[base.perlmod.load]>->(qw| IO::Socket::INET |);
+
+my $sock = IO::Socket::INET->new(
+    'Proto'     => qw| udp |,
+    'PeerAddr'  => $dev->{'broadcast'},
+    'PeerPort'  => $dev->{'port'},
+    'Broadcast' => 1,
+);
+
+if ( not defined $sock or not defined $sock->send($packet) ) {
+    <[base.log]>->(
+        0, "wol packet to $dev->{'broadcast'} failed : $OS_ERROR"
+    );
+    return undef;
+}
+$sock->close();
+
+## the packet only asks : the state is unknown until the host answers ##
+return ['E'];
+
+#,,,.,.,,,...,.,.,,.,,,,.,,..,,,,,,,.,,..,,..,..,,...,...,...,.,.,...,.,,,,,.,
+#QPEFEOPUSEUT47OPZQR5FDVTCB7YPO2C4H6EFVP36GPQNZDZYWZI54Y3J3E3ZTROAJPMFSRC2ZNRO
+#\\\|I3CXLJ5H4N5TWNOICMHQ4LMDKA272QVYP3BW7SXYT7PVXIE6PA7 \ / AMOS7 \ YOURUM ::
+#\[7]UB3LBLOAE6QKMJNUTCVB6IDQKI6PE7EQAUHOJAOSX56VTAEV66AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = base.deps.pin_first_use
+# descr = record a p7-deps profile once per host after its first successful use
+# param = ( $profile ) -> 1 recorded or already recorded, 0 not recorded, undef bad call
+# note  = opt-in : host config `deps.pin_on_first_use = yes` [ default off ]
+
+my $profile = shift;
+
+return undef
+    if not defined $profile
+    or $profile !~ m|^[a-z0-9][a-z0-9._-]*$|i;
+
+<base.deps.pinned> //= {};
+
+## once per profile per run ##
+return <base.deps.pinned>->{$profile}
+    if exists <base.deps.pinned>->{$profile};
+
+if ( not <[base.cfg_bool]>->(<deps.pin_on_first_use>) ) {
+    <[base.log]>->(
+        0,
+        "profile '$profile' is not pinned [ deps.pin_on_first_use "
+            . "is off ] -- bin/p7-deps install $profile"
+    );
+    return <base.deps.pinned>->{$profile} = 0;
+}
+
+<[base.perlmod.load]>->(qw| AMOS7::deps::tracked |);
+
+my $p7_root = <system.root_path>;
+
+my $known = eval { AMOS7::deps::tracked::recorded_profiles($p7_root) } // [];
+if ( grep { $ARG->{'pkg'} eq $profile } @{$known} ) {
+    return <base.deps.pinned>->{$profile} = 1;
+}
+
+my $recorded = eval {
+    AMOS7::deps::tracked::record(
+        $p7_root,
+        [
+            {   'type'   => qw| profile |,
+                'pkg'    => $profile,
+                'source' => ( <system.zenka.name> // qw| unknown | ),
+            }
+        ]
+    );
+};
+
+if ( not $recorded ) {
+    <[base.log]>->(
+        0,
+        "profile '$profile' not recorded in the "
+            . "tracked store [ not writable here ? ]"
+    );
+    return <base.deps.pinned>->{$profile} = 0;
+}
+
+<[base.log]>->( 0, "profile '$profile' pinned after first successful use" );
+
+return <base.deps.pinned>->{$profile} = 1;
+
+#,,.,,,..,,..,.,,,..,,,,.,...,..,,.,,,.,,,,,,,..,,...,.,.,.,.,,,.,,..,,..,,,,,
+#I3SJUVD5XASILNMWLUJWGIFZQCRQDPKJNRAXHOSIDKS7HF4Z234Q3PD3FXMGDLUHJSNLH73FDAIQS
+#\\\|OOTAN5YMKRBIGGJ32467NQTKAD3EMT2DNVO2RMGC3PUKKEVP5JM \ / AMOS7 \ YOURUM ::
+#\[7]QGY5P2ICOJLJOZMMJ6LSJDMPLWWUWSRJXJN4KU6F3XD5QYNG24CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

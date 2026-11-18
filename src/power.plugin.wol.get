@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = power.plugin.wol.get
+# descr = power driver 'wol' : reachability of the host
+# param = ( $handle ) -> states [ 1 reachable, 0 not, E unknown without ip ]
+
+my $dev = shift;
+
+return undef if ref $dev ne qw| HASH |;
+
+return ['E']
+    if not defined $dev->{'ip'}
+    or not length $dev->{'ip'};
+
+return [ <[power.host_reachable]>->( $dev->{'ip'} ) == TRUE ? '1' : '0' ];
+
+#,,..,..,,.,,,.,,,...,,.,,,..,.,,,,,.,.,,,.,.,..,,...,...,.,.,,,,,..,,,..,...,
+#4YK4N5H2GJ7POCBS7662JY4FRPAQPDQLZF5MDCS7VRMHVET4ZLN7U7GSSIECS4ZSPAOOWIUD4XUEE
+#\\\|HV4675P5NR4X5KYAWHY7SQCKN3U6HN3JMRGQ7UYHR3F4M4LIUYJ \ / AMOS7 \ YOURUM ::
+#\[7]U7TCATR7KBAFFDTMCZ6ELOA4SCX623X5HX7VYO4E6YHC4C6XVQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
