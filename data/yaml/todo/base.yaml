@@ -2791,7 +2791,13 @@ items:
     owner 2026-11-18 : zenki timers were converted to non-linear growth by hand, but new llm code keeps choosing its own values [ fixed or linear intervals, or a doubling ]. owner convention so far : start short by kind [ 0.07 \ 0.77 s ], grow x1.2 per round [ some x2 ], a jittered cap ; discover uses pairs 0.13 s apart, x1.13, cap 40-44 s, reset on error \ wake [ see 5UR ].
     1. one helper [ e.g. base.timer.next_interval : state per timer, start \ factor \ cap \ jitter, reset on error \ wake, optional pairs ] with the division-by-13 harmonic filter [ AMOS7::Assert::Truth ] on the produced values
     2. fix it at the source : a CONVENTIONS.yaml \ CODE-STYLE entry + CLAUDE.md line, so generated code calls the helper instead of picking numbers ; the style mentor [ non-blocking correction ] can flag literal add_timer intervals
-    3. sweep [ kimi ] : list every periodic event.add_timer \ retry loop with its interval law ; convert the linear \ fixed ones ; the local backoffs [ discover.orbital.request_backoff, external.handler.reset_retry_delay, letsencr.parent.enroll_backoff_delay, site-yaml.fetch.backoff ] move onto the helper with their tuned values kept
+    3. sweep [ kimi ] : list every periodic event.add_timer \ retry loop with its interval rhythm ; convert the linear \ fixed ones ; the local backoffs [ discover.orbital.request_backoff, external.handler.reset_retry_delay, letsencr.parent.enroll_backoff_delay, site-yaml.fetch.backoff ] move onto the helper with their tuned values kept
+    owner 2026-11-18 : human-scale timers matter too -- avoid 10 minute \ 600 s intervals [ attention span interruptions ], 13 or 15 minutes are much better ; dpms already uses 780 s instead of 600. the helper and the convention cover long user-facing timeouts [ dpms, idle, reminders ], not only network backoff. kimi inventory stopped at its weekly limit before writing data/tasks/WEQ-interval-inventory.txt -- resume session_b986c2e8-537f-40b8-8209-bf5ee2f74ace after the reset ; partial finds : Glib::Timeout users outside event.add_timer, enrollment ladder 300\900\1800, cert watcher 3900\1300\433, huggingface linear 3 x attempt.
+    owner 2026-11-18 : blink patterns are the next class -- cursor on \ off, status leds, ui pulses. tuned reference from bin/terminal [ xterm ] : cursorOnTime 1274 ms, cursorOffTime 769 ms [ on longer than off, neither round, ratio ~1.66 ] ; the helper offers on \ off pairs for blinkers too, and the sweep lists every blink \ pulse timer [ ascii-frame, editor, nshell, gtk ] beside the network ones.
+    experiment [ owner 2026-11-18 ] : golden ratio as the blink rhythm -- 1274 \ 769 = 1.657, phi = 1.618 [ phi would give off 787 ms for on 1274 ]. try off = on \ phi [ optionally through the 13 filter ] on the terminal cursor and other blinkers, compare by feel against the hand-tuned pair ; if it holds, the helper derives the off time from the on time.
+    acceptance [ owner 2026-11-18 ] : any non-round, non-linear value already beats a linear default -- low hanging fruit, convert freely. an effect that stays consistent on repetition is good enough to keep ; no need to prove the optimum.
+    later shape [ owner 2026-11-18 ] : curve mapped intervals once graphing \ curve edit exists -- generic timer callbacks with a curve profile per type [ backoff, keepalive, blink, human-scale idle ], drawn and edited instead of constants. profiles take external inputs : light, temperature, weather, daytime, network \ load activity -- one coherent harmonic system with situational awareness. step 1 helper should keep that door open : the interval rhythm behind one call [ type + state ], so constants can become a curve profile later without touching callers.
+    shape decided [ owner 2026-11-18 ] : base modules, not plugins -- only ~10 of 136 zenki load plugins, and most if not all zenki will use this. base.interval.next [ type + state -> next interval ] + base.interval.rhythm.<name> [ non-linear first ; golden-blink ; curve later ], the rhythm per timer type from config, swapped by <zenka>.reload source without touching callers. the extra loaded subs are paid back by simpler timer code and the local backoff copies removed. a heavy curve rhythm [ sensor inputs, graph libs ] may ship as an opt-in plugin later, base.interval.next falling back to non-linear when it is not loaded.
   done_at: null
   id: WEQ
   priority: normal
@@ -2802,8 +2808,8 @@ items:
   - style
   text: shared non-linear interval helper for every periodic sender
 
-#,,..,...,,..,..,,,..,..,,,,.,..,,...,...,,.,,..,,...,...,...,..,,..,,,,,,.,,,
-#4V5YLKVXMUAM23KZVGSHJDBRBT7JVCNTYVPIIZ7Z2L27A3AYFMOO4DIG74XNELZA2PLPMXQ37B3J2
-#\\\|ABVP7RUNRTQRPDNQXNR53M72UTGBXNX4WNARALTVH7B24SBKLHZ \ / AMOS7 \ YOURUM ::
-#\[7]GPZCYBO3U6OEWR36IB32VLO25VZDVYLKLLSMJFNGEWIP7DCXZ2DI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,.,.,,,,,.,,.,,.,,,.,.,..,,,..,..,,...,..,,..,,...,...,..,,,,.,
+#RMD2IE43L5V3Z53U34PVZKXTM2OPCYSEOZESRVOPHFIZSINE4M2BBDH3UTYQ25Y7BZ4WUWO5KKZFI
+#\\\|Y2XJCJSWE6JTXCO4AKBINLU2RJGNYGD4XJLMJ4OGB424OBOUJRM \ / AMOS7 \ YOURUM ::
+#\[7]77MHTFVX4HU5SOOD2N4G7WB64EHMBLMC5SG3IH5Z3DRXVLCORYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

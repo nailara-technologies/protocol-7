@@ -5,10 +5,12 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-todo-cleanup](project-2026-11-17-session-handover-todo-cleanup.md) — NEWEST 2026-11-17 evening : todo cross-check [ 11 closed, partial list in data/tasks ], todo id auto-length, p7-sign-wait unknown-job exit ; next R6D, then RCM 4ZW WY5 SN3
+- [session-handover-rcm-builds](project-2026-11-18-session-handover-rcm-builds.md) — NEWEST 2026-11-18 : RCM reproducible + race-free builds, 4ZW wired, format-code stub fix ; next RCM bridge, 4ZW live
+- [session-handover-todo-cleanup](project-2026-11-17-session-handover-todo-cleanup.md) — 2026-11-17 : todo cross-check, partial list in data/tasks
 - [session-handover-resource-ledger](project-2026-11-17-session-handover-resource-ledger.md) — NEWEST, START HERE 2026-11-17 : ledger 1a + canon + n7fs format 4 stages 1-2 built, reviewed, fixed, on all hosts [ b9e3d3b6d ] ; next : format 4 stage 3, ledger 1b ; owner positions in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md
 - [unanchored-cli-flag-backgrounds-commands](feedback-unanchored-cli-flag-backgrounds-commands.md) — silent sign abort, empty report = a console command backgrounded itself [ -B inside a file name, fixed b9e3d3b6d ] ; run with -v after the zenka name
 - [resource-accounting-design](project-2026-11-16-resource-accounting-design.md) — 2026-11-16 detail log : RESOURCE-ACCOUNTING-UNIFIED.md [ untracked ] by Fable + K3.1 review ; owner answers in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md ; next fable pass + irrigation
+- [timer-intervals-non-linear](feedback-timer-intervals-non-linear.md) — new timers : no round \ linear intervals ; start short, x1.2, jittered cap, 13\15 min not 10, blink near golden ratio [ WEQ ]
 - [no-sha-no-json-internal](feedback-no-sha-no-json-internal.md) — internal code : BMW \ AMOS checksums, no sha, no json ; sha only for external formats ; say it in every kimi prompt [ plan data/tasks/sha-to-amos-checksum-transition.md ]
 - [n7fs-go-live-and-terminal-follow-ups](project-2026-11-14-n7fs-go-live-and-terminal-follow-ups.md) — NEWEST : go-live DONE 2026-11-15, 4 holders full scrub, 4 copies ; pipelined holder sessions ; never edit the live n7fs tree [ broke it twice ]
 - [session-handover-n7fs-fable-design-built](project-2026-11-14-session-handover-n7fs-fable-design-built.md) — NEWEST, START HERE : Fable N7FS design 5 7 8 9 10 fully built + pushed ; nothing live until owner all-clear ; Fable window plan
@@ -104,8 +106,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,.,.,.,,,.,,..,.,,,,,,,.,.,,,.,..,,.,,,..,,..,,...,...,..,,...,,..,,,.,,.,,
-#TQMUVPB35MNM7QLW7HHNC6PFCK3N2IORL4BQOWSNBKBG37NOWDHX64DDUETPFQZTTJRQCMMOPXFOI
-#\\\|BDVSVC5G7RYDR4F2B54U5BM34WWMDGHKSNFN4EBK7O3PWA7H2Q5 \ / AMOS7 \ YOURUM ::
-#\[7]OT6QFULD7HF2E3RL6N3TF22PSTFQJKCYAVB3BFKMOWGN4TQMHUDI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,.,.,.,,,..,,,..,..,,,,,,.,.,..,,...,...,...,...,..,,..,,,,,,
+#Y2EVJLMVQ3NJPOJ6KDVVTMT5CHNTU4R3LE62ZFSCK2STHGCERTWYTYFDF4C4U7G5ZA65H3QUY2GPG
+#\\\|DQR3OZBRC4BSYVIEUXRMJDWLSTFGY43IZ6GEOKNU5APMQLCBNWE \ / AMOS7 \ YOURUM ::
+#\[7]HZL5L6TF7FTBPLO6YG7K55CQILSBWGELRNNTGTYB62TXH764ZABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
