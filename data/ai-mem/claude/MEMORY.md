@@ -109,8 +109,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,.,.,..,,,,.,...,.,,,.,.,,,,,.,,,.,.,.,.,..,,...,.,.,...,.,.,,.,,.,.,,.,,
-#PI4MBU7GFNKXMGRSTFHATHF5YU3FNYG5IGXZGEJANOWX2DUHGOLUSZPXJVC5WKPVLZ7COLQS2D4MY
-#\\\|PLNU3G5KKUB6I4XXCXHKMQO5JHQ2G65OG6AYBV4XFS6KIVCSS6A \ / AMOS7 \ YOURUM ::
-#\[7]KHHTOOKZQ5MT6EHZIYAOQLAYLFPHBASM3IEWVYJDDJQ2POWIOCBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,...,.,,,,..,,..,,..,,,,,,,.,.,,,..,,...,...,...,,,.,,,,,..,,,,.,
+#A547NAULZ7MRXM2HBTAV4MSQI3TSQWYRQTFKZIBSNK7II4PSJFXJNJ4GTF56TTGJKHHBXSBSTWF2Q
+#\\\|MA37UCKZ3JMTK5VTYQJE4FCC2X573PK7CBUCJSDBDMKFZMW4IYB \ / AMOS7 \ YOURUM ::
+#\[7]OR7QS4GOBDPQPMID3DGC5VVORBLSH34NCAZS2ARG5GFG74JHH6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

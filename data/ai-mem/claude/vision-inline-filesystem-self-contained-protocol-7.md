@@ -52,8 +52,24 @@ inlined). Don't start designing or building this unprompted; it's framed
 as a longer-horizon direction the AMOS7-level dependency-bootstrap idea
 would eventually connect to, not a near-term task.
 
-#,,,.,,,.,.,,,,,.,.,.,,..,.,.,.,.,,,,,.,,,,.,,..,,...,...,.,,,,..,,..,..,,,..,
-#3PWTEGUVUS5NBYNHLWN2TSD5MKU5WMCDYKFIBZ5R4456VPCAHOYQBNABSGPMC7DQ3GBXKZ2FCGCBC
-#\\\|DA33JPZR5NNJT4GDG2PSOAKXJIGLC6LLH3QXWFQNCQNILVDFHZI \ / AMOS7 \ YOURUM ::
-#\[7]HJIVBLV7JVE4A3KYPAKXBFDXZPN5PHALMIKRBR2F3BPUVXYCMWDQ 7  DATA SIGNATURE ::
+
+## 2026-11-18 : first concrete hook
+
+owner confirmed : the inline subroutines in the __DATA__ block were built with exactly this end in mind.
+data/tasks/amos7-config-reader.md reads config through a source interface [ exists, lines, trust ] :
+disk tree first, the inline filesystem later as a stacked source [ inline defaults < disk < host layers ],
+names category-relative [ cfg/ src/ data/ ]. appliance recipes [ cfg/appliances/ ] ride on it -- an
+appliance image could become one self-contained file plus an os.
+naming [ owner 2026-11-18 ] : a bare name stays a subroutine [ src/, dot namespace -- src/ subdirectories
+would map to the dots ] ; any other category is a prefix parallel to src/ : `cfg/<path>`, `data/<path>`, ..
+so the only format change needed is the category expansion of the entry name.
+nesting [ owner ] : `.: parent.namespace :.` sections, child entries drop the prefix -- works for
+category paths too [ `.: cfg/appliances :.` ].
+status : nesting not implemented yet ; owner sees the inline format as a native general format [ unambiguous enough ], not only bin/Protocol-7's data block.
+frame [ checked 2026-11-18 ] : `.:[ name ]:.` opens an entry, every content line starts with `:`, `:.` closes ; meta = a `:` line told apart by its form [ `: <chksum:..>` today ]. `.: name :.` [ no brackets ] stays free for section \ nesting syntax. header regex bin/Protocol-7 ~5347 `[\w\d\-\_\.]+` : needs `/` for category paths.
+
+#,,,,,,,.,.,.,.,,,...,,..,..,,.,,,.,,,..,,.,,,..,,...,..,,...,.,,,.,,,...,.,,,
+#M6VMNHMWHHWVEQEF5TB4JEXYVQHDGL2QACS5NIKHLUVYPBNQU6JPUWY7JWLEQSHFRVHG2IFFKIEXY
+#\\\|N34IXSWSB2JLIY5QNGU2HVDKE4VZDRGHJIAHNN2DLANTWR7ITBL \ / AMOS7 \ YOURUM ::
+#\[7]ARYB6CFKHIWDXBIATD3DL3LY6DB4BZP4BP6AR7IZTRSUCZ5QBIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
