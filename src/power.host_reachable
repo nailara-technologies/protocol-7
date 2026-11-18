@@ -6,6 +6,20 @@ my ( $target_host, $icmp_timeout ) = @_;
 die "expected hostname or ip address" if not defined $target_host;
 $icmp_timeout //= <power.cfg.heartbeat_timeout>;
 
+## loaded on first use, a missing module is reported once ##
+<base.perlmod.silent_error> = TRUE;
+my $oping_ok = eval { <[base.perlmod.load]>->(qw| Net::Oping |) };
+delete <base.perlmod.silent_error>;
+
+if ( not $oping_ok ) {
+    <[base.log]>->(
+        0,
+        ": perl module Net::Oping missing "
+            . "-- bin/p7-deps install power-gembird"
+    ) if not <power.warned.oping>++;
+    return FALSE;
+}
+
 my $op_obj = Net::Oping->new();
 $op_obj->timeout($icmp_timeout);
 $op_obj->host_add($target_host);
@@ -27,8 +41,8 @@ if ( defined $response_time ) {
     return FALSE;
 }
 
-#,,,,,.,,,...,.,.,.,,,.,.,,,.,,,,,,..,,,.,,,,,..,,...,...,..,,,.,,..,,,,,,..,,
-#NO7YWFVICGOZSJHD3O7NEIXHNGYPV22HESOXOYGYRRA723OZDZGBH6U66D2QS52OB3LIQBTC7NHXK
-#\\\|YZBMGR6L4GCKBLMSBG2PVT2N5UVYMDPIKD6OGH32PDQU426GEBM \ / AMOS7 \ YOURUM ::
-#\[7]6P4YEYFABCFAEOFATYMHQQWIBYJ3XZDWPBGFXI7MYKJX55ZCGADI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,..,,,,,,,.,,,,,,,..,,..,,,.,...,..,,...,...,...,,.,,,.,,...,...,
+#ZOHI5IHPBVZFH5AFBDUYSKCMMQL55Z5KN5AC4WQLEO7F4RRIPXUQELWRLVOMSBMYQGZWESXFCAE4A
+#\\\|PS7OUCLFE2QGXGMVDHTAHP4TH3DD2PHJNZOITHUWSMZEJZDSQPG \ / AMOS7 \ YOURUM ::
+#\[7]QYNEW3XZNZ4NB3VGAQSNFXQUDIU6IPCY7PQKK7WWMBTRZ6YWXGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = power.plugin.gembird.get
+# descr = power driver 'gembird' : read the outlet states
+# param = ( $handle ) -> states [ 1 on, 0 off, E unknown ]
+
+my $dev = shift;
+
+return undef if not defined $dev or not defined $dev->{'poller'};
+
+##  gembird socket state constants [ values per Device::Gembird ]
+use constant SOCK_SKIP => 0x04;
+
+## a skip-all control frame only refreshes the status ##
+$dev->_set_ctrl( SOCK_SKIP, SOCK_SKIP, SOCK_SKIP, SOCK_SKIP );
+
+my @states;
+
+map {
+    my $stat = $dev->{'stat'}->[$ARG];
+    if ( defined $stat and ( $stat == 17 or $stat == 18 or $stat == 65 ) ) {
+        $states[$ARG] = '1';
+    } elsif ( defined $stat
+        and ( $stat == 33 or $stat == 34 or $stat == 130 ) ) {
+        $states[$ARG] = '0';
+    } else {
+        $states[$ARG] = 'E';
+    }
+} ( 0, 1, 2, 3 );
+
+if ( $dev->{'poller'}->can_write(0.1) ) {
+    $dev->{'sock'}->send( chr(0x11) );
+    $dev->{'sock'}->close();
+}
+
+return \@states;
+
+#,,..,,.,,..,,,.,,,..,.,.,,,.,.,,,,.,,..,,,..,..,,...,...,.,,,.,.,,,.,,..,..,,
+#BGIVM5INK4F5FBQXP44BBYUY4UM63DKYY4MT7HEJRVYGENWYHY4DMBCTNSBBOKCIB6THTKXZCE5YI
+#\\\|WJP4NN3QCPHWVSCFXZH5X3B3WCZAQETOQTLJVNNH6D4APYAITUR \ / AMOS7 \ YOURUM ::
+#\[7]DNTO4JGWS55O3INVQHA53RMRQSYDGUVYS7A5BE37FDD5ZSX5TWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

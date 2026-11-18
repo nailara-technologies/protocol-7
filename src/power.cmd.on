@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = power.cmd.on
-# descr = switch on a single socket [1..4]
+# descr = switch on a single socket [1..outlets]
 # param = <id> <s-num>
 
 <power.cfg.devices> //= {};
@@ -19,15 +19,21 @@ return {
 
 return {
     'mode' => qw| false |,
-    'data' => 'power socket number expected [1..4]'
+    'data' => 'power socket number expected [1..outlets]'
     }
-    if not defined $sock_num or $sock_num !~ m|^[1234]$|;
+    if not defined $sock_num or $sock_num !~ m|^[1-9]\d*$|;
 
-my @set_states = ( undef, undef, undef, undef );
 my $index      = $sock_num - 1;
-$set_states[$index] = 1;
+my @set_states = (undef) x $index;
+push @set_states, 1;
 
-my @states    = <[power.set_states]>->( $device_id, @set_states );
+## set_states dies when the socket number exceeds the outlets of the driver ##
+my @states = eval { <[power.set_states]>->( $device_id, @set_states ) };
+
+return { 'mode' => qw| false |, 'data' => "socket $sock_num out of range" }
+    if $EVAL_ERROR =~ m|^expected at most|;
+die $EVAL_ERROR if length $EVAL_ERROR;
+
 my $new_state = $states[$index];
 
 if ( not defined $new_state ) {
@@ -55,8 +61,8 @@ if ( $new_state ne '1' ) {
 
 return { 'mode' => qw| TRUE |, 'data' => "socket $sock_num switched ON" }
 
-#,,,,,..,,..,,.,.,,.,,,,.,..,,,,,,,.,,.,,,,.,,..,,...,...,,.,,,..,,,.,...,,,.,
-#L546NNBHPFI55EJFMYLZNFHSFI54XOFBTUIK3KVPAZIFXLJ4YG4NTROKYXNIEYAXBQQZREG4CVBME
-#\\\|JDFZG47FDRQ2E7D7J2UYUCV24ITCIKRCUFAZYYLGRVZFDBZZWTZ \ / AMOS7 \ YOURUM ::
-#\[7]WHR37O5L7O666JCFGX2W7FDQSZNKODDHREKZCGF26IOF2Q2UEQDI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,,.,,,.,,,.,,,..,...,.,.,,..,..,,...,...,..,,,..,,..,.,,,,..,
+#KR4Q6HC7MEWOGHTWS4TDTX3ZB2YU5PK6ZBDAAGF7WMD23RNVLSDDBDGR4CVL6JSX25TTSHSMPWMOU
+#\\\|BDUCLNYKVX6CRX4NSQZH27EVSJ5CYIVS7HAHMHIFINSVHUQLWCJ \ / AMOS7 \ YOURUM ::
+#\[7]CBZTWCMJBY6I5FPUKUEZ7RGGKX7ZFAYQI2RBG4AM6NZJ432PGWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

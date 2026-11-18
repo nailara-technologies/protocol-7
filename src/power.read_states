@@ -7,40 +7,20 @@ die "expected valid device id"
     if not defined $device_id
     or not exists <power.cfg.devices>->{$device_id};
 
-my $dev = <[power.dev_obj]>->($device_id);
+my ( $dev, $driver ) = <[power.dev_obj]>->($device_id);
 
-my @power_socket_states;
+return () if not defined $dev;
 
-map {
-    if (defined $dev->{'stat'}->[$ARG]
-        and (  $dev->{'stat'}->[$ARG] == 17
-            or $dev->{'stat'}->[$ARG] == 18
-            or $dev->{'stat'}->[$ARG] == 65 )
-    ) {
-        $power_socket_states[$ARG] = '1';
-    } elsif (
-        defined $dev->{'stat'}->[$ARG]
-        and (  $dev->{'stat'}->[$ARG] == 33
-            or $dev->{'stat'}->[$ARG] == 34
-            or $dev->{'stat'}->[$ARG] == 130 )
-    ) {
-        $power_socket_states[$ARG] = '0';
-    } else {
-        $power_socket_states[$ARG] = 'E';
-    }
-} ( 0, 1, 2, 3 );
+my $states = $code{"power.plugin.$driver.get"}->($dev);
 
-if ( $dev->{poller}->can_write(0.1) ) {
-    $dev->{sock}->send( chr(0x11) );
-    $dev->{sock}->close();
-}
+return () if ref $states ne qw| ARRAY |;
 
-<power.last_states> = \@power_socket_states;
+<power.last_states> = $states;
 
-return @power_socket_states;
+return $states->@*;
 
-#,,,.,.,.,.,.,,..,,,,,,,.,,,.,,..,.,.,.,,,...,..,,...,...,..,,,..,...,,,,,,,.,
-#AXL4BCPJCPP4S55OZSV5IWBVOATITEVDNSEMVBOWVI3QCDIEKDGL6W5AUIL45LVTS237I3FRG5KJY
-#\\\|LJTI3SRKKZBJQAXGRBOUECHGMNSMZR7U4UF5R5H6Q5FQC3KE27U \ / AMOS7 \ YOURUM ::
-#\[7]RKL6K6X53S3P6B4EAWD3TK6JMTMZZ72VFQKXHZR25XLFRQPID6AQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,..,,,,.,,,.,,,,,.,,,..,,,.,,.,,,..,,...,...,,.,,,..,..,,...,,,.,
+#FL5FBOCRHGOBCJGNYF6H4HAHCTRGX4K46QNNLGSDDNUV437OFRA3JDJRVXEWDTYWZMHDK6ILE52KM
+#\\\|FV5HL7KYAV7XE3SSKI2DGXYXCMU76SEAOX5IAKHCHTFWPXFSLN6 \ / AMOS7 \ YOURUM ::
+#\[7]SZX5AVQSNCHE6E4XKEXSZAQY6K6OUVVNNHRZ6RT5PHVQIYRMCYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

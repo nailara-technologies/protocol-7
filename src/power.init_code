@@ -2,10 +2,6 @@
 
 # name = power.init_code
 
-<[base.perlmod.autoload]>->('Net::Oping');
-<[base.perlmod.autoload]>->('Device::Gembird');
-<[base.perlmod.autoload]>->('Net::Libdnet::Arp');
-
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
 <net.silent_ignore.cube>      //= 5;    ## true ##
@@ -25,7 +21,10 @@ if ( !-d $config_dir ) {
 
 <[power.load_config]> if -f catfile( $config_dir, <power.config_file> );
 
-<power.net_mac> //= Net::Libdnet::Arp->new;
+## Net::Oping, Net::Libdnet::Arp and Device::Gembird are loaded lazily by  ##
+## their users                                                             ##
+## [ power.host_reachable, power.cmd.add_device, the gembird plugin ] -- a ##
+## missing module never warns at start                                     ##
 
 <power.pattern.gembird_mac> //= qr|^88:b6:27:|;
 
@@ -48,8 +47,8 @@ if ( !-d $config_dir ) {
 
 0;
 
-#,,,.,,,,,,,,,..,,,..,.,.,,,.,..,,,,,,.,.,,,.,..,,...,...,.,.,.,.,..,,,..,,,.,
-#SWMYQX2KNJCBNB3YOWEI64PPR2HNJLWKTEOVOJQ4FDZRYJX2NOB4SVVPTUFVLY7OBI6OZU7JNGJAO
-#\\\|ZWH4RNQAZHH4JP2TCXALQSKKZV3MYDRPY637KMCU323B5PMLB4A \ / AMOS7 \ YOURUM ::
-#\[7]H6ZAVMVHEKNWYJB56DPREXSRFJUQBFXTLZKPRUTQTYKZSVQ5CICY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,...,,..,,,,,..,,,,,,.,.,.,,,..,,...,...,.,.,.,.,...,.,,,.,.,
+#RQS6F2VIEICRNXSAMJXPVPOQ2OAXPKCHCSAIDIX6ABZ4IKBLB5OIACF3H2R5VXKQX7YXV72B3GWGW
+#\\\|OW4LRCPXUHUVFKOIK4FNAKSVMB3TJVDZP2F2KTK7BHXBIASW2NS \ / AMOS7 \ YOURUM ::
+#\[7]QGLKYCDHRQTBSTVFIBZTTY7J5HO7UXROEYO6R3SALEAISJYRAIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

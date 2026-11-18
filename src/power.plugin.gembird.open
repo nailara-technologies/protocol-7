@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = power.plugin.gembird.open
+# descr = power driver 'gembird' : open a connection to a gembird socket device
+# param = ( $device_cfg ) -> handle, or ( undef, reason )
+
+my $device_cfg = shift;
+
+return ( undef, 'device config expected' )
+    if ref $device_cfg ne qw| HASH |;
+
+## the perl module is loaded here, never at zenka start ##
+<base.perlmod.silent_error> = TRUE;
+my $loaded = eval { <[base.perlmod.load]>->(qw| Device::Gembird |) };
+delete <base.perlmod.silent_error>;
+
+return ( undef,
+    "perl module Device::Gembird missing -- bin/p7-deps install power-gembird"
+) if not $loaded;
+
+my $handle = eval {
+    Device::Gembird->new(
+        'host'   => $device_cfg->{'ip'},
+        'port'   => $device_cfg->{'port'},
+        'secret' => $device_cfg->{'pass'}
+    );
+};
+
+return ( undef, 'connection to device failed' )
+    if not defined $handle
+    or not defined $handle->{'poller'};
+
+return $handle;
+
+#,,,.,.,.,.,,,,.,,,,.,,,,,,.,,,,,,,,,,,.,,,.,,..,,...,...,.,.,,,,,...,,,.,.,.,
+#5SWOXPZ4KBQXXSNB6XMJTI4H3KDNYPRWRO4EOMM22G7AC4FVJRIBXEYPPC65RXAFJ2OCTMHKEQGO6
+#\\\|X5DOFIIKPDSIE3MZ4A4PWAXMKCUVI4SXMK43LOBGGOR4BVDTP6W \ / AMOS7 \ YOURUM ::
+#\[7]56ZWJVYL2ZX3DXYUHNGY3G5U32WPUN7REIK2FFWLYP6GKLIMFKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

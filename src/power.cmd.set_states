@@ -4,11 +4,6 @@
 # descr = simultaneously set power states [0|1|-]
 # param = <SNUM> <S1> <S2> <S3> <S4>
 
-##  gembird socket state constants [ values per Device::Gembird ]
-use constant SOCK_ON   => 0x01;
-use constant SOCK_OFF  => 0x02;
-use constant SOCK_SKIP => 0x04;
-
 <power.cfg.devices> //= {};
 my ( $device_id, @state_param ) = split( m| +|, $call->{'args'} );
 
@@ -26,9 +21,8 @@ return {
     'mode' => qw| false |,
     'data' => 'socket state parameters expected'
     }
-    if @state_param < 4;
+    if not @state_param;
 
-my $skip_count = 0;
 map {
     return {
         'mode' => qw| false |,
@@ -36,48 +30,41 @@ map {
             . "valid states are '0', '1' or '-' [skip] )"
         }
         if $ARG !~ m{^(0|1|-)$};
-    $skip_count++ if $ARG eq '-';
 } @state_param;
+
+my ( $dev, $driver ) = <[power.dev_obj]>->($device_id);
+
+return {
+    'mode' => qw| false |,
+    'data' => <power.open_error>->{$device_id} // 'connection failed'
+    }
+    if not defined $dev;
+
+my $outlets = $code{"power.plugin.$driver.outlets"}->($dev);
+
+return {
+    'mode' => qw| false |,
+    'data' => 'socket state parameters expected'
+    }
+    if @state_param < $outlets;
+
+@state_param = @state_param[ 0 .. $outlets - 1 ];
 
 return {
     'mode' => qw| false |,
     'data' => "no changes [ all 'skip'ped! ]"
     }
-    if $skip_count == 4;
+    if not grep { $ARG ne '-' } @state_param;
 
-my $dev = <[power.dev_obj]>->($device_id);
+## state parameters to driver states : 1 on, 0 off, undef skip ##
+my @want = map { $ARG eq '-' ? undef : $ARG } @state_param;
 
-my @set_states;
-map {
-    if    ( $ARG eq '1' ) { push( @set_states, SOCK_ON ) }
-    elsif ( $ARG eq '0' ) { push( @set_states, SOCK_OFF ) }
-    else                  { push( @set_states, SOCK_SKIP ) }
-} @state_param;
+my $new_states = $code{"power.plugin.$driver.set"}->( $dev, \@want );
 
-$dev->_set_ctrl(@set_states);
+return { 'mode' => qw| false |, 'data' => 'connection to device failed' }
+    if ref $new_states ne qw| ARRAY |;
 
-my @new_states;
-
-# print Dumper( $dev->{'stat'} );
-
-map {
-    if (   $dev->{'stat'}->[$ARG] == 17
-        or $dev->{'stat'}->[$ARG] == 18
-        or $dev->{'stat'}->[$ARG] == 65 ) {
-        $new_states[$ARG] = '1';
-    } elsif ( $dev->{'stat'}->[$ARG] == 33
-        or $dev->{'stat'}->[$ARG] == 34
-        or $dev->{'stat'}->[$ARG] == 130 ) {
-        $new_states[$ARG] = '0';
-    } else {
-        $new_states[$ARG] = 'E';
-    }
-} ( 0, 1, 2, 3 );
-
-if ( $dev->{poller}->can_write(0.1) ) {
-    $dev->{sock}->send( chr(0x11) );
-    $dev->{sock}->close();
-}
+my @new_states = $new_states->@*;
 
 <[protocol-7.command.send.local]>->(
     {   'command'   => "cube.power-x11.set_states",
@@ -88,8 +75,8 @@ if ( $dev->{poller}->can_write(0.1) ) {
 
 return { 'mode' => qw| TRUE |, 'data' => join( ' ', @new_states ) }
 
-#,,,,,,,,,.,,,,.,,.,.,.,,,..,,.,,,.,.,,,.,..,,..,,...,.,.,.,.,...,...,.,,,.,.,
-#5SSPMEKD2IAEUYOVSK7C7WEGMO6DDVMPG2R6C22KIRZC5NHHKU3BAXIKGPD4DUPRPKISCD7WK7A26
-#\\\|ZFOIN7JUZG4V77NXYHBWGDRJ2BPHNG7ARSEG5ZUGZDEWD7MVWL4 \ / AMOS7 \ YOURUM ::
-#\[7]VFDVLEXCPGLZOUDDK35M34L6TMSXFWIZPOR2T7YESZNDFWKG5ODA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,..,,..,..,,.,.,..,,.,.,.,,,,..,..,,...,...,.,,,,,,,.,,,.,.,,..,
+#Y4Q7WSKYFOO6GNC3FXDSVY4BMXI22JDQFHQW43QSPHESVT6HM32NM52TG2TZ5WMWEDQX6DLVD3C7G
+#\\\|P2575PFCQL33FZWZSJYHO4TTIN5KUE7T7VUGGTF3TPF3FXN7TFV \ / AMOS7 \ YOURUM ::
+#\[7]HBZFS7JCS7NO7NAE4DOQAD62JSOR4EZHB3LC3IR2ISZFIPAUH6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

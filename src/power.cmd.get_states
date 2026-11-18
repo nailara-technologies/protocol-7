@@ -4,11 +4,6 @@
 # descr = return power socket states
 # param = <device_id>
 
-##  gembird socket state constants [ values per Device::Gembird ]
-use constant SOCK_ON   => 0x01;
-use constant SOCK_OFF  => 0x02;
-use constant SOCK_SKIP => 0x04;
-
 <power.cfg.devices> //= {};
 my $device_id = $call->{'args'} // '';
 
@@ -22,42 +17,26 @@ return {
     }
     if not exists <power.cfg.devices>->{$device_id};
 
-my $dev = <[power.dev_obj]>->($device_id);
+my ( $dev, $driver ) = <[power.dev_obj]>->($device_id);
 
-$dev->_set_ctrl( SOCK_SKIP, SOCK_SKIP, SOCK_SKIP, SOCK_SKIP );
-
-if ( not defined $dev or not defined $dev->{'poller'} ) {
+## dev_obj logged the reason once : a missing driver module, no connection ##
+if ( not defined $dev ) {
     <[base.log]>->( 0, "connection to device $device_id failed" );
-    return undef;
+    return {
+        'mode' => qw| false |,
+        'data' => <power.open_error>->{$device_id} // 'connection failed'
+    };
 }
 
-my @states;
+my $states = $code{"power.plugin.$driver.get"}->($dev);
 
-# print STDERR Dumper( $dev->{'stat'} );
+return { 'mode' => qw| false |, 'data' => 'unable to read states' }
+    if ref $states ne qw| ARRAY |;
 
-map {
-    if (   $dev->{'stat'}->[$ARG] == 17
-        or $dev->{'stat'}->[$ARG] == 18
-        or $dev->{'stat'}->[$ARG] == 65 ) {
-        $states[$ARG] = '1';
-    } elsif ( $dev->{'stat'}->[$ARG] == 33
-        or $dev->{'stat'}->[$ARG] == 34
-        or $dev->{'stat'}->[$ARG] == 130 ) {
-        $states[$ARG] = '0';
-    } else {
-        $states[$ARG] = 'E';
-    }
-} ( 0, 1, 2, 3 );
+return { 'mode' => qw| TRUE |, 'data' => join( ' ', $states->@* ) }
 
-if ( $dev->{poller}->can_write(0.1) ) {
-    $dev->{sock}->send( chr(0x11) );
-    $dev->{sock}->close();
-}
-
-return { 'mode' => qw| TRUE |, 'data' => join( ' ', @states ) }
-
-#,,.,,,.,,,,,,,,.,,,.,,..,...,,..,,..,.,.,,..,..,,...,...,...,..,,,,.,,..,...,
-#LS7FRD6MVZQ6OU3IVQDNPE7RXTQMS55FAB2VBRX55DTT7G42YBIQHY2TUX6TQ7NIRTB4HFNMILS74
-#\\\|HPVWLBPOSYOVXZNCM76OKSR3O7ZC7IOX7FNN4NZPCA4YV326IMO \ / AMOS7 \ YOURUM ::
-#\[7]4XY3WWOTVZ2AT66CKK2BZ7XZONF3LERAGEE4ZR5YNB2V7YPY6ACI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,,,.,...,..,,,,.,,..,,..,..,,..,,...,...,...,,,.,..,,...,,,.,
+#CYIJ4OZZD52Y7NEU4DWXVYJ72ZYS4QUIBA7O7MRRU3JDYBZHOWXY3CMP7GLZAKHD3WIDQ3EYOUQUE
+#\\\|EKUJG7VX3NT6UHIZ2JXZUBQGAADTDWX3YP73TTPXCHEU2G64ZXJ \ / AMOS7 \ YOURUM ::
+#\[7]OHXDVP5X3CR4HYKWVEIOHVXAGLMQKRX3XZ4J7VULWCGZOOKBBEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

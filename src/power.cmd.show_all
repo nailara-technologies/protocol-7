@@ -8,11 +8,19 @@
 my $reply_str = '';
 
 map {
+    my $states = <[power.cmd.get_states]>->($ARG);
+
+    ## a device without states [ driver module missing, no connection ] ##
+    ## keeps its row, every outlet unknown                              ##
+    my $row_states
+        = ref $states eq qw| HASH | && lc $states->{'mode'} eq qw| true |
+        ? $states->{'data'}
+        : join( ' ', ('E') x 4 );
+
     $reply_str .= join( ' ',
         $ARG,
         <power.cfg.devices>->{$ARG}->{'mac'},
-        <power.cfg.devices>->{$ARG}->{'ip'},
-        <[power.cmd.get_states]>->($ARG)->{'data'} )
+        <power.cfg.devices>->{$ARG}->{'ip'}, $row_states )
         . "\n"
 } sort {
     <power.cfg.devices>->{$a}->{'added'} <=>
@@ -21,8 +29,8 @@ map {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,,,,.,,,.,,,..,,,,,,,.,..,,,,,,,.,,.,,,..,,..,,...,...,.,,,...,..,,,..,.,.,
-#WLE5NIIGM3NUKC3EPLHDGTAY65LLG3UAO5PAOUNQXL4TH4G5EEHRZIRG6VWXQEZNLQW4UCJPJKDBE
-#\\\|2NAFUX3WIP2EM567DBF5KHKYCC5XFQ7DZ2NOYCTI25L3PO6JRG4 \ / AMOS7 \ YOURUM ::
-#\[7]ACU4PCZITBLND4ZTYQI452WH2CXNA3PNNQJPLN4R4JLKUIBHDUBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,..,,,..,..,,...,..,,..,,.,.,..,,...,...,..,,,,,,...,...,.,.,
+#CUXFTC42CMP2IBCKC5FURTFYORFP5X4X5FJWR6EIGLVEPPEN3VMHO53ZX7ELSMSG6V7SY5Y3CV3MQ
+#\\\|HHIA3DO7YB2JVVPBKHZ34KJARCT6WDDAF5S4QBVGCYGT6QY3AZ4 \ / AMOS7 \ YOURUM ::
+#\[7]55D3B4OFDXAF6F2FMLGKG3EXWTRFCRVK2MXMYDMUMAKFKIQBV2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

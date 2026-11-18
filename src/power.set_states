@@ -2,69 +2,37 @@
 
 # name = power.set_states
 
-##  gembird socket state constants [ values per Device::Gembird ]
-use constant SOCK_ON   => 0x01;
-use constant SOCK_OFF  => 0x02;
-use constant SOCK_SKIP => 0x04;
-
 my $device_id  = shift;
 my @set_states = @_;
 die "expected valid device id"
     if not defined $device_id
     or not exists <power.cfg.devices>->{$device_id};
-die "expected four socket state parameters" if @set_states != 4;
 
-my $dev = <[power.dev_obj]>->($device_id);
+my ( $dev, $driver ) = <[power.dev_obj]>->($device_id);
 
-map {
-    if ( defined $set_states[$ARG] and $set_states[$ARG] eq '1' ) {
-        $set_states[$ARG] = SOCK_ON;
-    } elsif ( defined $set_states[$ARG] and $set_states[$ARG] eq '0' ) {
-        $set_states[$ARG] = SOCK_OFF;
-    } else {
-        $set_states[$ARG] = SOCK_SKIP;
-    }
-} ( 0 .. 3 );
-
-$dev->_set_ctrl(@set_states);
-
-if ( not defined $dev or not defined $dev->{'poller'} ) {
+if ( not defined $dev ) {
     <[base.log]>->( 0, "connection to device $device_id failed" );
     return undef;
 }
 
-my @new_states;
+my $outlets = $code{"power.plugin.$driver.outlets"}->($dev);
 
-map {
-    if (defined $dev->{'stat'}->[$ARG]
-        and (  $dev->{'stat'}->[$ARG] == 17
-            or $dev->{'stat'}->[$ARG] == 18
-            or $dev->{'stat'}->[$ARG] == 65 )
-    ) {
-        $new_states[$ARG] = '1';
-    } elsif (
-        defined $dev->{'stat'}->[$ARG]
-        and (  $dev->{'stat'}->[$ARG] == 33
-            or $dev->{'stat'}->[$ARG] == 34
-            or $dev->{'stat'}->[$ARG] == 130 )
-    ) {
-        $new_states[$ARG] = '0';
-    } else {
-        $new_states[$ARG] = 'E';
-    }
-} ( 0, 1, 2, 3 );
+die "expected at most $outlets socket state parameters"
+    if @set_states > $outlets;
 
-if ( $dev->{'poller'}->can_write(0.1) ) {
-    $dev->{'sock'}->send( chr(0x11) );
-    $dev->{'sock'}->close();
-}
+## fewer states than outlets : the rest is skipped ##
+push @set_states, undef while @set_states < $outlets;
 
-<power.last_states> = \@new_states;
+my $new_states = $code{"power.plugin.$driver.set"}->( $dev, \@set_states );
 
-return @new_states;
+return undef if ref $new_states ne qw| ARRAY |;
 
-#,,,.,...,...,.,.,,,.,,,.,.,,,..,,.,,,.,.,...,..,,...,...,...,,..,...,..,,,,,,
-#GMYHEJAZ3YSZUM3PWKRZBZDIUZ5FRYYCBGXRANJC767NH2YCMFQ6AJQ2EYDLA2DUDUTNQUG3VQBPA
-#\\\|LLAVPUTW3GDFE46FSFKP3ZU7SJZUBQ2IYAKYEABDF4KOB7VGSQB \ / AMOS7 \ YOURUM ::
-#\[7]SMNBDASCPCWL2WWVRJCNRB5L6F6PR3LWST7LPFTZDFNJBYS4BABQ 7  DATA SIGNATURE ::
+<power.last_states> = $new_states;
+
+return $new_states->@*;
+
+#,,..,,.,,,.,,.,,,,.,,,.,,.,.,...,,,,,,,,,...,..,,...,...,...,..,,,.,,.,,,.,.,
+#D3OVEJHV4YUFNVV77NY3ZYZUIV6JO7YJZOPU3X4M2YIU5SGJF37YV6SLRISPA7V2AMYSRRHARYJR6
+#\\\|ZRCJVOYCRF4RMSEADR7M33QWFIIZSOMGAXLULGOQIVOZLQ6DBOY \ / AMOS7 \ YOURUM ::
+#\[7]UBJIBQE6GCMNZ42MNWCS226WYJDTRJ4E4XCFLGZE7RYZ6HJVBEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

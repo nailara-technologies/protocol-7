@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = power.plugin.gembird.set
+# descr = power driver 'gembird' : set the outlet states
+# param = ( $handle, \@states ) [ 1 on, 0 off, undef skip ] -> new states
+
+my ( $dev, $want ) = @ARG;
+
+return undef
+    if not defined $dev
+    or not defined $dev->{'poller'}
+    or ref $want ne qw| ARRAY |;
+
+##  gembird socket state constants [ values per Device::Gembird ]
+use constant SOCK_ON   => 0x01;
+use constant SOCK_OFF  => 0x02;
+use constant SOCK_SKIP => 0x04;
+
+my @ctrl;
+
+map {
+    my $state = $want->[$ARG];
+    if    ( defined $state and $state eq '1' ) { $ctrl[$ARG] = SOCK_ON }
+    elsif ( defined $state and $state eq '0' ) { $ctrl[$ARG] = SOCK_OFF }
+    else                                       { $ctrl[$ARG] = SOCK_SKIP }
+} ( 0, 1, 2, 3 );
+
+$dev->_set_ctrl(@ctrl);
+
+my @new_states;
+
+map {
+    my $stat = $dev->{'stat'}->[$ARG];
+    if ( defined $stat and ( $stat == 17 or $stat == 18 or $stat == 65 ) ) {
+        $new_states[$ARG] = '1';
+    } elsif ( defined $stat
+        and ( $stat == 33 or $stat == 34 or $stat == 130 ) ) {
+        $new_states[$ARG] = '0';
+    } else {
+        $new_states[$ARG] = 'E';
+    }
+} ( 0, 1, 2, 3 );
+
+if ( $dev->{'poller'}->can_write(0.1) ) {
+    $dev->{'sock'}->send( chr(0x11) );
+    $dev->{'sock'}->close();
+}
+
+return \@new_states;
+
+#,,..,..,,,.,,,.,,...,,.,,.,.,.,.,,..,...,,,.,..,,...,...,.,.,...,...,..,,..,,
+#7TO6GFRSW63M6G6HNZLVB2TPGIVBKCVSYWHMFHGELYT4POEMOHOJWCS76MGJBNWQQKTHJVNNNKT3K
+#\\\|LREYED62WSMJQGOYCEIWCTLLQAFJT22I3V262ESNFDIL7HOU5KC \ / AMOS7 \ YOURUM ::
+#\[7]RFGO4VWYSC7DQO52NUZ723WA76YMIVTJOH33LRQIUHXYO5IELABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

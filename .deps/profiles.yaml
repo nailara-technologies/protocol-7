@@ -227,6 +227,13 @@ profiles:
       - firmware-iwlwifi        # intel centrino 6205 \ 6300 wifi
       - intel-microcode         # cpu microcode updates
 
+  power-gembird:
+    description: "optional : power zenka driver gembird [ LAN power sockets ] -- install on demand, never silently"
+    cpan:
+      - Device::Gembird
+      - Net::Oping            # reachability check [ power.host_reachable ]
+      - Net::Libdnet::Arp     # mac lookup [ power.cmd.add_device ]
+
   coding:
     description: "coding zenka [ libgit2 diffs through Git::Native -- not built on servers ]"
     cpan:

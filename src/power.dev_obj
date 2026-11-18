@@ -1,19 +1,42 @@
 ## [:< ##
 
-# name = power.dev_obj
+# name  = power.dev_obj
+# descr = open a device through its driver plugin [ cfg `driver`, default gembird ]
+# return = ( $handle, $driver ) -- handle is undef when the open failed, reason in <power.open_error>
 
 my $device_id = shift // '';
 die "device '$device_id' does not exist"
     if not exists <power.cfg.devices>->{$device_id};
 
-return Device::Gembird->new(
-    'host'   => <power.cfg.devices>->{$device_id}->{'ip'},
-    'port'   => <power.cfg.devices>->{$device_id}->{'port'},
-    'secret' => <power.cfg.devices>->{$device_id}->{'pass'}
-);
+my $device_cfg = <power.cfg.devices>->{$device_id};
+my $driver     = $device_cfg->{'driver'} // qw| gembird |;
 
-#,,,.,,,.,,,.,.,.,.,.,,.,,,,.,,..,,,.,...,,.,,..,,...,...,,,.,,..,.,,,,,,,,.,,
-#ZRAKU247ZHSXBXF4DZRPJPKPCCI3R45HN5WMTOMMEDQRXTS25TVJBC7DUVRLKTNJV6H3VF36YW2ES
-#\\\|THQPD6BBM7GC3ZVWTRS2T2GRSNGRRLNWKB2DXFH2EAOH23JWTIF \ / AMOS7 \ YOURUM ::
-#\[7]BRRI6DL6UDTMP6KQKVG5C5BOCLQN7PMIMSYJTDARZM5U7RHUBSBA 7  DATA SIGNATURE ::
+<power.open_error> //= {};
+
+my ( $handle, $reason );
+
+if ( $driver !~ m|^[a-z0-9][a-z0-9-]*$|
+    or not exists $code{"power.plugin.$driver.open"} ) {
+    $reason = "unknown driver '$driver'";
+} else {
+    ( $handle, $reason ) = $code{"power.plugin.$driver.open"}->($device_cfg);
+}
+
+if ( defined $handle ) {
+    delete <power.open_error>->{$device_id};
+} else {
+    $reason //= "driver '$driver' open failed";
+
+    ## report once per device and reason [ no log flood from status polls ] ##
+    <[base.log]>->( 0, "device $device_id : $reason" )
+        if ( <power.open_error>->{$device_id} // '' ) ne $reason;
+    <power.open_error>->{$device_id} = $reason;
+}
+
+return ( $handle, $driver );
+
+#,,,,,.,.,,..,,,,,,.,,...,,,.,.,.,.,,,...,.,.,..,,...,..,,.,,,..,,,,,,,,.,,..,
+#WNQIZ5OTSHOFJ56C5VKSHDK2GVASAZBRONHDRG765YYQEBLTA4EZZAXYMSX5XFW56MF6P3JL5PWLK
+#\\\|46L3RQSSIZYVL6RTF4NHQRKHISEPDNYC5H2RMAMFWYLKKAPBGIO \ / AMOS7 \ YOURUM ::
+#\[7]SXNQMVET3ICVELTMRTUW5OBA26OUEY5YN7TLNLBH5NGKDVVPEIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
