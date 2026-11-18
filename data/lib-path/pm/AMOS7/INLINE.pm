@@ -19,7 +19,10 @@ use Cwd             qw| abs_path |;
 use File::Find      ();
 use File::Temp      ();
 use File::Path      qw| make_path |;
-use Fcntl           qw| O_RDWR O_CREAT O_NOFOLLOW LOCK_EX LOCK_NB |;
+use Fcntl           qw| O_RDWR O_CREAT O_NOFOLLOW LOCK_EX LOCK_NB LOCK_UN |;
+use POSIX           ();
+use Time::HiRes     ();
+use Scalar::Util    qw| refaddr |;
 use List::MoreUtils qw| minmax |;
 
 ## optional digest module : the core fallback below keeps this module    ##
@@ -38,6 +41,18 @@ our $devmod_output_to_console = FALSE;    ##  display build warnings  ##
 
 ##  set TRUE before this module compiles : pure-perl alternatives only   ##
 our $force_pure_perl;
+
+## build \ upgrade settings                                                 ##
+## [ declared above the load-time return, so the defaults are assigned ] -- ##
+## see the call-driven upgrade section                                      ##
+our $build_wait_seconds;    ## undef : 120 [ set before load to change ] ##
+our $build_time_limit = 77;    ## detached build : hard limit [ s ] ##
+our $build_cap        = 2;     ## concurrent detached builds per user ##
+our $build_cc;                      ## undef : the perl config compiler ##
+our $pure_perl_warn_seconds = 187;  ## one warning after this long ##
+our $trusted_objects_ref;           ## undef : no signed list yet ##
+our $require_trusted;               ## key holder : list match or pure perl ##
+my $warned_unverified = {};         ## once per unverified object ##
 
 ## known inline sourcecode modules ##
 use AMOS7::INLINE::src::BitConv;
@@ -82,7 +97,7 @@ warn_err(
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-$VERSION = qw| AMOS7::INLINE-VERSION.YTOFXDA |;
+$VERSION = qw| AMOS7::INLINE-VERSION.FGDHT4Y |;
 
 return TRUE;    ## true ##
 
@@ -241,20 +256,49 @@ sub compile_inline_source {
         ##  COMPILATION \ INSTALLATION OF INLINE SUBROUTINE  ##
         ###                                                 ###
 
+        ## no published object yet and a pure-perl alternative exists : the ##
+        ## alternative is installed AT ONCE behind a thin wrapper, the      ##
+        ## build runs detached and the wrapper swaps the compiled sub in on ##
+        ## a later call [ call-driven, no event loop assumed ]. no          ##
+        ## alternative : the blocking build below, as before                ##
+        my $deferred;
+        if (    $inline_c_available
+            and not $force_pure_perl
+            and ref $fallback_ref eq qw| CODE |
+            and defined &{$fallback_ref}
+            and not _object_published($custom_inline_dir) ) {
+            $deferred = _defer_build(
+                {   qw| dir |      => $custom_inline_dir,
+                    qw| parent |   => $parent_dir,
+                    qw| source |   => $cleaned_source,
+                    qw| fallback | => $fallback_ref,
+                    qw| package |  => $target_package,
+                    qw| name |     => $current_sub_name,
+                    qw| target |   => $compilation_target,
+                }
+            );
+        }
+
         ## the dir Inline works in + lock + publish target ##
         my $build_slot;
         eval {
+            return if defined $deferred;
             die "'Inline::C' is not available\n"
                 if not $inline_c_available or $force_pure_perl;
+            ## a key holder never compiles in process : it loads a     ##
+            ## published object found on the signed list, nothing else ##
+            die "key holder : no published object to verify\n"
+                if $require_trusted
+                and not _object_published($custom_inline_dir);
             $build_slot = _build_slot($custom_inline_dir);
             die "$build_slot->{'error'}\n" if defined $build_slot->{'error'};
-            Inline->bind(
-                qw|  C  |         => $cleaned_source,
-                qw| name |        => $compilation_target,
-                qw|  directory  | => $build_slot->{'dir'},
-                qw| BUILD_NOISY | => $devmod_output_to_console,
-                reproducible_build_flags( $build_slot->{'dir'} )
-            );
+            ## a published object is verified BEFORE it is mapped ##
+            if ( not defined $build_slot->{'publish'} ) {
+                my ( $trusted, $why ) = _object_trust($custom_inline_dir);
+                die "$why\n" if not $trusted;
+            }
+            _inline_bind( $cleaned_source, $compilation_target,
+                $build_slot->{'dir'} );
         };
         ## keep compilation errors ##
         my $comp_err = $EVAL_ERROR;
@@ -265,10 +309,12 @@ sub compile_inline_source {
             = sprintf( '%s::%s', $target_package, $subroutine_name );
 
         ## keep own registry
-        $subroutines_installed->{$target_subname} = \&$current_sub_name;
+        $subroutines_installed->{$target_subname} = \&$current_sub_name
+            if not defined $deferred;
 
         ## install to target namespace ##
-        eval "*$target_subname = \\&$current_sub_name";
+        eval "*$target_subname = \\&$current_sub_name"
+            if not defined $deferred;
 
         ## clean-up temporary namespace : delete the WHOLE per-iteration    ##
         ## stash [ 'COMPILE::NNN::' , where a package name not nested       ##
@@ -295,7 +341,21 @@ sub compile_inline_source {
 
         #######################################################
 
-        if ($comp_err    ## $EVAL_ERROR of compilation ##
+        if ( defined $deferred ) {    ## wrapper bridges until the upgrade ##
+
+            my $wrapped_name = sprintf '%s::%s', $target_package,
+                $current_sub_name;
+            {
+                no strict qw| refs |;
+                no warnings qw| redefine |;
+                *{$wrapped_name} = $deferred;
+            }
+            $subroutines_installed->{$wrapped_name} = $deferred;
+            $sub_coderefs->{$current_sub_name}      = $deferred;
+            $success_count++;
+
+        } elsif (
+            $comp_err    ## $EVAL_ERROR of compilation ##
             or ref $subroutines_installed->{$target_subname} ne qw| CODE |
         ) {
             ## without Inline::C the fallback is expected : announced once ##
@@ -418,7 +478,6 @@ sub gen_inline_path {
 ## seconds a process waits for another one building the same object ; after ##
 ## that it runs pure perl [ the build lock only saves duplicate work, never ##
 ## correctness -- INLINE-OBJECT-TRUST.md ]                                  ##
-our $build_wait_seconds;    ## undef : 120 [ set before load to change ] ##
 
 ## a published object dir : complete by construction                   ##
 ## [ it appeared by one rename after a successful build ], Inline only ##
@@ -491,6 +550,21 @@ sub _publish_build {
     my ( $slot, $built ) = @ARG;
     return if ref $slot ne qw| HASH | or not defined $slot->{'publish'};
     my ( $build_dir, $object_dir ) = @{$slot}{qw| dir publish |};
+    ## the checksum is taken BEFORE the object becomes visible : the record ##
+    ## travels inside the dir, one rename publishes both                    ##
+    if ($built) {
+        my $chksum = _object_chksum($build_dir);
+        if ( defined $chksum and open my $record_fh,
+            '>', "$build_dir/chksum" ) {
+            print {$record_fh} "$chksum\n";
+            close $record_fh;
+            $slot->{'chksum'} = $chksum;
+        } else {
+            $built = FALSE;    ## no object file to take a checksum of ##
+            warn_err( "no loadable object in '%s' -- not published",
+                0, $build_dir );
+        }
+    }
     if ( $built and not -e $object_dir ) {
         rename $build_dir,
             $object_dir
@@ -502,6 +576,302 @@ sub _publish_build {
     return;
 }
 
+##[ CALL-DRIVEN UPGRADE : DETACHED BUILD, WRAPPER, TRUST ]####################
+
+## hard limit [ seconds ] for one detached build : only guards a hung     ##
+## compiler, these sources compile in seconds. the build child is its own ##
+## session \ process group, the limit takes the compiler down with it     ##
+
+## concurrent detached builds per user                                     ##
+## [ slot lock files next to the object dirs ] ; no free slot : pure perl, ##
+## the wrapper retries on a later call                                     ##
+
+## compiler override [ undef : the perl config one ] -- a wrapper script ##
+
+## seconds of pure perl after which one warning is logged [ not a round ##
+## minute : the wrapper never runs on a timer, only on calls ]          ##
+
+## object trust [ INLINE-OBJECT-TRUST.md ] ##
+##
+## $trusted_objects_ref : undef while there is no signed list ; later a     ##
+## hash reference, object checksum => true. $require_trusted : set by a key ##
+## holder -- it loads a compiled object only on a list match, else it stays ##
+## pure perl. everybody else loads, and warns once on an unverified object  ##
+## only when a list exists                                                  ##
+
+## checksum of the loadable part of a built object : its shared object file ##
+## [ reproducible builds make it comparable between hosts ] ; undef when    ##
+## there is none                                                            ##
+sub _object_chksum {
+    my $object_dir = shift // return;
+    my @shared;
+    File::Find::find(
+        {   no_chdir => 1,
+            wanted   => sub { push @shared, $ARG if -f $ARG and m|\.so$| }
+        },
+        "$object_dir/lib/auto"
+    ) if -d "$object_dir/lib/auto";
+    return if @shared != 1;
+    open my $object_fh, '<:raw', $shared[0] or return;
+    local $INPUT_RECORD_SEPARATOR;
+    my $content = <$object_fh>;
+    close $object_fh;
+    return if not defined $content or not length $content;
+    return _src_digest($content);
+}
+
+## may this process map the published object ? [ ok, why ] ##
+sub _object_trust {
+    my $object_dir = shift;
+    my $list       = $trusted_objects_ref;
+    if ( not defined $list ) {
+        return ( FALSE, 'key holder : no signed object list yet' )
+            if $require_trusted;
+        return TRUE;    ## no list : nothing to verify against ##
+    }
+    my $chksum = _object_chksum($object_dir);
+    return TRUE
+        if defined $chksum
+        and ref $list eq qw| HASH |
+        and $list->{$chksum};
+    return ( FALSE,
+        "key holder : object '$object_dir' is not on the signed list" )
+        if $require_trusted;
+    warn_err( "inline object '%s' is not on the signed list [ unverified ]",
+        1, $object_dir )
+        if not $warned_unverified->{$object_dir}++;
+    return TRUE;
+}
+
+## the one Inline->bind : compile [ build dir ] or load only [ published ] ##
+sub _inline_bind {
+    my ( $source, $target, $dir ) = @ARG;
+    Inline->bind(
+        qw|  C  |         => $source,
+        qw| name |        => $target,
+        qw|  directory  | => $dir,
+        qw| BUILD_NOISY | => $devmod_output_to_console,
+        ( defined $build_cc ? ( qw| CC | => $build_cc ) : () ),
+        reproducible_build_flags($dir)
+    );
+    return;
+}
+
+## one lock file per cap slot, next to the object dirs ; the holder keeps ##
+## the handle open for the build [ flock dies with its holder ]           ##
+sub _acquire_build_cap {
+    my $parent = shift // return;
+    foreach my $slot_no ( 0 .. ( $build_cap // 2 ) - 1 ) {
+        sysopen(
+            my $slot_fh,
+            "$parent/.build-slot.$slot_no",
+            O_RDWR | O_CREAT | O_NOFOLLOW, 0600
+        ) or next;
+        my @slot_stat = stat $slot_fh;
+        next if not -f _ or $slot_stat[4] != $UID;
+        return $slot_fh if flock $slot_fh, LOCK_EX | LOCK_NB;
+    }
+    return;
+}
+
+## is a builder working on this object ? [ its per-object lock is held ] ##
+sub _builder_active {
+    my $object_dir = shift;
+    return FALSE
+        if not
+        sysopen( my $lock_fh, "$object_dir.lock", O_RDWR | O_NOFOLLOW );
+    my @lock_stat = stat $lock_fh;
+    return FALSE if not -f _ or $lock_stat[4] != $UID;
+    return TRUE if not flock $lock_fh, LOCK_EX | LOCK_NB;
+    flock $lock_fh, LOCK_UN;
+    return FALSE;
+}
+
+## the build child : double fork, so nobody has to reap it                  ##
+## [ no SIGCHLD handler, no waitpid later ] ; POSIX::_exit never runs END   ##
+## blocks or DESTROY of the parent ; setsid gives the child its own process ##
+## group and the time limit kills the compiler with it                      ##
+sub _spawn_builder {
+    my $state  = shift;
+    my $cap_fh = _acquire_build_cap( $state->{'parent'} ) // return 'cap';
+    my $first  = fork;
+    if ( not defined $first ) {
+        close $cap_fh;
+        return 'fork';
+    }
+    if ($first) {    ## parent : the middle child exits at once ##
+        waitpid $first, 0;
+        close $cap_fh;
+        return 'spawned';
+    }
+    ## middle child ##
+    my $second = fork;
+    POSIX::_exit(0) if not defined $second or $second;
+    ## build child ##
+    POSIX::setsid() > 0 or POSIX::_exit(1);
+    my $status = eval { _builder_main( $state, $cap_fh ); 0 } // 1;
+    ## the group kill takes a still running compiler with the child ##
+    kill qw| KILL |, -$PID;
+    POSIX::_exit($status);
+}
+
+sub _builder_main {
+    my ( $state, $cap_fh ) = @ARG;
+
+    $SIG{$ARG} = qw| DEFAULT | foreach qw| CHLD PIPE HUP INT TERM USR1 USR2 |;
+    ## inherited descriptors [ sockets of a zenka ] stay open in a detached ##
+    ## child for the whole build : close all but the cap slot               ##
+    my $keep_fd = fileno $cap_fh;
+    foreach my $fd ( 3 .. 255 ) {
+        POSIX::close($fd) if $fd != $keep_fd;
+    }
+    open STDIN, '<', '/dev/null';
+    if ( not $devmod_output_to_console ) {
+        open STDOUT, '>',  '/dev/null';
+        open STDERR, '>&', \*STDOUT;
+    }
+
+    ## the child never refuses its own object, never waits on a lock : a ##
+    ## busy lock means another builder is on it                          ##
+    $require_trusted    = FALSE;
+    $build_wait_seconds = 0;
+
+    local $SIG{ALRM} = sub {
+        local $SIG{TERM} = qw| IGNORE |;
+        kill qw| TERM |, -$PID;    ## own group : the compiler too ##
+        die "build time limit reached\n";
+    };
+    alarm( $build_time_limit // 77 );
+
+    my $slot = _build_slot( $state->{'dir'} );
+    if ( defined $slot->{'error'} or not defined $slot->{'publish'} ) {
+        alarm 0;
+        return;                    ## busy \ already published ##
+    }
+    eval { _inline_bind( @{$state}{qw| source target |}, $slot->{'dir'} ) };
+    my $failed = $EVAL_ERROR;
+    alarm 0;
+    _publish_build( $slot, length $failed ? FALSE : TRUE );
+    return;
+}
+
+## growth of the re-check gap : short first, x1.2 .. 1.6 with jitter, a ##
+## jittered cap around 13 minutes [ AMOS7 is standalone : a tiny local  ##
+## version of the base.interval rhythm ]                                ##
+sub _next_gap {
+    my $state = shift;
+    my $gap   = $state->{'gap'} //= 0.4 * ( 0.8 + 0.4 * rand );
+    my $cap   = 780 * ( 0.85 + 0.3 * rand );
+    $state->{'gap'} = $gap * ( 1.2 + 0.4 * rand );
+    $state->{'gap'} = $cap if $state->{'gap'} > $cap;
+    return $gap;
+}
+
+sub _try_spawn {
+    my $state = shift;
+    return if $force_pure_perl;
+    ## a key holder builds only once a signed list exists ##
+    return if $require_trusted and not defined $trusted_objects_ref;
+    ## just spawned [ the child may not hold its lock yet ] : wait ##
+    my $grace = ( $build_time_limit // 77 ) + 7;
+    return
+        if defined $state->{'spawned_at'}
+        and Time::HiRes::time() < $state->{'spawned_at'} + $grace;
+    return if _builder_active( $state->{'dir'} );
+    my $result = _spawn_builder($state);
+    $state->{'spawned_at'} = Time::HiRes::time() if $result eq 'spawned';
+    $state->{'last_spawn'} = $result;
+    return;
+}
+
+## load only : the object is published, nothing is built ##
+sub _load_published {
+    my $state = shift;
+    my ( $trusted, $why ) = _object_trust( $state->{'dir'} );
+    if ( not $trusted ) {
+        warn_err( "inline object stays unloaded : %s", 1, $why )
+            if not $state->{'warned_untrusted'}++;
+        return;
+    }
+    eval { _inline_bind( @{$state}{qw| source target |}, $state->{'dir'} ); };
+    shift @INC if @INC and $INC[0] eq "$state->{'dir'}/lib";
+    my $bind_err = $EVAL_ERROR;
+    {
+        my ($key) = $state->{'target'} =~ m|^COMPILE::(\w+?::)|;
+        delete $main::{'COMPILE::'}{$key}
+            if defined $key and exists $main::{'COMPILE::'};
+    }
+    if ( length $bind_err ) {
+        warn_err( "inline object '%s' did not load : %s",
+            0, $state->{'dir'}, format_error( $bind_err, -1 ) )
+            if not $state->{'warned_load'}++;
+        return;
+    }
+    no strict qw| refs |;
+    my $loaded = \&{"AMOS7::INLINE::$state->{'name'}"};
+    return defined &{$loaded} ? $loaded : undef;
+}
+
+## the call-driven part : published ? load + swap. else make sure a builder ##
+## exists. runs only on a call that finds the gap used up                   ##
+sub _upgrade_check {
+    my $state = shift;
+    return if defined $state->{'compiled'};
+    return if $force_pure_perl;
+    my $now = Time::HiRes::time();
+    return if $now < ( $state->{'next_check'} // 0 );
+
+    if ( _object_published( $state->{'dir'} ) ) {
+        my $compiled = _load_published($state);
+        if ( defined $compiled ) {
+            $state->{'compiled'} = $compiled;
+            ## the wrapper is gone for new lookups : zero cost afterwards ##
+            no strict qw| refs |;
+            no warnings qw| redefine |;
+            my $name = "$state->{'package'}::$state->{'name'}";
+            if ( refaddr( \&{$name} ) == $state->{'wrapper'} ) {
+                *{$name} = $compiled;
+                $subroutines_installed->{$name} = $compiled;
+            }
+            return;
+        }
+    } else {
+        _try_spawn($state);
+        warn_err(
+            "'%s' still runs pure perl after %d s [ build %s ] -- retrying",
+            1,
+            $state->{'name'},
+            $now - $state->{'started'},
+            $state->{'last_spawn'} // 'pending'
+            )
+            if $now - $state->{'started'} > $pure_perl_warn_seconds
+            and not $state->{'warned_stuck'}++;
+    }
+    $state->{'next_check'} = $now + _next_gap($state);
+    return;
+}
+
+## install-at-once wrapper : calls the pure-perl alternative until the ##
+## compiled sub is loaded. the build starts here, detached             ##
+sub _defer_build {
+    my $state = shift;
+    $state->{'started'} = Time::HiRes::time();
+    _try_spawn($state);
+    $state->{'next_check'} = $state->{'started'} + _next_gap($state);
+
+    my $wrapper = sub {
+        if ( not defined $state->{'compiled'}
+            and Time::HiRes::time() >= $state->{'next_check'} ) {
+            ## a call must never see the check : its own error \ OS state ##
+            local ( $EVAL_ERROR, $OS_ERROR, $CHILD_ERROR );
+            eval { _upgrade_check($state) };
+        }
+        goto &{ $state->{'compiled'} // $state->{'fallback'} };
+    };
+    $state->{'wrapper'} = refaddr $wrapper;
+    return $wrapper;
+}
+
 ##[ REPRODUCIBLE BUILDS ]#####################################################
 
 ## short key over the toolchain : a compiler \ perl \ flags change gets a ##
@@ -509,7 +879,7 @@ sub _publish_build {
 sub toolchain_key {
     state $key;
     return $key if defined $key;
-    my $toolchain = join "\n", map { $_ // '' } $Config{'cc'},
+    my $toolchain = join "\n", map { $_ // '' } $build_cc // $Config{'cc'},
         $Config{'gccversion'}, $Config{'archname'}, $Config{'version'},
         $Config{'ccflags'}, $Config{'lddlflags'},
         $Inline::C::VERSION, _reproducible_flag_set();
@@ -566,8 +936,8 @@ sub _src_digest {
 
 return TRUE ##################################################################
 
-#,,.,,,..,,,,,..,,,.,,.,.,,,,,...,,,,,,.,,...,..,,...,..,,...,,,.,.,.,.,.,,,,,
-#OOVO3WIJS4UQOSQL3E4PXWFDRQ7AOJSXT2V7AXWY6MXTX73MWR727EEHMACQDHCIS47S3KNZTRDTS
-#\\\|CXWWQS5RMNSVCUYCVQ7J3EQV5U27VS3ZWZKQASZ3HLMQM5JV3QI \ / AMOS7 \ YOURUM ::
-#\[7]L5WP4DRZFIRSDWZ5PR7MREZHM6AVWVT4JHEI5BEUNJTPMWWZ4CAA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,.,,..,,.,,,,.,...,...,...,...,..,,...,...,...,.,,,.,.,,,,,,..,
+#5AAXZHMS6Z5DBAYQDZKDIWD5ST533O5DJCAD3AB6AM2SMZGBA2AB4GJFL6QQMXCOXHC7XF5MWO4HY
+#\\\|VZ5GSLPJCTCYKCOVVNNXG7GUPCIKOFN2PAD5OLRL7UNN4T5SOTP \ / AMOS7 \ YOURUM ::
+#\[7]UAEJWGL57KD5IOHUCWCPWFQZHYP3AGSGPS5ZIPCRW32YIX4FNQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

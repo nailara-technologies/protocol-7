@@ -1,0 +1,317 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+###                                                                  ###
+## AMOS7::INLINE call-driven upgrade                                  ##
+## [ data/tasks/rcm-inline-call-driven-upgrade.md, points 1 2 3 4 7 ] ##
+###
+
+## each scenario runs in its own perl                                    ##
+## [ the inline namespace and the object cache are per process ] under a ##
+## throwaway dir in /tmp                                                 ##
+##
+## - upgrade   : fallback at once, compiled swapped in after the publish,
+##               double fork, checksum recorded
+## - timelimit : a hung compiler is killed with its process group
+## - cap       : no free build slot stays pure perl, a freed slot upgrades
+## - force     : force_pure_perl never forks, never creates a dir
+## - trust-*   : key holder without \ with \ not on a list, plain caller
+##               with a list that does not match
+
+use File::Spec;
+use Cwd         qw| abs_path |;
+use FindBin     qw| $RealBin |;
+use Time::HiRes ();
+
+my ( $scenario, $base );
+
+BEGIN {
+    my $up_dir    = File::Spec->updir;
+    my $root_path = abs_path(
+        File::Spec->rel2abs(
+            File::Spec->catdir( $RealBin, $up_dir, $up_dir )
+        )
+    );
+    unshift @INC, File::Spec->catdir( $root_path, 'data', 'lib-path', 'pm' );
+
+    ( $scenario, $base ) = @ARGV[ 0, 1 ];
+    if ( defined $scenario and $scenario eq 'force' ) {
+        $AMOS7::INLINE::force_pure_perl = 1;
+    }
+    ## count forks of the whole process ##
+    no warnings qw| once |;
+    *CORE::GLOBAL::fork = sub { $main::forks++; return CORE::fork() };
+}
+
+our $forks = 0;
+
+my $failed = 0;
+
+sub check {
+    my ( $label, $condition ) = @_;
+    printf "  %s : %s\n", ( $condition ? 'ok  ' : 'FAIL' ), $label;
+    $failed++ if not $condition;
+    return;
+}
+
+##[ PARENT : RUN THE SCENARIOS ]##############################################
+
+if ( not defined $scenario ) {
+    my $root = sprintf '/tmp/claude-1000/inline-upgrade-test-%d', $PID;
+    mkdir '/tmp/claude-1000';
+    mkdir $root or die "cannot create '$root' : $OS_ERROR\n";
+    my $all_failed = 0;
+    ## upgrade first : the trust scenarios reuse its published object ##
+    foreach my $name (
+        qw| upgrade timelimit cap force trust-nolist
+        trust-listed trust-foreign trust-plain |
+    ) {
+        printf "scenario %s\n", $name;
+        my $dir = "$root/$name";
+        $dir = "$root/upgrade" if $name =~ m|^trust|;
+        mkdir $dir;
+        my $out
+            = qx| $EXECUTABLE_NAME $PROGRAM_NAME $name $dir 2>$root/$name.err |;
+        print $out;
+        $all_failed++ if $CHILD_ERROR != 0 or $out =~ m|FAIL|;
+    }
+    system 'rm', '-rf', '--one-file-system', '--', $root;
+    printf "\n%s\n",
+        $all_failed ? "$all_failed scenario(s) FAILED" : 'all passed';
+    exit( $all_failed ? 1 : 0 );
+}
+
+##[ CHILD : ONE SCENARIO ]####################################################
+
+require AMOS7::INLINE;
+AMOS7::INLINE->import;
+use Scalar::Util qw| refaddr |;
+
+my $object  = "$base/obj";
+my $package = 'T::S';
+
+sub compile {
+    return AMOS7::INLINE::compile_inline_source(
+        {   'subroutine-name' => 'bit_string_to_num',
+            'target-package'  => $package,
+            'target-path'     => $object,
+        }
+    );
+}
+
+## call until the installed sub is no longer the one first returned ##
+sub wait_upgrade {
+    my ( $initial, $seconds ) = @_;
+    my $deadline = Time::HiRes::time() + $seconds;
+    no strict qw| refs |;
+    while ( Time::HiRes::time() < $deadline ) {
+        &{"${package}::bit_string_to_num"}('1');
+        return 1
+            if refaddr( \&{"${package}::bit_string_to_num"} ) != $initial;
+        select undef, undef, undef, 0.2;
+    }
+    return 0;
+}
+
+sub leftovers {
+    return scalar grep { !-l $ARG } glob "$object.build-*";
+}
+
+sub gone {    ## pid not alive ##
+    my $pid = shift;
+    return !-d "/proc/$pid" || do {
+        open my $fh, '<', "/proc/$pid/stat" or return 1;
+        ( my $stat = <$fh> ) =~ s|^.*\) ||;
+        $stat =~ m|^Z|;
+    };
+}
+
+if ( $scenario eq 'upgrade' ) {
+    my $started = Time::HiRes::time();
+    my $ref     = compile();
+    my $elapsed = Time::HiRes::time() - $started;
+    check( 'first call returns at once [ < 2 s ]', $elapsed < 2 );
+    check( 'nothing published at return',
+        !AMOS7::INLINE::_object_published($object) );
+    check(
+        'pure-perl alternative answers',
+        T::S::bit_string_to_num('101') == 5
+    );
+    ## the parent forks once, the middle child the builder : no child of ##
+    ## ours is left to reap [ no SIGCHLD handler, no later waitpid ]     ##
+    check( 'builder detached by a double fork',
+        ( $main::forks == 1 and waitpid( -1, 1 ) == -1 ) );
+    my $initial = refaddr( \&T::S::bit_string_to_num );
+    check(
+        'upgrade after publish, same process',
+        wait_upgrade( $initial, 150 )
+    );
+    check(
+        'installed sub is the compiled one',
+        refaddr( \&T::S::bit_string_to_num )
+            == refaddr( \&AMOS7::INLINE::bit_string_to_num )
+    );
+    check( 'compiled sub answers', T::S::bit_string_to_num('1111') == 15 );
+    check( 'an old reference still works', $ref->('11') == 3 );
+    check( 'object published', AMOS7::INLINE::_object_published($object) );
+    my $recorded = do {
+        open my $fh, '<', "$object/chksum" or die "no chksum record\n";
+        <$fh>;
+    };
+    chomp $recorded;
+    check(
+        'checksum recorded before publish',
+        (   length $recorded
+                and $recorded eq AMOS7::INLINE::_object_chksum($object)
+        )
+    );
+    check( 'no build dir left',                 leftovers() == 0 );
+    check( 'no second build after the upgrade', $main::forks == 1 );
+
+} elsif ( $scenario eq 'timelimit' ) {
+    my $pid_file = "$base/cc.pids";
+    my $cc       = "$base/slowcc";
+    open my $fh, '>', $cc or die;
+    print {$fh} "#!/bin/sh\necho \$\$ >> $pid_file\nexec sleep 300\n";
+    close $fh;
+    chmod 0755, $cc;
+    $AMOS7::INLINE::build_cc         = $cc;
+    $AMOS7::INLINE::build_time_limit = 3;
+    my $started = Time::HiRes::time();
+    compile();
+    check(
+        'returns at once with a hung compiler',
+        Time::HiRes::time() - $started < 2
+    );
+    my $seen = 0;
+
+    foreach ( 1 .. 40 ) {    ## the compiler starts ##
+        $seen = -s $pid_file ? 1 : 0;
+        last if $seen;
+        select undef, undef, undef, 0.25;
+    }
+    check( 'the hung compiler started', $seen );
+    select undef, undef, undef, 6;    ## limit 3 s + cleanup ##
+    my @pids = do {
+        open my $p, '<', $pid_file or die;
+        map { chomp; $ARG } <$p>;
+    };
+    check(
+        'the compiler was killed by the limit',
+        ( @pids and !grep { !gone($ARG) } @pids )
+    );
+    check( 'nothing published', !AMOS7::INLINE::_object_published($object) );
+    check( 'no build dir left', leftovers() == 0 );
+    check(
+        'no builder holds the object lock',
+        !AMOS7::INLINE::_builder_active($object)
+    );
+    check( 'still answers in pure perl', T::S::bit_string_to_num('11') == 3 );
+
+} elsif ( $scenario eq 'cap' ) {
+    my @held = (
+        AMOS7::INLINE::_acquire_build_cap($base),
+        AMOS7::INLINE::_acquire_build_cap($base)
+    );
+    check( 'both cap slots held by the test', 2 == grep {defined} @held );
+    check( 'a third slot is refused',
+        !defined AMOS7::INLINE::_acquire_build_cap($base) );
+    my $forks_before = $main::forks;
+    compile();
+    my $initial = refaddr( \&T::S::bit_string_to_num );
+    select undef, undef, undef, 2;
+    T::S::bit_string_to_num('1');
+    check( 'cap reached : no fork',          $main::forks == $forks_before );
+    check( 'cap reached : no build started', !-e "$object.lock" );
+    check(
+        'cap reached : pure perl answers',
+        T::S::bit_string_to_num('101') == 5
+    );
+    check( 'no upgrade while the cap holds', !wait_upgrade( $initial, 4 ) );
+    close $held[0];    ## a slot frees up : a later call retries ##
+    check( 'upgrade once a slot is free', wait_upgrade( $initial, 150 ) );
+    check( 'compiled sub answers', T::S::bit_string_to_num('1111') == 15 );
+
+} elsif ( $scenario eq 'force' ) {
+    my $ref = compile();
+    T::S::bit_string_to_num('101') for 1 .. 3;
+    select undef, undef, undef, 1.5;
+    T::S::bit_string_to_num('101') for 1 .. 3;
+    check( 'force_pure_perl : never forks',           $main::forks == 0 );
+    check( 'force_pure_perl : no inline dir created', !-e $object );
+    check(
+        'force_pure_perl : alternative answers',
+        T::S::bit_string_to_num('101') == 5
+    );
+    check(
+        'force_pure_perl : no wrapper, no upgrade',
+        !defined &AMOS7::INLINE::bit_string_to_num
+    );
+
+} elsif ( $scenario =~ m|^trust-| ) {    ## object published by 'upgrade' ##
+    check(
+        'object from the upgrade scenario present',
+        AMOS7::INLINE::_object_published($object)
+    );
+    my $chksum = AMOS7::INLINE::_object_chksum($object);
+    my $stderr = '';
+    if ( $scenario eq 'trust-nolist' ) {
+        $AMOS7::INLINE::require_trusted = 1;
+        compile();
+        check(
+            'key holder without a list : stays pure perl',
+            !defined &AMOS7::INLINE::bit_string_to_num
+        );
+        check(
+            'key holder : alternative answers',
+            T::S::bit_string_to_num('101') == 5
+        );
+        check( 'key holder without a list : no builder', $main::forks == 0 );
+    } elsif ( $scenario eq 'trust-listed' ) {
+        $AMOS7::INLINE::require_trusted     = 1;
+        $AMOS7::INLINE::trusted_objects_ref = { $chksum => 1 };
+        compile();
+        check(
+            'key holder, object on the list : compiled loaded',
+            defined &AMOS7::INLINE::bit_string_to_num
+        );
+        check( 'compiled answers', T::S::bit_string_to_num('1111') == 15 );
+    } elsif ( $scenario eq 'trust-foreign' ) {
+        $AMOS7::INLINE::require_trusted     = 1;
+        $AMOS7::INLINE::trusted_objects_ref = { 'NOT-THIS-ONE' => 1 };
+        compile();
+        check(
+            'key holder, object not on the list : stays pure perl',
+            !defined &AMOS7::INLINE::bit_string_to_num
+        );
+        check( 'alternative answers', T::S::bit_string_to_num('101') == 5 );
+        ## trust-plain : not a key holder, a list that does not match ##
+    } else {
+        $AMOS7::INLINE::trusted_objects_ref = { 'NOT-THIS-ONE' => 1 };
+        my $warnings = 0;
+        local $SIG{__WARN__}
+            = sub { $warnings++ if $ARG[0] =~ m|unverified| };
+        no warnings qw| redefine |;
+        local *AMOS7::INLINE::warn_err = sub {
+            $warnings++ if $ARG[0] =~ m|unverified|;
+            return;
+        };
+        compile();
+        check(
+            'plain caller, unmatched list : loads anyway',
+            defined &AMOS7::INLINE::bit_string_to_num
+        );
+        check( 'plain caller : one unverified warning', $warnings == 1 );
+    }
+}
+
+exit( $failed ? 1 : 0 );
+
+#,,..,.,.,,..,,.,,..,,.,.,,,,,.,.,.,.,,,,,...,..,,...,.,.,.,.,,..,,.,,.,,,,.,,
+#VIMCTTBQ3XGACFE5Y3W5E3QDDHTWBC2QKI5DALZEV6OEJD5SPXJB5VDGR2ENCS72A7UJNDGXH4MX2
+#\\\|FM5TUFEDLGNF44NOPUZRZ4MAFMZG5DBQWEO6SIZFNEQBPUCCEAY \ / AMOS7 \ YOURUM ::
+#\[7]ENHI7OFO6NCSF47X4SFNVMPVYLYTXT77KFNHNM3Z2P5MX4QABCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
