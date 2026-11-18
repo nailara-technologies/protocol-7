@@ -273,7 +273,13 @@ different dirs ; old 2-part cache dirs stay unused, pruning still open ] :
 - the dir key is 5 bytes of BMW over the source only : a toolchain change
   rebuilds in place ; add a short toolchain key, old dirs never pruned
 
-concurrency [ today : Inline 0.87 flocks only its config file ; parallel
+concurrency [ 2026-11-18 built in AMOS7::INLINE : per-object lock
+O_NOFOLLOW + owner check, bounded wait [ $build_wait_seconds, 120 ],
+fresh 0700 build dir, publish by one rename, stale build dirs swept under
+the lock ; tested : 6 parallel cold starts -> one object, all compiled.
+still open : the call-driven pure perl -> compiled upgrade, the compiler
+time limit + host build cap, pre-build at install ]
+[ before : Inline 0.87 flocks only its config file ; parallel
 cold starts at the same counter share one build/ dir -> make races, a
 reader can map a half-installed .so ] :
 - the lock only saves duplicate work, never correctness : a bounded
@@ -316,8 +322,8 @@ reader can map a half-installed .so ] :
   contract input away from the compiled sub, so the DISPATCH surface is
   the one that must [ and does ] agree everywhere.
 
-#,,.,,,.,,..,,.,,,...,,..,,.,,..,,.,.,..,,.,.,..,,...,...,..,,...,...,..,,.,.,
-#SM3GHVGZPAZFSZYD2WIJJ66M7LYNXTDWNQSYMM63MZSU7QH336TKSZC5Z7KK5ESBOLPDUO4KI3R6S
-#\\\|KI46DBGM6Q6YIE5OMHRYYC4EW3WMIZCLRKWQYH4BX3VYVQH5YPO \ / AMOS7 \ YOURUM ::
-#\[7]HB7GGXZDQJGYLFWXEZADMP4EUZEGYBTVXRQAFZZMIQA3ER3B26CQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,.,.,...,..,,,.,,,.,,.,.,,,.,..,,...,...,,..,,.,,,,.,...,,,.,
+#ESWM4MYPRTOLDONLRMCIMWBAQELRHFMEK2EZXAD4P4TNYREZIVGWUINHA2CD5MXSYRA3CQNPCNKNE
+#\\\|TDE6VVRLD25MJCAQJWJFFBBNK5IMW2XW4BT4YOWS4M4XVHB6ARL \ / AMOS7 \ YOURUM ::
+#\[7]CPELC5BIZZ7BENZI25BHM5NGFE7PZFQK2MPILQVOQBFTESQ7V4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

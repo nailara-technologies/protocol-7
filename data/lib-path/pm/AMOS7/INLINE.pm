@@ -16,7 +16,10 @@ use English;
 use warnings;
 use Config;
 use Cwd             qw| abs_path |;
+use File::Find      ();
+use File::Temp      ();
 use File::Path      qw| make_path |;
+use Fcntl           qw| O_RDWR O_CREAT O_NOFOLLOW LOCK_EX LOCK_NB |;
 use List::MoreUtils qw| minmax |;
 
 ## optional digest module : the core fallback below keeps this module    ##
@@ -79,7 +82,7 @@ warn_err(
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-$VERSION = qw| AMOS7::INLINE-VERSION.6HGLZCA |;
+$VERSION = qw| AMOS7::INLINE-VERSION.YTOFXDA |;
 
 return TRUE;    ## true ##
 
@@ -193,22 +196,31 @@ sub compile_inline_source {
             0, $custom_inline_dir )
             if -d $custom_inline_dir and not -r $custom_inline_dir;
 
-        ## no build without Inline::C : a pure-perl process creates no dir ##
-        if (    !-d $custom_inline_dir
+        ## only the parent is created here : the object dir itself appears ##
+        ## by one rename from a private build dir [ _build_slot ] -- no    ##
+        ## build without Inline::C, a pure-perl process creates no dir     ##
+        my ( $parent_dir, $object_dir_name )
+            = $custom_inline_dir =~ m|^(.*)/([^/]+)/*$|;
+        return warn_err( "inline directory '%s' has no parent",
+            0, $custom_inline_dir )
+            if not defined $object_dir_name
+            or not length $parent_dir;
+
+        if (    !-d $parent_dir
             and $inline_c_available
             and not $force_pure_perl ) {
 
-            make_path( $custom_inline_dir, {@params} )
+            make_path( $parent_dir, {@params} )
                 or return warn_err( ': %s : %s', 1,
-                format_error( $OS_ERROR, -1 ),
-                $custom_inline_dir );
+                format_error( $OS_ERROR, -1 ), $parent_dir );
 
             return warn_err( "cannot create inline directory '%s'",
-                1, $custom_inline_dir )
-                if !-d $custom_inline_dir;
+                1, $parent_dir )
+                if !-d $parent_dir;
         }
         ## prepare matching precise @INC path ##
-        $custom_inline_dir = abs_path($custom_inline_dir);
+        $custom_inline_dir = sprintf '%s/%s',
+            abs_path($parent_dir) // $parent_dir, $object_dir_name;
 
         ## remove previous installation ##
         eval "undef \\&$current_sub_name";
@@ -229,19 +241,24 @@ sub compile_inline_source {
         ##  COMPILATION \ INSTALLATION OF INLINE SUBROUTINE  ##
         ###                                                 ###
 
+        ## the dir Inline works in + lock + publish target ##
+        my $build_slot;
         eval {
             die "'Inline::C' is not available\n"
                 if not $inline_c_available or $force_pure_perl;
+            $build_slot = _build_slot($custom_inline_dir);
+            die "$build_slot->{'error'}\n" if defined $build_slot->{'error'};
             Inline->bind(
                 qw|  C  |         => $cleaned_source,
                 qw| name |        => $compilation_target,
-                qw|  directory  | => $custom_inline_dir,
+                qw|  directory  | => $build_slot->{'dir'},
                 qw| BUILD_NOISY | => $devmod_output_to_console,
-                reproducible_build_flags($custom_inline_dir)
+                reproducible_build_flags( $build_slot->{'dir'} )
             );
         };
         ## keep compilation errors ##
         my $comp_err = $EVAL_ERROR;
+        _publish_build( $build_slot, length $comp_err ? FALSE : TRUE );
 
         ## final installation target ##
         my $target_subname
@@ -396,6 +413,95 @@ sub gen_inline_path {
     return $abs_path;
 }
 
+##[ BUILD SLOT : LOCK, PRIVATE BUILD DIR, ONE RENAME ]########################
+
+## seconds a process waits for another one building the same object ; after ##
+## that it runs pure perl [ the build lock only saves duplicate work, never ##
+## correctness -- INLINE-OBJECT-TRUST.md ]                                  ##
+our $build_wait_seconds;    ## undef : 120 [ set before load to change ] ##
+
+## a published object dir : complete by construction                   ##
+## [ it appeared by one rename after a successful build ], Inline only ##
+## loads from it                                                       ##
+sub _object_published {
+    my $object_dir = shift // return FALSE;
+    return FALSE if not -d $object_dir or -l $object_dir;
+    my $found = FALSE;
+    File::Find::find(
+        {   no_chdir => 1,
+            wanted   => sub { $found = TRUE if m|\.inl$| and -f $ARG }
+        },
+        "$object_dir/lib/auto"
+    ) if -d "$object_dir/lib/auto";
+    return $found;
+}
+
+## where Inline may work : the published dir [ load only ], or a fresh 0700 ##
+## build dir next to it while holding the per-object lock                   ##
+sub _build_slot {
+    my $object_dir = shift;
+    return { qw| dir | => $object_dir } if _object_published($object_dir);
+
+    my $lock_path = "$object_dir.lock";
+    sysopen( my $lock_fh, $lock_path, O_RDWR | O_CREAT | O_NOFOLLOW, 0600 )
+        or return {
+        qw| error | => sprintf "build lock '%s' : %s",
+        $lock_path, $OS_ERROR
+        };
+    my @lock_stat = stat $lock_fh;
+    return { qw| error | => "build lock '$lock_path' is not a plain file"
+            . ' owned by this user' }
+        if not -f _
+        or $lock_stat[4] != $UID;
+
+    my $deadline = time + ( $build_wait_seconds // 120 );
+    until ( flock $lock_fh, LOCK_EX | LOCK_NB ) {
+        return {
+            qw| error | => "build lock '$lock_path' busy -- using pure perl" }
+            if time >= $deadline;
+        select undef, undef, undef, 0.25;
+    }
+    ## the holder before us may have published it ##
+    return { qw| dir | => $object_dir, qw| lock | => $lock_fh }
+        if _object_published($object_dir);
+
+    ## holding the lock, every build dir of this object is ours : the rest ##
+    ## is left from a killed builder                                       ##
+    foreach my $stale_dir ( glob quotemeta($object_dir) . '.build-*' ) {
+        File::Path::remove_tree($stale_dir)
+            if -d $stale_dir and !-l $stale_dir;
+    }
+
+    my $build_dir = eval {
+        File::Temp::tempdir( "$object_dir.build-XXXXXX", CLEANUP => 0 );
+    };
+    return { qw| error | => "no private build dir for '$object_dir'" }
+        if not defined $build_dir;
+    chmod 0700, $build_dir;
+    return {
+        qw|   dir   | => $build_dir,
+        qw| publish | => $object_dir,
+        qw|  lock   | => $lock_fh
+    };
+}
+
+## a successful private build becomes the object dir by one rename ; a ##
+## failed one is removed. the lock goes with its file handle           ##
+sub _publish_build {
+    my ( $slot, $built ) = @ARG;
+    return if ref $slot ne qw| HASH | or not defined $slot->{'publish'};
+    my ( $build_dir, $object_dir ) = @{$slot}{qw| dir publish |};
+    if ( $built and not -e $object_dir ) {
+        rename $build_dir,
+            $object_dir
+            or warn_err( "cannot publish inline object '%s' : %s",
+            0, $object_dir, $OS_ERROR );
+    }
+    File::Path::remove_tree($build_dir) if -d $build_dir;
+    close $slot->{'lock'}               if defined $slot->{'lock'};
+    return;
+}
+
 ##[ REPRODUCIBLE BUILDS ]#####################################################
 
 ## short key over the toolchain : a compiler \ perl \ flags change gets a ##
@@ -460,8 +566,8 @@ sub _src_digest {
 
 return TRUE ##################################################################
 
-#,,..,,,.,,.,,,,,,.,.,..,,,,.,,,.,...,..,,,.,,..,,...,...,..,,,,,,...,...,,..,
-#3Y42WM2XS3JZEM6GURAYKOH55IFG73TFQNGPW672A6D2MR32PDK6PQMKORK4GOGT5SM5OKAC4OA6W
-#\\\|ADGCQOEG2VOWE5E5YE6G3IHDAZC67IW4EAJ55LIMMMVK2RGVY2O \ / AMOS7 \ YOURUM ::
-#\[7]P6P2YD7STXK4BR7AU2ZMTKN6J2Q3227MUFA66RVP5SQEWZVIFKDI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,..,,,.,,.,.,,,,,...,,,,,,.,,...,..,,...,..,,...,,,.,.,.,.,.,,,,,
+#OOVO3WIJS4UQOSQL3E4PXWFDRQ7AOJSXT2V7AXWY6MXTX73MWR727EEHMACQDHCIS47S3KNZTRDTS
+#\\\|CXWWQS5RMNSVCUYCVQ7J3EQV5U27VS3ZWZKQASZ3HLMQM5JV3QI \ / AMOS7 \ YOURUM ::
+#\[7]L5WP4DRZFIRSDWZ5PR7MREZHM6AVWVT4JHEI5BEUNJTPMWWZ4CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
