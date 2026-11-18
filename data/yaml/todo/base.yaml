@@ -1292,6 +1292,7 @@ items:
     nameserv[cache] \ nameserv[cache-local] : forwarding dns cache instance [ replaces systemd-resolved on desktops and hosts ]
 
     started as a sub-named instance : v7-zenki.start nameserv[cache] [ server ] or nameserv[cache-local] [ linux desktop ]. answers only loopback clients [ 127.0.0.0/8, ::1 -- enforced in code, never only by config : no open resolver ]. forward + cache to the configured upstream servers first [ ttl-honouring, negative cache ], full recursion only if ever needed. opt-in until proven : resolv.conf keeps a fallback upstream. later : dns tunnelled over protocol-7 [ the cache forwards through a zenka link instead of udp ]. context : srv-A's resolved stub blocked nameserv's tcp 53 bind [ NRQ ].
+    follow-up [ 2026-11-18 ] : upstream claims [ fast, private, uncensored ] are unverifiable -- measure instead. per-upstream timing, prefer the fastest correct one ; sampled cross-check of 2-3 independent upstreams, answers only one gives [ nxdomain, other A ] logged as disagreement. privacy by design : desktops forward over the p7 link to own servers, servers recurse themselves with qname minimisation ; public resolvers only bootstrap \ fallback \ second opinion. default 1.1.1.1 9.9.9.9 is a placeholder. order : live cache-local start -> forward over the link -> server recursion. dns over a tcp \ ssh tunnel adds head-of-line latency : raises UDT transport priority
   done_at: null
   id: 4ZW
   priority: normal
@@ -2770,9 +2771,39 @@ items:
   - jobsite
   - web
   text: 'jobsite relay : fetch-and-forward variant [ split from 5WI ]'
+- added: 32VYHSW4OM
+  details: |-
+    udp-based reliable transport under the external link [ plugin.external.udt, transport.handle.udt-tunnel, PROTOCOL7_TRANSPORT_HIERARCHY.md ] : nothing above the link changes. users waiting on it : 4ZW dns forwarded over the link [ tcp \ ssh tunnels are encrypted but add head-of-line latency to every lookup -- raised priority 2026-11-18 ], HS4 proxy tunnel [ head-of-line between tunnels on one link ], N7FS DATA \ DELTA streams [ 4EO ]. per-stream independence on one link is the point : a lost packet stalls only its own stream.
+    loss resilience [ owner 2026-11-18 ] : adopt the discover zenka's heartbeat send pattern -- effective on lossy wireless links. as built in discover.handler.anounce_host_addr : each send is a group of 2 [ send_packet_count, repeat_send_distance 0.13 s, the gap doubles per extra packet ], then a pause starting at 0.19-0.23 s that grows x1.13 per round up to a jittered maximum of 40-44 s. reset to short intervals by discover.callback.resend_interval_reset : on the first send error [ discover.send_packet, e.g. after a suspend \ lid close ] and when a matching resend request arrives [ discover.process_host_packet ]. for the link : latency-critical small packets [ dns queries, acks, keepalives ] as such pairs, the receiver drops the duplicate ; keepalive backoff with the same reset on errors \ wake.
+    the discover constants were hand-tuned to feel responsive and non-linear [ owner 2026-11-18 ] : reuse them as the starting point, do not re-derive or linearise them.
+    interval character [ owner 2026-11-18 ] : the non-linear growth itself matters, not only the values. linear or regular interval patterns are perceived as irritating to creative thought, others as calming and non-interrupting -- traffic shows on switch \ router leds and radiates as radio, the same differences likely hold across frequencies. candidate : filter timer intervals through the division-by-13 harmonic check [ AMOS7::Assert::Truth ] so keepalive \ resend timing avoids the disruptive patterns. applies to every periodic sender, not only udt [ discover already non-linear ].
+  done_at: null
+  id: 5UR
+  priority: high
+  status: open
+  tags:
+  - transport
+  - udt
+  - external
+  text: UDT transport under the external link [ plugin.external.udt ]
+- added: 32VYNUPNPE
+  details: |-
+    owner 2026-11-18 : zenki timers were converted to non-linear growth by hand, but new llm code keeps choosing its own values [ fixed or linear intervals, or a doubling ]. owner convention so far : start short by kind [ 0.07 \ 0.77 s ], grow x1.2 per round [ some x2 ], a jittered cap ; discover uses pairs 0.13 s apart, x1.13, cap 40-44 s, reset on error \ wake [ see 5UR ].
+    1. one helper [ e.g. base.timer.next_interval : state per timer, start \ factor \ cap \ jitter, reset on error \ wake, optional pairs ] with the division-by-13 harmonic filter [ AMOS7::Assert::Truth ] on the produced values
+    2. fix it at the source : a CONVENTIONS.yaml \ CODE-STYLE entry + CLAUDE.md line, so generated code calls the helper instead of picking numbers ; the style mentor [ non-blocking correction ] can flag literal add_timer intervals
+    3. sweep [ kimi ] : list every periodic event.add_timer \ retry loop with its interval law ; convert the linear \ fixed ones ; the local backoffs [ discover.orbital.request_backoff, external.handler.reset_retry_delay, letsencr.parent.enroll_backoff_delay, site-yaml.fetch.backoff ] move onto the helper with their tuned values kept
+  done_at: null
+  id: WEQ
+  priority: normal
+  status: open
+  tags:
+  - base
+  - timers
+  - style
+  text: shared non-linear interval helper for every periodic sender
 
-#,,,.,.,.,,,,,...,..,,,.,,,,,,,,.,..,,,,,,,,.,..,,...,...,..,,.,.,,.,,,,,,,..,
-#K2INLXSWWSXWIXEJFGMNJH4E26EZIUFRMLIQTHYBBYB2QOBRVDTZ6CJYMKQP4FN3WJTBQGRYSE6I4
-#\\\|BMCKKL2YTSSBN665M4NG725ZIBOSJS5RLRNGLOSDFVLL3YCA37Z \ / AMOS7 \ YOURUM ::
-#\[7]CSFRQZFCFZXYBMIZO5DAGNKCHTJ2XPEVGCMKOIK7TUDXF6DYZQDI 7  DATA SIGNATURE ::
+#,,..,...,,..,..,,,..,..,,,,.,..,,...,...,,.,,..,,...,...,...,..,,..,,,,,,.,,,
+#4V5YLKVXMUAM23KZVGSHJDBRBT7JVCNTYVPIIZ7Z2L27A3AYFMOO4DIG74XNELZA2PLPMXQ37B3J2
+#\\\|ABVP7RUNRTQRPDNQXNR53M72UTGBXNX4WNARALTVH7B24SBKLHZ \ / AMOS7 \ YOURUM ::
+#\[7]GPZCYBO3U6OEWR36IB32VLO25VZDVYLKLLSMJFNGEWIP7DCXZ2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
