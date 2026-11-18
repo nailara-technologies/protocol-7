@@ -332,7 +332,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
     ##  trailing dots and colons  ##
     $key_list_string =~ s|  (\.)$|  $C{b}$C{0}$1$C{T}|mg;
-    $key_list_string =~ s|  (\:) |  $C{b}$C{0}$1$C{T} |mg;
+    ## the background stays on the separator, never the file name ##
+    $key_list_string =~ s|  (\:) |  $C{b}$C{0}$1$C{R}$C{T} |mg;
 
     ##  checksums/marks purple  ##
     $key_list_string =~ s,(*plb:(\ {$_sn}|:\ signed\ :|[\>']))\ (?<n>[\.\:])
@@ -387,8 +388,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,.,,.,,,,.,,.,,,...,...,...,,,,,,,.,,,.,...,.,.,...,...,,..,,.,,..,,,.,,...,
-#SITRF2R7EDKDRTKL4BW6CYRJN6PMGGR4JHNCPK7VBWPVWAF53UG2TFVM2UX6LRTZNIGNJOHN2LNAS
-#\\\|HNUDRJH4ERMCRXPM5Y5OAXSEWZ7XJZOMBRAUINTJDZ2B5SIFARK \ / AMOS7 \ YOURUM ::
-#\[7]CPCPCCCWDYTDJO2MDLHZGLOQ36OWW3P2KAXYUXZA5DENQODR5AAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,...,...,..,,.,,,,..,.,,,..,,.,.,...,...,..,,...,...,,.,,,..,
+#7DQKNB3BOLQUGLKXMJASHDSUCRQEWXEV3666PM3XTCKILSNNJTVMKUEM62OZ4FE5EZSNS5VP5MB5O
+#\\\|2MSBVSDCYDXSJ7VQGIMCW6ZBTKAIYKJEA5V4KBAVO7DBULPYVQJ \ / AMOS7 \ YOURUM ::
+#\[7]2HHU4BHOZASEFZ4G66D3HVTJFNQDW3BG6UYXOU7FWXGU467O2GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
