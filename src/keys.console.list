@@ -319,6 +319,10 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     my $_sn = $names_len + 2;
     no warnings qw| experimental |;
 
+    ## 0. the separator column by position [ before any escape shifts it ]  ##
+    ## : every row's '.' \ ':' gets the same look, marked here, styled last ##
+    $key_list_string =~ s{^( : .{$names_len} )([.:])(?= |$)}{$1\x01$2\x02}gm;
+
     ##  1. base teal on everything  ##
     $key_list_string =~ s|^(.+)$|$C{T}$1|mg;
 
@@ -329,11 +333,6 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
     ##  header line  ##
     $key_list_string =~ s|::(.+):.|$C{0}::$C{T}$1$C{0}:.$C{T}|m;
-
-    ##  trailing dots and colons  ##
-    $key_list_string =~ s|  (\.)$|  $C{b}$C{0}$1$C{T}|mg;
-    ## the background stays on the separator, never the file name ##
-    $key_list_string =~ s|  (\:) |  $C{b}$C{0}$1$C{R}$C{T} |mg;
 
     ##  checksums/marks purple  ##
     $key_list_string =~ s,(*plb:(\ {$_sn}|:\ signed\ :|[\>']))\ (?<n>[\.\:])
@@ -370,6 +369,9 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     $key_list_string =~ s{(:.virtual.::)}
         {$colors{'B01'}$1$C{T}$C{B}$colors{'B02'}}mg;
 
+    ##  separator column : background on the mark only, never the name ##
+    $key_list_string =~ s|\x01([.:])\x02|$C{b}$C{0}$1$C{R}$C{T}|g;
+
     ##  final reset ONLY at end  ##
     $key_list_string =~ s|$|$C{R}|mg;
 }
@@ -388,8 +390,8 @@ if (@unreadable_note_lines) {
 
 return say $key_list_string;
 
-#,,,,,,,,,,.,,,.,,...,...,..,,.,,,,..,.,,,..,,.,.,...,...,..,,...,...,,.,,,..,
-#7DQKNB3BOLQUGLKXMJASHDSUCRQEWXEV3666PM3XTCKILSNNJTVMKUEM62OZ4FE5EZSNS5VP5MB5O
-#\\\|2MSBVSDCYDXSJ7VQGIMCW6ZBTKAIYKJEA5V4KBAVO7DBULPYVQJ \ / AMOS7 \ YOURUM ::
-#\[7]2HHU4BHOZASEFZ4G66D3HVTJFNQDW3BG6UYXOU7FWXGU467O2GCA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,,,.,.,.,,,,,,.,,,..,..,,,..,.,.,...,..,,...,,,.,.,.,,.,,,.,,
+#XO2XMZBUTY23ZBOYEUK3CPBN4D3LY46FDXX5OSD4SH7PKV7NEANGGFA6SIK6BYXKVFDFGE2CK5XNW
+#\\\|BVYKFS6ECBN7ZPC3DXJRVH2MJUAMEWLWLHIZGK6VDLRJK4DS76T \ / AMOS7 \ YOURUM ::
+#\[7]E6ILR4QTTXHVF7FITQDQN72ENHWI5LKUFJ3MAYQFMLJ47IRHGQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
