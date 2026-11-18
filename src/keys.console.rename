@@ -1,8 +1,8 @@
 ## [:< ##
 
 # name  = keys.console.rename
-# param = <from> <to> [::yes::]
-# descr = change a user key name [ 'list' cmd for names ]
+# param = <from> <to> [::yes::] \ <host pin> <new host> [<leaf name>]
+# descr = change a user key name, or a host pin's host [ 'list' cmd for names ]
 
 my $param_str = shift // '';
 
@@ -17,6 +17,70 @@ if ( not defined $srckey or not defined $to_keyname ) {
 } elsif ( not <[crypt.C25519.validate_keyname]>->($to_keyname) ) {
     say "\n  <<  target key name is not valid  >>\n";
     <[base.exit]>->(qw| 0113 |);
+}
+
+## a host pin [ no user key of that name ] : the pin file follows the new ##
+## host name, port kept ; the pinned leaf name changes ONLY when given    ##
+## [ trust.pin_decide never rewrites it -- this is the owner's step ]     ##
+if ( not <[crypt.C25519.key_exists]>->($srckey) ) {
+    my $remote_keys_ref = <[keys.list_remote_keys]>;
+    my ($pin) = grep {defined}
+        $remote_keys_ref->{$srckey},
+        grep { $ARG->{'stem'} eq $srckey } values %{$remote_keys_ref};
+    if ( defined $pin ) {
+        my $leaf_name
+            = ( $confirm // '' ) eq qw| ::yes:: | ? undef : $confirm;
+        if ( defined $leaf_name
+            and $leaf_name !~ m|\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}\z| ) {
+            say "\n  << leaf name is not valid >>\n";
+            <[base.exit]>->(qw| 0113 |);
+        }
+        my ( $old_file, $port ) = @{$pin}{qw| file_path port |};
+        my ($pin_dir) = $old_file =~ m|^(.*)/[^/]+$|;
+        ( my $new_stem = lc $to_keyname ) =~ tr|:|_|;
+        my $new_file = sprintf '%s/%s_%d.public', $pin_dir, $new_stem, $port;
+        if ( -e $new_file or -l $new_file ) {
+            printf "\n  << a host pin for '%s' exists already >>\n\n",
+                $to_keyname;
+            <[base.exit]>->(qw| 0010 |);
+        }
+        my $name = $leaf_name // $pin->{'name'} // '';
+        my $tmp  = "$new_file.tmp-$PID";
+        require Fcntl;
+        sysopen(
+            my $fh,
+            $tmp,
+            Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+                | Fcntl::O_NOFOLLOW(),
+            0600
+            )
+            or return printf "\n  << cannot write '%s' : %s >>\n\n",
+            $tmp, $OS_ERROR;
+        printf {$fh} "%s\n%s\n%d\n", $pin->{'key_id'}, $name,
+            $pin->{'since'} // 0;
+        close $fh;
+        if ( not rename $tmp, $new_file ) {
+            unlink $tmp;
+            return printf "\n  << cannot rename to '%s' : %s >>\n\n",
+                $new_file, $OS_ERROR;
+        }
+        unlink $old_file;
+        printf "\n  : host pin '%s' -> '%s'%s\n", $srckey, $to_keyname,
+            defined $leaf_name
+            ? sprintf( " [ pinned name %s -> %s ]",
+            $pin->{'name'} // '-', $leaf_name )
+            : '';
+        ## a hint only : never fails the rename ##
+        my $record = eval {
+            my $path = <[host-edit.record.path]>->($srckey);
+            defined $path ? <[base.path.resolve_keywords]>->($path) : undef;
+        };
+        printf "  : the host record '%s' keeps its name [ host-edit ]\n",
+            $srckey
+            if defined $record and -e $record;
+        say '';
+        return TRUE;
+    }
 }
 
 ## root-held key : only root may operate on it [ host-root delegation ] the ##
@@ -113,8 +177,8 @@ foreach my $file_name (@k_files) {
 printf " :\n  .: successfully renamed %02d file%s\n\n", $ren_count,
     <[base.cnt_s]>->($ren_count);
 
-#,,..,...,,,,,...,.,.,,..,,..,,,,,...,.,.,..,,..,,...,...,.,.,.,.,,..,.,.,,..,
-#47PQ6GUOC4JOFALU4IKQ6Z7VZAPPDKAPEIJDF2MSRMKLV73RCHOEW7XEUO6IB2MIU4G6AJA7IUDBI
-#\\\|SNJCVO5RPMLOQOQDFH5CWMUL5BV5BOSHOHEGAUDATLVFP53TKGC \ / AMOS7 \ YOURUM ::
-#\[7]C6OREFLVV3UKF6JUUQNUXKWYWY7LYV7RNNCYEOFLLMZYDYNKEECQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,.,,.,,,,,,,.,,,,.,,..,,,,,,...,..,,...,...,...,,,,,,.,,,..,..,,
+#SOJPVYX72IPJPMQEKVKBFT3I3ACSR35OGAJLHC2K7I35ZB7FPN2ZJODLUUNHC4C6FKW3QT4HGOYEG
+#\\\|4VPGIFZ5NKFFGWYE7WRG34FZNFXAFEQJ6YAGKI53CRDX7DNHZDQ \ / AMOS7 \ YOURUM ::
+#\[7]YIVZVBBNV66UYOX62QL72IMCSD7LUVICY65KQGQJRHWUUEMTUQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -73,19 +73,28 @@ if ( $UID == 0 or $EUID == 0 ) {
 require AMOS7::INLINE;
 my $result = AMOS7::INLINE::prebuild_all();
 
-if ( defined $result->{'unavailable'} ) {
-    printf "inline-prebuild : nothing built [ %s ]\n",
-        $result->{'unavailable'}
-        if not $quiet;
-    exit 0;
+my $summary
+    = defined $result->{'unavailable'}
+    ? sprintf( 'nothing built [ %s ]', $result->{'unavailable'} )
+    : sprintf( '%s : %d of %d sources built, %d failed, %d old dirs removed',
+    $account, @{$result}{qw| built total failed pruned |} );
+
+## the last run, readable later : a detached start [ v7-zenki ] discards ##
+## the output. written as the target user, after the drop above          ##
+my $log_dir = "$home/.7/inline-code";
+if (    -d $log_dir
+    and not -l $log_dir
+    and open( my $log_fh, '>', "$log_dir/prebuild.log" ) ) {
+    printf {$log_fh} "%s inline-prebuild : %s\n", scalar localtime, $summary;
+    close $log_fh;
 }
-printf "inline-prebuild : %s : %d of %d sources built, %d old dirs removed\n",
-    $account, @{$result}{qw| built total pruned |}
-    if not $quiet;
+
+say "inline-prebuild : $summary" if not $quiet;
+exit 0                           if defined $result->{'unavailable'};
 exit( $result->{'failed'} ? 1 : 0 );
 
-#,,..,..,,,,,,.,,,,,.,,,,,..,,.,,,,.,,,.,,,,,,..,,...,...,...,,,,,,..,,..,,,.,
-#HU7JAR7PCLFBUJZ2DJDURHHZMNEUEM3CODED6KUFCIW6INM2AJ5T2L4RNWQT5NVYNFCDA3U42FFO6
-#\\\|NEOLUYQ2TXPLLIBKOHO5HJEU5ZRICNTDJFBNYSNWXQYPTWN4ZY5 \ / AMOS7 \ YOURUM ::
-#\[7]36A5XSF4D6ZAVGD5CPTKZC65JNQCBUX7KM3PGNOCSO3NFIHURWBY 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,.,,.,,,,,,,,.,.,,,.,,,,,,,,.,,..,,...,...,..,,,,.,.,.,.,.,,,,,
+#OQKQCCTB67VBLDS2TO2QSOD6ZSPNF6NJH5WQZPCFWVAOOUUSAWRZ5Y2XOBLCYM3YCZSFTR6L6XWAU
+#\\\|SYVTT4GGFOXTLAITWHFJI3DIJMU6VCKTAZKX225JDCE42OUMFMH \ / AMOS7 \ YOURUM ::
+#\[7]FNTW5DVZXVI7SOMPZ7ZKKA752FKR22SCBONHOK4LCR3EAQ62PSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

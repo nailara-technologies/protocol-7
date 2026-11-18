@@ -11,7 +11,7 @@
 #            distrust => [ <key id>, .. ],
 #            strict   => TRUE | FALSE }
 # return = { verdict, fp, name, since, write, anchor, owner,
-#          name_differs } or undef [ list context : ( undef, reason ) --
+#          name_differs, presented } or undef [ list context : ( undef, reason ) --
 #          the chain itself is not valid ]
 #
 # data/md/design/TRUST-CHAIN-STEP2.md [ 'pins' ], twin : pin_decide in
@@ -107,6 +107,7 @@ my $result = sub {
         qw| anchor |       => $r{'anchor'},
         qw| owner |        => $r{'owner'}        ? TRUE : FALSE,
         qw| name_differs | => $r{'name_differs'} ? TRUE : FALSE,
+        qw| presented |    => $r{'presented'},    ## the leaf name seen ##
     };
 };
 
@@ -143,6 +144,7 @@ if ( defined $host_pin ) {
             name         => $pinned_name,
             since        => $pinned_since,
             name_differs => $pinned_name ne $name,
+            presented    => $name,
         );
     }
 
@@ -181,8 +183,8 @@ return $result->(
     write   => qw| new |,
 );
 
-#,,..,...,.,.,,,.,...,,,,,,,,,,,.,,,,,,,.,...,..,,...,...,...,..,,..,,,.,,.,,,
-#Y2XQUMPNNEURJEGMLPAJZKOJILKZPJLAX5DG4WRJB2MDDNLAAELPCNFGCWI5G6I3KUAXMPB7JUXPS
-#\\\|7WFU63ZKTO43GKO2KADY3WCSU2RMBH4LAXCMF2Z6EIJXR73ALC7 \ / AMOS7 \ YOURUM ::
-#\[7]D6NOT35BJ6MEG7L4RIKKTK3O3CGN6MGIFIFH4MAXRH44WVPMY2CY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,...,.,,,.,,,..,,.,,,.,,,...,..,,...,...,.,.,.,,,,.,,.,,,,,.,
+#UNMMM2L4R7PJH5YMHKSYDY2VE5BPABZQIKPODLXBSJJLKCBRDXI3U4HXNB6ZLCNIYEHHICPYKM2OO
+#\\\|AMY6MC7THPGSZYN27HKOWO3AZPFX57EOPJKOPZKJTOA5EYGTYGF \ / AMOS7 \ YOURUM ::
+#\[7]PU3I3CN7O67MSEIUSPDRCG7IX24EQDOO4HULA7O7U5YAQQC22WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

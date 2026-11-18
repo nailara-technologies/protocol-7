@@ -146,8 +146,8 @@ return $refuse->("unexpected verdict $verdict")
     if $verdict !~ m{\APIN_(?:VALID|NEW|ROTATED)\z};
 
 <[base.logs]>->(
-    0, '[*] host pin %s:%d keeps its name %s [ the server presents another ]',
-    $host, $port, $name
+    0, '[*] host pin %s:%d keeps its name %s [ the server presents %s ]',
+    $host, $port, $name, $decided->{'presented'} // '?'
 ) if $decided->{'name_differs'};
 
 ## the decider says what to write [ none \ new \ replace ], nothing else ##
@@ -223,8 +223,8 @@ if ( $verdict eq qw| PIN_ROTATED | ) {
 
 return TRUE;
 
-#,,,.,.,,,,.,,,..,.,.,..,,,,,,,,.,...,,,,,,,,,..,,...,..,,..,,...,,.,,.,,,..,,
-#RIMGJPDLZAZ32SS7IMDGKR6FCVEGQZOZERH4GPLJNICR2V4BJPMUALLW5FOEDNU74JYJFV5DBQLIY
-#\\\|RPXTYMU6H5WWE2YCM2YZJSHRL6L7A2XGAFG4377EFJOGXWMXUKA \ / AMOS7 \ YOURUM ::
-#\[7]EP5BPDQBHZOSWFEXKYAMOT6I6G7R2ZI33HXFPB5UZ2LP7J4L7ODQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,.,...,,,,,.,,,,,.,,..,...,...,..,,...,...,.,,,.,,,,,,,,..,,,,,
+#TQMPYIT764ALZFGQFZGZQUB47KCQD2WDYPC3XHLFNUNGSEWC4BPD2DQ55WASMFW2AIOBXCC2A3BKK
+#\\\|WFI7CUWASV77KSKLTTWWRAYA7CSF3H4BYYFZ3NDT3XAQZLGOF5M \ / AMOS7 \ YOURUM ::
+#\[7]QDR5FCRTUU6DU5O3KJEQW74HQZ5COG4DHA5GGCEJV3FJBLSA74BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
