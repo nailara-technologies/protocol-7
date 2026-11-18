@@ -11,20 +11,43 @@ my $delay_max = <site-yaml.fetch_delay_max> // 10.0;
 my $errors    = <site-yaml.fetch_errors>    // 0;
 my $successes = <site-yaml.fetch_successes> // 0;
 
+## growth \ reset come from the shared helper, type 'site-yaml-fetch' [ cfg ##
+## <base.interval.cfg.type.site-yaml-fetch.*> in zenka.v7 : start 1.5,      ##
+## factor 1.75, cap 10 ] ; the helper has no decay, so after 3 consecutive  ##
+## successes the delay decays x0.9 per fetch, the state resets at the floor ##
+## [ never below fetch_delay_min ] ; fetch_delay_min \ _max clamp the       ##
+## result                                                                   ##
+my $state = <site-yaml.fetch_interval_state> //= {};
+my $next  = sub {
+    my $reset = shift;
+    my $v     = <[base.interval.next]>->(
+        {   qw| type |  => qw| site-yaml-fetch |,
+            qw| state | => $state,
+            qw| reset | => $reset ? TRUE : FALSE
+        }
+    );
+    return $v // $delay;    ## helper refused : keep the delay ##
+};
+
 my $new_delay;
 if ( $result eq qw| error | ) {
     $errors++;
     $successes = 0;
-    ## exponential backoff with jitter: multiply by 1.5-2.0
-    my $factor = 1.5 + rand(0.5);
-    $new_delay = $delay * $factor;
+    ## prime : fresh state ##
+    $next->(FALSE) if not defined $state->{'current'};
+    $new_delay = $next->(FALSE);
+    ## an error never speeds up ##
+    $new_delay = $delay     if $new_delay < $delay;
     $new_delay = $delay_max if $new_delay > $delay_max;
 } else {
     $successes++;
-    ## after 3 consecutive successes, slowly decay delay
+    ## gradual decay, rhythm state reset at the floor ##
     if ( $successes >= 3 ) {
         $new_delay = $delay * 0.9;
-        $successes = 0 if $new_delay <= $delay_min;
+        if ( $new_delay <= $delay_min ) {
+            $successes = 0;
+            $next->(TRUE);
+        }
     } else {
         $new_delay = $delay;
     }
@@ -43,8 +66,8 @@ my $tag = $result eq 'error' ? '↑' : '↓';
 
 return $new_delay;
 
-#,,,,,,,,,.,,,.,,,,,.,,,.,,,.,,..,,.,,...,,..,.,.,...,...,..,,,.,,..,,..,,,,,,
-#CYY2IGPUMJXRO2KJNOSODWO674TBQBNQUFT2IGXDNHOUVFDOASZPVOTEEQQWXADIYA4JQXJITZNA2
-#\\\|QHCFKMMX765P5YK4NV4MKXW775Z7M4L6Y57ITLQCVBLHE2EBJMG \ / AMOS7 \ YOURUM ::
-#\[7]QJ5JUIGUKY54NV4R4ENCAUC7HDCI5ADTEPFLZA2GRORSJVF5VEDQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,,,,,,.,,..,,..,..,,.,.,,.,,,,.,.,.,...,..,,..,,,,.,..,,,.,,,.,,
+#VQ7M5ZAVP4SOTIH52ZFAMXB5RQQ62J7IRFRMWUC5G3XARKCBEB5WKXTCFINOOUOUBRC7VO5LWFVJA
+#\\\|UI5SMPCAIU7QLBQ353GPAMGXF4YWSTNRLFVR4S2F4BCIC35Y2K4 \ / AMOS7 \ YOURUM ::
+#\[7]K7HFKASO3U4UEPKVKLDMMDXBCQ5OUBDQ7XWVQDFKY7FTAER45SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

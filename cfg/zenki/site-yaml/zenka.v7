@@ -26,6 +26,12 @@ site-yaml.import_max_pages = 20     ## search page ceiling per category ##
 site-yaml.import_delay_search = 1.5  ## seconds between search page fetches ##
 site-yaml.import_delay_detail = 2.0  ## seconds between job detail fetches  ##
 
+## fetch backoff rhythm [ base.interval.next, type site-yaml-fetch ] ##
+base.interval.cfg.type.site-yaml-fetch.start      = 1.5
+base.interval.cfg.type.site-yaml-fetch.factor     = 1.75
+base.interval.cfg.type.site-yaml-fetch.cap        = 10
+base.interval.cfg.type.site-yaml-fetch.cap_jitter = 0.5
+
 modules.load = auth.client net protocol io.unix ui format.yaml site-yaml clients.https # devmod # <- <!>
 [load_modules:<modules.load>]
 [init_modules]
@@ -38,8 +44,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml site-yaml clients
 
 [zenka.loop]
 
-#,,..,.,.,..,,.,.,,,,,,,,,...,.,.,.,.,.,,,,..,..,,...,..,,.,.,.,,,,,.,.,,,,..,
-#HOZWZMLITDEHDC3AUTFGCHVSWIDAFK34VSFT6CBINXVQDQ3RTJZRI4RZS4P2VDTESOXGAW4UUEQK2
-#\\\|36WBNKDXJLFGCGV6SQKIPNVH5GRHHFWKEUJMNYRYJTGJ75LPA65 \ / AMOS7 \ YOURUM ::
-#\[7]C5BJ7QMOQ44A3CMJDIJADN5ANLL6VSAX6A44QHZ36AYDGWFTGEBA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,,.,,,.,,...,,.,,,,.,...,,,,,..,,...,...,.,.,,.,,,..,,.,,,,.,
+#BONB5VSNAFGXKXAOBLYAYXYPW2PLXVFQZ7PZIICSXN45DF6RBBH5ONU3IOS2U5AWCRAIMZABUMHKI
+#\\\|3QRPSOS7GEHYO43BQ35ZTNRSPJ46V5KV2HQMEQZKYUJWECMZFWV \ / AMOS7 \ YOURUM ::
+#\[7]IPKUBRQSSTBMJHES4UOGDRWQGSNLL53WYKVFQKRIG4SHX555QGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
