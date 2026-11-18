@@ -36,6 +36,7 @@ access.cmd.usr.child = cube.httpd.setup-acme-challenge \ ## <-- child to cube
                        cube.nameserv.add-txt \       ## <-- dns-01 set-up \ cleanup ##
                        cube.nameserv.remove-txt \
                        cube.nameserv.ensure-zone \
+                       cube.nameserv.ensure-challenge-alias \
                        cube.v7-zenki.notify_online \           ## <-- log routing ##
                        cube.p7-log.append
 
@@ -79,6 +80,9 @@ letsencr.challenge.type = http-01   # http-01 or dns-01
 ## before the challenge is answered, unless letsencr.dns.nameserv.addresses ##
 ## lists them [ not answering : skipped ]                                   ##
 # letsencr.dns.alias_ns = dn0000.protocol-7.network dn0000.v7.ax
+## domains that keep the registrar way : nameserv.ensure-challenge-alias is ##
+## not asked for them [ space \ comma separated, default empty ]            ##
+# letsencr.dns.unmanaged_alias_zones = v7.ax
 letsencr.challenge.timeout = 300     # 5 minutes for challenge completion
 letsencr.challenge.site_dir = /var/httpd/  # document root for challenges
 letsencr.challenge.site_name = default   # default virtual host directory
@@ -103,8 +107,8 @@ modules.load = auth.client net protocol io.unix io.ip ui clients.http \
 
 [zenka.loop]
 
-#,,..,...,,,.,,.,,,..,.,.,...,,,.,..,,,.,,,,.,..,,...,..,,.,,,,,,,.,.,,,,,..,,
-#YKTNNWLTO53X6BKXWJUZYUVOR5EIPBL55QFEWZFM76UTUGPZWBZOA2XM3O7LKNI4RS6FYKEHG4FDI
-#\\\|QHIDN64NONU4SL4DXHA6PBKLZKUL76K3UMZR5W5OW7BI2DYPB7H \ / AMOS7 \ YOURUM ::
-#\[7]ARPJRC4ZLVOGRKXLXM5T5J2N6EQS4W25CFHS62W25UEMLC572KCY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,.,,.,,,,,,...,,,.,,,,,.,,,...,..,,...,...,.,.,...,,..,.,,,,,.,
+#DUMUJ7KN7DLRSFNCPSLXGVCAL7Z36IXYCZSFC355FECZX3JDJZZSRBQRYV535OTIRPYUMFQI6KKMY
+#\\\|M2IGG7YVI5WPIOZ6KBNOQSKEGCPDQ2YULVGTXPB2VZ7DRHJ2WKP \ / AMOS7 \ YOURUM ::
+#\[7]T4PR4RSPCORZHSMN66KILYV62PCXSTU3WSA4HB2MCGF3LPYHDWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

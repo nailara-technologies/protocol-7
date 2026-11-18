@@ -1,0 +1,169 @@
+## [:< ##
+
+# name  = nameserv.cmd.ensure-challenge-alias
+# descr = dns-01 alias cname in a parent zone we hold
+# param = <domain> [ <ns host> .. ] [ :remove: ]
+# note  = acts only when the zone holding _acme-challenge.<domain> is held
+#         here [ longest zone, never an acme.* zone ] -- else 'not ours'
+#         [ mode false, no change ] and the caller takes its registrar path.
+#         ensures the zone acme.<domain> [ ns hosts from the args, else the
+#         ns of the parent zone ] and ONE signed record
+#         _acme-challenge.<domain> CNAME _acme-challenge.acme.<domain>.
+#         [ ttl 3000 ]. present -> no change ; any other
+#         record at that name -> refused, never overwritten.
+#         :remove: drops the managed CNAME [ tombstone ] and the acme.<domain>
+#         zone when it only holds soa \ ns \ txt. managed is derived by
+#         nameserv.challenge_alias.is_managed [ canonical cname, no line in
+#         the zone source ] -- a hand-written record always stays
+
+my @parts  = grep {length} split m|\s+|, $call->{'args'} // '';
+my $remove = scalar grep { $ARG eq qw| :remove: | } @parts;
+@parts = grep { $ARG ne qw| :remove: | } @parts;
+
+my $domain = lc( shift @parts // '' );
+$domain =~ s{\.+$}{};
+my @ns = map {s{\.*$}{.}r} grep {m|^[\w.-]+$|} @parts;
+
+return {
+    mode => 'false',
+    data => 'usage: ensure-challenge-alias '
+        . '<domain> [ <ns host> .. ] [ :remove: ]'
+    }
+    unless $domain =~ m|^[a-z0-9.-]+\.[a-z0-9-]+\.[a-z]{2,}$|
+    or $domain =~ m|^[a-z0-9-]+\.[a-z]{2,}$|;
+
+my $prefix     = <nameserv.cfg.ensure_zone_prefix> // 'acme.';
+my $alias_zone = $prefix . $domain;
+my $cname_name = '_acme-challenge.' . $domain;
+my $cname_val  = "_acme-challenge.$alias_zone.";
+
+## the zone that would carry the cname : held here, not an acme.* zone ##
+my ( $parent, $parent_name ) = <[nameserv.zone.lookup]>->($cname_name);
+return { mode => 'false', data => "not ours : $domain" }
+    if not defined $parent
+    or index( $parent_name, $prefix ) == 0;
+
+my $zones = <nameserv.zones>;
+
+## the records at the cname name, and ours among them ##
+my @at_name = grep { lc( $ARG->{'name'} // '' ) eq $cname_name }
+    @{ $parent->{'records'} // [] };
+my ($same) = grep {
+    uc( $ARG->{'type'} // '' ) eq qw| CNAME |
+        && lc( ( $ARG->{'value'} // '' ) =~ s{\.*$}{.}r ) eq lc $cname_val
+} @at_name;
+
+if ($remove) {
+    my @report = ();
+    my $removed_cname;
+
+    if ( not $same ) {
+        push @report, "no alias cname for $domain";
+    } elsif (
+        not <[nameserv.challenge_alias.is_managed]>->( $parent_name, $same ) )
+    {
+        push @report, "cname of $domain is hand-written : stays";
+    } else {
+        $parent->{'records'}
+            = [ grep { $ARG != $same } @{ $parent->{'records'} } ];
+        <[nameserv.zone.tombstone.add]>->( $parent_name, $same );
+        $parent->{'serial'} = time();
+        <[nameserv.zone.save]>->($parent_name);
+        <[nameserv.event.emit]>->(
+            'data-changed', { 'zone' => $parent_name }
+        );
+        $removed_cname = 1;
+        push @report, "cname removed : $cname_name";
+        <[base.logs]>->( 1, ': challenge alias removed : %s', $cname_name );
+    }
+
+    ## the alias zone goes only with the cname this command wrote, and only ##
+    ## when it holds nothing but soa \ ns \ txt                             ##
+    if ( $removed_cname and exists $zones->{$alias_zone} ) {
+        my @foreign = grep { $ARG->{'type'} !~ m{\A(?:SOA|NS|TXT)\z} }
+            @{ $zones->{$alias_zone}{'records'} // [] };
+        if (@foreign) {
+            push @report, "zone $alias_zone kept : hand-written records";
+        } else {
+            my $res
+                = <[nameserv.cmd.remove-zone]>->( { 'args' => $alias_zone } );
+            push @report, $res->{'data'} // "zone $alias_zone removed";
+            return { mode => 'false', data => join( ' ; ', @report ) }
+                if ( $res->{'mode'} // '' ) ne qw| true |;
+        }
+    }
+    return { mode => 'true', data => join( ' ; ', @report ) };
+}
+
+## a cname next to other records, or another cname value : refused ##
+return {
+    mode => 'false',
+    data => sprintf(
+        "refused : %s already holds %s [ not overwritten ]",
+        $cname_name,
+        join( ' ', map {"$ARG->{'type'} $ARG->{'value'}"} @at_name )
+    )
+    }
+    if @at_name and not $same;
+
+my @report = ();
+
+## the alias zone : ensure-zone semantics, ns from the args or the parent ##
+if ( not @ns ) {
+    @ns = map { $ARG->{'value'} }
+        grep { uc( $ARG->{'type'} // '' ) eq qw| NS | }
+        grep { lc( $ARG->{'name'} // '' ) eq $parent_name }
+        @{ $parent->{'records'} // [] };
+}
+if ( exists $zones->{$alias_zone} ) {
+    push @report, "zone exists : $alias_zone";
+} elsif ( not @ns ) {
+    return {
+        mode => 'false',
+        data => "no ns host for $alias_zone [ "
+            . "none given, none in $parent_name ]"
+    };
+} else {
+    my $res = <[nameserv.cmd.ensure-zone]>
+        ->( { 'args' => join( ' ', $alias_zone, @ns ) } );
+    return $res if ( $res->{'mode'} // '' ) ne qw| true |;
+    push @report, $res->{'data'};
+}
+
+if ($same) {
+    push @report,
+        <[nameserv.challenge_alias.is_managed]>->( $parent_name, $same )
+        ? "cname present : $cname_name"
+        : "cname present [ hand-written ] : $cname_name";
+    return { mode => 'true', data => join( ' ; ', @report ) };
+}
+
+## same write path as add-record : signed, tombstone cleared, peers woken ##
+my $new_rec = {
+    name  => $cname_name,
+    type  => qw| CNAME |,
+    value => $cname_val,
+    ttl   => <nameserv.cfg.alias_cname_ttl> // 3000,
+    ts    => <[base.ntime.b32]>,
+};
+<[nameserv.sync.sign]>->( $parent_name, $new_rec );
+push @{ $parent->{'records'} }, $new_rec;
+<[nameserv.zone.tombstone.clear]>->( $parent_name, $new_rec );
+
+$parent->{'serial'} = time();
+<[nameserv.zone.save]>->($parent_name);
+<[nameserv.event.emit]>->( 'data-changed', { 'zone' => $parent_name } );
+
+<[base.logs]>->(
+    1, ': challenge alias added : %s -> %s [ %s ]',
+    $cname_name, $cname_val, $parent_name
+);
+push @report, "cname added : $cname_name";
+
+return { mode => 'true', data => join( ' ; ', @report ) };
+
+#,,.,,,..,,,,,..,,,..,,..,.,.,,.,,..,,..,,..,,..,,...,...,..,,,,,,.,.,.,,,.,,,
+#NAMTQEWS3UU5OWZY6LUWSJEEIBGQ34MMB6NZ6VJR3BG3JGUKQNMO37IJDOH4M7ZHRXFTJUHZWQHZA
+#\\\|WGHGRF2XI7VIVRSN4NZQOKSD7EZIJVSRDFBEGEEQEZJQMCCATDP \ / AMOS7 \ YOURUM ::
+#\[7]BXZUKFUSCHMDJGGKAP6K3D3Q2KEVUOZSSRQGH64GR665OP6Q4UAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

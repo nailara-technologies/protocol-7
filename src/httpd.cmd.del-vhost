@@ -132,6 +132,14 @@ if ( exists <httpd.cfg.hostnames>->{$domain} ) {
     push @actions, qw| hostname_removed |;
 }
 
+## Step 3b: the managed dns-01 alias of the domain goes with the vhost  ##
+## [ nameserv drops only what it wrote itself ; no reply is waited on ] ##
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| nameserv.ensure-challenge-alias |,
+        'call_args' => { 'args' => "$domain :remove:" },
+    }
+);
+
 ## Step 4: Rescan site directory
 <[base.logs]>->( 2, ':: rescanning site directory for %s', $domain );
 <[httpd.scan_site_dir]>;
@@ -158,8 +166,8 @@ return $result;
 
 0;
 
-#,,..,.,,,,.,,,,,,..,,,..,...,,.,,,,.,,.,,.,,,..,,...,...,..,,..,,.,,,,,,,..,,
-#G6SNL4ZN7PW5NAE5B7D3YSSWGYPBSJP5BAD2C3PR5ZAT7QJKCL6U7JMAHYYIJMB74N2ZF5FOAWQEA
-#\\\|M2KIP4PNZZQYDAS7QZJCA2T2GMWZFXW7SFJWY3EZPIOOZ7WOJFK \ / AMOS7 \ YOURUM ::
-#\[7]6WUH7UNMYGB2B5JGTPCWLHLHZOK55A4PFYKDIRA7H7HXVLQYYUDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,..,,.,.,...,,..,.,.,,.,,,,,,..,,...,...,,,,,,,,,,.,,..,,.,,,
+#XHISEGHY633EB7LANHIPHXJVV4US3XDDLUKXT5WRJWOE7CCLB4LTII6KD5CO2QWO2P5H6NZD2UZYM
+#\\\|WTRCJUOC3VYCSDEWLEN5SFODCDPHZU53MB36VVPCJUIQH3O234E \ / AMOS7 \ YOURUM ::
+#\[7]IEDDKRK7N3YFMBIRA3FOVBGAWR4QURWQFE7XMC62QSMJWEBSAKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

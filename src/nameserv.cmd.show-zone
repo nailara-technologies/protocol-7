@@ -39,14 +39,19 @@ my @lines = (
 
 for my $rec ( @{ $zone->{'records'} } ) {
     push @lines,
-        sprintf( "    %s %s %s",
-        $rec->{'name'}, $rec->{'type'}, $rec->{'value'} );
+        sprintf( "    %s %s %s%s",
+        $rec->{'name'},
+        $rec->{'type'},
+        $rec->{'value'},
+        <[nameserv.challenge_alias.is_managed]>->( $zone_name, $rec )
+        ? ' [ managed ]'
+        : '' );
 }
 
 return { mode => 'size', data => join( "\n", @lines ) };
 
-#,,,.,,.,,,..,...,,..,...,,.,,,,.,,.,,,..,..,,..,,...,...,...,..,,.,.,,,,,,,.,
-#2FOVS3RJ3NUI5CRWSVWQUAJIFRLFOW65VQ3FOG2ZYDG3RL5WTWEYAYOOLXSR4LCAFRAUEU2JKBMS2
-#\\\|CSTZHNPZBMCHKYFR23WE6I7LXQDNE22SG74OF4DS4J7CDA54T7K \ / AMOS7 \ YOURUM ::
-#\[7]2BWEHUKADTLJFER5R4DR4KVWP4RVU6EUKSDRAVXWPKL4B2M5HUDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,..,,,.,,.,,,,,,...,...,,.,,,,,,..,,...,...,..,,...,...,,,,,,.,,
+#63XADDKKBHCSMXMUI74Z52HVQOJGKNE5CXRB535K2BB3M5DUOSNVXISLKJSHVJVDWAY6ZOU4U35TY
+#\\\|DNI4T7YRUJMP2EHLY5SKPKD7TLOICLR22L764Z2OTJDDFBMBEFV \ / AMOS7 \ YOURUM ::
+#\[7]LYAT7CINCDFH5XH3BY5OERVLFVAUWS4NLUBE6UEBWDBY3ER5IYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

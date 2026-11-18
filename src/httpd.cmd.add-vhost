@@ -79,6 +79,21 @@ unless ($create_dir_result) {
     };
 }
 
+## Step 1b: the new directory takes the group of its parent directory    ##
+## [ /var/httpd is httpd:httpsd 0750 : the tls server must read it too ] ##
+{
+    my @parent = stat $site_dir;
+    my @made   = stat $vhost_path;
+    if ( @parent and @made and $parent[5] != $made[5] ) {
+        chown -1, $parent[5],
+            $vhost_path
+            or <[base.logs]>->(
+            1,          ': vhost group not set to %d : %s',
+            $parent[5], <[base.str.os_err]>
+            );
+    }
+}
+
 ## Step 2: Create default index page [ if configured or requested ]
 if ( $create_default_index || $index_mode ) {
     my $create_index_result = <[httpd.path.create_default_index]>->(
@@ -140,8 +155,8 @@ my $result = {
 
 return $result;
 
-#,,..,.,,,,.,,,,,,..,,,..,.,,,,..,.,.,..,,.,,,..,,...,...,.,,,,..,,..,,,.,,..,
-#ASSNH3OG6TDEBP3NESN67644FUGVONPG3DV2Z3BS7A4RSYQIW43I23S2WTISAVY7PKRTTDDWKJ6PO
-#\\\|DCJCUDNSG2QZNVPQC24AKLJDBY6QJAGET3FNAEFGQX23JDGYBXC \ / AMOS7 \ YOURUM ::
-#\[7]RKISSJGLMGUVRDGXGU2MYUQH4SFU7BN24BFR6I65Q6K5K5PU7OCQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,.,,...,.,,,.,,,,..,,,.,,,.,,.,,..,,...,...,,..,.,,,,.,,,,,,...,
+#6WINOQE2OV6LAQIP5MBPNCRJ4XVDYWOTCJA2AOU6FZYDBLCJSHBCC2N2AJNH4YML6QKYOOQBD7AXY
+#\\\|RZE42IJBX6V2M46SNUUATGJYXAK76IFND7A7G7GNGSXGH6ZU7TN \ / AMOS7 \ YOURUM ::
+#\[7]KOWDIKFVPR4R7O6WNRNCA7AGRF4XF34B4CINCL7Y6I2L2F2DCUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

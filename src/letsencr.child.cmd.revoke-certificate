@@ -64,14 +64,24 @@ unless ( $result && $result->{status} eq 'success' ) {
 
 <[base.log]>->( 2, "certificate revoked successfully for $domain" );
 
+## the managed dns-01 alias of the domain goes with its certificate ##
+## [ nameserv drops only what it wrote itself, 'not ours' else ]    ##
+<[protocol-7.route-send]>->(
+    {   'command'   => "$ARG.ensure-challenge-alias",
+        'call_args' => { 'args' => "$domain :remove:" },
+    }
+    )
+    foreach grep {length}
+    split m|\s+|, <letsencr.dns.nameserv.targets> // qw| nameserv |;
+
 ## Return revocation result to parent
 return {
     'mode' => 'true',
     'data' => "Certificate revoked for $domain at " . $result->{revoked_at}
 };
 
-#,,.,,,.,,...,..,,.,,,,,.,,,,,,..,..,,,..,,,.,..,,...,...,.,.,...,,,,,.,.,,,,,
-#IOC3QOOOSDF3REWXFWLJNTSMDHJ4Z6HZ4MH5XINOCAO3F6B4EBRGLQVYVNDIUEB7X5SBV4KJ4METC
-#\\\|6EN6EHESCPFFWCJ4B2EZJJRCTPKKBPW7PFFCYAGSZS6IACHFRKB \ / AMOS7 \ YOURUM ::
-#\[7]E42DM363FR6FRPXXAVN3AHUR6LMED7LPXHCVGYJAP2FVFAF5VIBI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,.,,,,,,,,..,..,,,..,.,.,,,.,..,,...,..,,.,,,,.,,,..,,,,,,,.,
+#VBB5CZVISP7AQMEOP4P3G7V4YIXLHK552WEXQF3GVNJEYHSSNVBCR6MO3EFON74I5YPUUBL5F2PDI
+#\\\|BQ3FOSIIZJ3KYDC5CA2HASXOYCSCOATER6345PWE5IN2MCTPYJH \ / AMOS7 \ YOURUM ::
+#\[7]JYRSV6R5TDWTPBFN4RB5G7A6UCHIEKGCHKE5VRROQCEULDQ3IOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

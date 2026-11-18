@@ -53,6 +53,23 @@ foreach
         if ( $alias_zone ne lc $authz->{'base'} ) {
             my $alias_ns = <letsencr.dns.alias_ns>
                 // qw| dn0000.protocol-7.network |;
+            ## the parent zone held by our own nameserv : it writes the ##
+            ## _acme-challenge cname itself                             ##
+            ## [ 'not ours' : the registrar way below, unchanged ] -- a ##
+            ## custom alias pair, or a domain listed in                 ##
+            ## letsencr.dns.unmanaged_alias_zones, is skipped           ##
+            my %unmanaged = map { lc $ARG => 1 }
+                grep {length} split m|[\s,]+|,
+                <letsencr.dns.unmanaged_alias_zones> // '';
+            <[protocol-7.route-send]>->(
+                {   'command'   => "$ARG.ensure-challenge-alias",
+                    'call_args' => {
+                        'args' => join( ' ', lc $authz->{'base'}, $alias_ns )
+                    },
+                }
+                )
+                foreach grep { $alias_zone eq 'acme.' . lc $authz->{'base'} }
+                grep { not $unmanaged{ lc $authz->{'base'} } } @ns_targets;
             <[protocol-7.route-send]>->(
                 {   'command'   => "$ARG.ensure-zone",
                     'call_args' => { 'args' => "$alias_zone $alias_ns" },
@@ -71,8 +88,7 @@ foreach
             $authz->{'dns_value'}
         );
         return <[letsencr.child.acme.fail]>->(
-            $order_id,
-            "$provider : txt record for " . "$authz->{'domain'} failed"
+            $order_id, "$provider : txt record for $authz->{'domain'} failed"
         ) if not $ok;
         $authz->{'setup'}->{$provider} = TRUE;
     } else {
@@ -92,8 +108,8 @@ return <[letsencr.child.acme.step_propagate]>->($order_id)
 
 return TRUE;
 
-#,,,,,.,,,,.,,..,,..,,,.,,..,,...,,,,,..,,.,,,..,,...,...,..,,..,,,,.,,,,,.,.,
-#VBXJVJGK3KWTPIRNH2I64VRCRNZG3NHOVBLSDEGPQLXZIAINONQKVRHG3L2KZBQ7ILTWJGBFTM6IM
-#\\\|HHA66E6IOLVUMKZ4B42KWEQRMYA26N7RYRMA7G62RGEZXKUY7KD \ / AMOS7 \ YOURUM ::
-#\[7]CK2BIQNKWWXAZHFX5X2SZUX52YYWRGYCBPNYMS3JCY4WVA33OKBA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,..,,,.,.,.,...,..,,,,.,.,.,.,,,..,,...,..,,..,,.,.,.,.,,,,,,..,
+#7B3PPJSPELBG7YPPTMRKAH5BJZPMJGII2V4PW4QQFN5NYC3I26OJ5SF4HSDYJY4UMIJ2LS4J3LBU4
+#\\\|KSMQDMOA5C2OL3PPVSZFK5MMZFA6YSEZ67VHZ6QRKKYMAW2CX2Y \ / AMOS7 \ YOURUM ::
+#\[7]NPH2I3M4MUZHIYUOKL5JCVO3LAWPORUNDBUY3CBQKWKCEDEFASCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

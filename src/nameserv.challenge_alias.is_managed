@@ -1,0 +1,70 @@
+## [:< ##
+
+# name   = nameserv.challenge_alias.is_managed
+# descr  = is a record a managed dns-01 alias cname [ derived, never stored ]
+# param  = $zone_name, $record -> TRUE | FALSE
+# note   = managed : a CNAME at _acme-challenge.<d> whose value is exactly
+#          _acme-challenge.<prefix>.<d>. [ canonical form ] AND the zone
+#          source file [ nameserv.cfg.zone_source_dir/<zone>.zone, when it
+#          exists ] has no line for that name. the same answer on every
+#          host, nothing to sync. a source that exists but cannot be read
+#          answers FALSE [ never take a hand record for ours ]
+
+my $zone_name = lc( shift // '' );
+my $rec       = shift;
+
+return FALSE if not length $zone_name or ref $rec ne qw| HASH |;
+return FALSE if uc( $rec->{'type'} // '' ) ne qw| CNAME |;
+
+my $prefix = <nameserv.cfg.ensure_zone_prefix> // 'acme.';
+my $name   = lc( $rec->{'name'} // '' ) =~ s{\.+$}{}r;
+return FALSE if $name !~ m|\A_acme-challenge\.(.+)\z|;
+my $domain = $1;
+
+my $value = lc( $rec->{'value'} // '' ) =~ s{\.+$}{}r;
+return FALSE if $value ne "_acme-challenge.$prefix$domain";
+
+## the zone source : any line for the name makes the record hand-owned ##
+my $src_dir = <nameserv.cfg.zone_source_dir>
+    // '/etc/protocol-7/nameserv/zones';
+my $path = "$src_dir/$zone_name.zone";
+## no source here [ a secondary ] : hand and managed can't be told apart -> ##
+## hand-owned, so :remove: only ever acts where the source exists           ##
+return FALSE if not -f $path;
+
+## owner names of the source : a plain scan, no zone-file parser           ##
+## [ one with an open parenthesis can run on at end of file ] -- the first ##
+## token of every unindented line, $ORIGIN honoured, '@' = the origin ; an ##
+## indented line keeps the owner above it                                  ##
+open( my $fh, '<:encoding(UTF-8)', $path ) or return FALSE;
+my $origin = $zone_name;
+my $owner;
+while ( my $line = <$fh> ) {
+    $line =~ s{;.*$}{}s;
+    next if $line !~ m|\S|;
+    if ( $line =~ m|\A\$ORIGIN\s+(\S+)|i ) {
+        $origin = lc($1) =~ s{\.+$}{}r;
+        next;
+    }
+    next if $line =~ m|\A\$|;
+    if ( $line =~ m|\A(\S+)| ) {
+        my $token = lc $1;
+        $owner
+            = $token eq '@'     ? $origin
+            : $token =~ m|\.\z| ? $token =~ s{\.+$}{}r
+            :                     "$token.$origin";
+    }
+    if ( defined $owner and $owner eq $name ) {
+        close $fh;
+        return FALSE;
+    }
+}
+close $fh;
+
+return TRUE;
+
+#,,,,,,,,,,..,,..,.,,,.,.,,..,,,,,,,,,,,.,,,,,..,,...,..,,...,.,.,,..,,.,,.,,,
+#OB2PXZPF3TKXSU5JMFCOAO2YMOJ53A24HXUHHXOLRKPMQ6SSEXQK6BFLQ4L7FIO4UZ2YO5RWDU42S
+#\\\|RAOQ3L3CHKPWPIX3O5W7W5Q3CH2MAVEEEL2VWT35GZNQ3O2JLVX \ / AMOS7 \ YOURUM ::
+#\[7]WFB53R6ALOFCWYLUMPCDFESLYXTM6LR7B53AEZGDRQDVYT2IQMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
