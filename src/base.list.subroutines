@@ -954,6 +954,7 @@ return [ qw[
         base.parser.quoted
         base.parser.hwaddr
         base.parser.config
+        base.interval.next
         base.indexcube.pop
         base.hash.force_uc
         base.hash.force_lc
@@ -1420,6 +1421,7 @@ return [ qw[
         feline.teleportation
         external.cmd.connect
         events.set_up_timers
+        events.jitter_offset
         editor.control.reset
         discover.send_packet
         devmod.cmd.test-strm
@@ -1776,6 +1778,7 @@ return [ qw[
         base.path.del_keyword
         base.path.add_keyword
         base.parser.timestamp
+        base.parser.time_left
         base.ntime.B32_2_unix
         base.max-len.hash-val
         base.log.format_entry
@@ -1785,6 +1788,7 @@ return [ qw[
         base.list.subroutines
         base.list.element.del
         base.list.element.add
+        base.indexcube.verify
         base.gpu.query_memory
         base.file_stream.tick
         base.file_stream.init
@@ -2025,6 +2029,7 @@ return [ qw[
         form.chrome.set_status
         filter.cmd.mount_chain
         ffmpeg.cmd.frame_count
+        events.parser.next_run
         events.cmd.show-active
         events.calc_unix_table
         devmod.cmd.switch-user
@@ -2341,6 +2346,8 @@ return [ qw[
         index.callback.feed-dir
         impressive.get_playlist
         image-quality.init_code
+        httpsd.cert_watch.start
+        httpsd.cert_watch.check
         httpd.system.network_io
         httpd.handler.shm_write
         httpd.diagnostic.report
@@ -2583,9 +2590,6 @@ return [ qw[
         nameserv.consistency.run
         nameserv.cmd.remove-zone
         nameserv.cmd.ensure-zone
-        nameserv.cmd.ensure-challenge-alias
-        nameserv.challenge_alias.is_managed
-        nameserv.cmd.apply-zone-source
         nameserv.cmd.consistency
         nameserv.cache.upstreams
         mpv.startup.job.finalize
@@ -2942,6 +2946,7 @@ return [ qw[
         link.transport.ssh-w.open
         link.supervisor.link_down
         letsencr.parent.init_code
+        letsencr.parent.cmd.renew
         letsencr.child.create_jws
         letsencr.child.acme.start
         letsencr.child.acme.begin
@@ -3133,6 +3138,7 @@ return [ qw[
         v7-zenki.process_zenka_end
         v7-zenki.parser.process_id
         v7-zenki.parser.latency_ms
+        v7-zenki.parser.hold_until
         v7-zenki.cleanup_pid_files
         users.record.sorted_fields
         user-edit.source.value_set
@@ -4495,6 +4501,7 @@ return [ qw[
         nameserv.dns_tcp.handler.write
         nameserv.consistency.soa-check
         nameserv.consistency.host-name
+        nameserv.cmd.apply-zone-source
         nameserv.cache.handler.timeout
         mpv.pulse.disable_idle_suspend
         mpv.handler.scan_encoded_timer
@@ -4796,6 +4803,7 @@ return [ qw[
         lm-vision.cmd.complete-analysis
         letsencr.parent.send_from_child
         letsencr.parent.cmd.query-algos
+        letsencr.parent.cmd.force-renew
         letsencr.parent.activity_logger
         letsencr.cmd.show-cipher-suites
         letsencr.child.load_account_key
@@ -4922,6 +4930,7 @@ return [ qw[
         base.perlmod.convert.name_to_pm
         base.p7refs.gen_template_chksum
         base.number-cache.get-templates
+        base.interval.rhythm.non-linear
         base.inotify.install_io_watcher
         base.handler.link-upgrade.input
         base.file.zenka_dir.unlink_file
@@ -5268,6 +5277,7 @@ return [ qw[
         menu-commands.cmd.remove-category
         login-screen.handler.helper_watch
         letsencr.parent.wait_httpd_online
+        letsencr.parent.renewal_idle_hold
         letsencr.parent.enroll_state_save
         letsencr.parent.enroll_state_path
         letsencr.parent.enroll_state_load
@@ -5291,6 +5301,7 @@ return [ qw[
         impressive.handler.get_list_reply
         image-quality.vision.select_model
         image-quality.vision.encode_image
+        httpsd.handler.cert_request_reply
         httpd.handler.web-relay.strm_open
         host-edit.transport.forward_ready
         graphics.matrix.visual.similarity
@@ -5355,6 +5366,7 @@ return [ qw[
         base.path-template.amos-ntime-dec
         base.parser.sorted_array_ref_list
         base.parser.center_ellipse_string
+        base.interval.rhythm.golden-blink
         base.file.path.create-chksum-link
         base.file.matching_path_linknames
         base.dependency.install_callbacks
@@ -5648,6 +5660,8 @@ return [ qw[
         osd-logo.handler.colortoalpha_reply
         nameserv.consistency.real-addresses
         nameserv.consistency.handler.answer
+        nameserv.cmd.ensure-challenge-alias
+        nameserv.challenge_alias.is_managed
         models.storage.adapter.discover_all
         models.gpu_lease.llama_compute_pids
         models.gguf.file.file_type_to_quant
@@ -5809,6 +5823,7 @@ return [ qw[
         memory.tree.score.focus_matches_stub
         login-screen.handler.lock_raise_poll
         lm-vision.handler.poll_coding_status
+        letsencr.parent.renewal_idle_release
         letsencr.parent.handler.httpd_online
         letsencr.parent.enroll_backoff_delay
         letsencr.child.dns.handler.txt_reply
@@ -5864,6 +5879,7 @@ return [ qw[
         coding.handler.models_discover_reply
         coding.handler.fetch_model_discovery
         coding.gpu_lease.handler.renew_reply
+        coding.gpu_lease.handler.models_back
         coding.callback.object_memory_system
         coding.async_spawn_inference_servers
         branch.session.dag.parallel_dispatch
@@ -6212,6 +6228,7 @@ return [ qw[
         invoke-web.handler.requeue_missing_reply
         invoke-web.handler.recover_requeue_reply
         invoke-web.gpu_lease.handler.renew_reply
+        invoke-web.gpu_lease.handler.models_back
         httpsd.request_certificate_from_letsencr
         graphics.matrix.visual.generate-batch-id
         graphics.matrix.visual.detect-resolution
@@ -6343,6 +6360,7 @@ return [ qw[
         letsencr.parent.handler_enroll_verify_reply
         letsencr.parent.handler_challenge_validated
         letsencr.child.handler.selftest_setup_reply
+        invoke-web.gpu_lease.handler.processor_poll
         httpd.handler.download_transfer.test-broken
         editor.control.multiline.line_col_to_offset
         data.topology.interference.map.MAX_RGB_DIST
@@ -6370,6 +6388,7 @@ return [ qw[
         plugin.storage.util.visual.calculate_entropy
         nameserv.sync.client.handler.connect-timeout
         letsencr.parent.check_certificate_expiration
+        invoke-web.gpu_lease.handler.processor_reply
         invoke-web.gpu_lease.handler.acquire_timeout
         fetch.file.huggingface.handler.list_response
         data.topology.interference.map.hash_to_phase
@@ -6509,8 +6528,8 @@ return [ qw[
     ]
 ];
 
-#,,..,..,,...,...,..,,...,,,.,...,,..,,,.,..,,.,.,...,..,,..,,,..,.,,,,.,,,.,,
-#FQ7AW7BG3MYHBYO5YIA7NAFF5GCLT4NYMK7FSITAO7QOFRM2SSJXEPJZZZ66ALDUA3WWPLMBTSVYA
-#\\\|XOLZJTSUX2CEAFQR42OXEFEL4UEQ2YLWUIZ3J5BNTAHFD3NKBHW \ / AMOS7 \ YOURUM ::
-#\[7]TTCDBXNF24ZBEXAWH342OTWJX2XNRYAPZTUCARIMKQDJEMODPSAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,.,,.,,.,,,,,.,..,,,.,,,.,,,,.,.,.,...,...,..,,,.,,.,,,,.,,,.,,
+#K4AEMDUIROERFIX3EI6B7ML746EI6HPHK653R7JTLA4RIEODUNNSSZV7H3XBQP2NVXYOP54ME4G2A
+#\\\|JJLZAKJOSLGTI3ODW4Y64IOL4WIAALFC3QXPG5FIIZL2YHI6D7K \ / AMOS7 \ YOURUM ::
+#\[7]LOMIV72N4VUBH2CBIQIDMC5NE6O4XCX4EZY4JVHUM7SJLJB2L4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
