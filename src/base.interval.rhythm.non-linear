@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = base.interval.rhythm.non-linear
+# descr = growing interval rhythm : start, factor, jittered cap
+# param = { type, state, reset, cfg, harmonize } -> seconds
+
+## cfg keys [ <base.interval.cfg.type.<type>.*> ] with defaults : start    ##
+## 0.77, factor 1.2, cap 40, cap_jitter 4 [ cap = cap + rand ], send_count ##
+## 1, distance 0.13                                                        ##
+## [ pairs : like discover, n sends in a group <distance> seconds apart ], ##
+## harmonic 1, minutes [ human-scale : fixed delay of <minutes> * 60 s,    ##
+## jitter 5 % -- prefer 13 \ 15 ] state : caller's hash, reset on <reset>  ##
+## [ error \ wake ] back to start                                          ##
+
+my $ctx       = shift;
+my $state     = $ctx->{'state'};
+my $cfg       = $ctx->{'cfg'};
+my $harmonize = $ctx->{'harmonize'};
+
+my $num = sub {
+    my ( $key, $default ) = @ARG;
+    my $v = $cfg->{$key};
+    return ( defined $v and $v =~ m{^\d+(\.\d+)?$} ) ? $v + 0 : $default;
+};
+my $harmonic
+    = defined $cfg->{'harmonic'}
+    ? <[base.cfg_bool]>->( $cfg->{'harmonic'} )
+    : TRUE;
+my $fin = sub {
+    my $v = shift;
+    return $harmonic ? $harmonize->($v) : $v;
+};
+
+my $minutes = $num->( qw| minutes |, 0 );
+if ( $minutes > 0 ) {    ## human-scale : never a round 10 minutes ##
+    $minutes = 13 if $minutes == 10;
+    my $jitter = $num->( qw| jitter |, 0.05 );
+    my $base   = $minutes * 60;
+    return $fin->( $base * ( 1 - $jitter + rand( 2 * $jitter ) ) );
+}
+
+my $start      = $num->( qw| start |,      0.77 );
+my $factor     = $num->( qw| factor |,     1.2 );
+my $cap        = $num->( qw| cap |,        40 );
+my $cap_jitter = $num->( qw| cap_jitter |, 4 );
+my $count      = int $num->( qw| send_count |, 1 );
+my $distance   = $num->( qw| distance |, 0.13 );
+$count  = 1    if $count < 1;
+$factor = 1.01 if $factor <= 1;    ## stays growing ##
+
+if ( $ctx->{'reset'} or not defined $state->{'current'} ) {
+    $state->{'current'}   = $start;
+    $state->{'cap_value'} = $cap + rand($cap_jitter);    ## jittered cap ##
+    $state->{'pair_left'} = 0;
+    $state->{'rounds'}    = 0;
+}
+
+if ( $state->{'pair_left'} ) {    ## rest of a send group ##
+    $state->{'pair_left'}--;
+    return $fin->($distance);
+}
+
+my $value = $state->{'current'};
+$value = $state->{'cap_value'} if $value > $state->{'cap_value'};
+$state->{'current'}
+    = $state->{'current'} * $factor > $state->{'cap_value'}
+    ? $state->{'cap_value'}
+    : $state->{'current'} * $factor;
+$state->{'pair_left'} = $count - 1;
+$state->{'rounds'}++;
+return $fin->($value);
+
+#,,,.,,,,,,.,,,,.,,,.,,,.,,,.,..,,...,.,.,,,.,..,,...,...,...,,.,,,,.,...,.,,,
+#Z7RT7RBHHHEAF4LC3XATKCWZKIZ7W3MN5J4YENCHEPW7TMFOJOHYAUBTN6X6WW6WK2PA6IVQMVR4E
+#\\\|ZN4KDMN5CL5V3AXCXBYZ2Q5YNEKEIPMHMX5HOESI5OQSRUQPF2P \ / AMOS7 \ YOURUM ::
+#\[7]SODAO7IWZZFJ4KLAAIEEXHLLUC5UF5PANKMZ3UGIED7CF775CMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

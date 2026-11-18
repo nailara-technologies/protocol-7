@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = base.interval.next
+# descr = next delay for a periodic timer [ non-linear rhythms ]
+# param = { type, state, reset } -> seconds | undef
+
+##  entry call of the shared interval helper : callers never compute        ##
+##  intervals themselves -- they keep one state hash per timer and ask for  ##
+##  the next delay [ seconds ] each round. the rhythm behind a type is      ##
+##  config : <base.interval.cfg.type.<type>.rhythm>                         ##
+##  [ default 'non-linear' ], its params live beside it                     ##
+##  [ start, factor, cap, .. ].  rhythms are base.interval.rhythm.<name>    ##
+##  modules, swappable by 'reload source' without touching a caller.        ##
+##                                                                          ##
+##  human-scale timers [ idle, reminders ] declare <minutes> : prefer 13    ##
+##  or 15, never 10 -- a round 10 minute interval \ exactly 600 s is never  ##
+##  produced [ becomes 13 minutes ].                                        ##
+
+my $args = shift;
+
+<[base.log]>->( 0, 'base.interval.next : expected hash ref { type, state }' )
+    and return undef
+    if ref $args ne qw| HASH |
+    or ref $args->{'state'} ne qw| HASH |
+    or not defined $args->{'type'}
+    or $args->{'type'} !~ m{^[\w-]+$};
+
+my $type  = $args->{'type'};
+my $state = $args->{'state'};
+my $cfg   = $data{'base'}{'interval'}{'cfg'}{'type'}{$type};
+$cfg = {} if ref $cfg ne qw| HASH |;
+
+my $reset = ( $args->{'reset'} // FALSE ) ? TRUE : FALSE;
+
+my $rhythm = $cfg->{'rhythm'} // qw| non-linear |;
+$rhythm = qw| non-linear | if $rhythm !~ m{^[a-z][-a-z0-9]*$};
+
+my $rhythm_sub = "base.interval.rhythm.$rhythm";       ## curve etc. later ##
+$rhythm_sub = qw| base.interval.rhythm.non-linear |    ## fallback ##
+    if not defined $code{$rhythm_sub};
+
+## division-by-13 harmonic filter : a value that fails is nudged by a small ##
+## step [ 1 % of its milliseconds, at least 1 ] alternating up and down     ##
+## until it passes -- at most 13 steps each way [ 27 checks ], then the     ##
+## value is used as it was [ bounded ] ; exactly 600 s is never produced    ##
+my $harmonize = sub {
+    my $seconds = shift;
+    my $ms      = int( $seconds * 1000 + 0.5 );
+    $ms++             if $ms == 600000;    ## no round 10 minutes ##
+    return $ms / 1000 if not defined &AMOS7::Assert::Truth::is_true;
+    my $step = int( $ms / 100 );
+    $step = 1 if $step < 1;
+    foreach my $try ( 0 .. 26 ) {
+        my $offset = ( $try % 2 ? 1 : -1 ) * int( ( $try + 1 ) / 2 ) * $step;
+        my $candidate = $ms + $offset;
+        next if $candidate < 1 or $candidate == 600000;
+        my $candidate_str = sprintf '%d', $candidate;
+        return $candidate / 1000
+            if AMOS7::Assert::Truth::is_true( \$candidate_str, 1, 1 );
+    }
+    return $ms / 1000;                     ## gave up : original value ##
+};
+
+my $delay = <[$rhythm_sub]>->(
+    {   qw| type |      => $type,
+        qw| state |     => $state,
+        qw| reset |     => $reset,
+        qw| cfg |       => $cfg,
+        qw| harmonize | => $harmonize
+    }
+);
+return $delay if not defined $delay;
+
+## guard : human-scale rounds never land on exactly 10 minutes ##
+$delay = 780 if abs( $delay - 600 ) < 0.0005;
+
+$state->{'type'} = $type;
+$state->{'last'} = $delay;
+return $delay;
+
+#,,..,,..,...,,..,..,,...,,,,,.,,,,,,,.,,,,,,,..,,...,...,.,,,...,...,,,.,.,,,
+#NY7CUCEQCDZEMMVX65GNUG5CO6MWC37PR74D7SBBJZ2OSJDA4KH4J5XTYJOFWXASZQU3UNYL3OT2C
+#\\\|YIA3RJXRYOY44XH5SWBK4WCIHIUOUCZCRSZKTSTIEGLFXCY5SHS \ / AMOS7 \ YOURUM ::
+#\[7]ZUHMMJMKFZO3JVIEKJ3OYKA6XWBVJ42TN5NYZBLAWVHSSP4N5OBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

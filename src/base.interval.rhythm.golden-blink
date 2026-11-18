@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = base.interval.rhythm.golden-blink
+# descr = on \ off blink pair : off = on / phi by default
+# param = { type, state, reset, cfg, harmonize } -> seconds
+
+## alternating delays : on, off, on, off ..  cfg keys : on                ##
+## [ default 1.274 s, the terminal cursor reference ], off [ default on / ##
+## phi -- 769 ms in the terminal is the hand-tuned pair, phi gives 787 ms ##
+## for 1274 ], explicit on \ off override, harmonic                       ##
+## [ default 0 : blinkers stay exact unless asked ]                       ##
+
+my $ctx       = shift;
+my $state     = $ctx->{'state'};
+my $cfg       = $ctx->{'cfg'};
+my $harmonize = $ctx->{'harmonize'};
+
+my $phi = ( 1 + sqrt 5 ) / 2;
+
+my $num = sub {
+    my ( $key, $default ) = @ARG;
+    my $v = $cfg->{$key};
+    return ( defined $v and $v =~ m{^\d+(\.\d+)?$} and $v > 0 )
+        ? $v + 0
+        : $default;
+};
+
+my $on  = $num->( qw| on |,  1.274 );
+my $off = $num->( qw| off |, $on / $phi );
+
+$state->{'phase'} = qw| on | if $ctx->{'reset'};
+$state->{'phase'} //= qw| on |;
+
+my $value;
+if ( $state->{'phase'} eq qw| on | ) {
+    $value = $on;
+    $state->{'phase'} = qw| off |;
+} else {
+    $value = $off;
+    $state->{'phase'} = qw| on |;
+}
+
+return $harmonize->($value)
+    if defined $cfg->{'harmonic'}
+    and <[base.cfg_bool]>->( $cfg->{'harmonic'} );
+return $value;
+
+#,,.,,.,.,.,,,.,.,,.,,..,,.,.,,.,,.,.,,.,,.,,,..,,...,...,.,.,...,,,.,...,...,
+#5EBALPVZDRIMRTGT6BPAGXFOPYDWQFLDHBH5CYV7CT7KBRQ2D6YVOTLR7APVHX7ZUXHZMPEOPV3CM
+#\\\|IALSD4KKE6LNAD4TNUIFJ2P54IIPXICJD744S4RGMJUGTFXONYW \ / AMOS7 \ YOURUM ::
+#\[7]4H6TE34M4MXVH7BFYGLA4G2SP6VZXOXUY6NQXYNTF4DZPEXC7EAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

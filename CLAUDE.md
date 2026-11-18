@@ -305,6 +305,9 @@ Rather than strict enforcement, style guidance works through intelligent mentori
 3. **Contextual learning** [ future generations ]: llm naturally adopts conventions through repeated feedback
 4. **Reduced workload**: each generation is progressively more in-style, reducing future corrections
 
+#### Timers, Retries, Blinks
+- new timers \ retries \ blinks call `<[base.interval.next]>->( { type => '<type>', state => \%state } )` and use the delay it returns -- never a literal, linear or round interval [ rhythm per type from `base.interval.cfg.type.<type>.*` ; human-scale timers declare `minutes`, 13 or 15 preferred, never 10 \ 600 s ]
+
 ### Style References
 - **Comprehensive guide**: `data/md/development/CODE-STYLE-AND-LLM-INTEGRATION.md`
 - **Quick reference**: `data/yaml/code-style/CONVENTIONS.yaml`

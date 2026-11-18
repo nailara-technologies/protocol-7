@@ -99,6 +99,19 @@ protocol7_specific:
       bad:  "p7c models.adapter.repair invoke --dry-run --verbose"
       good: "p7c models.adapter.repair invoke :dry-run: :verbose:"
 
+  # timers, retries, blinks
+  intervals:
+    description: "periodic intervals come from the shared helper, never from the caller"
+    rules:
+      - "new timers, retries and blinks call <[base.interval.next]> with { type, state } and use the returned delay"
+      - "never a literal, linear, doubling or round interval in caller code"
+      - "the rhythm per type is config : base.interval.cfg.type.<type>.rhythm [ non-linear, golden-blink ] plus start, factor, cap, send_count, distance, on, off"
+      - "human-scale timers [ idle, reminders ] declare minutes : 13 or 15 preferred, never 10 minutes or exactly 600 s"
+      - "reset on error or wake : pass reset => TRUE"
+    example:
+      bad:  "event.add_timer( { after => 10, ... } ) in a retry loop"
+      good: "after => <[base.interval.next]>->( { type => 'enroll-retry', state => $state } )"
+
   # to be expanded with:
   # - return value conventions
   # - error handling patterns
@@ -163,8 +176,8 @@ code_presence_and_cross_namespace_calls:  # july 2026, commits b674ecd80/ae6b1f7
       [ a rename silently broke nshell cube connect until testing caught it ].
     command: "grep -rn 'sprintf' src/ | grep -i '<name-fragment>'"
 
-#,,..,,,,,.,,,...,,,,,.,,,,..,,,.,,.,,,.,,,..,..,,...,..,,.,,,...,.,.,...,..,,
-#LDBHOJZQ2OSW2MJWR2WRCSHHCTWP32HD343KMGDIHVDHBRZFFJAYYVSCB4IRFOAISAZW3F4TQWJFK
-#\\\|WWWEU56DXTANSQSYIZZJ56HBBPQ25G2ABRPZUZ73MIQOUUGDOB6 \ / AMOS7 \ YOURUM ::
-#\[7]UWILNRZAH3NVSP5J7WRZPHVA3CYQJCGYHGC7W5N3H3L2AEMH6EDI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,.,,,,,.,.,,,,..,...,,.,,,.,,..,,...,..,,...,.,,,...,..,,.,.,
+#UDRC7UZYFOYQ3NA24ESTYRB3RTF3IKP45NZPLLVWNAVMIT6YGW43W3XE6E7EFY5ACNFCY5BGXCQNY
+#\\\|KOE73D2QFUYJMA2SJLOAPGEJVPVZ2BKKN5VYHCRDEQUQH42LHGM \ / AMOS7 \ YOURUM ::
+#\[7]W6RFXQVLNNSKCYGFXYBGQBTNRATAK7WK7BTWR7VDOHRYJY4VZMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
