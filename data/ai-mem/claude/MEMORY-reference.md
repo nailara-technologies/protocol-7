@@ -129,3 +129,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #\\\|DFOW6P5NQELMGJXIMQCYPEVTWBP2KUYV3CBFHKTQWVRENVYQAH5 \ / AMOS7 \ YOURUM ::
 #\[7]6QFNP3GQ54EAG3F3BRP3R7J4VU7HIIYMJ42FB5JOQXV4I2JHSIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [layer-holds-nothing-worth-taking](feedback-layer-holds-nothing-worth-taking.md) — design principle : abstract at the trust boundary, a layer holding only abstracted situations has nothing worth taking [ 2026-11-19 ]
+
+#,,..,.,,,..,,.,,,.,,,..,,,,.,..,,,,.,.,,,,,,,..,,...,...,,..,,,.,.,.,...,,.,,
+#IV62FZCRYQV3WKMFLHJY5BC2EMID6QXLTTVZZLPY5NNMEYQ5EC7S2UKSXTWX3LC7QMWHBZRQYZGHE
+#\\\|4QM34VXOBDXHVP3IVWYMFIUEE7SBIOVSGRMLG3U2Z426X4WZSOD \ / AMOS7 \ YOURUM ::
+#\[7]RPQJYLGPBDWWZIGRWXDGO7RABPVYDJBYD4DRO46TCN3FPQVF7GCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

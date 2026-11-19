@@ -1,0 +1,116 @@
+## [:< ##
+
+# name  = v7-zenki.cmd.host-power-cycle
+# param = [seconds] [nosync]
+# descr = power off and wake host through rtc alarm
+
+## failure order : every step that can fail runs before the irreversible  ##
+## one -- checks, bootnext, sync, then the rtc alarm, then the power off. ##
+## the alarm is set last so it cannot fire before the host is off         ##
+## [ a missed alarm leaves the host off ]. any failure leaves it running  ##
+
+my $param          = $call->{'args'} // '';
+my $enabled        = <v7-zenki.host-power-cycle.enabled> //= 1;
+my $bootnext       = <v7-zenki.host-power-cycle.bootnext>;
+my $wakealarm_path = qw| /sys/class/rtc/rtc0/wakealarm |;
+
+my $fail = sub { return { 'mode' => qw| false |, 'data' => shift } };
+
+## write one value to the rtc wake alarm, TRUE on success ##
+my $write_alarm = sub {
+    my $value = shift;
+    open( my $fh, qw| > |, $wakealarm_path ) or return FALSE;
+    my $ok = print {$fh} "$value\n";
+    return close($fh) && $ok ? TRUE : FALSE;
+};
+
+return $fail->(
+    'specifically disabled [ v7-zenki.host-power-cycle.enabled = 0 ]')
+    if not $enabled;
+return $fail->("not found : '/proc/sysrq-trigger'")
+    if not -e qw| /proc/sysrq-trigger |;
+return $fail->("not found : '$wakealarm_path'") if not -e $wakealarm_path;
+
+## parameters : [ seconds ] [ nosync ] ##
+my ( $seconds, $nosync ) = ( 32, FALSE );
+my $seconds_set = FALSE;
+foreach my $arg ( split m|\s+|, $param ) {
+    next if not length $arg;
+    if ( $arg eq qw| nosync | ) {
+        $nosync = TRUE;
+    } elsif ( not $seconds_set and $arg =~ m|^\d+$| ) {
+        ( $seconds, $seconds_set ) = ( $arg, TRUE );
+    } else {
+        return $fail->(
+            "invalid parameter : '$arg' [ expected : seconds nosync ]");
+    }
+}
+return $fail->('seconds must be an integer between 7 and 3600')
+    if $seconds < 7 or $seconds > 3600;
+
+## bootnext : set and verified before anything else changes ##
+my $bootnext_state = qw| not-configured |;
+if ( defined $bootnext and length $bootnext ) {
+    return $fail->('invalid bootnext entry [ expected four hex digits ]')
+        if $bootnext !~ m|^[0-9A-Fa-f]{4}$|;
+    $bootnext = uc $bootnext;
+    my $output = qx| efibootmgr -n $bootnext 2>&1 |;
+    return $fail->("efibootmgr -n $bootnext failed : $output")
+        if $CHILD_ERROR != 0;
+    $output = qx| efibootmgr 2>&1 |;
+    if ( $CHILD_ERROR != 0 or $output !~ m|^BootNext:\s*$bootnext\s*$|m ) {
+        qx| efibootmgr -N 2>&1 |;
+        return $fail->("bootnext verification failed : $output");
+    }
+    $bootnext_state = $bootnext;
+} else {
+    <[base.log]>->( 0, 'no bootnext entry configured ; skipping bootnext' );
+}
+
+## undo bootnext when a later step fails ##
+my $undo = sub {
+    qx| efibootmgr -N 2>&1 | if $bootnext_state ne qw| not-configured |;
+    $write_alarm->(0);
+    return $fail->(shift);
+};
+
+<[base.log]>->( 0, "<<< initiating host power cycle [ $seconds s ] >>>" );
+
+while ( keys %{ $data{'route'} } ) {
+    <[event.once]>->(0.1);
+}    # wait log written
+
+system(qw| /bin/sync |) if not $nosync;
+
+## rtc alarm : the last fallible step ##
+return $undo->("cannot clear rtc wake alarm : \l$OS_ERROR")
+    if not $write_alarm->(0);
+return $undo->("cannot set rtc wake alarm : \l$OS_ERROR")
+    if not $write_alarm->("+$seconds");
+
+open( my $read_fh, qw| < |, $wakealarm_path )
+    or return $undo->("cannot read rtc wake alarm : \l$OS_ERROR");
+my $wake_epoch = readline($read_fh) // '';
+close($read_fh);
+chomp $wake_epoch;
+return $undo->("rtc wake alarm is not in the future : '$wake_epoch'")
+    if $wake_epoch !~ m|^\d+$| or $wake_epoch <= time;
+
+<[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => qw| v7-zenki.callback.system-poweroff |
+    }
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf '<< wake at %d [ +%d s ] ; bootnext '
+        . ': %s ; powering off host system >>',
+    $wake_epoch, $seconds, $bootnext_state
+};
+
+#,,,.,,,,,...,,..,,..,.,,,,,.,..,,,,.,,.,,,.,,..,,...,...,...,..,,...,,..,.,,,
+#4T3ABWQSYG2Z7IOPQBVCFTN3FIPCU4FG3E3W55I56RRXBXLMN3JCDS4XMEIWNPFNSM6SD4ABQPLU2
+#\\\|OMIGCZH57HEVUUUTQYDZNHMP2JDZEDKE2K4RKXWKJP66PTFK7JG \ / AMOS7 \ YOURUM ::
+#\[7]ZUYXC6GVP6XJ7WNDEOZJ5O4AEO6RWYHTBGNHJS62SI2NJDD732BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

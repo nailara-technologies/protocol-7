@@ -91,6 +91,28 @@ with optional drivers.
    its own : one display-power hook calling power.* , so every power driver works for
    displays [ rs232 beamer, smart plug monitor, later DDC\CI through its own driver ]
 
+## power layers [ owner 2026-11-19 ]
+
+hosts are switched on by layer, when temperature or electricity cost matters directly :
+
+- layer 0 : an always-on low-power host -- sends WoL, keeps the links
+- layer 1 : a low-idle desktop host [ a few watts idle ] together with layer 0
+- layer 2 : a further host added [ woken on demand ]
+- layer 3 : a host at load [ e.g. a gpu host, an order of magnitude more ]
+
+the on-demand logic [ zenki and hosts ] picks the lowest layer that can serve a request and
+raises it only while needed ; the layer is a resource cost the ledger can weigh [ watt,
+heat, price per kWh ]. a stage after WoL : the power zenka reports a host's layer and
+current draw where a driver can measure it [ smart plug ].
+
+off-grid case [ solar + battery, generator on demand, fuel dependent ] : the supply side
+becomes an input too -- battery charge, solar yield now and forecast [ weather ], fuel
+level. the layers then follow the energy budget : heavy work [ layer 3 ] moves into
+sunny hours or onto stored surplus, the generator is the last resort and costs fuel, so
+it only covers what cannot wait. a low battery with a dark forecast is a certain chain
+[ see billing-watcher-pattern-first.md, outage ladder ] : step down layers early instead
+of running into a cut.
+
 ## rules for the implementer
 
 - house style : lowercase comments, `[ ]` not `( )` in comments
@@ -101,8 +123,8 @@ with optional drivers.
 - syntax check with `bin/format-code -c <files>`, never plain perl -c
 - do not touch files outside this task
 
-#,,..,...,,..,.,.,,,.,..,,,.,,,..,,.,,..,,..,,..,,...,...,.,,,..,,,.,,,,.,...,
-#W2HVGLA4QV2WYIDDOL5JCEK5IEVWUYUG3VM4VHDWLIDGAMRUNBP24D7S2HC3Q6P3UELZTN7SNYFLI
-#\\\|JUH5BD2RKHLQEPU57PSFS4T3DABPYZSSUYM56YF7WPAKKWH42D3 \ / AMOS7 \ YOURUM ::
-#\[7]PIQUYGT6VQ75BLCGHF3QRPJ3L35UVTLU5KZIGCEVEGGC734YAABA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,,,.,.,,.,,..,,.,.,,..,.,,,,..,..,,...,...,,,.,..,,.,,,...,.,.,
+#KNWCKTXEXNXT6NAVQRWQSF33KUQVD7BPCKQ2XWE5B7UBDYI5G7UTF7BV2GUDMRKK6RCVO62LDZF3I
+#\\\|SJ7JRFSBYKTVW6L7ALY57IQMFMBIUNSNTLQC66VSDKLBVQBKYBL \ / AMOS7 \ YOURUM ::
+#\[7]GQGIRATEIGAKHQXL3RIQJMX5ZABCZS6LP6IOYM2V5UXJZIKE7CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
