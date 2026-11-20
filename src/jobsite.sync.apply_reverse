@@ -123,7 +123,11 @@ for my $entry ( @{$entries} ) {
         ## awaiting_refetch check or, if the source url isn't refetchable, ##
         ## from jobsite.handler.reassess-refetch-queued's fallback -- so a ##
         ## reassess never scores stale data when a fresher fetch was       ##
-        ## possible                                                        ##
+        ## possible  a request still waiting for its refetch is superseded ##
+        ## by this one and never dispatches : release its counted slot, or ##
+        ## the cycle sticks on 'assessing' [ n remaining, 2026-11-20 ]     ##
+        <[jobsite.dispatch.consume_slot]>
+            if defined <jobsite.tasks>->{$id}{'awaiting_refetch'};
         <jobsite.tasks>->{$id}{'awaiting_refetch'} = $gen;
         my $refetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
         ## remote fetch : outbox transport, no route-send delivery ##
@@ -226,8 +230,8 @@ for my $entry ( @{$entries} ) {
 ## an unconditional push_soon would loop push -> 3 s -> push forever        ##
 <[jobsite.sync.push_soon]> if scalar $entries->@*;
 
-#,,.,,.,.,...,,,.,.,,,,.,,,,.,,..,,.,,...,..,,..,,...,...,...,...,,.,,..,,,..,
-#3ALRI2Z24AF6O357QI4DD3KHJYWKL53WPT6BXMLPKT4YO3EMNIU5ELBMY6IHSTSG6ELO6VQSZKNUC
-#\\\|6RDZRSBZACW7SKI5JERHBTQRMNRB3IFJUVTRB6FOSLPJP6NNKWP \ / AMOS7 \ YOURUM ::
-#\[7]ZHRM562E4VTDCXD5L242ZKIHVYP7ZASHFUWSH3PZEHY6T245LAAY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,.,,,...,,..,..,,...,.,,,.,,,..,,...,...,,.,,.,,,,,,,.,,,.,,,
+#RKAK32KOWTA6TGE6MBHOOOJVZSE7IWCCE47KVXG272MQEZGHPKKOYYMV5DMVFIWUOYPV5YFHNN6S4
+#\\\|WOTK4TQMCZYQ2WB3EOXORVNIKQ2GOH7NFX6MVB3NOH7HQW4HOF4 \ / AMOS7 \ YOURUM ::
+#\[7]3LRI7KGYDUI7Y4IT6Y3YNLKISEBJWZEJQ4U7OQAQA6OVILB53OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
