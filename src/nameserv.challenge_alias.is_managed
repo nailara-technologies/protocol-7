@@ -17,7 +17,8 @@ return FALSE if not length $zone_name or ref $rec ne qw| HASH |;
 return FALSE if uc( $rec->{'type'} // '' ) ne qw| CNAME |;
 
 my $prefix = <nameserv.cfg.ensure_zone_prefix> // 'acme.';
-my $name   = lc( $rec->{'name'} // '' ) =~ s{\.+$}{}r;
+my $name = <[nameserv.name.normalize]>->( $zone_name, $rec->{'name'} // '' );
+return FALSE if not defined $name;
 return FALSE if $name !~ m|\A_acme-challenge\.(.+)\z|;
 my $domain = $1;
 
@@ -49,10 +50,11 @@ while ( my $line = <$fh> ) {
     next if $line =~ m|\A\$|;
     if ( $line =~ m|\A(\S+)| ) {
         my $token = lc $1;
-        $owner
+        my $source_name
             = $token eq '@'     ? $origin
-            : $token =~ m|\.\z| ? $token =~ s{\.+$}{}r
+            : $token =~ m|\.\z| ? $token
             :                     "$token.$origin";
+        $owner = <[nameserv.name.normalize]>->( $origin, $source_name );
     }
     if ( defined $owner and $owner eq $name ) {
         close $fh;
@@ -63,8 +65,8 @@ close $fh;
 
 return TRUE;
 
-#,,,,,,,,,,..,,..,.,,,.,.,,..,,,,,,,,,,,.,,,,,..,,...,..,,...,.,.,,..,,.,,.,,,
-#OB2PXZPF3TKXSU5JMFCOAO2YMOJ53A24HXUHHXOLRKPMQ6SSEXQK6BFLQ4L7FIO4UZ2YO5RWDU42S
-#\\\|RAOQ3L3CHKPWPIX3O5W7W5Q3CH2MAVEEEL2VWT35GZNQ3O2JLVX \ / AMOS7 \ YOURUM ::
-#\[7]WFB53R6ALOFCWYLUMPCDFESLYXTM6LR7B53AEZGDRQDVYT2IQMDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,..,,.,.,.,.,.,.,...,,,,,,..,..,,...,...,..,,,,.,...,.,.,..,,
+#DLEUNK3YKDCNRYS22HK6V37YJZNGKPJZCOEF4YP56PICL5RYJED6B4S2S4AT43DI3RFF2VD3XMLHE
+#\\\|L45HV6FSY57GKMCHFUEARWQH6D25TOHPETVYE6ZZ7EIK7BVA34M \ / AMOS7 \ YOURUM ::
+#\[7]7X2QOPPXV5LQBYUNQQ6O2AWPJMM4IZXOUYWX5NRLBSOOEQSNWUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

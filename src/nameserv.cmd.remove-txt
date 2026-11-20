@@ -16,8 +16,6 @@ if ( scalar(@parts) != 2 ) {
 my $fqdn  = lc $parts[0];
 my $value = $parts[1];
 
-$fqdn =~ s{\.+$}{};    ## strip optional trailing dot
-
 if ( not $fqdn or not $value ) {
     return { mode => 'false', data => 'usage: remove-txt <fqdn> <value>' };
 }
@@ -28,6 +26,10 @@ my ( $zone, $zone_name ) = <[nameserv.zone.lookup]>->($fqdn);
 if ( not defined $zone ) {
     return { mode => 'false', data => "no matching zone for: $fqdn" };
 }
+
+$fqdn = <[nameserv.name.normalize]>->( $zone_name, $fqdn );
+return { mode => 'false', data => "record name outside zone $zone_name" }
+    if not defined $fqdn;
 
 ## remove only records matching name + type + value, tombstoning each ##
 ## removed one                                                        ##
@@ -64,8 +66,8 @@ $zone->{'serial'} = time();
 my $msg = sprintf "txt value removed: %s", $fqdn;
 return { mode => 'true', data => $msg };
 
-#,,,.,,,,,,,,,,.,,..,,,..,...,,.,,...,...,,..,..,,...,...,...,..,,...,...,.,,,
-#GK7FZQFGLBQWMRS3R6WXN7TADGB55V62BGNVY4ZWM32LOT7ZVWCO673P7LQNIC43KBKHPD7F7YT2W
-#\\\|BL6ZBQXRPJKZYUGRFTYM7A6WS6KB7Q4GZCL6KWNEBHB7ZFGGE5Q \ / AMOS7 \ YOURUM ::
-#\[7]UBYBSETO4XFT2AXM5RK4KRJY7VLAZABYCN6MDLTOELXUTVSIBWAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,...,,..,.,,,,.,,.,.,,.,,,.,,,,.,..,,...,...,...,,..,.,,,,,.,.,.,
+#53GD6KZOYWLFXRIPY5BVFGQF7UEA4TSJGCEFRJHJS432RDMACUD5CHAI5PHNFDX4ROQMFRRAUC4LM
+#\\\|MQ37VQQTBLGFFESFKEMLDMCXSATJKHT2MMZ5ZIDOH5IU73OPP3C \ / AMOS7 \ YOURUM ::
+#\[7]HHX5GYAJESM2W6CZEGIMRESPHSZPRPVRHR5COJVSGCOM3M2WOGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

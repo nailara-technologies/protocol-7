@@ -1,0 +1,26 @@
+## [:< ##
+
+# name   = nameserv.name.normalize
+# descr  = return the canonical stored owner name inside a zone
+# param  = $zone_name, $name -> lowercase absolute name without trailing dot
+# return = undef for an empty name or a dotted name outside the zone
+
+my $zone_name = lc( shift // '' );
+my $name      = lc( shift // '' );
+
+$zone_name =~ s{\.+$}{};
+$name      =~ s{\.+$}{};
+
+return undef      if not length $zone_name or not length $name;
+return $zone_name if $name eq qw| @ |      or $name eq $zone_name;
+return $name      if $name =~ m|\.\Q$zone_name\E\z|;
+return undef      if $name =~ m|\.|;
+return "$name.$zone_name";
+
+#,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
+#,,,,,...,.,.,..,,..,,,.,,,,.,,.,,.,.,,..,..,,..,,...,...,,,.,.,,,,,.,...,,,,,
+#FWEPKJIYDCJF4YBZTFVPANVDF6JIGOUEKXJC4U4MOKEBSNDQBQ357YINU2YLASQIXLNVS4UPDBILS
+#\\\|D4MQTGPTMAHASXPBO47C7G3ON57OQFVGUK6IKUETCGJDTRLHMLQ \ / AMOS7 \ YOURUM ::
+#\[7]OTAO4MX7SEMK7JJNKR27OSKEIAWDH3CDQW2CIYTEZ364VTK3KQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

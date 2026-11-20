@@ -7,6 +7,7 @@
 my $qname = shift;
 
 $qname = lc( $qname // '' );
+$qname =~ s{\.+$}{};
 
 my $zones = <nameserv.zones>;
 
@@ -31,8 +32,8 @@ for my $zone_name ( keys %$zones ) {
 
 return wantarray ? ( $best_match, $best_name ) : $best_match;
 
-#,,..,...,..,,..,,,,,,,.,,,.,,,..,...,...,.,.,..,,...,...,...,.,,,,.,,..,,.,.,
-#YX6TJEU3ODTS4TMWJV3JKQGOEFPGGFIFBBHLY7ELPX5GAKRRQWTFRZKXIAN2XQ2CCXL7YK5OK4DOK
-#\\\|QAC6TZEYGPABOGHZDG4AF5KGWST7Z2EQR7PWQ75LZLPWKHXKT52 \ / AMOS7 \ YOURUM ::
-#\[7]LVCKQ44MBCGCHB4S7RBBTSOJIUPR2524CH6XP653PLIDAW3NKWCI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,..,,,,,,.,,,,.,,.,,..,,...,.,,,..,,...,..,,..,,,,.,,..,.,.,..,,
+#Q4VGNZFR3AI36N3SOHZH2SF6CTONX7LFHBL7T7TJIWS5VOQFAUY4DFME24OZQQXQYD3HWQJ22QJSW
+#\\\|HGIFBGBCR6QXV5BRZIWXV7JRQ5TIASGNOV7V5JP4UQAQRF7TVCH \ / AMOS7 \ YOURUM ::
+#\[7]JCTWUENV2S6D5JWGHPSNOR25XUSCICMB6SF5IQNAEYITOAC53ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

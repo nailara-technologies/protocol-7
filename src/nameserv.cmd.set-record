@@ -28,21 +28,25 @@ if ( $args_str =~ m|^\s*zone=| ) {
 }
 
 my $zone_name = lc( $args{'zone'} // '' );
-my $rec_name  = lc( $args{'name'} // '' );
+my $rec_input = lc( $args{'name'} // '' );
 my $rec_type  = uc( $args{'type'} // 'A' );
 my $rec_value = $args{'value'} // '';
+$zone_name =~ s{\.+$}{};
 
-## '@' is the apex : the zone stores it under the zone name -- taken literally
-## it became a second record nobody served [ 2026-11-20 ]
-$rec_name = $zone_name if $rec_name eq '@';
-
-if ( not $zone_name or not $rec_name or not $rec_value ) {
+if ( not $zone_name or not $rec_input or not $rec_value ) {
     return {
         mode => 'false',
         data => 'usage: set-record zone=<zone> '
             . 'name=<name> type=<type> value=<value>'
     };
 }
+
+my $rec_name = <[nameserv.name.normalize]>->( $zone_name, $rec_input );
+return {
+    mode => 'false',
+    data => "record name outside zone $zone_name: $rec_input"
+    }
+    if not defined $rec_name;
 
 my $zones = <nameserv.zones>;
 
@@ -99,8 +103,8 @@ my $msg
     = sprintf( "record added: %s %s %s", $rec_name, $rec_type, $rec_value );
 return { mode => 'true', data => $msg };
 
-#,,.,,,..,,..,,,,,,.,,,,.,,,.,,.,,..,,,..,,,,,..,,...,...,.,.,,,,,,,.,.,,,,..,
-#Z6WXH3I6IU3U2AZDYGSNERAY5PYMQNECRIJIKKUCBF3SULKOEFAHBAXYTMT5GZAKCQCK25CNEUXZG
-#\\\|FA5LPHUZJKVXDAI2PTVHZE7V23LM4BGXHJ7SQCBHNFDJV24QDGD \ / AMOS7 \ YOURUM ::
-#\[7]TYKBKTADBJVXTFVOWPXB2S4TBJCBF4ARLFJVMXWIT3PKQFAKYMCY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,.,.,.,,.,,,,,,,,.,..,,,,,,,,.,..,,...,...,...,,.,,...,...,,..,
+#Q7ABLVU3TLVLYQMW6LAUP5QQZPIDAMN6QQSI2BWRMNLY3T24NDGUOVIVWWTKDQVU2D2DSGQH7IO46
+#\\\|RRC3LR2WGIEINJX73YBQMCEANGN6354Q2EXJUHJX4ASVWQDHHPO \ / AMOS7 \ YOURUM ::
+#\[7]RHIUAHHFIFNN46R2TQWEVQP4YA66YTRX36JUQGXZBFOCSF66BIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

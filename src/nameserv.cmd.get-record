@@ -5,8 +5,8 @@
 
 my $args_str = $call->{'args'} // '';
 
-## parse args: name=<name> [type=<type>]
-## or positional: <name> [type]
+## parse args: name=<name> [type=<type>] [zone=<zone>]
+## or positional: <name> [type] ; without a zone, search every zone
 my %args;
 if ( $args_str =~ m|=| ) {
     while ( $args_str =~ m|(\w+)=(\S+)|g ) {
@@ -18,23 +18,42 @@ if ( $args_str =~ m|=| ) {
     $args{'type'} = $parts[1] if @parts > 1;
 }
 
-my $rec_name = lc( $args{'name'} // '' );
-my $rec_type = uc( $args{'type'} // '' );
+my $rec_input = lc( $args{'name'} // '' );
+my $rec_type  = uc( $args{'type'} // '' );
+my $zone_arg  = lc( $args{'zone'} // '' );
+$zone_arg =~ s{\.+$}{};
 
-if ( not $rec_name ) {
+if ( not $rec_input ) {
     return {
         mode => 'false',
-        data => 'usage: get-record name=<name> [type=<type>]'
+        data => 'usage: get-record name=<name> [type=<type>] [zone=<zone>]'
     };
 }
 
 my $zones = <nameserv.zones>;
-my @matches;
+return { mode => 'false', data => "zone not found: $zone_arg" }
+    if length $zone_arg and not exists $zones->{$zone_arg};
 
-for my $zone_name ( keys %$zones ) {
+my $rec_name;
+if ( length $zone_arg ) {
+    $rec_name = <[nameserv.name.normalize]>->( $zone_arg, $rec_input );
+    return {
+        mode => 'false',
+        data => "record name outside zone $zone_arg: $rec_input"
+        }
+        if not defined $rec_name;
+}
+
+my @matches;
+for my $zone_name ( length $zone_arg ? ($zone_arg) : sort keys %$zones ) {
+    my $zone_rec_name
+        = length $zone_arg
+        ? $rec_name
+        : <[nameserv.name.normalize]>->( $zone_name, $rec_input );
+    next if not defined $zone_rec_name;
     my $zone = $zones->{$zone_name};
     for my $rec ( @{ $zone->{'records'} } ) {
-        next if lc( $rec->{'name'} ) ne $rec_name;
+        next if lc( $rec->{'name'} ) ne $zone_rec_name;
         next if $rec_type and $rec->{'type'} ne $rec_type;
         push @matches,
             sprintf( "%s %s %s (zone: %s)",
@@ -43,14 +62,14 @@ for my $zone_name ( keys %$zones ) {
 }
 
 if ( not @matches ) {
-    return { mode => 'false', data => "no records found for: $rec_name" };
+    return { mode => 'false', data => "no records found for: $rec_input" };
 }
 
 my $data_str = "records found:\n  " . join( "\n  ", @matches );
 return { mode => 'size', data => $data_str };
 
-#,,,.,,..,..,,,.,,,.,,,..,.,,,,,.,,.,,,.,,,.,,..,,...,...,.,,,...,,..,,..,.,,,
-#NWLZKWJD6GWM3CQRHQCGSM7TRNJTUSSVSNYFV6HOK7KGMZVJHBV37FPB6WY5PBCPWL2HGZ4AF2K5Y
-#\\\|7GAHL7ZCJYC5UKJY3ELYYKV3AU7ZINPQGSYVWEXTS3VWDFG4E2M \ / AMOS7 \ YOURUM ::
-#\[7]N6GPSSAIIFMLKRZYNPPBLQICVD5CCFVEXYRHPWQTPHDWM52CHUDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,,,,.,,...,,.,,.,,,,,.,..,,,,.,..,,...,...,...,..,,...,,.,,,..,
+#I26LHMBII5Q7MYWIWMAJJ5EPK35FU5WWMF6S2WRASHFCNX26LWT52RJDREF26FVW5X5FLNYYPMYXM
+#\\\|NAODATAPYUYJLIVTH7J2LXCE56CUG2YJKAYJ63AGHWYZREGN2JH \ / AMOS7 \ YOURUM ::
+#\[7]WL23GOE3WBNB2FAVJT6RRJ4C3VB333U6J2GG4HOE35HR4HM4CUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

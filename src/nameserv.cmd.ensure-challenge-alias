@@ -43,6 +43,10 @@ return { mode => 'false', data => "not ours : $domain" }
     if not defined $parent
     or index( $parent_name, $prefix ) == 0;
 
+$cname_name = <[nameserv.name.normalize]>->( $parent_name, $cname_name );
+return { mode => 'false', data => "record name outside zone $parent_name" }
+    if not defined $cname_name;
+
 my $zones = <nameserv.zones>;
 
 ## the records at the cname name, and ours among them ##
@@ -162,8 +166,8 @@ push @report, "cname added : $cname_name";
 
 return { mode => 'true', data => join( ' ; ', @report ) };
 
-#,,.,,,..,,,,,..,,,..,,..,.,.,,.,,..,,..,,..,,..,,...,...,..,,,,,,.,.,.,,,.,,,
-#NAMTQEWS3UU5OWZY6LUWSJEEIBGQ34MMB6NZ6VJR3BG3JGUKQNMO37IJDOH4M7ZHRXFTJUHZWQHZA
-#\\\|WGHGRF2XI7VIVRSN4NZQOKSD7EZIJVSRDFBEGEEQEZJQMCCATDP \ / AMOS7 \ YOURUM ::
-#\[7]BXZUKFUSCHMDJGGKAP6K3D3Q2KEVUOZSSRQGH64GR665OP6Q4UAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,.,,,..,,..,,,.,.,,,,,.,,,,,..,,...,...,.,.,...,,.,,..,,.,,,
+#J6GE6TSO7KCEEOOIE7FFRXSIVAWWDNIJCIOSN4OO4FYE6DORYO34UINFNIYB45Z2KUREMOJLJWKAY
+#\\\|HOTNFYSSZBRI6EFY6JPM2JCI2UTY72622XQCCOPQD5KUNOSA72S \ / AMOS7 \ YOURUM ::
+#\[7]S6EAB2X7BZONO6YEICQCRGZKZOWCLLWCFHVLSSR52AWJFLU4IAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,10 +18,9 @@ return $usage if @parts < 4;
 
 my $zone_name = lc( shift @parts );
 my $rec_type  = uc( shift @parts );
-my $rec_name  = lc( shift @parts );
+my $rec_input = lc( shift @parts );
 my $rec_value = join ' ', @parts;
-s|\.+$|| for $zone_name, $rec_name;            ## optional trailing dots ##
-$rec_name = $zone_name if $rec_name eq '@';    ## the apex [ zone name ] ##
+$zone_name =~ s{\.+$}{};
 
 return $usage if $rec_type !~ m|\A[A-Z0-9]{1,10}\z| or not length $rec_value;
 return { mode => 'false', data => 'single-value type : use set-record' }
@@ -30,8 +29,12 @@ return { mode => 'false', data => 'single-value type : use set-record' }
 my $zones = <nameserv.zones>;
 return { mode => 'false', data => "zone not found: $zone_name" }
     if not exists $zones->{$zone_name};
-return { mode => 'false', data => "$rec_name is not in $zone_name" }
-    if $rec_name ne $zone_name and $rec_name !~ m|\.\Q$zone_name\E\z|;
+my $rec_name = <[nameserv.name.normalize]>->( $zone_name, $rec_input );
+return {
+    mode => 'false',
+    data => "record name outside zone $zone_name: $rec_input"
+    }
+    if not defined $rec_name;
 
 my $zone    = $zones->{$zone_name};
 my $new_rec = {
@@ -63,8 +66,8 @@ return {
         sprintf( 'record added: %s %s %s', $rec_name, $rec_type, $rec_value )
 };
 
-#,,,,,,..,,.,,..,,,.,,..,,,,.,,..,,.,,.,.,...,..,,...,..,,...,,.,,..,,,.,,...,
-#LGFUMOFEQ3XY5SHB2KP45GVXDP3B44EGLJSXCEFDNQLALZVCKINZ3KYS6T3HNRCEFFQ4TJGFAEQ5S
-#\\\|EVOWOFBIOFGYJOTZRMJLCI6BA4MIWQ2KBB5O2BR3235LGJTJDNG \ / AMOS7 \ YOURUM ::
-#\[7]RXTXLWJP22D662XS6Z5TUZ24T5OOVWLHFKNMKY6K37N5JQK7PWAY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,,.,,,,,,.,,,,..,.,,,,..,,,.,..,,...,...,.,.,.,.,,..,...,,,,,
+#L3UXB4GRNM4VQPFQRZPRBNWNEVC37METXKVIVRHJ3ZLYDSWAX2JD2AAMYVOD4YNB5WM233CWPDVGM
+#\\\|QOVFNIDYYAUZR4VFMHMSC6ZIXJFNKQLDVCAMCKYG6IQ6KG5GWWL \ / AMOS7 \ YOURUM ::
+#\[7]NK5XBBULHV4SVX3JFIAHB2YCUIVUZN4MSV5EHGA4JN6B7DHGKUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

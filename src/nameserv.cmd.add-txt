@@ -15,8 +15,6 @@ if ( scalar(@parts) != 2 ) {
 my $fqdn  = lc $parts[0];
 my $value = $parts[1];
 
-$fqdn =~ s{\.+$}{};    ## strip optional trailing dot
-
 if ( not $fqdn or not $value ) {
     return { mode => 'false', data => 'usage: add-txt <fqdn> <value>' };
 }
@@ -28,6 +26,10 @@ if ( not defined $zone ) {
     ## never auto-create zones for challenge records
     return { mode => 'false', data => "no matching zone for: $fqdn" };
 }
+
+$fqdn = <[nameserv.name.normalize]>->( $zone_name, $fqdn );
+return { mode => 'false', data => "record name outside zone $zone_name" }
+    if not defined $fqdn;
 
 ## duplicate value is a no-op [ keeps existing txt values of the name ]
 for my $rec ( @{ $zone->{'records'} } ) {
@@ -63,8 +65,8 @@ $zone->{'serial'} = time();
 my $msg = sprintf "txt record added: %s", $fqdn;
 return { mode => 'true', data => $msg };
 
-#,,,.,,.,,.,.,,..,,..,,,,,,..,...,,,.,..,,...,..,,...,..,,..,,..,,,,.,.,,,,,,,
-#OH5KIIZLOWSMH5ERCQLJILVEDLLXDK2I57KCEBLYENKTZWBN3VOE4XJ6YMG5BYGJO3NFIZOKXO5NK
-#\\\|NOGRMLCCQA3ZDSJ5ELGNIB7RYWJSCAJCHU45VM4VRGF35GLK3XY \ / AMOS7 \ YOURUM ::
-#\[7]LB4CTN4CQH74E2YA6WXBR2NZOCLOP6556LLQAUZECN7FXT4O5SAI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,.,...,,..,,.,,,,.,.,,,.,.,,,,,..,,...,...,,,,,,,,,,,,,,..,,..,
+#CC3VIHTDP2ICLXHWIUXENE2EUO3YPA6X2MP4D3SSSDUVXIJM6GRVA2ZRLY4QTS4SY5O6AFZZQ2Q66
+#\\\|ZBTRDUNEJGATZDOTGRFE2YLLWWCFEP7VYFE2WYE7PAVWKR4O5YN \ / AMOS7 \ YOURUM ::
+#\[7]5VAIPRTRACI3ANBR5Y2H23ARR2VTBO5VNI7PBJCYOFC5XWLAGICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

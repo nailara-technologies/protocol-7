@@ -20,18 +20,23 @@ if ( $args_str =~ m|=| ) {
 }
 
 my $zone_name = lc( $args{'zone'} // '' );
-my $rec_name  = lc( $args{'name'} // '' );
+my $rec_input = lc( $args{'name'} // '' );
 my $rec_type  = uc( $args{'type'} // '' );
+$zone_name =~ s{\.+$}{};
 
-## '@' is the apex, stored under the zone name [ same as set-record ] ##
-$rec_name = $zone_name if $rec_name eq '@';
-
-if ( not $zone_name or not $rec_name ) {
+if ( not $zone_name or not $rec_input ) {
     return {
         mode => 'false',
         data => 'usage: remove-record zone=<zone> name=<name> [type=<type>]'
     };
 }
+
+my $rec_name = <[nameserv.name.normalize]>->( $zone_name, $rec_input );
+return {
+    mode => 'false',
+    data => "record name outside zone $zone_name: $rec_input"
+    }
+    if not defined $rec_name;
 
 my $zones = <nameserv.zones>;
 
@@ -71,8 +76,8 @@ $zone->{'serial'} = time();
 my $msg = sprintf( "removed %d record(s) from %s", $removed, $zone_name );
 return { mode => 'true', data => $msg };
 
-#,,..,.,,,.,,,,,,,.,.,,.,,,.,,,..,.,,,...,..,,..,,...,...,..,,...,,,.,.,,,.,,,
-#YGT6FEHO3YVTLWFZNLDKBWB3MUIPZ7UFCWCI24JZYX2PL4CEYL4AS4U74S6M3HQ3YQQNIS5MVZWA4
-#\\\|WGFMC7GOH2ZM4JZ5JKEEICS3HDBIBPG5ILVBU53BSYCAZXVU2JN \ / AMOS7 \ YOURUM ::
-#\[7]LEXDALELFKRO3NM2WA7SALSAV5ZMADNUC6VXL6AR3ZWHKFL4D2DI 7  DATA SIGNATURE ::
+#,,..,,,,,...,..,,,,.,.,.,,,,,,,.,.,,,,.,,,,.,..,,...,...,..,,..,,,,.,.,.,,,.,
+#LSRYJL7GPO7Z77ODN2JQJ5ZJWUT5K3N7MJNWDE3NNZDZLS5Q6S4LKEVBB47O2RVMDSJPIQLOHP6DO
+#\\\|WR5PORHKK2GQ2NVWTDNL4DMNTHOXTU452MFOI5SYABMOHLEFRQC \ / AMOS7 \ YOURUM ::
+#\[7]6UQVFMSQTTVX4SQQSTMOIQGJWN4JTREGEDWPUV3HIDOUV5SLVQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

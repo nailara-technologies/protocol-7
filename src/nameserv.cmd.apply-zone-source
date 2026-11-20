@@ -76,8 +76,10 @@ my $parse_source = sub {
         my $type = uc( $rr->type // '' );
         next
             if $type !~ m{\A(?:A|AAAA|CNAME|MX|NS|TXT|SOA|SRV|CAA)\z};
-        my $name = lc( $rr->name // '' );
-        $name =~ s{\.+$}{};
+        my $name
+            = <[nameserv.name.normalize]>->( $zone_name, $rr->name // '' );
+        return ( undef, "record name outside zone $zone_name: " . $rr->name )
+            if not defined $name;
         my $value = eval { $rr->rdstring } // $rr->rdatastr // '';
         $value =~ s{;[^\n]*}{}g;     ## drop rdstring field comments ##
         $value =~ s{\s+}{ }g;
@@ -240,8 +242,8 @@ return {
     @report
 };
 
-#,,.,,,,.,.,,,,..,,..,,..,...,..,,..,,,,,,,,.,..,,...,...,.,,,,.,,,.,,..,,..,,
-#UD56TRKBVOM7W6RKIJH52HJ6G37ODFM3TPZAL2Z25SY2HCKD77E2G6A564SCCX2VQ3EE55NLUS7SO
-#\\\|2SJKJX7VVPXCP3R5NXG6PCMRZCJXEIZCTWHQTSABFQ6UGVCAPIN \ / AMOS7 \ YOURUM ::
-#\[7]3KOOXBNWU7226PDBFBJWWB7DRVOEXBUQHFPJ7QY3RG26E4VW6OBY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,..,..,,...,.,.,...,..,,,,,,..,,..,,...,...,...,.,,,..,,..,,.,.,
+#BHC5W3XBAFIM7F4MXPCQKW4JE2ACF5FWVKBAS73VVX5FFHJGEJUAKNVB3XGFTGHMP2EUTEX6SY7T2
+#\\\|K2IGLTRITA44IGE4ENGXY4F6OCELFNJFDIYSYD5SMU2KZFJRLMS \ / AMOS7 \ YOURUM ::
+#\[7]FP4INILQHFJPLI44Y3EOHT3OCOWMUWAFV4KUNXT465COFTSR4EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
