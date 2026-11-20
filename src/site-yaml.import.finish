@@ -13,8 +13,10 @@ if ( $st->{'queued_count'} and not defined <site-yaml.fetch_timer> ) {
 
 <[site-yaml.fetch.state]>->('save');
 
-my $summary = sprintf 'import : queued %03d · skipped %03d · %s errors',
-    $st->{'queued_count'}, $st->{'skip_count'}, $st->{'err_count'} || 'no';
+my $summary = sprintf
+    'import : queued %03d · skipped %03d · %s errors · waiting %03d',
+    $st->{'queued_count'}, $st->{'skip_count'}, $st->{'err_count'} || 'no',
+    $st->{'dup_count'} // 0;
 <[base.logs]>->( 1, ':: %s', $summary );
 
 <[base.callback.cmd_reply]>->(
@@ -27,8 +29,8 @@ my $summary = sprintf 'import : queued %03d · skipped %03d · %s errors',
 
 return;
 
-#,,,.,.,.,,..,.,,,,,.,...,.,,,,.,,..,,,,,,,..,..,,...,.,.,.,.,,,.,,,.,...,,,,,
-#6DEL7DOEWCFZIKGCFXGDK7ARANNGZJ6PBFWJEHWHZBUJYFWBKS6J6BKKHFHB6OOEWOF2LHPNAPPSA
-#\\\|3JOUIHTJUDQGEGYHF5S2Y7TTN5ATMPFR6KEXR5U5HPFOA4QJOV4 \ / AMOS7 \ YOURUM ::
-#\[7]DRKSABWNIJH2CCROWHXJHK7MUZ7CH6L4O6SDMMMEACVCZZZXMADI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,,.,,..,,.,.,...,.,.,..,,,,.,..,,...,...,.,,,.,,,,.,,,..,,.,,
+#3KKLRCONE22WKDE2SX4YRWKVE34A3YQ54UEIP6AFJKFKUGPNAIA25N6KZISFTKTHIJKR7OKSNHXNW
+#\\\|BR6NVAPRQOBTJ4ADWAFCW2N4QA7MNDC2MWNTNZ27T2XFSXP5SOP \ / AMOS7 \ YOURUM ::
+#\[7]JP4V6QFPJRD7FDJOSSQ7KECTZIRON6V34HFQFCJL3B3PLZ7QWIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

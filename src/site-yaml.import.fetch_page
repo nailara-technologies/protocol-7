@@ -52,12 +52,28 @@ if ( $st->{'page'} > 1 ) {
             return <[site-yaml.import.finish]>->($import_id);
         }
 
+        ## jobs already waiting in the fetch queue are not queued twice : a ##
+        ## scan that starts before the last one drained, or a job found in  ##
+        ## more than one category, queued it again [ 880 deep, 2026-11 ]    ##
+        my %queued = map { ( $_->{'id'} // '' ) => $_ }
+            grep { ref $_ eq qw| HASH | } @{ <site-yaml.fetch_queue> // [] };
+        delete $queued{''};
+
         my $page_new = 0;
         for my $link ( @{$links} ) {
             my $id = $link->{'id'};
 
             if ( length $id and $st->{'skip'}{$id} ) {
                 $st->{'skip_count'}++;
+                next;
+            }
+
+            ## the newer scan's reply handler wins : the older scan may be ##
+            ## gone [ backstop reset ] and would never hear of the fetch   ##
+            if ( length $id and my $waiting = $queued{$id} ) {
+                $waiting->{'reply_handler'} = $st->{'reply_handler'}
+                    if defined $st->{'reply_handler'};
+                $st->{'dup_count'}++;
                 next;
             }
 
@@ -79,13 +95,14 @@ if ( $st->{'page'} > 1 ) {
                 }
             }
 
-            push <site-yaml.fetch_queue>->@*,
-                {
+            my $item = {
                 'id'            => $id,
                 'url'           => $link->{'url'},
                 'reply_handler' => $st->{'reply_handler'},
                 'category'      => $st->{'cat'},
-                };
+            };
+            push <site-yaml.fetch_queue>->@*, $item;
+            $queued{$id} = $item if length $id;
             $st->{'queued_count'}++;
             $page_new++;
         }
@@ -124,8 +141,8 @@ if ( $st->{'page'} > 1 ) {
 
 return;
 
-#,,,.,,,.,,..,.,.,..,,.,.,.,.,.,,,,,.,.,.,,..,..,,...,...,..,,,,,,...,,..,..,,
-#XYM3PSSDQYMUZJFIH3UGZ53ZC766DTZWKS3JCNI66BBRDD7R3UK3OFVQGTYJGKVD4YLRKJWZEVR6E
-#\\\|RGAQRVTV7JUIRILNX32WPM6V4HRIYV7UKP6HXF4SXKLEX6UMTER \ / AMOS7 \ YOURUM ::
-#\[7]6MRMN72O46PZRO5YO5SHKJR7Y4MUDW6GIZX2WWPNYA5HX4G2U6DA 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,..,,,.,,,,,,,,.,.,,,..,,,,,,..,,...,..,,.,.,.,,,,,,,..,,,..,
+#GQFKQSPWBB7P3DNEJ6ZYN5TQS4YSXTDIUMMHCBCO6CZLVZRJ5BX6DCEDW2PJYF7TBAKHFL2BRQJQE
+#\\\|6J4YKVGPRUAXFJKYHKT3MZDWMRXNJZFNFUAYSNXKSAIQC3SQUFU \ / AMOS7 \ YOURUM ::
+#\[7]CK6OXJ4YKEXMA6LSMWUC3X5XV2QC5A5JRWK7XE2LKADD5OPXUAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

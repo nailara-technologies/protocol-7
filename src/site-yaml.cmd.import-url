@@ -42,12 +42,20 @@ if ( not defined $job_id ) {
     };
 }
 
-## refuse duplicates already sitting in the fetch queue ##
+## refuse duplicates already sitting in the fetch queue -- but move the ##
+## waiting one to the front : a single refetch [ reassess, manual ] sat ##
+## behind a whole scan's items for hours [ 2026-11-20 ]                 ##
 my $queue = <site-yaml.fetch_queue> //= [];
-for my $item ( @{$queue} ) {
+for my $i ( 0 .. $#{$queue} ) {
+    my $item = $queue->[$i];
+    next if ref $item ne qw| HASH |;
     if (   ( $item->{'id'} // '' ) eq $job_id
         or ( $item->{'url'} // '' ) eq $url ) {
-        return { 'mode' => qw| false |, 'data' => "already queued: $job_id" };
+        unshift @{$queue}, splice( @{$queue}, $i, 1 ) if $i > 0;
+        return {
+            'mode' => qw| false |,
+            'data' => "already queued: $job_id [ moved to front ]"
+        };
     }
 }
 
@@ -63,15 +71,16 @@ if ( length $reply_handler ) {
         );
         return {
             'mode' => qw| false |,
-            'data' => 'disallowed ' . 'reply handler'
+            'data' => 'disallowed reply handler'
         };
     }
 } else {
     $reply_handler = qw| jobsite.job-upsert |;
 }
 
-## queue for async fetch with adaptive backoff [ handled by fetch_tick ] ##
-push <site-yaml.fetch_queue>->@*,
+## queue for async fetch with adaptive backoff [ handled by fetch_tick ] -- ##
+## at the front : single refetches go before bulk scan items                ##
+unshift <site-yaml.fetch_queue>->@*,
     {
     'id'            => $job_id,
     'url'           => $url,
@@ -90,8 +99,8 @@ my $summary = sprintf 'import-url queued: %s [%s]', $job_id, $url;
 
 return { 'mode' => 'size', 'data' => $summary };
 
-#,,,,,,,,,,..,,,,,,,,,..,,.,.,.,.,,.,,,..,..,,.,.,...,...,...,,..,,,,,,,,,,..,
-#7VSNKP4DCZBQELX7MKJGS2I53QYDJSO2ZX63RH7XZSCOO55MGXYLMXGFTGFKRLNAGM2RBQHWLJJHS
-#\\\|ZTEV7X2U7YK4OMHO76I2D36ZKCW37IZAUAGYFNOEEPGWR3DWKB3 \ / AMOS7 \ YOURUM ::
-#\[7]5SK62HJI4MUJDJSXRIRMJZ34Q62IO2A2OZA5ATPICBPVY63P3EDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,.,,,.,,,.,,,,,,...,..,,.,.,,,,,.,.,...,...,...,,,,,...,.,,,,..,
+#YFDV6XQRUNGJD5XX2A7CAKNPGVTMS2TXXXZRQPBUIQUJCVZWX3PR52BNKQV4NIP3Q2ZJBR33JRYE4
+#\\\|JVBCORHJ7X7V3CP3EEDW3ACEXKIA75C5EALGCFCKHLKE2VZUUKG \ / AMOS7 \ YOURUM ::
+#\[7]GCOKDUVGQZO2QNTR6LMAUZUYL4GF6ZXCZW22OFOJUXYTS4XFZMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

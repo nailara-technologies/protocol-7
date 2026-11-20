@@ -9,6 +9,12 @@ my $full_mode = shift // FALSE;
 
 <jobsite.cycle>     = qw| scanning |;
 <jobsite.last_scan> = time;
+
+## the last cycle's poll state is not this one's : until the first import ##
+## reply starts the drain poll, the scan backstop measured from that old  ##
+## last_reply and reset a 40 s old scan as hung -- the next scan then     ##
+## queued every job a second time [ 2026-11-20 ]                          ##
+<jobsite.queue_poll> = undef;
 <[jobsite.state.persist]>;
 
 ## build category → url map from config
@@ -204,8 +210,8 @@ foreach my $list ( [ qw| skip |, $skip_ids ], [ qw| block |, $block_data ] ) {
 );
 <[jobsite.scan_lists.send_next]>;
 
-#,,..,,..,,..,,,,,,.,,,.,,.,,,..,,.,,,,.,,,,,,..,,...,...,..,,.,,,.,,,.,,,...,
-#XS7MGI5MTRLSFOHZJPUWXSJBSTXHFWQYBTCGI42LTQ44LH6EBYVSS64UWQF56ZMSN6T2PRJDHJ54M
-#\\\|KZJLYTTHT2IEGYKVXXNCWUJ4ZK4Z2MEBXR3CTSIOHMNO5VASP6T \ / AMOS7 \ YOURUM ::
-#\[7]D4LST4EGC5R7VROC564GVNTBOQKMMDTBBLCNYSRE2GVEO6F5DICI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,...,..,,.,.,,..,,,,,,,,,.,,,..,,...,...,,,.,.,,,,.,,,..,,,.,
+#3YLKTSEYXHBCVH4UUSTPHDYBUBUZZGJDZ4ZV3K5QTVGZNMAYWCU6Z7ERI7572D4EQXTV4WZ7DC32A
+#\\\|LMRA77TBUNOVI3HILIJYW2F6EZK652N2DGMPCTRNC4I53L7SJSM \ / AMOS7 \ YOURUM ::
+#\[7]P44EJRQATZ74TLZTZDHKLI5CMVC5TPXHBJ3NZLGXC3Y5VSVZAEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
