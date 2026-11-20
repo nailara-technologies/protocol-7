@@ -360,8 +360,8 @@ everything contabo is allowed to fetch.
 - grouping : is a public suffix list available offline for the
   registrable domain, or a small own list first
 
-#,,,,,,,.,.,,,.,,,,,.,.,,,...,...,...,.,,,...,..,,...,..,,,..,..,,,.,,,,.,,.,,
-#XM6IAUFJDH3ZLM4MNOSMDC24MHCJ7QKYRNPAEHVEAFCJMJMA4PBB72E2KXL3C25C5GMNE6EMZ664K
-#\\\|FRWI4REOZJHJ74M3RTXTRCJEWOFBXMFGNGQ25QX2JHOL65QLVG4 \ / AMOS7 \ YOURUM ::
-#\[7]67HEGLWKQRBXLOD7MLRD4ETSPZ7EZIIRSUCHXNVYUCENU6AVCGDY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,,,,,.,,.,,..,,.,.,,,,,,..,..,,..,,...,...,,,.,,.,,,,.,,,.,,,.,
+#MYH3KQ75SCRO5LIZSMYATBZ43VDI6GFWZX52C2H3BKZMZ5UXJIEYQ4JWZZQW2ERT3WUFAEFI362JS
+#\\\|OAHHKGRFQXRKII2AWKUVMTB23S5HGSVCQ24DSRTAUCC5J4P3KJB \ / AMOS7 \ YOURUM ::
+#\[7]C7REIW3CBM7EXCGCNOJ5XE2WAESNL6CC3K6POZVPA5QXS65GAOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

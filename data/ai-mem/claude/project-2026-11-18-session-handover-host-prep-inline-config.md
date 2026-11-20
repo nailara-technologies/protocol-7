@@ -22,8 +22,8 @@ open : power stages 3-4 [ casio XJ-V2 rs232 LOW until cables are wired, x11 coup
 
 lessons : sign gate runs perl 5.32 -- `map { $h{..} = .. }` and `map { $x => 1 }` blocks parse as hash constructors there ; descr lines max 55 chars [ commit hook ] ; plan step regenerates base.list.subroutines \ load-early \ dep graph unsigned : sign them before the commit.
 
-#,,.,,..,,...,..,,,.,,.,.,,,,,..,,.,,,,,,,,.,,..,,...,...,,..,,,.,,,.,,..,..,,
-#OOWPAR7S7Q7VV5R5RS7S4N2WV5DUM6VNSP4KJXGCSGKSW5JTGGZD3YZRJ6W3T5KWSZDXQMVYVT7O4
-#\\\|GDTBWBPYNF66CAUNH3YDGP77AIS5KQ7SPOPUBRTM64CJYDLBLQJ \ / AMOS7 \ YOURUM ::
-#\[7]KGRWRCX3GI5NZ7LI3W73O62ENFBI2VQISINWFHJDG3LXFGVXDYAI 7  DATA SIGNATURE ::
+#,,.,,...,...,,..,..,,..,,.,,,...,...,.,,,,.,,..,,...,...,,..,,.,,,,,,..,,.,,,
+#JTCJLQBOWNSHNZIMT5OV7QWMUJMBD34BUNN6S6PZJYNG2FMKL6ZAUZWLSUCE45TZUSGGNYFCYXC4S
+#\\\|LV35BLAXXDE6G3IM2HNHMCREPWVG6FWTXA2OLCSTHNJMLTIOVHF \ / AMOS7 \ YOURUM ::
+#\[7]WWCXTLQRLMTIUJXHWOZ3MOM3V6AQKUDH6WVHRAKPEOP5XF62K4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

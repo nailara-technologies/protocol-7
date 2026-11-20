@@ -136,3 +136,10 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #\\\|4QM34VXOBDXHVP3IVWYMFIUEE7SBIOVSGRMLG3U2Z426X4WZSOD \ / AMOS7 \ YOURUM ::
 #\[7]RPQJYLGPBDWWZIGRWXDGO7RABPVYDJBYD4DRO46TCN3FPQVF7GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [compile-errors-buffer](reference-compile-errors-buffer.md) — reload source shows [ warning ] \ [ error ] -> details in `<zenka>.show-buffer compile-errors` [ on-demand, parallel to the zenka buffer ]
+
+#,,,,,,,.,..,,,.,,,,,,,,,,.,,,.,.,...,,.,,,,.,..,,...,...,...,.,.,,.,,...,,,,,
+#PAIWCSXBJF23FA3RWW6LXFGFY7AQ27IQ2QFOP3RL4QTWHS5KA5MYBG5LN4DC7B56HRLU5LEZTXMEM
+#\\\|FCNADLQQITNLOE6UJVEBWYY2NWFI2QLUZYCI5AOKRALHH4UDYJM \ / AMOS7 \ YOURUM ::
+#\[7]7HRXKBDRZCB25OUEWXR5DNEV4Y7X4SEVHTYRML4X5XOAW6RHUMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

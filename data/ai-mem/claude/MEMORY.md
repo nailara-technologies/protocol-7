@@ -7,6 +7,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 ## CRITICAL
 - [session-handover-host-prep-inline-config](project-2026-11-18-session-handover-host-prep-inline-config.md) — NEWEST, START HERE 2026-11-18 eve : power drivers, inline categories, AMOS7::Config ; servers clean on a9cbcec19
 - [session-handover-release-6-77-7](project-2026-11-18-session-handover-release-6-77-7.md) — 2026-11-18 pm : release 6.77.7, SEGV fix ; all 4 servers deployed clean
+- private notes : ~/.n/private-notes/ -- owner-private context lives there, outside the repo ; check it before asking
 - [session-handover-rcm-builds](project-2026-11-18-session-handover-rcm-builds.md) — NEWEST, START HERE 2026-11-18 : RCM builds, 4ZW wired, base.interval [ WEQ 1 ], -core-subs fixed ; next WEQ 2 first timer, RCM bridge, 4ZW live
 - [session-handover-todo-cleanup](project-2026-11-17-session-handover-todo-cleanup.md) — 2026-11-17 : todo cross-check, partial list in data/tasks
 - [session-handover-resource-ledger](project-2026-11-17-session-handover-resource-ledger.md) — NEWEST, START HERE 2026-11-17 : ledger 1a + canon + n7fs format 4 stages 1-2 built, reviewed, fixed, on all hosts [ b9e3d3b6d ] ; next : format 4 stage 3, ledger 1b ; owner positions in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md
@@ -110,8 +111,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,.,,,...,,.,,,,,,,,.,,,,,,,,,...,.,.,..,,..,,...,...,...,,,,,,..,,,,,,,.,
-#2QZ4PRKH7EYESPZZNRA4QJMHMG3WDKJG72JNIOFK7XU3C5AVW7TDNUQJQ7NH3T2KD67FWILR7HPKI
-#\\\|ENZFQ2PXH63IGEWQX5RCLMXVWWMU3EGKG3SALT7YIRGINU2YTRR \ / AMOS7 \ YOURUM ::
-#\[7]GFCCFKFMZYDIEIEHZO2A7MKM4526P4GTQLWYXUMXDSTIJALFVCCY 7  DATA SIGNATURE ::
+#,,..,,,.,...,...,,.,,..,,,,.,,.,,...,,,.,.,.,..,,...,...,..,,,..,.,.,...,...,
+#4QT3SBDM7H4J3OX6QDQGVXDLAQVOQ7WARCG6UNVH7ETFWI3HZFDOYRWRXSEY3JIJDBQ57ZTMXRUSQ
+#\\\|AHRXT5QRMQRIXU2RDNJMOSUZGKLHNAR4DR2FNTVZX2F4O7MIMMO \ / AMOS7 \ YOURUM ::
+#\[7]6MN5OEIKSPQEIWJ3TA3YDHY4KCSOJDSV5PNERMHPBLC7JVKFTGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

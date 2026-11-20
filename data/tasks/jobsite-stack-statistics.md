@@ -53,8 +53,8 @@ and trash \ off-topic postings are counted too -- stage 1 fixes both.
 - p7 config style for the term list, no json ; internal checksums BMW \ AMOS
 - no personal data in repo files : the owner's skill list lives outside the checkout
 
-#,,,,,,.,,,..,..,,.,,,.,.,,,.,,..,.,,,,,,,,,,,..,,...,..,,,.,,..,,,,.,...,.,,,
-#WG3SSWHPMGFOIFHEGMWECOMM5BEYUG2HIBVPUEIOFH63DD245OLGQKLEYMI2FX6HWO34ERIFUPXAW
-#\\\|USM5K5M5DC35U63ML7MMVLILXY4I5BQ5GC5F3KRWNXQ3O6Q2UBN \ / AMOS7 \ YOURUM ::
-#\[7]W6YRXY6PUILXKDE5EKO32FFZPPRS6YIBUS37FUMV74ITO7VA6GBA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,..,..,,...,,.,,,.,,,.,,.,.,.,.,..,,...,...,,.,,.,.,.,.,..,,...,
+#MXCVQCFMH4LD76ALVSZTVST5NJWXAE2ZYO3EVTELEYDFWVUKSGQ752I4DPETV5CZZZ74HU7ODCGPA
+#\\\|COZT2GKCKSYGTHCFQBZIK6AOE6ZF6VDNVRBTAG3KY6OVLLXMQTI \ / AMOS7 \ YOURUM ::
+#\[7]P2FYX2Y3K2QNXW5OGGSOHIMXJPE6YCMS6UN6ML46T22ILTGNOUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

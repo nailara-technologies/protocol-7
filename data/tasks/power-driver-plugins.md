@@ -123,8 +123,8 @@ of running into a cut.
 - syntax check with `bin/format-code -c <files>`, never plain perl -c
 - do not touch files outside this task
 
-#,,,,,.,.,,,.,.,,,.,.,,.,,..,,.,.,,..,.,,,,..,..,,...,...,,,.,..,,.,,,...,.,.,
-#KNWCKTXEXNXT6NAVQRWQSF33KUQVD7BPCKQ2XWE5B7UBDYI5G7UTF7BV2GUDMRKK6RCVO62LDZF3I
-#\\\|SJ7JRFSBYKTVW6L7ALY57IQMFMBIUNSNTLQC66VSDKLBVQBKYBL \ / AMOS7 \ YOURUM ::
-#\[7]GQGIRATEIGAKHQXL3RIQJMX5ZABCZS6LP6IOYM2V5UXJZIKE7CDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,..,,...,.,.,,..,,,.,,..,.,.,,.,,..,,...,...,.,,,..,,,,,,.,,,.,,,
+#HSL363R3LY3QG6FL7GKNUGJ76SMSI5DIJWKSQ4CP2WGFERQIZ23F5P3SAROL6HBVX54JGYX5INXE2
+#\\\|7PU4B6NPLC543EBIK73BPM3TBZXBTDAZDQ5KP6435RCFJMJUHTI \ / AMOS7 \ YOURUM ::
+#\[7]KMIGQEPQ5S3MKZD6CLJ2NQEVUL4IQP6JNR4ZJU2RWLUZNID5WWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
