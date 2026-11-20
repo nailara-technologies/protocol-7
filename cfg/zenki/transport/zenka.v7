@@ -3,8 +3,17 @@
 
 [load_config_file:'shared-params']
 
-transport.cfg.profile_dir    = <system.root_path>/data/yaml/transport/profiles
-transport.cfg.probe_interval = 30
+transport.cfg.profile_dir = <system.root_path>/data/yaml/transport/profiles
+base.interval.cfg.type.transport-probe.start      = 13
+base.interval.cfg.type.transport-probe.factor     = 1.2
+base.interval.cfg.type.transport-probe.cap        = 34
+base.interval.cfg.type.transport-probe.cap_jitter = 0.3
+base.interval.cfg.type.transport-init.start       = 0.5
+base.interval.cfg.type.transport-init.factor      = 1
+base.interval.cfg.type.transport-init.cap         = 0.5
+base.interval.cfg.type.transport-init.cap_jitter  = 0.2
+
+[load_config_file:'transport-exit-groups.v7']
 
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
@@ -32,8 +41,8 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml transport d
 
 [zenka.loop]
 
-#,,.,,..,,..,,..,,,,,,...,,..,...,,..,,,,,,,.,..,,...,,..,..,,,..,,.,,,..,...,
-#CLR6BMPYZM7XQIG4TWLEWCMBHZR2QT6DLY3N4BLPOGILLDULZECRL2S4OCOQHYS5LBA73VGZNFZTS
-#\\\|PPFNDX27UE2MVOT4XQFFZKTCMZPJFNK7F5ZNN4ZLVI4DVDGKSE2 \ / AMOS7 \ YOURUM ::
-#\[7]26TWOTQ2SD6MRZQC7TYN6WHXMZGJMMBDBREHU6X27HYVAMGV4MDY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,.,,..,,.,,.,,,.,,,..,,,.,,.,,,..,,...,..,,,,,,,..,,..,.,.,.,.,
+#7FZ5QQS4BQ5VRSOYIPTBPDGG7KLJSZJPN7EQSPUHHPDSH5RXCWWKRP3J4HBXU7ICB3JV7PIWRMS2W
+#\\\|QXXF7QEYYCSWSGHZJEVBHO2TQGE44TT4GCP47EVSSVD2WGZC6IT \ / AMOS7 \ YOURUM ::
+#\[7]NNF4QAKOND5GRABGU4EJ4WFWPR6GKL5MHPE7JJHYR3HAE5QFKUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

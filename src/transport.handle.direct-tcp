@@ -12,7 +12,15 @@ my $endpoint = $entry->{'endpoint'} // $ctx->{'session'}{'destination'}
 return undef unless length $endpoint;
 
 my ( $host, $port ) = split m|:|, $endpoint, 2;
-$port //= 80;
+my $request_url = $ctx->{'request'}{'url'} // '';
+if ( not defined $port
+    and $request_url =~ m|^(?:https?://)?[^/:]+:([0-9]+)| ) {
+    $port = $1;
+}
+$port
+    //= ( $ctx->{'request'}{'method'} // '' ) eq qw| CONNECT | ? 443
+    : $request_url =~ m|^https://|                             ? 443
+    :                                                            80;
 
 my $sock = IO::Socket::IP->new(
     PeerHost => $host,
@@ -33,25 +41,27 @@ $sock->blocking(0);
 
 my $dest = $ctx->{'session'}{'destination'} // $ctx->{'request'}{'domain'}
     // $endpoint;
+my $exit = $entry->{'endpoint'} // $endpoint;
 
 my $handle = {
     'type'     => 'direct-tcp',
     'socket'   => $sock,
     'endpoint' => $endpoint,
-    'quality' => <transport.registry>->{'quality'}{'direct-tcp'}{$dest} // {},
+    'quality' => <transport.registry>->{'quality'}{$exit}{'direct-tcp'}{$dest}
+        // {},
 };
 
 ## update stats ##
 <transport.registry>->{'stats'}{'connections_ok'}++;
-<transport.registry>->{'active'}{$dest} = {
+<transport.registry>->{'active'}{$dest}{$exit} = {
     'type'    => 'direct-tcp',
     'started' => <[base.ntime]>,
 };
 
 return $handle;
 
-#,,..,,.,,.,.,.,.,,..,...,...,.,,,,.,,,,.,,..,..,,...,...,.,,,,,.,,.,,...,...,
-#FA7GUZFERU6G6QU2SXTSSUJ7YLTR4RYZQZUJUVKPYKTOPNYXCTB7WSKXEM4L4UCWJU2KTQYLRYWY4
-#\\\|MP4ZMQNR7J476G3LJB3C5UFVI562SXCOLRE6XVJMBWHDOVXR2W5 \ / AMOS7 \ YOURUM ::
-#\[7]QNSCWADJ2GMGQ4CH7CVZZUZJ2EZRJXLRXI6QEINVORX5N5O244DA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,,.,,,,.,,.,,.,.,,.,,,..,.,,,..,,...,...,.,.,,..,...,..,,,..,
+#DZ263Y5JVRW6VQR34CY5FOBUPURKQZXJ7E632H2LSR44LAYHXMCJYFQHNWXW4JZ6ZQ2JXK7DOC5DE
+#\\\|26V4FRNBTFZAZWFK3GZLKTNRH7ODFP3PALH534H2N2BA2GGT6JZ \ / AMOS7 \ YOURUM ::
+#\[7]CSKD74TKHL6QHBNPS5Y6ZZQOAI53L5CO4H2XW7YMIM7HVUNAZQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,34 +36,51 @@ my $build_handle = sub {
     my $proxy_host = $entry->{'proxy_host'} // '127.0.0.1';
     my $proxy_port = $entry->{'proxy_port'} // 1040;
 
-    my $test_sock = IO::Socket::IP->new(
-        PeerHost => $proxy_host,
-        PeerPort => $proxy_port,
-        Type     => SOCK_STREAM(),
-        Timeout  => 3,
-    );
+    my $dest = $ctx->{'session'}{'destination'}
+        // $ctx->{'request'}{'domain'} // '';
+    my $target_host = $dest;
+    my $target_port;
+    if ( $target_host =~ s|:([0-9]+)$|| ) {
+        $target_port = $1;
+    }
+    my $request_url = $ctx->{'request'}{'url'} // '';
+    if ( not defined $target_port
+        and $request_url =~ m|^(?:https?://)?[^/:]+:([0-9]+)| ) {
+        $target_port = $1;
+    }
+    $target_port
+        //= ( $ctx->{'request'}{'method'} // '' ) eq qw| CONNECT | ? 443
+        : $request_url =~ m|^https://|                             ? 443
+        :                                                            80;
 
-    if ( not $test_sock ) {
+    if ( not length $target_host ) {
+        $continue->(undef) if ref $continue eq qw| CODE |;
+        return;
+    }
+
+    my $sock = <[transport.handle.socks5]>->(
+        $proxy_host, $proxy_port, $target_host, $target_port
+    );
+    if ( not defined $sock ) {
         <[base.logs]>->(
-            1, 'transport.handle.quic-hysteria: proxy %s:%d unreachable',
-            $proxy_host, $proxy_port
+            1,
+            'transport.handle.quic-hysteria: socks5 connect via %s:%d failed',
+            $proxy_host,
+            $proxy_port
         );
         $continue->(undef) if ref $continue eq qw| CODE |;
         return;
     }
-    $test_sock->close;
-
-    my $dest = $ctx->{'session'}{'destination'}
-        // $ctx->{'request'}{'domain'} // $endpoint;
 
     my $handle = {
         'type'       => 'quic-hysteria',
         'endpoint'   => $endpoint,
+        'socket'     => $sock,
         'proxy_url'  => sprintf( 'socks5://%s:%d', $proxy_host, $proxy_port ),
         'proxy_host' => $proxy_host,
         'proxy_port' => $proxy_port,
-        'quality' => <transport.registry>->{'quality'}{'quic-hysteria'}{$dest}
-            // {},
+        'quality'    => <transport.registry>
+            ->{'quality'}{$endpoint}{'quic-hysteria'}{$dest} // {},
         'credential' => $cred,
     };
 
@@ -104,8 +121,8 @@ my $req_id = sprintf( 'qh-%d-%d-%d',
 
 return;
 
-#,,,,,,.,,...,.,,,,..,,.,,.,,,,..,...,.,.,,.,,..,,...,..,,..,,..,,.,.,..,,,,,,
-#UROXOMEPNFZSKKCQ4AOWNX4F77TJNFW5LVKQNN73SU4XHAI3EHBMGLX3AZTJXUKSK7FRVXCQCBLPI
-#\\\|P2ZVSQVKARHOMM7IY2FFKRSZBFT6FU2CINN5F5UQVDEJ6BDQQTC \ / AMOS7 \ YOURUM ::
-#\[7]ATKEH2J2EKPDBDI5HDYECXTBSCMELHKQPV7MSJSRADZ66ACPBEBY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,..,,,.,,,,.,..,,,.,,..,,,,.,..,,...,...,.,.,.,,,,,.,,..,.,.,
+#E72SDUFXGWUMUIAMXFHIO6UG5FWVCFNO2HT2VCOJLYYHGFM66USESMRI4M2SIUJMP7NBPXKU4NIM2
+#\\\|QIYWKPPY42U6KROKH7BAHDY3YXIATL2VMPDUEXGV3HS4DJP6YDZ \ / AMOS7 \ YOURUM ::
+#\[7]6SDQJPCQU34ZR4EK5HRNY57DAMKXXIRGOC43MAYOPSF3UAFTVCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

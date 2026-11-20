@@ -2,26 +2,31 @@
 
 # name  = transport.promote
 # descr = restore a demoted transport after probe success
-# args  = $dest, $type
+# args  = $dest, $type, $exit
 
-my ( $dest, $type ) = @ARG;
+my ( $dest, $type, $exit ) = @ARG;
 
-return if not defined $dest or not defined $type;
+return if not defined $dest or not defined $type or not defined $exit;
 
-delete <transport.registry>->{'demoted'}{$dest}{$type};
+delete <transport.registry>->{'demoted'}{$dest}{$exit}{$type};
+delete <transport.registry>->{'demoted'}{$dest}{$exit}
+    if not keys %{ <transport.registry>->{'demoted'}{$dest}{$exit} // {} };
 delete <transport.registry>->{'demoted'}{$dest}
     if not keys %{ <transport.registry>->{'demoted'}{$dest} // {} };
 
-<[base.logs]>->( 1, 'transport.promote: %s promoted for %s', $type, $dest );
+<[base.logs]>->(
+    1, 'transport.promote: %s promoted for %s via %s',
+    $type, $dest, $exit
+);
 
 ## reset consecutive failures ##
-my $q = <transport.registry>->{'quality'}{$type}{$dest} //= {};
+my $q = <transport.registry>->{'quality'}{$exit}{$type}{$dest} //= {};
 $q->{'consecutive_failures'} = 0;
 
 return 1;
 
-#,,,.,,,.,.,,,.,.,.,.,,,,,,,.,..,,...,,.,,,,.,..,,...,...,,,,,,,.,.,,,.,,,,,,,
-#JQYSZHR3GZRCCRKMBY2AHY5JDKWIWEU6RVZSVKFE5QGSKCD6CEKW45OKQKEPBBHKWOSNKC7RJH2K4
-#\\\|VVCCLGP55GHXHNO6YO6RKENHIG3GYIDVC43V26HQNMH6274NZRE \ / AMOS7 \ YOURUM ::
-#\[7]GWH7SJ4OXRBKNQDEZ36UQIMAOUIJ5Z6MHMIAKHB4CLXGPQH46KAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,,,.,,,.,,,,,,,.,,,,,..,,,..,..,,...,...,,..,..,,..,,,..,,,,,
+#VJD7W7IOCJ5GGGXYBSPEEJUTTLIBISQQ5UNJ433VH63U6UBGJMJQ6DHXJSKNDT2QA2IHBCTOJWKQU
+#\\\|LWENHTQ2JDOG5IGC4QAB4KLLV2OHQYZJYX4YHZUQJGL5TW22CSC \ / AMOS7 \ YOURUM ::
+#\[7]MLJQJL7FIWDKNJADV3S2467KFNNFWAXAYUDW3GI6TM5C5TLASWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

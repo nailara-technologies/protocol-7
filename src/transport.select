@@ -55,7 +55,11 @@ my %async_handlers = map { $_ => 1 } qw|
     udt-tunnel
     |;
 
-my @queue = @$transports;
+my $marked_exit = $ctx->{'transport'}{'exit'};
+my @queue       = grep {
+    not defined $marked_exit
+        or ( $ARG->{'endpoint'} // $dest ) eq $marked_exit
+} @$transports;
 my $try_next;
 $try_next = sub {
 
@@ -75,7 +79,7 @@ $try_next = sub {
             my $on_fallback = sub {
                 my $handle = shift;
                 if ( defined $handle ) {
-                    <transport.registry>->{'active'}{$dest} = {
+                    <transport.registry>->{'active'}{$dest}{$dest} = {
                         'type'    => 'fallback:' . $fallback,
                         'handle'  => $handle,
                         'started' => <[base.ntime]>,
@@ -111,20 +115,21 @@ $try_next = sub {
         $try_next->();
         return;
     }
+    my $exit = $entry->{'endpoint'} // $dest;
 
     ## check demotion ##
-    my $demoted = <transport.registry>->{'demoted'}{$dest}{$type};
+    my $demoted = <transport.registry>->{'demoted'}{$dest}{$exit}{$type};
     if ( defined $demoted ) {
         <[base.logs]>->(
-            2,     'transport.select: %s demoted for %s, skipping',
-            $type, $dest
+            2, 'transport.select: %s demoted for %s via %s, skipping',
+            $type, $dest, $exit
         );
         $try_next->();
         return;
     }
 
     ## check min_quality if we have quality data ##
-    my $quality = <transport.registry>->{'quality'}{$type}{$dest};
+    my $quality = <transport.registry>->{'quality'}{$exit}{$type}{$dest};
     if ( defined $quality and exists $entry->{'min_quality'} ) {
         my $min = $entry->{'min_quality'};
         if ( exists $min->{'loss_max'}
@@ -137,7 +142,7 @@ $try_next = sub {
                     $min->{'loss_max'}
                 );
                 <[transport.demote]>->(
-                    $dest, $type, 'quality_below_threshold'
+                    $dest, $type, 'quality_below_threshold', $exit
                 );
                 $try_next->();
                 return;
@@ -155,13 +160,13 @@ $try_next = sub {
     my $on_handle = sub {
         my $handle = shift;
         if ( defined $handle ) {
-            <transport.registry>->{'active'}{$dest} = {
+            <transport.registry>->{'active'}{$dest}{$exit} = {
                 'type'    => $type,
                 'handle'  => $handle,
                 'started' => <[base.ntime]>,
             };
 
-            <transport.registry>->{'quality'}{$type}{$dest} //= {
+            <transport.registry>->{'quality'}{$exit}{$type}{$dest} //= {
                 'loss_rate'            => 0.0,
                 'rtt_ms'               => 0,
                 'goodput_kbps'         => 0,
@@ -170,13 +175,13 @@ $try_next = sub {
             };
 
             <[base.logs]>->(
-                2,     'transport.select: %s active for %s',
-                $type, $dest
+                2, 'transport.select: %s active for %s via %s',
+                $type, $dest, $exit
             );
             $finish->($handle);
             return;
         }
-        <[transport.demote]>->( $dest, $type, 'connection_failed' );
+        <[transport.demote]>->( $dest, $type, 'connection_failed', $exit );
         $try_next->();
         return;
     };
@@ -194,8 +199,8 @@ $try_next->();
 
 return;
 
-#,,.,,..,,,,,,.,,,,.,,.,,,...,.,,,,,.,,,,,,,.,..,,...,..,,..,,...,,,,,,,,,,,,,
-#RXDKWYAA26YTY2LSJY246FGCVPDADEAYPD2HVKELZOA7ME5DFHLQKPBSFH35KY4PLFSPAMITSTPPU
-#\\\|67GB6UIKVMHZ4YVV6DHG6LMBWMN7LH65EDACPZ6HYQ3TYHJ364J \ / AMOS7 \ YOURUM ::
-#\[7]43J5PKGKL3SNOG32Y6RJ7ZVVV5LNLJKL2MEUWABXCX456AC6GODY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,.,,,,,,,..,,.,,,.,,,,..,.,,,,,,,..,,...,...,..,,.,,,,,.,,.,,,,.,
+#NJ7UORGJZYJG7RTPJ3JQTAY6UBNPE3YGSJBOGDS4QUO4VVR63TQZBU7AKQOIVZS4AOOZ2J7J35ILW
+#\\\|KKXO522VPLGJ5XJRAJ7LSDTO2G3VWQW7G7RRNNYWSFGPNL3K23S \ / AMOS7 \ YOURUM ::
+#\[7]BNJOHOP7HSCNF2TDWU4RPACI3PPGZFCR6TCZOS7FR2XN5ROXTOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,6 +8,8 @@ my ( $dest, $type, $entry ) = @ARG;
 
 return 0 if not defined $dest or not defined $type;
 
+my $exit = $entry->{'endpoint'} // $dest;
+
 my $handler = sprintf 'transport.handle.%s', $type;
 if ( not exists $code{$handler} ) {
     <[base.logs]>->( 0, 'transport.quality.probe: no handler for %s', $type );
@@ -26,7 +28,7 @@ my $on_handle = sub {
     my $handle = shift;
     if ( defined $handle ) {
         ## success: promote ##
-        <[transport.promote]>->( $dest, $type );
+        <[transport.promote]>->( $dest, $type, $exit );
 
         ## close probe handle unless it's a persistent socket we can reuse ##
         if ( ref $handle eq qw| HASH |
@@ -41,7 +43,8 @@ my $on_handle = sub {
         $dest, $type,
         {   'success'   => FALSE,
             'loss_rate' => 1.0,
-        }
+        },
+        $exit
     );
     return;
 };
@@ -56,8 +59,8 @@ if ( $async_handlers{$type} ) {
 
 return 1;
 
-#,,.,,...,,,,,..,,,..,,..,.,.,.,,,,.,,..,,,,.,..,,...,...,..,,...,.,.,.,.,,,.,
-#PRMAB5VKXOYP22CPTYHK22ORCH4526KSKBMPPQIIIZOBJ3EIYT7ABEHBRAMSTGI2RBGYLFYXGWRIO
-#\\\|L6S4C2KTRGMO7HO7KPCRFXJQ3H46K3U4ZXI2BS2OUEPHERDR3TB \ / AMOS7 \ YOURUM ::
-#\[7]EM3WCHPUYDYXL4GOGH7RZN44LTWIOE6H4VU75OSJIM2MRBEZROCY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,..,,..,,.,.,.,.,..,,.,.,,,,,..,,...,...,...,,..,,.,,,,.,,,,,
+#REHMGJPXHX7QSBRFEN6N74NCIKYA5RNT6PRE2Y2DJ6SQ2TJOV6LKJGCRMOYEN6UBDORAYXMWIB764
+#\\\|KXZMKUARDRRGINDTPX7GDRCMHTFIU5IIDPO445GBEYWVW7OW2WD \ / AMOS7 \ YOURUM ::
+#\[7]AQ7H7JKDHEBOSFFGO5V7EHQBR7Z2HZ5VUVTQGQNL6M65UQ22BMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

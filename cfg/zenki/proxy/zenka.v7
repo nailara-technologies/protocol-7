@@ -9,6 +9,18 @@ proxy.cfg.selector_config = '<system.root_path>/data/yaml/web-proxy/template-sel
 proxy.cfg.visit_log       = data/yaml/web-proxy/visit-log.yaml
 proxy.cfg.transport       = direct
 
+transport.cfg.profile_dir = <system.root_path>/data/yaml/transport/profiles
+base.interval.cfg.type.transport-probe.start      = 13
+base.interval.cfg.type.transport-probe.factor     = 1.2
+base.interval.cfg.type.transport-probe.cap        = 34
+base.interval.cfg.type.transport-probe.cap_jitter = 0.3
+base.interval.cfg.type.transport-init.start       = 0.5
+base.interval.cfg.type.transport-init.factor      = 1
+base.interval.cfg.type.transport-init.cap         = 0.5
+base.interval.cfg.type.transport-init.cap_jitter  = 0.2
+
+[load_config_file:'transport-exit-groups.v7']
+
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       show-access src-ver src-age subname name status \
@@ -24,7 +36,7 @@ access.cmd.usr.cube = commands heart reload verify-instance \
 env_override_allowed = PROTOCOL_7_VAR
 
 modules.load = auth.client net protocol io.unix io.ip ui clients.http clients.https \
-                                     format.yaml httpd.status_codes proxy devmod
+                                     format.yaml httpd.status_codes proxy transport devmod
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -37,8 +49,8 @@ modules.load = auth.client net protocol io.unix io.ip ui clients.http clients.ht
 
 [zenka.loop]
 
-#,,,.,,.,,.,,,,..,,,.,...,.,.,.,,,,..,.,.,,,,,..,,...,...,.,,,.,.,,..,.,,,.,.,
-#ZLPOFYQGBLCGMRSN5UVBZ3YKJ44Q2W6C2TFMP4JOQGQUPVZKHGZUJBCC4TVFOF3MT2KR635VW6NHS
-#\\\|CZBQEQRDRMXBFAYXMAYZ7KMAQFH2GFKZBOGA5ZHBEWZCNG5AZBC \ / AMOS7 \ YOURUM ::
-#\[7]QCLOWH7ZKXUKI4SWXPISJ4JDK2RRGNRB4YULXWIEMALA642K4SAI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,,,,.,,.,.,,,.,..,,..,,.,.,.,.,..,,...,...,...,,,,,..,,,,,,,..,
+#ZK3NKCTZ2GDUSTV4YVFLIQQ5IM3LRM5CBQRQYM5EHYPVSRUZPWM4YJS7KDOTJJ5O5BMJC5WEUJA3Y
+#\\\|TRBNRDAMY6GJRPWO42EWCSIQGRGZOFPF3MUFCYNBTTPKPBLFB7H \ / AMOS7 \ YOURUM ::
+#\[7]CBGDSW6BOI2FA4RKZSVVPSCD6JM5IULYFC62SX2VSVH65CBDCGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

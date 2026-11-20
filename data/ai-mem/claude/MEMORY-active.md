@@ -177,7 +177,7 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 
 ## moved from MEMORY.md 2026-11-14 [ index size ]
 - [deferred-history-purge](project-2026-10-30-deferred-history-purge.md) — ONE purge-paths run with the owner later : dep-graph .txz + old data/gfx/backgrounds/ images ; no remote re-add [ no origin ]
-- [nameserv-zone-delegation-plan](project-2026-10-30-nameserv-zone-delegation-plan.md) — plan : zenki take over dns [ own nameserv as master ] + mail, then RETIRE atom \ postfix \ inwx-as-master ; snapshots in /data/backup/{dns,mail}/ are the functional reference ; must be REBUILDABLE from tracked config [ reproducibility ] ; zones NOT current yet -> reconcile first
+- [nameserv-zone-delegation-plan](project-2026-10-30-nameserv-zone-delegation-plan.md) — plan : zenki take over dns [ own nameserv as master ] + mail, then RETIRE atom \ postfix \ inwx-as-master ; snapshots in /data/backup/{dns,mail}/ are the functional reference ; must be REBUILDABLE from tracked config [ reproducibility ] ; delegation DONE 2026-11-20 except v7.ax [ extra registrar fee ]
 - [fix-dns-zone-issues-when-seen](feedback-fix-dns-zone-issues-when-seen.md) — owner 2026-10-30 : fix zone defects when seen, name each ; mail paths [ MX + CNAME chain ] dig-verified before + after ; registrar only via owner-given access
 
 #,,,,,...,..,,,,,,,,.,,,,,,,.,,..,,.,,,,.,,.,,..,,...,...,...,.,.,.,,,..,,,,.,
@@ -252,8 +252,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [render-pipeline-direction](project-2026-11-07-render-pipeline-direction.md) — owner 2026-11-07 : native self-refining render loop over reference channels, interim batch edit of queued items, elfdb review + design note promised after N7FS stage 3
 
-#,,,,,.,.,,.,,,.,,.,.,,,.,.,.,,,,,,..,.,,,,,,,..,,...,...,,..,.,.,...,,,,,,,.,
-#HHXHZFWKJNZG3HTA4DBDRJZPTTT4MBPBUE7MBOGXEYXK75JM77OLP3AZS6TQ7PSOQ5RIJLFJXUDMA
-#\\\|DC36GQPQZVO5FMS5R2HRNHS2VD6AOJMUDUUVEOQVMYZAHWRZ7KU \ / AMOS7 \ YOURUM ::
-#\[7]AQM3O4542KNU45T4SJ6E7YBAUNDGJ2J4B7U3LK5MTQ53TJ75QODI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,.,,.,,,.,,,.,,,..,,,,,,...,,,,,..,,...,...,...,,..,,,.,...,..,,
+#W5NJOTJ56NRZ6KEGQYYOGNGDG23BK7Q3GKOYKUE3KOZWDCTIQSBP5HBUVTEN6V4WDZBRD3P7HTETW
+#\\\|OQRUPDTVRKEWHFNMBZ5F2B2RYPIOB66LJUQYOBP6RS2RJ767QLC \ / AMOS7 \ YOURUM ::
+#\[7]JK3OQMHOWRUNTGTGOB5UCXU6PS77XE5S3SG7SMWXMILVA3KCSUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

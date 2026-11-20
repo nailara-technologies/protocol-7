@@ -1,9 +1,14 @@
 ---
 name: project-2026-10-30-nameserv-zone-delegation-plan
-description: plan : delegate the registrar zones to our own nameserv, which keeps host + acme records dynamically ; zones not current yet [ 2026-10-30 ]
+description: DONE except v7.ax [ owner 2026-11-20 ] : registrar zones delegated to our own nameserv, which keeps host + acme records dynamically ; v7.ax stays at the registrar [ its delegation change costs extra ]
 metadata:
   type: project
 ---
+
+**state 2026-11-20 [ owner ] :** the delegation move is complete for every zone
+except v7.ax -- changing that one's delegation needs an extra registrar payment,
+so it stays at inwx for now. the 'zones not current' warning below is history
+for the moved zones.
 
 owner plan [ 2026-10-30 ] : switch the nameserver delegation of the
 project zones from the registrar [ inwx ] to our own nameserv
@@ -101,8 +106,8 @@ mtr after recovery : 25 % \ 55 % outbound loss from contabo's first hop [ AS5116
 inbound from delta clean. ticket sent [ german, with mtr ] ; mtr-tiny now on U \ A \ V.
 on recurrence : capture ip -6 neigh + mtr -6 BEFORE any restart. glue \ zones stay as they are.
 
-#,,..,,,.,,..,,.,,..,,,.,,.,.,,..,...,,.,,,,.,..,,...,...,..,,.,.,.,,,...,,..,
-#EEFI6YZC2WRXZ2C6KEYGZ2XJ4MP24F7PWPGPD3EHZEFNYSVDB6MNQSNZKHP27W6IIZYTVIF53HSK4
-#\\\|RZUZ4GXUA6NBEVVBWUV3NFFHVTCPWJSHR43AUKY2M4QDDZWNZJR \ / AMOS7 \ YOURUM ::
-#\[7]753L46CYLPLTHRABQGBAM5R2HUCG3QAUZVS5OQXFVYFRKR3H7KDA 7  DATA SIGNATURE ::
+#,,,.,...,,..,..,,...,,..,,,.,,.,,,,,,.,,,,,,,..,,...,...,,..,,,.,,,,,.,.,..,,
+#JBJM7YT3BNRWIQ6FGMWCVKFO3LCLP55ERTABDMIXURB4Y5NPELLW2KAZ3ON4QFT4FAZ5QAH4DCWN2
+#\\\|TDDDDJVFCAFIHRSTY3WEGVH6MWH6XZAH7AXOCZ3S256AO3FXUL6 \ / AMOS7 \ YOURUM ::
+#\[7]5ZEGZOETH4FA5ZLAOEL3L5RRO7RC343ZQK3BJDV5JZU4HYL262AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

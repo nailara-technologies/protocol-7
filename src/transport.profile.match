@@ -16,11 +16,47 @@ my $profile_dir = <transport.cfg.profile_dir>
 ## helper: scan profile files ##
 my @profile_files;
 if ( opendir my $dh, $profile_dir ) {
-    @profile_files = grep {m|\.yaml\z|} readdir $dh;
+    @profile_files = sort grep {m|\.yaml\z|} readdir $dh;
     closedir $dh;
 }
 
-## 1. explicit destination match ##
+## 1. owner-marked site group -> exit endpoint ##
+if ( length $dest and ref <transport.exit_groups> eq qw| HASH | ) {
+    my $group_dest = $dest;
+    $group_dest =~ s|:[0-9]+\z||;
+    my @labels = split m|\.|, lc $group_dest;
+    my $marked_exit;
+    while ( @labels and not defined $marked_exit ) {
+        my $node = <transport.exit_groups>;
+        for my $label (@labels) {
+            $node = ref $node eq qw| HASH | ? $node->{$label} : undef;
+            last if not defined $node;
+        }
+        $marked_exit = $node if defined $node and ref $node eq '';
+        shift @labels;
+    }
+
+    if ( defined $marked_exit and length $marked_exit ) {
+        for my $file (@profile_files) {
+            my $pname = $file;
+            $pname =~ s|\.yaml\z||;
+            my $prof = <[transport.profile.load]>->($pname);
+            next unless defined $prof;
+            for my $entry ( @{ $prof->{'transports'} // [] } ) {
+                if ( ( $entry->{'endpoint'} // '' ) eq $marked_exit ) {
+                    $ctx->{'transport'}{'exit'} = $marked_exit;
+                    return $pname;
+                }
+            }
+        }
+        <[base.logs]>->(
+            0, 'transport.profile.match: no profile entry for marked exit %s',
+            $marked_exit
+        );
+    }
+}
+
+## 2. explicit destination match ##
 if ( length $dest ) {
     my $exact = $dest;
     $exact =~ s|\.host\z||;
@@ -46,7 +82,7 @@ if ( length $dest ) {
     }
 }
 
-## 2. tag match ##
+## 3. tag match ##
 if ( ref $tags eq qw| ARRAY | and @$tags ) {
     for my $file (@profile_files) {
         my $pname = $file;
@@ -66,7 +102,7 @@ if ( ref $tags eq qw| ARRAY | and @$tags ) {
     }
 }
 
-## 3. subnet/domain pattern match ##
+## 4. subnet/domain pattern match ##
 if ( length $dest ) {
     for my $file (@profile_files) {
         my $pname = $file;
@@ -85,11 +121,11 @@ if ( length $dest ) {
     }
 }
 
-## 4. default profile ##
+## 5. default profile ##
 return qw| default |;
 
-#,,,.,.,.,,,.,,,,,,,.,.,,,..,,,,,,...,,,.,.,.,..,,...,..,,...,,,.,,.,,,.,,,,.,
-#DHRY32O5EGDOP2W6BOSRRQAJJBKV5TUAEBD4KK74PS45GHPH3FYVIFUGPHN7DCA67CAHMZYXPZUJW
-#\\\|BHVUOSO27VZQ4WKMBTKVL2J5PSWAAHUBU5ZTVF3OH6Q4GKUAT22 \ / AMOS7 \ YOURUM ::
-#\[7]JB2Z7KHEFQ2XGJ5NY4KPYKDSTJOIZV36ZVKDC3A6BHPKQJFYCWBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,...,,,.,.,,,.,,,..,,,.,,...,..,,...,...,.,,,...,,,.,,.,,,,.,
+#4VWPS7XXTW544MBAMIQX5DAVJXZUYKNKEDLMSY6BMD5RQPZPUHJEUGGDIQR4TKF6IYXTPKWMXELHG
+#\\\|7GFQWNCUCYMAI4UPZWDC22PV7ZEJPTFODGM5VMMJVC6EZ7EB2UC \ / AMOS7 \ YOURUM ::
+#\[7]32JTC6QM3OV6GSTT57BD72EOUKWNTWAK6WJFQUMHZWTMXKQKHKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

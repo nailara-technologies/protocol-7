@@ -1,29 +1,29 @@
 ## [:< ##
 
 # name  = transport.demote
-# descr = mark transport as demoted for a destination
-# args  = $dest, $type, $reason
+# descr = mark transport as demoted for a destination and exit
+# args  = $dest, $type, $reason, $exit
 
-my ( $dest, $type, $reason ) = @ARG;
+my ( $dest, $type, $reason, $exit ) = @ARG;
 
-return if not defined $dest or not defined $type;
+return if not defined $dest or not defined $type or not defined $exit;
 
-<transport.registry>->{'demoted'}{$dest}{$type} = <[base.time]>->(4);
+<transport.registry>->{'demoted'}{$dest}{$exit}{$type} = <[base.time]>->(4);
 
 <[base.logs]>->(
-    1, 'transport.demote: %s demoted for %s (reason: %s)',
-    $type, $dest, $reason // 'unknown'
+    1, 'transport.demote: %s demoted for %s via %s (reason: %s)',
+    $type, $dest, $exit, $reason // 'unknown'
 );
 
 ## update consecutive failures ##
-my $q = <transport.registry>->{'quality'}{$type}{$dest} //= {};
+my $q = <transport.registry>->{'quality'}{$exit}{$type}{$dest} //= {};
 $q->{'consecutive_failures'} //= 0;
 $q->{'consecutive_failures'}++;
 
 return 1;
 
-#,,..,..,,...,...,,.,,..,,..,,,,,,...,,,,,.,,,..,,...,..,,,.,,..,,..,,.,,,,..,
-#2G25BV73NZ4HNLUYWIMAQWXQG6GDNMERPV7EZWW7ZJWL2JUQOUHSG32QL2THXNPEYMK6T6W4GZWDW
-#\\\|JEIIMWJFCACVRJA5XHQJY3TQP2KAORA7R37APWY5CAGM5GDAJZ3 \ / AMOS7 \ YOURUM ::
-#\[7]375RK2J5AWLKHUM4UA25YXZE4O47MEDFTAL3KVTQX3PYM75U26AY 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,,.,,,.,,.,.,,,.,,.,,,,,,,.,,..,,...,...,..,,.,,,...,,.,,...,
+#QI3OH6GNL5VBVXNU7QXLEUBLYDHZLUIZYS7YLCCIJIJGUMLCBYJ3V6YUOFVVHCAJGMYUMVV5LIMJS
+#\\\|BM3MKFUJAQIC3CVHDDTH7VIHOCTUUDORSCMAFRKOI2ISVR2LGKB \ / AMOS7 \ YOURUM ::
+#\[7]X66PTU3X3IWKVRBY2VNIVQHCCBKQKBDJKKFS4AV623LDV5RNTYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

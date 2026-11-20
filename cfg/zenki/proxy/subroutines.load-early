@@ -108,6 +108,8 @@ base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
 trust.pin_decide
+transport.select
+transport.demote
 plugin.auth.unix
 jobqueue.add_job
 httpd.new_header
@@ -139,6 +141,7 @@ base.call_filter
 auth.pwd.success
 auth.auth_select
 ascii.frame.load
+transport.promote
 proxy.auth.lookup
 plugin.auth.zenka
 net.read_bytewise
@@ -176,6 +179,7 @@ clients.https.post
 base.reload_values
 base.reload_config
 base.parser.config
+base.interval.next
 base.handler.write
 base.handler.input
 base.handler.hooks
@@ -191,6 +195,7 @@ base.clean_hashref
 base.base32.encode
 base.base32.decode
 ascii.frame.render
+transport.init_code
 proxy.selector.load
 plugin.auth.twofish
 io.ip.tcp.init_code
@@ -252,6 +257,7 @@ base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
+transport.probe.timer
 proxy.handler.request
 jobqueue.get_next_job
 jobqueue.get_job_data
@@ -287,6 +293,7 @@ base.cmd.dependencies
 base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
+transport.profile.load
 proxy.transport.select
 proxy.template.resolve
 proxy.template.generic
@@ -310,6 +317,9 @@ base.comp-int.is_valid
 base.cmd.cancel-stream
 base.cfg.profile.apply
 auth.client.owner_pins
+transport.quality.probe
+transport.profile.match
+transport.handle.socks5
 proxy.handler.post_auth
 proxy.client.send_error
 protocol.sftp.init_code
@@ -361,11 +371,13 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.ntime.delta_seconds
 base.file.zulum_tmp_file
+base.file.zenka_dir.load
 base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 base.buffer.erase_secure
 ui.render.tree.invalidate
+transport.quality.measure
 jobqueue.priorities_table
 io.unix.socket.input.open
 httpd.base.size.normalize
@@ -391,6 +403,7 @@ base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 auth.client.distrust_list
+transport.cmd.cred-rotated
 proxy.template.passthrough
 proxy.handler.cred_rotated
 protocol.sftp.read_ssh_env
@@ -413,6 +426,8 @@ base.handler.session_error
 base.event.io_idle_restart
 base.devmod.process_signal
 base.check_dependency_dirs
+transport.handle.udt-tunnel
+transport.handle.direct-tcp
 proxy.selector.zenka_assert
 net.read_linewise_estimated
 io.unix.socket.output.close
@@ -471,6 +486,7 @@ base.handler.ondemand_startup
 base.handler.deferred_compile
 base.handler.cmd_filter_hooks
 base.format.multiline_command
+base.file.zenka_dir.data_path
 base.event.handler.exceptions
 base.cube-zenka.output_prompt
 base.config.show_strack_trace
@@ -479,6 +495,8 @@ base.chk-sum.bmw.B-32-56.TRUE
 base.callback.run_initialized
 auth.client.unix.authenticate
 ascii.frame.parse.border_line
+transport.handler.cred_rotated
+transport.handle.quic-hysteria
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 crypt.C25519.key_name_and_type
@@ -498,7 +516,10 @@ clients.https.handler.handshake
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.interval.rhythm.non-linear
 base.handler.link-upgrade.input
+base.file.zenka_dir.unlink_file
+transport.quality.derive_passive
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
 crypt.C25519.decrypt_priv_keystr
@@ -560,6 +581,7 @@ base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
 auth.client.zenka.process_auth_reply
+transport.handler.credential_resolved
 proxy.handler.tunnel_target_to_client
 proxy.handler.tunnel_client_to_target
 protocol.sftp.handler.write_to_server
@@ -590,6 +612,7 @@ protocol.protocol-7.link-upgrade.handshake
 plugin.auth.auth-keypair.tofu-notification
 base.zenka.push.reply-handler.notify-online
 base.referenced_subroutines.clear_from_disk
+transport.handler.subscribe_rotation_deferred
 base.log.send-buffer.reply-handler.send-reply
 base.zenki.ondemand.handler.reconcile_starting
 plugin.auth.auth-keypair.validate-incoming-tofu
@@ -597,8 +620,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,,.,,.,,.,.,.,,,..,,..,,.,,,,..,,.,,...,..,,...,...,...,.,,,.,.,.,,,,,,,
-#PL65S42DKV3RZVIS5ZOBX5YQ7F7KIK7AQWNUTQNO7OA5LHVACXKM52JXIIBJIX66WPVPIIU7IFMD2
-#\\\|7YDDH5G7EZW5B7MLH4NHV3U6PI6WCLNVI2Y35BXRDZXI55WXTDW \ / AMOS7 \ YOURUM ::
-#\[7]QETIJ7MWL5HVIKJ57K2RA6RJVMYP4IVXCOVNCYAVAPU37HWJ4IDI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,.,,...,.,.,.,,,..,,,.,,.,.,..,,..,,...,...,..,,,..,,,.,,..,..,,
+#FS3OSE73OGCQFGIZQOA52GRVMDTODCS3C7KMNQX6IAW3WTWBKPXU5OTZ73Q73JHYUS5A2LQEIJC36
+#\\\|PHHNQOA5XKBVZFNXBJG62YR4SQPBLJXKMQ7NZGMDTKRWVQVR7NF \ / AMOS7 \ YOURUM ::
+#\[7]KB43IZEFDE42S53BHNHHR7TLBTRCPMNPQAKSLQ44RCWN6TBXDQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

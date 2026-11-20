@@ -3,41 +3,57 @@
 # name  = transport.probe.timer
 # descr = global timer: walk demoted transports and probe them
 
-my $demoted = <transport.registry>->{'demoted'} // {};
-my $now     = <[base.time]>->(4);
+my $event    = shift;
+my $demoted  = <transport.registry>->{'demoted'} // {};
+my $now      = <[base.time]>->(4);
+my $interval = <transport.probe_interval_state>->{'last'} // 0;
 
 for my $dest ( keys %$demoted ) {
-    my $types = $demoted->{$dest};
-    for my $type ( keys %$types ) {
-        my $demote_time = $types->{$type};
+    my $exits = $demoted->{$dest};
+    for my $exit ( keys %$exits ) {
+        my $types = $exits->{$exit};
+        for my $type ( keys %$types ) {
+            my $demote_time = $types->{$type};
 
-        ## only probe if enough time has passed since last probe ##
-        my $interval = <transport.cfg.probe_interval> // 30;
-        next if $now - $demote_time < $interval;
+            ## only probe if enough time has passed since last probe ##
+            next if $now - $demote_time < $interval;
 
-        ## find the profile and transport entry ##
-        my $profile_name = <[transport.profile.match]>
-            ->( { 'session' => { 'destination' => $dest } } );
-        my $profile = <[transport.profile.load]>->($profile_name);
-        next unless defined $profile;
+            ## find the profile and transport entry ##
+            my $profile_name = <[transport.profile.match]>
+                ->( { 'session' => { 'destination' => $dest } } );
+            my $profile = <[transport.profile.load]>->($profile_name);
+            next unless defined $profile;
 
-        my $entry;
-        for my $t ( @{ $profile->{'transports'} // [] } ) {
-            if ( ( $t->{'type'} // '' ) eq $type ) {
-                $entry = $t;
-                last;
+            my $entry;
+            for my $t ( @{ $profile->{'transports'} // [] } ) {
+                if (    ( $t->{'type'} // '' ) eq $type
+                    and ( $t->{'endpoint'} // $dest ) eq $exit ) {
+                    $entry = $t;
+                    last;
+                }
             }
-        }
-        $entry //= { 'type' => $type, 'endpoint' => $dest };
+            $entry //= { 'type' => $type, 'endpoint' => $exit };
 
-        <[transport.quality.probe]>->( $dest, $type, $entry );
+            <[transport.quality.probe]>->( $dest, $type, $entry );
+        }
     }
 }
 
+$event->w->stop if defined $event and defined $event->w;
+<transport.probe_timer> = <[event.add_timer]>->(
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| transport-probe |,
+                'state' => <transport.probe_interval_state>,
+            }
+        ),
+        'handler' => qw| transport.probe.timer |,
+    }
+);
+
 return 1;
 
-#,,,.,.,.,,,.,.,.,,,.,,,,,,.,,,,.,,,,,.,.,,,.,..,,...,...,..,,..,,,.,,.,,,,..,
-#X5GKUXYYNPA5ZZYPUFYWOFXAVKPVABVZYV5BU6JCWIPUTFTXEZV55LDUALDLD3UDHYOQK6H2JJNWC
-#\\\|UREX65ZUVTFZW74WFYH2Z5XS7GRGICYNWFJD2MEX6CWADYBB4DZ \ / AMOS7 \ YOURUM ::
-#\[7]6NGKL4FCOPTGSHNMLOBERZWXWQ4DSADKPPOHUJAR5BMEKFXM2ECQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,..,,,.,,...,..,,,,.,,,.,...,,..,..,,...,...,...,,..,,.,,,..,,,,,
+#ECX4VA3F7ASNBH7CE6UA6OQJCZSPRGEWMFN3IZLA645JB6Y3PHEU3M6KVAINDISE7H44HDIPAIMHM
+#\\\|6TVS7MRHH6NN5FM4TNDSGNZJZYIUPM2IJ3CGOPVS24TVYKGS3AL \ / AMOS7 \ YOURUM ::
+#\[7]K7DJRD725I5X224YEODW2SCOJIIBUZKI4KHXRO6P6SHFIS6XQABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

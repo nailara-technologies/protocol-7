@@ -11,29 +11,28 @@
 ## profile cache ##
 <transport.registry>->{'profiles'} //= {};
 
-## quality state per transport type per destination ##
+## quality state per exit, transport type and destination ##
 <transport.registry>->{'quality'} //= {};
 
-## demoted transports: { destination => { type => $demote_time } } ##
+## demoted transports: { destination => { exit => { type => time } } } ##
 <transport.registry>->{'demoted'} //= {};
 
-## active transport handles per destination ##
+## active transport handles per destination and exit ##
 <transport.registry>->{'active'} //= {};
 
 ## profile directory ##
 <transport.cfg.profile_dir> = 'data/yaml/transport/profiles'
     unless defined <transport.cfg.profile_dir>;
 
-## default probe interval (seconds) ##
-<transport.cfg.probe_interval> = 30
-    unless defined <transport.cfg.probe_interval>;
-
-## start global probe timer ##
+## start global probe timer [ re-armed by transport.probe.timer ] ##
+<transport.probe_interval_state> //= {};
 my $probe_timer = <[event.add_timer]>->(
-    {   'after'    => <transport.cfg.probe_interval>,
-        'interval' => <transport.cfg.probe_interval>,
-        'repeat'   => TRUE,
-        'handler'  => qw| transport.probe.timer |,
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| transport-probe |,
+                'state' => <transport.probe_interval_state>,
+            }
+        ),
+        'handler' => qw| transport.probe.timer |,
     }
 );
 
@@ -47,8 +46,13 @@ my $probe_timer = <[event.add_timer]>->(
 ## deferred via a short one-shot timer -- transport's own cube session      ##
 ## isn't established yet this early in init_code, so a synchronous          ##
 ## route-send here silently finds no matching session                       ##
+<transport.init_interval_state> //= {};
 <[event.add_timer]>->(
-    {   'after'   => 0.5,
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| transport-init |,
+                'state' => <transport.init_interval_state>,
+            }
+        ),
         'handler' => qw| transport.handler.subscribe_rotation_deferred |,
     }
 );
@@ -57,8 +61,8 @@ my $probe_timer = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,,.,...,,,,,.,,,...,.,,,...,.,,,,,.,,.,,,,.,..,,...,...,...,,,.,,.,,.,,,,,,,
-#I62PZ7AG3EU5UZEVQRZTHLQHZGVZYGXBJR37LDAVI7TVR5KTI4IB7GHSEZZVMJCYYN3A2DEIZW366
-#\\\|RTWHG6KZ4X7GA7ZNTKS2J5SCS2EMNXXRBCXFT3GG3RY57ZZ6AO7 \ / AMOS7 \ YOURUM ::
-#\[7]4JL2W4ESMVPG7BASL5TU75HD2BKZLTUZ73T6W3ZK35WQE2YZBQCI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,..,,.,,,...,,,,,,.,,,,.,,,,,.,.,..,,...,...,.,,,.,.,.,,,,,,,,,,,
+#AISQ6W2GKUFIODBRQ2S4GIJ4FHOPRWXETT7562SYPRYMD5WJO3WA5R5ULHLTQHMY6TFZNL5B57HBQ
+#\\\|PJZ4CLHBQTVTQTWUX4KAHRYTU7YRR5JBGACEWBR47A5NRBGVFQC \ / AMOS7 \ YOURUM ::
+#\[7]AYEJUMBV4KS32WISSQK47STI7ADGPQEZB5S5AWGIA3Y56CLJHSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
