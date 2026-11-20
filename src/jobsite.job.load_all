@@ -129,7 +129,13 @@ for my $id ( keys %jobs ) {
     my $prior_watch_ext
         = ( <jobsite.tasks>->{$id} // {} )->{'watch_extensions'};
     my $prior_watch_kind = ( <jobsite.tasks>->{$id} // {} )->{'watch_kind'};
+    ## every other memory-only marker survives too : the record starts from ##
+    ## the prior one and only the fields below are refreshed. a             ##
+    ## field-by-field carry list kept missing new ones -- awaiting_refetch  ##
+    ## lost to a sync push in between, the reassess never ran ; also        ##
+    ## awaiting_desc_refetch, rewired, assertions [ 2026-11-20 ]            ##
     <jobsite.tasks>->{$id} = {
+        %{ <jobsite.tasks>->{$id} // {} },
         'status' => $job->{'status'} // 'new',
         'stage'  => $keep_inflight ? $prior_stage : ( $job->{'stage'} // '' ),
         'queue_gen'        => $prior_gen,
@@ -157,8 +163,8 @@ for my $id ( keys $tasks->%* ) {
 
 return \%jobs;
 
-#,,,,,.,.,..,,,..,.,,,..,,,,.,..,,,..,,.,,,,.,..,,...,..,,,..,...,...,..,,,,,,
-#SY57ANSWP5Q6ZDDWL5OUQV735XLEMW57FQGOADKGWVOMMKEXBJ5XEWIKOHFOFBKKIQOQ7V62SVQIK
-#\\\|ISACX3FCEYSMJNJMQCLIPNCOXWYIR7Y7VQVBD4JWKYBZSMY3VGT \ / AMOS7 \ YOURUM ::
-#\[7]BYIKKQK4W7U7AFXF6ZFO4J4OVKCP5ND522TEOBNTZX3KXBCAYUCQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,..,,..,,,..,,.,,..,,,,.,,..,.,,,..,,...,...,,..,..,,,,.,,..,,..,
+#IHVYO3SJRRNLWXAUNGLYMZJVTUWFPQ34EA7MSGFU6M7RCSVB7RMXH2JGDLDMZFUZNPG7MPKC2NJQM
+#\\\|ARM7TNRA7SW7PGN3LNOMRTZ2QP4U4ZEGRI2WJIMRESPCLULKFS6 \ / AMOS7 \ YOURUM ::
+#\[7]M7ODRDHMEOXZDZ7DUTNLR7SYLY5GCXUDJP2DJY2IJ2C7UZKYLACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
