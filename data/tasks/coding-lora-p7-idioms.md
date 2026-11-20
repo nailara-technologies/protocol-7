@@ -262,7 +262,7 @@ anywhere found** -- this is presumably what LM Studio downloaded at the
 time, before the source repo disappeared.
 
 **RESOLVED 2026-09-10 -- option 1 above is a KNOWN DEAD END, do not
-retry it.** A prior session (2026-09-09, commit `21cf8e3ed`, "coding:
+retry it.** A prior session (2026-09-09, commit `6a476ed45`, "coding:
 idiom conformance gate -- scan/repair/harvest, control-vector and LoRA
 paths closed out") already took exactly this path: dequantized the
 production i1-Q4_K_M GGUF to bf16 safetensors
@@ -485,7 +485,7 @@ construction, not hyperparameters: `data/idioms/corpus/` (the shipped
 conformance gate's harvested draft->corrected pairs, `coding.cfg.
 idiom_gate = scan`) is real in-distribution training data this
 attempt's synthetic 378-example set lacked and had to approximate --
-exactly what the closure commit (`21cf8e3ed`) already named as the
+exactly what the closure commit (`6a476ed45`) already named as the
 missing ingredient every prior ML attempt (control vector, this LoRA
 run) had to synthesize instead of harvest. Needs the gate to have run
 for a while first to accumulate a real corpus.
@@ -1770,8 +1770,8 @@ pattern appears.
    flags) and VRAM is free again, same as the control vector task's
    restore-state step.
 
-#,,.,,..,,..,,,.,,.,,,,.,,...,,.,,...,,,,,...,..,,...,...,..,,.,,,,.,,...,,..,
-#UUL73F5ZQBLQAF5EOKDQXOII7TE4UAQSPCZDTK67XQRD7ZSPTYLFCB42DOQ6ZRY2XRKN7ADKYIKI2
-#\\\|FKC3KY6HRT4D5XHOT6YCREWVJOMAT2EQDV3TGTE2OMAZFWYU25D \ / AMOS7 \ YOURUM ::
-#\[7]VB3SUECY7CMI3LBQWBVRHM73BG54UDEAQE2K47NAEVJHPJFKJKDA 7  DATA SIGNATURE ::
+#,,..,.,,,...,,..,,.,,,,.,,.,,..,,,..,,..,...,..,,...,...,..,,.,.,..,,,.,,.,,,
+#WEPQHWVP32JTO2TE75JDGJ24CL724SOFIX56WPMEBGQUKEFHD4OCX5NFHMSABFQJFK5L26NZUS7A4
+#\\\|XDMD4D7ULHAOUL6UWBZCNLSPZH64EIYF6EY34HXBHAY7QHDILRL \ / AMOS7 \ YOURUM ::
+#\[7]LNUKXQNVOLNS5BZLKIRSESDRJJUBP7OIV226KS4UPDWC7OBPMQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

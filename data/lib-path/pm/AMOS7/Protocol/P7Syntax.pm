@@ -6,7 +6,7 @@ use strict;
 use English;
 use warnings;
 
-our $VERSION = qw| AMOS7::Protocol::P7Syntax-VERSION.JL2KZTA |;
+our $VERSION = qw| AMOS7::Protocol::P7Syntax-VERSION.2YYU6GI |;
 
 use Exporter;
 use base qw| Exporter |;
@@ -673,7 +673,7 @@ sub p7_syntax__perl_c {
 ##[ SIGNATURE FRAGMENT ABOVE THE FOOTER ]#####################################
 
 ## a leftover directly ABOVE a file's real signature footer
-## [ found 2026-10-09 in 56 files, f8feb982d ] : a lone separator line, a
+## [ found 2026-10-09 in 56 files, 6045e33d8 ] : a lone separator line, a
 ## separator + an agent's '#PLACEHOLDER ..' line, a whole placeholder block
 ## starting  '#,,PLACEHOLDER', or a separator + '</content>' -- each followed
 ## by a blank line and then the real footer.  the sign tool's own stub passes
@@ -789,8 +789,8 @@ sub p7_syntax__swapped_calls {
 
 return 5;  ###################################################################
 
-#,,..,..,,,.,,.,.,...,,.,,,.,,,,,,.,,,.,.,,..,..,,...,..,,.,,,...,..,,,,.,,,,,
-#N64ZY5ZXCN6HAMA6ESBDRN7AD4AAKBR4YC6WZN4XDFYLIOXYV3KHSBOPKOGUP5XBKRFTDIPTDRRVO
-#\\\|FN5DGUZVY6WDSEPACFSGTAQKOZAZXLJK2ZSCEXX3BKYF27DQH5V \ / AMOS7 \ YOURUM ::
-#\[7]OQUVWZJ7HC4AWH6D3KH3ZS46XY5ZTYZISTD7E5RZHX6AWEG5KEAI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,.,,,.,,,...,,,.,,..,,.,,,.,,..,,...,...,.,,,...,..,,,..,,.,,
+#GC4SWNBKJYUMODN5CO6XOVHCKBOKL4ZAA4WF6O525BJGN3PBDHO5Z2WD23DOE4FBGXEQTOBSFCIUM
+#\\\|5QQ3O52OOUMY7AGGFXCBCW7SAVDAVVFALW622MSQI5ENXS7SV7P \ / AMOS7 \ YOURUM ::
+#\[7]R5BRAS3NV5JY4URAGXR26GPME3V6INAR5IKJRBC3EI2QNSHGOQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

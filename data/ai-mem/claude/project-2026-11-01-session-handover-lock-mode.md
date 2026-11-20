@@ -1,11 +1,11 @@
 ---
 name: session-handover-lock-mode
-description: 2026-11-01 [ last c3b01c609 ] : login-screen live on srv-16 end to end + lock mode s2a live and glitchless ; session programs, assets, base.gtk.style
+description: 2026-11-01 [ last 44b7b9331 ] : login-screen live on srv-16 end to end + lock mode s2a live and glitchless ; session programs, assets, base.gtk.style
 metadata:
   type: project
 ---
 
-**landed 2026-10-31 \ 11-01** [ pushed hub ; srv-16 at c3b01c609 ; srv-U F V A NOT deployed ]
+**landed 2026-10-31 \ 11-01** [ pushed hub ; srv-16 at 44b7b9331 ; srv-U F V A NOT deployed ]
 
 - login chain live on srv-16 : greeter -> root helper -> session as the user -> logout back.
   fixes on the way : File::stat lists [ CORE::stat ], SI 'localuser\0<user>', x11.display retry,
@@ -31,8 +31,8 @@ SubstructureNotify watch, s2c idle \ blank \ dpms policy [ fade timed to blank ]
 despite restart.disabled ; swap_subs replay after reload source ; deploy to servers [ first
 live pull-git on the new exec-external code ].
 
-#,,,.,,.,,.,,,...,,.,,,,,,,,,,.,,,.,,,,,,,,..,..,,...,..,,..,,..,,...,,.,,...,
-#2YHIEM5HB36QCTJ3SZTLM6HOCXZYPUS3NJ5EOT2LXWRMRLDIAYJNP74YMZYM73KVNGKPJK265F5NK
-#\\\|323Q3NXM5ZIPEDXDXWFSFHUWYTW2AIDGE5XZLW43SONKNSZDIKW \ / AMOS7 \ YOURUM ::
-#\[7]AUO4FD6LVGBNSY4H22RJ2NJ2DKFEDKNWIIMCYWHI5T67LXIMI6CA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,..,,.,.,..,,..,,...,.,,,,,.,...,..,,...,..,,..,,,.,,,..,,..,,,,,
+#6QIQFQB5TWWITOV2MCAB52NMINXOZQ56EGGGGSWD5NDXWMQZ7IV4ULXQZ6H2MR6INRBYF5WZFW4UU
+#\\\|FRLXK3RDEVV7UA6ZEUBSF6DNGAW3ISABAJ7WIMVCHODU7ZTT5MK \ / AMOS7 \ YOURUM ::
+#\[7]JAXW432GCNKKQ6I3KYM2H5JORKDF3TAVQLTTVELSZ6YDPJPE6YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

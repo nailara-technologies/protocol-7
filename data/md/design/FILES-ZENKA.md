@@ -16,7 +16,7 @@ LINK-ZENKI-AND-TRANSPORTS.md [ link identities ], AUTH-LINK-BINDING.md
 [ host-root as issuer ], STRM_DESIGN.md, N7FS-SPEC.md + N7FS-FORMAT-1.md
 [ the store ], TIMESTAMP-DELTA-SYNC.md [ tombstones ].
 
-## what exists [ read 2026-10-22, base 8bea3a1e ]
+## what exists [ read 2026-10-22, base 7668f63e ]
 
 - **coding's confinement** [ local, uncommitted, described by the owner ] :
   one input decoder `coding.input.decode` with explicit prefixes plain \
@@ -1096,8 +1096,8 @@ is a separate design if wanted ] ; the STRM unknown-total extension ;
 the N7FS format steps themselves [ release, references, stream writes,
 record kinds ] -- named here as gaps, designed in N7FS.
 
-#,,.,,.,.,.,.,..,,,.,,.,.,.,.,,,.,.,,,.,.,,,.,..,,...,...,,,,,,,.,,.,,,..,,,,,
-#ZJ2VHVL3AWYAD3CDIUFTB76KMHMNZFA7RP4ACCWJIUTM4N7AZDJUQLHKNUCJUV7LCPVYAK3NNSS2G
-#\\\|7A55IDLJ4CIGFMWSIPB6XOXTPGQIPHE4R37GCPP5CWQMQGNSJCY \ / AMOS7 \ YOURUM ::
-#\[7]XCK6234ZRAFGIHFYDKJUBJWQAUST3IMG6QR3PF4OU5SGK2BICCAA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,..,,.,.,,,.,.,.,...,.,,,,..,.,,,..,,...,..,,..,,,,.,,.,,.,.,..,,
+#77RW2VZP654M34GMNDJ5GG3Z4FZWGUPDOEQ6G7G5TCCIVJGEYDCKBM4YXIXUYRPVKYTT745BPKSHC
+#\\\|LQAZLY4B6N55OJBS2VE3QGN24F4FMPA5FQMIN7FWAQXW5NBYNSI \ / AMOS7 \ YOURUM ::
+#\[7]KWEP3YSVJE6V346PCGX7CBMHUME3RYJFCKEQO3TDUBNYCRTJ3MDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

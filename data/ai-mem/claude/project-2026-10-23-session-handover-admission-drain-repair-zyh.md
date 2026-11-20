@@ -12,28 +12,28 @@ session ; when gone, cloud sessions draw the regular pool ].
 
 ## landed [ pushed, hub/base ]
 
-- 231f0dc7b + c11d53797 6CJ : admission gate on /auth/login, /status,
+- fdc357775 + 243bbc68f 6CJ : admission gate on /auth/login, /status,
   /logout and Bearer routes [ per-source, per-path fail counts, 429 +
-  Retry-After, login queues ]. c11d53797 : the cube wire carries ONLY
+  Retry-After, login queues ]. 243bbc68f : the cube wire carries ONLY
   call_args->{args} -- send.local now sends call_args with param \ data
   and no args as a multi-line packet [ base.format.multiline_command ] ;
   with args it stays single-line [ the five letsencr senders : todo HCK ].
   live here + srv-U [ valid token checked by the owner ]
-- fdc1a6a47 TQA : httpd.cmd.drain shared by httpd \ httpsd [ unwatch +
+- 1e800967a TQA : httpd.cmd.drain shared by httpd \ httpsd [ unwatch +
   close the listen socket, wait for 'http' sessions, cap 25 s ], the
   broken httpsd drain removed, site-yaml drain + its grant. NOT yet seen
   live : the second twin restart of httpd after the one loading it
   should show no DRAIN TIMEOUT. idle keep-alive holds a drain to the cap
-- fdc1a6a47 + 839701512 5M3 : jobsite.repair-encoding [ dry run default,
+- 1e800967a + 839701512 5M3 : jobsite.repair-encoding [ dry run default,
   apply ] -- applied : local 7 jobs, srv-U 296 [ backup tar.xz under
   /var/protocol-7/jobsite/repair-encoding/ ], 0 irreversible ; owner saw
   trash fixed. 839701512 = CORE::stat [ File::stat trap ]
-- 7b15c4188 ZYH : models.cfg.task_zenka [ default 'task' ] ; remote =
+- 1c9b306db ZYH : models.cfg.task_zenka [ default 'task' ] ; remote =
   peek [ show first ], claim only local backends whose ':model:' pin is
   served without a swap [ content half of the key ; srv-U and local both
   pin QDBKEXY content ] ; task.cmd.subscribe STRM + 30 s task.next poll.
   deployed to srv-U [ pull-git ] but NOT active anywhere : needs the link
-- ca5b4e177 : todos, LOGIN-ADMISSION.md built, memory notes
+- f86facdec : todos, LOGIN-ADMISSION.md built, memory notes
 - dev/models-remote-task, dev/repair-encoding deleted on hub
 
 ## open, in order
@@ -78,8 +78,8 @@ session ; when gone, cloud sessions draw the regular pool ].
 - k3 with sub-agents can spend a whole 5h window on exploration ; brief
   with exact file:line anchors and prefer k2.8 for writing
 
-#,,,.,,,,,..,,,..,,..,.,.,,..,.,,,.,.,,,.,,.,,..,,...,..,,.,.,..,,..,,,..,.,.,
-#52Z6KVOKTDULFXJQGQUFQMKVEKZYO6I6J736NDYVBQUGYBACJMZ6K5XKASF6PRMRDFSECZDNETRHG
-#\\\|67U2KV5GCKY3V6BR2Y3H22VDP4N6BCXYC37WMH3UYXQFEWCZKLC \ / AMOS7 \ YOURUM ::
-#\[7]EQ6YFTO55JP4FQJGGCHTNIYDKTMNFE5AM2H4MBND63TY5RJIHUAI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,,.,,,.,,,,.,...,,,.,,,,,,.,,..,,...,...,.,,,.,,,,,.,.,,,,..,
+#A2PHIXVN6T4JGVVSYUTQEOWYQFFUXFBIAAJAYBQBIN4JO7PNY3MACNYISBWBO5VCT3IKFTZTBXGBU
+#\\\|HOUYGAKZG2OJGZYP4RDG6SOXCEF4LQOC3JXYKDRSR6H2KF5KEYU \ / AMOS7 \ YOURUM ::
+#\[7]WU6OLBBHPA7XLH5KTJ5AOYHNFP4OCRLHOPOOIH37UPNXSE7MFOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,8 +6,8 @@ metadata:
 ---
 
 Full round-based rewind/redo for the coding zenka's async task loop, committed and confirmed
-working live end-to-end (not just unit-level) on 2026-09-14, across commits `89baa4dce`,
-`725833105`, `672d2eb03`, `13ab63187`. Design origin: [[topic-format-code-bugs-fixed]]-adjacent
+working live end-to-end (not just unit-level) on 2026-09-14, across commits `d88e31f85`,
+`725833105`, `64ffd9020`, `b19f1e25e`. Design origin: [[topic-format-code-bugs-fixed]]-adjacent
 work earlier the same day in `data/tasks/coding-zenka-session-ui.md` (git-commit-style
 parent-pointer chain, BMW-L13 chained checksums, masking not replacing for compaction).
 
@@ -55,8 +55,8 @@ subsystem-level gotchas found while live-testing this (session.listeners lifecyc
 `true` reply mode, `redraw=>FALSE` pattern) — those apply to any future coding-zenka/nshell
 feature, not just this one.
 
-#,,,.,..,,...,,,,,.,,,.,.,.,.,.,.,,.,,.,,,,,,,..,,...,...,,.,,..,,,.,,,..,..,,
-#UBMM7JT3IXIWWX2I3IO2DSJVE7FKIBPAKLRHFQCVGEA4PNMANFBM4IHCFOEIK7YZSODVEFENISAIA
-#\\\|OLV52RG3J6BHFPV7FY4NCTW6JUPIDO5LCKRUE7QPQ5L2J2UVARB \ / AMOS7 \ YOURUM ::
-#\[7]UWG62NUZTXI47EXBFEGE72HFXHVJ7E5FAQEZA5ZXV5AXT3T5QYDQ 7  DATA SIGNATURE ::
+#,,,.,...,...,...,.,.,,..,,,.,..,,...,..,,,,.,..,,...,...,.,,,,,,,..,,..,,,,,,
+#5M34GOJNMYEMNRH3H4BCFOQGWQ7RJVYIQOOXOA63UCH4EKEY432EUIXNUABEUHOVOOLOZQVXVWFF2
+#\\\|VP2HNIRDFCSYMKNZI573AMAVRZW7Z2F4K4BHB4JA2YO2YQ2B32Q \ / AMOS7 \ YOURUM ::
+#\[7]MSBNMC4YFG3CYJ3H7EOCOZ5GIL4ZU3HLSLSX7HS4WNGUMWHDA6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

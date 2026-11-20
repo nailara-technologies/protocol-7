@@ -8,8 +8,8 @@ metadata:
 2026-08-26: CPU-backend inference spawning was made to actually work for
 the first time (previously GPU-only, CPU was an unimplemented
 placeholder). This surfaced a chain of real bugs, all fixed and
-committed same day (commits `dbf923b66`, `a8c2c0bf2`, `f0f59b746`,
-`52f8122c1` on branch `base`):
+committed same day (commits `e76b5b39f`, `27c084ccd`, `6a40ac40d`,
+`af0904a0e` on branch `base`):
 
 - `coding.spawn_inference_server`'s LD_LIBRARY_PATH override (GPU/CUDA
   rebuild-out dir, carries its own incompatible libggml.so) was applied
@@ -76,8 +76,8 @@ change, not just "does it compile"). Both patterns already had memory
 entries from earlier sessions; this reconfirms them under a case with
 real stakes (a live production crash, not just wasted work).
 
-#,,,,,,,.,.,,,,..,..,,,..,...,..,,,,,,,,,,.,,,..,,...,...,.,.,,,,,.,,,,,,,,..,
-#7EDKC2USA6VJL6GGLIXIQXQEZOQ37S4K7VCIS4JQNMMMTJ7T6KBVJSR5XEC4PNCLKLL5A5OXQYSUM
-#\\\|6WOKCBN2ZTZRDGVBUABFSDXUZKBCC4MIRZI7N4HO6SM7TVUOWCP \ / AMOS7 \ YOURUM ::
-#\[7]ST7DPVMOZKT6CGVXR7Y5KETNBIXKL6N64YA4JYCI6262DL33T6CY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,.,,..,,,.,.,,,,,.,,..,,,.,,,.,..,,...,...,..,,,.,,.,,,,..,.,.,
+#2NIWVRPOEFELJNOPSGMK255V72SCM7NHIHHZJG3UXE5FGRTRXDOU3T3YPV2W2FET7SPQJVQROFWW4
+#\\\|O6YZC5R4QWZNHSQEASCHPHPNHC42LRFPYDAIHWTDQQ5IMGPH444 \ / AMOS7 \ YOURUM ::
+#\[7]6EHYQRQSTIKHK3EXBLY7KXN5JDXGKNTMPMOL2GXC3QL25OD5W4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

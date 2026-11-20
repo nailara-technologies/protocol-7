@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-Landed 2026-09-15/16 (commits `5fc634d69`, on top of `9c0df8086`/`ddf4e560f`
+Landed 2026-09-15/16 (commits `e338068e3`, on top of `69c48f1b9`/`5e5457e87`
 from the earlier kimi-refresh-fix session, see [[reference-ntime-x4200-and-cube-cross-zenka-access]]).
 
 ## the three formats, `src/usage.format.report`
@@ -80,8 +80,8 @@ those (see `src/base.cmd.reload`, explicit `$ARG !~ m{^plugin\.}` filter).
 Full detail + the corrected general guidance:
 [[feedback-reload-success-doesnt-guarantee-new-file-loaded]].
 
-#,,..,.,.,.,,,,..,,.,,,.,,,.,,.,,,..,,,,,,.,.,..,,...,...,...,..,,,.,,,,.,...,
-#E47SWTUQYCBX5Q3W45BLQU5YAREJBMUC7HPVKH7J3VTYX2YKDBKHXWJ2QPGLPTG2EAJEWQJREREC4
-#\\\|N6WFFVHEBGGA6S6BTG4JOAVGLKA2XAEV3M6PFJAKJEBCMTR3YZZ \ / AMOS7 \ YOURUM ::
-#\[7]47LR3QCX67S6JNSN4JFFHEZ3CAMRAJ7TRTCLYJAJKGOK44BRVCCA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,,,...,,,.,,..,.,.,,.,,.,,,,..,..,,...,..,,.,.,...,,,,,,.,,,,,,
+#ZKT2G5OFIHXBXLKOF3BWLV2EWARAYXCKXQQPFZWTKHK7CZ2EEJTJPKSXEOBT2GRBV54YFQECNZZI2
+#\\\|WYJGKT7RJBTOA34J5NSP4TSEJBEAEIQZHH2RYV2R4ZO7JQNCUNA \ / AMOS7 \ YOURUM ::
+#\[7]TBCT3JH7JNM2DHTYZJWIY3A7KBWRARSTFE3SZIXROLRHBVTQB2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

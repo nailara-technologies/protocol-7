@@ -1,5 +1,5 @@
 ## archive: DONE ✓ -- 2026-08-22
-## commit: 5aeee76e7 -- wire plan-9 zenka into v7/cube and complete real-directory 9P export
+## commit: 1be596633 -- wire plan-9 zenka into v7/cube and complete real-directory 9P export
 ## notes: live-verified end to end against a real plan-9 + storage zenka pair; see the
 ##        commit message and the file body below for the full 5-gap arc and the
 ##        File::stat shadowing gotcha found along the way
@@ -15,7 +15,7 @@
 ## context
 
 session: 2026-08-22, found while live-testing the storage.9p.* client fixes
-(see commit history around `980604b86` and the follow-up commit that added
+(see commit history around `671ccfc63` and the follow-up commit that added
 `plan-9.server.export_directory`/`realpath-read` + fixed the `plan-9`
 zenka's `zenka.v7`/`start.cfg`/`auth.zenki` so it could actually be started
 via `v7.start plan-9` for the first time ever). Getting the real zenka to
@@ -279,8 +279,8 @@ another pre-existing bug, `send_to_socket` requires a real filehandle),
 `plan-9.server.buffer-stat` + `plan-9.server.realpath-read` (the
 `CORE::stat` fix above).
 
-#,,,.,.,,,,.,,.,,,.,,,.,.,,..,,.,,,..,,.,,.,,,..,,...,..,,,,.,,..,,..,.,.,.,.,
-#EBHLHK2KRIOTQVQA3O4ZTTKIZSJ7I2QSGKTEXW7K5DD5OFSWEWJSPJ7ECXNEHTKHSAURFUXPVEQVE
-#\\\|QXA3GLJUKOVWHMHE64NZAFVEXN7BQ53FLKOZKH7B7UETE3H7QOG \ / AMOS7 \ YOURUM ::
-#\[7]JRGCGWJQLALX4PJW74TQ2SMTUUEWIZAWD6ATHHMGSJ5EGHAGGEAA 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,,,..,,,,,,,.,,,..,.,,,,.,,.,,,..,,...,...,..,,,..,,,,,,.,,.,.,
+#RICIV7YSP5JFNHT6ER7OFA2FF33AMV4PKHTIY7MFQRNHSL7K3EZBHSBGDLBPDKBMNKMMTA5XTJCX6
+#\\\|ZISXIWITYTNOGMHCZT72VYHSCS7RWO3PM2VIG4V7WMC7S5L7XXC \ / AMOS7 \ YOURUM ::
+#\[7]IACIW53VRHNKG4F5YBP4ORTAWKZIVYOH7BLEYKV6B5JNK6OJGCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

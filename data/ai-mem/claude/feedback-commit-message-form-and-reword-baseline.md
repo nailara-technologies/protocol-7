@@ -14,7 +14,7 @@ folded in via `;` `--` `[ ]` is the offender.
 every multi-line message as the offender and collapsed the 16 CORRECT ones into single
 lines, leaving the ~50 real offenders untouched ; the user approved the plan without
 spotting it, it was force-pushed. repaired 2026-10-01 by restoring the originals from a
-backup branch + splitting the one-liners [ tip 77cbed1c6 ].
+backup branch + splitting the one-liners [ tip 3b9f9af83 ].
 
 **Why:** a plausible-looking detection rule can silently point the wrong way ; the
 approval step then checks the proposed text, not the premise.
@@ -26,8 +26,8 @@ checkout -> post-checkout's restore-p7-permissions never dirties the tree, dates
 its `../map/<sha>` remaps in-message hash refs in the same pass ] ; in-file hash refs
 [ data/tasks, data/ai-mem ] then need one remap + user signing, amended into one commit.
 
-#,,.,,...,,,.,.,.,,.,,...,.,,,...,,..,...,..,,..,,...,...,,,.,..,,,.,,.,,,.,.,
-#VV4NQTVDNPCHQQQ4FFXY335CSUSUHNXSHWS7YLZ4F3PDWJWAPP22QGEX7GJ6FEWJFYJC74PCKM4DO
-#\\\|63EGZYAE32PFLXUL6KYCRKL3FL5EVTTFWGIWQE4PIQAX7DQ7SLT \ / AMOS7 \ YOURUM ::
-#\[7]YY2MBAZN6SUONKCQID73IVZ3IY7SGJMSOIMGSD52STZJMC5T64BQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,...,,..,...,..,,,..,...,..,,..,,...,..,,.,,,.,.,,.,,..,,,.,,
+#DK2LNCMG6H2GHFLT7AZZK24AGC3UBWSRJ66ZTW67LTDXA7X7PJJZILYWO67QYVXFNM2Q2H5IMCGNS
+#\\\|SQWO4JQL3K7VMBPLHTKTLAX33SM6CTWLL52LQSNSXPUZYZH7QLT \ / AMOS7 \ YOURUM ::
+#\[7]CB4TFOBSXPQEGW4MRMP6KP6QPUUGJTMQCCYJSZ5VTMHPC5VFF4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

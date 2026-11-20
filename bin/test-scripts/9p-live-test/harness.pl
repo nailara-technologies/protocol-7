@@ -4,7 +4,7 @@
 ## Loads the real module sources from src/, applies the Protocol-7 source
 ## conventions textually ( <[mod]>->(...) => $code{mod}->(...),
 ## <plan-9.protocol.constants.X> => P9C('X'),
-## <a.b.c> data-tree sugar => $data{'a'}{'b'}{'c'} [ repo-wide 075ca4d33 ],
+## <a.b.c> data-tree sugar => $data{'a'}{'b'}{'c'} [ repo-wide cb16180ce ],
 ## @ARG => @_ ), and runs them
 ## against a REAL, deliberately STRICT 9P2000 server (separate process,
 ## real TCP socket) :
@@ -116,7 +116,7 @@ sub load_mod {
     $src =~ s|<plan-9\.protocol\.constants\.(\w+)>|P9C('$1')|g;
     $src =~ s|<\[([\w.\-]+)\]>|\$code{'$1'}|g;
     ## data-tree sugar <a.b.c> => $data{'a'}{'b'}{'c'} -- the repo-wide   ##
-    ## format-code pass 075ca4d33 converted $data{'storage'}{'9p'}{...}     ##
+    ## format-code pass cb16180ce converted $data{'storage'}{'9p'}{...}     ##
     ## chains in these modules to <storage.9p....> sugar                   ##
     $src =~ s{<([a-z0-9-]+(?:\.[a-z0-9_-]+)+)>}{
         "\$data" . join '', map { '{\'' . $_ . '\'}' } split m{\.}, $1 }ge;
@@ -540,8 +540,8 @@ kill 9, $pid;
 waitpid( $pid, 0 );
 exit( $fail ? 1 : 0 );
 
-#,,,,,,,.,,,,,.,.,,.,,..,,,.,,,,.,,,,,.,.,..,,..,,...,...,...,.,,,...,,,,,,,.,
-#SLGRKR4IBDGDXGRH5GN2IBNK4JANGP77KPATPDNELMECCTWT5P27DLRSBSMFHE4UZN4ZYDCGOCWIG
-#\\\|XZ5F3Q5LWGUL2JTPHWI2BN26WSWYTE6TMAHOEJC6HENQ42CHGQL \ / AMOS7 \ YOURUM ::
-#\[7]4SHKMN2XUZE3BTZFF7WOED5EBSKFQV7ILSTJHWDMITO2LUPQKACY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,.,.,,.,,..,,,,.,.,.,,,,,...,..,,...,...,,..,,,.,,.,,,,.,,,.,
+#N6GDLDG4JLNHYUHEJCX6SNZVANLUAG3VMEJSJSILNSEM4QTD4KSOC3VW7E26RLOTJTX2V4QWY3MVQ
+#\\\|3ITTDCYWTUMHP4M6M2TPOEANLB645X4UZKYDOIHVSKG2THZDM4B \ / AMOS7 \ YOURUM ::
+#\[7]CIWMSM5HSCDBKHTTPPQJHZR4FUJUQLI3ZXMTWKOTT2HFGR52IEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

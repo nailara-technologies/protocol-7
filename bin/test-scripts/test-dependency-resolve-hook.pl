@@ -15,7 +15,7 @@ use warnings;
 ## - install_callbacks discovers callback+resolve per type [ dotted types,  ##
 ## callback-only types unaffected -- regression guard for the 4 real        ##
 ## pre-existing callback-only consumers ]                                   ##
-## - dependency.ok stays a PURE check [ regression 4b905ee4c, fixed         ##
+## - dependency.ok stays a PURE check [ regression 84402e581, fixed         ##
 ## 2026-09-30 : the resolve hook moved to base.dependency.ok_resolve for    ##
 ## START paths only ] -- FALSE/TRUE unchanged, resolve NEVER fires there    ##
 ## - base.dependency.ok_resolve : resolve hook fires on a failed check,     ##
@@ -203,7 +203,7 @@ ok( ( not $pure_result ),
     'dependency.ok still returns FALSE exactly as before' );
 ok( scalar(@thing_resolve_calls) == 0,
     'dependency.ok is pure -- resolve NEVER '
-        . 'fires there [ regression guard 4b905ee4c ]'
+        . 'fires there [ regression guard 84402e581 ]'
 );
 
 my $result1 = $code{'base.dependency.ok_resolve'}->($obj_a);
@@ -378,8 +378,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,.,,,,.,,,.,.,.,...,,,.,,,.,,..,...,,,,,.,.,..,,...,...,..,,,,,,.,,,,..,..,,
-#UKFLPVA42YQV6XLQFT6OMMWURBDK2LXJGH4XRP6VSJYREFRJCZJTFH3HMQHI4FLUOBUSQM5BMPHCQ
-#\\\|TFH7FEYB2EEFHRV3L3QFKGRYUZHSZM74XTPHMRKQRH5C27S3SVN \ / AMOS7 \ YOURUM ::
-#\[7]YQSVQOQNICFWX3JCCRMMVNXOXH7IT37FYYWDGKFZFR3QCVMINWAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,,.,,,,,.,.,,..,,..,...,,,.,,..,..,,...,...,.,,,,,,,.,,,.,,,.,,,
+#KJUY4NCI2GGU4EQA6A6KGS6FWNQO2AKTVQIF664XVLK6WVVBJR5QLY4XAHDPA6ENSFLULNGJSU7MM
+#\\\|JTPPCXTIQY3JG42445UNHMHGK2TACTHUYOESN3XMLGICKJMSSAO \ / AMOS7 \ YOURUM ::
+#\[7]7GP2XR56FU7PEP2FXFIC2FNG4UHJVW644XL47PEQCVRL2BS5N4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

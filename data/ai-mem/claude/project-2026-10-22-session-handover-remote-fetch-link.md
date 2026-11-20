@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-22-session-handover-remote-fetch-link
-description: previous handover -- session 2026-10-21..22 handover [ last b6a6ed425 ] : jobsite cert + nameserv fixes, web secret rotation, optional dependencies, remote fetch srv-U -> srv-V over an encrypted link WORKS [ 279 new jobs ] ; open : coding 'depending' queue on srv-U, link not yet permanent, 3 cloud design docs pending
+description: previous handover -- session 2026-10-21..22 handover [ last bfb43dea1 ] : jobsite cert + nameserv fixes, web secret rotation, optional dependencies, remote fetch srv-U -> srv-V over an encrypted link WORKS [ 279 new jobs ] ; open : coding 'depending' queue on srv-U, link not yet permanent, 3 cloud design docs pending
 metadata:
   type: project
 ---
@@ -12,27 +12,27 @@ minus 6 design sessions [ expire 2026-11-05 ].
 
 ## landed [ all pushed, all deployed to srv-U srv-A srv-V ]
 
-- 74dec9f91 \ 8d1a010c0 : v7-zenki.rotate-web-auth-secret [ :force-now: \
+- 92c93baaa \ 31d8259f3 : v7-zenki.rotate-web-auth-secret [ :force-now: \
   :no-restart: ; File::stat gotcha : stat list slice is undef in zenki ]
   -- srv-U rotated 2026-10-21 22:27 [ 0 sessions ; the old secret leaked into
   the transcript earlier, now dead ]
-- d098e4a0e nameserv sync : bounded long-poll hold [ max_hold 390 ] +
+- dfc480986 nameserv sync : bounded long-poll hold [ max_hold 390 ] +
   reap half-open waits [ srv-A sat on a dead v6 socket since 10-19 ]
-- bd289c62a nameserv : echo the question exactly as received [ 0x20 ;
+- 39d6abaf0 nameserv : echo the question exactly as received [ 0x20 ;
   lowercased echo = SERVFAIL at lets encrypt ] -> jobsite.<personal-zone> cert
   issued 2026-10-21 22:26
-- e12d9b6ac + 9b9be909a : start.cfg optional_dependencies ; a dependency
+- 5dcf41916 + 01d50887c : start.cfg optional_dependencies ; a dependency
   the start profile refuses [ disabled OR not in the on-demand allow list,
   v7-zenki.zenka.profile_refusal ] refuses the dependent ; external :
   discover optional
-- 07239e1f7 reload config re-applies the host overlay last [ srv-U fell
+- 44371eab1 reload config re-applies the host overlay last [ srv-U fell
   from remote-server to base and started discover \ debian on a server ;
   see [[feedback-config-reload-clobber]] ]
-- aa8b39cb5 + b6a6ed425 remote fetch : jobsite.cfg.fetch_zenka, site-yaml
+- ada2f90e0 + bfb43dea1 remote fetch : jobsite.cfg.fetch_zenka, site-yaml
   handler=:hold: outbox + subscribe-fetched STRM [ backlog first, ends when
   queue + imports + outbox are done ], jobsite subscribes [ also 6 s after
   start ] and confirms only stored jobs. kimi-built, reviewed
-- 6282454b8 \ 35387ca02 \ e09c0c1ba : external.authorize-link \ revoke-link
+- f0257ba9d \ cd2f2d1dd \ 2ec6871bf : external.authorize-link \ revoke-link
   [ fixed ssh restrictions, pin in incoming/ + authorizing SYMLINK -- the
   auth-keypair convention, a plain file is not enough ], access.users
   remote-fetch grant, external routes *.site-yaml.*
@@ -71,7 +71,7 @@ minus 6 design sessions [ expire 2026-11-05 ].
    flags host vs host_record against CREDENTIAL-LAYERS section 5
 4. **correct** : cube answers refused on-demand callers with the fixed
    template IRW7V6A, the reason only reaches its log [ found by the v7-zenki
-   design doc, stage 0 ] -- commit e12d9b6ac's message overstates this
+   design doc, stage 0 ] -- commit 5dcf41916's message overstates this
 5. todos added : R4F session classes, B4C dependencies part 2, FEQ
    backend-restart [ execve, drain, :keep-zenki: ], 6VV letsencr \ nameserv
    leftovers, 6C6 credential layers, DKX vault sealed import, CSR cloud
@@ -90,8 +90,8 @@ minus 6 design sessions [ expire 2026-11-05 ].
   proof ] and sometimes a claude/<topic>-<suffix> branch too : a new branch
   is never 'done'
 
-#,,..,,..,..,,..,,,.,,,..,.,.,,,.,,,,,.,,,,.,,..,,...,...,.,.,,.,,,,,,...,,..,
-#WJLWNZJ6KSIBKY2QFLIWYBG7AT2XOT5W4RACOPK4EORDVBWAJWPTCFCWMX46XSG3SKSIP3OA7OCEO
-#\\\|IMXIO2JDTRHI6RWWSRBIVCWKJDK2JHADDPIFKN2RYN7QI3Z347T \ / AMOS7 \ YOURUM ::
-#\[7]E6YNX2PYICPYKLWWP5R3TBJAJWLSP77IF2H2H6VU45XMUWKJ2GAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,.,.,,,.,,,,,.,.,.,..,,..,,.,.,..,,...,.,.,,..,..,,..,,,,,,.,,,
+#EJWPW35I2V2LBL4TPXFC2ZTKHOEUAGIZGML5COEOZKTHQYF52M2SHR6GNULVLNJGZ2ZELZBZFYRKE
+#\\\|CIA2URKRBBSIIKZNOMEWZTXQXENMV2LGMAOGHYCJDNXJV25WW6K \ / AMOS7 \ YOURUM ::
+#\[7]INWBEQ36UNAEFBTM2AMOWSYVKVOY32G5S2HFN5NNM6ZQXF72ISDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

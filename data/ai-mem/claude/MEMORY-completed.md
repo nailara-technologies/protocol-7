@@ -48,15 +48,15 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   ZDMAPAY:AR3OCKQ (vision-capable, VRAM-tuned), self-test retry+restart resilience (2 bugs found
   live-testing the fix itself), bin/ptd exclusion regex, SUGGESTION-INTEGRATION-QUEUE.md marked
   blocker-level. task-append backend-lock-leak bug diagnosed + unstuck live, NOT yet code-fixed.
-- [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — previous [ d02c3b067 ] : shm A live
-- [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — previous [ 2208b3c5b ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
-- [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — previous [ 6dd74e736 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
-- [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — previous [ 4802120dd ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
-- [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — previous [ 485d04329 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive
-- [session-handover-lock-mode](project-2026-11-01-session-handover-lock-mode.md) — previous [ c3b01c609 ] : login chain + lock mode s2a live
-- [session-handover-login-screen](project-2026-10-31-session-handover-login-screen.md) — previous [ b70c9d6cc ]
-- [session-handover-external-access](project-2026-10-31-session-handover-external-access.md) — previous 2026-10-31 [ 42210691a ]
-- [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — previous [ a3d230f86 ] : replica mode live
+- [session-handover-shm-a](project-2026-11-05-session-handover-shm-a.md) — previous [ 1d367968a ] : shm A live
+- [session-handover-claims-top](project-2026-11-05-session-handover-claims-top.md) — previous [ 0d973a15d ] : jobsite stall = missing task.touch grant, claim handling, task.release, system.top ; next : shm A
+- [session-handover-pressure-io](project-2026-11-05-session-handover-pressure-io.md) — previous [ 89bd19d39 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
+- [session-handover-headless-design](project-2026-11-05-session-handover-headless-design.md) — previous [ bf926a491 ] : login-screen transition modes, headless X-11 \ console hardening \ host-admin log design ; open : devmod-ack, editor fixes
+- [session-handover-transport-claims](project-2026-11-05-session-handover-transport-claims.md) — previous [ 0d60550d7 ] : transport non-blocking, oversized packets refused, scan lists in parts, task keep-alive
+- [session-handover-lock-mode](project-2026-11-01-session-handover-lock-mode.md) — previous [ 44b7b9331 ] : login chain + lock mode s2a live
+- [session-handover-login-screen](project-2026-10-31-session-handover-login-screen.md) — previous [ 377bb2f69 ]
+- [session-handover-external-access](project-2026-10-31-session-handover-external-access.md) — previous 2026-10-31 [ c4068daf0 ]
+- [session-handover-jobsite-replica](project-2026-10-30-session-handover-jobsite-replica.md) — previous [ c7189ffb7 ] : replica mode live
 
 ## System Status
 - [next-steps](topic-next-steps.md) — queue, roadmap
@@ -118,11 +118,11 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   hygiene work. New `bin/dev/fix-tag-drift` script + `commit-map` root-cause-split method fixed 124/127,
   deleted 3 genuinely-abandoned-release tags rather than force-matching them.
 - [plan-9/storage 9P subsystem, 2026-08-22](project-plan-9-storage-9p-subsystem-status.md) — LANDED
-  5aeee76e7: `storage.9p.*`/`plan-9.*` taken from "never worked since written 2026-03-27" to fully
+  1be596633: `storage.9p.*`/`plan-9.*` taken from "never worked since written 2026-03-27" to fully
   live-verified real-directory 9P2000 server+client (new `plan-9` zenka, v7/cube-integrated). Root
   cause was [[feedback-use-constant-vs-data-tree-const]] on both sides at once; also fixed cube
   command-name leading-digit rejection, unwired event loop, socket-vs-fd send bug, `File::stat`
-  shadowing on new real-dir export code. **Same-day follow-up LANDED c6f5a9310**: opt-in write
+  shadowing on new real-dir export code. **Same-day follow-up LANDED 9e759cc39**: opt-in write
   support (`:rw:` + `:symlinks: reject|contained|allow` on `plan-9.cmd.export-directory`, all
   default to the safe/restrictive option), new `storage.9p.read`/`.write`/`.read-file`/`.write-file`
   client primitives (none existed before — client was read-metadata-only), and live verification of
@@ -149,8 +149,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   first). See [[feedback-ptd-syntax-check]]. History/next-steps live in the linked file.
 
 - [coding zenka resilience session, 2026-09-23](project-coding-async-backend-acquire-reentrancy-race.md) —
-  LANDED across 6 commits (`9bb9e16bb`, `c6ffb3a0c`, `a9a2d4189`, `dbed8c6a7`, `bdd0680aa`,
-  `dde091f0f`, `5381b0d14`): reverted a prior session's UTF-8-misdiagnosed encoding-default changes
+  LANDED across 6 commits (`d3fe2d86f`, `d457519dc`, `3f914c7d4`, `0552ea1f0`, `2aede4c23`,
+  `3ed9c106d`, `566ea020b`): reverted a prior session's UTF-8-misdiagnosed encoding-default changes
   (would have corrupted `cred-mesh` credential blobs on next write, caught before any real write
   occurred); found and fixed the ACTUAL root cause — `coding.async.backend_acquire`'s reentrancy
   guard letting two independent callers race a task's in-flight round, see the linked file for
@@ -177,7 +177,7 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   binary issue is fixed.
 
 - [condition-dependency type:name syntax + start-gate fix, 2026-10-26](project-2026-10-26-condition-dep-start-gate-colon-syntax.md) —
-  LANDED c790d7d58: `v7-zenki.zenka.cmd.start`'s dependency loop parsed every token as a zenka, so
+  LANDED 7aa570722: `v7-zenki.zenka.cmd.start`'s dependency loop parsed every token as a zenka, so
   a condition dep (`unix_group.httpsd` in letsencr) failed `start_once` and was then refused by
   `zenka.profile_refusal` under any profile with an on-demand allow list (remote-server-lowram) —
   `:ignore-disabled:` never applied to dependency refusals by design. cmd.start + cmd.restart now
@@ -187,10 +187,10 @@ session archive index and current live-system status (queue/roadmap, resolved bu
   now inert (hard switch). New 'condition dependencies' section in test-v7-zenki-start-gate.pl;
   live-verified on delta (ondemand start included), user countersigned. Same-day follow-up:
   `v7-zenki.parser.dependency_chain` joined 'zenka_name' for every chained object and warned on
-  condition objects — LANDED f8f14184f, renders them as `type:name`.
+  condition objects — LANDED 1c904b113, renders them as `type:name`.
 
 - [dist-upgrade streaming condenser, 2026-10-26](project-2026-10-26-dist-upgrade-streaming-condenser.md) —
-  LANDED 3dd8b8de8: the dist-upgrade zenka ran ~1.8s no-ops exiting 0 (backtick buffering +
+  LANDED 7cfd53b50: the dist-upgrade zenka ran ~1.8s no-ops exiting 0 (backtick buffering +
   help-fallback shape + sudo env_reset stripping DEBIAN_FRONTEND -> whiptail blue-screen blocks).
   Extracted the condenser into AMOS7::deps::aptlog [src/debian.log.condense now a thin wrapper];
   dist_upgr streams through it line-by-line [reader splits the tty `\r` progress protocol], env
@@ -209,8 +209,8 @@ session archive index and current live-system status (queue/roadmap, resolved bu
 - [session-handover-host-labels](project-2026-11-06-session-handover-host-labels.md) — older : host labels, letsencr join fix
 - [n7fs-current-state](project-2026-11-05-n7fs-current-state.md) — N7FS researched 2026-11-05 [ OUTDATED : format 3 built 2026-11-07, see the handover ] ; CLI only, no zenka user yet
 
-#,,,,,...,.,.,,..,.,.,..,,.,,,...,.,.,,.,,.,.,..,,...,...,.,,,,..,,.,,.,.,...,
-#LP6VJ7UYXGFBJ2PZ5WAMK7GXMRVCDYWT4TUUVOPYTS7EEIWO3KOMCOLU3IWILAQZUWXUVACJXTIVU
-#\\\|JTPHMINJJ5ZJ3M4PLXLRZ3SPKX4N3FCJ4IXESUDR53IJAZB3DTP \ / AMOS7 \ YOURUM ::
-#\[7]2PG346B4C2XALPDEEWJES7KRORFM6J63P5HXBXZIZF52DEBZZADI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,,,,,.,...,...,.,,,,,.,,.,,,,.,..,,...,...,..,,,.,,,.,,,..,..,,
+#RJZBT3G77OSTFWJZ4C7Q6FBS3XOJE273PCGKW4PMTBNQGW3OOKGSCBYUCSP3W4RNGGZRAFBHB7ME6
+#\\\|ZBHASJNPSNXJI5A3OTYFPNZ3WSVKT2BJZZR5OMIWNEKCU3CNEQE \ / AMOS7 \ YOURUM ::
+#\[7]V5SWOXGW7XOMWI5OBJSY5PFP6AYKDZPSM4SXFARAY7H45MS3B4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-29-jobsite-live-update-chain
-description: LANDED 2026-10-29 [ fc2ea1712 .. 00afc97c8, owner-confirmed 7 round trips ] : jobsite -> web -> browser live updates -- push_soon 3 s, the web's sync-soon nudge for ui deletes, SSE /jobs-events [ change signal only ], browser refresh timers ; plus the remote queue-depth and rescan-owed fixes behind WY5
+description: LANDED 2026-10-29 [ 534158f66 .. 4aa905b2b, owner-confirmed 7 round trips ] : jobsite -> web -> browser live updates -- push_soon 3 s, the web's sync-soon nudge for ui deletes, SSE /jobs-events [ change signal only ], browser refresh timers ; plus the remote queue-depth and rescan-owed fixes behind WY5
 metadata:
   type: project
 ---
@@ -38,7 +38,7 @@ metadata:
 - test pri loopback with `curl --noproxy '*'` [ owner : no_proxy ]
 - host overlays httpd \ httpsd \ web.cfg hold web.auth.secret, root 0600 by
   design : reload config now keeps the start-up values
-  [ base.load_host_config + base.reload_config skip, 00afc97c8 ]
+  [ base.load_host_config + base.reload_config skip, 4aa905b2b ]
 
 **behind WY5 [ fetch + assessment ]**
 - `jobsite.handler.queue-depth-reply` read `$call->{data}` with `// 0` :
@@ -53,8 +53,8 @@ related : [[feedback-new-module-whitelist-and-resign-version-files]],
 [[feedback-route-send-buffers-timer-gets-event]],
 [[feedback-reload-success-doesnt-guarantee-new-file-loaded]]
 
-#,,.,,,,.,.,,,.,.,...,.,.,,,.,,..,,.,,.,.,,.,,..,,...,...,,..,,.,,,..,,..,..,,
-#OCZJVDMBAWGJ2ORUM5XRSYCLYMC5PZQY6VVBJ3BOZUSI7QTIMPGNI5PNLTN6N2F5Y7JMEIORITXI2
-#\\\|CMAURIZ35HCQ3ZCWKIIV2TSGAFITPUN53RZPO4KTLKO23VHE3E7 \ / AMOS7 \ YOURUM ::
-#\[7]EKGU4NWFV75OKP575ZN7CI7H5XAPJHW64C3JZSPNR5T4K6YROSBA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,.,,...,.,.,..,,,..,..,,,..,,,,,..,,...,...,,.,,,,.,.,.,...,.,.,
+#IBNZMW6X3C2PYC724CI2NF2OOLM5ALPCOMMPGA6CJUE7KG7VG6RN3KUUMVKNHVRIVDP7BPM4PEI3K
+#\\\|UYJ3F7BF4NK26OHZ2RJ5ZRHDKQ22F37E62JW7FXRVGP6ARRWGVN \ / AMOS7 \ YOURUM ::
+#\[7]GI4S7JW6SKH7CDX622XOFVQSTDZDSE6W6XX3RPTNDE5OO3M5DWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

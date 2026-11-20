@@ -13,7 +13,7 @@ historical-commit data, the real fix is harvesting genuine
 and that harvester (`src/coding.catalog.track_write`,
 `src/coding.catalog.corpus.record`, wired into the three write-tool
 handlers plus `coding.task.queue_complete`) is already built, committed
-(`c6bc6f246`), and off by default (`coding.cfg.catalog_harvest`
+(`d3f8f5a3a`), and off by default (`coding.cfg.catalog_harvest`
 commented out in `cfg/zenki/coding/zenka.v7`).
 
 **it has never run against a real task.** both the building agent and
@@ -393,8 +393,8 @@ appended a correct JSONL record [ 7 valid lines total in
 track-after-success still holds. scratch module deleted after ; no
 signature stubs added.
 
-#,,..,,.,,,.,,.,,,,.,,.,,,.,,,..,,,.,,,,,,...,..,,...,...,..,,.,.,,,.,,,.,,.,,
-#B7D4YQER3D3FWU5CEK4PVK4CQFOWOSBNXMR7NKNNDKDB4I47SM3H2IL24LO2G4SEOAUFIR3MGG27K
-#\\\|A7SCNEUBUO5JY2QUWJYMOLTPYAUUHHAFND4TQVECEWC2K5VUBTW \ / AMOS7 \ YOURUM ::
-#\[7]GRINCNR43WF2QM7BZTGI2XQKGZBS726XZ26BRKEU5GO5LD3I24CY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,.,,.,.,,,.,,,,,,.,,,.,,,,,,..,,..,,...,...,,..,,..,,,,,,..,..,,
+#ROPW4VMIM4Z57GIQR6MLL7SY27S7U3Q2KG4MCA34ARKH2QSNHJSTOLDP5ZDCIWV7K56QDNN4OX7TW
+#\\\|B5RWHS37OKDK63TIC5S5UIOFEFL57YTAGPCIRRYICXBT55CNFT6 \ / AMOS7 \ YOURUM ::
+#\[7]RJXADOKM4ARE6SONTTF4NVPAZ67M2PGHMSHVJYXOCBU7WCOMVAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

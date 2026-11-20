@@ -1,24 +1,24 @@
 ---
 name: project-2026-10-30-session-handover-jobsite-replica
-description: START HERE 2026-10-30 morning [ last aa9b29c3d, pushed + 4 servers pulled ] : claim-release access fix, commit-plan bugs, liveness sweep + 112 jobs imported into pri ; kimi building jobsite REPLICA mode [ session f82e3d0d ] -> review, sign, live test
+description: START HERE 2026-10-30 morning [ last 8db4dfe6c, pushed + 4 servers pulled ] : claim-release access fix, commit-plan bugs, liveness sweep + 112 jobs imported into pri ; kimi building jobsite REPLICA mode [ session f82e3d0d ] -> review, sign, live test
 metadata:
   type: project
 ---
 
-**landed [ 9748a8dfa .. aa9b29c3d, all pushed, pri \ atom \ delta \ yourum on aa9b29c3d ]**
+**landed [ 6be90dfe3 .. 8db4dfe6c, all pushed, pri \ atom \ delta \ yourum on 8db4dfe6c ]**
 
-- 9748a8dfa cube access : coding may send models.coding-online [ 9d2fd7907
+- 6be90dfe3 cube access : coding may send models.coding-online [ 15bca6f7b
   added only the alias ; cube refused it -> no claim was ever released ].
   live : no denial any more on local, pri, yourum. the release line itself
   logs ONLY per released claim -- still unseen [ needs a coding restart
   while a claim is held ]
-- 265dd9329 p7-commit-plan : 'not X ? A : ..' negated the whole ternary
+- f3b3b9798 p7-commit-plan : 'not X ? A : ..' negated the whole ternary
   [ explicit paths never 'A' ] ; untracked src/ counted ; 'Name' header
   dropped. coding : a repeated thermal hold logs 'again [ hold N ]'
-- f8b0c5b0e jobsite.liveness-sweep [ :dry: \ max \ status ], 2 in flight ;
+- 4cde357de jobsite.liveness-sweep [ :dry: \ max \ status ], 2 in flight ;
   bin/dev/jobsite-export-survivors ; coding night window 22:00-05:42
   [ room heating starts 05:42 ; coding restarted on pri + yourum ]
-- aa9b29c3d dep-graph .txz opt-in [ -txz ], untracked ; history purge
+- 8db4dfe6c dep-graph .txz opt-in [ -txz ], untracked ; history purge
   deferred [[project-2026-10-30-deferred-history-purge]]
 
 **jobsite state**
@@ -40,10 +40,10 @@ metadata:
 - job-upsert takes the json as ARGS [ p7c jobsite.job-upsert "$(cat f)" ],
   not stdin '+'. write the json with ->utf8 [ wide chars otherwise ]
 
-**replica mode : LANDED 536a365f7 [ review done ; fix : forwarded ui actions kept in replica-unsent.json until the primary says ok:true, retry 15 .. 900 s ], pulled on all 4, srv-U [ pri ] web httpd jobsite restarted. stash@{0} is now redundant [ drop ]**
+**replica mode : LANDED e981d86fc [ review done ; fix : forwarded ui actions kept in replica-unsent.json until the primary says ok:true, retry 15 .. 900 s ], pulled on all 4, srv-U [ pri ] web httpd jobsite restarted. stash@{0} is now redundant [ drop ]**
 
 - live test BLOCKED on root config : pri web.cfg needs web.cfg.jobs_sync_ui_users = jobsite-replica [ ui role now keyed on the VERIFIED user, no token copy on pri ] ; local token rotated to a jobsite-replica one [ v7-zenki.jobsite-sync-token ] ; local jobsite.cfg needs primary_url = https://<srv-U-jobsite-host>/jobs-sync + sync_url_roles ...=ui. then restart local jobsite + compare with bin/dev/jobsite-ui-compare local pri
-- LIVE 2026-10-30 : local = replica of pri, jobsite-ui-compare identical [ 18 jobs ]. real causes : https body is character-decoded [ decode_json died, fixed 822ff1a0c ] + local web never got the replica plugin code [ deploy restarted web on pri only -- after a plugin change reload plugins on EVERY host running web ]. CORRECTION : 822ff1a0c also claims an undefined $mem -- WRONG, it is declared at plugin line 137 [ the change there is a no-op ]. still to test : one ui stage change local -> pri
+- LIVE 2026-10-30 : local = replica of pri, jobsite-ui-compare identical [ 18 jobs ]. real causes : https body is character-decoded [ decode_json died, fixed b4d095df1 ] + local web never got the replica plugin code [ deploy restarted web on pri only -- after a plugin change reload plugins on EVERY host running web ]. CORRECTION : b4d095df1 also claims an undefined $mem -- WRONG, it is declared at plugin line 137 [ the change there is a no-op ]. still to test : one ui stage change local -> pri
 - stash@{0} = letsencr param-only send, half done [ set aside ] ; stash@{1} = old replica stash, redundant [ drop ]
 - [ DROPPED by owner 2026-10-30 : no longer practical ] - letsencr srv-U : its host name dns-01 fails -- CAUSE FOUND : srv-U = dns-01 via nameserv alias [ acme.<domain> ], srv-V = default http-01. INWX lacks _acme-challenge CNAME + acme.<d> NS for its names : 1 CNAME + 3 NS [ dn0000 dn0110 dn1110 = 3 servers ] each. its old name -> drop it from letsencr config once the new one has its cert [ else failed renewals from ~11-20 ]. <srv-U-jobsite-host> protocol-7.network <personal-zone> v7.ax ok [ v7.ax acme NS covers all 3 servers ]. owner adds the records at INWX. UNCOMMITTED letsencr param-only send fix [ 3 files ] set aside : param was never delivered next to args
 - 2026-10-30 08:22 : old sync token leaked into pri httpsd log [ pasted in a browser ] -> owner revoked it ; NEW v7-zenki.jobsite-sync-token : `::: srv-U web.auth-issue jobsite-push -ttl 31536000 | :: v7-zenki.jobsite-sync-token+ url=https://<srv-U-jobsite-host>/jobs-sync` [ token never on argv \ screen ; + form words = key=value headers ]. rotated, pushes ok again. pri still holds jobsite-push session ABIAR3KNEMPRO [ 06:38, unknown owner ]. ui role : keyed on the verified user id [ done ]
@@ -70,28 +70,28 @@ metadata:
 
 **update 2026-10-30 late [ next session ]**
 
-- DONE : 3. claim expiry fails the task [ cab9587c9, guarded by expected_agent ]
-- DONE : 4. pull-git hang was already fixed by a3d230f86 [ no setup entry ]
+- DONE : 3. claim expiry fails the task [ 1fe4b9910, guarded by expected_agent ]
+- DONE : 4. pull-git hang was already fixed by c7189ffb7 [ no setup entry ]
 - KKHN2 : owner said drop -- web view already dropped it [ removed-log ] ;
   only the pre-replica jobsite store keeps applied/KKHN2.yaml, replica
   refuses local deletes by design -- delete it if replica mode ever ends
-- 5. start model now OFSQC4I [ 928b80e4b ], 72T4WFI kept commented
-- night-brake step 6 slices 1 + 2 LIVE [ 35d3fff67 ] : power_avg + k
+- 5. start model now OFSQC4I [ d1a64fafb ], 72T4WFI kept commented
+- night-brake step 6 slices 1 + 2 LIVE [ 19807cb93 ] : power_avg + k
   learning, no behavior change. next : slices 3 [ gate on predicted
   temp, spawn refusal ] + 4 [ cooling fault guard ] once k has samples
 
 **update 2026-10-30 night**
 
-- slices 3 + 4 LANDED [ 1453c62d3 ], inert until k has 30 samples
-- 87c9a8dd2 p7_soft_require : .pm for one-word names, package names only [ no string eval : stash autoviv is a non-issue for dynamic loads ]
-- trashed-job rescue : dc8bc8770 reassess scores on-disk data [ upsert never resurrects trash ], 71213d07f dispatch.next let reassess entries through, 4cae1da28 manual url of a trashed job -> review whatever the score [ owner : scores jitter up to 3 points ], 2f518aa11 browser posts never plant id-only stubs. LIVE on pri : VSHN4 VKMN6 CTHN4 reassessed -- CLOSED 2026-10-31 : rescue worked, owner re-trashed VSHN4 + VKMN6 [ no interest ], CTHN4 in review [7]
-- replica LIVE both ways [ local -> pri forward ok after the localhost vhost symlink, owner-made : /var/httpd/localhost -> jobsite.local ; plain http from 172.24.32.1 is refused by design ]. fb7eadd12 a pull that predates a forward is dropped [ race seen : 2 quick clicks ]
-- 0ed404cae jobs.json canonical ; dadc3f1be ui dimensions in base.sort order [ owner reads loc + remote first : relocation decides interest ]
-- sign tool appends an AMOS7 block to .html it is handed [ removed by hand in dadc3f1be ] -- never pass unsigned web files to p7_sign, or fix the tool
+- slices 3 + 4 LANDED [ 82c6bc5c8 ], inert until k has 30 samples
+- ebd203883 p7_soft_require : .pm for one-word names, package names only [ no string eval : stash autoviv is a non-issue for dynamic loads ]
+- trashed-job rescue : eb9a83cff reassess scores on-disk data [ upsert never resurrects trash ], 798d26c21 dispatch.next let reassess entries through, b635ff097 manual url of a trashed job -> review whatever the score [ owner : scores jitter up to 3 points ], 6e99382f9 browser posts never plant id-only stubs. LIVE on pri : VSHN4 VKMN6 CTHN4 reassessed -- CLOSED 2026-10-31 : rescue worked, owner re-trashed VSHN4 + VKMN6 [ no interest ], CTHN4 in review [7]
+- replica LIVE both ways [ local -> pri forward ok after the localhost vhost symlink, owner-made : /var/httpd/localhost -> jobsite.local ; plain http from 172.24.32.1 is refused by design ]. aaf1beb21 a pull that predates a forward is dropped [ race seen : 2 quick clicks ]
+- 465122508 jobs.json canonical ; 4154739af ui dimensions in base.sort order [ owner reads loc + remote first : relocation decides interest ]
+- sign tool appends an AMOS7 block to .html it is handed [ removed by hand in 4154739af ] -- never pass unsigned web files to p7_sign, or fix the tool
 - open : night-brake side-triggers ; stash@{0} letsencr
 
-#,,..,.,,,.,,,,..,..,,.,,,.,,,,,,,,..,.,,,,.,,..,,...,...,,.,,.,.,.,,,.,,,,..,
-#VEBERY6JKFMI22WJAEGJI2X53ZY4UCDLWAHNHC6SNUSP6USYX5O6IAOK2KLZ7WOH3OYTNA6IAJGEU
-#\\\|RMCPGUIB3UUPIVRKJZXC7FKGPRETKTPPT5VRHZJFLTGHR7GNPN7 \ / AMOS7 \ YOURUM ::
-#\[7]AQTZOCLVMWP3DOXNHMAOZ3IRLB2UKVYKTLI42CC6TC4AZAVEGADQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,...,,,.,,.,,.,.,,..,..,,.,,,..,,...,...,...,..,,.,.,...,,,,,
+#O5ZSS3SB6WCRYZLNZYEOVTYKSW7R7B42U4KP5EPAT2NS7UGICEI5XD4MYZ3YVUDSWQ5T7VBFCBZXE
+#\\\|TWDXKHSDIEP66OTVLQCS3WQ4CMHKMA6TGPH5VUCZD5RTTFO56TT \ / AMOS7 \ YOURUM ::
+#\[7]YBQSFGG6RA423FOVLHG7BLIBWUUNLMKIR34WOTVV6CV36BJWWYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-22-shm-permissions-forgeable-open
-description: grants fixed 2026-11-05 [ d02c3b067 ] ; open, normal [ todo FKS ] : a local reader with file rights can still map a segment
+description: grants fixed 2026-11-05 [ 1d367968a ] ; open, normal [ todo FKS ] : a local reader with file rights can still map a segment
 metadata:
   type: project
 ---
@@ -14,11 +14,11 @@ fix direction [ todo FKS, data/yaml/todo/base.yaml ] : SIGNED-STATEMENTS.md 'p7 
 signature over the canonical string, or refuse header permissions as authority. found 2026-10-22,
 still open 2026-11-05 [ owner : not closed, high prio ].
 
-2026-11-05 step A landed [ d02c3b067 ] : the hash is replaced by real ed25519 grants. still open : a local reader
+2026-11-05 step A landed [ 1d367968a ] : the hash is replaced by real ed25519 grants. still open : a local reader
 with file rights can map the segment -- encrypted pages close that, see [[project-2026-11-05-session-handover-shm-a]].
 
-#,,,.,..,,.,,,.,.,.,.,..,,...,..,,,..,.,,,.,.,..,,...,...,..,,.,,,,,.,.,,,.,,,
-#AB3DP35KNHVV7GBNPA5SIAC22B6GTZWN2JFGFQLKDIMW7BRJ7SOAZLQKG5AEMSOWVULCJP24VEANE
-#\\\|MT6VCODREYDRQBPIB4PGFHA3R3FLPEPBA7YRZK527UMZDLW27IJ \ / AMOS7 \ YOURUM ::
-#\[7]CFOI7TUEC6FGDFOETAOCIO3DY5CZUP4JELR6OTBONE77Y6CRCKBY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,.,,...,,.,,,.,,,.,,,..,,,.,,,.,..,,...,..,,..,,..,,.,.,,,,,..,,
+#4CQGMWILDHYA63WS6PAA35YDPMKOFCD7VVMMM2SL6JGNUP7H42IQLEGRRMKVZDRJ6IDFGR5JQBMZS
+#\\\|XH2ZFTA36D7WWYFSS5YUV2BDRSZC3WM4KRLEH7LEQA73HXPIVV3 \ / AMOS7 \ YOURUM ::
+#\[7]DP2C5QOB3WTHHIO6K6NUAQ6IM62NJZGFB2UAIRJPBBBDICG4XCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

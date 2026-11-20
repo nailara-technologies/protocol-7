@@ -144,7 +144,7 @@ lookup's reply shape.
 - Re-implementing or auditing the existing v7-zenki pid-instance
   lookup -- see the "already built" note above.
 
-## status [ 2026-09-17 ] — DONE, live-verified, committed `b1eb46887`
+## status [ 2026-09-17 ] — DONE, live-verified, committed `56e01574d`
 
 all three scope items landed via kimi (k2.8) dispatch, same session:
 dynamic poll acceleration (`collect_table`), restart-then-terminate
@@ -157,8 +157,8 @@ deeper bug found while live-verifying this (the underlying
 the access-control gap (`v7-zenki.gone_child` missing from
 `access.cmd.usr.coding`) found + fixed one task later.
 
-#,,.,,,,.,...,.,,,,.,,,.,,...,,..,,,.,.,.,,.,,.,.,...,...,.,.,...,.,,,,,,,,.,,
-#XY5BIAFSDWHSANAGYHXNYGOTECCZRWGDKIMM7SES4Z4LC7HW6W57RHU5X6HM5CB7VQ44Q3D4BJZK6
-#\\\|VZFTJTS4SY3MSXXDBGMWOI6J4VCL3KWGIAYCUKVNNKMLRMXKSJW \ / AMOS7 \ YOURUM ::
-#\[7]XGAWMEA5LXI3PPMRYBT54H67FU764CSIZIT3VBUJRYE25QDKEEAY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,..,,,,,,,.,,.,.,,,.,..,,..,,..,,.,.,...,...,,..,.,,,...,...,..,,
+#MXCZGGMYCCVTWTCBPV6O4FWJFXONFDJBFMKDK7KOLT5YHBO3MZ5ZJ7MVVNLSQ3XMEG6WPWAVIJCEC
+#\\\|3DYWPFP5YZB5RIHJRK5HWXRL2E5ASNBC2ZMPBOQNGGPSR6LH5CN \ / AMOS7 \ YOURUM ::
+#\[7]77IERFT7YIDNTFT5H5VVU6L75FXNTYAFOVQLDMTU2US4LVGVLGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

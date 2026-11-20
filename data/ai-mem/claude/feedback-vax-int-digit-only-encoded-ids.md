@@ -19,12 +19,12 @@ through everywhere else [ jobsite \ site-yaml \ plugin.web.jobs.* ]. the owner r
 a length rule in base.vax-int \ bin/vax-int : generic tools [ `vax-int 42` = FI ].
 check a digit-only id by hand with `bin/vax-int -dq <id>`. moves jobsite toward generic.
 
-deploy lesson [ 8e66ecb63 on pri ] : `jobsite.reload source` does NOT rerun init -- the
+deploy lesson [ e841150e6 on pri ] : `jobsite.reload source` does NOT rerun init -- the
 store \ index \ tasks kept numeric keys and the new code wrote `trash/.../14589202.yxz.B32`.
 a change to the form of in-memory keys needs a RESTART of the zenka, not a source reload.
 
-#,,,.,.,,,.,.,..,,.,.,,..,.,.,,,,,,,.,,..,.,,,..,,...,...,,,,,...,,,.,,,.,.,.,
-#FXEZHQ74L3FUMHWS6LPLSEXZPH23BXCVYTVTESKAVXAXWGDVCFMD2M4FR4OJ3GH3V6XGSBEWFFBFY
-#\\\|XBOT274IZFH24OAOIE4QJLZ7SHTULWZSUH2LLCRJRSYEPGRYRG5 \ / AMOS7 \ YOURUM ::
-#\[7]UOB6I53CE5WXM2WWRMSQHYOE2KQUQUJTESKJKMGEFJWC7JUKAQCA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,.,,,..,,,.,,,,,.,,,,..,,.,,.,,,..,,...,...,.,,,.,,,.,.,,,.,.,,,
+#WOLQHEOM4QBDAONAKL36DQOZCS47TTQPA772BQKGDP5KRJXEFNZ722NJSVPZ3FXYD2WJVEL7G5N5I
+#\\\|HBBAJ6X7TYZE4G63OZ7NOMY36TALACAL3GTXXPSSBXP72FURH35 \ / AMOS7 \ YOURUM ::
+#\[7]GEKYOBOJEKOQEYHY67SYFLB3PJLPMLNCNBQZGWZMVBOK3GPHOKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

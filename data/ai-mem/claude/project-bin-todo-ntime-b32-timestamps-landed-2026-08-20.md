@@ -5,10 +5,10 @@ metadata:
   type: project
 ---
 
-Session 2026-08-20, commits `9ce4ef450` (unrelated 3rd priority-sort
-pass + trailing-blank-line trim, same session), `ec8300c4d` (unrelated
-loop-detection reset fix), `b7779efac` (this), `f87b103b2` and
-`7d30b31fa` (web-browser snapshot filename follow-on, separate memory).
+Session 2026-08-20, commits `9e1c96cf7` (unrelated 3rd priority-sort
+pass + trailing-blank-line trim, same session), `03aedd2e9` (unrelated
+loop-detection reset fix), `f891dc40a` (this), `e0125c52c` and
+`03db3a9de` (web-browser snapshot filename follow-on, separate memory).
 
 ## what changed
 
@@ -76,8 +76,8 @@ are all precedent for the same pattern (`bin/Protocol-7`'s core subs
 can't be called via `<[...]>` outside a running zenka; port the exact
 formula/algorithm instead, don't approximate it).
 
-#,,,,,.,.,.,.,.,.,.,.,,.,,.,,,.,.,..,,,,.,,,,,.,.,...,...,,,.,,..,,,.,,,.,...,
-#KFXO2XBDCZFEHDKAQ7L4CHZZ4NOQRDL5EB5CYLNYLYLDKPSY5BXASHSEPLLWMTV6IDIM7TF2FL3ZQ
-#\\\|OYRUDFF4ZP4KHI2GND52OW22RKAMBDUMNSFFC74J4XBAEQINLRA \ / AMOS7 \ YOURUM ::
-#\[7]C6E7AI4DK2ESJDGRCBLXJLT6OKJ6V7QPW2NVP3NRWFIB5FZU2QAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,.,,.,,,.,,,,..,,..,,..,..,,..,,.,.,...,...,.,,,,,.,.,,,..,,...,
+#RHFD43EG2MFO67RNT5WOMKRY7ZEEWZOBPBF5TTJMZZDHFB7AZ2572OTYDOPV43J5ER3UCN3TSMUTK
+#\\\|GUDX7MDWPSG33TUI6NF5WJTH3UXEUT43VCIAG4ECQL2H52R44GK \ / AMOS7 \ YOURUM ::
+#\[7]YZR7CVBIXNFRFFUQNZDQEWLEH2PJS3JJHH7TSQEWHOT7ZTFM5ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

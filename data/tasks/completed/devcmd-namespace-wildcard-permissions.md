@@ -120,7 +120,7 @@ same convention `src/base.cmd.commands` uses: it strips `^devmod\.cmd\.`
 off matching `%code` keys purely to classify already-bare `<base.cmd>`
 entries). `devmod:*` compiled to `^devmod\..+$`, which no real
 dispatched command string ever satisfies. the axis was inert from
-`988151e83` until this fix.
+`1dacbd123` until this fix.
 
 fix: `src/base.parser.access_conf` now computes `@devmod_cmd_names` up
 front — the exact same `%code`-scanning + prefix-stripping `grep`/`map`
@@ -189,8 +189,8 @@ gain; the bare call is the established convention).
   confirmed devmod unload.
 - `src/base.has_access` — UNCHANGED (hard constraint).
 
-#,,,.,...,,,,,,,,,.,,,.,.,.,,,,..,...,..,,.,.,.,.,...,...,,,,,,..,,..,.,,,.,,,
-#7F5DH2BICY3GGF3LHI3YJ6TFG46OIQB5VUXCDTJAH3UQMHKRFXTUYUADCKEUZJ2JWTBSDAL6ADYQS
-#\\\|6HQJWV3EK7SSK2ZH5QSWG2AIEPV6YXJM6FWEPRKCQIWXZYHAXRV \ / AMOS7 \ YOURUM ::
-#\[7]ABWRAEZDLGMUAGY6BGCB74WTPLJ5LC45GU4YVHUSLB74QQPZ2EBI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,,..,...,,..,..,,,.,,...,,,,,.,.,...,...,..,,,.,,,,.,..,,..,,
+#7K6IW2G4ETOH7CUNTHRMZJZTYZ7HZHAQQJ7VAVCUDVHQHOF7DM63OCZGJBB6SPCYWZX33ONOM4SDE
+#\\\|RST6LR4DVLTBYP63XZ55IMBAD6FLGNCBIKDUOCGYLHTZHVYR7XX \ / AMOS7 \ YOURUM ::
+#\[7]AQUJ37MSODBWLHAAVCEG5R34NGTRUJCNTGGMXFLPKTAJ6SWCZWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

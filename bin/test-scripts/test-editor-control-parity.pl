@@ -27,7 +27,7 @@ our ( %data, %code, %colors, %keys );
 %colors = ( 'p7_fg_0003' => '', 'p7_fg_0004' => '' );
 
 my $module_dir
-    = "$RealBin/../../src";    ## modules/ renamed to src/ [ f0cbcb805 ]
+    = "$RealBin/../../src";    ## modules/ renamed to src/ [ ae0f457eb ]
 
 my @module_files = qw|
     editor.buffer.memory.create
@@ -290,8 +290,8 @@ check( $new_st->{'kill_buffer'} eq '', 'full reset clears kill_buffer' );
 printf "\n%d checks : %d passed, %d failed\n", $pass + $fail, $pass, $fail;
 exit( $fail ? 1 : 0 );
 
-#,,.,,.,,,.,,,,.,,..,,..,,.,.,,.,,,.,,.,.,..,,..,,...,..,,,,.,..,,...,,,,,.,,,
-#GDC5FN4SMQW2XUTUSDMY2QAGEH4INTOFCU2ROFZHNLVEEG3TMWI4CUHZGU6NGQRAYFWOU7IC7CUC6
-#\\\|3MIMZDFG7U63ZV22L4N3YWPGNLSEO3NPMA4WYJUMAADR63V4YQJ \ / AMOS7 \ YOURUM ::
-#\[7]PZAEVPY3CL6M7HFMCUWRVKPJKLOGD5CUPAFYCN7KUZ4VJWYBBICY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,,.,,,,.,,,,,...,,,,,...,..,,..,,...,...,..,,.,.,,..,,,,,..,,
+#LRRMW5WPFRKY2M3LIBYWVA4NWW3DLOITD6F4EO5BZZXSOD7ZGWD2EKDAPQNLSUATYLWJHA4PZEFQY
+#\\\|ZN4DJWIAOEQRW5IH7CDLPGPRZD3WOTCNIR7TRREFLJAIXR6RQO7 \ / AMOS7 \ YOURUM ::
+#\[7]7DQHLGLGAZ75JSG7UBQUAREJ2C5VQTJ5CAJZVLW7DHB4VPRQGSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

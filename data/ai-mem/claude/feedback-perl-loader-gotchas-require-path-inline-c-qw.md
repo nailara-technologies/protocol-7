@@ -15,15 +15,15 @@ metadata:
   the reload still fails. presence checks use `base.perlmod.load`.
 - **comments inside `qw| |`** are list words [ perl warns 'Possible
   attempt to put comments in qw() list' at compile time only ]. put the
-  comment above the list. I passed such a list in review [ cf534de4a ].
+  comment above the list. I passed such a list in review [ 53edb5f2c ].
 
 **Why:** each one looked fine in a diff and failed only on a real host.
 **How to apply:** when reviewing a staged diff, check string requires for
 the `.pm` form, autoload vs load for modules without import, and multi-line
 qw lists for '#' -- `perl -c` on the touched bin/ scripts shows the qw case.
 
-#,,..,.,,,,..,,.,,...,.,,,,,,,.,.,.,,,,,,,,..,..,,...,..,,.,.,,,.,..,,...,...,
-#MMW2BART2ZG2FZY4GN7ZX4Q5HH57HG5WSEBWAC4HGEVCRIVKEIJBKMIL2RIMOSAJTPVYOEL4GVH26
-#\\\|AFYOWMRBQOFNLARTGNMD4EEO4VIBCRMOFFA2I5SGALOQDXAHGOS \ / AMOS7 \ YOURUM ::
-#\[7]VWD7Z3VGVIKG2KGADTSXLCIUX5TGZXDDLOEBSZWQII7HZ57PZYDY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,,..,,,.,,.,,,.,,.,.,...,,..,..,,...,...,.,,,.,,,.,,,.,,,.,,,
+#72KYFRG4HOMMLKNBQUZWIFIEG7U4OQ6K6HUTCTIRPSXPE6SQCLLSNVQ5G6RFGNEPD5GNT5YSCLLQE
+#\\\|OZUK5LQ7NCHQRJ3QGCJ3VY6PE33RMFTZKM3EWGNME7DO2TYN4NM \ / AMOS7 \ YOURUM ::
+#\[7]CNEBE7WVGOS4HZJ6PHMZIYVIBBNNRWQYSXP67FXRYYFVTIZQSSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

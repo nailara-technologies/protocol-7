@@ -126,7 +126,7 @@ leave module signing to `bin/Protocol-7 sourcecode update-signatures`.
 
 ---
 
-## status [ 2026-08-25 ] — DONE, landed in `7cfeeddea`. dispatched to
+## status [ 2026-08-25 ] — DONE, landed in `d3038ac8b`. dispatched to
 ## kimi (model=k2.7), validated: only the intended 4 param-def blocks +
 ## %skip_in_cmd + the resolve/prepend block changed; the flagged
 ## kimi_continue/claude_continue legacy-format pitfall turned out to be
@@ -153,8 +153,8 @@ prompt: |
   follow existing code style: $ARG not @_, lowercase comments, bracket
   annotations [ like this ].
 
-#,,.,,...,,,.,,..,,.,,.,.,,,.,.,.,,,,,.,.,..,,..,,...,.,.,..,,...,...,.,.,,,,,
-#5UPKE67TE2LCBM7HK6SBJMHPAAD2ACUL4TQ2T3IU6QPJ4RTROAP44HFU4PHXGAJS77XT7TLJBQF7Y
-#\\\|W4NRXUE2QQMWUP5GBOSQYPHUPQ6HBVHPJPBFIM3G4LERUUR5YRZ \ / AMOS7 \ YOURUM ::
-#\[7]FANMVDBQHO2GO3CWU3Y5OZBXWGZOOCSVD5RYZWX6LZJ5JMT5MCBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,,,.,,,..,,,.,,,.,,...,...,,.,,..,,...,...,...,,..,,,,,,..,,,.,
+#VI7Z7I4NDUOMWXLMY6Q2N6KQQ6JT26CBLA4EQ5CKIVNVFIWZLMOTC5P6WLXWZEWN6NTJEV5ON2RKE
+#\\\|JUGET4HPLCR37SSLL5UYNB6TV7SC6KYBJLINGDNGYQ4KKBNVIJF \ / AMOS7 \ YOURUM ::
+#\[7]ECY7ZOWYXUTEGK6R5TXWXDHXN2RR26CCDBDE2WDNZLXXMH3TVCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

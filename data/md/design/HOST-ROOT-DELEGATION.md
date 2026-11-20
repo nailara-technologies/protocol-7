@@ -1,7 +1,7 @@
 # host-root delegation : chaining the server key to host-root [ draft ]
 
 draft 2026-10-06. the step after [ `AUTH-LINK-BINDING.md` ]
-[ `afd71cec7` ] in the trust chain build order
+[ `ecaa9b1ac` ] in the trust chain build order
 [ `data/ai-mem/claude/vision-2026-10-05-generic-trust-chain.md`, step 1 ].
 DESIGN ONLY -- open decisions are marked **[ decide ]**.
 
@@ -259,8 +259,8 @@ key id       : ZF3ZY24EH66GU56YWPU2R2ZOXZLRVEUQJGHM3AWUQWVUNEJIYFOXRWF4XUSHAAXSU
 computed independently [ hand-written pack ] and by `trust.statement` ;
 identical to lane 3's self-built vector.
 
-#,,.,,...,,..,.,.,,.,,,,,,,..,.,,,..,,.,,,,..,..,,...,...,...,,..,,,.,...,...,
-#7XWGL4B2NE4GTY77HGSOYGIL5Y4PJENKRLB5PKERINLFW72XYUMTWLPDPWCQHOX5U4KVSDOMVJAIC
-#\\\|YYMGQA5MQYMT3EXAFOEHU52QLNUMDYVYUNPMFANF5WKXZVYKMCP \ / AMOS7 \ YOURUM ::
-#\[7]DBQB75J4SPTTB25UUU6SWR7HIVCTIKMPGCAWB2IF4C3STPN75UCA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,..,..,,,..,,,.,,,,,,,.,,..,,.,,..,,...,...,...,.,.,,,,,.,.,.,.,
+#IYB7OB2ID4UVFVHQKSVBSFVGZUIMN2L2USXV64KG6C34CRSSYARUUN2D7SS2POZJXLTTSS7BEIOJ6
+#\\\|QD3SGOBY6AWKYJBTUQRERLXLVQ4WMJCWPJUGUCWWCWW3TMFIV7O \ / AMOS7 \ YOURUM ::
+#\[7]WWOVAGD4LSUJ6XQO4TMUOAJG6BLB6PMT6XDXCQUUDOGUVDEF62CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

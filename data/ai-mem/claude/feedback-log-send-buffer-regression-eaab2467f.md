@@ -1,19 +1,19 @@
 ---
-name: feedback-log-send-buffer-regression-94f90886f
-description: the log send-buffer's notify_online request went through <system.init_reports> since 94f90886f [ 2026-07-18 ] -- one-shot flush at verification ran BEFORE the request in every zenka without an early event loop turn : their p7-log files silently stopped. fixed 2026-09-30 with a session guard + one-time re-arm ; how it was found
+name: feedback-log-send-buffer-regression-9ea6c9e8b
+description: the log send-buffer's notify_online request went through <system.init_reports> since 9ea6c9e8b [ 2026-07-18 ] -- one-shot flush at verification ran BEFORE the request in every zenka without an early event loop turn : their p7-log files silently stopped. fixed 2026-09-30 with a session guard + one-time re-arm ; how it was found
 metadata:
   type: feedback
 ---
 
 **the bug** : `base.log.send-buffer.*` starts every send buffer paused and
 asks `v7-zenki.notify_online p7-log` from an idle callback [ design since
-2021, 8544897b6 ]. 94f90886f moved that request from a direct `send.local`
+2021, 8544897b6 ]. 9ea6c9e8b moved that request from a direct `send.local`
 into `<system.init_reports>` to fix "callback fires before the session".
 init_reports flushes ONCE, at instance verification. zenki without an early
 event loop turn [ invoke-web, mod-test, calc, system .. ] handle the
 verification in the first loop turn, THEN go idle -> the request lands in a
 queue nobody flushes -> buffer paused forever, the zenka's p7-log file stops
-[ calc's last log : the day of 94f90886f ]. zenki with their own session key
+[ calc's last log : the day of 9ea6c9e8b ]. zenki with their own session key
 generation worked by accident : `crypt.C25519.gen_keys` turns the loop
 [ `event.once(0.007)`, since 2021 ] before the connect.
 
@@ -42,8 +42,8 @@ systems around it while still not knowing what is happening". the premise
 - `v7-zenki.notify_online` is not logged by v7-zenki ; the zenka side is where
   it shows
 
-#,,,.,,..,.,,,,,,,,,,,,.,,,,,,,.,,.,.,..,,..,,..,,...,...,.,,,.,.,,..,..,,,.,,
-#DAZ565MJ24DNGZSICTRLK7MZA7SYN6LGDWMXHKPZFCW3ZBZKYLKKRF2ITBJUJXIDFNJXZUL5ZBOLM
-#\\\|IYAJCOTJ3VYCILAPNBGSGTZX2PA2VKKH5BTHSUZJTVUHDEY3M4E \ / AMOS7 \ YOURUM ::
-#\[7]WVBAXGRNTB6B3POXNPUQVN7ICB7Y2LSN6KYAUJWPOPPBRX23YIDI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,..,...,...,..,,,,,,.,,,...,.,.,..,,...,..,,.,,,,..,,.,,..,,.,,,
+#LDYMY5XLSR54K3PTHXCAGAOA6PXBS7OBIPM7ZXTER2ASU4VB3GMIV6OKPV2NJXAIOE2IK3BMYYP5M
+#\\\|XVPBIUW7DMYG6XYTSRRSV5O5HVU27N2P2ASEDRE5PJVUNM42NHW \ / AMOS7 \ YOURUM ::
+#\[7]H6QV26I7KNG7NFCJNKZ3QVBRR7KDD4HLAVYBT3P6TFQ2QSDGSQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

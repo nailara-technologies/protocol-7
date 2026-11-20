@@ -8,14 +8,14 @@ metadata:
 builds on [[session-handover-rcm-builds]].
 
 landed + pushed [ hub base ] :
-- WEQ 2 0aa738011 ; one unlock per key 75b86f1df ; RCM 1 + 2 406f0048f dc31ffb65
-- sign agent own dir \ crash line \ events.log 0383081b5 ; keys rename host pins + known: prefix a12c18db3
-- managed challenge alias ecfd024d5 [ nameserv.ensure-challenge-alias, letsencr calls it ]
-- SEGV fix 5d85e3f06 : truth fallbacks were calc_true -> bridging wrapper recursion on a cold inline cache
-- release AMOS7-v6.77.7 9e39ca6e4 [ tag pushed ] ; base.file.temp File::Path b7234b63a
-- p7-deps 6556bac76 : deps after dist-upgrade + apt verified by module load [ worked live : IPC::Shm::Simple -> cpan ]
+- WEQ 2 21cb7c97f ; one unlock per key d3dfdda07 ; RCM 1 + 2 fec620aca af7a10299
+- sign agent own dir \ crash line \ events.log 2fad3ac44 ; keys rename host pins + known: prefix 8812ac572
+- managed challenge alias 50dc65f5e [ nameserv.ensure-challenge-alias, letsencr calls it ]
+- SEGV fix b3f7dddec : truth fallbacks were calc_true -> bridging wrapper recursion on a cold inline cache
+- release AMOS7-v6.77.7 4c928ba97 [ tag pushed ] ; base.file.temp File::Path 688e2c18f
+- p7-deps a03ce5afb : deps after dist-upgrade + apt verified by module load [ worked live : IPC::Shm::Simple -> cpan ]
 
-servers : all four on a0e2b987e [ 6.77.7 + p7-deps fix ], clean starts, 0 missing deps -- 13:15
+servers : all four on d644193fb [ 6.77.7 + p7-deps fix ], clean starts, 0 missing deps -- 13:15
 - deploy : `p7c v7-zenki.start_once :wait-down: pull-git`, deps check, then `p7c v7-zenki.teardown`
 
 open :
@@ -26,8 +26,8 @@ open :
 
 lesson : test a deploy on a COLD inline cache, the bridge path never ran locally. cube restart = all zenki reconnect.
 
-#,,,,,,,,,,,,,,,,,..,,...,,,,,.,.,.,.,,.,,,,,,..,,...,...,.,,,,,.,.,,,,,.,,..,
-#MPH7WNNLXV4WAPFU5DAVQSRUYYDAUXNH3ZLTAZLEAGQVDQIKKB5IBOFAKYZXL3WZSH5WPYR5SXGYK
-#\\\|U44EKSULLRCJTRYGV6RWSF7WLJZAA7NWA4VCGWW2XDI5NAQSKJR \ / AMOS7 \ YOURUM ::
-#\[7]YXWMQ4SLDETMVMMYYMFILAQ7DGQ6EDYIC74EUOSGWHJACCQTKCAA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,.,,,,,,...,.,.,,,.,..,,.,.,,,,,..,,...,..,,...,...,,,.,.,.,.,,,
+#MRI2IM6EHCO6RLB5ET5SR47KMHXDGBKNISI2LR2DGBUSGA6TEUEDPRZMR33HVXJIUZOP73BGQEDGQ
+#\\\|2ILNHSRV3HWVKMT7DNWCBT3UN57ALZMMPVKKTBZIUOQCN4CKS3M \ / AMOS7 \ YOURUM ::
+#\[7]X57FW7FMLADCGOKJSSRJ7QXH77FFI4H7RQXQGOWBLEWDEYZ5O4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

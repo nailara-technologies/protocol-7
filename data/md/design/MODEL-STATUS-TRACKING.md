@@ -1,8 +1,8 @@
 # model functional status tracking + sweep iterator — design
 
-**LANDED same day as this doc, 2026-08-27** (`faff2a420` — per-
+**LANDED same day as this doc, 2026-08-27** (`b7a91f9c4` — per-
 `(checksum,backend)` status tracking + `coding.model_status.cmd.model-
-status`; `0d5e09684` — the async model-sweep iterator +
+status`; `4b16510a2` — the async model-sweep iterator +
 `coding.model_sweep.cmd.model-sweep`). Confirmed live 2026-09-17:
 `p7c coding.model-status` returns real persisted entries
 (`state/model_status.yaml` under the coding zenka's dir), `p7c
@@ -196,8 +196,8 @@ double-claim from.
 
 ```
 
-#,,..,,.,,,.,,..,,,.,,..,,,,,,.,,,,.,,,,.,,,,,..,,...,...,..,,.,.,...,,,,,.,,,
-#XCSZK4THMCOVPBFMKXBHTDPRDQOO4VZVKW74UAJXKW34UPX57J6JPPJ3YNWBLMUOUMUI7KM73JYVQ
-#\\\|5PGITSW4GOEQ4DTAZ24NHEPPV6UW77JJJWATK4N6752YYVQSKOT \ / AMOS7 \ YOURUM ::
-#\[7]DS62C62IPVPODVHFW7XY37JMM76JHPSLH45SYAHCYUVGDZ6ADOCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,,,,,.,,,.,.,.,...,..,,,..,,,,,..,,...,...,..,,.,,,,,,,,,.,,,,,
+#D6F5KLM6CHX522TSLMCJHQ3UQRNGCXMUP52JZGKLYEQ6OJFMKBM4RN4FVNE23SAPRJGVYXMMYEVVM
+#\\\|AWMXKPPNBPFJZFT6RQUPODTBUUVPJVVKSNH3T72ZVF35LVEZJI5 \ / AMOS7 \ YOURUM ::
+#\[7]ZAWWKNU3TUCITXVPKY4GKTOSD3IUC2MTJDOH6G3UQNUBIV7AZ4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

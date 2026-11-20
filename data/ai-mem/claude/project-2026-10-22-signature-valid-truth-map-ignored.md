@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-22-signature-valid-truth-map-ignored
-description: FIXED 2026-11-05 [ 66f759706, todo VWF ] : source.signature_valid ignores a caller's truth map -- owner 2026-11-05 : highly relevant, features with topologically significant truth distinctions build on it
+description: FIXED 2026-11-05 [ 25fc3740f, todo VWF ] : source.signature_valid ignores a caller's truth map -- owner 2026-11-05 : highly relevant, features with topologically significant truth distinctions build on it
 metadata:
   type: project
 ---
@@ -17,12 +17,12 @@ switches as a parameter for form signing ]. todo priority raised to high 2026-11
 match, Ed25519 ] stay outside it, never relaxable. related : [[project-2026-10-22-shm-permissions-forgeable-open]]
 [ same SIGNED-STATEMENTS review ].
 
-**FIXED 2026-11-05 [ 66f759706 ] :** effective map = defaults + valid caller entries [ known keys,
+**FIXED 2026-11-05 [ 25fc3740f ] :** effective map = defaults + valid caller entries [ known keys,
 0 \ OP \ RQ, anything else ignored ] ; caller hash no longer written to ; truth checks only. every caller still
 passes {} -- a non-default map is untested until the form footer type uses one : add its test then.
 
-#,,,.,,,,,..,,.,.,..,,.,,,.,,,.,,,,,,,...,,,,,..,,...,...,,,,,..,,.,.,,.,,...,
-#HV5NALLAWV76QP7XOF7SAAOHGSU4P5H42RFWWEFUEYYOTDZMF5O7PCV7AU5BA7E5JIVQOZJRPCWQG
-#\\\|6MIKTRA5JU27PADL4YYJLM6ZQGKM2LSTIZLXPAACJ3RF56G6UW3 \ / AMOS7 \ YOURUM ::
-#\[7]X2ELD4T6VNBWEDKUJHW3VHIQNRJPCCWTALUYIPC5ANAE5C23M2AA 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,...,..,,..,,...,...,,,.,,,,,,,.,..,,...,...,,..,,.,,.,,,.,.,.,.,
+#4PANC3BXZWOE6UCPSSY3EBGQ345XSCWLCDB45RORE2MFMORGJO4HPZ5SRS7U4N42HMIPBYMCHY3BG
+#\\\|DDWU2E2WVQIS6Z7OQKO2TVBC2MV47NXOWNSATQJZ6I4UAHVQPCZ \ / AMOS7 \ YOURUM ::
+#\[7]L4CVJJ24MCEYNE6DY5XJ2FVVT5YO3RU7CBATYYMEYSY47HYZJIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

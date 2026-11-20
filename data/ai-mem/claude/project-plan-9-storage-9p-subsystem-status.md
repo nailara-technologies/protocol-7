@@ -93,7 +93,7 @@ tree containing both a contained symlink and one escaping the export
 root, confirming all three symlink policies behave correctly and
 recursion/byte-content is correct at every level.
 
-Landed as `c6f5a9310`.
+Landed as `9e759cc39`.
 
 ## update 2026-08-22 (third round, same day): Tcreate/Tremove landed via kimi k2.7
 
@@ -303,8 +303,8 @@ against the real filesystem), resizing a directory rejected.
   before signing — don't assume the placeholder convention was
   followed correctly just because it looks plausible at a glance.
 
-#,,,.,,,.,,,.,.,,,.,,,,,.,..,,..,,,,,,.,.,,.,,..,,...,...,..,,.,.,,,.,..,,,..,
-#VNHOXJDQD7XEJCYIROKJZCK3CGYI2LAILDN7AM2NVETALJB767YQ4BOKL3IKYAW4H3YYFRSIY3XLA
-#\\\|QHVF3GSSOTMP5BHURXKKXW44AUZTRPRL3AOUR7TM277QK7YD5FK \ / AMOS7 \ YOURUM ::
-#\[7]QVOWUES64NMWELV3VYT5LZNOKT6CETOHR4DORK4MR5YH4E7HXIBA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,.,.,,,.,.,.,.,,,.,,,.,,,..,,..,,...,...,.,.,,.,,..,,.,.,,.,,
+#AEQ7CJR4GPPBT5HOCJL5CEFMZ3XKJQEWJEDYPTTODDY5GJ6W4BQLSRWT6GWDST4WARAIUA3DYTX5E
+#\\\|W6W4VKORZTMDK64WAEYOGW3WSA2EBY3MANLENOF5UOJHDILEKRB \ / AMOS7 \ YOURUM ::
+#\[7]OFDWCB7ZJ4KF2DVGUJLISXR2CKXMQALWWCO2WLVOZ2TYSVQQC6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: cpanm-triggered-inline-elf-utf8-boundary-bug
-description: "FULLY CLOSED 2026-08-26, committed 521f5f867 + a833fd4ec: sudo cpanm --force forced a perl 5.40.1->5.42.3 version churn that surfaced two real 2021-era C-source bugs in AMOS7::CHKSUM::ELF::inline_elf (stale-len STRLEN underflow, forced u8_len=1 misalignment) AND, once the resulting keys.backup.* infrastructure enabled a real end-to-end test, a THIRD independent 2021-era bug in crypt.C25519.load_keypair (read wrong key file, unconditional prefix-strip) that was the actual root cause of .secret-bearing keys failing to re-encrypt; all three fixed and empirically verified against a real key, all changes committed and signed"
+description: "FULLY CLOSED 2026-08-26, committed 67928c32e + ad59bfd35: sudo cpanm --force forced a perl 5.40.1->5.42.3 version churn that surfaced two real 2021-era C-source bugs in AMOS7::CHKSUM::ELF::inline_elf (stale-len STRLEN underflow, forced u8_len=1 misalignment) AND, once the resulting keys.backup.* infrastructure enabled a real end-to-end test, a THIRD independent 2021-era bug in crypt.C25519.load_keypair (read wrong key file, unconditional prefix-strip) that was the actual root cause of .secret-bearing keys failing to re-encrypt; all three fixed and empirically verified against a real key, all changes committed and signed"
 metadata:
   type: feedback
 ---
@@ -105,7 +105,7 @@ every attempt I made) and built a working two-step recovery tool.
 which will not survive — copied and path-fixed to
 `data/ai-mem/kimi/p7-elf-ab-recovery-harness/recover_key.pl`, syntax
 verified ; REMOVED from the tree 2026-11-13 by the owner, still in git at
-521f5f867 : `git show 521f5f867:data/ai-mem/kimi/p7-elf-ab-recovery-harness/recover_key.pl`): `derive` mode (run under `/usr/bin/perl5.40-x86_64-linux-gnu`)
+67928c32e : `git show 67928c32e:data/ai-mem/kimi/p7-elf-ab-recovery-harness/recover_key.pl`): `derive` mode (run under `/usr/bin/perl5.40-x86_64-linux-gnu`)
 boots the old `inline_elf`+`bit_string_to_num` `.so` files and calls the
 real `AMOS7::13::key_32(\$pass)` with them, prompting for the passphrase
 via STDIN — never touching an AI session or shell history. `decrypt` mode
@@ -300,11 +300,11 @@ touched deliberately; user restored it with `git restore`. Worth a
 signing-tool file-type-filter fix someday (exclude binaries), but not
 chased further this session.
 
-**Committed and landed on `base`**: `521f5f867` (60 files — the actual
+**Committed and landed on `base`**: `67928c32e` (60 files — the actual
 fix: `inline_elf`, `crypt.C25519.load_keypair`, all six `keys.backup.*`
 modules, three new `keys.console.*` commands, the three fixed existing
 `keys.console.*` commands, `sourcecode.console.verify-p7-signatures`,
-task docs, memory) then `a833fd4ec` (2202 files — the pure signature-
+task docs, memory) then `ad59bfd35` (2202 files — the pure signature-
 only re-sign under the corrected algorithm, split from the real fix via
 `bin/admin/vc-changed-files -sig-only` so the meaningful diff isn't
 buried in mechanical churn; includes one incidental real change, an
@@ -328,8 +328,8 @@ since `Inline->bind` validates it exists rather than creating it. Full
 recipe in [[torch-worker-zenka-foundation]], which needs this pattern
 for its planned `torch.init_code` module.
 
-#,,..,...,..,,..,,,,,,,..,..,,,.,,,,.,.,,,...,.,.,...,...,...,,..,..,,,..,,..,
-#UIWIPWVJTABJZMK7TL43L2LK4RI3LYBDEWTULDGRKBDIDSAQNYWN3O3TUX7WBHWLOAMNCPIEN5MJK
-#\\\|B22JLDHP3TQMALBSI56R4IN7H6GGBM3FVCCFVVAKFAI23D5YGU3 \ / AMOS7 \ YOURUM ::
-#\[7]CZF4ZYOFUXE6RWWXATGHXCFKVFOPPTIWKID6V4TNQDNDAICKVYAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,.,,,,,,.,,,,..,...,...,.,.,.,,,.,.,...,..,,.,.,..,,,,.,...,,.,,
+#DPSY3A2YD7RBDHNXBBJAIBMOJTOM3RCK2DGVKQWAQUDVWDX5E32GE7QLOFXFS3CKKEMCDCN3TR5N6
+#\\\|I5HI4AJDYXUZCU4E7CNFUKIVTW23XIIYOG54MIYXXX27IKNOZJP \ / AMOS7 \ YOURUM ::
+#\[7]FT73JBBVXX5KVYN7DGNA6F6JNPXBGDXEAQBBMXCPDQM6MMAK3UDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

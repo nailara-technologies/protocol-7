@@ -8,7 +8,7 @@ finished (effectively "bottom of page"), never the header, and never
 anything in between. This session already built fast single-jump
 scroll-position commands (`web-browser.cmd.set-pos-y` / `set-fg-pos` /
 `set-bg-pos-y`, see `data/tasks/web-browser-fast-scroll-position-commands.md`
-— landed, commit `760fd2a3c`) to replace the slow animated auto-scroll, but
+— landed, commit `0676eaa7f`) to replace the slow animated auto-scroll, but
 nothing yet uses them to capture MULTIPLE positions down a page. Also: the
 existing `web-browser.swap_views` double-buffer fade transition (load next
 page into background view, cross-fade in) is pointless in headless/batch
@@ -43,7 +43,7 @@ across 227+ pages. This task adds both.
   `WEBKIT_LOAD_FINISHED` (not directly read this session — verify live).
 - `src/web-browser.cmd.start-capture-slideshow` +
   `src/web-browser.handler.capture_on_fade` — the existing capture watcher
-  (this session, commit `7de3c1f93`... actually `d9ca830b5`, verify via
+  (this session, commit `7b3d32fd7`... actually `d21a2fecd`, verify via
   `git log --grep`). Watches `<web-browser.slideshow.url_index>` advancing
   and snapshots the page that was JUST displayed (one iteration behind,
   pre-swap foreground). This task's paging capture needs to happen INSTEAD
@@ -245,7 +245,7 @@ Verified stable with the exact real page that triggered the emergency
 
 All touched `src/*` files pass `bin/dev/ptd -c`. The web-browser instance is
 left online and capture disarmed. Note: an automated signing pass committed the
-initial implementation as `4e4021bde`; the bug-fix changes above are currently
+initial implementation as `73037b3d3`; the bug-fix changes above are currently
 uncommitted working-tree changes.
 
 **Independently re-verified 2026-08-29** (not just kimi's self-report): ran the
@@ -258,8 +258,8 @@ clobbered the real signature applied after the first commit) — stripped again,
 see `feedback-fake-signature-marks-ai-scratch-content.md`. Fix confirmed
 working; ready for signing + commit.
 
-#,,.,,,,,,,..,.,,,,,.,,.,,,..,.,,,...,,.,,,.,,..,,...,...,...,,,.,.,.,..,,,,,,
-#72OBLRXV6PLNYJ235SLDW3LRZQ6QT7SUTNCPJSTBBHHZUHIKBGUOOWQ6SQT46FYQO6A2O57LHERNW
-#\\\|YAVWGMKBNAU5HBP635WKNLL7Z2WXYCS6M7T5S2BZEA4NY4SGSJL \ / AMOS7 \ YOURUM ::
-#\[7]6EYXG2EDDOUKLFDG2KKUQEQSGJ4VNWFLK6A53DNOIVJUML4XXSBY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,.,,,,..,..,,,,,,..,,,.,,...,..,,...,...,..,,.,,,,..,,.,,,..,
+#Q6RKFHNRZANEDQXUJJFXMDL6PTMAC223OUVR7E5O24C373POMNFFUS5EQR7IFSGI3WTR6NP4LH2AQ
+#\\\|F2J46FVLXTFKLJHAIQ5ED5OUKOIXLFM2667WVNW7AIJGIPXKLTT \ / AMOS7 \ YOURUM ::
+#\[7]YV36FDOLBUT5PNYHMLAKGK54OBL55ODR4L44DAGM3NM3LCKF7WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

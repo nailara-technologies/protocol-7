@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-27-session-handover-usbipd-wsl
-description: overnight session [ ~04:30 ] : WSL usbipd host-USB commands on the powershell zenka , async deferred attach , wedge-proof powershell.exec , editor wrap-spin fix , kimi-legacy shim repair ; commits c37c63580..54ae2453e ; follow-ups listed
+description: overnight session [ ~04:30 ] : WSL usbipd host-USB commands on the powershell zenka , async deferred attach , wedge-proof powershell.exec , editor wrap-spin fix , kimi-legacy shim repair ; commits cc8e62165..d33a373a3 ; follow-ups listed
 metadata:
   type: project
 ---
@@ -10,14 +10,14 @@ USB passthrough -> usbipd-win 5.3.0 on the windows host. session grew into
 the full host-bridge hardening of the powershell zenka.
 
 **landed [ commits on base , unpushed ] :**
-- c37c63580 : requirement docs : usbipd commands , ext-pkg winget manager
+- cc8e62165 : requirement docs : usbipd commands , ext-pkg winget manager
   [ windows-side sibling ] , dependency-chain-self-ensure roadmap
-- 45740bff3 : `powershell.cmd.usbipd-{list,attach,detach}` [ list uses
+- e430dd4d3 : `powershell.cmd.usbipd-{list,attach,detach}` [ list uses
   'mode size' for multi-line , attach is DEFERRED + poll-timer ] ,
   `powershell.handler.attach_poll` , wedge-proof `powershell.exec`
-- 11cf1d92a : editor wrap-spin fix : `detail_editor_wrap_segments` clamped
+- d40b1f0e5 : editor wrap-spin fix : `detail_editor_wrap_segments` clamped
   to width >= 1 [ headless zero-width spun 9h at 99% cpu ]
-- 54ae2453e : `powershell.exec` IO::Select autoload WITHOUT import list --
+- d33a373a3 : `powershell.exec` IO::Select autoload WITHOUT import list --
   qw|IO::Select| made base.perlmod.autoload fail , aborting init_code
   midway [ usbipd_path never resolved -> plugins claimed 'not installed' ]
 
@@ -60,8 +60,8 @@ the full host-bridge hardening of the powershell zenka.
   native linux later , gfx card RMA ; `bin/p7-install` landed [ parallel
   session ] -- Blackview bootstrap = first exercise of dependency-chain
 
-#,,..,,,,,...,,.,,,.,,...,,,.,,..,,,,,,.,,.,,,..,,...,...,.,.,.,.,.,,,,..,.,,,
-#A433GLPL5ZFITC7HUC5OV4Z4AM6IK7K6AO2QYEANM4PT5SYDG7YOD2LIIY5XN5O4MUK6SV2ALXC2O
-#\\\|RDAJQAZFJYB3R5EXUBVM5ZMCFKYQ7VRVG76YLNGW56PZ7S2JSI4 \ / AMOS7 \ YOURUM ::
-#\[7]I7CB5WWN7LWRGN7J6MQZYXE2KF5MOUK7ZOKKDWAUV27WGFVK4GCA 7  DATA SIGNATURE ::
+#,,..,,,,,...,,.,,..,,..,,...,,,,,.,,,...,.,,,..,,...,..,,,,.,,,,,,.,,.,,,..,,
+#H67QYCLCJQSW7THAAL6T46ADKAUV6HOXFT46LUYPBYXGKSPHBYWVQB2YR27CYXV6FEXSJ3HZB64O6
+#\\\|WWMCXYDN5HZFX27H4JBGXUG5TTO3HBSWA2F5EOVZRTMTYP7DWDT \ / AMOS7 \ YOURUM ::
+#\[7]ZNNTBR6CNCWHXCRKBY7LKTPMWTYSXGYYOVABSZXJ7Z7KGVVVLOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

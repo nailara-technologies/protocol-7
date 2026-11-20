@@ -19,7 +19,7 @@ so the ledger never reads json.
 added 2026-11-17 : the owner's idea set of 2026-11-16 as sections 15 to 22
 [ remainders, nested units, clean units and trunks, shadow accounts, buffer
 pools, fairness curves, the design test ; section 22 is the map and the
-conflicts ], questions 35 to 47. stage 1a is built [ b41ef81db ] and
+conflicts ], questions 35 to 47. stage 1a is built [ 026ef76c2 ] and
 unchanged ; the status line above predates it.
 
 sources read : `read-me/documentation/dev/NRT.NRD.asc`,
@@ -139,7 +139,7 @@ lost : it flows on or back, and the next cycle distributes again.
   4 h ]. the ntime year is 4200 x 86400 x 365 = 132 451 200 000 units, which
   13 does not divide, so a frame boundary is not a whole ntime. the frame of
   an ntime is `floor( ntime x 13^level / 132451200000 )` in exact arithmetic.
-  that function exists : `AMOS7::cell::time::frame` [ 2b87fcc73 ], and the
+  that function exists : `AMOS7::cell::time::frame` [ 3bef478fe ], and the
   ledger calls it instead of computing an index of its own. a frame index is
   absolute and never wraps. the float helpers of `AMOS7::NTIME` and the n7fs
   `epoch_int` are not used : the latter is off by one at 10082 level 1
@@ -1475,7 +1475,7 @@ closed ; stage 1a waits for format 4 stage 1, stage 2 for format 4 stage 3.
 
 sections 15 to 21 fold the owner's idea set of 2026-11-16 into the design ;
 section 22 maps each idea to its place and lists the conflicts. stage 1a
-[ `AMOS7::NRT`, `bin/nrt`, b41ef81db ] is built and not changed by any of
+[ `AMOS7::NRT`, `bin/nrt`, 026ef76c2 ] is built and not changed by any of
 it : every rule below lands in 1b or a later stage.
 
 **the rule.** whenever drops are divided by weights, every party receives the
@@ -2315,8 +2315,8 @@ from the contradictions of section 9.
     things : what a pool refuses never left the giver ; what a pool holds
     above its capacity returns by use.
 
-#,,.,,.,.,,,.,..,,..,,,,.,,..,.,,,,.,,.,.,.,,,..,,...,...,...,...,...,,..,,..,
-#ILJOR3WWAWCTEIFK3Y47UWET6OBCPRK2JTRXFR2NYZ4Z747WQXYDHAIOPJIVYZ3YWVNWSQWX7SF5I
-#\\\|EARPNVFLY53VIHP57IWQ5UX5GR4OQAUZKA2HJJTD3RVBMFTYBSS \ / AMOS7 \ YOURUM ::
-#\[7]3IQ6PYQ4HPL52BGLR6M7LT3SLGT5NW3IWHFDRPTBAUQDOCNWUYAA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,..,,.,,,..,...,.,,,,..,,,.,,,.,..,,...,...,.,.,...,,.,,.,.,.,.,
+#HLGIVWGONC2XFT33MXXPLHDV6VA2LWMCEPXRGGPK3KKVOSQMLLRJOO5W5PNHRONKM77UG4QW6E3MY
+#\\\|IJURQW4FDGW4BW2CM4P7GJVBYI2BOCKH5QH7GKJXSP6OOCAMBES \ / AMOS7 \ YOURUM ::
+#\[7]4H5FK2AAXVLTIDYQ2OVI622EBA4WZZCEYUHCFV5ADLQVCEH6A4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

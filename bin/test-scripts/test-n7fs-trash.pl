@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 ## review finding 2 : gc grace + trash + restore + purge, one holder
-## subdirectory per root, holder-migrate [ the host lock is e317e4eb6 ].
+## subdirectory per root, holder-migrate [ the host lock is f5bd660d6 ].
 
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
@@ -493,8 +493,8 @@ sub _today {
 
 done();
 
-#,,,,,,.,,.,.,.,,,,.,,,..,...,,,.,.,,,...,,..,..,,...,...,.,.,,,,,,,.,.,,,.,,,
-#Y7O3SHISQ7XGKX3WWBJ5BOJOHOSC4ULZEOFKJ7C5K2X7HE3BGWGG6Q645LAHACOPEGHC42BK6ELKG
-#\\\|VENBXIJKLBPQ5BTHXJZAZ4T72ENGG5ROEE6BQLFX72W655BPF6J \ / AMOS7 \ YOURUM ::
-#\[7]XBSMZMR3M2WYBPTTWRAQ2FGXRDYZWDFW2HFAOES26JZZVAFJUKAI 7  DATA SIGNATURE ::
+#,,.,,...,..,,,.,,..,,,,,,..,,.,.,,,,,.,.,,.,,..,,...,..,,...,..,,...,,..,,..,
+#VFCNNGHEM6X4GZFPVP2VMHCCUULTG7K3XVJAVDMGM5RAAMWQ7WLFN6CUR52QFAFR3R6FPGXBXXGBY
+#\\\|EN7KZ2OHRB5DFMH3YNV3SGFU2JBK4KU62BV5MQDW2XSDR37INMA \ / AMOS7 \ YOURUM ::
+#\[7]CAIX333GMDXP6BE7OWPCPMNTALEFCM7SEO7IID26T3FQIJ5VMKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

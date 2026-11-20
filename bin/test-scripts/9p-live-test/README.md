@@ -3,7 +3,7 @@
 Rescued from `/tmp/p7-9p-test/` (2026-08-22, ephemeral, would not have
 survived a reboot) after the `storage.9p.*` client review/fix pass — see
 `git log` for `storage.9p.*`/`plan-9.protocol.constants.pre_init` around
-commit `980604b86` for the bugs these harnesses helped find and confirm
+commit `671ccfc63` for the bugs these harnesses helped find and confirm
 fixed.
 
 All scripts load the *real* `src/*` module sources and apply the P7
@@ -39,8 +39,8 @@ the protocol layer itself.
 - **\*.log** — captured output from the harness/daemon runs referenced
   above.
 
-#,,,.,,..,.,.,...,,,,,,.,,,..,.,.,,,.,...,,.,,..,,...,...,...,.,.,...,,,,,.,.,
-#DMEQFRXV22Z2LAHUGTB4XMB7WDNFDFLM5VDJSXTXOMB5RVIZX5KOZTH52QG5H46ZHWMPR7HY6KIKG
-#\\\|OZQBFOVO5FPFAMPRXF5USXHWJMEZISG3PMMRQD3WML754HV5RRF \ / AMOS7 \ YOURUM ::
-#\[7]XUL3D3E6FUXZWYNIRHBQVEAWD7VSPNK3IW6DVTMXVWWHR3D45MCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,...,...,,,.,...,..,,,..,,,,,,,,,..,,...,...,...,...,,,,,,.,,..,,
+#SMRLFAIZL4SYKZDUL3Z3PORVHLLLCK2UTHD4ZBHPMEISWVTEXYEMXUFXVY2WYFR7SOS6R2A6ICOH2
+#\\\|2A7OWOEZ56XOXIOADYJ7PYLDTDLBJYTBSKQWQUZEO7OLIWUDOUD \ / AMOS7 \ YOURUM ::
+#\[7]TJNURBJMKJUQQESM7LRM53CKIIHQOJNPFKM5NIOK2F4W3LYINWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 implement `data/md/design/HOST-ROOT-DELEGATION.md` [ read ALL of it,
 especially "decisions", "root-held keys", "resolver API", "delegation
 file", "host-root fingerprint" ] plus the base it builds on,
-`data/md/design/AUTH-LINK-BINDING.md` [ live since afd71cec7 ].
+`data/md/design/AUTH-LINK-BINDING.md` [ live since ecaa9b1ac ].
 security-critical : fail closed, minimal diffs. spec wrong or ambiguous
 on a point -> STOP on that point and report it, do not improvise.
 
@@ -93,8 +93,8 @@ the test vector, all test output, mutation checks [ break the ownership
 rule check, the fingerprint compare, the expiry check, the subject check
 -- each must fail tests -- restore byte-identical ], open questions.
 
-#,,,.,.,.,,.,,.,.,..,,..,,,.,,...,...,,,,,.,.,..,,...,...,..,,..,,,..,,,.,..,,
-#GZG3TOSXF5KKKGHKWGGVAFBLQGAER7HYLF7WV45FDPG4BO5HM7VW55IZ3XYX5XNGRYM7575JDUOSG
-#\\\|HOPESPB7Y5V7AK3XOXRRSX5AY6EHOLRLII3HDDBECWSGAODCIVJ \ / AMOS7 \ YOURUM ::
-#\[7]SVOLM6A3B6J2RME4DX6JXHNBAKHZAII6CB6DYJG47H3CP7VNAKAY 7  DATA SIGNATURE ::
+#,,.,,...,...,..,,.,,,,,,,,.,,,.,,,.,,.,.,.,,,..,,...,...,...,,,,,,,.,.,,,,..,
+#CFKT6KOE5N4CCAO36XUCNZJB546QY5ZV3YZ7XMW6GZC4A5MC4SXPLON35VK3ZW5UFJ22ZGAD2GDOU
+#\\\|RR7TMYBCVFOG5NJWLHQL3NGC5KVCS6QMAWN2OGHR23BXH2G5V4A \ / AMOS7 \ YOURUM ::
+#\[7]SPIDQZJDAU7PL7GJNAZ4AFRNF6Y5FLPBXYDGW5FYJO5JVU2M6WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

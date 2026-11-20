@@ -6,7 +6,7 @@ metadata:
 ---
 
 researched 2026-11-05 for a clean start, read-only. interrupted 2026-10-25 : [[project-2026-10-25-session-handover-worker-host-config]]
-named it the owner's next focus, production issues came first. no n7fs code commit since d13fc7ef3 \ ac8317cda
+named it the owner's next focus, production issues came first. no n7fs code commit since 368aa5ca2 \ 6d8d4f125
 [ 2026-10-18 ], design only after that [ files zenka 10-22, assimilation depths 10-21 ].
 
 **exists**
@@ -39,8 +39,8 @@ kimi for implementation, claude for format decisions and review. this order is a
 
 #
 
-#,,..,,.,,,..,,,.,...,.,,,,..,,..,...,,,,,,..,..,,...,..,,.,,,,,.,.,,,...,,..,
-#57W675TKRGKMHOVV7U6VJAQE4TWGIUDSAFO7KEJYPUHBCONSBI6ENDMERB5UR323FWZFQ355KW7AE
-#\\\|CQ5G2H6JXY2PGC3IH3HFVR3O63UTXLPNAU2WAE2ZZHEMW77KXLH \ / AMOS7 \ YOURUM ::
-#\[7]C3J2C3O7IXJXBNQLI56XXKKAF5657MTVON6JJJCKTKZIHOESE6DA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,.,,,.,,,..,.,.,...,,..,,..,..,,...,...,...,,,,,.,,,,,.,,,,,
+#YJH3XHVDH63ODICBU3SHHTWUED7G6ISZP6QCFRVJVWVCAI3K3NAKPRGL4QLNVNDMLLKFYRNRA3SEM
+#\\\|P5JFASO6NRELNUYSZGHT5QAVAJREOGTVDX7NTZMDLMN3D632IZJ \ / AMOS7 \ YOURUM ::
+#\[7]VH4BN7BBJFX5JTROGZRYTWOAROIPE3UCGSJGZCV5PFI4XUNRS2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

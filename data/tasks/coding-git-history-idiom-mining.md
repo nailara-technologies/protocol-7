@@ -10,7 +10,7 @@
 raised 2026-09-10, fourth follow-on in the idiom-adherence thread, after
 `coding-control-vector-p7-idioms.md`, `coding-lora-p7-idioms.md`
 (original synthetic-dataset attempt), and `coding-idiom-gate-p7-idioms.md`
-(the shipped non-ML fallback, commit `21cf8e3ed`). that closure commit
+(the shipped non-ML fallback, commit `6a476ed45`). that closure commit
 already named the real gap directly: a mean-diff control vector and a
 from-scratch synthetic SFT dataset both lack "the in-distribution
 training data every prior ML attempt lacked and had to synthesize" --
@@ -70,7 +70,7 @@ itself, given we wanted to improve its iteration capabilities."
 10 after an initial (wrong) dormancy claim got corrected in-session:**
 `src/` -> `base-code/` (renamed `b4389cc64`, 2021-03-27) -> `modules/`
 (renamed `8a46ac4b3`, 2021-07-07) -> back to `src/` (renamed
-`f0cbcb805`, 2026-08-20). any history-mining tool MUST query all three
+`ae0f457eb`, 2026-08-20). any history-mining tool MUST query all three
 path names for their respective date ranges, or `git log --follow`
 per-file (directory rename detection needs the explicit multi-pathspec
 form, `--follow` alone only tracks a single file through renames).
@@ -121,7 +121,7 @@ precision tiers, both checked live 2026-09-10:**
   convention|refactor.*to use|swap.*to|normalize` across subject+body**
   (`git log --grep`, which searches the FULL message even though
   `--oneline` only displays the subject -- sample-verified real, not a
-  regex artifact: `d10f10269`'s body reads "Fixed using the File::stat
+  regex artifact: `b6763325d`'s body reads "Fixed using the File::stat
   OO idiom already established elsewhere in P7", invisible from a
   subject-line skim). Lower precision -- a body can mention "idiom" or
   "convention" incidentally inside an unrelated bugfix writeup -- but
@@ -201,7 +201,7 @@ commit routinely mixes idiom-relevant and unrelated changes):
 
 **the mining approach's admission test (does idiom density increase old
 -> new) says nothing about whether the "after" is actually CORRECT.**
-found live in the curated output: `ceabe25ea` ("screenshot zenka: style
+found live in the curated output: `10981169b` ("screenshot zenka: style
 refresh fixes...") substituted `time` (a plain unix timestamp) with
 `<[base.ntime]>->(0) // time` for a screenshot filename. `base.ntime.*`
 is real, legitimate P7 infrastructure -- confirmed there was a genuine,
@@ -251,13 +251,13 @@ restricted to `src/ modules/ base-code/ bin/`, per-hunk:
   ONE high-precision slice of history, before touching the 586-commit
   broad-recall tier or the remaining ~6259 commits in the full pool.
 
-sample-verified real, not noise: `a2830891` alone contributes a clean
+sample-verified real, not noise: `a875bcce` alone contributes a clean
 run of `# Capitalized comment` -> `## lowercase comment` pairs (exactly
 the `comment` rubric category) across `# Check APT packages`, `# Check
 CPAN modules`, `# Install APT packages`, etc. -- genuine, human-made,
 same-shape corrections, not cherry-picked. some hunks in the sample are
 messier (a color-value change bundled with a comment addition,
-`783305a9`) -- expect real noise at this stage, the rating/dedup pass
+`6b415987`) -- expect real noise at this stage, the rating/dedup pass
 in scope item 4 exists specifically to handle that, not a reason to
 distrust the volume estimate.
 
@@ -282,7 +282,7 @@ total, before the rating/dedup pass.
    workload version yet).
 4. rating/dedup pass per the hazards above, before any training run.
 5b. **decided 2026-09-11**: user manually spot-checked the 302-row
-    curated corpus after the `ceabe25ea` removal -- acceptable, small
+    curated corpus after the `10981169b` removal -- acceptable, small
     but genuinely P7-idiomatic. Proceeding to train on it as-is rather
     than a full systematic review first; if validation shows real
     influence, THEN invest in refining/expanding the corpus further
@@ -297,8 +297,8 @@ total, before the rating/dedup pass.
    `--flash-attn off` fix in `coding.spawn_inference_server`) --
    none of that was dataset-specific and all of it is still correct.
 
-#,,.,,.,,,,.,,.,,,...,...,.,,,.,,,,.,,...,,,.,..,,...,...,.,,,,.,,,,.,,,.,.,.,
-#U5XZYCT6WA3DC3WZN4KP42EYEQPMDFUWIGNMPR5BHFWKFQEBLHCXDYMHXRZU7ROQDJYYL7FVDO2LC
-#\\\|A2BGWQ3ZS5QDJPEDTI34ZJ5RZYH2YBZSBLIUN3SMPIXWK4BYA6U \ / AMOS7 \ YOURUM ::
-#\[7]VKMDHQKNGST23WYD4BEO4ME2SBVEZXPIMSF5SEXDXJPNAFKUZODI 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,...,,,,,.,,,...,,,.,,,,,.,,,..,,...,...,..,,..,,..,,.,,,.,.,
+#GTKNJRRLY4CTMDBXCM3BAY5D35F3H2FRVC2CVMP5LOBTWURL7E6WX5G4QNNQDFNXSBWZR6N3MO26W
+#\\\|BOZGT4LX6J2BUI476LUVGVQ6A34CLQBDQEB24CMGA6X6IUYOOOU \ / AMOS7 \ YOURUM ::
+#\[7]77OHWYKLHO2RAABUFSSJ5ABD4JM77F2AY2CJJQUZZLNIWHB47MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

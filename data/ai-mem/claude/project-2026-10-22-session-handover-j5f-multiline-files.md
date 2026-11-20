@@ -1,38 +1,38 @@
 ---
 name: project-2026-10-22-session-handover-j5f-multiline-files
-description: START HERE -- session 2026-10-22 [ evening ] handover [ last 1c52db2c1, all pushed, history REWRITTEN ] : J5F multi-line args in p7c \ p-7-r + coding.input.decode, multi-line parser fixes, message templates ; designs FILES-ZENKA [ files \ file-view, N7FS ] and SIGNED-STATEMENTS [ v1 signed lists ] in base, owner answers recorded ; todos FKS VWF ; cpu-only assessment stall fixed [ enqueue + spawn verify ] ; commit messages relabelled srv-<x> [ force-pushed, remotes reset ] ; todos T3I C6U 4WM
+description: START HERE -- session 2026-10-22 [ evening ] handover [ last 2fccf8973, all pushed, history REWRITTEN ] : J5F multi-line args in p7c \ p-7-r + coding.input.decode, multi-line parser fixes, message templates ; designs FILES-ZENKA [ files \ file-view, N7FS ] and SIGNED-STATEMENTS [ v1 signed lists ] in base, owner answers recorded ; todos FKS VWF ; cpu-only assessment stall fixed [ enqueue + spawn verify ] ; commit messages relabelled srv-<x> [ force-pushed, remotes reset ] ; todos T3I C6U 4WM
 metadata:
   type: project
 ---
 
 previous : [[project-2026-10-22-session-handover-remote-fetch-link]] [ its
 open items 1, 2, 4, 6 still stand ; item 3 : all six cloud docs landed in
-3a06655c4 ]. budget at the end : claude 7d ~25 %, kimi 7d ~8 %, cloud
+37eb43c67 ]. budget at the end : claude 7d ~25 %, kimi 7d ~8 %, cloud
 credits 22 of 100 [ expire 2026-11-05 ; after that cloud sessions draw
 the regular session budget ].
 
 ## landed [ pushed, live-tested on this host only ]
 
-- a7f46506a J5F : p7c \ p-7-r send an argument with a linebreak in
+- b7a1594d4 J5F : p7c \ p-7-r send an argument with a linebreak in
   MULTI-LINE mode [ '<cmd>+', empty header, args as body, '.' -- the mode
   existed, B32 was not needed ] ; dot-stuffing ONLY for lines of dots
   alone [ hand-typed '.foo' passes ; owner : compat with old remotes is
   no issue, update them in a loop -- pick the best form ]
-- a7f46506a base.handler.command : capture NON-GREEDY [ a pipelined 2nd
+- b7a1594d4 base.handler.command : capture NON-GREEDY [ a pipelined 2nd
   packet was swallowed ] ; inner strip + incomplete check take the
   capture's strict head [ replies frame with SIZE \ STRM, never '+' ;
   '(id)cmd' without a blank is the route form ]
-- a7f46506a coding.input.decode : plain \ B32: \ :file: , no base32
+- b7a1594d4 coding.input.decode : plain \ B32: \ :file: , no base32
   guessing, :file: repo tree only [ realpath, tree check before existence,
   256K \ summarize 4M ] ; submit \ summarize-context \ ask-reply use it ;
   summarize-context path= confined ; mcp-server-p7 summarize-file reads
   client-side and sends :B32: [ active after an MCP server restart ]
-- 198c82f6a a refused '+' head drops its packet [ stripped to its '.'
+- dcd639d78 a refused '+' head drops its packet [ stripped to its '.'
   line, else session ignore_ml_packet until it arrives ] -- before, its
   body ran as single-line commands ; replies \ logs as templates A6ZTSCY
   KA4I2BY OAZPKOI H7KA5EY M2MLE6A ; param syntax reply APPENDED [ '='
   overwrote waiting replies ]
-- c98d323ba strip re-sign [ kimi left a signature fragment ]
+- 9d46ba81e strip re-sign [ kimi left a signature fragment ]
 - todo J5F : PROGRESS line, remaining items listed there
 
 ## deploy notes
@@ -45,7 +45,7 @@ the regular session budget ].
 - devmod for tests : `p7c v7-zenki.devmod-enable coding` [ safe SIGNUM51, no
   restart ] -> `coding.receive-multiline` echoes ; `devmod-clear` after
 
-## design : files + file-view [ afb1ca66f, answers ae50788b9 ]
+## design : files + file-view [ 97a9ee98b, answers 25a164034 ]
 
 - data/md/design/FILES-ZENKA.md [ in base, dev branch deleted ] : `files`
   [ name decided : `file.*` is the base.file.* alias space ] holds read
@@ -69,7 +69,7 @@ the regular session budget ].
   lock_memory, signed permissions, fuse ], storage [ P7REF, checksum
   plugins, 9P client ], plan-9 [ 9P server ], keys, index, fs, udev
 
-## design : signed statements [ 8e0260ef1, answers adcff4bee ]
+## design : signed statements [ c57b2ff8f, answers 8265c3dc1 ]
 
 - data/md/design/SIGNED-STATEMENTS.md : the stalled 'clean signature
   trees' question [ format + location ]. v1 = text + the AMOS7 footer,
@@ -120,11 +120,11 @@ the regular session budget ].
 - todos : T3I [ gpu.enabled = auto must detect ], C6U [ self-test holds a
   cpu backend for an hour+ ], 4WM [ stage 3 auto-install ]
 
-## night 2026-10-22 \ 23 : srv-U assessments run [ 65227edd8, 2b97a3aa6 ]
+## night 2026-10-22 \ 23 : srv-U assessments run [ 9d51f3c7d, 2390b6390 ]
 
 - STALL CAUSE 3 \ 4 : routed_to holds service names [ coding.helper.
-  task_backend, de18b5af5 ] ; data-start timeout used the gpu prefill
-  rate [ cpu default 15 t\s, bbffc7bac ; measured on srv-U ~23 t\s, ttft
+  task_backend, cb57a7e37 ] ; data-start timeout used the gpu prefill
+  rate [ cpu default 15 t\s, f04e1584b ; measured on srv-U ~23 t\s, ttft
   ~200 s for 4.6K tokens, output ~2.7 t\s ]
 - srv-U host.cfg : coding.cfg.round_soft_ceiling = 777 [ 384 cut every
   first attempt ; an assessment takes ~8-9 min ] -- todo WFC sizes both
@@ -133,7 +133,7 @@ the regular session budget ].
   handoff -> send_request paused -> release .. nested -> deep recursion
   warning = emergency exit 110 [ bin/Protocol-7 __WARN__ handler ], end
   code killed llama. root race : inference_server dependency said ready
-  before the self-test ended, a task beat the probe. fixed 65227edd8 :
+  before the self-test ended, a task beat the probe. fixed 9d51f3c7d :
   coding.async.backend_dispatch_next [ loop, none while paused ], resume
   points kick both lock queues, dependency waits while paused. verified
   live : self-test alone, then the queue resumed
@@ -144,25 +144,25 @@ the regular session budget ].
 - self-test riddle [ cat \ mouse, the cat is the constant ] : local gpu,
   same model, reasoning off : plain 58 % cat, '[ logic riddle ]' title
   37 %, 'pure logic riddle' 40 %, 'not a trick question' up front worse ;
-  in the follow-up hint it recovers 12 of 12 [ 08642a765 ]. answer check
+  in the follow-up hint it recovers 12 of 12 [ 96e7f051f ]. answer check
   now reads which animal is NAMED [ coding.self_test.named_candidate,
-  2b97a3aa6 ] : a reply naming mouse but echoing 'cat' had passed
+  2390b6390 ] : a reply naming mouse but echoing 'cat' had passed
 - prompt 3 fails on cpu without reasoning ; the queue resumes on fail too
-- jobsite [ 61b4e60e9 ] : TRUE \ FALSE reply handlers get { sid, cmd,
+- jobsite [ c92129ef7 ] : TRUE \ FALSE reply handlers get { sid, cmd,
   call_args, params } -- no mode \ data. base.reply.mode_text ; jobsite.
   dispatch.release_slot [ only the slot holder counts down \ dispatches ].
   live on srv-U : ONE assessment in flight [ was 469 ], no FATAL
-- JMG [ f920dbb6a ] : watchdog asks task.show, re-arms up to 24 x 777 s.
+- JMG [ 4ae10da23 ] : watchdog asks task.show, re-arms up to 24 x 777 s.
   5UC : kimi reviewed 15 handlers, 10 defects, kimi fixed 8 [ checked ],
   cred-mesh [ dialog answers were dropped ] + ncode by me
-- ncfg [ 78e44abba ] : base.parse_ncfg_code level stack, repeats merge,
+- ncfg [ 53e698a88 ] : base.parse_ncfg_code level stack, repeats merge,
   raw sections 'name [ n bytes ]' after an empty line, '\#' ;
   base.format.ncfg writer ; base.load_section_code uses the parser ; 124
   files parse identically ; all four v7-zenki reload init clean.
   ncode.cmd.transform answers ncfg [ .cmd. data must be a STRING --
   structures in a plain routine, ncode.transform.run ]. todo FMC
 - srv-U host.cfg has coding.cfg.round_soft_ceiling = 777 [ manual ]
-- assessment speed [ 531e57a4a, 0b6be8dbe, 69785d21a ] : models sent
+- assessment speed [ df5f69e9e, aea07bc87, 516225543 ] : models sent
   unmarked base32 -> ask-reply never saw :simple: \ :no_tools: ; now
   ':B32:' everywhere [ kimi decodes before :next: ] ; coding.input.decode
   called base.base32.decode [ the swapped name is base32.decode ] ;
@@ -175,7 +175,7 @@ the regular session budget ].
   domain's wildcard caught github.com [ no AAAA ] ; todo 5W7
 - labels are ssh aliases [ a second name on each Host line ] -- p-7-r
   pins by HostName, the existing pins hold
-- web login [ 00374a453 .. 89288f588 ] : https cut bodies at a tls record
+- web login [ f72fcca94 .. 6ff49cc16 ] : https cut bodies at a tls record
   [ base.ssl.write took EAGAIN \ SSL_WANT_WRITE for an error ] ; token
   dirs lost setgid [ make_path chmod, then File::stat shadowed the fix --
   CORE::stat ] ; file.open truncated, failed its chmod and UNLINKED a file
@@ -186,10 +186,10 @@ the regular session budget ].
   AMOS [ 2^35 ] -> L13. no shared budget anywhere [ owner : no dos lever ]
 - base.list.subroutines still lacks plugin.web.auth.admin_caller +
   web.cmd.auth-revoke [ the loader does not read it ]
-- LATER 2026-10-23 : a3e4dc4c8 steps 0+1 live [ 403 on plain http, L13
-  tokens, destroy_session takes qw| hash | ] ; d34eb7d82 site-yaml decoded
+- LATER 2026-10-23 : 4b950a030 steps 0+1 live [ 403 on plain http, L13
+  tokens, destroy_session takes qw| hash | ] ; 430600ef0 site-yaml decoded
   the fetched page twice [ the whole double encoding ] + bin/harmony
-  fixed point 124 -> 9 -> 4 -> 4 [ P7_HARMONY_CHAIN ] ; 653d8d14a failed
+  fixed point 124 -> 9 -> 4 -> 4 [ P7_HARMONY_CHAIN ] ; 85836fee3 failed
   command args logged shortened
 - KIMI admission [ session 66d4c901-2c68-41e7-9795-2666a885c0de, k3 ] :
   13 modules plugin.web.auth.admit.* + httpd.route.handler.web-login +
@@ -202,7 +202,7 @@ the regular session budget ].
 - signing : the owner signs WITHOUT auto-staging now -- stage each commit
   myself ; never stage kimi files before review. restart httpd \ httpsd \
   web \ site-yaml with :twin: [ site-yaml lacks drain : todo ]
-- local coding still runs pre-0b6be8dbe code [ base.base32.decode error ]
+- local coding still runs pre-aea07bc87 code [ base.base32.decode error ]
   -- restart when the owner says [ reloads the gpu model ]
 - NEXT SESSION, in order : ZYH [ local gpu models claims from srv-U's task
   queue : models.cfg.task_zenka, link local -> srv-U, grants ; restart
@@ -224,9 +224,9 @@ the regular session budget ].
   24218 in-file ids remapped [ rewrite-hash-refs -f ] + 94 digit-only ids
   by hand [ the tool skips them by design ] ; 5734 files re-signed ;
   force push base + tags ; all four remotes fetch + reset --hard +
-  restore-p7-permissions -> all at 1c52db2c1, clean
+  restore-p7-permissions -> all at 2fccf8973, clean
 - filter pitfalls found in the dry run : two of the names are ordinary
-  words [ one a host only from 1a01f4240 on [ new node ], phrase excludes ;
+  words [ one a host only from 2e317ff61 on [ new node ], phrase excludes ;
   the other an x11 term after _NET_* \ FIFO ], YOURUM upper case is the
   signature name, a todo command shares a name and must stay [ it also hid
   one real host name, memory relabel 2026-10-23 ] -- and an inner regex match inside s///e
@@ -250,8 +250,8 @@ the regular session budget ].
 - any 'deep recursion' warning ends a zenka [ exit 110 ] -- a synchronous
   handoff chain over a queue must be a loop
 
-#,,.,,,,,,,,.,,.,,,.,,.,.,,,,,..,,.,,,..,,,.,,..,,...,...,..,,,,,,,..,.,,,,,.,
-#NMQD4RVFJMWH4OI5DA2NK7LWL7BO5ZMZJMLRITNUBGFWX4FXE5TVWLP2R2UKNGXASPRMJIE4J4VJK
-#\\\|FWJEJVCKEOXZKR4O2MWCIZCYHLJDI4ZPBFWQNWBZ325P74WKKCJ \ / AMOS7 \ YOURUM ::
-#\[7]OUUDB3LEFSNCGISFKPBRBEUIBO3YMVZNQYWVJKTUQM2XWWLY7YCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,,.,,.,,,,..,,.,,..,,,.,,,,,,..,,...,...,.,,,...,,..,.,.,.,,,
+#YRABEPBP3YPPJGHM3XYZ36ZXV3V7S3SA2GKDLGSOLO4QZNAP3AW6FUSSCYWFKCDN6XERPU2PZI67M
+#\\\|TX3ZY64JHOTECFJ7LOMI65U6CFYEOAZ6Q4OOVOJYRI7VWFGXNJJ \ / AMOS7 \ YOURUM ::
+#\[7]GJRTOY53JDSXRIX76EU7L2ZN4GDYZGISIO3SJJJ4QCSILPC7CIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

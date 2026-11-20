@@ -1,13 +1,13 @@
 ---
 name: project-images-elfdb-planning-base
-description: planning base for the new images \ elfdb zenki [ 2026-09-29, 8bc85b723 ] -- start from data/tasks/images-elfdb-feature-collection.md, not from scratch ; names are provisional
+description: planning base for the new images \ elfdb zenki [ 2026-09-29, 94728efb6 ] -- start from data/tasks/images-elfdb-feature-collection.md, not from scratch ; names are provisional
 metadata:
   type: project
 ---
 
 the user's direction for two new zenki [ working names `images`, `elfdb` ;
 names provisional, a rename is cheap ] is collected in
-`data/tasks/images-elfdb-feature-collection.md` [ 8bc85b723 ] : iterative
+`data/tasks/images-elfdb-feature-collection.md` [ 94728efb6 ] : iterative
 text-to-image feedback pipelines [ often 100+ iterations, reliable threshold
 crossing ], a self-refining dataset [ 49963 images ] without entropy loss,
 the color wheel \ iris \ spiral topology [ 1x1 .. 3x3 core ring ], elves
@@ -33,8 +33,8 @@ color wheel topology come up, open the feature collection first and extend
 it by category ; keep the addressing layer separate from image semantics
 and the elf build generic underneath [ both are stated design rules there ].
 
-#,,.,,,..,..,,,,,,.,.,..,,,,,,,,,,,..,,.,,...,..,,...,...,.,.,.,,,,.,,.,.,,..,
-#MQK5VTFR2D6GID2XOYIX5YWPMEM4TMDFR4CYBANQCHVENEKCIC6XK2JBFJLPFFLQJMOI4IYQHTIJO
-#\\\|JTJHEVM7JB4CK5O7NY4QKWBP5L267JLFFTX2TDYLQR7GIKDJERU \ / AMOS7 \ YOURUM ::
-#\[7]DUWKV5BWO32UDMGC6FK2AOQUZQCDGX7LP4CPURCHF5WXHQPPQCAI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,.,,,.,,..,.,.,..,,,,,,.,.,,,,,..,,...,...,...,.,,,,,.,,,.,,,.,
+#2P7P4EE4HWXCHDAV54KDKLCVYR4R534GTGTX453PYUAMU65HCNG6V7QOBR7D3BFGRSK6V57Z3SBH6
+#\\\|H3GD4DRNU6AGQ5GK5MZKNB6WQMRPCDXU2QSD7OV75GSTHJ4CQE5 \ / AMOS7 \ YOURUM ::
+#\[7]DYJPFIF6RFLU6RPPRYV7UFILHS5MQMPO4HYECR4FLVQ6RRFPZMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

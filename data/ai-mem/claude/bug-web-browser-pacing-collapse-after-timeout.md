@@ -32,7 +32,7 @@ the FIRST timeout, never before.
 **Fix**: `handler.capture_page_timeout` now also sets
 `<web-browser.time.fade_complete> = <[base.time]>->(3);` right after the
 force-clear, so an abandoned page paces the same as a normal completion.
-Landed, commit `c271c84f0`.
+Landed, commit `0a5a7d328`.
 
 **Diagnosis discipline that found it**: found via pure code reading
 (tracing `capture_paged.advance` → `handler.slideshow`'s delay formula),
@@ -49,8 +49,8 @@ the normal path does — a recovery path that skips ONE state update the
 happy path always performed can look fine in isolation and only misbehave
 cumulatively, after the first time it's actually exercised.
 
-#,,,,,.,.,.,.,,,.,.,,,,.,,,..,,,.,...,,.,,,,.,..,,...,...,,,.,...,,,,,,,.,,.,,
-#F4IFHOGNROAS33QCJT7IVNLO4ZUCJYBQIXXTBSWLWD2SRXP4NBKKVK2PN54IWI77LFMQ6ZFBEBPKU
-#\\\|R3ISUJRBVPBYGQRARNPTRI3VQ3OVHJXKXWW55L4Q57O7MHOCIET \ / AMOS7 \ YOURUM ::
-#\[7]VKHIKYV6JCYT6O5JF6DHLV5YCQMGK4Q2KETT5BJUDEIZS3SVPIBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,..,,,..,,,.,,,,,,,.,.,,,.,.,..,,...,...,.,,,..,,...,.,.,...,
+#AL3SA6IC2PJ2KVC54CMU3O5IFQZ3C2MLW6FOZDANTHBD72OCM2GON5QCAKFLDEC577LPSAYLVMZVC
+#\\\|MAUD5QWW6WSECD2KUP5JIEGUXKT2NWTYEL6KWKQUALCS3Q3DX7Y \ / AMOS7 \ YOURUM ::
+#\[7]A6EW3ZFRMOY7R4BI4T62ABXAP4Z72CH5ZDOFHTHQ6AA3NCYMKEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,15 +12,15 @@ init-done:TRUE themselves ] has none, so v7-zenki cannot start it. with a
 start.cfg, v7-zenki starts it with empty args, `base.call.console_command`
 falls through to `commands`, it prints its command table, exits, and
 restart-loops [ seen for session \ work ; their start.cfg came from models
-not knowing this, removed 2026-09-30, b29c8d8d8 ].
+not knowing this, removed 2026-09-30, a297b223c ].
 
 **How to apply:** never add a start.cfg to a zenka whose zenka.v7 has no
 `[zenka.loop]` \ `[init-done:TRUE]` path ; when creating a zenka, decide
 managed vs console-only first. related :
 data/tasks/zenka-hybrid-startup-followups.md
 
-#,,..,..,,.,.,.,,,...,,,,,..,,,.,,.,.,,..,.,,,..,,...,...,.,.,,..,,..,,,.,,.,,
-#XDX2FISBQ2TUVZDX7GCKXN43WKGKMBNZ4LN7LZOIZ5NNWQEDOXZ3NXNXKNE7DLRV56ATFYQ4EEM2W
-#\\\|2WNG4TDYUG7HLPJVQL4DZRKHSAQVGV5NCGDJLF4G3Q23KO7KN6A \ / AMOS7 \ YOURUM ::
-#\[7]MEU2D7JWNY2SVDKDQFUZUQLOJYLE2OXVDNB5ZKAZH3NZZ3PFDMAI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,,,,.,,.,,,,.,,.,,,.,.,,.,,,,.,..,,...,...,.,.,,.,,...,.,,,,,.,
+#ABZMSJDSTDHL3HHRVFCFUVU6M5NWZCS3L5X763EZVWVTIKNUHCOQZQJ2YTSVHOXCDV3H56YN7XHCA
+#\\\|TKDTQNAUFBILCFFV2OLZSNSCRLVVO5FMRMNTCLUUFJSRWMIAQPY \ / AMOS7 \ YOURUM ::
+#\[7]PWPDD5ANB6HG7WL4H6LOKGOCEBUF4HFMYD5R7PRZCAY5IDR3KGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

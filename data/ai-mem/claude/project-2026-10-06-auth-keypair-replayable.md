@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-06-auth-keypair-replayable
-description: FIXED 2026-10-06 [ afd71cec7, LIVE PASSED 2026-10-07 ] : auth-keypair's client line `auth <user> <session_pub> <sig>` signs ONLY the client's own stable session pubkey -- no server nonce, sent plaintext before link-upgrade -> one observed line replays forever from any IP ; nothing later proves possession ; same raw-pubkey message as sign_keys' .sig files [ no domain separation ]. fix = mutual binding, folded into the link-upgrade server proof
+description: FIXED 2026-10-06 [ ecaa9b1ac, LIVE PASSED 2026-10-07 ] : auth-keypair's client line `auth <user> <session_pub> <sig>` signs ONLY the client's own stable session pubkey -- no server nonce, sent plaintext before link-upgrade -> one observed line replays forever from any IP ; nothing later proves possession ; same raw-pubkey message as sign_keys' .sig files [ no domain separation ]. fix = mutual binding, folded into the link-upgrade server proof
 metadata:
   type: project
 ---
@@ -31,8 +31,8 @@ found while designing the link-upgrade server proof [ trust chain step 1,
 **exposure today** : TCP links are localhost \ own nodes only [ external
 `self` ] -> low ; it BLOCKS the real second host.
 
-**landed 2026-10-06** : `afd71cec7` [ + `084c229f2` gen_keys supplied
-secret kept, `4a4b121b3` spec + tests ]. lanes found + fixed on the way :
+**landed 2026-10-06** : `ecaa9b1ac` [ + `081748f33` gen_keys supplied
+secret kept, `a52ccfb34` spec + tests ]. lanes found + fixed on the way :
 p-7-r popen shell injection from server replies, plaintext frame temp
 files, p7c's half-built link-upgrade [ removed ]. NOT yet live-checked :
 cube restart \ reload plugins + source, rebuild p7c \ p-7-r, re-open
@@ -71,8 +71,8 @@ also found : `bin/p7-link-upgrade-helper.pl` takes the ephemeral secret
 
 **FOUND + FIXED 2026-10-07 [ taeki.base rotation ] :** `plugin.auth.auth-keypair.load-authorized-users` ran ONCE [ cube zenka.v7 ] and only ever ADDED to `$keys{'authorized-remote'}` -> a rotated client key needed a cube restart, and a key revoked via `keys drop-authorized` stayed VALID until restart. now the table is rebuilt on every call [ unreadable \ missing dir : nobody authorized, level 0 log ] and `plugin.auth.auth-keypair.init_code` reloads it on `$reinit` [ cube `reload plugins` ]. test : bin/test-scripts/test-auth-keypair-authorized-reload.pl [ 11 checks, old loader fails 4 ]. note : cube's client TOFU pin is `remote-keys/incoming/<user>.public`, `authorized/cube/<user>.public` symlinks to it ; test-auth-keypair.public -> user-keys/protocol-7.base.public.
 
-#,,.,,...,.,,,,.,,,,.,,.,,,,.,,,.,,,.,,.,,,,,,..,,...,...,..,,,,.,,.,,..,,,,.,
-#6C25JKUWVZRYWY6HZ2VCFD4SJTMFTDHKVYMUWU5OMQWDTYMIF3NTZDWQN5LHI4RX5C4L65DSYLKQW
-#\\\|NRHMK6KXD3SBN6VJP2PSWGMH2GWW4HCU4EFYZXIAS7QRDRZCZOG \ / AMOS7 \ YOURUM ::
-#\[7]NBA5HLLSNPW4RS4S5BGBX3JO3V5WASTRDJMMYP546KB4TNZQD2DQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,.,.,,,,.,,,,.,..,,,..,,..,.,.,..,,...,...,.,.,.,,,...,...,.,,,
+#CD2KIGVM2W2DPN6TD7ESMWXNIJOOXSTQU2UFIWH3PWHUMKSHCNOXXBAMPOE6UGTGRQN23LZUWRP2K
+#\\\|WNNT4J274YCJW22KJCFIEZSDOZWGXVJ3YNNI3CK23DGPBEJUHDO \ / AMOS7 \ YOURUM ::
+#\[7]OU2DJNA6QWJJ2MOCEXWWDD5GWQ6YQ5LCSWKWNYTLKRKWMK3DYWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-28-clean-bare-host-install-srv-16
-description: 2026-10-28 milestone : srv-16 [ fresh debian, root, opted in ] went bare -> p7-install -> running boot-enabled service with extended, first clean pass of the whole chain [ wanted for 25 years ] ; commits cf534de4a .. f64d89267 ; open : route-history verdict, discover peers [ wsl nat, owner root ], nodes orbital-p7ref spam
+description: 2026-10-28 milestone : srv-16 [ fresh debian, root, opted in ] went bare -> p7-install -> running boot-enabled service with extended, first clean pass of the whole chain [ wanted for 25 years ] ; commits 53edb5f2c .. 9d6607ede ; open : route-history verdict, discover peers [ wsl nat, owner root ], nodes orbital-p7ref spam
 metadata:
   type: project
 ---
@@ -11,7 +11,7 @@ without warnings, the deps a zenka misses installed at its start. README
 gained the p7-install \ profiles \ auto-install sections and the milestone
 line [ user : "after 25 years of wanting that" ].
 
-**the chain as it stands [ commits cf534de4a .. f64d89267 ]**
+**the chain as it stands [ commits 53edb5f2c .. 9d6607ede ]**
 - opt-in gate covers standalone `bin/Protocol-7 <zenka>` starts as root,
   bounded to init [ flag cleared after base.init ]
 - boot-early modules [ needed before any install code exists ] : the xz
@@ -33,7 +33,7 @@ line [ user : "after 25 years of wanting that" ].
   network copies later [ osf-cache style ]
 
 **open**
-- route history [ 9a9459835 ] waits for the next 'reply to unknown route
+- route history [ b1e8982de ] waits for the next 'reply to unknown route
   id' -- the tcpdump install hang on srv-16 [ debian at its 420s idle edge
   after discover's dep jobs ] was not reproducible ; next step if it says
   'removed' : a deletion reason
@@ -48,8 +48,8 @@ line [ user : "after 25 years of wanting that" ].
 
 related : [[sys-deps-autoinstall-stage1]], [[perl-loader-gotchas-require-path-inline-c-qw]]
 
-#,,.,,,,.,,,,,,,,,.,,,..,,,,.,..,,.,.,,,.,,,.,..,,...,...,...,,.,,.,,,,,.,,.,,
-#4VLCA6YW47B5UYYF5AAM4SNTGPHLMRQ5EQIQM3KY4HPDF7TVCG7ENKKPJEFBXCWV3QEXNDY4Q6TWI
-#\\\|DLJJIVO3F3KF2CWIMCN33YTH4NNENQD5XWPPJZUUVGCZCGEGNLS \ / AMOS7 \ YOURUM ::
-#\[7]RIVPYIUTMQLXL4SE23L7STZHRDFNXX7PHVWEWT7NTYS6IU2LU2DI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,.,,,,.,.,.,...,.,.,,.,,,,.,..,,..,,...,..,,,..,..,,,.,,,,,,..,,
+#KXOJNR2JDKWUA5KVG53MQUY4KF46QDZD7IF7PEUBKOJIRBJYXDXPFZ5USO6WZ37EIYGSGGGO2DQS2
+#\\\|KOZZPSISWLYVVXBTSJBUR4AVRHSMOGBYETXAULP7WOUOCFHZAZE \ / AMOS7 \ YOURUM ::
+#\[7]7JD3HSXR3YCEZQJ22FAG4C3D3IDWO6XQ6OBDEGTCPZZNZUS662DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,7 +14,7 @@ when this file was written (2026-08-26), `coding.async_spawn_inference_servers`
 had a literal placeholder comment where the CPU spawn block should be:
 `# Note: CPU server spawning can be added here if needed for fallback` /
 `# For now, focus on GPU server`. that's no longer true -- CPU startup
-spawn was implemented the same/next day (commit `dbf923b66`, "coding: fix
+spawn was implemented the same/next day (commit `e76b5b39f`, "coding: fix
 CPU inference spawn crash-loop and dead dependency wiring"): the function
 now has a full symmetric CPU spawn block (model path resolution,
 dependency gating via its own `spawn_ready_cpu`/`model_path_cpu` pair,
@@ -187,7 +187,7 @@ cited above, not just plausible-looking config plumbing.
 
 ### 2. CPU-only startup spawn -- DONE, see status update
 
-landed via commit `dbf923b66`, confirmed live 2026-08-27. no longer open
+landed via commit `e76b5b39f`, confirmed live 2026-08-27. no longer open
 work.
 
 ### 3. hybrid / partial offload -- bigger, separate investigation, still fully open
@@ -291,8 +291,8 @@ raw effort estimate.
   (`-ngl 11` confirmed in the live process), and a real self-test PASS
   serving inference through it (slower than full-GPU, genuinely working).
 
-#,,..,.,.,.,.,.,,,..,,,..,.,.,.,.,..,,...,,,.,..,,...,...,,.,,...,,,,,..,,..,,
-#BLURGEF5Q2YDJMROTFKG5TRTCKM5X4ILWTKE3K6XT6SZVRZFHKLJTXTGJKDHNLENNA2TM65ONDLIG
-#\\\|CXJUNNPQLIJOGIO62P7KG3LK7YGX5P4WZWQO2IKWDHUNCGPIVRO \ / AMOS7 \ YOURUM ::
-#\[7]SICFGF3C5DANSV4VU7GCEUAJQGU2UWBENC4JLWF5V5BTRN6GPYCY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,..,,,,,,.,,...,..,,,..,,..,,,,,..,,...,...,,.,,,,.,.,,,,.,,...,
+#Q5EXFGSJVHNZBX3NMS3U25X4QYW4KDJVZJDZNLPUYKGP7W4TRIAUYWOF5QONCL2TYQNDDYFJP7FYW
+#\\\|UUCBBDNM75PFMDTKLNIVFH4IPAGNXB2R5QIQOXQEE6ZYSKNB7UK \ / AMOS7 \ YOURUM ::
+#\[7]5LVZMDPOLOSSW342MBDCLBRIYDSSBGZJPQJSFCJ6FD2C6BLH2ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-24-srv-a-third-worker
-description: 2026-10-24 srv-A set up as srv-U's 3rd jobsite worker [ cpu, link label = its host name ] ; twofish random-key swap on srv-A + srv-U ; mem scope never worked non-root [ fixed 9406bea69 ] ; p7c 'task.create+' double-encodes ; open : first live assessment, srv-U reboot test
+description: 2026-10-24 srv-A set up as srv-U's 3rd jobsite worker [ cpu, link label = its host name ] ; twofish random-key swap on srv-A + srv-U ; mem scope never worked non-root [ fixed d7fb83f56 ] ; p7c 'task.create+' double-encodes ; open : first live assessment, srv-U reboot test
 metadata:
   type: project
 ---
@@ -31,7 +31,7 @@ tool-call hang does not block it.
 
 ## srv-U
 
-- `access.cmd.usr.<srv-A label>` [ 9406bea69 ] ; `external.authorize-link`
+- `access.cmd.usr.<srv-A label>` [ d7fb83f56 ] ; `external.authorize-link`
   done [ task-worker line kept ] ; jobsite assess_parallel = 3
   [ .bak-before-assess-parallel-3, reload config ]
 
@@ -54,7 +54,7 @@ tool-call hang does not block it.
 
 - coding mem_max [ layer 2 ] never worked for a non-root zenka :
   drop_privs sets XDG_RUNTIME_DIR = home, systemd-run --user finds no bus.
-  fixed 9406bea69 [ child gets /run/user/<uid>, 'bus' OR 'systemd/private'
+  fixed d7fb83f56 [ child gets /run/user/<uid>, 'bus' OR 'systemd/private'
   accepted -- srv-A has only the latter ; MemorySwapMax=0 ]. srv-U sets no
   mem_max at all [ unscoped ]
 - the dbus zenka [ session dbus-daemon ] cannot stand in for the systemd
@@ -87,7 +87,7 @@ tool-call hang does not block it.
   overlay for every zenka [ 11 of 127 today ]
 - the local-modifications commit used to carry host grants ; it is gone,
   /etc/protocol-7 is meant to replace it
-- LANDED 463db3371, DEPLOYED all four servers [ srv-F, srv-V, srv-A,
+- LANDED cf96ec813, DEPLOYED all four servers [ srv-F, srv-V, srv-A,
   srv-U in that order : copy -> pull -> `systemctl restart Protocol-7`
   -> verify -> old files to /root/p7-host-cfg-backup-2026-10-24/ ].
   live : every zenka logs the host-config path [ httpd \ models log no
@@ -117,7 +117,7 @@ tool-call hang does not block it.
 
 ## start profiles [ owner, 2026-10-24 ]
 
-- external left start-set-up.base [ it came in with 0c9478f48 as a side
+- external left start-set-up.base [ it came in with 4b9300991 as a side
   effect, never decided ] : a fresh host must not look like it already
   has connections to other hosts. new start-set-up.minimal = cube p7-log
   [ p7-log : without it no log reaches a file ]. a host with link
@@ -126,7 +126,7 @@ tool-call hang does not block it.
   [ its srv-V fetch link was DOWN after the restart : remote-server never
   started external at boot ]. owner : balance with fast, intuitive
   config [ the *-edit zenki ]
-- external.list links \ orbital landed 5bf4b5d95, all four servers
+- external.list links \ orbital landed 91668447b, all four servers
 
 ## format-code [ 2026-10-25 ]
 
@@ -152,14 +152,14 @@ tool-call hang does not block it.
   'sending jobsite.scan', jobsite cycle scanning. only the HH:13:07 timer
   itself untested [ same mechanism as the other events ]
 - optional : mem_max 14G + linger on srv-U
-- clients.https marker committed [ 463db3371 ; the untracked copy on
+- clients.https marker committed [ cf96ec813 ; the untracked copy on
   srv-U blocked the pull once : a `pull && restart` chain without set -e
   restarted on the OLD code -- harmless, old files were still in place ]
 - systemd-networkd-wait-online fails on srv-A since at least 10-18
   [ pre-existing ]
 
-#,,..,,..,,,,,.,,,,,,,.,.,,,.,,,.,,..,,.,,..,,..,,...,..,,...,.,,,..,,,..,.,.,
-#TJ5QWIWMLHGWSWLMO2ARUAABKN3VCTKLVZECUVQL2Q7YBROSCA2DQPT5DFZKRCNDQUGACVFT6G77A
-#\\\|IPPTDZRRQBSQKHGFQ3FJRLBJYWNEAWVEBSDVWRCHGVDQCF7O7SF \ / AMOS7 \ YOURUM ::
-#\[7]ZVOLNF26YIJXQZX3SQU3GONMIVTL4NKCMZE66UFNSDBJFUO3WIDA 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,.,,.,,,,,.,.,.,.,,,...,,,.,...,..,,...,...,..,,..,,,,,,,..,,,,,
+#4AS626BRQ4T662EDJZLSIFGPK73L77VPEXO7B5QXW2DTZIAHKIRSPJPSQBUSM7J22WT3M2KRHNJX6
+#\\\|JJ2HLALDWL6VYLHW6TAS7NR67C5Q3KXP6OXWUYMEMIOPT5EIZ4A \ / AMOS7 \ YOURUM ::
+#\[7]52JECFV2E23RCG6QFHOSDN7YIJ47IJSZPRGAQALN6MEGDA3GN2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,13 +7,13 @@ metadata:
 
 follows [[project-2026-11-05-session-handover-shm-a]].
 
-**landed** : 9dd6caa7d + 2aed9a96b host labels and neutral examples ; new label srv-16 [ not a project server ].
+**landed** : 20d3cd5a1 + 1b3674b5e host labels and neutral examples ; new label srv-16 [ not a project server ].
 archives, dn* nodes, service names and the private local address stay as they are. ssh aliases : desktop, and the
 four servers on srv-16 for its user [ names resolve, logins from there untested ].
 
-**letsencr fix** : ed16d0d9f wrote join( qw| |, .. ) -- an empty list, so NO separator : domain lists, alt_names and
+**letsencr fix** : a06852e99 wrote join( qw| |, .. ) -- an empty list, so NO separator : domain lists, alt_names and
 pinned addresses ran together. same in v7-zenki.cmd.jobsite-sync-token. all 6 now q{ }. the stale enroll test hid it
-by dying early. **deployed 2026-11-06 on all four servers** [ 390c46675, letsencr + v7-zenki reloaded ; owner : no multi-name certificates yet ]. was : renewals of multi-name certificates affected until a host has
+by dying early. **deployed 2026-11-06 on all four servers** [ 3d24d6056, letsencr + v7-zenki reloaded ; owner : no multi-name certificates yet ]. was : renewals of multi-name certificates affected until a host has
 the fix. full restart on all four the same day, base on-demand log dedup active. checked [ journal since 2026-10-31 ] :
 no certificate request or renewal logged on srv-V \ srv-A ; srv-U \ srv-F logs show none either but lack the 10-31 pull
 lines, so may not reach back that far.
@@ -31,8 +31,8 @@ job that died at startup ; todo PCJ ned paste modes, design recorded ; unsigned 
 **next** : N7FS, from [[project-2026-11-05-n7fs-current-state]] [ binary byte form first ]. labels later : automatic
 ones in [[reference-host-and-domain-labels]], may follow from the N7FS namespace.
 
-#,,,.,,.,,,,.,..,,,..,,,,,.,.,,,,,,,,,,,.,...,..,,...,...,...,.,.,,..,...,,,,,
-#Q4OLIJM5LO57KDGOGJUL6Q3IYC3I7APYUJWXB5OTQR3HJEU3MFTQ4JUXGTJHXARHQCYGPMGTYABKU
-#\\\|OCZC7754E3J5PUVTAFJKXSFN4C4CETTU54SSXXLRYWLVW2Q2ZDW \ / AMOS7 \ YOURUM ::
-#\[7]GTNKXINHGEW3T36NF24LRMCTFRDXYRTWMDMNCNSGKNGZFWIKAYCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,...,,,,,.,,,..,,..,,,.,,..,,..,,...,...,.,,,.,.,,..,.,.,.,,,
+#GBPNCA62QY3KB45VPT7XOVHKVQGV7WVPS2OC6DMBFGFIGHBDC6PGSFIMVZEC2KTZZYQUHF2SDGKK4
+#\\\|SGQT56GNL6CHN366667TICHP2EFKGWVVR36TS6QVX3B3REOSPWA \ / AMOS7 \ YOURUM ::
+#\[7]U5HMKSEHKB5RR6GKGDGS6SDB5SV4DUSPONHPAYQD5MQYKANWKGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

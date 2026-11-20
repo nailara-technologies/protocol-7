@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-29-session-handover-signing-agent-kimi-cli
-description: START HERE 2026-10-29 [ last 40c0fbc6f, tree clean ] : HX4 slice 1 committed but NOT for use [ approval binds paths, not contents -- the follow-up is next ], kimi dispatch moved to the current kimi cli with 'thinking' low|high|max, sign \ verify run as a chunk pool [ 2:18 -> 1:45 ], release AMOS7-v6.48.9, profile 'extended'. a resumed claude session keeps the OLD mcp tool schema -- start a NEW conversation to get 'thinking' + k3.1
+description: START HERE 2026-10-29 [ last 54f7a35d2, tree clean ] : HX4 slice 1 committed but NOT for use [ approval binds paths, not contents -- the follow-up is next ], kimi dispatch moved to the current kimi cli with 'thinking' low|high|max, sign \ verify run as a chunk pool [ 2:18 -> 1:45 ], release AMOS7-v6.48.9, profile 'extended'. a resumed claude session keeps the OLD mcp tool schema -- start a NEW conversation to get 'thinking' + k3.1
 metadata:
   type: project
 ---
@@ -19,7 +19,7 @@ metadata:
    stdin approval only behind an explicit test flag, constrain the 5 free
    bytes `(.{5})` at the end of the signed buffer, real zeroing in
    `secret_wipe` [ reuse the editor's deterministic wipes ]. commit
-   a32c7d0c0 says 'NOT for use yet'. dispatch as a NESTED, token-light
+   6a01f6795 says 'NOT for use yet'. dispatch as a NESTED, token-light
    kimi run [ todo RXG note ] with `thinking` chosen on purpose.
 2. a live `update-signatures :agent:` run against the real tree, once 1
    is in [ the client never ran inside the zenka before 2026-10-29 ;
@@ -33,8 +33,8 @@ metadata:
 - sign \ verify : workers per cpu split [ verify_workers_per_cpu 1,
   sign_workers_per_cpu 2 -- 8 cores \ 16 threads here ], size-balanced
   chunks run as a pool [ 480-file bench 2:18 -> 2:07 -> 1:45 ]
-- route history [ 9a9459835 ] for 'reply to unknown route id'
-- kimi dispatch on `~/.kimi-code/bin/kimi` [ 40c0fbc6f ] : `-p`, `-S`
+- route history [ b1e8982de ] for 'reply to unknown route id'
+- kimi dispatch on `~/.kimi-code/bin/kimi` [ 54f7a35d2 ] : `-p`, `-S`
   resume, `thinking` low|high|max via KIMI_MODEL_THINKING_EFFORT [ medium
   is rejected by the provider ], aliases k3.1 \ k3.1-fast ; a resumed
   session now runs unattended [ legacy idled after a client attached ]
@@ -66,8 +66,8 @@ srv-16 : route-history verdict pending ; discover peers [ this dev host is
 WSL2 behind nat -- `networkingMode=mirrored` or a native host ; owner root
 for trust ] ; nodes orbital-p7ref log spam ; `p7-deps help` drops `\`.
 
-#,,,,,,,.,.,.,...,,..,...,,..,,.,,..,,,.,,.,,,..,,...,...,...,,,.,,..,,,.,.,,,
-#GZOSMORUOBAMGD5Z3ADMGBMEEMCX4QZ7AZHDAZCALIEGSLRHWXYWGBVGKFOJ2UTFLJPWXTYO4QWRA
-#\\\|PNCJR5JOAKPNXUDW56ZAGCOLHQHGIWTQM56AWETXA3GME4OQIPV \ / AMOS7 \ YOURUM ::
-#\[7]LTMHMIMIBNDEGPU4HTSNYU64HX6VYR7KHW5CE6FNFMDZ64JAICCA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,.,,.,.,.,,,,,,,...,.,.,,.,,,..,..,,...,...,,..,..,,...,,,.,,,.,
+#37ABRB4ZKEXYENWQ5MZYLONF2IGAG7ZR6NGCJWH4FEXB2M3XDOWLX235QTRIH3QBZQXJEQ7BESCEK
+#\\\|QF3AUGX4NACPUCNJJJKLO23NS7MZRXE7TVVSCYXLGCEB7P4ZXXR \ / AMOS7 \ YOURUM ::
+#\[7]X3VLIENVB6PM3UZ4IPFEP453SBIS6TBVT4P3YORYKBRWCLZXLWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

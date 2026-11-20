@@ -12,7 +12,7 @@ gave many valid findings.
 **Why:** a scarce, high-yield reviewer ; unused days are lost.
 
 **How to apply:** spend it on review \ design where a fresh strong reader pays most :
-1. review of finding 5 stages 1-4 [ e0c4b7916 1061c8697 38f26e53b + stage 4 ] -- crypto \
+1. review of finding 5 stages 1-4 [ 72e66b43a d0704a848 8a335e231 + stage 4 ] -- crypto \
    nonce domains, release order, retain bucketing [ stage 2 already had a nonce reuse
    only caught in review ]
 2. design of the open findings 7 [ rollback ] 8 [ snapshot before pull ] 9 [ n7fs cycle,
@@ -41,8 +41,8 @@ RULE [ owner + claude 2026-11-16 ] : a Fable-type reset refunds ALL Fable use, s
 CONFIRMED [ owner 2026-11-16 ] : the full reset does NOT start a new 7-day window, it only zeroes usage inside the current one -> redeem it EARLY in a week that runs out fast, never near a week end. expires 2026-12-10.
 LESSON 2026-11-16 : check the 7d window END against a fixed clock reading before planning resets [ owner was off by one day ; ~8 points of Fable use after the redeem went unrefunded ].
 
-#,,,,,.,.,,..,,,,,.,,,..,,..,,.,.,,,.,.,,,.,.,..,,...,..,,,.,,..,,,,,,,.,,,..,
-#WDA66LVRGSHLGE6TRQAH7VGKCQDIBZ37JXV4PGRRLF2ZCWT34B2AHZQROGBLW6T7HTZOCOBQLGIOK
-#\\\|KD75SR523L6Y3VCUYG5SUYSTVQVZZP2DUZKAB4FDRM7UPRQDV74 \ / AMOS7 \ YOURUM ::
-#\[7]2RNVRRFIJILYLWIKWCDJKNWCYZLCKG77NTNGHE7TXRJRADTJZUDI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,,,,,.,,..,,,,.,...,..,,.,,,..,,...,...,,.,,,..,..,,..,,...,
+#75I6455BY36CEACRIKU4DCXZEMBVQGDVUTGKJO6CXOYMWSOLGBIRO5V2NU7MGUWDU55LJEGRQHE5U
+#\\\|GT6XYE5UQ7NDCPEXNKRXP7P2WDW6H3GEWRTQHB56YXERXESQWNH \ / AMOS7 \ YOURUM ::
+#\[7]4BNIIJX7QMONWRTD5VGSJOYSXSZCAO6EVBD2X5WRYJXO7BJEGGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

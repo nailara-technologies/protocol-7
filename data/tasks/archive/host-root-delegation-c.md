@@ -2,7 +2,7 @@
 
 implement the CLIENT side of `data/md/design/HOST-ROOT-DELEGATION.md`
 [ read it all ; base : `AUTH-LINK-BINDING.md` -- your previous lane's
-work, live since afd71cec7 ] in `bin/c_src/p-7-r.c`,
+work, live since ecaa9b1ac ] in `bin/c_src/p-7-r.c`,
 `bin/p7-auth-keypair-helper.pl` [ and `bin/p7-link-upgrade-helper.pl`
 only if needed ]. touch nothing else ; lanes 1 \ 2 edit src/ + tests in
 parallel. no zenka start \ reload, no sudo, no commit, no signing, no
@@ -44,8 +44,8 @@ real network, no install, no git command that changes the tree.
 compile + mock output, open questions. spec wrong \ ambiguous -> STOP on
 that point and report it.
 
-#,,..,.,,,,..,...,,,,,.,,,...,,.,,,.,,..,,,.,,..,,...,..,,.,.,..,,,,,,...,,..,
-#ENWKSYFMQFBCH33L2I2PQNIA7N2CXC4CX3DNZGQ43FCAMOONYD42M3CAXXCQEDNM7QRIXXCD7O27M
-#\\\|HRUKDO7PYJKGYRFPFORX5WB32GCND7QVHFH4LXVMNYBI7BSS4FK \ / AMOS7 \ YOURUM ::
-#\[7]5DW25CXJ4FGF5GF5V4GTJIZROJ365N6RL4IYA7365RY2OQGK66BI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,..,,.,,,.,,..,,..,,,.,,...,,..,..,,...,...,...,,.,,,..,.,,,,..,
+#XGBK42URIIA6E4B4XK6IJUVI2HDXVLHDG6J7SWWF52LW7XGCCKTJGYKCWOAWCEDOU7EPYLY3JOWWU
+#\\\|EIN44JFPTMES5MFI4OZ7L4ZLBLANA4UGONB2X66K243ZJQ3UP5D \ / AMOS7 \ YOURUM ::
+#\[7]NHMAK2ISPWVU7FQUALRRDQDDZ2YZWBTHAD2WFCA4M2XHKZIOCYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

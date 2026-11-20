@@ -17,8 +17,8 @@ AMOS7 is essential already : no new dependency.
 - dependency data : data/md/documentation/module-dependency-graph.asc,
   bin/dev/gen-sub-whitelist [ per zenka closure ], bin/dev/p7-commit-plan
 - the `<[name]>` syntax translation and `%code` \ `%data` conventions [ base.syntax.translate ]
-- the inline loader's decode + verify [ p7_inline_decode_entry, b2b3772e5 ]
-- AMOS7::Config [ a9cbcec19 ] : first AMOS7 module sharing zenka logic
+- the inline loader's decode + verify [ p7_inline_decode_entry, 18e8409f1 ]
+- AMOS7::Config [ 68993003f ] : first AMOS7 module sharing zenka logic
 
 ## sources [ same interface as the config reader ]
 
@@ -32,8 +32,8 @@ for every routine that does not come from the local tree.
   them outside the profile
 - a profile as a named, reusable list [ cfg/appliances style ] or computed per call
 
-#,,,.,,.,,...,,.,,...,..,,,..,,..,.,.,,.,,,.,,..,,...,...,...,.,,,..,,,,.,.,,,
-#AUAWHATVO77Q3MQXPOYT75ZOPJRPPJWMNCKTPEV6CTZM2GBYHMGEHF5U6PJ5JCJGHXAJNMHRC2JUU
-#\\\|5I6IPGOMHKY5AZ6FEBNQ7FIGNVCOBNFBO4IJQU6C47MEEFISK6E \ / AMOS7 \ YOURUM ::
-#\[7]3B33ZA65VXJVDOPNIZQGQ57CICB6F7NU7GF4ZXM4W2WQVAHFM4DY 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,.,,.,,,..,,.,.,.,,,...,.,.,,,,,..,,...,.,.,...,.,.,,.,,...,,,,,
+#7X7UEEPYVIQLFG6MHJVP3ARGEZHRGUV6WBBFX7PBTAFZLDJJ3IJH7NJRVP4MWQ75HAAJFR6TAKDH4
+#\\\|SSX2C3HB577Z5D5UQZKDV6AIIDJMIZCN752IEWVQT3N53ISSV3Z \ / AMOS7 \ YOURUM ::
+#\[7]CIWVCMUWJTIY4Z3D5FGP5EP6SINTBTHC6DCDBC34ECYJBIPV7QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

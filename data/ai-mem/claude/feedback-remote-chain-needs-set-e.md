@@ -14,7 +14,7 @@ commit. harmless only because the old overlay files were still in place.
 **Why:** a restart on the wrong code during a migration can leave a host
 without its config [ the new code ignores the old files ] -- silent.
 
-**How to apply [ the project way, 08ab710b8 ] :** one line per host :
+**How to apply [ the project way, c2fd39aee ] :** one line per host :
 `:: v7-zenki.start_once :wait-down: pull-git && <restart>` -- pull-git is
 the ext-bin zenka of the remote-server profiles [ p7-git-pull--rebase as
 root ] ; :wait-down: registers the waiter first and replies when it ended :
@@ -26,8 +26,8 @@ notify_offline \ notify_online stay observers : no start option on a
 read-only command [ httpd holds notify_offline ]. related :
 [[never-feed-command-substitution-into-destructive-cmds]].
 
-#,,,,,,,.,,,,,..,,.,,,.,,,...,..,,,,,,,,.,..,,..,,...,..,,...,..,,,..,,,.,,,,,
-#JIPPC5ABPEBT4ETUJPMQP6LT6KUAJRVDHKGXBECASH7D2WLTASPPYPZ5BLHJF5JN6QYJ2XGNWWMR2
-#\\\|IAEI4AXIGMQE24TMQBUV7P3RCIAVQN522ZRHJFZTSB2QDFKQT3K \ / AMOS7 \ YOURUM ::
-#\[7]DI3GPR72EBJBAERXWQTPUVC4EOULT5OPD6UFMAZEMCGZJHANEQAA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,,,,,,..,.,.,...,.,,,,,,,,.,,..,,...,..,,..,,.,.,...,,.,,,..,
+#GY7LMDH4UKWLVRF6V6D3FSSNJYO6AQITPEELWERSKX2DXMVIBUZBTBPIEPQQUDPFN2M6NKMSSAGKW
+#\\\|I6WRTUSR2FPUQDMZIO76HUQKULSF4TYUBCAPY6DMCHSQMVI65DX \ / AMOS7 \ YOURUM ::
+#\[7]4Z23YRZLNTFAABLXDTLV4TSM3AGIU5V6KGELJRXHMGTSBBN62QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -153,7 +153,7 @@ crossfade above — the fade primitive it reuses (`$instance.fade` via
 `protocol-7.route-send`) is exactly what twin-instance crossfading would
 need for both instances, just not yet orchestrated between two of them.
 
-### playback resilience phase 2 — landed (2026-08-31, commit `e8d55cc0d`)
+### playback resilience phase 2 — landed (2026-08-31, commit `b0608dc11`)
 
 Reported symptom: "off when I wake up" — **turned out NOT to be the zenka
 or mpv[audio-0] process dying** (user corrected this mid-session after I'd
@@ -215,8 +215,8 @@ against `data/yaml/coding-tasks/radio-playback-resilience-phase2.yaml` and
 Live-verified stable afterward (user's own words: "playback is working in
 the background, no errors").
 
-#,,,,,,..,.,,,,.,,,,,,.,.,,,.,.,,,,..,,.,,.,.,..,,...,...,,,.,.,.,,.,,,,.,...,
-#6Y6QQJ5QG2GCSCQXNEYZG7JW5TKBRJP2WWI2OPL5XYLUPVN5IRFLZV6X4FF33U5QLO2OFR6OZWKYE
-#\\\|JDQBLFUGD7WU4QLNWG2VFYUAOKREY5ATYDSPAGMGSGSGJ7VGHRX \ / AMOS7 \ YOURUM ::
-#\[7]7XRX6TCHAEL4CLVGVPAQPZLTA7GTEHXWPF22AMKZZK2V2E66TABQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,.,,,,,,..,,,.,,,..,,.,,,,.,.,.,..,,...,...,,.,,.,,,.,,,.,,,,,,,
+#AI3BSO3ASUB2DG6HFNVVIC4EMSX3UFHWO3ZMZKSDINEA4ZX6WYH6ANCTAG63QNT3Z3FYPPWXGAJJ4
+#\\\|X4JS25JRMRDMCRBYUOZF33WMZOUIWZCENX67TZ7OW23JDWVJG2Q \ / AMOS7 \ YOURUM ::
+#\[7]7BTTYK6XTJSNH52IPHDGQZNNSTQQAPN36KWT7JGF6F22DKL3DSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

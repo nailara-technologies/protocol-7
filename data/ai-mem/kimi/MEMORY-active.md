@@ -5,7 +5,7 @@
 
 ## wrap chrome round 2 — landed + user-confirmed (2026-10-26)
 
-the wrap-chrome follow-up landed as one commit [ `e4cbf4f69` ]
+the wrap-chrome follow-up landed as one commit [ `db1902b39` ]
 after a heavily interactive debugging round, every part
 user-confirmed fixed : (1) **the selection language** — the
 cursor's whole wrapped block [ head + continuation rows ] darkens
@@ -81,8 +81,8 @@ suites at 41/41 editor pty + 26/26 unit + 13/13 ned.
 ## AMOS7::TERM::Editor hardening — landed (2026-10-26)
 
 Three commits from a user-reported scratchpad bug hunt, each a separate
-layer: `61df8d2a8` (frame + signals), `80f4972c3` (kill stack / paste),
-`391ec237f` (secrets hygiene).
+layer: `ce16c94a1` (frame + signals), `b6e02e854` (kill stack / paste),
+`a4cf1620c` (secrets hygiene).
 
 - **scroll-free full-height frame** : the exit `\n` printed on the bottom row
   scrolled the whole frame up one line -- the "empty line under the bottom
@@ -102,7 +102,7 @@ layer: `61df8d2a8` (frame + signals), `80f4972c3` (kill stack / paste),
   read-only [ wl-paste / xsel / xclip / powershell-wsl ] ; ctrl-y clears both
   registers editor-locally [ desktop selection never wiped ] ; the hint only
   advertises with known-pasteable content and re-arms on a fresh paste.
-- **mouse wheel scrolls like the arrows** [ `fc78bca10` ] : DECSET 1000 +
+- **mouse wheel scrolls like the arrows** [ `6990fec73` ] : DECSET 1000 +
   SGR 1006, parsed in SGR + legacy X10 forms ; plain clicks eaten, never
   text ; press-only keeps terminal selection working ; the wheel stops at
   EOF [ the down arrow still grows a line -- shared `$move_cursor` ] ; no
@@ -145,8 +145,8 @@ The checksum-native, zero-git batch harness (`model_batch.*` +
 candidate switch, real task via queue machinery, honest context-exhausted
 verdict, capture+record, revert (POSIX ACLs grant protocol-7 write on the
 taeki-owned tree), reverify, restore, clean finish. Landed commits:
-`9ca7c89ce`, `dd18f9111`, `1667a019b`, `f8b37b2a4` (memory),
-`b767bf5c7` (flat spellings). Full findings in
+`f6b4c37da`, `b2f0224db`, `f485e4fe1`, `3dd694690` (memory),
+`db280e23d` (flat spellings). Full findings in
 `topic-model-batch-harness-and-self-test-findings.md`.
 
 Lesson added there: `reload source` registers changed files under their full
@@ -259,7 +259,7 @@ offline-safe/restart-clean subscription wrapper, six modules swapped to
 `<a.b.c>`-splits-on-every-dot gotcha, runtime-load marker side effect,
 adoption steps : see [strm-subscribe-wrapper.md](strm-subscribe-wrapper.md)
 
-## coding git tools repair (Sept 2026, committed 85c8b28f9)
+## coding git tools repair (Sept 2026, committed 5895a8ce6)
 
 four stacked bugs had the history tools returning 'no recent changes'
 since March: Git::Wrapper --oneline parser death behind a silent eval;
@@ -285,7 +285,7 @@ log() has one — NEVER pass --oneline to Git::Wrapper::log, it forces
 --pretty=medium and dies 'unhandled:'). Do NOT reintroduce native diff
 calls per-request until traced.
 
-## event-callback reload-safety takeover (Sept 2026, committed f7d2bbdd8)
+## event-callback reload-safety takeover (Sept 2026, committed 574c44410)
 
 finished the claude session's survey after it hit weekly limit: named-handler
 conversions landed for httpd.handler.shm_write (new httpd.handler.shm_replay_sweep,
@@ -324,7 +324,7 @@ see [reference-ntime-x4200-and-cube-cross-zenka-access.md](reference-ntime-x4200
 ## nshell split-mode streaming garble (Sept 2026, FIXED + live-verified)
 
 coding-session streaming prints chunks at garbled positions: content_print's
-column tracking counts ANSI bytes as columns; b2b35ac28's per-chunk color
+column tracking counts ANSI bytes as columns; 31f938625's per-chunk color
 wrapper (~24 non-printing bytes/chunk) makes content_col drift ~24/token chunk.
 replay/rewind/redo fine (single plain print, no per-chunk CUP). fix: strip CSI
 before length() in content_print + display.cycle tail math.
@@ -486,8 +486,8 @@ Fix landed in two layers:
 
 Task file: `data/tasks/content-get-list-types-undef-type-race.md`.
 
-#,,..,.,.,.,.,,.,,...,,,,,.,,,,,,,,,,,,.,,.,.,..,,...,...,.,,,,..,.,.,.,,,...,
-#BFYNPHV2VWIPJVXLDPGVX75F4LKWDQNXBP5H5FWDRCFXS752LFP4FJNTLLYTV6Q3ZWOE3PWPONDDO
-#\\\|YJG6QYAWNIMXI5RGJFJWRARBE53IEKEQ4KDT6CI7FABKJGEOAZY \ / AMOS7 \ YOURUM ::
-#\[7]QIQXESHZUEIPWHSMLI6JOPKFZWRMEPE6ABNOVXG4C4ZBJW724UCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,,,.,...,,.,,.,,,..,,.,.,,,.,..,,...,...,...,...,.,,,,,,,,,.,
+#32OAPDMDVLQBPHKQKMRUEXT4UBIJSKVSSW5K77LHXNVL2ZCRS32FZ6M5RA3FMNZP23RCCGTJMI2BC
+#\\\|EJJBODL7BZPINTJMSZO7KFRPV7F5REBB5H3DGPHWISBQRZXUSXF \ / AMOS7 \ YOURUM ::
+#\[7]6ESOJLT7G2HVDINZLAMX7I3LJGNUSI4YH7UIGEUX3MNYLSWFIMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

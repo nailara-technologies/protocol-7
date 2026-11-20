@@ -15,8 +15,8 @@ output [ UTF-8 octets ] through the layer -> double-encoded on disk ; the
 backlog read in `site-yaml.cmd.subscribe-fetched` decoded it back into a
 CHARACTER string and `base.stream.push` sent that in its internal utf-8 form
 -> every umlaut arrived as `DÃ¼sseldorf` [ 58 jobs repaired, fixed in
-8b2384420 ]. live frames [ octets, never through a file ] stayed clean, so
-the bug only showed via the backlog path. the 2026-10-23 fix [ d34eb7d82,
+d69eb4900 ]. live frames [ octets, never through a file ] stayed clean, so
+the bug only showed via the backlog path. the 2026-10-23 fix [ 430600ef0,
 site-yaml.stepstone.job_from_html ] was a different site of the same class.
 see [[project-2026-10-24-delta-link-managed]].
 
@@ -58,8 +58,8 @@ see [[project-2026-10-24-delta-link-managed]].
   runs `apply` ] ; files : [[reference-unicode-encoding-repair]] ; format
   literals : [[utf8-module-literals]]
 
-#,,.,,.,.,.,.,.,.,,.,,..,,,.,,...,,,,,,..,,,.,..,,...,...,,.,,,,,,..,,.,.,.,.,
-#M7XRXVMJ4M5GGVDVVVYJ2SGWY5IVXURVDRDGZ5QWKRCWXK4BCXM3E3TAJAXNQTRR7PMRIUTZVKLXY
-#\\\|GTGEDVTPBHWH26RVXSDWEPQU2AWTLN3ZVM7CO7WAAYUZMGQ6OE7 \ / AMOS7 \ YOURUM ::
-#\[7]VAVWK7TBPITGCHAVQ2GHNDZZH4ZIIMNBFMQDCVLTE6FBXP76YCBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,,,,,,,,,.,.,,,,..,,..,.,.,..,,..,,...,...,..,,,..,..,,.,,,.,.,
+#XW67AWNC46OVRGFSENG32ZYDYK7FOFIYV4H2LP3CMMLWTVKBZIXFUFTQOBZKVJILGX3O3G73VXEHA
+#\\\|5KY3YHOFSHTWY76CETU7MPIY6D5E622RCATDDQSX6RMIPSG2KXP \ / AMOS7 \ YOURUM ::
+#\[7]3IT2U6JVWKRROTVLNKZNYHJNGG633SKOVIYSVYDRCD3KO3POMGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

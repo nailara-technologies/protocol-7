@@ -21,7 +21,7 @@ names : lowercase nested under AMOS7::NRT, see [[harmony-names-hint-not-rule]].
 
 2026-11-16 late : Fable SUBSTRATE-SYNTHESIS.md [ data/md/design, untracked ] : "a tree of cells" [ place window occupants journal gate parent ; reduce up, irrigate down ] ; 17 contradictions, 15 owner q ; smallest step AMOS7::cell::time exact Y-grid function. brief ~/.n/private-notes/fable-substrate-synthesis-brief-2026-11-16.md
 2026-11-16 late : Fable N7FS-FORMAT-4.md [ untracked ] : json-free n7fs, 38 json kinds, one canon text form shared with the ledger, Prior module for old reads, 8 stages, 17 owner q. brief ~/.n/private-notes/fable-n7fs-json-free-format-brief-2026-11-16.md
-2026-11-16 committed : a51999e20 [ Nested.pm empty-parent root + parent check ], 2b87fcc73 [ AMOS7::cell::time exact y-grid ; float epoch_int off by one at 10082 level-1 boundaries, first ~13.5 y ahead -> switch in a versioned step, e.g. with format 4 ]. k3.1 synthesis review [ 24 findings ] : AMOS-7 = 32 bits [ 50 % collision ~77000 ], ledger canon must follow format 4, recover shortens journal. owner : format 4 canon = ledger form [ q1 ], both disk upgrade paths [ q5 ], receipts before ledger stage 2 [ q17 ].
+2026-11-16 committed : b0eaa4732 [ Nested.pm empty-parent root + parent check ], 3bef478fe [ AMOS7::cell::time exact y-grid ; float epoch_int off by one at 10082 level-1 boundaries, first ~13.5 y ahead -> switch in a versioned step, e.g. with format 4 ]. k3.1 synthesis review [ 24 findings ] : AMOS-7 = 32 bits [ 50 % collision ~77000 ], ledger canon must follow format 4, recover shortens journal. owner : format 4 canon = ledger form [ q1 ], both disk upgrade paths [ q5 ], receipts before ledger stage 2 [ q17 ].
 
 #,,,.,.,.,,..,,,,,,,.,.,,,,.,,.,,,,,,,,..,,,,,..,,...,...,..,,.,.,..,,,,.,.,.,
 #OSUIZVOMTVGZWX3UU2VMXBEDYGVZM2C57QLXK4YLV6IQZAPHJGU7GJPP4MDYDZ6Y2ARVP4LHRZUBU
@@ -40,7 +40,7 @@ names : lowercase nested under AMOS7::NRT, see [[harmony-names-hint-not-rule]].
 #\[7]TAV6LGV4LAS6BD3HOH7MD6P2ADBUTNJ4UYHQMDNGYSOQIJSCZUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 2026-11-17 : committed format 4 stage 2 [ AMOS7::N7FS::Canon + Prior, json3 caveat for carried-over manifest chunks ]. next : format 4 stage 3 [ wire + home state ] or ledger 1b.
-2026-11-17 : committed 47a902d23 [ 10 k3.1 security findings fixed ; nested parents end A I Q Y ]. kimi week at 91 % -- no more kimi before reset.
+2026-11-17 : committed cf9aa909c [ 10 k3.1 security findings fixed ; nested parents end A I Q Y ]. kimi week at 91 % -- no more kimi before reset.
 
 #,,,,,.,.,.,.,..,,,..,,,.,,,,,...,,.,,.,.,,,.,..,,...,...,...,,.,,...,.,,,,.,,
 #TLVXCFWS64HFTDV5VSZDDATFHASUC3XVAGMTKEY6PLOE5CPOBDA6RCBSPDNDS54DBA2VW5VCV33RQ
@@ -49,8 +49,8 @@ names : lowercase nested under AMOS7::NRT, see [[harmony-names-hint-not-rule]].
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 2026-11-17 end : see [[session-handover-resource-ledger]].
 
-#,,..,,,.,.,.,,..,.,.,.,,,.,,,...,.,.,.,.,.,,,..,,...,...,...,..,,,..,..,,..,,
-#D3LTLGVCODQARKLVJ25OVYK6UQ232RDVWUNZXEFUERZ7GMAYFF5S3BZCPO6YOH3LGH4DGDEQMKPEO
-#\\\|ZINUIMSBRMZEZE43WWQZVXUK5EERCLITQ7KPMMLRRT7ANXLME3Z \ / AMOS7 \ YOURUM ::
-#\[7]BQULZVDF2U2JQDP6ISMRQVLESPZB2OXBHWZ3Z7N4HVCTJUDBLKDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,..,,.,,,...,..,,,.,,,,,,,,.,..,,...,..,,.,,,,.,,,.,,,,.,,,,,
+#SWZYZTI5VEYBE7F3ZOPTCLX4Y2QVMEVHDMTHFOZFIL3UK5IS5IGU3YI5LSLZQRACO5FLJOFTUGW5I
+#\\\|47YIATMPLI75WVEW3U4C2WLSS5TG6P6PHPPE6KCZKRK2YP3DOQR \ / AMOS7 \ YOURUM ::
+#\[7]MIYIBQ6OEBQRVDVXPTRLDQ7Y7LM6DDG6H3Z66WP7PAUIXHZI5EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -144,7 +144,7 @@ my $init_code_src
     File::Spec->catfile( $main::root_path, qw| src coding.init_code | ) );
 
 ## the always-true `exists $code{...}` guard that used to wrap this block  ##
-## was removed in e18b7bb2f, so it now sits directly inside the outer `if  ##
+## was removed in aac67146e, so it now sits directly inside the outer `if  ##
 ## (not $already_initialized)` block at indent 4 -- extract from the first ##
 ## model_path_gpu object creation through the closing of the LAST          ##
 ## dependency.add call [ cpu pair ], anchoring on the cpu model_path       ##
@@ -215,8 +215,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,,.,,.,.,,,.,...,..,,...,...,,,.,,.,,..,,.,.,...,...,...,..,,..,,.,,,,,.,
-#PUIJH5FOJW24C7AXXRYHCA7VBJFJ4AQYAXFLPIDDFFWL3O4KI6RYKZ2XEUFB3X37GFKUBNNMF7SFK
-#\\\|2BUWUU3MODFFGQYJ6P4CT3Z35J7KHCBBJMUPVZIAU7B56ADACMO \ / AMOS7 \ YOURUM ::
-#\[7]TGPFBCN5RKB22TTCFY3CUVPBJMZS6IKDJJAZALIXRB6BPFK7BICQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,,,,,,,,.,,,.,,,,.,.,.,,..,.,,,.,.,...,...,.,,,,,.,.,,,,..,...,
+#V4IN2GVAEHH5J3P5EU5O4YG56CQJ7BVODYRKY2U2QRQZGKOBPY6GU5OUPNIFYZHDQV5WZPWLTPLRM
+#\\\|U2AFUTLVHBTRSALKOI2M45C6LS7EU7CY3ISYP5YXAQHBXK4GQGH \ / AMOS7 \ YOURUM ::
+#\[7]KMWVAVE2XD5MY63HMMM7P5RENMKRXFZNFOUCLGZKFNE363J6CSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

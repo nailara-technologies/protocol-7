@@ -339,7 +339,7 @@ $code{'models.handler.task-poll-step'}
 ok( scalar @cmds == 0,
     'pin not served here : left pending, nothing claimed or failed' );
 
-## b7b0f476e guard : a foreign task WITHOUT a :no_tools: first line is   ##
+## c47a10670 guard : a foreign task WITHOUT a :no_tools: first line is   ##
 ## refused too [ tool use stays with its own host ] -- even when the pin ##
 ## would be served                                                       ##
 reset_models_state();
@@ -823,8 +823,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,..,,.,,,.,.,.,.,..,,,..,,,.,,.,,,,,,,.,,.,.,...,...,..,,,,,,,,.,,.,,,..,
-#BETQYUKXGCTBMN5DO2N4YT743MHO62NQJLJIAQ3F26LFXAOB2THB5IOPRT6VPEJV3V2Y6VHNYS7A6
-#\\\|ZWT4SSGXJB7MJMTRKS3Q5LIKRMP5HVHY2UINQBK3DFCBRZNDHZ5 \ / AMOS7 \ YOURUM ::
-#\[7]X37HWU3F36FJEOHU2Y5JILF2GUAM4JTJSNQI6YPLHSKV5OUWZMDA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,,.,,,.,,.,,,.,.,,,.,...,.,.,.,.,...,...,,.,,...,,,,,..,,,.,,
+#4Q4YQT4X6JESVUTPTT2Q4K65KEYAHMSEDSQI2NVMVYH4MXIB2JN2YXVYCSQX7JWUR2XMKGAOL4WUQ
+#\\\|CWAGEEY5ZWCGFBQFJCYDJLOAXLQWL5XZL3KD2L3WB5G66HC2U2R \ / AMOS7 \ YOURUM ::
+#\[7]ZHA3NE6DXFL3FZOLBVKIIIT2PDN25R4LIK6PVGRPKSRS7YFNKGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

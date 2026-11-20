@@ -1,8 +1,8 @@
 ## archive: DONE ✓ — 2026-09-20
-## commits: 29ffacfdf (this doc + access-sweep-preview) — 877d7ddcd (category
-## 3a) — ff6e2bb6d (category 3b + weather child.* fix + transport eval-code +
+## commits: 8e05da6ba (this doc + access-sweep-preview) — 547ce93b1 (category
+## 3a) — 8e7e0bf17 (category 3b + weather child.* fix + transport eval-code +
 ## zenka-own dev-command devcmd gating + channels test-strm/devmod bare-name
-## collision fix+rename) — e286dc7a2 (category 5 wildcard narrowing, 10
+## collision fix+rename) — 689180381 (category 5 wildcard narrowing, 10
 ## zenki) — plus cube-13's static devmod preload removed in the same pass
 ## that archived this doc [ subroutines.load-early no longer pre-compiles
 ## devmod.* into cube-13 at startup; devmod stays available there via the
@@ -26,7 +26,7 @@ investigation-only pass, 2026-09-20. follow-up to
 [[v7-zenki-devmod-lifecycle-state]]. those landed the mechanism
 [ `access.devcmd.usr.*` axis, `devmod:*` wildcard, per-instance
 devmod lifecycle with `v7-zenki.devmod-enable` / `devmod-clear` ]
-and migrated `coding` as the first real case [ commit `5bdbc5548` ].
+and migrated `coding` as the first real case [ commit `5d48783c5` ].
 this doc is the sweep of every remaining `cfg/zenki/*/zenka.v7`
 that mentions devmod [ 55 files, 84 grep hits ], classified into
 mechanically-migratable vs owner-blocked buckets. ZERO config or
@@ -140,7 +140,7 @@ nothing granted today; noted for completeness, no action implied.
 exact bare devmod names granted on the regular `access.cmd.usr.*`
 axis while the same file loads devmod by default — the precise
 `coding`/`jobsite` shape. these are MECHANICAL: same edit as
-commit `5bdbc5548`, no owner decision needed beyond signing off
+commit `5d48783c5`, no owner decision needed beyond signing off
 the batch. proposed shape per zenka [ showing only the changed
 edges of the access block ]:
 
@@ -361,7 +361,7 @@ stale in it [ it is a deliberately chosen subset, not the full
 39 ]. p7-log does NOT load devmod [ modules.load is comment-clean ],
 so the grant is inert today, like category 3b.
 
-post-`5bdbc5548`, `devmod:*` actually works, so the template var
+post-`5d48783c5`, `devmod:*` actually works, so the template var
 COULD collapse to:
 ```
 -access.cmd.usr.cube = append commands heart reload ... <devmod.subs>
@@ -454,7 +454,7 @@ the load-posture half of the design.
 
 ## summary — mechanism vs owner-blocked
 
-MECHANICAL [ clear-cut, same shape as `5bdbc5548`, batch-able ]:
+MECHANICAL [ clear-cut, same shape as `5d48783c5`, batch-able ]:
 
 1. category 3a : credentials, jobsite, memory, menu-commands,
    models, protocol-7-menu, kimi, kimi-web, reasoning — remove
@@ -504,8 +504,8 @@ the zenka's own `zenka.v7`, matching how coding landed.
   line via its three-hit comment block ]. every distinct file
   appears in exactly one category above.
 
-#,,.,,,,,,,..,,..,.,.,,,,,...,,..,,.,,.,,,...,..,,...,...,..,,.,,,,,,,,,,,...,
-#ULFGL5PED2ICOLWAMS5DVBLLCR4PERO2S454FW2G4ALDJQYKVYHTEPQPJ4IUE6V5BIWQAD64R3IEC
-#\\\|C623ZE2C7AW6OMUXGNR3TNJCKWERUS6Z5MX4FXPNTFP46VMEAI5 \ / AMOS7 \ YOURUM ::
-#\[7]SMKGO4ZYVVWPPAUOPOAOPCT5L7XSRPNC6NQTUDTQMJGSPYWFKWCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,..,,...,,,.,..,,..,,..,,.,.,,..,..,,...,...,...,,,.,,,.,,,,,...,
+#L5ZWVVIR5ZXUJTO7JS4LDGKTOR6X67FLRH6XCYO3UPMMU5BCEC6SMABDPCCNOHJGIQQ3VIL57XME2
+#\\\|KMKW2745YUJET4GHVGD2TQJQJF46OKL26IK62JHFEXAUQVWYGHS \ / AMOS7 \ YOURUM ::
+#\[7]QDQ6A5DPIAFCGEI37E2XQQ4M6EC67YOGAXPQJIWAVP6Z6HIB4EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

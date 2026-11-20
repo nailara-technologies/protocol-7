@@ -590,7 +590,7 @@ production template chain [ `system-base.yaml` opened with "you are a
 **code reviewer**", and `system-tools.yaml` hand-maintained a stale tool
 list referencing two non-existent tools ] plus a template-cache
 invalidation bug [ `context.template.load` never invalidated on file
-edit -- both fixed, `9634a8ad5`->`d10f10269` ].
+edit -- both fixed, `9634a8ad5`->`b6763325d` ].
 
 with both bugs fixed, reran the same 9 held-out-prompt x seed generations
 [ no tools attached, matching the original conditions' text-only design ]
@@ -635,8 +635,8 @@ artifacts added : `data/control-vectors/results/real-system-prompt-v2/`
 without `-v2`, built against `coding.system_prompt` directly rather than
 the real template-assembled prompt -- deleted, never committed ].
 
-#,,,.,,,.,...,,.,,,..,,.,,,.,,...,.,,,,.,,,..,..,,...,...,.,.,.,.,,,,,...,,.,,
-#KQI6WW327TT57ORYXTF3KJFG3NGGTLVJNB4M26BXHWQQH3UPMQMWCMBFEESVSARN3TPQDVJTXUY66
-#\\\|IJH3H25AN4DJSBWSANJMMOIN4GMXF7DP4T7IYA7Y6Q7OWZTFHZF \ / AMOS7 \ YOURUM ::
-#\[7]QQWB3LOLQM3OAZGUPTSI7M4QKIYGMB5WSBUEZUS76X2OZ5INBGBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,,,,..,,..,,,.,,,,,...,..,,,.,,..,,...,...,..,,.,.,.,,,..,,,,.,
+#ZONSVAJXGUNVUMZ4KH7QBSHNBFIDMDEWX2SGVUAH6YVRFXMI5TOVBBYN4AMKXTZSFUNHPRXHUH2EI
+#\\\|4AQG4FVNJDXTNAYFTHEKKBNLQLZFRRB4RCMKM6FMMJ22HO3G3GR \ / AMOS7 \ YOURUM ::
+#\[7]XBC2BDFPS7IMVUCEHERZGWWAP4BFRZ3ZKKGFQ65YNSIT2SJ4DWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

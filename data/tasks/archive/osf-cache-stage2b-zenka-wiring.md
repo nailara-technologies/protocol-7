@@ -1,6 +1,6 @@
 # osf-cache stage 2b : zenka wiring [ local node ]
 
-follows `osf-cache-stage2-hash-lookup.md` [ committed `3406047fe` ].
+follows `osf-cache-stage2-hash-lookup.md` [ committed `08ad17f2d` ].
 design : `data/md/design/OSF-CACHE-ZENKA.md` [ read `## hash layers` ].
 
 this task = turn the offline modules into a running zenka that answers
@@ -100,8 +100,8 @@ then calls it -- output unchanged. test it on the fixtures.
   produced, which timer pattern you followed and why, anything you
   could not verify without a running zenka
 
-#,,..,,,,,...,,.,,,,,,,,.,..,,,,.,..,,,..,...,..,,...,...,.,.,.,,,,.,,.,.,,,,,
-#EPTYHA6J6GZITPH3QVIGKLOGQBUFOIJF2BOSJ5C5HN6DDQ6Y5WD6HKGMCH6UWXQI6YVYCPYLN7WYO
-#\\\|62HSMN6SFBKBATLCC6FM6PVQZRXYAHLCYVKZDJLNLVPJI4J264E \ / AMOS7 \ YOURUM ::
-#\[7]MWTYUWTSJ46DITPXW3ZSCRLFIDQODUBLFUXYHDEYG7YFSSEFDUDI 7  DATA SIGNATURE ::
+#,,..,...,,.,,...,,,,,,,.,..,,...,.,.,,,,,,..,..,,...,...,.,,,,,.,.,.,,..,.,.,
+#CAKQIVLCHMW64X3HHLGIQWR7MO7AKYHJTXD4WX3PJ2JCGZHWGRMK4C7H4HKDCTCPMDET4L5CLONCO
+#\\\|6F7CSOTKZCBK42BQHY7RMYCBUZXC3YT4DXBVALKK7AW4VM2Y7TU \ / AMOS7 \ YOURUM ::
+#\[7]54V4JSEMU3Q7QP2VRTOQVBSBFKDS76RKAFNXVJLFFJ4C2CEKUMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

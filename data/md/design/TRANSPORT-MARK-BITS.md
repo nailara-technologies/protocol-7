@@ -33,7 +33,7 @@ start, and its visualization shows real efficiency and stability.
 ## 3. the three spare bits of the AMOS 7 character form
 
 7 base32 characters hold 35 bits, an AMOS checksum uses 32. the 3 spare bits are zero in every
-stored checksum : the last character is always `A I Q Y` [ checked since 47a902d23 ].
+stored checksum : the last character is always `A I Q Y` [ checked since cf9aa909c ].
 
 **rule : the bits are TRANSIENT.** only the transport layer sets and reads them ; they are cleared
 before any comparison, key use or storage. stored checksums stay plain.
@@ -94,8 +94,8 @@ addresses add none.
 - a 3D relative route form beside the lane mark
 - read `bin/dev/division-13-table` as a source for the transport design pass
 
-#,,,.,,,.,.,,,,,.,.,,,,.,,.,,,,,.,,,,,.,.,...,..,,...,..,,..,,,,,,.,,,,,.,.,,,
-#WDRJOB3VUPQY6X7XZH3OZSYYGXQTQEBTN44FNKSVVNYN44W6TBNQ2JJ2XROT2T5LKWBZOJJECIUBO
-#\\\|YQKK6EOEJBJ3CL3ZY2L42BIMUUJTZY4EYJFM6J4YQCEVS22MWOA \ / AMOS7 \ YOURUM ::
-#\[7]RKZX2FRO4W5OFP2MJT7O4RMOUS3DDMORPNZMADHA52J5OPZLO2CQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,.,,,.,,,.,.,.,,,.,,,,,,,.,.,,,..,,...,...,..,,,..,.,.,,,,,,..,
+#4N6L35EUSZV4VUFJBDXLXA4MXUJU23TZBWCP4AYB7XLBARKKHONEFPBMF7FFALSKFFORZETR25BDA
+#\\\|M6RGXITEQJLXUS2BGEVOVZ6W6VTEUIVVA4CPMSEW6D7LWCCP7GE \ / AMOS7 \ YOURUM ::
+#\[7]BBT6RBYW5YM3U5XNGYVQBWOPO4JBNEK4Y7K2MVGJCKCQUSEUUYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

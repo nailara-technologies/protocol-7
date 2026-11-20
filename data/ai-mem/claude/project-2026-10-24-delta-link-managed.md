@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-24-delta-link-managed
-description: 2026-10-24 : pri -> delta fetch link is now a SUPERVISED link [ host record + ssh-w ], the by-hand tunnel is gone ; jobsite fetched stream recovers from a dropped link [ 7390c154d ] ; where the non-repo pieces live
+description: 2026-10-24 : pri -> delta fetch link is now a SUPERVISED link [ host record + ssh-w ], the by-hand tunnel is gone ; jobsite fetched stream recovers from a dropped link [ ab326f06d ] ; where the non-repo pieces live
 metadata:
   type: project
 ---
@@ -26,7 +26,7 @@ read 'idle'.
 - the old `ssh -L 127.0.0.1:4243` tunnel is killed -- never redo it
 - external is always-on [ start-set-up.base ] : a restart reopens the link
 
-## jobsite [ 7390c154d, deployed pri ]
+## jobsite [ ab326f06d, deployed pri ]
 a dropped link answers the open subscribe-fetched with FALSE 'command
 route collapsed', never an eof : 'subscribed' stayed set, the delta outbox
 never drained [ 465 held ]. now refusal \ 90 s unanswered \ not routed ->
@@ -37,7 +37,7 @@ same refusal reset in models.handler.task-stream.
 gotcha : `reload source` does NOT re-run init_code -- the stuck state
 needed `jobsite.reload init` [ then 1687 -> 1743 jobs ].
 
-## encoding [ 8b2384420 ]
+## encoding [ d69eb4900 ]
 backlog-delivered jobs arrived double-encoded [ DÃ¼sseldorf ] : the site-yaml
 outbox wrote encode_json octets through the default UTF-8 layer. outbox
 write \ backlog read now :raw ; 58 jobs repaired on pri [ backup
@@ -48,8 +48,8 @@ open : the mid-stream drop recovery [ stream OPEN when the link drops ] is
 not live-tested yet -- the cycle was assessing ; check the next scan's log
 for refused -> 'next subscribe in 30 s' -> consumer registered.
 
-#,,,,,...,,,.,..,,,,,,..,,.,.,.,,,,.,,.,,,...,..,,...,.,.,.,,,,.,,.,,,,,.,,,.,
-#KK7JAPSSEFALMYODRXGMYLL5ENGAL2QFZ5MFKVPKZSXZDOPORAE7U26O6EGXY6GPDQA5H5FD53TWQ
-#\\\|CMRY24GRBQJAPAYNH25CD2FA7P7SMT3QKDELX4CHXZJP3UUU6LC \ / AMOS7 \ YOURUM ::
-#\[7]O5TLKWSZONFVNCQWZYS5T2CXDJ7N3LVMOOJLZTDBVYSINB64EMAY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,.,,,.,,,,.,.,,,..,,.,.,.,.,..,,..,,...,...,.,.,,..,,,,,.,,,,,.,
+#AV2BLKXR4X3WA32ZQ6KGV7EW4IIFH2B2WVURH2X4U4VE4V6OLJIZUQLFBDQE43ZQORNGS64DT4SR4
+#\\\|MMIW6ILYFVYTTROO2HYJ763AOCSGIBEXT36I4TU4WZSV7KBYTJ3 \ / AMOS7 \ YOURUM ::
+#\[7]OP5DRMYBJQK3K3E37CSOKYMHNYHB34NQX5SNIJXKAI7CFB7AZAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

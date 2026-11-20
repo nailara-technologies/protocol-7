@@ -26,7 +26,7 @@ the K3.1 review of the synthesis, and two commits :
   the in-place path and its rollback [ section 4.3.3 ] ; the switch to the
   exact epoch grid as a versioned step [ section 4.6 ] ; a recommended home
   for the shared parser [ section 5, question 2 ]
-- **facts used** : `AMOS7::cell::time` is the exact Y grid [ 2b87fcc73 ] ;
+- **facts used** : `AMOS7::cell::time` is the exact Y grid [ 3bef478fe ] ;
   the float `epoch_int` \ `epoch_num` differ from it at 10082 level 1
   boundaries of the 385280 wrap, the first about 13.5 years ahead
 
@@ -94,7 +94,7 @@ record kinds of the store are json, although only `Journal.pm`,
 | 38 | relay list | `Cycle.pm`, `bin/n7fs`, `bin/n7fs-push` | blob names on the holder | by `put-list` | no | no |
 
 already free of json and unchanged here : the holder registry and the cycle
-config and state [ p7 config style, 973608c34 ], the sealed registry copy, the
+config and state [ p7 config style, 3e613a33a ], the sealed registry copy, the
 holder side counter [ one decimal line ], the holder session protocol, and the
 binary records `P7SW`, `P7SB`, `P7SP`, `P7SH`.
 
@@ -706,7 +706,7 @@ per kind : records, equal, differing, exempt lines.
 
 the fact : an n7fs epoch is computed in floats today [ `epoch_num`,
 `epoch_int` in `AMOS7::N7FS::Sum` ; `base.ntime.epoch_dec` on the zenka
-side ]. the exact grid exists since 2b87fcc73 :
+side ]. the exact grid exists since 3bef478fe :
 
     AMOS7::cell::time::frame( ntime, 1 )  =  floor( ntime x 13 / 132451200000 )
     epoch                                 =  that frame modulo 385280
@@ -953,7 +953,7 @@ the `exact` rule through `AMOS7::cell::time`, `epoch-num` under `exact`.
   reader derives the epoch of a stored address from a time
 - on a disk with `grid = exact` the epoch of every one of the 10082 known
   boundary instants is the exact one, and on a `float` disk the float one :
-  both rules are tested against the list of 2b87fcc73's test
+  both rules are tested against the list of 3bef478fe's test
 - at every level 1 boundary of the next ten years, one unit before it, at
   it and one unit after it, the two rules give the same epoch and the same
   window, so the step changes no address today
@@ -1064,8 +1064,8 @@ new in this revision :
     `AMOS7::cell::time` in the same step, or does it stay on floats until
     its own task ?
 
-#,,.,,,..,,,,,,,.,,..,...,,..,,..,,.,,.,,,,,,,..,,...,...,...,,,,,..,,.,,,,.,,
-#QTZGUVN3KUCCR4HUI7YZVAX4I6WNDNDR2SDPS7N2HURPZLXBXVFHZDPAY6OQJ5NJ555REK3YMW5QC
-#\\\|O2R4IUH4HW7D4PYL6YN4KTMCSEQRFUPCBKLWNTJHWGGVAEGO65E \ / AMOS7 \ YOURUM ::
-#\[7]JEGSBIDS7DMUU54I2DXEZQP7KGQ3IIHR2YIG5GHVHWRCKV7UACAA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,..,,,.,,..,,..,,...,,.,,..,,..,,..,,...,...,..,,...,,,,,.,.,,.,,
+#ZGUDZ3CXAYDDMT7FP7KUW2YV6TEBBPNZ6VFNEHPBXMQZ3EZQROHND6WQDHDCYRPEUOQDRYB65KBZC
+#\\\|Q6Z7CLFKUCADQSLXZYJYTTEA2FK6D6CEBIS45AFJ572ED4G2MTW \ / AMOS7 \ YOURUM ::
+#\[7]C4GAM2E6I5L5OHFXA7HO3DWARR3MOH4OQH6ZQXHQY2P46AASJIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

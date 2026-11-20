@@ -8,9 +8,9 @@ metadata:
 session 2026-11-08 [ follows [[session-handover-n7fs-format3]] ].
 
 done, pushed to hub [ coding commits pulled on srv-U F V A + azurum, coding reloaded U A azurum ] :
-- 58bb4389b a models ON HOLD looped invoke-web + coding : a blocked start answers FALSE, the acquire reply took it as an answer -> a request per processor poll [ ~1\s ] + a queue pause \ resume per retry. now : FALSE = no answer, backoff 30 s doubling, an invoke-web retry is a probe [ no pause ] ; coding model_path_reply \ switch_model_reply read FALSE replies via base.reply.mode_text [ was an empty YAML parse failed ]
-- b0a0b78d6 backoff cap 780 s [ owner : 600 s timers are avoided ]
-- d1e34e381 + 11c753ac2 + 999a16459 invoke-web.proxy [ empty \ none \ url ; url in host-config/invoke-web.cfg ] -> http[s]_proxy + INVOKEAI_DOWNLOAD_PROXY ; socks needs pysocks socksio [ warn at start, todo QZE for an os/pip dep kind ] ; a start waiting for the lease starts without it when models is silent, keeps its args
+- 4016d295d a models ON HOLD looped invoke-web + coding : a blocked start answers FALSE, the acquire reply took it as an answer -> a request per processor poll [ ~1\s ] + a queue pause \ resume per retry. now : FALSE = no answer, backoff 30 s doubling, an invoke-web retry is a probe [ no pause ] ; coding model_path_reply \ switch_model_reply read FALSE replies via base.reply.mode_text [ was an empty YAML parse failed ]
+- 418b1c9c7 backoff cap 780 s [ owner : 600 s timers are avoided ]
+- e4a02d350 + 832c83305 + 0c985f19f invoke-web.proxy [ empty \ none \ url ; url in host-config/invoke-web.cfg ] -> http[s]_proxy + INVOKEAI_DOWNLOAD_PROXY ; socks needs pysocks socksio [ warn at start, todo QZE for an os/pip dep kind ] ; a start waiting for the lease starts without it when models is silent, keeps its args
 - 899422394 a plain restart retries the item it interrupted [ restart recovery kind ]
 - qwen21 now holds the legacy loras [ 176 ], ip adapters + encoders [ renamed to the names invoke looks up ], perfection-super \ -asian completed via fetch-files, two qwen loras rekeyed -- see [[invokeai-model-install-quirks]]
 
@@ -20,8 +20,8 @@ open :
 - todo QZE [ p7-deps os/pip kind ] ; carried over : XAH shorten, start_once mismatch todo, "render queue empty" repeats, first render loop step [ [[render-pipeline-direction]] ]
 - next big step per owner : after N7FS is usable
 
-#,,,,,,,,,,.,,,,,,,,.,..,,..,,...,.,,,,..,...,..,,...,...,...,,,,,..,,,..,,.,,
-#4D32DO6FZHA4JI433KVCOTFYE7BULFBR2FK3JQ7CZ63SBZYBBMNA3VWMXKNY5EWLSBW4JEYTSPIOW
-#\\\|A2OPRSGANQEAEX52JJYD6V2MOS3MLKOWRYNEIACCUTJKSPB3VPX \ / AMOS7 \ YOURUM ::
-#\[7]QNRWNWHM6VW4GIWY4TEYNR7O2OG4COIRDKUWPQFMKE7CHIQSNQAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,..,.,.,,..,.,.,..,,,,,,.,.,.,,,..,,...,...,,,.,,.,,...,.,.,,..,
+#33LSJ532WEEORBYEMEKTTX3UCATOL3UND4NEDWKKDUTGEX2GJQGXTH4OVHWMSDQID7GU2O7MLGZIK
+#\\\|Y5QQEK5C2ZID3NPWDKSPNCVIGZF3SJE5KDFP2P4OXCT4DPIFAGL \ / AMOS7 \ YOURUM ::
+#\[7]KS3GFQVMDVC5XGU7LQWIYZQQSQHZQ4VXWIM33WAF2ZC22YGVEWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

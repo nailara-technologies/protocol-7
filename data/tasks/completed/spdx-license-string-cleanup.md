@@ -1,6 +1,6 @@
 ## archive: DONE ✓ -- 2026-08-22
-## commit: 46248ee4d -- spdx cleanup batches 3-4: last src/ files, plus retire phantom base32 duplicate
-## notes: all 4 batches landed (352b1eb87, c9eb029f6, and batch 3-4 in 46248ee4d); every
+## commit: 4bd63cddb -- spdx cleanup batches 3-4: last src/ files, plus retire phantom base32 duplicate
+## notes: all 4 batches landed (2956c998e, 861524318, and batch 3-4 in 4bd63cddb); every
 ##        SPDX-License-Identifier marker confirmed gone from src/; also retired the
 ##        phantom base.decode.bmw/bmw-L13 duplicate of base32.decode found along the way;
 ##        closes todo item G5X
@@ -164,8 +164,8 @@ code as first assumed).
 corresponds to todo item `G5X` ("review routines with SPDX marker and
 remove on pass") — mark that done via `todo` once all 4 batches land.
 
-#,,..,,.,,.,,,,.,,.,.,,..,,.,,.,,,...,,..,..,,..,,...,...,..,,,.,,..,,,..,,.,,
-#N5RHFGJ2XL5B2YTHZRWDJFFTCSOI2OCFJZKSCCMMPZWIPZWJTRCHWFWNZVSKYFO7TBXQPZLST6ZTG
-#\\\|P5AUE7JYO4PJMNZ2N2N4SJFHOVGQTA7HQO26XGYZHM37FWRGOK5 \ / AMOS7 \ YOURUM ::
-#\[7]3S45CESX55C6X77O2YYTU67KFY3PLRX53VMW7IEPR2KDIFVRSCCQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,,..,..,,..,,..,,,,,,.,,,,..,..,,...,...,,.,,,.,,,,.,,,,,,,.,
+#P4T3F4DBILLZFBO7MYJOOLVLCZ3NBOUC4OKNXU4IMFD5HF2ST2BV7DYRJ3SGINJXCP5ZP53FGAOXO
+#\\\|V5SMUGYEULZYOMVXTQENP3WK2WQTJ5PKR6IOXH4V2VMDQC3VMGY \ / AMOS7 \ YOURUM ::
+#\[7]LSPL2GA3QDCV26GDCPO7WK2G5SMHJIMCJPAKABVHL6SSM2APUMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

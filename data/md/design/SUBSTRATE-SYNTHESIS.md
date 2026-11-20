@@ -16,9 +16,9 @@ the owner's answers, and two commits of the day :
   [ questions 1, 13 ] ; one record form, the canon form of
   `N7FS-FORMAT-4.md`, for n7fs and the ledger [ question 12 ] ; the hashed
   separator form [ question 14, by commit ]
-- **built** : the exact Y grid, `AMOS7::cell::time` [ 2b87fcc73, section 7 ] ;
+- **built** : the exact Y grid, `AMOS7::cell::time` [ 3bef478fe, section 7 ] ;
   `AMOS7::CHKSUM::Nested` builds the empty-parent root and verifies the
-  parent [ a51999e20 ]
+  parent [ b0eaa4732 ]
 - **split** : the parent that sees amounts only is not the witness and not
   n7fs home [ section 1, contradiction 15 ]
 
@@ -136,8 +136,8 @@ discipline, not a shared implementation, unless a line says so.
 
 | part | what exists today | what is common, and what is not |
 |---|---|---|
-| place | `AMOS7::CHKSUM::Nested::child_chksum` [ **checked**, a51999e20 : AMOS checksum over `parent . '.' . name`, true in bracketed and bare form ; the parent is empty for the root or exactly 7 characters, the name nonempty and dot-free ; `verify_nesting` checks the parent too ] ; n7fs content addresses [ BMW384 of content ] ; map shard prefix `depth` [ 1 as built ] ; ledger pool \ slot \ record addresses [ BMW384 over stored bytes ] ; `P7REFS` [ **checked** : AMOS checksum over type, base32 address and optionally the node name ] | all are derived and none is assigned. they are **not** one derivation : only the nested checksum hashes `( parent, name )` ; content addresses hash content, `P7REFS` hashes a type and an address |
-| window | `AMOS7::cell::time` [ **checked**, 2b87fcc73 : exact frames, windows, paths ] ; `epoch_window` in `AMOS7::N7FS::Sum` and `base.ntime.epoch_dec` [ **checked** : floats, one epoch = year \ 13 = Y1 = 28.08 d ] ; the Y levels of `AMOS7::NTIME` ; the n7fs retention ladder ; the ledger frame [ proposed Y3 ] ; receipt age `3Y2` | one grid, and since today one exact function for it. **the epoch is frame level 1** modulo 385280 ; a Y3 ledger frame is one of 169 in an epoch. the float epoch functions are still in use and differ at 10082 boundaries [ contradiction 5 ] |
+| place | `AMOS7::CHKSUM::Nested::child_chksum` [ **checked**, b0eaa4732 : AMOS checksum over `parent . '.' . name`, true in bracketed and bare form ; the parent is empty for the root or exactly 7 characters, the name nonempty and dot-free ; `verify_nesting` checks the parent too ] ; n7fs content addresses [ BMW384 of content ] ; map shard prefix `depth` [ 1 as built ] ; ledger pool \ slot \ record addresses [ BMW384 over stored bytes ] ; `P7REFS` [ **checked** : AMOS checksum over type, base32 address and optionally the node name ] | all are derived and none is assigned. they are **not** one derivation : only the nested checksum hashes `( parent, name )` ; content addresses hash content, `P7REFS` hashes a type and an address |
+| window | `AMOS7::cell::time` [ **checked**, 3bef478fe : exact frames, windows, paths ] ; `epoch_window` in `AMOS7::N7FS::Sum` and `base.ntime.epoch_dec` [ **checked** : floats, one epoch = year \ 13 = Y1 = 28.08 d ] ; the Y levels of `AMOS7::NTIME` ; the n7fs retention ladder ; the ledger frame [ proposed Y3 ] ; receipt age `3Y2` | one grid, and since today one exact function for it. **the epoch is frame level 1** modulo 385280 ; a Y3 ledger frame is one of 169 in an epoch. the float epoch functions are still in use and differ at 10082 boundaries [ contradiction 5 ] |
 | occupants | n7fs integer placement with a declared `domain` label per holder [ **checked** ] ; `v7-zenki` managing zenki ; cube session and route ids per hop | "who serves this place now". today a registry or a manager decides everywhere. derived occupancy is a design |
 | journal | `AMOS7::N7FS::Journal` [ **checked** : signed, sequence, BMW chain, fork rules ; uses `JSON::PP` ] ; designed : `AMOS7::NRT::journal` ; design only, in the n7fs open section : the add-only writer chain with anchors and a ratchet | **one envelope, decided** : the canon form of `N7FS-FORMAT-4.md` for n7fs and the ledger, one parser, one signature rule. **not one security model** [ contradiction 21 ] : each journal keeps its own order, witness and recovery rules, and the add-only writer needs what no envelope gives |
 | gate | n7fs `cycle` states and floors ; ledger saturation ; fair-exchange ring states ; `base.curve.*` thresholds [ **checked** : cancel, compose, eval, eval.position, init, register, tick ] | "a step cannot begin while the previous one is incomplete, and a stuck run names the one gate that did not open". a discipline, in separate code |
@@ -205,7 +205,7 @@ revision.
    string the parent of every new file ; the epoch sub-thread makes the root
    the rolling common prefix of three epochs. the first two are different
    values. the code settles which one is built : the root is
-   `child_chksum( '', name )`, over `'.' . name` [ **checked**, a51999e20 ].
+   `child_chksum( '', name )`, over `'.' . name` [ **checked**, b0eaa4732 ].
    -> two views over the same nodes : the **identity tree**, timeless, rooted
    at the empty parent [ lineage, version history, attribution ] and the
    **occupancy view**, dated, rooted at the epoch [ who holds now, which
@@ -362,7 +362,7 @@ revision.
     writes `<C0>:<C1>` ; the code hashes `parent . '.' . name` and writes
     `[child:parent]`. the `[CHECKSUM:NAME]` of a third doc is only its
     title, its example agrees with the code. -> the code is the truth, and
-    since a51999e20 it is a complete definition : the empty-parent root, a
+    since b0eaa4732 it is a complete definition : the empty-parent root, a
     parent of exactly 7 characters, a dot-free name [ so the joined input
     reads one way only ], and a verification that compares the parent. the
     form is frozen by that commit and its fixed test vectors. left to do :
@@ -440,7 +440,7 @@ and parent check [ contradiction 17 ].
 | the word `cell`, the root `AMOS7::cell` | owner | section 1 |
 | where the grid lives, and who calls whom | owner [ the name ] ; the direction follows from what is built | `AMOS7::cell::time` holds it. `AMOS7::NRT::frame` calls it ; n7fs moves onto it by a versioned step [ format 4 section 4.6 ] |
 | one record form | owner | the canon form of format 4, for n7fs and the ledger. an envelope, not a journal mechanism |
-| the hashed separator form | owner, by commit a51999e20 | `parent . '.' . name`, written `[child:parent]` |
+| the hashed separator form | owner, by commit b0eaa4732 | `parent . '.' . name`, written `[child:parent]` |
 | receipts before ledger stage 2 | owner | format 4 stage 3 |
 
 **needs the owner** :
@@ -466,7 +466,7 @@ live n7fs tree depend on a computed weight.
 ## 7. the first step : built
 
 **one exact function for the grid every thread stands on**, as
-`AMOS7::cell::time` with `bin/test-scripts/test-cell-derive.pl` [ 2b87fcc73 ;
+`AMOS7::cell::time` with `bin/test-scripts/test-cell-derive.pl` [ 3bef478fe ;
 **checked** ]. no state, no network, no zenka, no live tree.
 
     frame( ntime, level )   =  floor( ntime x 13^level / 132451200000 )
@@ -550,7 +550,7 @@ what follows, and is not done :
     is format 4 question 2.
 13. **decided** : the grid lives in `AMOS7::cell::time`. the ledger's
     `AMOS7::NRT::frame` calls it, n7fs moves onto it by a versioned step.
-14. **decided** [ by commit a51999e20 ] : the hashed form is
+14. **decided** [ by commit b0eaa4732 ] : the hashed form is
     `parent . '.' . name`, written `[child:parent]`.
 15. **the epoch length.** the memory note says about one week, code and the
     n7fs table say 28.08 days. is 28 days the intended rolling window for
@@ -596,7 +596,7 @@ followed.
 | 14 | "a copy adds no standing" overrules the source | accept | contradiction 14 narrowed to unattested duplicate bytes |
 | 15 | an amounts-only parent cannot be witness or home | accept | three roles in section 1, contradiction 15, ledger section 3 and threats |
 | 16 | the owner's form decision supersedes synthesis and ledger | accept | contradiction 16 closed, question 12 decided, step b changed ; ledger section 5 rewritten ; format 4 section 2.5 and questions 1, 3 marked decided |
-| 17 | two spellings, not three ; the code is not a complete definition | modify | two spellings : accepted. the three code gaps it names [ no root, no input rule, parent not compared ] were closed the same day by a51999e20, so the remedy is not "settle before freezing" but "frozen by that commit" |
+| 17 | two spellings, not three ; the code is not a complete definition | modify | two spellings : accepted. the three code gaps it names [ no root, no input rule, parent not compared ] were closed the same day by b0eaa4732, so the remedy is not "settle before freezing" but "frozen by that commit" |
 | 18 | useful as a vocabulary ; ring routing fits worst ; the address row is forced | accept | sections 1 to 3 retitled and rewritten ; a fit column ; the place row no longer claims one derivation |
 | 19 | the ledger can shorten its journal | accept | `recover` appends `void` ; committed, pending, void, torn defined [ contradiction 18, ledger section 5 ] |
 | 20 | `pub`, and a flat record for many parties | accept | ledger section 5 [ contradiction 20 ]. one limit added : one key signs for one giver, several givers go through a slot, since the canon form carries one signature |
@@ -613,8 +613,8 @@ what the review asked for and is still open, on purpose : contradiction 8
 [ who signs weights ], the ring questions of 10, and membership. each is an
 owner question, and none is needed for the two ready steps.
 
-#,,,.,,,,,,..,..,,,.,,..,,,..,,,.,..,,,,,,,..,..,,...,..,,.,.,,.,,,,,,.,,,..,,
-#QF6XQ54D7BKGBOOKPT35LJK3B27RQ3Q3HTHLYWQYW2MV75QETTGM6YY3QMVERCHJXP6H7SLXA5UHU
-#\\\|SNASIQQQMASOODWFKGWA53KR3PGUQDDHSOCG5Y42VGPJZ2GUMU5 \ / AMOS7 \ YOURUM ::
-#\[7]HT3ISAAKAKUGFXT54UMO73YMLNFKZV5ISVJ6I467LCV2TF5XUGDY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,,,...,,,.,,,.,,..,,,.,,,,,..,,..,,...,...,,.,,.,,,...,.,,,,..,
+#QUYVZQG346MRNWAD72WEK7QZ4H3IKBSEOVFX42U4UFFHBDQ7YYSLIYP2JH6UXWZ33Q3FMBFS2M6QU
+#\\\|T3KVF6R5EW4XC2K3RNIFUR5UPQX2RNGFU4PZ7B2VFH37IUHHCUN \ / AMOS7 \ YOURUM ::
+#\[7]SZDOMF67IQ2IJC2DBLH35LN5C24OLQTAWFZGRS75APMFQZVGAADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -50,7 +50,7 @@ protocol-7 reads a vault yet. The sourcecode signing key is NOT a vault
 entry : it is the `proto-7.sourcecode` C25519 keypair in
 `~/.n/user-keys/`.
 
-the parallel pool [ landed 149b7a0ba ] : update-signatures shards the file
+the parallel pool [ landed 051e605df ] : update-signatures shards the file
 list into ~4 chunks per worker [ size-balanced, largest first ], keeps
 `$workers` children running through `<[base.fork]>`, each child calls
 `sourcecode.sign_file_list` on its own shard [ the per-file TOCTOU guard
@@ -267,8 +267,8 @@ purpose [ no signing in this slice ] ; they get their footers on the
 next update-signatures run. test debris under /tmp was removed after
 the run.
 
-#,,..,...,,.,,..,,..,,,,,,.,,,...,,,,,,,,,,,.,..,,...,...,..,,,,.,,.,,.,.,.,.,
-#BAXFDUARKTEPKQNEA4RPIPKVAAQFKVP6JWBCLGWETTPHWYMEZQCKQ5V6NAEP6OAKO3AUIPCCQBMLY
-#\\\|RCK3V6IYKRXKRTO7SLKNZNZUZ5Q25MMEQWV6PYGJC7UE7UQ2STU \ / AMOS7 \ YOURUM ::
-#\[7]JIWJYBMFU5HPJWG57FT6KXROFRDL24LKIT7JQN6DAIBWQBLKL2AQ 7  DATA SIGNATURE ::
+#,,..,...,..,,...,.,,,,,.,,.,,.,.,...,,,.,..,,..,,...,..,,...,,.,,,..,...,,.,,
+#L4X7GCZO5KGPN7OOKNYAFBEMKJYUGU2NCGTCYMBV3BPBB3I2VKP7USIFWTO6PGL5ZVCOOP7BFGQ6W
+#\\\|LN65BPURQ34Q7I65WH3WN67USAVW752XVPZLTAOAFD3BBR3C53V \ / AMOS7 \ YOURUM ::
+#\[7]SDOCY4DX22NGGGPUYIZ4WUOUIW3XCQA3V4AHIIUWN73PIJMPB4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: project-2026-09-20-model-sweep-crash-bucket-resolved
-description: cross-backend model-sweep lock fix (2a13e7385) confirmed live-verified, 25 models deleted (103GB), 18-model "crash bucket" classified, and new safe model-deletion tooling (models.cmd.delete-model/trash-list/trash-rescue/trash-prune/protect/unprotect, path-escape-protected, trash-based not permanent) built and live-verified
+description: cross-backend model-sweep lock fix (54ab0e79c) confirmed live-verified, 25 models deleted (103GB), 18-model "crash bucket" classified, and new safe model-deletion tooling (models.cmd.delete-model/trash-list/trash-rescue/trash-prune/protect/unprotect, path-escape-protected, trash-based not permanent) built and live-verified
 metadata:
   type: project
 ---
@@ -10,7 +10,7 @@ Direct continuation of [[project-2026-09-17-model-sweep-session]] and
 resolved the open "crash bucket" of 18 checksums that session's final
 sweep couldn't trust (crash verdicts contaminated by concurrent
 gpu/cpu sweep contention, root-caused and fixed as
-`coding-sweep-cross-backend-lock.md` / commit `2a13e7385` the night
+`coding-sweep-cross-backend-lock.md` / commit `54ab0e79c` the night
 before this session, but not yet re-verified with real data).
 
 **Cross-backend lock fix confirmed live-verified this session**: watched
@@ -222,8 +222,8 @@ switch→self-test→restore state machine `poll_sweep`'s `start_candidate`
 already drives is reusable in principle, just not yet extracted into
 something a standalone command can call directly.
 
-#,,,,,,.,,...,,..,,,.,,,.,...,,,.,,..,,..,...,.,.,...,...,..,,,..,,,.,,,,,...,
-#S2FAUTLFDGLQJWOCRD7KQLWVIGXNNAJ6GWNO55KPIRDCLEECLELUAPTG7NRE3QIFDDVQU4J3VICQU
-#\\\|ETLFZEITDEUTWRH5ERDWTHM6KEWW4QSYPZZRKEDAKCZUMEF434H \ / AMOS7 \ YOURUM ::
-#\[7]2YQNV5BREW4MXUCDPN4FLHKQJBZ3TJTN5IOCNVQUJ23XKMDAZEDA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,,,,,,..,,,,,,.,,.,.,...,.,,,.,.,...,...,..,,.,.,,,.,..,,...,
+#66T452LIZKGPC4VRTU5PFP6HCPONKD5PGUVHVIQ2FURH6F4DLM72PYZUGKHSBCPUSPVGRDGTKW7AG
+#\\\|CRTSUBTPVSHV5JNRVK3K2RV3ZLL5FVAKFZRLEBGJX43VM3DDYI5 \ / AMOS7 \ YOURUM ::
+#\[7]CA2JJCMDHKAOHKKHYCDGDLVU2B3VS3N7GCY3MZ5DXGPP45K23EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

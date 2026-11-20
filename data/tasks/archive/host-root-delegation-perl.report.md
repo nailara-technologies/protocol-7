@@ -156,7 +156,7 @@ test-keys-root-held.pl [ lane 2, run only ] : 121 checks, 0 failed
 4. pre-existing gap [ not from this lane ] : `external` and `users` do
    not load the `auth` namespace, yet the client path calls
    `<[auth.binding.message]>` [ authenticate + handshake ] -- looks like
-   an undefined `$code{}` call there since afd71cec7. `trust` is added ;
+   an undefined `$code{}` call there since ecaa9b1ac. `trust` is added ;
    `auth` is not [ heavier, server-side init ] -- please check.
 5. `crypt.C25519.cmd.host-root-fingerprint` is reachable in every zenka
    [ public value ] ; add it to base.init_code's cube-only list ? not my
@@ -769,8 +769,8 @@ passed : 84  failed : 0
 all checks passed
 ```
 
-#,,.,,,..,,..,.,,,...,...,,..,.,.,.,.,..,,.,,,..,,...,...,,.,,,..,,.,,,.,,.,.,
-#AYPTZWULR2CYKNEB6ACIVLBJOBSLUNKEWXFWBMZP33EUDQSMZSWOGEDGIFCHLTCVRXS7STMYTISH4
-#\\\|KBMSEEVWUJ6S4D553K2HQS2BRJO3R23EFHBHHM7YUWIEPMGTG7J \ / AMOS7 \ YOURUM ::
-#\[7]UD7XLPQQQSQ6BKTAVMBCB6VFQE3PHPAQKUB5ABAQRD5AIE4T5AAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,,,,,.,.,,,,,,,,.,,.,.,,.,,,.,,..,,...,..,,.,.,..,,,,.,,,.,.,.,
+#EKYFUDSIKOZWF2MKNGQ3IDS57SA2IFFJ646JG6WFCCZLZTV5I54K4V5TUOLMTKJZQAGTODBXR77X6
+#\\\|QUXQK476IJYYR3AFUOYGDJQWIPKNMEJHKKIX5XU4S5KQ6QBGYLX \ / AMOS7 \ YOURUM ::
+#\[7]AA3KGL464KHQUBPQNKXKPWSG7UR7KNNN6HCM7FZ6ZQIWG3FG4ECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

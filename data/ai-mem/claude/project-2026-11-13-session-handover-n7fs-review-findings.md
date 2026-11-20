@@ -6,16 +6,16 @@ metadata:
 ---
 
 2026-11-13 : Fable review [ ~/.n/private-notes/fable-n7fs-review-2026-11-11.md ] worked
-through with kimi + review. commits [ base, pushed up to a869f77f4 ] :
+through with kimi + review. commits [ base, pushed up to 5e561596f ] :
 
-- 02327836a finding 4 : receipt coverage sizes-only \ sampled \ full, keyless
+- 48cc93e93 finding 4 : receipt coverage sizes-only \ sampled \ full, keyless
   `holder-scrub`, drain trusts only full receipts, byte-weighted 64 bit sampling
-- 5a91a66dd test sandboxes reuse ~/.7/inline-code [ no make per test ]
-- e1bc31c26 finding 2a : gc grace 1 d + `.trash/<date>/`, purge \ restore, per-root
+- 08ef8bdaa test sandboxes reuse ~/.7/inline-code [ no make per test ]
+- 7f61d11f4 finding 2a : gc grace 1 d + `.trash/<date>/`, purge \ restore, per-root
   holder subdirs `r-<tag>/`, `holder-migrate`
-- 73327eae0 finding 2b [ K3.1 high ] : receiver mode `ssh-receiver:`, root-signed
+- 3d5a89524 finding 2b [ K3.1 high ] : receiver mode `ssh-receiver:`, root-signed
   requests [ counter spent BEFORE the action ], P7SH outer head signature
-- a869f77f4 finding 3 : incremental receipts [ entry `added` + covered digest ],
+- 5e561596f finding 3 : incremental receipts [ entry `added` + covered digest ],
   place ends with holder-check, 2 d unreachable grace
 - finding 6 [ this commit ] : disk \ category bound to one root [ self-certifying
   `.n7fs/seal-root` = a guard against MISTAKES, not a boundary ], multi-root
@@ -29,11 +29,11 @@ holders do not separate roots ] ; then switch holders to `ssh-receiver:`.
 OPEN : finding 5 DESIGN DECIDED [ N7FS-SEALED-REPLICAS.md 'map growth and
 retention' : 256 shards, 64 MiB \ time commits, chunked manifests, retain ladder
 in the sealed map, repack ; all times ntime, durations in Y levels = ntime year
-/ 13^n [ owner : YOURUM = 13, no base 60 \ unix ] ] ; stage 1 Y ages e0c4b7916,
-stage 2 sharded map 1061c8697 [ kimi sealed root + all shards under ONE nonce --
+/ 13^n [ owner : YOURUM = 13, no base 60 \ unix ] ] ; stage 1 Y ages 72e66b43a,
+stage 2 sharded map d0704a848 [ kimi sealed root + all shards under ONE nonce --
 caught in review, now per-blob domains map-shard-XX \ map-tree ; check nonce
 domains in every new sealed kind ] ; next stage 3 chunked manifests, 4 retain +
-repack ; 2026-11-14 : Fable review of finding 5 [ R1-R17 ] fixed in 4 groups : 771276547 R1 R2 R8, f63ba9f91 R5 R7, 46d246899 R3 R6 R4 [ shard key = 2 b32 chars of the bmw part, 1024 shards ], 88da14772 R10 R11 R13 R14 R15 ; Fable design stage 1 = 3d40bfd51 [ receipts per root, clock floor ]. TEST RUNS : check every script's EXIT CODE and that it printed its "passed," summary -- summing summaries alone hides a script that dies mid-run [ 2026-11-14 : test-n7fs-retain.pl died at an epoch boundary, fixed with a pinned test clock N7FS_TEST_NTIME, warned when set ]. ALL review findings R1-R17 FIXED : 3203321b7 [ head v2 = Fable design stage 2 + R9 SIV nonces ], 35a32e27b [ R12 R16 R17 + SIV subkey ]. FABLE DESIGN 7-10 FULLY BUILT 2026-11-14 : stages 1-12 [ up to the stage 12 commit after 27234d6c5 ] ; findings 5 7 8 9 10 closed. NEXT : the live upgrade + first n7fs cycle on real holders [ owner all-clear first ], the Fable window [ see fable-access-window ]. OLD : NEXT : Fable design stage 3 [ peers, head_survey, heads, head-refresh, stale refused ] ; + derive a separate SIV subkey [ head v2 _long_id hashes with the same outer key that encrypts : key separation, not a hole ] ; owner answers 1-6 recorded at the end of the Fable design file [ registry : middle way, p7 config style, aligned ]. pushed by the owner up to 94675d85e [ 2026-11-14 ]. DONE : PENDING DOC REFS for the next commit [ N7FS-SEALED-REPLICAS.md derived placement paragraph ] : data/md/design/EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md [ rolling validity window prev/current/next, totp shape ; first seen rule ], data/md/design/CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md §2 [ epoch as temporal network root, <epoch>:<key>[:<name>] auto-closing collision exclusion ], data/tasks/epoch-validity-search-protocol.md [ search result checksum IS its route = the rocket ] ; 7 [ rollback : signed head time + other holders'
+repack ; 2026-11-14 : Fable review of finding 5 [ R1-R17 ] fixed in 4 groups : 771276547 R1 R2 R8, 29131dd07 R5 R7, b2d4a9f23 R3 R6 R4 [ shard key = 2 b32 chars of the bmw part, 1024 shards ], 50b4fe8a8 R10 R11 R13 R14 R15 ; Fable design stage 1 = fcfc5b74e [ receipts per root, clock floor ]. TEST RUNS : check every script's EXIT CODE and that it printed its "passed," summary -- summing summaries alone hides a script that dies mid-run [ 2026-11-14 : test-n7fs-retain.pl died at an epoch boundary, fixed with a pinned test clock N7FS_TEST_NTIME, warned when set ]. ALL review findings R1-R17 FIXED : 190a63c7a [ head v2 = Fable design stage 2 + R9 SIV nonces ], 027605b89 [ R12 R16 R17 + SIV subkey ]. FABLE DESIGN 7-10 FULLY BUILT 2026-11-14 : stages 1-12 [ up to the stage 12 commit after 2ad0ec7cd ] ; findings 5 7 8 9 10 closed. NEXT : the live upgrade + first n7fs cycle on real holders [ owner all-clear first ], the Fable window [ see fable-access-window ]. OLD : NEXT : Fable design stage 3 [ peers, head_survey, heads, head-refresh, stale refused ] ; + derive a separate SIV subkey [ head v2 _long_id hashes with the same outer key that encrypts : key separation, not a hole ] ; owner answers 1-6 recorded at the end of the Fable design file [ registry : middle way, p7 config style, aligned ]. pushed by the owner up to 7b18d626e [ 2026-11-14 ]. DONE : PENDING DOC REFS for the next commit [ N7FS-SEALED-REPLICAS.md derived placement paragraph ] : data/md/design/EPOCH-CHECKSUM-EXCLUSION-ADDRESSING.md [ rolling validity window prev/current/next, totp shape ; first seen rule ], data/md/design/CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md §2 [ epoch as temporal network root, <epoch>:<key>[:<name>] auto-closing collision exclusion ], data/tasks/epoch-validity-search-protocol.md [ search result checksum IS its route = the rocket ] ; 7 [ rollback : signed head time + other holders'
 versions, tree complete \ partial, registry in the sealed map ] ; 8 [ snapshot
 before pull ] ; 9 [ `n7fs cycle`, monthly restore drill ] ; 10 small [ receipts
 signed by the same host key, local clock ].
@@ -55,8 +55,8 @@ CPU to 545 MHz ] -- killed, updated, fixed ; check `% Processor Performance` fir
 next time. kimi cost : see [[kimi-dispatch-model-verify-before-send]].
 [[n7fs-first-live-round]] [[n7fs-host-migration-goal]]
 
-#,,,.,,,.,.,.,,..,.,.,.,.,...,..,,,.,,,,,,,,.,..,,...,...,...,,,,,,,,,,,.,,..,
-#B2TSBHINFMF4L2GWIGORZWLJC6DRKHO6JLGEKXYIQ26MYUW3XN5IHG3KZXTOQUKZ4PG3CVWEWJLEC
-#\\\|XK2NSBYGSX6ZBHPSFXYQT2UMGVILSKSUQZXBQIPA5J3OQVXK6QP \ / AMOS7 \ YOURUM ::
-#\[7]6SVFCMV4NHYCGMM47FMMBBJSFF67MNL7MENFROJTHGQHXJM7F6BA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,,.,.,.,..,,.,,,...,,,.,,..,..,,..,,...,.,.,,..,,..,.,.,,,.,,,,,
+#7FMEFIXNF6NZPG2JWZLW6FK2XBVAI4INPJR62S7MN66PFNZTV3CTNX5XYTPKUJTNXNIAEOPV7KQN2
+#\\\|RSWXEQTS2J3FZYIIR5JFSSSG2UTOMPQACTZEVTCYFEMY5HGZ6II \ / AMOS7 \ YOURUM ::
+#\[7]KODGAK6JEHWAWBYQCDQCFVRIHP5S4VZZU4LQCBPQW2JK5GRTHMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

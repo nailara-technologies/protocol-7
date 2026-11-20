@@ -22,7 +22,7 @@ seconds later found work. Root causes, in layers:
    and exits 0 — the same fingerprint as the observed no-op (delta's wrapper was
    verified correct; that particular shape remains the failure mode to recognize).
 3. The old shell script (`bin/dependencies/debian_dist_upgrade.sh`, deleted in
-   `5cf127eaf`) was always exec'd AS ROOT by v7, so its `export DEBIAN_FRONTEND=...`
+   `973cd28d8`) was always exec'd AS ROOT by v7, so its `export DEBIAN_FRONTEND=...`
    reached every child. The perl port kept process-`%ENV` delivery — which sudo's
    `env_reset` strips (manual non-root runs), so debconf fell back to the dialog
    frontend: blocked on an empty blue whiptail ('PAM configuration'), killed leftovers
@@ -30,7 +30,7 @@ seconds later found work. Root causes, in layers:
    was exactly the five env vars + --force-conf* + -y — nothing was lost in the port;
    only the delivery needed armoring.
 
-**Landed `3dd8b8de8`**:
+**Landed `7cfd53b50`**:
 - `AMOS7::deps::aptlog` (new): the condenser from `src/debian.log.condense`, ported
   pure; the src module is now a thin p7 wrapper (its fixture test passes through the
   delegation). Rules: one condensed line per package on 'Setting up'; 'Removing X (v)…'
@@ -72,8 +72,8 @@ test exact-output green, `test-deps-core-perl.pl` registers aptlog.
 [[condition-dep-start-gate-colon-syntax]] (same session, v7-zenki side) ·
 [[project-sys-deps-wiring-completion]] (where the old debian zenka stack retired)
 
-#,,,,,,,,,...,.,,,,,.,,..,..,,.,,,,..,,,.,.,.,..,,...,..,,,.,,..,,..,,,,,,.,,,
-#BXT7Y6AA2H6GY5FZZB4V6MIV6F2UJIBXIDG3M33MATDZ6I4WDT2RFB6EIMLXQNQB6WBQ3SI5CKGNM
-#\\\|3X754CQHWXXH2KXBPS3RVOKZFNOJ3IUOGQKXAYEKCN4FWT6USUM \ / AMOS7 \ YOURUM ::
-#\[7]E4P4TFHEGBEGC4LR2TFJXPQYY2LW5KDA6GGDOHIUA4LV2IVJZWCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,.,.,.,.,.,.,...,,,,,,.,,...,..,,...,...,.,,,,..,...,,,,,,,.,
+#GMVLUIUSMUDOJ5CZBP2QK2VFNX6XKYCEBNG4ZHGLO4NMQZ4GR3WAWAZJ3GBKF4ZEI6ZN4SVZMSPTM
+#\\\|WEEBDSREDTA3XSU4NR2V3HHSUOEYOWZHXNEUXAAFYCF26S75VCL \ / AMOS7 \ YOURUM ::
+#\[7]XMW4WH3HSHEV2P2FTCMXQI6WSNXUBTWWMBLFIJBFKMFWGZB2XEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

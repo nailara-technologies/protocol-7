@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-24-local-model-edit-comparison
-description: 2026-10-24 local coding models on one 4-line edit [ same brief, new sampler + edit_file fix ] : 35b + 14b exact, 9b 1 of 4 and reported success ; cat test = safety avoidance ; fixes 35b3dbe6a 3c9a18d32 ; open : tool hang, per-model sampler, dead handler.edit_file
+description: 2026-10-24 local coding models on one 4-line edit [ same brief, new sampler + edit_file fix ] : 35b + 14b exact, 9b 1 of 4 and reported success ; cat test = safety avoidance ; fixes eb17c9e97 626dfe592 ; open : tool hang, per-model sampler, dead handler.edit_file
 metadata:
   type: project
 ---
@@ -25,17 +25,17 @@ own prompt + tools + read-back ].
   claim with the last tool results would catch it [ not built ]
 
 fixes landed :
-- 35b3dbe6a sampler [ [[sampler-penalties-break-exact-copy]] ] + the
+- eb17c9e97 sampler [ [[sampler-penalties-break-exact-copy]] ] + the
   self-test seed retry count per start episode [ the count survived model
   switches : a model that gave up once gave up at once next time ]
-- 3c9a18d32 edit_file keeps a line's indentation when old matched only
+- 626dfe592 edit_file keeps a line's indentation when old matched only
   trimmed [ the 35b's first run de-indented all 4 lines, reported them
   untouched ]. the live code is INLINE in `coding.tools.dispatch` ;
   `coding.tools.handler.edit_file` is dead [ its hook never fires, still in
   subroutines.load-early ] -- remove it or make it the one implementation
-- 5d626c895 catalog corpus month files re-owned at coding start
+- 30eec363e catalog corpus month files re-owned at coding start
 
-deployed : all four servers on 3c9a18d32 [ 2026-10-24 ], coding on srv-U
+deployed : all four servers on 626dfe592 [ 2026-10-24 ], coding on srv-U
 reloaded [ config + source ] ; srv-A \ srv-F ran none of the touched zenki.
 next : srv-A [ yourum ] runs it as the third worker.
 
@@ -48,8 +48,8 @@ open :
 - the open-layer sweep [ [[zenka-open-default-utf8-layer]] ] can go to the
   35b \ 14b in one-file batches, each checked by diff
 
-#,,..,.,,,,..,,,.,.,.,,,,,,,.,,,,,,..,,.,,,,.,..,,...,.,.,.,,,...,,.,,..,,,,.,
-#AHTMILZTPCMCLEOJJAZ52PJDHTNWR5PG242CSQ4FYRKEBGWCVIXAYDRFGBXLLS6JSDC7T3HX33HPA
-#\\\|5WBPNM6HXFIPU3M3S7KEA57SQKU6ZDAV3CXNL5S6YKYS6VYLLRR \ / AMOS7 \ YOURUM ::
-#\[7]57BQ6CAQWXKQPOUIDGMWRIF7HKATJQWSRU273LEIUZSH6IKPFGBQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,..,,.,,,,,,,,,,,,.,,,.,,...,..,,..,,...,...,...,...,,.,,,.,,,.,,
+#2B3LILSUKNMFQKPFSJVXR72W4IO7WQW25LSTX4XMVGDGB3ABLQMC4WAPRODUZSJFZ6A6JOMHINJQC
+#\\\|DU5EUVS44YMZZJWBCI27K5GZCHQAN7PUZVDMXJOBH5TNR3XDN3S \ / AMOS7 \ YOURUM ::
+#\[7]JNRVYE6MJBYWE6F3C4MIGA2YGSGHIAO7AFF6OL2G6DUXXHRXIECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -59,7 +59,7 @@ ordinary entries, e.g.
 the reader is bin/admin/restore-p7-permissions [ standalone perl, -n \ --check dry run,
 -v ] -- its line parser moves into the shared AMOS7 module, the tool keeps working on it.
 the tool already had an optimization run [ fewer passes over the tree, in-memory
-normalizer 75b9f7267, net-change-only reporting 1f7dfebac ] : moving the parser must keep
+normalizer 98cec1c01, net-change-only reporting 1f7dfebac ] : moving the parser must keep
 that -- same pass count, same reported changes before \ after on a test tree.
 the files themselves are read through AMOS7::Config::Reader [ sources + layers : inline <
 disk < host ] -- paths come from the one definition, not from the tool, and the same
@@ -73,8 +73,8 @@ needed here too [ a whole command profile as one entry ] and lands once for both
 - idempotent, every step reports ok \ set \ changed \ failed ; -dry-run reads only
 - p7 config style, no json ; perl 5.32 floor
 
-#,,,,,,,.,.,,,,..,,,,,,,,,,.,,..,,,.,,...,..,,..,,...,...,..,,,.,,,.,,.,.,,,.,
-#LWO64OYKF2455XNUVPU2W54FBX2PILLZPRHBFAIFUVQ5AC5MU42QA4CR2Q3HNBL3CF5YF3H3IYH6Y
-#\\\|UM6T7PLAMEJ27ZCF5ROM7VCAVQ6FOEWUOOF6WC2XTRTHKAYK3N2 \ / AMOS7 \ YOURUM ::
-#\[7]63VJPOVPMOOWKPCAYQGIIR2GHASZY3WZTBGEDPMT7U26GLBACSBI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,.,,.,,,,,,,,.,..,,..,,.,.,.,.,..,,...,...,.,,,.,,,,,.,.,.,.,,,
+#2AOC6V5ZSGNQNR7MIPT4LL2QBFM5CZ3UYMBC6UUENZTB6LOKACD4HGHG6MYVZAMPJ3ZZY63UT4ZNA
+#\\\|RCOBJY6BRHEF3PDHUAMONS34GELODC3JXWCKWPYXUTTZYDKPMSC \ / AMOS7 \ YOURUM ::
+#\[7]AUAJTAHULBMXGC7AELUC2UDAIEJZ6YAWRVBBN5L3JGBBCWYYI2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

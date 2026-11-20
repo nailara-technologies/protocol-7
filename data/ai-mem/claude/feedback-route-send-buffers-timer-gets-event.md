@@ -5,7 +5,7 @@ metadata:
   type: feedback
 ---
 
-two async gotchas found reviewing kimi's letsencr enrollment, 2026-10-09 [ b6e3750c7 ] :
+two async gotchas found reviewing kimi's letsencr enrollment, 2026-10-09 [ 4e5007573 ] :
 
 1. `<[protocol-7.route-send]>` -> base.protocol-7.command.send.local only APPENDS to
    `$data{'session'}{$sid}{'buffer'}{'output'}` ; the event loop flushes it later. a command
@@ -24,22 +24,22 @@ two async gotchas found reviewing kimi's letsencr enrollment, 2026-10-09 [ b6e37
    stub had delivered the wrong shape too ]. make stubs deliver the real shape.
 4. `event.add_timer` knows `after` \ `at` [ + `interval` ] only -- an unknown `delay` is
    ignored and the timer fires AT ONCE [ four letsencr parent retry \ rate-limit timers did
-   that : "retry in 1800 s" ran within seconds, fixed 9d990defc ].
+   that : "retry in 1800 s" ran within seconds, fixed 9972550c2 ].
 
 also : base.event.* is swapped to event.* at pre_init -- call `<[event.add_timer]>`, never
-`<[base.event.add_timer]>` [ host-edit.flow.schedule died on it, 8ff2c9c5b ].
+`<[base.event.add_timer]>` [ host-edit.flow.schedule died on it, f2f9c2505 ].
 
 **Why:** stub-based tests hide all three -- stubs act instantly and get plain hashes.
 **How to apply:** when reviewing \ writing async zenka code, check every route-send whose
 result is used in the same call, every timer handler's first arg, and that tests deliver
 replies explicitly and pass Event-shaped objects [ see test-letsencr-enroll.pl ].
 
-- 2026-10-23 : the cube wire carries ONLY call_args->{args} [ base.protocol-7.command.send.local:152 ] -- extra call_args keys [ peer_addr, headers .. ] vanish. 6CJ admission [ 231f0dc7b ] passed 122 stubbed checks and was inert live. pack side data into args [ json ] ; a route-send stub must deliver args only
+- 2026-10-23 : the cube wire carries ONLY call_args->{args} [ base.protocol-7.command.send.local:152 ] -- extra call_args keys [ peer_addr, headers .. ] vanish. 6CJ admission [ fdc357775 ] passed 122 stubbed checks and was inert live. pack side data into args [ json ] ; a route-send stub must deliver args only
 
-- **reply payload : read it with `<[base.reply.mode_text]>->($call)`, never `$call->{'data'}` alone** [ 2026-10-29 ] : an external route [ `external.<host>.<zenka>` ] answers in `call_args.args`. jobsite.handler.queue-depth-reply read data only with a `// 0` default -> every remote depth reply read 0 = "drained" 3 s after the import [ 1127 queued on delta ; fixed d7ab4301d ]. an unreadable \ false reply must mean "unknown", never a default that is also a valid answer
+- **reply payload : read it with `<[base.reply.mode_text]>->($call)`, never `$call->{'data'}` alone** [ 2026-10-29 ] : an external route [ `external.<host>.<zenka>` ] answers in `call_args.args`. jobsite.handler.queue-depth-reply read data only with a `// 0` default -> every remote depth reply read 0 = "drained" 3 s after the import [ 1127 queued on delta ; fixed b7fe39134 ]. an unreadable \ false reply must mean "unknown", never a default that is also a valid answer
 
-#,,,,,,.,,.,,,.,.,,.,,.,.,,..,..,,,..,...,...,..,,...,...,.,.,,,.,...,,,,,,..,
-#HTDCXOBGBAPEBL7MX2A7EWGUXTTZLYNQRCJELFCJSBX3B7TZNYRCIKYEH4CAYA7G4ALJLQQ4NDBQE
-#\\\|APYK3IDLWX4PR6JWZNMXXTJSGF6OKQAMMY6TU3P74WTOS6UXS3D \ / AMOS7 \ YOURUM ::
-#\[7]WY3RLI3S7NFENEGSMDQBMVVRPEYIYF24MCHB5GS3ZKHEMP5BAQCA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,.,,,,,,,.,.,,,.,,,..,,..,,,,,,..,,...,..,,,.,,..,,,,.,,,.,..,,
+#ZUBCUBT63TZRLHCWWPTYIX5X2YXX7C4LMQ4SG53I65SIVVU6A4NE5Y6JMKO6CWQWHFEUQITZFBOE2
+#\\\|CRCURAPON32HQDE43L3LVOFI2VJTZ5JJOXZQTB6O3JXRTB35SOK \ / AMOS7 \ YOURUM ::
+#\[7]YFLHCZOJACXDSWCVRNDNYUIQTDDMM2BWCMHAIHMIYNL7TEIMMMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-16-auth-watcher-add-incoming
-description: START HERE -- session 2026-10-16 day [ after the deps-service handover ] : taeki remote auth LIVE on all 4 servers, cube re-reads authorized keys via inotify [ 0ce57a2e5 ], dep-graph plugin scoping [ 954 subs off eager lists ], p7-keys add-incoming [ ed5ae46fd, d5ce1a7cb ] ; OPEN : push+pull d5ce1a7cb + live incident test on srv-U, unit update srv-U\srv-F, 4ZW
+description: START HERE -- session 2026-10-16 day [ after the deps-service handover ] : taeki remote auth LIVE on all 4 servers, cube re-reads authorized keys via inotify [ 361fee625 ], dep-graph plugin scoping [ 954 subs off eager lists ], p7-keys add-incoming [ 325f508fe, 3c3b162bd ] ; OPEN : push+pull 3c3b162bd + live incident test on srv-U, unit update srv-U\srv-F, 4ZW
 metadata:
   type: project
 ---
@@ -21,7 +21,7 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
 
 ## landed
 
-- 0ce57a2e5 : `plugin.auth.auth-keypair.watch-authorized` -- self-expanding
+- 361fee625 : `plugin.auth.auth-keypair.watch-authorized` -- self-expanding
   inotify [ deepest existing parent, never above home ; re-scan after every
   re-read ; IN_IGNORED \ MOVE_SELF -> fall back ], 1 s debounce handler,
   armed in cube zenka.v7 after the start-up load + on reinit, gated on
@@ -33,12 +33,12 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
   spared per zenka = memory + start time. dynamic-name targets [ storage
   extract_* ] compile on demand. plugin.external.udt = prepared next
   transport, not loaded yet.
-- ed5ae46fd [ kimi k2.8, ~2 % of its 7d -- user : very effective ; my
+- 325f508fe [ kimi k2.8, ~2 % of its 7d -- user : very effective ; my
   review found the gid-strictness break, invented 'unsigned' footers, a
   non-idempotent repeat ] : `p7-keys add-incoming <user> <key|file|->
   [<zenka>]`, keys.owned_dir [ owner decides, a deliberate group like
   protocol-7:taeki stays ], keys.authorize_link shared with authorize.
-- d5ce1a7cb [ NOT pushed at writing ] : live root test on srv-U found the
+- 3c3b162bd [ NOT pushed at writing ] : live root test on srv-U found the
   repeat path skipped the ownership walk -> walk first, then answer
   [ third arg allow_same ] ; keys.root_registry_note. 50 checks.
 - `USER=protocol-7 p7-keys ..` as root selects cube's registry
@@ -49,7 +49,7 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
 
 ## open
 
-- DONE : d5ce1a7cb + bc53006ab pulled on all 4 ; srv-U incident test passed
+- DONE : 3c3b162bd + 54c3460e8 pulled on all 4 ; srv-U incident test passed
   [ root-owned authorized/ -> 'fixed ownership .. root:root -->
   protocol-7:protocol-7', login kept working ; plain root prints the
   registry note, creates nothing ].
@@ -170,8 +170,8 @@ follows [[project-2026-10-16-session-handover-deps-service-p7r]].
 - README 2026-10-16 : auto-install, keys + vault sections added [ commit
   pending at writing ].
 
-#,,,.,,,,,..,,,.,,.,.,,,,,,..,,.,,..,,,..,..,,..,,...,..,,,..,,.,,...,,,,,..,,
-#FV7G7ZVCZUNA63BMW2G6X2BUMZA6XTECLP25LKAQDUIUWXMXUIDQGH4WHBA6QGVHAIFVRUNDJAHOQ
-#\\\|HKRRP6OHWRBDOMY6JPMAQPDLRLUVH4V3DHBHM5WWEFIJJD45YKH \ / AMOS7 \ YOURUM ::
-#\[7]QZQZYHUAK7IFWRRCA4DGB63724YB2J4SLEX4SM3EFLFADV5PPIAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,,,.,,,.,,,...,.,.,...,...,...,..,,...,...,..,,,,,,.,,,,.,,...,
+#CLDAWHHQ2AW6XSWI5O4MZ3XVCVDFIRH3W2HH5WWDQVKP7NQCJT4I36BVI32CY5VXQETCLDUJNCRAA
+#\\\|7MHOKD32Q5JJCWJ4VYVPNLP73EQIYPWONRXFDK357AEVVKXFYDO \ / AMOS7 \ YOURUM ::
+#\[7]WRKFZELGW3EXVEW6K67Y6YEGNCBWHJRL3YWQQQIDEAI3OL6XIIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

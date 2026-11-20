@@ -13,7 +13,7 @@ without one cheap search.
    callers of `request-certificate` already [ httpd.vhost.request_tls_cert via
    install-vhosts 'tls: yes', httpd.handler.acme_request, httpsd ] -- the new
    path would have ordered a SECOND certificate for every new tls vhost. fixed
-   by the 'explicit' claim [ 2b198f220 ].
+   by the 'explicit' claim [ 19b2e4bca ].
 2. **a stray separator line** in form.chrome was blamed on the sign run. the
    file's own history [ `git log -- <file>` + show each version ] proved it
    existed since the file was created -- and led to 56 more files.
@@ -26,8 +26,8 @@ module name>` for every caller of what it touches and read them ; before
 stating why something is in a file, check that file's history with
 `git -c color.ui=false log --format=%h -- <file>` and show the versions.
 
-#,,.,,..,,..,,,..,,.,,.,.,,..,,,,,,,.,,..,,,.,..,,...,...,,..,,,,,..,,.,,,..,,
-#HXXSJUF2KM6OP2EX5HFLYEE7AX5PZPK4PKQMKRKOF4TU257TSWPVRSBJG5KRVIWW7I5PC7DFBNHIG
-#\\\|EREJIU4TWW3YM5HBCNGJPAJ45CBWYT7B3LLUHSREZ2MUQDRJB3D \ / AMOS7 \ YOURUM ::
-#\[7]WUKI5DMDU6DVAQBKV2IUTVGJ3YNLNW6RKPMGJCLFT7AARU2LUWDI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,,..,.,,,.,,,,,.,,,,,,,.,.,,,..,,...,...,,.,,,.,,...,...,...,
+#U7YHD7ZCOATUG4JBZLI3Z5UESJB6DCEKDOBOBEJHRB2CC7OIJ2SN2ZGYVALHQZDCQTXPJZQFHDZNC
+#\\\|IBLNGSZD3MKQWMOMPW6AUVYREDWLJ5X6B65TTKQL4LPXMAXKVFQ \ / AMOS7 \ YOURUM ::
+#\[7]IIJJEXKTS3VWWZPASKPA7R3KVVSPMNHAD27CMHN2KNYDI4JOXWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

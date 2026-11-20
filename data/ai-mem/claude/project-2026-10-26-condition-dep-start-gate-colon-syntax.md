@@ -22,7 +22,7 @@ on profiles WITH an on-demand allow list: permissive profiles have no `zenki.ena
 own gate; dependency refusals are deliberately checked on their own (a refused dependency would
 otherwise leave the dependent waiting forever) — that design stayed.
 
-**Fix** (commit `c790d7d58` on `base`): `cmd.start` and `cmd.restart` now skip any `type:name`
+**Fix** (commit `7aa570722` on `base`): `cmd.start` and `cmd.restart` now skip any `type:name`
 token whose type has a registered `v7-zenki.callback.object.<type>` — nothing to start, nothing
 for the profile to refuse. The chain resolver evaluates the callback via `dependency.ok_resolve`
 and the job waits in the `depending` queue until the condition holds (the original design, now
@@ -59,8 +59,8 @@ intact).
 [[project-ondemand-zenki-registry-wipe]] (sibling on-demand-path bug, same subsystem) ·
 [[feedback-changed-established-behavior-silently]] (hard-switch shape: old spelling goes inert, not deprecated)
 
-#,,.,,.,.,,,.,.,,,,,.,.,,,,..,,,,,...,,,,,,,,,..,,...,...,,,.,..,,.,.,,..,.,,,
-#GO5PBKG4C5OZGDCB6PECZMELK5HLIIV4YMKOLH62GCKFUMCH7CQAJV2VCUTFQLEX533ETIHPOSJO4
-#\\\|KJBRUZ4TYNMYHL7LIK7MR7VGXR6TKXY3FUEZPLYG5GEO7NDFG7L \ / AMOS7 \ YOURUM ::
-#\[7]YDFRKFXYKFUSYCB6XA7IFPDERJQHSDFTYXM5OANKLHBRNYLBEQAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,,,,,,.,,.,,,.,.,,,,,,.,,,,,,..,,...,...,...,.,,,..,,,,,,..,,
+#RNLXWXB46QZPH4TFMK2ATKM5D4SPDDW7OQQQR6AL5KIIIF2P3GIMELGUCRJRYGN62YZPLWYACHNTM
+#\\\|FX5QWVNNO2QRLPJZFSAVYRWSQZSQKWF7C5EPH2XSAMTRV4PNIT4 \ / AMOS7 \ YOURUM ::
+#\[7]2PVDCSVOXXUANFCQC64QX3E76SLCSXSPSXU7GJHR3OGBHSHYD6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

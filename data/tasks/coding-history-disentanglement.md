@@ -153,7 +153,7 @@ small ; the count rule does nearly all the work.
   rename commit and a 179-file line-length remediation, both correctly
   mechanical.
 - `coding.catalog.track_write` [ committed today ] : exactly one
-  genuine commit [ c6bc6f246 ], zero bulk. correct.
+  genuine commit [ d3f8f5a3a ], zero bulk. correct.
 - `base.cfg_bool` also exposed two real methodology gaps, both fixed
   before accepting output : [a] git's own rename detection does NOT
   follow the 2026-08-20 modules/->src/ rename [ signing rewrote file
@@ -235,8 +235,8 @@ documents the revision openly rather than silently retuning. ]
    not just "it ran."
 6. no AMOS7 signature stubs on any new file.
 
-#,,..,,..,.,,,...,..,,.,.,...,,.,,,,.,,..,.,,,..,,...,...,.,.,,..,..,,,,,,,.,,
-#WMMVAI77PPYF6EWFCBWLNTB3D7AUIJYNKHBAGCFMKVDI2DLQ5IMOYL4CSID327SGYFMF5C33UVHCI
-#\\\|I35DTVGFKTR5YWKSATSB3IF6BPWI3SWLVGABUNMVYILBZ7R363A \ / AMOS7 \ YOURUM ::
-#\[7]Q3BAX3TJ6UPC2NDTVNTHSHIFQNEQPXSDGIYOKZQQD4FD5ND2BICA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,,,.,.,.,,.,,,,,,,.,,,..,,,,,..,,...,..,,,..,,.,,,..,.,.,,..,
+#Y2FAMQBBRA4XHBGAC6X4NSJD6PE2RFKI7AIIH5ZLAF4L5I2DXR5K6YQIZK6XATXPE5HXT7WJIUAWY
+#\\\|WXACWMO7WABLNKWO4LMLPLJJC4YJHMKNIZZMK7DHH3TWA3ZFSIE \ / AMOS7 \ YOURUM ::
+#\[7]FMMDRWZEIO3X7NNYM7GAJLULSTSBE6L5RRISG6EFAP2L6722F2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

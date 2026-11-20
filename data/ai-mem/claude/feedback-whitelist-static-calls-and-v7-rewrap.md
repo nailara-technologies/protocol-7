@@ -6,10 +6,10 @@ metadata:
 ---
 
 2026-10-24, three broken deploys in a row on pri's jobsite sync :
-- 59e625ae2 chose the post client as `$code{$post}->(..)` : the regenerated
+- cd49875fb chose the post client as `$code{$post}->(..)` : the regenerated
   subroutines.load-early only lists names reached by static `<[name]>` calls, so
   clients.http.post dropped out -> 'undefined value as subroutine reference'. fix :
-  if \ else with both calls static [ fbcf554f9 ].
+  if \ else with both calls static [ 3b5279608 ].
 - jobsite's `modules.load` was rewrapped to width BY HAND before the signing run
   [ owner's own edit, stated 2026-10-24 -- the signing run does not rewrap ] and the
   trailing '\' was lost -> the second line no longer belonged to modules.load,
@@ -22,15 +22,15 @@ the signing run regenerates it, a lost '\' only when the zenka loads its config.
 variable ] ; after a signing run, diff the STAGED .v7 [ every wrapped line ends
 in '\' ] and grep the regenerated whitelist for every newly called module before
 committing.
-- e2d628f30 [ same day ] : kimi's claim limit called coding.inference-status
+- a19d04a1a [ same day ] : kimi's claim limit called coding.inference-status
   from models -- no grant in cfg/zenki/cube/access.zenki, cube refused it
   [ logged by CUBE only ], models saw an empty answer and claimed nothing.
   when a change adds a route-send command : grep the caller zenka's
   access.cmd.usr.<zenka> for it before committing.
 related : [[amend-env-and-unsigned-files-staging]], [[use-format-code-not-perl-c]].
 
-#,,..,,.,,,..,..,,.,,,..,,.,.,.,,,...,..,,..,,..,,...,...,,,,,.,,,,.,,...,...,
-#PSOS563XFAL2D2BX36NX7DGKVZFL4MJ3SEDRDNSCM4ONKLBXGNLCMRGHOCGN2S7B25JJCEC3RYCXC
-#\\\|77IJQZ2AH7G6367JUJF3XV4IGM4UN72CFD2LPHKRUTYR3SFBZ3D \ / AMOS7 \ YOURUM ::
-#\[7]LQD3MDLXHNATRN2JJOWJ3Q4AGQYIBP7PUSEFGMTY4YLI3UHN6CDY 7  DATA SIGNATURE ::
+#,,.,,..,,...,..,,.,.,,,,,...,,,,,.,.,,,,,..,,..,,...,...,.,.,,,,,,,.,..,,...,
+#C6V7YKHBROG7M74CHGGNWAQTGAODACSYY26C3HZJT4L4WQ2LTFEZ52Q7CYUD4BZ7EEKVFUO2YSZG2
+#\\\|TI2XAHTDUC5N4GPQPH4Y3ESHQ7COALFZNH4ARKTH5I76CP2ZII4 \ / AMOS7 \ YOURUM ::
+#\[7]6SW7YILR6BCXW5UYZO37PWXACVRXQZ5PRYIIQFJZAYPU2KHZLSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

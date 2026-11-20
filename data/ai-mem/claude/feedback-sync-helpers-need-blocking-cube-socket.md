@@ -5,10 +5,10 @@ metadata:
   type: feedback
 ---
 
-2026-11-04 : 0fd160c6a set the cube socket non-blocking after auth ; deployed to pri, every restarted
+2026-11-04 : 5567aa7fa set the cube socket non-blocking after auth ; deployed to pri, every restarted
 zenka then failed start-up [ base.get_session_id whoami read got EAGAIN -> exit 0110 ]. ~10 more helpers
 [ base.X-11.*, web-browser.calc_zoom_level, login-screen.xauth_setup ] write and read the cube handle
-synchronously. fixed in 70a02805e : base.s_write 5th param -> send( MSG_DONTWAIT ) on sockets, only
+synchronously. fixed in 9220834b9 : base.s_write 5th param -> send( MSG_DONTWAIT ) on sockets, only
 base.handler.write passes it.
 
 **Why:** a handle's mode is shared state ; checking only the auth handshake missed the other readers.
@@ -16,8 +16,8 @@ base.handler.write passes it.
 [ `grep -rn "<\$cube_fh>\|readline(\$cube_fh)"` ] ; prefer a per-call flag. test a zenka RESTART locally
 before deploying, not just a running one.
 
-#,,..,...,..,,..,,,.,,,,.,,,.,,..,,,,,,..,..,,..,,...,...,.,,,,.,,.,,,,.,,...,
-#X4HII27DIVR5D6HK3T7ZVWJB5BQM3IM5SHOMOBT6TDAJZBCOAPB57RW72KEAGYATMACRARWENXYVS
-#\\\|OG35HSEWEWKUECI7V36ZUFCGZC7LXDHDG546ZNHENMMSW3BHREC \ / AMOS7 \ YOURUM ::
-#\[7]UQT7HT3A2ZBG5HPT5M4X5AJRDYLDAGPPJOXB7O62UNYWCCQKZ4DA 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,.,.,.,.,.,.,..,,,.,,,,.,...,..,,...,...,,..,...,.,,,..,,.,,,
+#YHQ3P7ZL2NGUBMDLOIJ3HHUVE3DSJMJ5MA3RFXNVTMNFL7TOHF27JBW53WFTLYXJRBNIA3QOBV5KQ
+#\\\|UOVNOTWO2TGQ6VFNRDRHUHU3FMLCSXWWSSAPYDCBA2LOBRHHY6Q \ / AMOS7 \ YOURUM ::
+#\[7]4YBZRVMZUJDAU4M2KSHI7LKN7XJWPKTAN754LHLU7UKDSCBCKOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

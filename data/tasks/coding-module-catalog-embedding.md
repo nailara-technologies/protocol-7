@@ -235,7 +235,7 @@ were tested rather than argued, and neither moves it:
 1. **"non-`src/` filenames from `--name-only` are being appended to the
    query text, polluting it."** does not occur. `git log --name-only --
    src/` applies the pathspec to the *file list*, not just to commit
-   selection: commit `21cf8e3ed` touches 84 files, and the harness sees
+   selection: commit `6a476ed45` touches 84 files, and the harness sees
    exactly the 16 `src/` module paths, with the message parsed as clean
    prose. verified by direct comparison against `git show --stat`.
    residual: 3 commit *bodies* out of 400 contain a line beginning `src/`,
@@ -548,8 +548,8 @@ passive collection costing nothing, and it tests the exact query shape the
 auto-inject provider would see -- the same "run it at `scan` for a week and
 re-read the corpus" move the idiom-gate task ended on.
 
-#,,,.,,,,,..,,.,,,,.,,.,,,.,.,,..,..,,,..,.,,,..,,...,...,.,,,.,,,,,.,.,,,..,,
-#IDTVTWW5C3NANCCQBRRXPG6DHYXLMACIOEZECQTRHK2IYYRKYROJWND7KMQIGZWWZ6BTQ5QGPRLZ2
-#\\\|IB2PYZAK5WI5UURRNWYJBV3DYUTHYI3YWUO72XSYFJNJI4ZQKWB \ / AMOS7 \ YOURUM ::
-#\[7]VXWY3VSCX77KPLUHWBUFIJWJDMW64JMJQWLBWYAL5AXZMWOLPKBY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,.,.,.,,,..,,...,..,,.,.,...,..,,...,..,,...,,.,,.,,,,,,,,,,,
+#47VFQO4IWJ6PNS6B2KBULT2QAQ52KK2GEOVW5HYKII4JKATVOKJTRL3Y6APG2OH46SHWQHAJ4NINK
+#\\\|YGA3UBLZXZ5C3UJVCSNTLXHD3OQYFQJXGEKFOHVF5BFUBRCSMRK \ / AMOS7 \ YOURUM ::
+#\[7]A5BICEASA5W2BEJ7BTC3UATV5LFUOKJ742VTM2UZTEJAXG7UZ4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,10 +30,10 @@ threat model : recovery must work after losing all owned hardware at once, from 
 - root key : passphrase-encrypted file on owned hosts, unlocked per session ; two offline copies before the first upload
 - chunks and packs 16 MiB
 - remote rented servers are foreign : blind holders only. which hosts are owned or rented, and where data lives, is in the owner's private notes outside the repo
-- stages 1-3 committed : 14de12a84, 3411f5fa7, 10781a08e [ local, not pushed ]. stage 4 is split to spare kimi quota
+- stages 1-3 committed : 80e6d2b28, b49ab0f11, bbe412c88 [ local, not pushed ]. stage 4 is split to spare kimi quota
 
-#,,..,,,.,,,.,.,,,...,,..,..,,.,,,..,,,,,,,.,,..,,...,...,,,.,,,,,,..,,..,.,.,
-#XS4K3GCUQX5RR4GCKD66B2HGEMIKUC3747IBMFVRWNFYQ4CLZEWSPZSDLSFGUIMZLMACONURAUTMY
-#\\\|SY2ABLHAVB5R4RL5RNLVUX5PRIBX4VBJRUBTNN2DLX2OW65AKUF \ / AMOS7 \ YOURUM ::
-#\[7]Q2ASBHCBTSAWYWA2HZF3VUP6NKM6F5FMJDPNAMHV4PDQKY5LGCAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,,,..,,.,,,.,,,,,.,.,,,,.,,,,,,..,,...,...,,,.,...,.,.,,,.,..,,
+#2DHXTMVLWHBUVSSCNBK52U3WOLPD5RQE4HL5BW632YFV4QCYMTPTQFIX7ZAMXCUMB5NRDHUFMZAFQ
+#\\\|2CJNWFVC4K5KAHM4MLKLTNWH6GWOAOMVWDJPPPSALI26OJXTJZR \ / AMOS7 \ YOURUM ::
+#\[7]JCWYUCPMZGGSAUUFF2KQXJJSNM3VN6LZIN5LDEQLHBIUTPAMBKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

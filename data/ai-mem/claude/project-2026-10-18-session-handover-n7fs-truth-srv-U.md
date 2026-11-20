@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-18-session-handover-n7fs-truth-srv-U
-description: START HERE -- session 2026-10-18 handover [ last 106b7a331 ] : bin/dependencies retired, N7FS v1 on base, truth fallbacks bit-identical, computed AMOS7 module versions, srv-U prepared for cpu inference ; open : srv-U model switch + first coding start, memory-cap task, device db, the `:` model resolver
+description: START HERE -- session 2026-10-18 handover [ last c1cccd05c ] : bin/dependencies retired, N7FS v1 on base, truth fallbacks bit-identical, computed AMOS7 module versions, srv-U prepared for cpu inference ; open : srv-U model switch + first coding start, memory-cap task, device db, the `:` model resolver
 metadata:
   type: project
 ---
@@ -13,22 +13,22 @@ cloud credits $58 [ expire 2026-11-05 ].
 
 - **deps line closed** : root runner, detect-hw [ -write ], hw profile
   hw-thinkpad-sandybridge, legacy audit -> `bin/dependencies/` RETIRED
-  [ e90ff2cb3 ] ; Inline::C + gcc declared ; setup configs on
+  [ 069c9c46c ] ; Inline::C + gcc declared ; setup configs on
   bin/p7-dist-upgrade.
-- **N7FS v1** [ d13fc7ef3, squash of dev/n7fs-v1 -- branch + worktree
+- **N7FS v1** [ 368aa5ca2, squash of dev/n7fs-v1 -- branch + worktree
   deleted ] : bin/n7fs + AMOS7::N7FS*, BMW384, single-dash options,
   epoch-window upgrades ; spec data/md/design/N7FS-SPEC.md, as built
   N7FS-FORMAT-1.md ; design notes in base.yaml N7FS entry [ root \
   disk-id \ <mount>:<disk>, clone + vm rollback window, placement and
   transport, `:<content>` addressing, block dedup on the mod-13 window ].
-- **truth fallbacks bit-identical** to the compiled ones [ 73993a86d ] ;
+- **truth fallbacks bit-identical** to the compiled ones [ 5499e58b5 ] ;
   truth = n mod 13 square-class table [ topic-harmonic-mathematics ] ;
   BitConv + ELF fallback fixes ; amos-chksum -VS was hashing a hash ref.
-- **module versions** [ ac8317cda ] : update-amos-versions computes
+- **module versions** [ 6d8d4f125 ] : update-amos-versions computes
   `AMOS7::<M>-VERSION.<amos>` over name + normalized source [ whitespace
   and comment-box markers ignored -> sign-run reflows keep versions ] ;
   $ALGORITHM_VERSION split ; $VERSION not exported.
-- **srv-U** : pulled via pull-git to dc2da9082 ; nameserv EDNS fix for
+- **srv-U** : pulled via pull-git to 5c9a08b27 ; nameserv EDNS fix for
   Net::DNS 1.36 [ udpsize ] live ; host.cfg coding \ system \ jobsite
   [ root:root 0644 ] with layers 1 + 3 [ context cap 32768, system zenka
   llama-server limit ] ; /data/models now 2775 ; Qwen3.8 9B Heretic
@@ -59,8 +59,8 @@ lessons saved today : [[feedback-self-reexec-tests-need-recursion-guard]],
 [[feedback-single-dash-long-options]], host updates via pull-git
 [ [[feedback-no-manual-modifications-on-hosts]] ].
 
-#,,,,,,..,...,.,,,.,,,..,,..,,.,,,..,,,.,,...,..,,...,...,..,,,.,,.,,,.,,,..,,
-#UBY36HXQEYMQM4ACASEH3ESMCYXE3HC7L67C6BA2NLYF2QWXQFFEALFB7UMZPMNCV4R7H236SAF6Q
-#\\\|DWAAYTJLJ7V27SYUDQV3UAUSSGXHV3M56XBO2AV6EZHU2YBFPTI \ / AMOS7 \ YOURUM ::
-#\[7]KHFOHX6FATRCXPFJLEXI67ZZZZAXDFUFNOZHE7HO66UKJARZCEDY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,,..,,..,.,.,,,.,,.,,.,,,,,.,..,,...,...,.,,,,.,,..,,,..,..,,
+#VGRDUSIZ4YPWCLPHRYGICWLF7VFIZBUYJ7LI73DKKZAPB3L4XN3XMX7576I7AWMVWPGD65JO2JTTK
+#\\\|KNN5P5UXBAPJKN6VAL7YCRBYVPBD45SJGHVUYB5PKTZ5U3BJWQE \ / AMOS7 \ YOURUM ::
+#\[7]2MKB7LE53VTM4JDBXXKQQUHJJFBG5VGS5YR6OFIMANKFKODSXUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

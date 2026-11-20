@@ -1,6 +1,6 @@
 # RCM : inline C call-driven upgrade [ kimi task spec ]
 
-todo RCM follow-up, after 23fa83f56 [ reproducible builds ] + 1b058602c [ race-free builds ].
+todo RCM follow-up, after c236fa2cc [ reproducible builds ] + f19723b81 [ race-free builds ].
 file : data/lib-path/pm/AMOS7/INLINE.pm [ compile_inline_source, _build_slot, _publish_build ]
 
 ## problem
@@ -36,7 +36,7 @@ gets the compiled routine.
    after the object checksum is taken ; key holders load only an object whose
    checksum is on a signed list -- the list is a later slice : build the loader
    side now [ list absent -> key holders stay pure perl, others warn on
-   unverified ]. reproducible builds [ 23fa83f56 ] make an on-demand build
+   unverified ]. reproducible builds [ c236fa2cc ] make an on-demand build
    verifiable, no matter who built it
 
 ## constraints
@@ -58,8 +58,8 @@ gets the compiled routine.
 - user-writable objects stay : that is what makes inline code transparent ; the
   sensitive processes already run pure perl. not part of this task
 
-#,,,,,.,,,,.,,..,,...,.,.,.,.,,..,,,,,.,.,,,.,..,,...,..,,..,,,..,,.,,...,...,
-#AZCEXBVPSTHEGVFH6N3OC56XSX3UB4GB2GD46AWTH2SEFEYFX3HHIVCWVYY6GBQSNJR2RTKZB5MMM
-#\\\|YMPLVD7RWVXO7UMF3OT44NAHR4XG5VGBXJEFVFXDAJ7XNBYQNV6 \ / AMOS7 \ YOURUM ::
-#\[7]EDD4OXDFSNGTAY3KF3ZVCSC3P7GB3B6DDYP3ZEHLI724GUSBW4AI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,..,,,,.,.,,,...,,..,,..,...,..,,...,..,,..,,,..,...,.,.,.,,,
+#A26VOOVK5UO56E3TH6BFJWSH5GUUV363SFVE56HNKGABA46PXSA4SPNO67IFDKIYJU3OK7T5SBHMA
+#\\\|UWVSUXLVFWPVSEOGQHI4325VAPR7GTBSZ4CSI5S3HB43HCSP56Q \ / AMOS7 \ YOURUM ::
+#\[7]6E5FQ3XT2CKHE4SZTHVAQ23ZEGMGTLWUAHCHGUKM3WM5GVE5JEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

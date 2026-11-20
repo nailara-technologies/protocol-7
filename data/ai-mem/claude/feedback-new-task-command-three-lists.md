@@ -10,14 +10,14 @@ a new `<zenka>.cmd.*` is only reachable when named in the zenka's OWN `access.cm
 `<zenka>.commands` after deploy : the p7_sign plan does not add either [ task.release, 2026-11-05 ].
 
 a worker command also needs the receiving host's overlay grant
-[ /etc/protocol-7/host-config/cube.cfg, access.cmd.usr.<label> ] : ab22753a5 missed it, srv-A's
+[ /etc/protocol-7/host-config/cube.cfg, access.cmd.usr.<label> ] : db198e73c missed it, srv-A's
 results were discarded for 9 h. grep every overlay when the worker protocol grows.
 
 **Why:** tracked lists passed review, the live refusal only showed on the far cube.
 **How to apply:** after adding a worker command, read the target cube's log for `no perm.` from the link label.
 
-#,,,.,...,,,,,,..,,..,,.,,,..,,..,.,,,.,,,,,.,..,,...,.,.,,,.,.,,,...,,,,,,.,,
-#635BGZUSWIFP6LMIJWUEGKXYLQCKTLBMEFNJ52XCNUWCHUK7CYNOODHOET4SESUSMCJWSXC2I2IKO
-#\\\|MKZ74HNRPUQJ62H6H4IMK6ALGDTBYY2NT4VJGRHVVNQ7PCAOILO \ / AMOS7 \ YOURUM ::
-#\[7]6V65OTVAMFGHGLFYANCGISZIR6CIGTBS2I3X4OX73UCHZVBGMQBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,.,,,.,,.,,..,,,..,,..,.,,,...,..,,...,...,..,,..,,,.,,,.,,,,.,
+#7S37VSVDYNCDMQ4GBFCBYLZMEWMQAJOY2XTZ6B4NUQLXRPTDBQUE34MPMVQZ3N3DFLY26RTX5YBLI
+#\\\|J6GBE4C7TYU6BSWT53EP7XKFE7MEU52S27ZQXXUBC6YAS6ZLUCV \ / AMOS7 \ YOURUM ::
+#\[7]Q642YCXB2RQ2LAE2X6IQPHI6JOXHNEW4SMERFTK77LYNE4UY6UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

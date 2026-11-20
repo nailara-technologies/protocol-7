@@ -37,7 +37,7 @@ discovered after dispatch, at any point, use `session_catchup(client:
 "kimi")` to find the session UUID and `kimi_continue` with the corrected
 model -- do not `TaskStop` and re-dispatch.
 
-**ROOT-CAUSE FIXED 2026-09-17, same session, commit `24cc02bc8`**: the bare
+**ROOT-CAUSE FIXED 2026-09-17, same session, commit `aa6d7f6c3`**: the bare
 `k3` alias now means the 256k-ceiling variant; the expensive full-context
 one is now explicitly named `k3-1m`. This wasn't just a config tweak --
 per the user, it fixes the actual mechanism behind every recurrence below.
@@ -120,8 +120,8 @@ orphan hash when the caller's node was undef ] -- review every k3.1 diff
 for data-node ownership. strategy : claude = review \ decisions \ live
 debugging ; k3.1 low = precise-spec implementation, one step per dispatch.
 
-#,,..,.,.,..,,,..,,.,,...,.,,,.,,,...,...,,..,..,,...,...,,,.,.,.,,,,,,.,,.,,,
-#SQEZSHRFHTS56RUNGBJWW4A4TU7Y7Z3PPPQYF5JJHWUVH4IVTQJYKL5OURYK4ADSIMG3FSKN52SUQ
-#\\\|3QG3SJ7SVNBLWTEBQC5HLDJAG7XZCYVQXWMTAJG44YEGKUUXCIT \ / AMOS7 \ YOURUM ::
-#\[7]3YPVJEULZZPR5LR6TSIP647WPBN5Z5YV7XBQ7HDZXQRLD5BBKWBA 7  DATA SIGNATURE ::
+#,,.,,...,,..,,.,,,..,,..,,,,,,,,,,.,,,,,,...,..,,...,...,...,,,,,,,.,,,.,.,,,
+#2AKIYUGGAQHVYZEJJND2DYGEWFGXGOZ6IS5YVZWZKED7JRIC2BYEYNFEONXFSQ2YLHPG7OZI5AEVQ
+#\\\|GACUOPC2T73D7B4RHT4ML33JQUKAUMY6HQWCJ3QUDABUJ2HPZYL \ / AMOS7 \ YOURUM ::
+#\[7]5UZXW3IMYRUBTFPLMT5Z2ABJITZBR37Z3ENEQEYRKDJ5Y7DKKICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

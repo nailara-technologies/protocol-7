@@ -2,7 +2,7 @@
 
 real user login for the jobsite web ui
 [ `data/web-root/vhosts/jobsite.vhost/index.html` ] on top of the web auth
-layer of e818f20fb. the session store, the cookie and the gate stay ;
+layer of c23945486. the session store, the cookie and the gate stay ;
 new are the credential check in front of `create_session` and per-user
 rights at the gate. read `CLAUDE.md` and the design file first.
 
@@ -226,8 +226,8 @@ rights at the gate. read `CLAUDE.md` and the design file first.
 - test : extend `test-web-auth-password.pl` -- `key-only user -> password
   login fails generically`.
 
-#,,..,,.,,.,.,..,,...,..,,.,,,,,,,,.,,,,.,.,.,..,,...,...,.,.,,.,,..,,...,..,,
-#THPYQCM3THZUJW6KLJHCWK7PG6PGF3DPOSYQ34TWW3IMJXYEIBRFFKN5MCZSPYST2WRNQZLIUDPB6
-#\\\|XIPV73VS62NLNWRJMQ26IUAEG42LP2URQLWLYDAEKJL3WO6ZEWI \ / AMOS7 \ YOURUM ::
-#\[7]MLJJQAY6XQMRMOT5KJEWPB4OLLEQOJH72PVECHSWV6X4CLNAWCAA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,.,,,,,,.,,,,,.,...,,,,,,.,,...,..,,...,..,,.,.,...,.,.,,.,,.,,,
+#NBQA6U5ZVPNFZSTEUEZWENWGK22U45K6JWJAE6PFHF3LGYB6NEVDMRCAFEIP65NAJYW62XCCFQT6C
+#\\\|62BEOQXM6DJRCPWEG7SLNJ7GX7XNPADR3UBDOF4RXTVS3GUE6UU \ / AMOS7 \ YOURUM ::
+#\[7]7YT2ZZYOE4GCV7T44SKHI5XMYYDMF6L2ZBFXYNJUWNP2CYXUD4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

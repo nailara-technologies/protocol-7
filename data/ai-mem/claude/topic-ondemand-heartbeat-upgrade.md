@@ -57,7 +57,7 @@ safe and what it isn't the same as. Full design writeup + verification:
 updated with a status note; its "configurable timeout modes" / wake
 permissions / priority / WoL sections remain open, unimplemented.
 
-**2026-08-24 — first real rollout, zenka-by-zenka (commit `f75ab3197`).**
+**2026-08-24 — first real rollout, zenka-by-zenka (commit `ac7d848d6`).**
 Went through every on-demand zenka and actually read its command-handler
 code for blocking calls rather than flipping `heartbeat.disabled` in
 bulk — see [[heartbeat-probe-backlog-mechanics]] for why a blind bulk
@@ -123,8 +123,8 @@ item from the original design remains unresolved; only its
 all need either a real bound discovered/added in code, or a genuine
 async refactor, before heartbeat can be safely turned on for them.
 
-#,,..,,.,,,..,,..,,.,,.,.,,.,,,,,,,.,,..,,,.,,..,,...,...,...,..,,..,,,..,,..,
-#E2WVUK5OOC53OC6YO2J2LOUQFRNRMCYZORRXRBJVBBCDZJXQVDNVBKOOI4MCIJ36YVJR3J2X6LEL2
-#\\\|OND6YBFYZBA3NVGMYSBM3VG6GZPG63GRTM5EMH6LZT34YSVR5LV \ / AMOS7 \ YOURUM ::
-#\[7]QKIMPTPMEZXGK4MM2DJTH7IE2KUEH3ZPXNXF7XLTRXGKOIDVSCAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,.,,.,,,,.,.,,,,.,,,,.,,..,,,,,..,,...,...,..,,.,.,,.,,.,.,.,,,
+#GYS2F7QEVYABU5Y37USRWTELEBGNXK5ERLKA6JBUMEMKME5LWMXBDVKGHH2M7PLKFA4N2W3ZWWI7G
+#\\\|6XKTAXRPGWZLCEOJO4OP6LTRR4G3IRXG3VDI3ZTNL2R2TMGFOSN \ / AMOS7 \ YOURUM ::
+#\[7]ZCFUU2J3FUPVTUKRB7KKYHNAH6J7FA7WQMJ7SUBKIUBRVJLZYAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

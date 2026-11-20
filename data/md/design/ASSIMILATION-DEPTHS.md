@@ -96,7 +96,7 @@ node.
 [ experimental, never in use ] were depth 2b with symlinks : work-tree
 files replaced by links into a version path `<version>/<checksum>`,
 duplicate content stored once, one command back. the last commit holding
-them is `50aaec5ae` [ `git show 50aaec5ae:src/<name>` ].
+them is `6663e9329` [ `git show 6663e9329:src/<name>` ].
 
 removed instead of fixed [ todo TNJ ] : they could not run any more
 [ `version_root` defined nowhere, stale dir lists ], undo found links one
@@ -121,8 +121,8 @@ a native N7FS feature with version-control coverage takes the place
 - loss-report format for depth 3, and where mappings live
 - which depth a host-level assimilation [ 4 ] starts from per service
 
-#,,.,,,.,,..,,,..,,,,,...,,..,,,,,...,,,,,,.,,..,,...,...,.,.,,..,,..,.,,,.,.,
-#U2L4X7LCOUKHTXAACLF6P5GPLXBME2432QMWOYYTDDUTTCYGELWFNTBSE6JDT4VACG23ONMLGQ27E
-#\\\|KO523KUF7Q4IB5TI2CT6FQEXBATMLPJNI4HZKXNCLP32WY2ZRSO \ / AMOS7 \ YOURUM ::
-#\[7]DK6KA77W45AIETAMM4WJ5OZ7LQCP5IBJ35YNRIZKPNU5SESDGSBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,,,,,..,,.,,,.,.,...,,..,...,..,,...,..,,,,,,,,,,,,,,.,,,,,.,
+#S33CVE6AFZADEQGESJCCXPILWWARYTSIMAVLQ6T6UXRRP73JFJFUSS7IIJNUE52PY3OC3D35AVPZO
+#\\\|N4C3ZWNMY3WIZFX6GHQP5YBDTYCAX4DZMXINFGZ764BOLPNBZ4U \ / AMOS7 \ YOURUM ::
+#\[7]72OLUU4EN7GKMSYB2PCM7ST7CEHBYICRJ5LPS4QUH4LZXDSTAOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

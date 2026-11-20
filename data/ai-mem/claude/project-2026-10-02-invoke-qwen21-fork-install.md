@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-02-invoke-qwen21-fork-install
-description: qwen-image 2.1 runs in a SECOND invoke.ai install [ krakotay fork, own env \ root \ db ], invoke-web switches installs [ 44ef777dd ] ; local UI patch in the fork clone, fork skips LoRAs for 2.1, shared images dir, main upgraded 6.9.0 -> 6.14.2
+description: qwen-image 2.1 runs in a SECOND invoke.ai install [ krakotay fork, own env \ root \ db ], invoke-web switches installs [ 167fa1c6a ] ; local UI patch in the fork clone, fork skips LoRAs for 2.1, shared images dir, main upgraded 6.9.0 -> 6.14.2
 metadata:
   type: project
 ---
@@ -18,7 +18,7 @@ names ; galleries stay separate -- records are per db ]. installed : UC Q4_K_M
 gguf [ variant qwen_image_2_1 ], 2.1 vae, qwen3vl_8b_int8_convrot encoder
 [ bf16 encoder 17.5 GB > 15 GB RAM ].
 
-**invoke-web** [ 44ef777dd ] : `invoke-web.variants.<name>.env \ root \ descr` in
+**invoke-web** [ 167fa1c6a ] : `invoke-web.variants.<name>.env \ root \ descr` in
 zenka.v7 ; `p7c invoke-web.variant [name]`, `start <name>` ; per-install state
 via `invoke-web.state_name`. both installs share port 4707 -> the browser keeps
 ONE ui state [ canvas, ref images ] across them : stale refs from the other
@@ -71,8 +71,8 @@ Abiray tags qwen_image. unsloth Q4_K_M record dd06b313.. is dead [ delete in the
 own 8-step flow-match curve, not the trained sigmas. plan [ user ] : turbo for bulk feature extraction
 renders, best ones re-rendered with the full 2.1.
 
-#,,,,,,,,,.,,,,.,,.,.,,,.,,.,,,,.,,,,,,,.,,.,,..,,...,...,,.,,.,.,...,..,,.,,,
-#VPGOKLDI3RCOGAEBWTTRNVD6JKAPB4HGYBZSE555KBRWNJYJ3CO6P6KU637W77TYB6KQHUT5ZLD6M
-#\\\|L5YCVIS4PAEGG62JLEOFWF7BFKMXJKW25GMUYGUFF4SOE2A34QR \ / AMOS7 \ YOURUM ::
-#\[7]X4POVMN7YVUKYU5MP4OCNTKBQH2RE2GIGHG5NSNNSEB4MPL7SYAI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,...,..,,,.,,.,,,..,,,..,.,,,..,,...,...,,..,,,.,.,.,,,,,..,,
+#3LPEUXOH3CROVBBSYHXFPTM5NI7XQXQF7WU5JB6DWRY3OB3HAWYFHHGZ3PAWUPS2C2Z7UCHBKLGUO
+#\\\|QVAJ4VHSF5AI2G7YWCK3NERZPZ4BLOQNDRU2TRJJ5WPUOUMXCJN \ / AMOS7 \ YOURUM ::
+#\[7]3WPG2IHBM6XVPVY4HINLSHSYFSLYZQMR7K3XFM77HSQI3NMBCWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

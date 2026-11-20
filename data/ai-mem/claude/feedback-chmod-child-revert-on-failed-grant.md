@@ -67,7 +67,7 @@ the side effect reverted? (2) if validation can fail *after* the side
 effect in the function's current order, can it be reordered to fail
 *before* it instead? Landed 2026-09-23 across `coding.start.chmod_child` +
 12 coding-zenka tool handlers + `ncode.cmd.apply` — see git log around
-commits `dde091f0f` (write_new_file/write_append) and `5381b0d14` (the
+commits `3ed9c106d` (write_new_file/write_append) and `566ea020b` (the
 full sweep) for the reference shape to copy from.
 
 Found by: a resilience-focused review session that started from an
@@ -81,8 +81,8 @@ touched file syntax-checked, several diffs read in full, one "ruled safe"
 claim (`file_rename`) confirmed by direct inspection rather than trusted
 on the model's word.
 
-#,,,.,..,,..,,,,,,,,,,..,,,..,.,,,,..,,..,..,,.,.,...,...,...,...,...,,..,,.,,
-#O4ZE4Q3S5C2WDR3ZFLWOTONY2GH6SMS4MSVDHI5HXIZR4IR6SZEKFGXNJOG55S6G6OS2DOYS4ELG2
-#\\\|DZRHRIIEIX5F5U4DITKRPLMUJIAM3RY6SWSLAETUT6T3SGZNL4A \ / AMOS7 \ YOURUM ::
-#\[7]XRPGG2ELGESDBUYUENUH3EPCQSE5INISXG7RUHQD33NIJIL4MKBY 7  DATA SIGNATURE ::
+#,,..,.,,,...,,.,,..,,.,,,,,,,,..,.,.,..,,,.,,.,.,...,...,..,,.,,,,..,...,,,,,
+#UP5OK3UGYOX7RLLW5P5QYTFVW2DAGJ4UJFG6TV6HL53ABXCT57YBR7O24XZTQC735R6XURII27R3G
+#\\\|SXXD6JW3N6R5YQMYCRKVPMLSBG6O3NDMZQFTMPBV3OQ54SSQSTN \ / AMOS7 \ YOURUM ::
+#\[7]TQNX6DOV24YKKYWFO3ICXEHEGMWKE22AHKQCEKIDK6J3X4TU7QAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

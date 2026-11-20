@@ -12,15 +12,15 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 
 ## landed
 
-- `afd71cec7` **auth-keypair v2 + link-upgrade mutual binding**
+- `ecaa9b1ac` **auth-keypair v2 + link-upgrade mutual binding**
   [ `data/md/design/AUTH-LINK-BINDING.md` ] -- closes
   [[project-2026-10-06-auth-keypair-replayable]] : server nonce, labelled
   sigs, sessions PENDING until the client signs the link transcript,
   server proof ; p-7-r : secrets off argv [ stdin ], no shell [ server
   replies could inject commands ], no plaintext temp files ; p7c's
   half-built link-upgrade removed
-- `084c229f2` gen_keys keeps a caller's secret exactly [ letsencr ]
-- `2a238bc86` + `51492d62f` **host-root delegation**
+- `081748f33` gen_keys keeps a caller's secret exactly [ letsencr ]
+- `22c377773` + `14edeeb79` **host-root delegation**
   [ `data/md/design/HOST-ROOT-DELEGATION.md` ] -- host-root was NEVER
   created before [ [[project-2026-10-06-host-root-never-created-root-held-keys]] ] ;
   root-held keys in `user-keys/root/`, resolver `crypt.C25519.key_path`,
@@ -72,7 +72,7 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 #\[7]GKDHLZOZP23UDNYTFXO7T2FG7BN4VV3CGMKY4SZHUZHUN4DEZ6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-**status 2026-10-07 [ next session ] :** 1. live check DONE on this host [ root/, .dlg, fingerprint 77, pins via p-7-r + external.self ] -- discover trust + srv-F \ remote servers still open [ needs a 2nd host ]. 2. DONE [ both .base keys rotated ]. 3. Digest::BMW : already in the cryptography profile [ nothing to do ] ; encoding-upgrade guard : 3039cd599 ; %signatures : dead cluster removed [ load_all_signatures, key_signatures_list, verify_key_signature, the global, post_init's readerless {root} glob ] ; sign-key \ remove-signature \ .ks .sk .rq helpers KEPT -- migrate to trust.statement with step 4 ; name_from_skey_name is live [ key_name_to_skey round-trip ]. nodes trust transitions : DONE [ discover notifies nodes on every trust change, invalid on a changed root -- test-discover-delegation 38 ; live check needs a 2nd host ].
+**status 2026-10-07 [ next session ] :** 1. live check DONE on this host [ root/, .dlg, fingerprint 77, pins via p-7-r + external.self ] -- discover trust + srv-F \ remote servers still open [ needs a 2nd host ]. 2. DONE [ both .base keys rotated ]. 3. Digest::BMW : already in the cryptography profile [ nothing to do ] ; encoding-upgrade guard : a7fd17cab ; %signatures : dead cluster removed [ load_all_signatures, key_signatures_list, verify_key_signature, the global, post_init's readerless {root} glob ] ; sign-key \ remove-signature \ .ks .sk .rq helpers KEPT -- migrate to trust.statement with step 4 ; name_from_skey_name is live [ key_name_to_skey round-trip ]. nodes trust transitions : DONE [ discover notifies nodes on every trust change, invalid on a changed root -- test-discover-delegation 38 ; live check needs a 2nd host ].
 
 #,,,.,...,,..,.,,,.,,,...,,,.,...,.,,,..,,,..,..,,...,..,,.,.,,,,,,.,,,.,,,.,,
 #ALIFG3E2AQGWYPOLRKPFA2527E6MOCLWRABEQTTWDJQY3KB6WFN32IQXDN2SNWCVEM3T2LQTVL6SA
@@ -90,8 +90,8 @@ worked as parallel lanes [ background Agents + kimi + one web session ]
 
 **added 2026-10-07 [ user ] :** optional self-propagation of statements in either direction [ a node proves its chain standalone after a connect, signer offline ] -- section 'later : self-propagating statements' in TRUST-CHAIN-STEP2.md.
 
-#,,,,,,,,,,,.,,..,,,.,...,,..,,,,,...,...,,,.,..,,...,...,.,,,.,.,..,,..,,,.,,
-#7N35FKVFO2JXWL6BGCVYAGNYVZ5NJEJTO7BYHFVKRP7X5POISAEB24VPJBRE32HWZOTSAWWKUEVHO
-#\\\|KRCCJGFJEEYJ5PANHJVM4EVXMTNU3ZWU2FWEIDU62PVQPD5JPPM \ / AMOS7 \ YOURUM ::
-#\[7]N7YVYBB34EALYKZW2GGT6EKHNBOJYAIW4X3RBESEC6U2BVSW7MAI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,..,,,..,...,,,,,,,.,,..,.,,,,,.,..,,...,...,,..,...,.,.,,.,,,,.,
+#34IMD4IWBIOD2DJHKXVKPZ25VQXG6ER4RA34V4IZAE4SNAKI2VUL3ZDP6IYXNOEIKJT32A7AX7PRM
+#\\\|2FZ3ER5D2N5BF4MZMQZEFZLEEXKFHCWRR6RDSVZUXA23JNQGH4Q \ / AMOS7 \ YOURUM ::
+#\[7]PIHSUXJYK7ZMOP3SYGFAUXM4BEFSVFHZYIXOMC3FBMDWJQEKZUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,13 +6,13 @@ metadata:
 ---
 
 session 2026-11-16 \ 17 [ last Fable window ] -- all committed, pushed, bundle on external storage,
-pulled [ no restart ] on srv-U srv-F srv-V srv-A azurum, all at b9e3d3b6d.
+pulled [ no restart ] on srv-U srv-F srv-V srv-A azurum, all at ade49a75f.
 
-**commits** : a51999e20 Nested.pm root + parent check ; 2b87fcc73 AMOS7::cell::time exact y-grid ;
-252ce0229 design docs [ RESOURCE-ACCOUNTING-UNIFIED, SUBSTRATE-SYNTHESIS, N7FS-FORMAT-4 ] ;
-282ee71fe AMOS7::cell::canon [ format 4 stage 1 ] + DECISION-GUIDE-2026-11-16 ; b41ef81db ledger
-stage 1a [ AMOS7::NRT, bin/nrt ] ; c4630a1a8 owner idea set into the ledger [ sections 15-22, q35-47 ] ;
-189eb2b3d format 4 stage 2 [ N7FS::Canon + Prior ] ; 47a902d23 10 k3.1 security fixes ; b9e3d3b6d
+**commits** : b0eaa4732 Nested.pm root + parent check ; 3bef478fe AMOS7::cell::time exact y-grid ;
+1813fcd93 design docs [ RESOURCE-ACCOUNTING-UNIFIED, SUBSTRATE-SYNTHESIS, N7FS-FORMAT-4 ] ;
+898fd614c AMOS7::cell::canon [ format 4 stage 1 ] + DECISION-GUIDE-2026-11-16 ; 026ef76c2 ledger
+stage 1a [ AMOS7::NRT, bin/nrt ] ; d52c5d244 owner idea set into the ledger [ sections 15-22, q35-47 ] ;
+c12352381 format 4 stage 2 [ N7FS::Canon + Prior ] ; cf9aa909c 10 k3.1 security fixes ; ade49a75f
 -B argv fix [ [[unanchored-cli-flag-backgrounds-commands]] ] + TRANSPORT-MARK-BITS.md.
 
 **owner positions** : ~/.n/private-notes/owner-pool-authorization-2026-11-16.md [ authoritative ;
@@ -79,8 +79,8 @@ visual.v7.ax/tests/ [ js gets no '#' signature footer ], run by bin/test-scripts
 keep MY OWN session alive with a background sleep shorter than 1 h before the limit hits -- the
 460k context expired by 3 minutes this time ; a subagent's cache cannot be kept alive that way.
 
-#,,..,,..,.,.,,,,,,,.,.,.,,..,,.,,.,.,.,,,...,..,,...,...,...,,,,,..,,,.,,,,,,
-#5BUUU5M6UCF2XO4Q75UKSQMJRQVO4ZQVINL76SPXHFED2HIHN7T2KETV7GRTLZ4BQXTH2J7VC6M3U
-#\\\|66F4W7GNRAR77UFMJU6BKKDC3HX4XLGIZFJ7B6XGY6A4TP27P4A \ / AMOS7 \ YOURUM ::
-#\[7]6XC4WSVTXBRUFN7ZOA7SRR6NAXZ4JYSHQRC4H7QAEJYBTDV452AI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,.,.,..,,,,.,,,.,,.,,...,.,,,..,,...,...,,.,,..,,,,.,.,.,,..,
+#HXC2NBXJNKI5OZ25ODOUTKG6ZHZSL2OCE6CCESKVP3OBIEMPXUAWINL7TFCHVYTIMEPNS6DBGA4KU
+#\\\|F2NYCYKWSDJTI54LUXC3KMR4ETTHGDLZ5MHENOYSVXCPNBU3TPX \ / AMOS7 \ YOURUM ::
+#\[7]GJWS5GDHFIP4OTBJPNSDBICND6KNO3RWKZMAOLEGHT466ZHDJEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

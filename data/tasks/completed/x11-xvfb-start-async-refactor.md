@@ -347,7 +347,7 @@ used elsewhere in this codebase, e.g. `X-11.connect_X11`'s
 `base.exit(3,'done.',1)`) even on the auxiliary-server path that does
 NOT exit the zenka.
 
-`git show dfb2d312b -- modules/X-11.handler.server_output` (2026-06-18,
+`git show 7af0ff5dd -- modules/X-11.handler.server_output` (2026-06-18,
 "X-11: multi-server jobqueue architecture") proves the mechanism exactly:
 that commit introduced `$is_primary` and changed the previously
 unconditional `exit(2);` into `exit(2) if $is_primary; return;` — and
@@ -450,8 +450,8 @@ non-obvious about this dependency system or the X-11 zenka while working
 on related work, add a note to your own memory files, same as any other
 task.
 
-#,,.,,..,,,,.,,,,,,.,,,,,,,..,..,,,.,,..,,.,,,..,,...,...,,,,,,,,,..,,,.,,..,,
-#PMLZJEBZISGRHKKVNIA4N5EI3SPHHO7GAHP34Y6NGCWGX3SKQZD5HT42QKLCJFR4BFHEEF2Y4NHBK
-#\\\|J2KGN2LFO5R2THUWKO3YJMTTBMQE44SJAFHO7CUSBRQPWESMEF4 \ / AMOS7 \ YOURUM ::
-#\[7]SQ2PVYDZWIY3D3UPLOHFG6KAETBSA75J4GL2MSJ2YQIXUROYPECI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,.,.,,,.,..,,,,.,.,,,.,.,..,,..,,...,...,..,,.,.,..,,..,,...,
+#KFIJN5N4TOHMXKDVJZEOVES7TWZPNELRKFDOW7T4GOYNGK34FTHUNYIUWGUP4LOH7JZOXCTTGLKCS
+#\\\|VRZVQXQXYSUU5XUZNSQTPOPDQI57UB5PDOV4R7RQL3YTPKP4Z2W \ / AMOS7 \ YOURUM ::
+#\[7]B3YY3G33AMGZA2ISNC5HALC6UHAPWRE7ZXHQUR5WZ7AZXXWZN4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

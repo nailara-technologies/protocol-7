@@ -5,15 +5,15 @@ metadata:
   type: project
 ---
 
-follows [[project-2026-11-06-session-handover-host-labels]]. all four servers on 8317b1e35 [ lease off there ] ; later commits local, unpushed. desktop has models.cfg.gpu_lease.enabled = yes in /etc/protocol-7/host-config/{models,coding,invoke-web}.cfg.
+follows [[project-2026-11-06-session-handover-host-labels]]. all four servers on 82f164998 [ lease off there ] ; later commits local, unpushed. desktop has models.cfg.gpu_lease.enabled = yes in /etc/protocol-7/host-config/{models,coding,invoke-web}.cfg.
 
-**amos_chksum [ 08eb7eae9 ]** : non-utf8 input lost its bytes [ FF = FE = E9 collided ]. valid utf-8 stays text, unchanged. anything else : bmw over the exact bytes, elf over byte values [ elf reads characters, a pure byte form would have moved all non-ascii text ]. key checksums moved once, nothing referenced them. model ids did NOT move : both halves hash text [ path, metadata -- the second half is not file content ]. this settles N7FS decision 1 : addresses were already byte safe through amos-of-bmw-text.
+**amos_chksum [ 5d0ef0224 ]** : non-utf8 input lost its bytes [ FF = FE = E9 collided ]. valid utf-8 stays text, unchanged. anything else : bmw over the exact bytes, elf over byte values [ elf reads characters, a pure byte form would have moved all non-ascii text ]. key checksums moved once, nothing referenced them. model ids did NOT move : both halves hash text [ path, metadata -- the second half is not file content ]. this settles N7FS decision 1 : addresses were already byte safe through amos-of-bmw-text.
 
-**coding memory [ eadbd5de9 ]** : spawn reports busy \ too-small, inference.backend.gpu.on_busy = wait \ cpu. memory_gpu \ memory_system objects still gate nothing. busy path not yet seen live.
+**coding memory [ 5187b61a7 ]** : spawn reports busy \ too-small, inference.backend.gpu.on_busy = wait \ cpu. memory_gpu \ memory_system objects still gate nothing. busy path not yet seen live.
 
-**gpu lease [ 24298ba3b .. pause commit ]** : models.gpu_lease.*, sole residency for coding and invoke-web. LIVE PASSED 2026-11-07 on the desktop : pause -> grace -> vram verified -> release -> coding spawned, resume -> coding yields -> grant -> queue resumes. the processor is polled [ 2 s waiting, 15 s holding ], ui buttons bypass the zenka and write no db. session-park does NOT pause, parked items still render. not seen live : pause during a wait [ grant resumes it, indistinguishable from our own pause ], models silent, second resume during a wait. a resume can overlap coding for one image : queue.hold rejected, it is for a stopped invoke.ai only and would empty the queue view. five live bugs had passed the stubs : command names, empty replies, whitelist, no re-request after yield, cube. prefix. reload source does not run init_code : new timers need reload init.
+**gpu lease [ 6a5a24d82 .. pause commit ]** : models.gpu_lease.*, sole residency for coding and invoke-web. LIVE PASSED 2026-11-07 on the desktop : pause -> grace -> vram verified -> release -> coding spawned, resume -> coding yields -> grant -> queue resumes. the processor is polled [ 2 s waiting, 15 s holding ], ui buttons bypass the zenka and write no db. session-park does NOT pause, parked items still render. not seen live : pause during a wait [ grant resumes it, indistinguishable from our own pause ], models silent, second resume during a wait. a resume can overlap coding for one image : queue.hold rejected, it is for a stopped invoke.ai only and would empty the queue view. five live bugs had passed the stubs : command names, empty replies, whitelist, no re-request after yield, cube. prefix. reload source does not run init_code : new timers need reload init.
 
-**also** : seed restart yields to real tasks [ 0de17f140 ], cpu seed restart parked the backend [ 5780ff791, VNN closed ], keys gen-chksum, todo search + aligned tags + cut-off warning at 106.
+**also** : seed restart yields to real tasks [ e767ebbae ], cpu seed restart parked the backend [ bdbb1bb6a, VNN closed ], keys gen-chksum, todo search + aligned tags + cut-off warning at 106.
 
 **lessons** : a coding restart fails what it holds [ route collapsed ], the job needs a rescan -- ask before restarting during a queue, and do not call a gap between renders idle. search the todo first : VNN already named today's stuck backend. kimi assumed 72 columns and rewrote 134 lines : give the wording rule up front.
 
@@ -23,8 +23,8 @@ follows [[project-2026-11-06-session-handover-host-labels]]. all four servers on
 
 **next** : N7FS dogfood [ owner has not chosen what to import ].
 
-#,,.,,..,,,,.,,,.,.,.,.,.,,..,,,,,..,,,.,,,.,,..,,...,.,.,...,,,.,,,.,,,,,.,.,
-#O7U7SV6HGJQGTMW7JBTCEHMIPG6KPJXRCANMDJRKG5TQ5FM2H5NEYYV7V32MUIE6W3ZZQ2HDNWUQG
-#\\\|J5ZLPUY4EUHRILFQPVRAY76HTB2CI6ARJXKTAG6VS57KWZFV7SK \ / AMOS7 \ YOURUM ::
-#\[7]7UZRFLDTI7M7BGUVUS2NBAGVHDQP2GEGXPMXHIKA3WEZBFMRB6DY 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,.,,.,,,..,,..,...,,,.,.,,,...,..,,...,...,..,,..,,.,,,,.,,.,.,
+#Y55KVZDFO77GZ7DIYAML3PV4REAHYHPVYMJRZ4RQNXITTJZIBDZ5RJ4OREEKT3TUDS4MEEWCW6N26
+#\\\|BJXVFSB3TN7IHXS34PGRLCTMAJ5KIT42QERL6PGGPYZHRWM6W6X \ / AMOS7 \ YOURUM ::
+#\[7]FGJAUVF3WAATQQPQ3M7ZRLQSKYWAPOGIF2BV6FDM2UUAOHERASAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

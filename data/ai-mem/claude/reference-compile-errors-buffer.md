@@ -12,11 +12,11 @@ reliable : when `reload source` shows warnings or errors, they are in it.
 **How to apply:** after a reload with `[ warning ]` \ `[ error ]`, read
 `::: <alias> <zenka>.show-buffer compile-errors` [ or `p7c ...` locally ] first,
 instead of digging through the zenka log. a clean reload leaves it empty \ absent.
-example : the remote perl 5.36 warned on `qw| \ |` [ fixed ef6cb532f ] -- the local
+example : the remote perl 5.36 warned on `qw| \ |` [ fixed c3b65295f ] -- the local
 5.42 and the 5.32 floor check did not show it, the buffer did.
 
-#,,.,,.,,,,..,..,,...,.,.,...,..,,...,.,,,,..,..,,...,...,...,.,,,.,.,.,.,..,,
-#JR7UFGSQ6FFSW4ETOKWVCK4YXR2FVWFTD5MKDLJ56QPR7MEBDAGY3Z7BQOFCH7FFFIROR25ETAIB6
-#\\\|WTPHEIDGMSLNW7QFH3NHJZ7ZUDNBGQEMU7XZUSWZE7W7QQCSU3V \ / AMOS7 \ YOURUM ::
-#\[7]7DS7I53RIZNGVPCXCKYJ55NWEWYZO3RHSFD56FLBQ6ETEXTBZUCI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,,.,,..,,,.,,,.,,,,,,,,.,,..,..,,...,..,,,,.,,.,,.,,,,,,,,,,,
+#6E3ZXEYSB6I3FKVYHTRE4FCUBAULH25JXRDUZOX4GHJJBUFU5BZZ4GHU6RXLELJPSAAFDHAM56H5E
+#\\\|QS3HGBZ3UEWCBVOZYYEIJ772XD76MQ2WACGLHBS5CJPNFEA4EF5 \ / AMOS7 \ YOURUM ::
+#\[7]RKXUYHQ5XDBDNLVVBAWPG6S3BPBQZTKQS3N7IAOCGZCLGGGE2EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

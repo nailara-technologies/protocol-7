@@ -150,7 +150,7 @@ blocking at runtime removes the vt-switch keys from the live keymap [ xkb ].
 restoring needs a working X. a hung X cannot release the vt, so the last
 fallback is outside X : v7-zenki ends an unresponsive X server, the console
 returns to text mode ; after repeated failed starts it stops trying and leaves
-the tty up [ like a15de54fd : an error exit ends, no loop ]. if X hangs
+the tty up [ like 2b73d5537 : an error exit ends, no loop ]. if X hangs
 completely only ssh or sysrq remain : the tty fallback covers a misbehaving
 session, not a dead X server.
 
@@ -336,8 +336,8 @@ resolution with its preserved parameters. later compaction of
 6. provider-console X with the vt-switching rules ;
 7. host-admin zenka and delegation.
 
-#,,,.,,..,..,,,,.,..,,.,,,...,...,.,.,..,,..,,..,,...,...,...,.,.,...,...,..,,
-#QKB3K2HGQV4HNI3NBMHLINFJMW3YVRTGGQ3IB4YUSU6UBL6PWGS6MVXXEWBZJKJBIQAPN2RZPOTN2
-#\\\|M3W3Y2UO2HQZSLNCPTEWA4VQQCK7C6RWWL7FJRP6P6RK5G6NETM \ / AMOS7 \ YOURUM ::
-#\[7]737WFF3NVLSWCL2PKBOH5UZGODAPHP6JIQKXLGSN6HWKTF5FFQBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,...,,.,,.,.,.,.,.,.,,.,,,,.,...,..,,...,...,...,,.,,..,,,,.,.,.,
+#FXL4YTQV4YJRN4VSQBPV4KSJS3CALUXV7TDAHX3TLDXMPHYMQM55HSNWXV52FMPSKIVIVLWD4WXXG
+#\\\|VFN4ZFW4OPQSRSROBWKI26W6TDMLFBZDVO77VKQ6W4ASU2IZEAE \ / AMOS7 \ YOURUM ::
+#\[7]UR6ZX6PSXAEJVOI2LFULJPFO7BZTLSWTXHJLHEUYSVJWVJ6MUWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

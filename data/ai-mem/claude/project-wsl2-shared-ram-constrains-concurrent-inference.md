@@ -19,7 +19,7 @@ worked cleanly once and crashed on a later attempt under load).
 
 **Refined same session, using `powershell.mem-used`/`powershell.mem-
 top-proc`** (already-built, already-committed real Windows-host memory
-tools, `b1b87f36a`, see `data/tasks/completed/powershell-host-memory-
+tools, `588927954`, see `data/tasks/completed/powershell-host-memory-
 commands.md` -- previously unused for this purpose): checked the actual
 host during the crash storm's aftermath -- host at 50.29% memory used,
 `vmmemWSL` (the WSL2 VM process itself) consuming only ~7.5GB of host
@@ -130,8 +130,8 @@ for at all. Not an active risk right now (the sweep's self-test doesn't
 load either), but the next thing to fix if either ever gets loaded
 during an automated resource-fit-gated flow.
 
-#,,,,,...,,,,,.,.,,.,,,..,,,,,.,,,,,,,,.,,..,,..,,...,.,.,,.,,,.,,...,..,,..,,
-#HSRNQGQNSO2WVVQTSYIQSNCOJS7JS6ZFRWB5OYAYQHNZKOGVV7WOOB3TH5VI2RSVMWPB6E5KTNC6K
-#\\\|YCHORXOEQRUQUHUV4TNLKE7FIB3GMRGFTTZQFNGN7RAUACWTFX5 \ / AMOS7 \ YOURUM ::
-#\[7]HHTFZGIWEZH4XSW72QCCJRSPVCN3FDXM3XP4ZS6XYJJX3JMRJ4CY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,...,,.,,..,,,.,,,,.,,..,,..,..,,...,...,.,,,...,,.,,.,,,,,.,
+#KQEMAMQHG6TYAYQWHENSSG5OXS25OTNXHS6CFWY3RGB423Z33A5EDMHTKN2UTIKALQXWAKGDAZYBK
+#\\\|DJS5V46YCJK55B5R7AFENV36JD7SU7VJI2OBB53IVHEPMA6PE2M \ / AMOS7 \ YOURUM ::
+#\[7]LUS75ROFEGTAQO2A6CWVJ4NAMSHT2SUKDUTUW6HTJNV5BJFTCYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

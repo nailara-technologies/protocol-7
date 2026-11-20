@@ -10,34 +10,34 @@ budget at the end : claude 7d ~75 %, kimi 7d ~66 %.
 
 ## landed [ pushed, hub/base, deployed to pri unless noted ]
 
-- 0c9478f48 link stage 1 [ kimi + review fixes : pin_from, no dotted link
+- 4b9300991 link stage 1 [ kimi + review fixes : pin_from, no dotted link
   names, host records 0640 group protocol-7 ] + jobsite desc_check flags
   cleared on a clean pass
-- 8e66ecb63 job ids : encoded ONCE where site-yaml parses the listing
+- e841150e6 job ids : encoded ONCE where site-yaml parses the listing
   number, every other vax-int call in jobsite \ site-yaml \ web.jobs gone
   [ digit-only encoded ids : 65454 = listing 14580215, see
   [[feedback-vax-int-digit-only-encoded-ids]] ] -- delta pulled too
-- 33272a6a0 jobsite.delete \ jobsite.job.trash [ the web's delete as cli ]
-- a541450f8 link runtime fixes [ live : `link pri : up over ssh-w`, pin
+- 3e5bb3aed jobsite.delete \ jobsite.job.trash [ the web's delete as cli ]
+- bce4126a1 link runtime fixes [ live : `link pri : up over ssh-w`, pin
   pri_42 ] ; QLK export marks newest-wins + last_export_at max-merge ;
   p7c \ p-7-r 'cmd+' reads the body from stdin
-- a68850a8e p7c \ p-7-r : options only before the command word
-- 396c6a875 + d15a11e36 https POST bodies > 16 KB [ 413 \ 414 guard,
+- fef9ca35f p7c \ p-7-r : options only before the command word
+- 2036b5c5e + 9d2df0544 https POST bodies > 16 KB [ 413 \ 414 guard,
   idle-restart of a replaced watcher, would-block read kept the session ]
-- 59e625ae2 + fbcf554f9 + 00ec9a53d jobsite sync to https urls through
+- cd49875fb + 3b5279608 + 0b2cadd50 jobsite sync to https urls through
   clients.https [ static calls ; modules.load continuation ]
 
-- 914a58249 + 161294d2b sync url roles + the receiver decides [ a
+- fe16ec4c4 + 9f19bed7e sync url roles + the receiver decides [ a
   foreign peer's batch is marks-only ] -- QLK CLOSED, pri's export table ok
-- c40bc28c0 models task zenki list, jobsite assess_parallel, cpu server
-  nice 11, negative cpu threads ; b7b0f476e foreign tasks only with
-  ':no_tools:' as first line ; 34811df51 startup scan of local queues
+- c78809f7c models task zenki list, jobsite assess_parallel, cpu server
+  nice 11, negative cpu threads ; c47a10670 foreign tasks only with
+  ':no_tools:' as first line ; 133d1321e startup scan of local queues
   [ orphaned local tasks claimed ], no valued.resolve on empty node
 
-- 363a759d2 reassess \ appended batch fill a free slot at once ;
-  bb37d4893 claim limit [ task_max_claims, default one per ready backend
-  serving the pin ] + claim ttl 1800 s ; e2d628f30 models' grant for
-  coding.inference-status ; 3af43f0cf slot reserved at claim SEND
+- 2e821e906 reassess \ appended batch fill a free slot at once ;
+  7d017d9e2 claim limit [ task_max_claims, default one per ready backend
+  serving the pin ] + claim ttl 1800 s ; a19d04a1a models' grant for
+  coding.inference-status ; 5f0f2700e slot reserved at claim SEND
 - LIVE CONFIRMED : pri cpu 3.5 t/s + local gpu 39.4 t/s in parallel on
   pri's tasks [ the gpu claims pri's 2nd slot over the link ]
 
@@ -89,11 +89,11 @@ budget at the end : claude 7d ~75 %, kimi 7d ~66 %.
   the fallback branch [ revoked + re-minted ]
 - see [[feedback-whitelist-static-calls-and-v7-rewrap]] -- also : a NEW
   route-send command needs its access.zenki grant, stub tests never show
-  the refusal [ models -> coding.inference-status, e2d628f30 ] ; the
+  the refusal [ models -> coding.inference-status, a19d04a1a ] ; the
   refusal is logged by CUBE, the caller only sees an empty answer
 
-#,,,,,,,.,,,,,...,,,.,.,.,,..,,,.,.,,,..,,,..,..,,...,...,..,,.,.,,..,..,,...,
-#JR3MCGJ3VQ4TJL66VUAELG252T7S3BZRGSVGML7OTBZ6NLDFT3NWT6FICRP7SG3NUM5W34U6JDQIY
-#\\\|EDRMCU66XKCTLB47VSTATCW2L3BZ2KO2FEAEQOJHZ4YCABMFAXP \ / AMOS7 \ YOURUM ::
-#\[7]KM5LDWSMFVIKLY7R6QQTD7JAB2ZJXJCMREB4WSURDDSBFPZN2KAY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,.,,,,,,.,.,,..,,.,,.,,,.,,,,.,,..,,...,...,,.,,.,.,,..,,,.,.,.,
+#ZTXUD262U3AZXSXEMYX2NICYZGUHGXLTIHHQQKH33ZOXX6AJRDAZRB3YSERUULA2R24JXKSCAGUHI
+#\\\|67DXD5FR2PFUIILC65YXXCTCK4ISBYA6PFLJZZA7T52FLHTVW44 \ / AMOS7 \ YOURUM ::
+#\[7]GCUTXXLXLHETCUQYU5IS6I5A6XEO2PNU2QKLVHDXEO6KHXA6D4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

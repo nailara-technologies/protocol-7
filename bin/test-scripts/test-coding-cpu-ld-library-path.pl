@@ -60,7 +60,7 @@ close($fh);
 ## pull out exactly the statement between the two markers that bound it in ##
 ## the real file -- if this fix is ever rewritten, refactored, or removed, ##
 ## this extraction fails loudly instead of silently testing stale logic.   ##
-## trailing anchor : the manual fork/exec rewrite [ c5f0529d1 ] replaced   ##
+## trailing anchor : the manual fork/exec rewrite [ 802ca2728 ] replaced   ##
 ## the old `my $pid = eval` open3 block with the comment that now follows  ##
 ## this statement directly                                                 ##
 my ($stmt) = $src =~ m{
@@ -122,8 +122,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,.,.,,,...,,,.,,,,,.,.,,..,...,,.,,,.,,,.,,.,.,...,,..,.,.,,,.,,..,.,.,,..,
-#H4HHNVD44RNRUKUL3XVLB5N3DFNPKO3B5JQ7RVH2CZ3CA33K7XHUC7CA2JD7W2XCOV3KRTL4SFCHA
-#\\\|E4TYESDQUKY4KOI7LJNTUMVP5F3LM6ZLKODFDHLQJ64D3TYVRNI \ / AMOS7 \ YOURUM ::
-#\[7]7TMLUFG3WHNSYV7QNSD2A77YUVSBGRYJI77NIQRWWNWZASPQPMCA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,.,.,,,...,.,.,.,.,.,,,...,...,.,.,...,...,,,,,,,.,,,,,,,,,,.,,
+#OVGENCS3JJF7IPMAC5CVQ5MZRTXUO2RHJ3DJHZJVKJNG7ZHE4CORNKMMYFU7WFIHU7WOJIKPK6BB4
+#\\\|QVMAAEO4HTTPVVC7PTOCQU3O6TKUKZJ65MXA4LHPLINBZ6M6LB5 \ / AMOS7 \ YOURUM ::
+#\[7]KRBK43Q3WHPVOIALRODSHZBBCGRUFOZ2ZSDETKEIPYTEW26XAOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,10 +2,10 @@
 
 design only -- no code in this step. the build plan is
 `data/tasks/web-ui-user-login.md`, which also carries the open questions
-for the owner. builds on the web auth layer of commit e818f20fb [ gated
+for the owner. builds on the web auth layer of commit c23945486 [ gated
 `/jobs*` routes, `web.auth-issue`, `p7_session` cookie ].
 
-## what exists [ read from the source, e818f20fb ]
+## what exists [ read from the source, c23945486 ]
 
 - **gate** `httpd.route.handler.web-relay` : routes with `auth.required`
   call `plugin.web.auth.verify_session` on the httpd session [ bearer
@@ -628,8 +628,8 @@ bright surfaces ]. `#auth-overlay` becomes a small tabbed box :
 - password reset by email : no mail flow ; resets are admin-issued.
 - multi-host session sharing beyond one host's shared dir.
 
-#,,.,,,.,,.,.,,.,,.,.,,,.,,,,,..,,,,,,,..,...,..,,...,...,...,,,.,,.,,,.,,,,,,
-#ZJWJSSYDJ3XKI5ENUB7KTHKYQP5YWIMWZVOGZD5OEBAPM7IA2TYKKZR2BB3VBMVSL5CHKPFY7GVZ4
-#\\\|PES7O34XYBCJRL3NWXEORBB3L4CGOOA6T6AGMQ4DL3RI7B2GAFW \ / AMOS7 \ YOURUM ::
-#\[7]TKLZOZNJRKAWZDVX4OSP7JYKFG7AOE2MJLMPEN4PUQZVG46MFMCA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,..,,...,...,,,.,,,,,...,...,..,,...,...,..,,...,.,,,,.,,,,,,
+#F5ZBQK4GREF5SG2UZXISABV5J67MWEQAVPEET7TSRGJKTJRMPQ6WV3A5XXQIOY4XZFZSKKEX3C7LO
+#\\\|MD6N7RWDPGUOISFCDRI5EQLT3EUQN2MJKTKZFTWJMQUO53FROMV \ / AMOS7 \ YOURUM ::
+#\[7]SNTHR4GWQLMO7U73GFZK2K4HT23HJZKNIWP6L45VRUXR5AV3XQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

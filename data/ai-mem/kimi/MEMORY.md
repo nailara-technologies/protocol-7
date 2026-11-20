@@ -71,7 +71,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 - fixed the coding-zenka tool-args utf-8 double-encoding class [ the
   site-yaml-family bug that garbled a local model's edit of
-  data/tasks/completed/inline-subs-batch-4-final.md ] : commit 1a5fb0698.
+  data/tasks/completed/inline-subs-batch-4-final.md ] : commit 405fec19d.
   three sites : xml/json producers now emit character strings via shared
   coding.async.tool_args_decode ; state_machine stores arguments as
   character JSON ; edit_file reads the staged copy with its write
@@ -95,12 +95,12 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 - powershell zenka gained `usbipd-{list,attach,detach}` [ attach =
   DEFERRED reply + poll timer ] + wedge-proof `powershell.exec`
-  [ concurrent drain , 60s idle timeout ] : commits c37c63580..54ae2453e.
+  [ concurrent drain , 60s idle timeout ] : commits cc8e62165..d33a373a3.
   full detail + the WSL-tETHER-STALL forensics [ 18-experiment matrix ,
   Start-Process -WindowStyle Hidden escape , mechanism UNKNOWN ] :
   [[project-2026-10-27-session-handover-usbipd-wsl]].
 - editor `detail_editor_wrap_segments` clamped to width >= 1 [ headless
-  zero-width spun 9h ] : 11cf1d92a.
+  zero-width spun 9h ] : d40b1f0e5.
 - LAST-BUG-STANDING lesson : qw|IO::Select| import list in a
   base.perlmod.autoload call made init_code abort midway , silently
   skipping later init sections — autoload importless modules with a
@@ -128,8 +128,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   firmware wake defaults, persists WakeOnLan via 50-p7-wol-*.link [ mac
   matched , wired only ] . modes undo each other . `host_power:` key in
   profiles.yaml runs after a clean install [ basic-remote-server pins
-  awake ] . commits 398741922..b7f23922c .
-- p7-install upgrade [ a92333739 , d8bc276d7 ] : apt output streams through
+  awake ] . commits 398741922..7855c2260 .
+- p7-install upgrade [ 00749b254 , ea69f275c ] : apt output streams through
   the aptlog condenser with framed rows ; cpanminus bootstrapped from apt ;
   cpan: entries with a debian mapping install the .deb first [ fresh hosts
   need no XS toolchain ] ; cpanm -q with framed failure tail . verified live
@@ -137,8 +137,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - open : KDE/XFCE idle-suspend keys ; `host-suspend` counterpart for the
   v7-zenka host power commands ; srv-16 wired-NIC WoL check once cabled .
 
-#,,,.,...,..,,...,..,,.,.,,..,.,,,..,,,.,,..,,...,...,...,.,.,..,,..,,...,...,
-#4K2FPDOHBFLCXLGXEC6GXSTODMUFRA4MPQTIVROE7IAGSMY26V3ZICZKP76HHLSXVPHMPMBCVRA2K
-#\\\|X3K5YPBLMASVZ35D5HGBZEQ2V5HVEIN6OWKNXHTHFAKILLCVD7R \ / AMOS7 \ YOURUM ::
-#\[7]ULHK3LUNUSMEIZY42FV5WUPID3NBGKWSPSIVOVRUSRXQUQAWUYDA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,..,,.,,,,..,.,,,...,...,.,.,,..,...,...,..,,,..,.,.,.,.,...,,,.,
+#SIDSOJXUYM7UQ2TOTJLVOTEZKCSLV4D72KLXZUTEDCDXGQFOT7UFJCGNGGWKUAPFOT42BIEREO526
+#\\\|LFKLBF5XEY52OUNRWNYMPD3H7O5IEXKF6UT3RVLFL4GD5XKI2X4 \ / AMOS7 \ YOURUM ::
+#\[7]INIY5HALHGZ3T5UGPLRSOYXYA6AOUIYYWRYFFDNESABXQA4Z54DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

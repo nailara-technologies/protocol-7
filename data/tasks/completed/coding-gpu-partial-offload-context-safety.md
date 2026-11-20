@@ -164,7 +164,7 @@ re-read the live files, don't trust line numbers blindly), stop and
 report the discrepancy -- do not improvise a different safety design
 silently, given what's at stake if it's wrong.
 
-## status [ 2026-09-17 ] — DONE, live-verified, committed `9198c9fdf`
+## status [ 2026-09-17 ] — DONE, live-verified, committed `687093359`
 
 kimi (k3) landed the full design correctly on the first pass: budget
 split by offload fraction (reusing the existing per-layer
@@ -180,8 +180,8 @@ original bug) -- completed that step directly afterward: RSS moved 4MB
 across a real ~4500-word-prompt request (4411->4415MB), no memory
 pressure. Full-offload case confirmed unchanged (params default to 0).
 
-#,,..,,,,,..,,,,.,...,.,,,,.,,,,,,...,.,,,...,.,.,...,..,,,..,..,,,.,,,.,,,,,,
-#7SHZZNAO2QOXNJW2GE6CQJKV3FVSXVN7TVWUE2ACYDBBXAVQKABZUMICV6IOZPRWMLGU3EUFWMBKU
-#\\\|2DPAC52CY7PD3JB7ETM26BFIO5WSZIQSU7NNVW3AAPINZJ4YEX6 \ / AMOS7 \ YOURUM ::
-#\[7]2EINND7XD4VMBAEXRS6JYKXT3SRBKSS5GCKQNPI3OFBN5ZVKJADI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,,,..,,.,.,.,,,,..,.,,,.,,,,,.,.,.,...,..,,,..,..,,,..,...,,,.,
+#H72XN6WSG2AITPG2DDRANXO6BL2F5H5PRK3PK4TUWVYIWXGRMIABRW23NVWLEKEISLVRDSPDOEGGC
+#\\\|DBHD2OJLTCHNPKSBK5EEO2W7HJWEMVM5ERBMF66CZQOSS5GGMSZ \ / AMOS7 \ YOURUM ::
+#\[7]RGHURTCV5BOHBZYMZ7CC7EPSVYH55ZFXBVLZW44DVDUIC3VB5WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

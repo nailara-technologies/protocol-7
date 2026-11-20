@@ -23,7 +23,7 @@ port of the dist-upgrade styling ] ; p7-deps bootstraps cpanminus from apt ;
 cpan: profile entries with a debian mapping install the .deb first
 [ libevent-perl, libio-aio-perl, libjson-xs-perl on minimal -- no XS
 toolchain on fresh hosts ] ; cpanm runs -q , failure tail as warn rows .
-commits a92333739, d8bc276d7, 398741922, 06889b58e, b7f23922c.
+commits 00749b254, ea69f275c, 398741922, c9c3cb3b3, 7855c2260.
 
 **next, any order**
 1. KDE \ XFCE idle-suspend keys [ DE detection beside GNOME ].
@@ -210,7 +210,7 @@ this whole thread, unrelated to the corruption, left alone per the
 user's explicit call), and the quarantined corrupt shard 4 (kept
 deliberately as the only physical evidence for the still-open
 fetch.file.huggingface.* corruption-bug hunt. Fully wrapped up and
-committed as of `ca1139f2a` — working tree clean.
+committed as of `2930e4682` — working tree clean.
 
 **DONE, 2026-09-15 — real attempt 5 ran and is fully written up in
 `data/tasks/coding-lora-p7-idioms.md`'s "seventh pass" section (read
@@ -236,7 +236,7 @@ LR7NW7A:XT57X3Y.
 ## orientation, 2026-09-14 — two independent threads, both landed/resting
 
 A parallel session sharing this same checkout landed a large body of work
-unrelated to the LoRA thread below — **33 commits** (`cc9318559..72ab9bddd`
+unrelated to the LoRA thread below — **33 commits** (`9ea548a4f..267509a73`
 in `git log`), not written up here since it wasn't this session's work:
 `data/tasks/coding-zenka-session-ui.md` phases 1-3 all DONE+pushed (live
 streaming, mcp-server-p7 STRM support, nshell split-screen + coding-session
@@ -314,7 +314,7 @@ used. **Result: `invoke` (the idiom this whole thread most needs to move)
 stayed at 0/18 either condition** — the adapter's only measurable effect was
 pushing generation toward generic Perl conventions, not P7's bespoke syntax.
 Also corrected a real project-memory gap while investigating: a prior
-session (2026-09-09, `21cf8e3ed`) had already tried this LoRA path once,
+session (2026-09-09, `6a476ed45`) had already tried this LoRA path once,
 via a dequantized checkpoint that hit unrecoverable corruption, before
 pivoting to the shipped idiom conformance gate (`coding.cfg.idiom_gate`) —
 the 2026-09-10 handover's "never actually attempted" was wrong, now fixed.
@@ -460,7 +460,7 @@ running, independent of whether either moves the needle**:
 **a real quality hazard was found in the mining approach itself, worth
 knowing before trusting its output uncritically**: the idiom-density
 admission filter has no semantic-correctness check. One mined hunk
-(`ceabe25ea`) substituted a real-but-wrong-context P7 module call
+(`10981169b`) substituted a real-but-wrong-context P7 module call
 (`<[base.ntime]>->(0) // time`, mixing an incompatible harmonic-encoded
 epoch value with a raw unix timestamp) from a botched mid-migration commit
 — caught by hand-inspection, not automatically, and removed. Any future

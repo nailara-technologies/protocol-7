@@ -105,7 +105,7 @@ both, plus the start time -- each covers something the others do not :
 
 ## state 2026-09-30 [ stage 1 done, code locations for stage 2 ]
 
-- stage 1 DONE [ 5c387b6b1 ] : invoke.ai's stdout \ stderr go to
+- stage 1 DONE [ a0dcd9eea ] : invoke.ai's stdout \ stderr go to
   /var/run/.7/invoke-web/invokeai.out [ O_APPEND, PYTHONUNBUFFERED ], read by
   inotify from a saved offset [ invoke-web.output.* ] -- no pipe, no SIGPIPE ;
   a new instance reads on [ invoke-web.handler.output_adopt ]
@@ -182,14 +182,14 @@ both, plus the start time -- each covers something the others do not :
   process_zenka_end ] terminates children BEFORE any error status -- that
   path is unchanged by design [ only the status 'error' path keeps ]
 
-archived [ 2026-10-11 ] : stage 1 landed as 5c387b6b1, stage 2 as 7a0f43f12
+archived [ 2026-10-11 ] : stage 1 landed as a0dcd9eea, stage 2 as cf59de79a
 [ register_child, kept table, grace timer, identity re-check ] ; the open
 points above were settled there [ grace default 120 s, claim via
 register_child ]. the further candidate users are follow-ups, not part of
 this task.
 
-#,,..,,,.,.,.,,..,...,.,.,.,.,.,.,.,.,...,,.,,..,,...,...,,..,.,,,.,.,.,.,..,,
-#SYZHVTDURCNRJYRW22ORIBKIIZSR5RUSZ5GHL2OXFSWHYEB2QVPRRCB2M5SFZY2Z3WVFIR5THRZTE
-#\\\|J5CFR2L747IP3QTOHHGDBFQRRGJUDL6RBODRUSANR4VELN2V5XF \ / AMOS7 \ YOURUM ::
-#\[7]OUML7LLLWCMVVNIQZM4KSMAQM3XH4Y7B3IQNO67HT776DXQFRKBY 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,,..,...,,,,,.,,,,.,,,.,,..,,..,,...,...,,,.,,..,.,.,,,,,.,.,
+#KK4KR6L6VVEIZ2AYSHBQRISW5W7JQ5TKSA6OYDXK2RWQSVJFDHDE5YOM7MG64KHIAIZMQGY74QC7I
+#\\\|SH4QT3W7OZ5ITWBURGZS33ROKX5KXWN5N5M52PTTBNH4QC2LIYC \ / AMOS7 \ YOURUM ::
+#\[7]STN27PM3M6HU54DZOP4SFMHXXCG4RL43H2KG7VQELX7WWSOARUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

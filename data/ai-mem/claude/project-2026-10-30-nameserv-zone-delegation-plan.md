@@ -74,7 +74,7 @@ atom and retire it ; add two small hosts in two more us cities [ like delta ] : 
 cost than atom, ~6x capacity, 3 locations. MX order : pri [ rename to zulum completes ]
 primary, yourum second [ both non-us ], the us hosts as fallbacks [ connectivity first ].
 
-**LIVE 2026-11-12 [ 0b77e807e ] :** the three parent zones are served by dn0000 \ dn0110 \
+**LIVE 2026-11-12 [ ca7e70e8f ] :** the three parent zones are served by dn0000 \ dn0110 \
 dn1110 [ apply-zone-source on srv-U, sources in /etc/protocol-7/nameserv/zones, sync grants
 added on srv-V \ srv-A ]. dig compare vs the registrar : every record equal, the mail chain
 and the private zone's MX names correct ; the only diffs = acme.* NS [ we answer from the
@@ -106,8 +106,8 @@ mtr after recovery : 25 % \ 55 % outbound loss from contabo's first hop [ AS5116
 inbound from delta clean. ticket sent [ german, with mtr ] ; mtr-tiny now on U \ A \ V.
 on recurrence : capture ip -6 neigh + mtr -6 BEFORE any restart. glue \ zones stay as they are.
 
-#,,,.,...,,..,..,,...,,..,,,.,,.,,,,,,.,,,,,,,..,,...,...,,..,,,.,,,,,.,.,..,,
-#JBJM7YT3BNRWIQ6FGMWCVKFO3LCLP55ERTABDMIXURB4Y5NPELLW2KAZ3ON4QFT4FAZ5QAH4DCWN2
-#\\\|TDDDDJVFCAFIHRSTY3WEGVH6MWH6XZAH7AXOCZ3S256AO3FXUL6 \ / AMOS7 \ YOURUM ::
-#\[7]5ZEGZOETH4FA5ZLAOEL3L5RRO7RC343ZQK3BJDV5JZU4HYL262AY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,.,.,,.,,,,.,.,.,.,,,.,.,,,,,..,,...,...,..,,,,,,,,.,,,,,..,,
+#ISOZLZVEBHJUOIS23V2DTD4RJB7IMQMPRMCVTEINONBXVSCQL7AISDHFJBTDJ4DYP774FF6J734RQ
+#\\\|5TKDY7WKXR2JJ2J24I3MELWBJMTE2APJ7LWJJK6URUYER45QJ3F \ / AMOS7 \ YOURUM ::
+#\[7]PVL34OTPUQ6JA6JEFITRNY63DVLQTOWIRI5JMF5KNAUYKLC2RQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,13 +1,13 @@
 ---
 name: project-2026-10-30-session-handover-thermal-q2k
-description: START HERE 2026-10-29 late [ last 344e62e56 ] : Q2K liveness deployed [ delta + pri ], thermal steps 1-5 committed, watch-only in local task over night ; GDX weather race fixed ; next : read the night snapshots, wire the verdict into the worker pool, then thermal_gate on
+description: START HERE 2026-10-29 late [ last e8d371be6 ] : Q2K liveness deployed [ delta + pri ], thermal steps 1-5 committed, watch-only in local task over night ; GDX weather race fixed ; next : read the night snapshots, wire the verdict into the worker pool, then thermal_gate on
 metadata:
   type: project
 ---
 
-**landed 2026-10-29 evening [ 553f3e465 .. 344e62e56 ]**
+**landed 2026-10-29 evening [ 489d3ffae .. e8d371be6 ]**
 
-- Q2K [ 93962d8a1, deployed delta + pri ] : site-yaml.liveness [ front of
+- Q2K [ b98a40df5, deployed delta + pri ] : site-yaml.liveness [ front of
   the fetch queue, deferred json verdict ] + jobsite.dispatch.next gate
   [ stale = newer of fetched_at \ live_at > liveness_max_age 12 h ]. gone
   -> trash [ new \ review only ], unknown -> slot released. delta cmd tested
@@ -20,7 +20,7 @@ metadata:
   local task runs it WATCH-ONLY [ task.cfg.thermal_gate off ] ; task polls
   weather.temp every 600 s. at 23:20 : outdoor 6.36 -> amp 1.35, gpu 53,
   baseline 53, cold, night marks 63.8 \ 83 [ ceiling ]
-- GDX [ b28f5b2b5 ] : weather getters park callers while the first data is
+- GDX [ 2a1f05421 ] : weather getters park callers while the first data is
   pending [ weather.parent.park_pending \ answer_parked ] ; tested with
   weather.clean-cache + terminate : first weather.temp 3.5 s, real value
 
@@ -48,8 +48,8 @@ metadata:
 related : [[project-2026-10-29-thermal-aware-local-worker]],
 [[project-2026-10-29-session-handover-jobsite-live-updates]]
 
-#,,,.,,.,,,,,,.,,,,,.,.,.,.,.,.,.,.,,,...,...,..,,...,...,,,.,.,.,.,.,.,.,..,,
-#QWOURZIKNQODRJKEQNZUOZMY7U2MMSR3ELAAD2JTCV5RXJ7TBTMY6OMQZPRD6TH2O5R6RPGHWLEQS
-#\\\|DBF5GCX2GYQ3RKF7XTXFI36QG4ITGQYVCSJJN26MMO4UHW2DYTY \ / AMOS7 \ YOURUM ::
-#\[7]VFQPAZVHFNXRILEQNNQGP6DBS7IE7WPMOT54UPD4ILG6ODPRI2BY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,,,,,,,,,..,.,,,,.,,.,,,..,,..,,...,..,,.,,,,,.,,,,,,..,,..,
+#CKMSBMSE53EYUJKYOORHOTQXBFGWZ67B6XPBBH7K5SL6WPDPAPEP5FH7KF2OTNQTBNUI2CPL2UORK
+#\\\|6T6VSSKWS2DD6I524FPMD3NZ4WGERT5T2WZBJPHOONUAOAMM7X3 \ / AMOS7 \ YOURUM ::
+#\[7]6JRW4TFCE6RECD4HLBDKP355KB7YMLJHZCI2VFNFUTLLXZ75EUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

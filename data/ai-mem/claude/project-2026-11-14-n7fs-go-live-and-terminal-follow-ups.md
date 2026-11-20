@@ -1,12 +1,12 @@
 ---
 name: n7fs-go-live-and-terminal-follow-ups
-description: n7fs go-live DONE 2026-11-15 : 4 receiver holders, full scrub receipts, 4 copies ; pipelined holder sessions [ 1fdd862e4 a81070fa8 4dfc7f361 ] ; follow-ups AMOS7::SSH, send buffer, progress line
+description: n7fs go-live DONE 2026-11-15 : 4 receiver holders, full scrub receipts, 4 copies ; pipelined holder sessions [ f5ba1c0d6 7b4814f6c a4b285287 ] ; follow-ups AMOS7::SSH, send buffer, progress line
 metadata:
   type: project
 ---
 
 **go-live 2026-11-14** [ owner all-clear, root@ on srv-U V A authorized ] :
-- head v2 [ 3203321b7 ] refuses v1 heads : every old holder failed `outer authentication`.
+- head v2 [ 190a63c7a ] refuses v1 heads : every old holder failed `outer authentication`.
   owner chose a RE-SEAL from the still present sources, with NO doubled remote space :
   remote old copies deleted before each new one ; only azurum keeps
   v1-old fallback [ removed 2026-11-15 ]. local v1 key-side state [ removed ] :
@@ -18,8 +18,8 @@ metadata:
   cycle config + `cycle -dry-run`, owner sees the destructive gate first.
 - the owner runs passphrase steps from a scratchpad script [ read -s once, -pass-fd 3 ] in
   tmux session 0 ; I can capture-pane it. drain typed keys before a confirm prompt.
-- fixes : e3afc30f8 root_dir ignores a seal-root hash [ place without -root ] ; e058b8a74 ': '
-  warning prefix + `.: N7FS :.` usage ; aeadda003 legacy warning once ; 32383cdf4 batched
+- fixes : 507361f8a root_dir ignores a seal-root hash [ place without -root ] ; 6032f6026 ': '
+  warning prefix + `.: N7FS :.` usage ; 7e947d5d9 legacy warning once ; 33795a138 batched
   commit uploads [ the sharded map rewrote up to 1024 shards per commit, each several ssh
   forks of a 1.1 GB perl : 234 ms -> 6 ms per node ]. benchmark :
   scratchpad bench/place-bench*.pl [ local vs ssh:azurum:/tmp ].
@@ -41,7 +41,7 @@ metadata:
   not fixed columns : workers pull small batches when free, biggest nodes first, so the
   end does not taper off [ like _parallel in the relay ]. reuse the
   multi-core pattern of update-signatures \ verify-p7-signatures [ sourcecode zenka, src/ ].
-- json : n7fs was meant to be json-free, only the registry \ cycle state moved [ 973608c34 ].
+- json : n7fs was meant to be json-free, only the registry \ cycle state moved [ 3e613a33a ].
   JSON::PP is the single-core hot spot : 1024 shards encode 3.1 s vs 0.12 s XS, decode
   23.8 s vs 0.16 s. step 1 [ after the kimi run ] : JSON::XS, JSON::PP fallback with a
   degradation warning, compare canonical bytes on real map data first [ SIV names ].
@@ -81,12 +81,12 @@ restart deliberately.
 
 **live state 2026-11-14 evening** : host hard-crashed under the sustained wlan push [ usb
 wlan, same as every holder push ; /tmp wiped ] ; home-packed 12 G of ~16.3 G committed, pri
-empty. b611a3601 background uploads ; script now ~/.n/n7fs/golive-2.sh [ -bwlimit 4M ].
+empty. c4fd04a42 background uploads ; script now ~/.n/n7fs/golive-2.sh [ -bwlimit 4M ].
 owner order : wire the LAN cable, finish the re-seal, then the native linux install.
 [[n7fs-host-migration-goal]] [[session-handover-n7fs-fable-design-built]]
 
-#,,,.,..,,.,,,..,,,..,...,,..,,.,,,.,,...,.,.,..,,...,...,..,,..,,.,.,,,,,.,,,
-#RJDDKOG54XIAOJ5LEHAR4A4CESSPEZTYNNUQTH7RWO7TJQY2DGVALL6S62I4YVIYCZMIBVZY5SA2C
-#\\\|FOYLDWESZVFHMWTLXG4YXM3BJ66FRBHGRQK4KKXKHOCSJW2PNWY \ / AMOS7 \ YOURUM ::
-#\[7]KPOQBSK4QJORIIZOFGG7AJR5SRVAJ4XJVXYOLFVRJ3UCNVUPTYAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,,..,,,,,,..,.,.,,..,...,.,.,..,,...,..,,...,,,,,...,,..,.,.,
+#FD33V7MQQG7MKLOOHA5MFLH26775TSSQXHSUBAUN4OMF5I3ALF6WQ66O76JMPG27H7YDX6BT6LQJC
+#\\\|OK4K7AIVU5NWVPQ63WORWITKQGKJIAQM4JR54AC5BXHBLGM4YBT \ / AMOS7 \ YOURUM ::
+#\[7]MAAHFWQLKWOBPR5PGR2OVGVI4HSSUWFBU3J34YCXHC4MG6LGHCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 # task: shorten deps/os/debian and deps/os/binary to deps/os/deb, deps/os/bin
 
 ## archive: DONE ✓ — 2026-08-21
-## commit: 62a4401aa — rename per-zenka source/pm-dep/os-dep dep-tracking dirs to deps/{src-used,p-mod,os/{deb,bin}}
+## commit: 2bf683b18 — rename per-zenka source/pm-dep/os-dep dep-tracking dirs to deps/{src-used,p-mod,os/{deb,bin}}
 ## notes: landed same commit as the wider deps/ rename it was scoped out of; see below for how the mapping-table approach avoided the originally-estimated 9-file rewrite
 
 ## status: DONE (2026-08-21)
@@ -68,8 +68,8 @@ generically. that type string is then compared literally
 bin/p7-deps, bin/os-pkg — the initial assumption was that renaming the
 leaf dirs would require updating all of those comparison sites too.
 
-#,,,,,,..,,..,,,,,.,,,,.,,.,,,.,,,,,.,,..,,..,..,,...,...,...,..,,.,,,...,.,,,
-#M7FNG456OQLLES6JO2IG6CUYOA3DJBTH4Q5CQPTVC5P7F2TF7PDLUXVXCKHHL7BM7GICTY63NO2UE
-#\\\|7S55G5G6ATRFLFMDJM2SE3Y553LNG6P46EXM6A6Y4HG5TPIRBMY \ / AMOS7 \ YOURUM ::
-#\[7]AQXT7ZYK37SDYIFC65O5YARWV7OG5OV725F3EWI4WNNIKY26VYBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,..,,.,,,..,,.,,,,,,..,,,..,.,.,..,,...,...,.,.,.,.,,,.,...,,,,,
+#5QCKOX4ALLQLWAOYTCNUNRNSSUUKGNKO6JBQAFCGTS52W6QZ5LFMXVV4U2UQMIQ6OHVJG7K2HLW62
+#\\\|VX7UGM6XL5KY3FMNKDYNTDNNRZSJGZJNUQQSXYUPIRJAOVYN3V6 \ / AMOS7 \ YOURUM ::
+#\[7]K2RPOO2UJDF6MZCZRAMY5JMBFF65UOBVZ3VWDRDNXRD3UTFJGCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

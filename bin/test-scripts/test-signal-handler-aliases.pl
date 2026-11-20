@@ -13,7 +13,7 @@
 ## when its per-signal watcher count goes 0 -> 1, so a second watcher on    ##
 ## the same number silently defeats any later add_signal for that signal [  ##
 ## v7-zenki lost SIGCHLD after v7-zenki.compile_bin_p7c restored $SIG{CHLD} ##
-## : e0a451c68, 2026-10-07 ].  checks : one registration per sig_num, CHLD  ##
+## : 4190c0cfb, 2026-10-07 ].  checks : one registration per sig_num, CHLD  ##
 ## yes / CLD no, no IOT beside ABRT and no POLL beside IO, and a stale CLD  ##
 ## watcher from an earlier init is cancelled + deleted on reload.           ##
 ##                                                                          ##
@@ -263,8 +263,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,,.,..,,.,.,..,,..,,...,,,.,...,,..,.,.,..,,...,..,,..,,,,,,.,.,..,,...,
-#2YKEDIQNK7MBR5CLOSKZURPAY2ODNA53VPIU4KPBOLAK73AHNBNIPLVPI2SAT46KLI4MTTDUMNOVW
-#\\\|47QEMFTYCSJECGUVRMLECTDWXZU4ZHG6NLHXZQIN7SBYBL6Z2G2 \ / AMOS7 \ YOURUM ::
-#\[7]U54VOV3CIJEQHM4VJFYIMYK5L2HDRCSSJDBJA3JT7SVHH2NO76BA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,.,,,,,.,.,,,,,.,.,,,,.,,,.,,..,,...,...,...,,,,,,.,,...,,,,,
+#2OUSKSOLDOBAE6LIGE4WYS3SQW7HU65RSWQCSRSD3GD2TCKXETUFSQCKTHYX6O7B24AD6FWUMMXI2
+#\\\|LJLYL4BEQEFDQQTI37TVXF6IWX53ZCFSJXSGFFNKJRK3TZUAJN6 \ / AMOS7 \ YOURUM ::
+#\[7]IBLTRY6JK3INY4BSVIJRM47L7XHKOVR2RTF7MCQPT3HNQH66M6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

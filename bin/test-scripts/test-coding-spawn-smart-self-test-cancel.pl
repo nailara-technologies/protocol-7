@@ -57,7 +57,7 @@ my @http_cleanup_calls;
         sub { return { mode => qw| false |, data => 'not reached' } },
 );
 
-## the async pending-switch split [ 0d5e09684 ] moved the memory gate into ##
+## the async pending-switch split [ 4b16510a2 ] moved the memory gate into ##
 ## coding.helper.complete_pending_switch : keep the harness design -- the  ##
 ## huge fixture model below never 'fits', so the spawn stub above is never ##
 ## reached -- and record the status the fit failure writes                 ##
@@ -99,7 +99,7 @@ sub compile_module {
 compile_module('coding.async.http_cleanup');
 compile_module('coding.async.backend_release');
 ## cold-boot checksum resolution now runs before the cancel block [    ##
-## 0d5e09684 ] -- compile the real metadata lookup too ; it only reads ##
+## 4b16510a2 ] -- compile the real metadata lookup too ; it only reads ##
 ## <coding.model_metadata>, which the fixture below populates          ##
 compile_module('coding.helper.resolve_model_checksum');
 ## the module tail returns through complete_pending_switch [ async-pending ##
@@ -260,8 +260,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,..,,..,,..,..,,,..,.,,,...,.,,,,..,,,,,.,,,..,,...,...,.,.,.,,,,..,,.,,,..,
-#5ADXZT4N5JSDCRQJQJRUDNNOZL3IKRYBJHIWBNHW4BJSMHBAZA763VRCE24ORFICOUWFNHWTHXM4A
-#\\\|2PZRJ4BZM7HSR22SG4WPOOYOR5ETS55DVBKSXLRQBJIJ4E7G2DP \ / AMOS7 \ YOURUM ::
-#\[7]CLLIVARXKOCNH5EO4GRWXOHWKL5MGDE5B2JKBHZ52MZVLKR5E6BQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,,,,,,,,,...,,..,...,...,,,.,..,,...,...,...,.,,,..,,,,,,.,.,
+#KDE7DYAJKL3AKBJMBCAGA34JWZLRHC5YK46B7GAME4EVP2JRBRZDXO6EHSSKW3OF5M766VUTGFMT2
+#\\\|KVOAZY3N2EXKUNT4Q6TDRDZF5PBVA27XTRYREB4PV7G3MNEIIP7 \ / AMOS7 \ YOURUM ::
+#\[7]C5UTG64S5M6NTF5D4XNQKIXE63MXWLQYDKYHFI4UQGQRURIQKACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

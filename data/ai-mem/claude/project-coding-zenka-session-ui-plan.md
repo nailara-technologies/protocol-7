@@ -62,7 +62,7 @@ interactive shell into an SHM-backed buffer, and `data/md/design/
 CODING-ZENKA-USER-INTERACTION-SURFACES.md` already designs the coding-
 zenka-specific application of that exact mechanism (a 5th plugin type,
 `interaction`, built on `buffer-attach_generic`) — status confirmed
-live: prototyped and partially working (`bb7a55401`, ask/reply
+live: prototyped and partially working (`c2f3e40b2`, ask/reply
 round-trip verified headless), remaining pieces named in that doc
 (timeout-degrade timer, inotify watcher, plugin scaffolding, GTK
 window-open path). [[reference-console-question-ask-primitive]] records
@@ -104,7 +104,7 @@ bleed, incomplete teardown leaving debris, and the actual "two cursors"
 bug from restoring the cursor away from the input line), and
 `plugin.nshell.coding-session` (submit-vs-task-append routing,
 auto-subscribe on task id). Commits in order:
-`867428dfb 2ed5315c0 95168cea8 bc713051c 769b9b5c7 42dd440e9 76d45c56d`.
+`f4e7df451 3d5b212e8 1486dad0d 6fe58df07 7f7449db5 2b6d7d0c6 aceb63a2d`.
 
 **Next up, designed but NOT built**: Esc-to-abort with idle-Esc-to-
 rewind / Shift+Esc-to-redo, unified with phase 3's round-rewind (see the
@@ -121,8 +121,8 @@ Also see [[feedback-path-typo-false-tool-glitch-attribution]] and
 [[reference-plugin-namespace-loading-convention]], both from this
 session.
 
-#,,,,,...,,.,,.,.,,.,,,,,,,,,,,.,,,.,,..,,,,,,..,,...,...,,,.,,,.,,,,,..,,,,,,
-#FAGMIDSXB5CS6KDEER4S3KUHMF4UVTYXI5G6BZRNFEQQOEUKBNSJJBC2BH2VSEFBEDNQVZ4AIE7EA
-#\\\|3GL3NKRHA6FHFD5ZFE6CC344DS3JUMCDMVYMCQJD66OB7NXQ3KE \ / AMOS7 \ YOURUM ::
-#\[7]WS2GYZUHOIUGLKJLWNPSOHH5GHGM3YIH4EV3MC5BJY45ZC6UN4BA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,...,,,,,,,,,...,.,.,,,,,.,.,,.,,..,,...,...,,..,..,,,.,,,.,,...,
+#LDHEF5Q2LBJFFPZI3NGDPN4XH7ZRV4VGCFM2LVOL4JA4V6OVQHWMKVOSDPU5HMLBGOPJMNVWLCFKQ
+#\\\|7NBQPEG2ZTQF3JSULYHSWYBOI2XLINR3SANMKLZQ73FOJ2JN4KW \ / AMOS7 \ YOURUM ::
+#\[7]2KUTZNOFIFTC6L2FFMF5JTYLDXIMFJFPD5EDFDC5VRMB3IXMHECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

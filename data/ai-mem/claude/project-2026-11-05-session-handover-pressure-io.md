@@ -1,30 +1,30 @@
 ---
 name: project-2026-11-05-session-handover-pressure-io
-description: START HERE 2026-11-05 [ 6dd74e736, live on srv-U F V A + srv-16 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
+description: START HERE 2026-11-05 [ 89bd19d39, live on srv-U F V A + srv-16 ] : io pressure, VWF, nshell EIO fix, route collapse + per-session liveness ; next : shm A [ kimi ]
 metadata:
   type: project
 ---
 
 session 2026-11-05 [ follows [[project-2026-11-05-session-handover-headless-design]] ]. all commits pushed
-to `hub` ; srv-U F V A and srv-16 on 6e805b179, v7-zenki `reload all` success everywhere.
+to `hub` ; srv-U F V A and srv-16 on ae861cdf3, v7-zenki `reload all` success everywhere.
 
 **done**
-- 5a228d20a powershell `max_concurrency = 1`.
-- a396fee51 devmod-ack REMOVED : states are absolute, the handler only sets a flag [ last wins ] -- v7-zenki
+- cece28fc9 powershell `max_concurrency = 1`.
+- 63eb435cf devmod-ack REMOVED : states are absolute, the handler only sets a flag [ last wins ] -- v7-zenki
   records the state at send time again. see [[feedback-no-ack-for-absolute-state-signals]].
-- f78e38386 nodes.orbital.init_code guard `return TRUE` [ reinit reported error on srv-U \ A ].
-- 0f67fb7c5 IO::Pty in zenka-common [ srv-16 : apt ] ; test-vault-tty-restore follows the reworked keys bar.
-- bc14eaab5 Editor.pm : the ' ·' end mark after the last keys-bar cell was outside the fit check -- at
+- 705fbe9a0 nodes.orbital.init_code guard `return TRUE` [ reinit reported error on srv-U \ A ].
+- 9f551fb93 IO::Pty in zenka-common [ srv-16 : apt ] ; test-vault-tty-restore follows the reworked keys bar.
+- 15d24bcd3 Editor.pm : the ' ·' end mark after the last keys-bar cell was outside the fit check -- at
   124 \ 125 cols the row wrapped, frame one line too high [ ned, p7-vault ]. login-screen-session reads
   /etc/default/locale : xterm ran in the C locale [ utf-8 bytes = cells, todo rows too wide ].
-- aa0756f19 bin/terminal faceSize1..6 around the face size : shift + keypad plus \ minus [ never ctrl ].
-- 3d9eb2a33 design data/md/design/GLOBAL-COMMAND-LINKS.md : `# launch = user|root` header, signed file +
+- ff15856f7 bin/terminal faceSize1..6 around the face size : shift + keypad plus \ minus [ never ctrl ].
+- 4500036e0 design data/md/design/GLOBAL-COMMAND-LINKS.md : `# launch = user|root` header, signed file +
   no PATH shadowing + root-owned target \ dirs \ link dir, never replace foreign entries. waits on VWF.
 - 469913425 start timeout waits again under pressure [ heartbeat_ext.* limits ].
-- 6e805b179 [ kimi K3.1 low, reviewed ] v7-zenki.pressure.update_io_level : io level from io_full_avg10 \
+- ae861cdf3 [ kimi K3.1 low, reviewed ] v7-zenki.pressure.update_io_level : io level from io_full_avg10 \
   avg60 ; heartbeat + start timeout use the more severe of memory and io ; start gate stays memory-only.
-- powershell exit 0110 [ 11-04 23:29 .. 00:11 ] : NOT display, NOT overlap -- 0fd160c6a non-blocking cube
-  socket broke its blocking whoami read, 70a02805e fixed it. resolve log stamps with `:: localtime <stamp>`.
+- powershell exit 0110 [ 11-04 23:29 .. 00:11 ] : NOT display, NOT overlap -- 5567aa7fa non-blocking cube
+  socket broke its blocking whoami read, 9220834b9 fixed it. resolve log stamps with `:: localtime <stamp>`.
 
 **lessons**
 - sub lists [ base.list.subroutines, subroutines.load-early ] are generated : p7_sign with plan=true, never
@@ -34,16 +34,16 @@ to `hub` ; srv-U F V A and srv-16 on 6e805b179, v7-zenki `reload all` success ev
 - copy the p7_sign job id, never retype it [ twice waited on a wrong id ].
 
 **later the same session**
-- 66f759706 VWF fixed : signature_valid honours a caller truth map [ truth checks only ; binding checks
+- 25fc3740f VWF fixed : signature_valid honours a caller truth map [ truth checks only ; binding checks
   never ] ; non-default map untested until the form footer type uses one.
-- c93391a75 nshell.read_from_buffer : exit on any stdin read error but EAGAIN \ EINTR [ a hung-up pty
+- 24288b6e0 nshell.read_from_buffer : exit on any stdin read error but EAGAIN \ EINTR [ a hung-up pty
   answers EIO, not eof ] and on piped eof. pri.nshell had spun 12 h, `::: pri taeki.name` hung on it.
-- 1c9c7a379 design data/md/design/ROUTE-COLLAPSE-AND-LIVENESS.md : no default \ global reply timeout ;
+- db01040e7 design data/md/design/ROUTE-COLLAPSE-AND-LIVENESS.md : no default \ global reply timeout ;
   timeouts per hop, opt-in by caller \ target zone \ a per-zenka map [ cubes \ filter zenki may enforce
   one at a network boundary ] ; later : max hops, no longer completable, derived values [ observe \ auto ].
-- c68fb26d9 cube liveness probe + cube.cmd.zenka-heartbeat [ v7-zenki only : registers its managed zenki,
-  cube never probes them ]. RELAPSE : shipped active with 30 s x 3 -- corrected 0cac3267b, then
-  6dd74e736 per-session `declare-liveness <interval> <misses> | off` [ for the caller only ], nshell
+- a907eac8b cube liveness probe + cube.cmd.zenka-heartbeat [ v7-zenki only : registers its managed zenki,
+  cube never probes them ]. RELAPSE : shipped active with 30 s x 3 -- corrected 262cd1fbb, then
+  89bd19d39 per-session `declare-liveness <interval> <misses> | off` [ for the caller only ], nshell
   declares only with nshell.cfg.liveness.* set [ none are ]. tested : frozen nshell without declaration
   left alone, with `10 2` closed after 27 s. see [[feedback-no-default-reply-timeouts]].
 - heartbeats need a v7-managed instance : a shell-started nshell has none -- cube owns session liveness.
@@ -68,14 +68,14 @@ to `hub` ; srv-U F V A and srv-16 on 6e805b179, v7-zenki `reload all` success ev
 
 **open, in order**
 1. shm A [ FKS ] -- see the shm plan above. command links [ GLOBAL-COMMAND-LINKS.md ] are unblocked by VWF.
-2. pri.nshell : check that the fixed nshell runs there [ new sessions get c93391a75 ].
+2. pri.nshell : check that the fixed nshell runs there [ new sessions get 24288b6e0 ].
 3. todo 5FI : a zenka dying before its log link leaves no reason -- keep early stderr \ start lines.
 4. todo QMH : system zenka per-disk stats from /proc/diskstats.
 5. login-screen image mode : unlock clears at once ; real-display check open.
 - servers : motd \ console plan apply ; watch delta link heartbeat timeouts, srv-A 'subscribe refused'.
 
-#,,..,...,.,.,.,.,..,,..,,...,..,,...,,,,,,,.,..,,...,...,,.,,,,,,,.,,.,,,,..,
-#S4G47J27OMFFQ4FNT53GUHECPMYMH23S3SP2Y5HK7F5W6VC4XYYODFGH34H23WCK3QY4ZURFGLRGK
-#\\\|F5VBKUONWTMKG7P62QW6MUGUZUJ7DDT3XCJIZGVMBHY5YHDOBZZ \ / AMOS7 \ YOURUM ::
-#\[7]6NJBENELSDOMPXHMCSCEDGXPH4Z4SCIABB2AMWVJO3HQXEDJKSCI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,,,.,.,,..,.,,,...,..,,,.,,,,,,..,,...,...,..,,...,.,.,,,,,..,,
+#3JACJF346YDSNOZ3OAHPPRS5AWQI5ZZU6QVPEKAAIHN5IY3Q3OGWMVCUR2CA2KZ7UJK4Q7HBAK5VU
+#\\\|CJWYZZOLYRELFBNY4U2WSMKYMLR3DBWLL74OLSGJMCUJBTPJMP7 \ / AMOS7 \ YOURUM ::
+#\[7]HEW2XTZ2QOSU6SWDTUP54WYKH254FZV2O5U2BLFI6MMGD76AHMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

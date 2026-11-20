@@ -5,7 +5,7 @@ metadata:
   type: project
 ---
 
-**state, all pushed up to e18b4c723** [ owner pushed ] :
+**state, all pushed up to dddc01c35** [ owner pushed ] :
 - finding 5 [ Y-level ages, sharded map, chunked manifests, retain ladders + repack ] and all
   17 review findings of the second Fable run [ ~/.n/private-notes/fable-n7fs-review-finding5-2026-11-13.md ]
 - Fable design stages 1-12 [ ~/.n/private-notes/fable-n7fs-design-7-8-9-2026-11-13.md, owner
@@ -40,8 +40,8 @@ placement, home zenki ring, graphical views, curves, phase, recipe copies via P7
 p7 config style for hand-editable files, never json, aligned separators [[p7-config-style-not-json]].
 [[session-handover-n7fs-review-findings]] [[n7fs-host-migration-goal]]
 
-#,,.,,,..,,,.,,..,,.,,.,.,,,,,.,,,..,,,,,,,..,..,,...,...,,,,,.,.,,,.,.,,,..,,
-#H3NU2HEGZ6N3QNP37X3SR44EHQD2UVJDZKYJ7W7MT7JX2BHOFOLWCGVABDLOZXF4GOOI6VCVOMHYI
-#\\\|M3SU4ZOYM4ARSFNTRYX2Z564LFMB76NF6ZEMEQPP5Q4Q5XWBNPT \ / AMOS7 \ YOURUM ::
-#\[7]WIR73T6POTFIMNNNNI5BKS3WXJWFTKHYVYOQVFFHPAW3J3R7CUCY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,.,,,.,.,,,,,,,.,.,,.,,.,.,..,,..,,...,.,.,.,,,,..,,,.,..,,,,.,
+#DSEGADHTJHNIJP63YA2AHV6ZQFUNENXN65KIAS2R3XR47MF4T2DSJWAAPFKWTPZZCF6LUX4QSP2KK
+#\\\|KZNI45UW4VUYQG536IU3EKMYRZAOVVONX74QIO6D5MKZE7UFWD2 \ / AMOS7 \ YOURUM ::
+#\[7]OOCM4NOZ4XBP24VC7JJQKIT7QD3OGU3PFP4X3ZRVZJKSE7GDZ2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

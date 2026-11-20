@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-29-session-handover-commit-manager
-description: START HERE 2026-10-29 [ evening, last 18d2a1363, pushed ] : sign agent finished [ content binding, clickable y\n\d prompt, ctrl-r restart with signature gate ], commits now go p7_sign -> p7_commit_prepare -> p7_commit [ ZA2 slices 1-3 ], dep-graph -affected-zenki ; next : kimi takes stale-message redraft or RCM
+description: START HERE 2026-10-29 [ evening, last 2fa1c6058, pushed ] : sign agent finished [ content binding, clickable y\n\d prompt, ctrl-r restart with signature gate ], commits now go p7_sign -> p7_commit_prepare -> p7_commit [ ZA2 slices 1-3 ], dep-graph -affected-zenki ; next : kimi takes stale-message redraft or RCM
 metadata:
   type: project
 ---
@@ -70,8 +70,8 @@ sign run that needs it.
   needs action
 - src log lines use <[base.str.os_err]> [ feedback-os-err-for-console-logs ]
 
-#,,,.,..,,...,..,,,,,,,,,,,.,,.,,,,.,,,,.,,,,,..,,...,...,...,.,.,,,.,.,,,.,,,
-#BCT6UE6EDP5JIORVAFSVXWDLTDALBD357UXAX775I7AYBCDJXC4AJ3JGS7C4A5STE3XBA3XHTQUM2
-#\\\|MEEIB7VXLN5RSGSGC4LOZBHNJ24D4I7XXZ2SWICZPOZRHIBYWCP \ / AMOS7 \ YOURUM ::
-#\[7]Y6JFTXIMBRNPNRCEVBDKUDKO45IP2QCD3OXKC4Q3RDZ2HHM2VYBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,.,...,...,,..,,,.,,..,,,.,.,.,..,,...,...,.,.,.,.,..,,,,.,,..,
+#TFIJHLKTNYVOFUO4U24MBIF46ICVAL6CQ4XJ5N327TDGQN42JXP2AVUQUWNXMS32UWB4X5ELX2LLM
+#\\\|XM474VWMZL3XJOKQ5DWRKT4MY3NNT4X6EAJGBQ3TNXOPHDYU42B \ / AMOS7 \ YOURUM ::
+#\[7]EQCNPQWZOOBKS7QMYYL53VWBS54F4EXPUXJY6V7JKHLXLBMYEOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

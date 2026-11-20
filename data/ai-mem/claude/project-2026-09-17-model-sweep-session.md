@@ -7,15 +7,15 @@ metadata:
 ---
 
 **Landed this session** (chronological, all committed, all pushed):
-`8f037e620` self-test cat-riddle hint, `40d62a4c2` restart_count
-infinite-loop fix, `32241cdf0` usage credential freshness check,
-`74bb231db` model-sweep state machine (pause/resume/cancel + circuit
-breaker), `8f3ec75a7` usage refresh-decision diagnostics, `24cc02bc8`
+`69222157a` self-test cat-riddle hint, `cdc535cfc` restart_count
+infinite-loop fix, `83c0770c8` usage credential freshness check,
+`e0b793db6` model-sweep state machine (pause/resume/cancel + circuit
+breaker), `60a7ac46a` usage refresh-decision diagnostics, `aa6d7f6c3`
 kimi model-alias rename (bare `k3` now means `k3-256k`, old target is
-`k3-1m`), `804cfec00` sweep-aware crash-restart ceiling +
-restart_count model-change reset, `15397e41f` model-sweep
+`k3-1m`), `ea4d6f393` sweep-aware crash-restart ceiling +
+restart_count model-change reset, `d584226d3` model-sweep
 task-priority coordination (`ensure_model_pinned` defers, sweep
-`yielding` state), `e22b2d56f` proactive credential-refresh watchdog.
+`yielding` state), `1c83d6342` proactive credential-refresh watchdog.
 See `git log` for exact order/hashes, this list is for topic recall
 not a substitute for it.
 
@@ -73,8 +73,8 @@ implementation, both caught real bugs in first drafts):
 `data/tasks/coding-sweep-task-priority-coordination.md`. Both fully
 implemented and committed, not open work.
 
-#,,,.,.,,,,..,..,,..,,.,.,,,,,,..,,,,,,,.,,..,..,,...,...,,.,,,,,,,.,,.,.,,.,,
-#CPEKHEKKYMFRQQKQ3BTSWRBWAHNHS6JUCAC2ETMJZ4RUMGSU6NC22CKOBM5ADAQ2WHVILD5EV3ZBS
-#\\\|5KLZIHAKIS6TM2ILLHJSYCPVXB4CRH7V2CGNGMJLX3JTKAADET7 \ / AMOS7 \ YOURUM ::
-#\[7]IV5DXJUXJLWRDXSHEG4KLNROD7FFT6UJNCTEWPOR6DWOQJZMEMCA 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,.,.,..,,..,,..,,,.,,..,,..,,..,,...,,..,.,.,...,,.,,,,.,.,,,
+#SCPRSZN575U3CFTTEGUAWCA6KF24AZF2TKZQFP45CEUKCA5XVYSFVRENUXPRKSJADANLZ3I2UXGDE
+#\\\|E5MJYHZQUJGTSGWJ42TD2QT6YO6CWJXLXKNAIR7YVWOJILY5B5F \ / AMOS7 \ YOURUM ::
+#\[7]QSZJ3CM5TTE6QGA7WBGQ6RGY2NDFVKOVYOKKSK7FDJBHAT3LEQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

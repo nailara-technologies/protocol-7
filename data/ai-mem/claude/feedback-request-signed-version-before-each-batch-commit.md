@@ -10,7 +10,7 @@ request a new signed version number from the user **before each individual
 commit**, not just once at the start of the batch. They add it themselves.
 
 **Why:** stated directly 2026-09-17 after two back-to-back commits
-(`a3a9120c1`, `e0e88a5ff`) both went through on a single "signed and
+(`8ed9177b0`, `6bc4fc36b`) both went through on a single "signed and
 staged" from the user without a fresh request in between. The user's own
 words: "if you want batch commits again then you need to request a new
 signed version number before each from me and i will add it." The signing
@@ -30,11 +30,11 @@ extends to a second, later commit without asking again.
 the signing zenka stages files when it finishes. before committing, check
 `git -c color.ui=false status --short` : any entry with a second-column
 change [ ` M` or `MM` ] means signing is still in progress -> wait and
-re-check instead of committing. one commit [ `7bd872518` ] went through
+re-check instead of committing. one commit [ `d623bf0bb` ] went through
 mid-signing and only came out complete because the zenka finished first.
 
-#,,,,,...,.,,,...,...,..,,.,.,.,,,.,.,.,.,.,.,.,.,...,...,...,...,.,,,,,.,,,,,
-#X2BSZSCK36QPBJVORY3DOUXRGJGVOECRHRFYQHY7BO55JTBKNIXHWIRCZ47FRU5INAGIJQQ6XRNU4
-#\\\|WJIOIP3IHDLWAWIBWIQSGZG2QURRHB35SSTM6K5GKNDCPSXXGI3 \ / AMOS7 \ YOURUM ::
-#\[7]YSVOTCNJGG7EZDPD22JHOFCU2IKB7EGH4ERG5APNUEYNZ66LN4DY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,..,,,.,...,,..,,,.,.,,,..,,..,,.,.,...,...,.,,,,,,,,.,,..,,...,
+#XX3VECZLPTLV54MCSEAROZS7EHURTBOIGYQ3RURWT2XFZKQCXSLIRJFUMZCSURK2CKDTDRJEE65JS
+#\\\|GQ6FRNJHRKKKC3CK6NNZBBXJVEWRWAOGGEH23WAP57RKNATRGFT \ / AMOS7 \ YOURUM ::
+#\[7]EYP6FNJSYCC7F6ZFP5CB74PP7XATHWYBV3P5BODH3ANHKXJBRSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

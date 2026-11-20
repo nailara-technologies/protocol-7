@@ -1,6 +1,6 @@
 # login admission : web tokens, fair queue, address knowledge
 
-status : built 2026-10-23 [ 231f0dc7b all four paths, c11d53797 facts as multi-line
+status : built 2026-10-23 [ fdc357775 all four paths, 243bbc68f facts as multi-line
          param \ data over the cube ] -- live on this host and srv-U.
 order of work at the end.
 
@@ -251,8 +251,8 @@ able to serve the name, ordered by a policy over :
   then compares against that user's sessions only ] -- not decided
 - the AS table source and its licence, checked before the first download
 
-#,,,.,,..,..,,.,.,,,,,...,,,.,,..,,.,,,.,,,..,..,,...,...,,,.,,..,...,,..,,..,
-#WMOOX372IXUZ35K64DG5XLPV75EVYC2SM3JPKQEUJ23HOM526JEWWXCO4JQELK37EWWMGEWV7NDUA
-#\\\|GDJ5WMDE2ACQBHRB43Z3VD5RJMBBQAWSXPF4EGRDKDG2JM6FQPJ \ / AMOS7 \ YOURUM ::
-#\[7]BWNJPC4DERWWJK2IVIL62TV6PMHD6L5RRFKBXEZHQIKV64FFHMDA 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,,.,,,,,,,,,,.,.,...,,,.,..,,..,,...,...,...,,,.,,,,,,..,,,,,
+#GGUTMMQQDX2IH23HL4QQBURVBRWBSCBWG3UK7NW76D742WEKAYZ4OX5NFQ3H3PRSSF6JO2CE6F7U2
+#\\\|Y4UELGPNLIIBXXSPUAE2RVBA5YATNEJRJPGDFXMZPCOQMEKS3SQ \ / AMOS7 \ YOURUM ::
+#\[7]ALDNCZXDQAWBBV2FKJZTF3DBVS3VNAREFXPWUAE7C7JWUZDLLYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

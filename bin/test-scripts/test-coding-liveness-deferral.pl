@@ -17,7 +17,7 @@ use warnings;
 ##     stubbed throughout [ settable $now ]. covers items 3-5 of            ##
 ##     data/tasks/coding-backend-aware-timeout-scaling.md :                 ##
 ##                                                                          ##
-##     - item 3 [ the 69d8cff40-class regression check ] :                  ##
+##     - item 3 [ the a80c84ac2-class regression check ] :                  ##
 ##     verify_inference_startup's fallback queue-resume does NOT fire       ##
 ##     while poll_probe's own deferred-but-alive round is still running     ##
 ##     [ probe past self_test_max_total + 120 but stream alive and          ##
@@ -239,7 +239,7 @@ my $cpu_server = sub {
     return;
 };
 
-say ': 1. [item 3 / 69d8cff40 regression] fallback does NOT resume the queue '
+say ': 1. [item 3 / a80c84ac2 regression] fallback does NOT resume the queue '
     . 'while poll_probe`s deferred-but-alive round is still running';
 
 reset_state();
@@ -262,7 +262,7 @@ $cpu_server->();
     );
     ok( scalar( grep { $ARG->[1] =~ m{resuming queue anyway} } @log_calls )
             == 0,
-        'fallback did NOT fire [ the 69d8cff40 bug class ]'
+        'fallback did NOT fire [ the a80c84ac2 bug class ]'
     );
     ok( scalar(
             grep {
@@ -412,7 +412,7 @@ reset_state();
     $st = $data{'coding'}{'self_test_switch_state'}{'SW1'};
     ok( scalar(@switch_model_calls) == 1,
         'restore switch-model call initiated on stall' );
-    ## poll_switch went backend-aware in 0d5e09684 : the restore call now ##
+    ## poll_switch went backend-aware in 4b16510a2 : the restore call now ##
     ## carries an explicit backend= suffix [ default 'gpu' here : SW1 has ##
     ## no backend field ]                                                 ##
     ok( ( $switch_model_calls[0]{'args'} // '' ) eq 'MOLD backend=gpu',
@@ -513,8 +513,8 @@ if ($fail_count) {
 say 'all checks passed';
 exit 0;
 
-#,,,,,..,,...,.,.,,,.,.,.,.,,,,,,,.,.,.,,,..,,..,,...,.,.,...,..,,.,,,...,,,.,
-#PLKPY7USISDWDEFZCNBWFT2ZOFESOMDA62FQTU3HNMZGUDKEZAWE46LCNWCS6ROM657RIO55L3SOE
-#\\\|PAWFWFMGORVDXGXLWS2HGTJ3W3CIGFSE4UX3D4OB2OUWT64LRP4 \ / AMOS7 \ YOURUM ::
-#\[7]JQO326PZR7ZCGUHBGHX4LZVOHWYNFNX4VM7YGWNUAHIOXL7FPEAA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,...,.,,,,.,,,.,,,,.,,,,,.,.,..,,...,...,,,.,..,,,.,,...,,,,,
+#OXDKGLE6M2O33RGSSPYHQLSK6B6ENUUPVO7ZGKBHILPERWRBL5J3LZC6IRUWRVISGDPZJBAOTIYSY
+#\\\|VFGG6GJJTHYIGLFTGJOQQCDAWAFBESV6NY2MWQLZBHGB6RX3RVN \ / AMOS7 \ YOURUM ::
+#\[7]K5GOLRD2NXTWQGUSRKT65XGPPDFDOAH6YWPXXAFCZLEDIQN7N6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

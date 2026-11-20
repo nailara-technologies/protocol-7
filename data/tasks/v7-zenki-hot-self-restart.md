@@ -7,7 +7,7 @@ on the design. read `CLAUDE.md`, the design file, and
 ## why now [ 2026-09-30 ]
 
 a full v7-zenki restart ends invoke.ai and every running zenka -- five
-times on 2026-09-29 \ 30 alone. since f6f57c795 a RELOAD applies source
+times on 2026-09-29 \ 30 alone. since 322ce23db a RELOAD applies source
 and start.cfg changes [ dependency chains, on-demand registration ], so
 the remaining reasons for a restart are narrower : changes to the named
 subs in bin/Protocol-7's main:: [ see bin-protocol-7-main-subs-to-modules.md ],
@@ -23,10 +23,10 @@ self-restart would have to survive.
    `v7-zenki.cfg.zenka_stdout_redir` [ v7-zenki.setup_stdout_redir ] may
    already decouple stdout -- check what it covers
 2. **what already approximates a handoff** -- check each before inventing :
-   - keep-children [ 7a0f43f12 ] : `restart.keep_children`, identity =
+   - keep-children [ cf59de79a ] : `restart.keep_children`, identity =
      pid + start time + cmdline, `v7-zenki.claim-children`, grace timer --
      a new instance already adopts processes it did not start
-   - report-pid-file [ 6f59def6c ] : planned end vs crash, pid files
+   - report-pid-file [ 141d5d0e4 ] : planned end vs crash, pid files
      kept on an error end
    - reload \ reinit : what `init_code` with `$reinit` keeps, what
      `post_init` rebuilds every run [ dependency chains, on-demand list ]
@@ -63,8 +63,8 @@ a "findings" section in this file [ file:line for every claim ], the
 options with a recommendation, and open questions for the user. no src
 changes in this task.
 
-#,,,,,.,.,..,,,.,,...,...,..,,..,,,,.,.,,,.,.,.,.,...,...,,.,,,,,,,..,..,,,..,
-#4ZT2ICNOLQQ7QDWJ47DUORJUKJ6MGEHILXD6TOXNM5HMCTRBOQIVUEQONWQXJVFLR6OG7Y4C735N2
-#\\\|TTHOENN635VVORHBDVY64F5B47LF5WQIUITMCTHREG2IE6OC4NZ \ / AMOS7 \ YOURUM ::
-#\[7]5LS6SF2WWXAFL6PIYBABYOHUTAL76IDECKCE7OZPR6ST4E2PV4DQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,...,.,.,...,,,.,,,,,,.,,...,.,.,...,...,,.,,,,,,,,.,...,,,,,
+#QGKBT7D2ZONV65E3X6UIW4BZBYSSKG5G4SZS3H4KRAWOU2SXJJHHBUG5TJ7H6X6K3UF4PWZ3LZIWS
+#\\\|YAETKJBJEOAHVPTD2YWJHHAUXEJJ4YA6ION5ITD35K3LOJXPH7D \ / AMOS7 \ YOURUM ::
+#\[7]S4BKOUFJY5IT7GSAWLIEVTPSVP4S2MZ5U37HTRPD4FGAQZA4U6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

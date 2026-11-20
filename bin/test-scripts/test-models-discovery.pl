@@ -9,7 +9,7 @@ use warnings;
 use bytes;
 
 ##     models discovery : scan-path-add vs models.discover :re-scan:        ##
-##     disagreed [ host symptom after 7fd8ca329 : configured                ##
+##     disagreed [ host symptom after 817ae8780 : configured                ##
 ##     /data/models entry is non-recursive, scan-path-add registers the     ##
 ##     same path recursively, and the merge in                              ##
 ##     models.discover.scan_all_paths deduplicated by path string --        ##
@@ -370,8 +370,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,..,...,,.,,...,,,.,...,.,.,..,,,,.,...,..,,...,...,.,,,,.,,,,,,,.,,.,,,
-#DRFJPS6OA7XL2H7XFIHH6VZ7WN4CEZASAED5DTPGUMFXJ2B2EGLOJJ5JFVVWWX74CDQONYLBX4PIG
-#\\\|EXA6EWBVS6Q5DJ5EUZTYFGQJZNXI7BXBEYVEOQJTBNIJUWQZDD5 \ / AMOS7 \ YOURUM ::
-#\[7]JH3RH63FL2HH46E77SBUUQ6X4PSUOIJYM3P7Y3ZMNLPDOLVOKKAY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,...,.,,,,,,,..,,.,,,,..,,..,.,.,..,,...,..,,..,,.,.,,.,,,.,,,,,,
+#POD76J2YJTBXWKO7HER6KX2PZELJU2CEG76KSHWNSW4AKQPB5M2AL6UTLYQF7HKUE7SGPQCG3DUAU
+#\\\|NRCAFZDVOX44PNSF7JQOP4N67AITOHDRDKX2GJATK5DR4GPCMLM \ / AMOS7 \ YOURUM ::
+#\[7]S5R46SUQ23TW4JPHROCXDHIWQA7TVMA6JHHGUJYAOO7MXCK5KWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

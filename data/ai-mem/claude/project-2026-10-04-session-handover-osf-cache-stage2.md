@@ -1,28 +1,28 @@
 ---
 name: project-2026-10-04-session-handover-osf-cache-stage2
-description: handover of the 2026-10-04 session [ last 1f496c661 ] -- osf-cache stages 2 \ 2b \ 2c landed and verified live [ local holdings, peer lookup ], stage 3 task file ready for kimi, plus loader \ storage \ hook \ v7-zenki fixes ; stage 3 landed + live-verified later the same day [ 52f0723a9 ] ; next = stage 4
+description: handover of the 2026-10-04 session [ last 491d768f5 ] -- osf-cache stages 2 \ 2b \ 2c landed and verified live [ local holdings, peer lookup ], stage 3 task file ready for kimi, plus loader \ storage \ hook \ v7-zenki fixes ; stage 3 landed + live-verified later the same day [ ec1398c54 ] ; next = stage 4
 metadata:
   type: project
 ---
 
-**SUPERSEDED** by [[project-2026-10-06-session-handover-security-sweep]] [ last `5e50c3445` ] -- start there.
+**SUPERSEDED** by [[project-2026-10-06-session-handover-security-sweep]] [ last `a3535684d` ] -- start there.
 
-session 2026-10-04, last commit `1f496c661`. previous handover :
+session 2026-10-04, last commit `491d768f5`. previous handover :
 [[project-2026-10-03-session-handover-osf-os-pkg-space]].
 
 ## landed
 
-- **osf-cache stage 2** [ `3406047fe` ] : incremental holdings scan
+- **osf-cache stage 2** [ `08ad17f2d` ] : incremental holdings scan
   [ name size mtime ctime inode ], yaml state via format.yaml,
   query_local \ has wire format \ merge_replies ; hash layers :
   anchors as `<algo>:<hex>` [ sha256 \ sha512-only repos ], **bmw384
   [ B32, 77 chars ] = internal id** -- why 384 + human handles in the
   design doc `## hash layers`
-- **stage 2b** [ `040d59fc9` ] : running zenka -- init_code defaults
+- **stage 2b** [ `a67614756` ] : running zenka -- init_code defaults
   only, `osf-cache.startup` post-drop [ index build, sliced rescan
   timer ], cmds `has` \ `status` \ `rescan`. live : 5 sources, 90183
   anchors, 18 cached debs, 8 anchored
-- **stage 2c** [ `69aef4a1b`, `1f496c661` ] : `osf-cache[peer]` subname
+- **stage 2c** [ `759ea6a7f`, `491d768f5` ] : `osf-cache[peer]` subname
   instances [ own state file + cache dir, created by init_code via
   `file.make_path` with owner ], `osf-cache.peers.list` [ `list sessions
   osf-cache` ], `osf-cache.lookup` [ deferred reply, `<sid>.has` fan-out,
@@ -30,7 +30,7 @@ session 2026-10-04, last commit `1f496c661`. previous handover :
 - `v7-zenki.sid-lookup <cube-sid>` -> instance id [ for restart \
   terminate ; details via `v7-zenki.list zenki|subnames <instance>` ]
 - loader : plugin.* listed in modules.load were never reloadable
-  [ `2b820e7c2`, see [[reload-success-doesnt-guarantee-new-file-loaded]] ]
+  [ `a8a2a2e76`, see [[reload-success-doesnt-guarantee-new-file-loaded]] ]
 - storage checksum plugin hashed the PATH string, not the file ; cache
   ignored the algorithm ; `bmw.512_32` -> `bmw.512.B32`, new
   `bmw.384.B32`
@@ -52,7 +52,7 @@ session 2026-10-04, last commit `1f496c661`. previous handover :
 4. later : cross-host peers via the `discover` zenka [ swap
    `osf-cache.peers.list` ], stage 4 multi-source segments + merkle
 
-## update later the same day [ `27f797635`, `52f0723a9` ]
+## update later the same day [ `ac5e4b63b`, `ec1398c54` ]
 
 - **stage 3 landed and verified live** : kimi [ k2.8 ] implemented
   segment \ fetch \ verify ; review added a request `seq` so a late
@@ -66,14 +66,14 @@ session 2026-10-04, last commit `1f496c661`. previous handover :
 - holder test [ step 2 below ] done : lookup finds the peer for hello
   \ povray ; libprotocol-http2-perl is not in the index [ version not
   in testing ]
-- lookup with unknown anchors FIXED [ `a85b40b3d`, user's rule ] :
+- lookup with unknown anchors FIXED [ `63503bb4d`, user's rule ] :
   known ones are looked up, an `unknown :` line lists the rest ;
   nothing known [ incl. a single anchor ] -> mode false
 - 0640 fetched files : FIXED later [ file_mode, see stage 4 section ]
 - next : stage 4 [ multi-source segments + merkle ], cross-host peers
   via `discover`
 
-## stage 4 landed [ `700d98ae1`, after midnight 2026-10-05 ]
+## stage 4 landed [ `a50eb135c`, after midnight 2026-10-05 ]
 
 - decided with the user : REAL binary merkle tree now [ a flat list
   would change the root later ], 64 KiB leaves, bmw384, leaf `\x00` \
@@ -93,7 +93,7 @@ session 2026-10-04, last commit `1f496c661`. previous handover :
   job, check `subroutines.load-early` was regenerated
 - later the same night : LIVE multi-source verified via a third
   instance `osf-cache[peer2]` [ `by_subname.peer2.cache_dir =
-  /var/protocol-7/osf-cache/peer2-archives`, `c71dd5bed` ] : igt-gpu-tools
+  /var/protocol-7/osf-cache/peer2-archives`, `211ad5ee8` ] : igt-gpu-tools
   [ 32 segments ] and povray [ 23 segments, 0.7 s ] from main + peer,
   byte-identical
 - fixed : fetched files were named after the pool basename [ no epoch ]
@@ -125,8 +125,8 @@ session 2026-10-04, last commit `1f496c661`. previous handover :
   for out-of-scope files after a kimi job
 - pre-commit hook : `# descr` max 55 chars
 
-#,,..,,,.,...,..,,,,,,,,,,..,,,..,,.,,,,.,,,.,..,,...,...,,.,,,.,,,.,,,.,,,..,
-#BHCM7HOR7ZWZPH7Y7N6NGMIOGAIUKXN2OC6XNAHGWOV6TAFESCBUV5ENRC47FZ6X54QK4EDCDZX6C
-#\\\|L46I3WNDXBFBCH4CF2REYMC523LQHNGONI6S5DEWBUMDVJJRMQT \ / AMOS7 \ YOURUM ::
-#\[7]XMYJIAHUZCRAAGTZNIPPY5PWXM7XMUE4Y2P2WVW6X674UTC3CGCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,..,,,.,.,.,,,.,.,,,,,.,,,.,,,.,..,,...,...,.,.,.,.,.,.,.,,,.,.,
+#PYMQ34LIME64ELJNJZLW2ZRYJBI5ABUIM5RJM7FNZEA3LIHNGN2V4HNPC6CQTZQS6TGPS6IC4PGLS
+#\\\|LXSAHAQLCEGEAMS5IK5AM42YL6GYXK6DGFYMZ4YIQVAGE62P4GX \ / AMOS7 \ YOURUM ::
+#\[7]JCC4Z7YRC7CTYNU5TXLBG77AE6YEH6WFEOOR4VWZWPLCREW5LIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

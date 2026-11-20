@@ -1,13 +1,13 @@
 ---
 name: session-handover-login-screen
-description: 2026-10-31 later [ last b70c9d6cc ] : authorization slice 1, devmod safe\rw, desktop base + openbox-n rebase, native login-screen zenka LIVE on srv-16 [ greeter renders, real login untested ]
+description: 2026-10-31 later [ last 377bb2f69 ] : authorization slice 1, devmod safe\rw, desktop base + openbox-n rebase, native login-screen zenka LIVE on srv-16 [ greeter renders, real login untested ]
 metadata:
   type: project
 ---
 
-**landed 2026-10-31** [ pushed hub ; srv-U F V A at 0ab62b75f ; srv-16 at b70c9d6cc ]
+**landed 2026-10-31** [ pushed hub ; srv-U F V A at 56e840ae7 ; srv-16 at 377bb2f69 ]
 
-- 10c523648 authorization zenka [ NOT auth.* : `.cmd.` modules load as bare
+- 71d18d0a1 authorization zenka [ NOT auth.* : `.cmd.` modules load as bare
   commands into every zenka loading the namespace -- auth.cmd.list would
   override base.cmd.list ] : key-submit \ pending \ inspect \ approve,
   key-arrive for discover only. approve = owner sig over host-root id +
@@ -15,14 +15,14 @@ metadata:
   choice still open ]. tofu : authorized link must resolve to the
   CONNECTING KEY [ not a path : test-auth-keypair links straight to a key
   file, osf-cache self link uses it ]
-- 861aa1272 + 83fa60ea7 + 0ab62b75f devmod : devmod-enable = SAFE [ NUM51 ],
+- 4b135a2bd + d4c1c9eb7 + 56e840ae7 devmod : devmod-enable = SAFE [ NUM51 ],
   devmod-enable-rw = full [ NUM53 ], devmod-disable [ 50 ], -unload-unsafe
   [ 52 ] ; cfg/devmod-commands = the one safe list ; dump-env unsafe.
   cube acks with own name + sid 0 [ cube.v7-zenki... is unknown inside cube ]
   ; live-tested srv-U
-- f12be9814 data/configs/desktop/photonic [ @HOME@ templated ] + bin/p7-desktop
+- 5c5aaa576 data/configs/desktop/photonic [ @HOME@ templated ] + bin/p7-desktop
   status \ diff \ install [ -force, .bak ] \ pull ; profile photonic-desktop
-- 5524476ca + b70c9d6cc login-screen zenka [ design LOGIN-SCREEN-ZENKA.md ] :
+- 60a83b65f + 377bb2f69 login-screen zenka [ design LOGIN-SCREEN-ZENKA.md ] :
   Gtk3 greeter on X-11 :13, root crypt helper bin/login-screen-auth, single
   -use grant -> v7 starts login-screen-session[<user>] as the user.
   review fixed : dummy-hash password granted inadmissible accounts ; plain
@@ -50,8 +50,8 @@ tests ; lock mode [ also replaces the lost lock-fade : fade + backlight ] ;
 photonic autostart cleanup [ ~/bin scripts, compton line -> compton zenka ]
 ; thermal k live fit r2 0.74 at last check ; owner key choice for approvals
 
-#,,,,,...,,,.,,,,,.,.,,,.,..,,..,,..,,,,.,,,,,..,,...,...,,..,.,,,,,.,.,,,..,,
-#ESZHIYCLC2OH5LKIKANQYLMWL5WRAEV35SDDFXMP3UV6EKG3HRKBKOPPABWAZURZU4EZT4YIW4DC4
-#\\\|JJUMQ6MBE5Y6IPK46DESL3J6MEDMOZU562WMU7OVBGJWLCYXYKP \ / AMOS7 \ YOURUM ::
-#\[7]KPF3NLKDFAUZX3BBYV7BTYWXDWRX6BLGRWYUXYRNUOAKNOMKBYCI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,,,,..,,.,,,,,,,,,,,.,,,..,.,,,..,,...,...,.,,,,,.,,,,,.,,,,,,,
+#WJT6ANBGNZBZBORDF4VDIGAT3GYTQGYBIA7ORLPYY5FLL4JI3O2REDWGVAGYBY37I4JLMBOKVSJKY
+#\\\|NNHKWR5FISHGMLX33SMU24UUWYUTLMFTSO2KVEQ2RVUZJECX2UR \ / AMOS7 \ YOURUM ::
+#\[7]JFUBREI5WVVVJH454RR4P5GHYEOWFESDNPA6UCBOBN6YEDRP3KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

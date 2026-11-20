@@ -23,7 +23,7 @@ the problem is not transport quality. pri is reachable and fast ; the
 SITE refuses the address traffic leaves from. that is a second dimension
 the transport layer does not have today.
 
-## what exists today [ read 2026-10-21, base 07239e1f7 ]
+## what exists today [ read 2026-10-21, base 44371eab1 ]
 
 - **proxy** [ `cfg/zenki/proxy/zenka.v7` ] : 127.0.0.1:8118,
   `proxy.cfg.transport = direct`. `modules.load` does NOT contain
@@ -360,8 +360,8 @@ everything contabo is allowed to fetch.
 - grouping : is a public suffix list available offline for the
   registrable domain, or a small own list first
 
-#,,,,,,,,,,..,.,,,,,.,,.,,..,,.,.,,,,,,..,..,,..,,...,...,,,.,,.,,,,.,,,.,,,.,
-#MYH3KQ75SCRO5LIZSMYATBZ43VDI6GFWZX52C2H3BKZMZ5UXJIEYQ4JWZZQW2ERT3WUFAEFI362JS
-#\\\|OAHHKGRFQXRKII2AWKUVMTB23S5HGSVCQ24DSRTAUCC5J4P3KJB \ / AMOS7 \ YOURUM ::
-#\[7]C7REIW3CBM7EXCGCNOJ5XE2WAESNL6CC3K6POZVPA5QXS65GAOBQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,.,...,.,,,.,,,,,,,...,...,..,,..,,...,...,..,,,,.,..,,,..,,..,
+#PTESTQAQV3WM54X5FLMVODMZD3DF6GRB3GBHPZILHGPMDVJXDCEFDVM4UCELCRRYAJ6SZG6ECQGFS
+#\\\|4FDDC2UXJMAW2QMGV2YCC5V7AIHCKRLYOM2AOC7OCHB3UVGIZB3 \ / AMOS7 \ YOURUM ::
+#\[7]Q4L26JNKVMVQ24DQATRLXUB2HUKFVRLUDTL5EYWXAAYXIQMC44DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

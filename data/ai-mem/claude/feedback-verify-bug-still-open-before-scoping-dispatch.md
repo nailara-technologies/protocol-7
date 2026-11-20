@@ -15,11 +15,11 @@ git log before trusting them) but skipped it for the two "open" items,
 trusting the doc's own final wording at face value.
 
 Kimi's dispatch result: both were already fixed the same day they were
-filed — commit `8c74b5d83` (2026-07-18) closed bug 5 literally hours
+filed — commit `62d8a7c6b` (2026-07-18) closed bug 5 literally hours
 after it was written into the doc, and the stale-subscription symptom
 was closed by the same day's `proxy.init_code` zenka-guard fix. The
 doc's tail was just never updated to say the retest afterward passed.
-Independently verified afterward (`git show 8c74b5d83`, re-ran
+Independently verified afterward (`git show 62d8a7c6b`, re-ran
 `bin/dev/cred-mesh-test` myself, both matched kimi's claim) — the
 dispatch cost real kimi quota re-deriving something `git log` would have
 shown for free.
@@ -35,8 +35,8 @@ entire task file is DONE (`bin/dev/task-scan-candidates`, see
 to extend to individual still-open sub-items inside a file being kept
 active, not just to the file's overall status.
 
-#,,,.,..,,,,,,,,,,.,.,,,.,.,.,.,,,,.,,...,...,..,,...,...,,..,,.,,...,...,.,.,
-#QLKPAUKPNXEQPUSQDHY5ZDHAICS6DAO6AOHAN75WSIWCGCTVE5NQWJYWPAAFJBRJYPZ3N3AU2KMX2
-#\\\|3CLFUW2ZH4YC2P3CMACL3HWQJEGGJKLC27BVK6AT3GJYEEUGZZ7 \ / AMOS7 \ YOURUM ::
-#\[7]BNHW4GVCFW27EMUMYNNV6Q2GL7C5BV2WD33VP44LPR5KIIKFACDA 7  DATA SIGNATURE ::
+#,,,.,...,...,...,..,,..,,.,,,..,,,,.,...,.,,,..,,...,...,..,,,.,,.,.,.,.,.,.,
+#EGSRSYUQEHG3E2WVXC5URTMHK3ACZSLBNP444PU5YMKD3Y3F4IAIPR7LYD7DLFD4NTLCFSJTSEKOG
+#\\\|3VITKSBJT5T6HYEWSCKU5CPGMP7YGZDUBUULLR4FNL3OWGK3VQ2 \ / AMOS7 \ YOURUM ::
+#\[7]6DMUVGV5WTTJCN76PMIYLXP5WYZLUJYUTMEOPCP4XCAX44UK3GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

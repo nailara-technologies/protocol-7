@@ -5,28 +5,28 @@ metadata:
   type: project
 ---
 
-**landed 2026-10-29 night \ 10-30 [ c2d26221f .. 672074350, all pushed ]**
+**landed 2026-10-29 night \ 10-30 [ f55fabdef .. 672074350, all pushed ]**
 
-- idle baseline [ c2d26221f ] : task subscribes X-11 gpu_metric power,
+- idle baseline [ f55fabdef ] : task subscribes X-11 gpu_metric power,
   busy = watts > thermal.cfg.idle.power_max [ 60, idle 42 ] ; real idle
   held 600 s feeds gate.sample ; stale power = active. the cpu load alone
   read 0.1 under a 144 W inference -- power was essential
-- night brake [ 7177747a7 ] : coding holds a new task [ task.execute ] and
+- night brake [ dff82bbbd ] : coding holds a new task [ task.execute ] and
   a next round [ enqueue_round ] while the gpu is over thermal.cfg.hover.night
   68 : 15 s per C, 20 s steps re-checked, max 180. coding.handler.thermal_tick
   samples every 5 s. switch coding.cfg.thermal_gate = yes. live : hovers
   64-70 C, clean square-wave load. pri's one-round assessments only reach
   execute, never enqueue_round -- the first version missed them
-- soft model swap [ f18c23bb3, cb9802932 ] : models.task.pin-accepted
+- soft model swap [ 41f985c9b, bc4fb68b8 ] : models.task.pin-accepted
   takes a pin not loaded when every backend is idle >= 420 s [ load only ]
   \ 1620 s [ served a request ] ; coding's ensure_model_pinned switches
-- jobsite stage false-conflict [ 7177747a7, live on pri ] : base_stage, a
+- jobsite stage false-conflict [ dff82bbbd, live on pri ] : base_stage, a
   touched record [ liveness stamp ] no longer bounces a long-press
 - models claim release on a failed start [ notify-online-reply ]
-- stale claims [ 2499e6b7f, 5a742ec5a ] : task.handler.stale-claim-sweep
+- stale claims [ be13544da, f717cdeed ] : task.handler.stale-claim-sweep
   fails claimed \ in_progress tasks without update for 6 h ; timer armed
   live via task.eval-code on both hosts [ post_init on the next start ]
-- temp-boost [ 076c5d429 ] : coding.temp-boost [ min ] [ warm|hot|full|on ]
+- temp-boost [ b09c55b58 ] : coding.temp-boost [ min ] [ warm|hot|full|on ]
   | off, default 42 m hot +8 C. NOT reachable until the next coding start
   [ access.cmd.usr.cube is read at start ; reload config clobbers runtime
   values in coding -- never use it there ]
@@ -36,7 +36,7 @@ metadata:
 - pri : assess_parallel 6 [ host-config jobsite.cfg + runtime ], two
   orphaned in_progress tasks failed by hand
 
-**later the same night [ a9cc3f999 ]**
+**later the same night [ 3a6645e41 ]**
 
 - outdoor amplifier on the hover mark : night mark += ( amp - 1 ) x
   thermal.cfg.hover.amp_c 12 ; coding polls weather.temp itself [ cube
@@ -93,8 +93,8 @@ related : [[project-2026-10-30-session-handover-thermal-q2k]],
 [[project-2026-10-29-thermal-aware-local-worker]],
 [[feedback-amend-env-and-unsigned-files-staging]]
 
-#,,..,.,.,,,.,.,.,...,,,.,,,.,.,.,..,,,,,,...,..,,...,..,,,,,,.,,,...,.,.,...,
-#4WLPIDMYPBDJR5BFKSNSSPFL4NNFUFSSZOB5QS6PBNBLQONIHS73ME3DRQ4AHEC6HM7CIGLMJRPCE
-#\\\|ONBLM4TBTPJMDPMXJLZIOSQN2L4JN5WNW2JCYH2P7SYBCXWDADQ \ / AMOS7 \ YOURUM ::
-#\[7]3YDFVTCQFLQCETO6WSRLY2D27NZW65OH644JFP4TGSYNCZQJ24AY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,..,,..,..,,,.,,..,,,,,,...,,,,,..,,...,...,...,...,.,,,,,,,.,,,
+#MEE6DQWQY324TOAC7N2Z77KRVCUGPYSKTHAQZXKKGR2ZO222P764ENLJTUCLODDSVRD5FXIF7XQYS
+#\\\|K3N7EATYMWPFFMMYSQHTOZ3VU6GDG43GRHRZ5XGGNJRDSO7HWQP \ / AMOS7 \ YOURUM ::
+#\[7]QMCVJLYU7AKYPLAOHMDKSXMDFWSMSGAZDZUT4V7JNORISK6UYWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

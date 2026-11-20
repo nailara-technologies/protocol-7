@@ -18,11 +18,11 @@ it — most of one session (2026-08-29) went into that, not the triage itself.
 - Deduped: 108 exact byte-duplicate images removed → **531 images remain**,
   ~48MB after `pngquant --quality=65-90` in-place compression (was 218MB).
 - Location: `data/snapshots/screenshot-triage-2026-08-29/` (gitignored —
-  see `.gitignore`'s `data/snapshots/` entry, commit `c271c84f0` — never
+  see `.gitignore`'s `data/snapshots/` entry, commit `0a5a7d328` — never
   commit these, hundreds of MB of generated PNGs).
   - `images/` — the 531 files, named `<amos-chksum-of-source-uri>.<ntime>.png`
     (fixed naming convention, see [[reference-eval-code-batch-analysis-toolkit]]
-    footnote and commit `c271c84f0` for the code fix in
+    footnote and commit `0a5a7d328` for the code fix in
     `handler.capture_paged_snapshot`).
   - `manifest.tsv` — current, post-dedup manifest (`chksum\turi\tposition\tpath`).
   - `manifest.tsv.pre-dedup` / `manifest.tsv.old-naming` — historical, for
@@ -53,8 +53,8 @@ it — most of one session (2026-08-29) went into that, not the triage itself.
   for style patterns yet.
 
 **4 real bugs found and fixed getting here** (all same session, same
-`web-browser` zenka, commits `0c4054df7`, `fdaa46b76`, `c89bdcb72`,
-`c271c84f0`):
+`web-browser` zenka, commits `f36d8141c`, `66dc0bc56`, `e2503d8e1`,
+`0a5a7d328`):
 1. Stale `swap_views` draw-signal never disconnected in headless mode →
    runaway `clear_bg_view` reload loop, real host memory emergency #1.
    [[bug-web-browser-stale-gtk-signal-headless-memory-leak]]
@@ -74,12 +74,12 @@ outstanding files without treating them as individually suspect, not just
 "forgot to run them."
 
 **Update, 2026-08-31**: the `<ntime>` half of the `<chksum>.<ntime>.png`
-naming (fixed by `c271c84f0`, above) is itself still base32-encoded —
+naming (fixed by `0a5a7d328`, above) is itself still base32-encoded —
 alphabetical listing of two independent base32 fields doesn't sort
 chronologically, introducing jitter that matters for anything relying on
 capture order (e.g. animations built from a sequence of frames). User
 created `src/base.path-template.amos-ntime-dec` (`<[path-template.*]>`
-namespace, already committed `7492faf76`) to render ntime as a sortable
+namespace, already committed `d6206b7a4`) to render ntime as a sortable
 decimal string instead. **Not yet done**: wiring this into
 `handler.capture_paged_snapshot`'s naming, and — once wired — renaming
 the existing 531 capture files (plus whatever's been added since) to the
@@ -88,8 +88,8 @@ time-sortable. Don't rename the files before the capture code itself is
 switched over, or new captures will immediately reintroduce the mixed
 naming this is meant to fix.
 
-#,,,,,...,.,,,,,,,.,,,,.,,.,,,.,,,,,,,.,,,...,..,,...,...,,..,,,,,.,,,,,,,,,.,
-#WRFMQBD5K52DFGY6553U5CLBWX5SDDCZE3VLQTCHEF66JRFHWBIGC3M7CV5J23IMGA4LIUSLOB622
-#\\\|SZVQHYFPKW532WEQM3ZWWFJJMEWZ23Y2VPWUY7HNR447LNU5AZT \ / AMOS7 \ YOURUM ::
-#\[7]JWPVFH3ZK4GR6IMZWVZIWUK7773HJCBFB4LLVIDTKTAXEJKCXGCA 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,,,...,,,.,..,,...,...,,.,,,.,,..,,...,...,.,,,,,.,.,.,,..,,,,,
+#I5OKJQGF63J36TVTQ2IOD2N3AMQFNOKSCMADBTZD3BI4V5RXDCBNX4MW3AN7SNMJIQWBNBDRNDUCO
+#\\\|E47ABSDWFCVB2AG2DNVFDXDOKVZP6KSLEGTRIZDEZPKSQNIUFEY \ / AMOS7 \ YOURUM ::
+#\[7]NP3GPSE7GLQOLCUWNUQNMJYC65ZVHNRZOS2QQYP47F4I6T7CLABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

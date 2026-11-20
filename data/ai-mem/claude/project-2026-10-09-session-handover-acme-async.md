@@ -1,6 +1,6 @@
 ---
 name: project-2026-10-09-session-handover-acme-async
-description: handover of the 2026-10-09 session [ 931650d7d .. c545fbc7f, pushed, both remotes on 9883 ] -- letsencr acme flow on the event loop [ stage A + B, live on staging + production ], image metadata stripped from history, nameserv txt records, coding gpu recheck, outer cube = ext-cube decision, dns knock idea
+description: handover of the 2026-10-09 session [ ee7ee23f2 .. c64879416, pushed, both remotes on 9883 ] -- letsencr acme flow on the event loop [ stage A + B, live on staging + production ], image metadata stripped from history, nameserv txt records, coding gpu recheck, outer cube = ext-cube decision, dns knock idea
 metadata:
   type: project
 ---
@@ -35,7 +35,7 @@ previous : [[project-2026-10-09-session-handover-remote-rollout]].
 - **nameserv** : add-txt \ remove-txt [ several values per name ], longest
   zone match, NODATA ; child may route them [ letsencr zenka.v7 access ]
 - **coding** : spawn path uses dependency.ok_resolve [ cpu fallback waited
-  for a model path nobody requested since 7a0f43f12 ] + gpu_fit_recheck
+  for a model path nobody requested since cf59de79a ] + gpu_fit_recheck
   [ respawns gpu once vram frees -- invoke had held it ]
 - **design** : cube never public ; incoming later through an OUTER cube that
   is itself the gateway [ registers as ext-cube ], a dmz segment ;
@@ -68,8 +68,8 @@ previous : [[project-2026-10-09-session-handover-remote-rollout]].
 - commit hook : descr lines max 55 chars, message = title + empty line +
   `- ` bullets
 
-#,,..,.,.,,,,,,..,,,.,,.,,..,,..,,,..,,,.,,,.,..,,...,...,..,,,,.,,,,,...,...,
-#HBUTQDLVJP65YQBAOXNDJYKSSHO7O23GXQEKVLS65ARHTSOWNTQ2A74KTZPF6URK2W53JALBG5WXY
-#\\\|ZHHBIHTWU4G5DFRLFCFRULYHFDYBDCYBWDAV2ZFZUHDCAFJOBCE \ / AMOS7 \ YOURUM ::
-#\[7]YGFYNB74D4KW7NOCORLGF4ZYOXU4JSUZUFA42URQOBPQ73AZSAAA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,...,,,,,..,,,.,,,,.,..,,..,,...,..,,...,...,,,,,..,,.,.,.,.,.,,,
+#HDXTOGQKL7EBL3OB6U2M434L3KM33RIITT2FZIJDQOKUFEXYCIN7GYRBRZ4UH7WIYBS4E4OKFGYGU
+#\\\|ZQLU2TM6ZCSP3SUSCEMXW5QLXYKMHPB6FFMSTGRI473J6EGVGXQ \ / AMOS7 \ YOURUM ::
+#\[7]J7ZDAGYMO76GKUIW6PXH6YM255FIU7TIYZREEXUVITHCUS4A3CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

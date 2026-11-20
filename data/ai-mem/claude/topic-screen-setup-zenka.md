@@ -217,7 +217,7 @@ Deferred: (1) STRM-based live window list (X-11 pushes on open/close);
 (2) dynamic per-monitor border (brighten on hover);
 (3) `_NET_WM_MOVERESIZE` direction-10 cross-seam probe.
 
-**Access-grant bug FIXED 2026-08-24 (`fc1542555`):** `screen.setup.
+**Access-grant bug FIXED 2026-08-24 (`a05a47cd4`):** `screen.setup.
 open_window`'s placement-retry path calls `base.X-11.raise-window` /
 `base.X-11.keep_above` unconditionally, but `cube/access.zenki`'s
 `access.cmd.usr.screen-setup` only granted `X-11.move-window` — missing
@@ -247,8 +247,8 @@ form.
 
 [[feedback-weston-move-unreliable-use-compositor-grab]] · [[topic-gtk-wsl-window-positioning]] · [[topic-tile-window-place-hybrid-desktop]]
 
-#,,..,,.,,,,,,,..,..,,...,,.,,.,,,,..,,,,,.,.,..,,...,...,..,,,.,,,,.,,.,,,,,,
-#26V2OPMPLDVM3A4I57EURM253PZ5E6BKWBCPYXOXZU3YQTH4K3BZMQVCXOBMR3IGNXYISA24O6MR4
-#\\\|5FAETTJXOZFIFOFIKVZWTOP27SMVGITCJ67QRUXUGDKUUCGYP3H \ / AMOS7 \ YOURUM ::
-#\[7]6VPCO2V6EQSUFIQVCHRBXYND6SNUILIG2KIBX4C35HQGIJF4RYDA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,.,,,..,...,,.,,.,.,,,,,,..,,,.,..,,...,.,.,...,,,,,.,.,,,.,..,,
+#3BDLQTTKZKE37SPXHPLA6J4UPL27QKGXK6Y7NGLRJCDI2BJKQAGI2KSNHIGM7YHCZKY4RELCLZMW6
+#\\\|G7SM7FQAJJRNWNX7FUSAA3QR7HFWAH4P2JFXPOBLLUQY56A77Y4 \ / AMOS7 \ YOURUM ::
+#\[7]2AGC3HMZBGRONR6UH5HJ5LGDYVBTXR2S472XADZ6UL5ZKPINZYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

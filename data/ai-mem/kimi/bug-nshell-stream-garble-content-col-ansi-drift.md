@@ -1,6 +1,6 @@
 ---
 name: bug-nshell-stream-garble-content-col-ansi-drift
-description: coding-session (split-mode) streaming garbles output at random screen positions because nshell.render.content_print counts ANSI escape bytes as visible columns; introduced by the per-chunk color wrapper in commit b2b35ac28
+description: coding-session (split-mode) streaming garbles output at random screen positions because nshell.render.content_print counts ANSI escape bytes as visible columns; introduced by the per-chunk color wrapper in commit 31f938625
 metadata:
   type: bug
 ---
@@ -18,7 +18,7 @@ correctly.
    NOT ANSI-aware.
 2. `src/nshell.handler.strm_reply` chunk branch (lines 144-146) wraps EVERY chunk in
    `$colors{'p7_fg_0004'} . $chunk_data . "\e[0m" . $colors{'p7_fg_0004'}` — added by
-   commit b2b35ac28 ("nshell: Esc/Ctrl+C redesign ... wrap-loss fix") as the bare-reset
+   commit 31f938625 ("nshell: Esc/Ctrl+C redesign ... wrap-loss fix") as the bare-reset
    color-loss fix. That is ~24 non-printing bytes per chunk.
 3. Token-sized chunks: `content_col` over-advances by ~24 columns per chunk. After a
    few chunks the tracked column is far right of the real cursor; the next chunk's CUP
@@ -28,7 +28,7 @@ correctly.
 4. Rewind/redo look fine because replay (`src/nshell.display.cycle` lines 93-95) prints
    the whole accumulated buffer in ONE plain print — no per-chunk CUP, so drift never
    manifests; only the final tail-column estimate is off (visually absorbed).
-5. Regression timeline: before b2b35ac28 the chunk branch was a bare
+5. Regression timeline: before 31f938625 the chunk branch was a bare
    `content_print->($chunk_data)` — no ANSI in measured text, tracking exact. Plain
    shell mode (non-split) also unaffected because content_print short-circuits to plain
    print there. So the bug only shows in split/coding-session mode.
@@ -60,15 +60,15 @@ eat chunks while quiet-period round markers survive. Net/cube runs at log verbos
 
 ## Ruled out
 
-- `base.s_read` recent change (ddf4e560f, fork/tls :utf8 handle fix) — a sysread
+- `base.s_read` recent change (5e5457e87, fork/tls :utf8 handle fix) — a sysread
   transport-layer change; garbling signature is positional (cursor CUP drift), not
   data corruption. Wire-level corruption would garble characters, not interleave two
   sentences at staggered screen offsets.
 - round-marker restyle substitution — marker chunks end in \n so tail resets; its
   padding is computed from visible text correctly.
 
-#,,,,,,..,,,,,..,,,,,,,,.,,,.,,.,,,.,,...,,..,..,,...,...,.,,,..,,.,,,.,.,.,.,
-#6QC7C5TU25OF2TPOLHRHDMASTJBLJ5WFNOW2LHQUVVLCMKEYQCEIKLESLX2JIXB7KMFBYCDM67SJG
-#\\\|PBBSTN6W7WPJ6SDDT6HL4G5GUAPIONZK4QBW6A3W5OTU3OVP2XE \ / AMOS7 \ YOURUM ::
-#\[7]Q6FH4JE7UT4I3ZTJBMGJYZIDPIJWFQKVAYDTZ5NL2HZHCR5N6MAI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,,,..,,.,.,.,.,..,,.,,,...,,.,,..,,...,...,,.,,,,,,,,,,.,.,.,,,
+#KECODQ4LLYXJ6SLXJP3PUTSI4WERBF67OOLFSTW73YTEV4GFNMOQAGMAO7NE63TQCDQBLGPP3Q3M6
+#\\\|TAUDTM6DPOVCKQ3G2RGIBRCFJH65VYX5TXLII76LEFEPO2WQURB \ / AMOS7 \ YOURUM ::
+#\[7]7I2ZBJI5RJU7Q6L63FPTPFT3DYJDMADYALOFTD7PMLYM3KOX6WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

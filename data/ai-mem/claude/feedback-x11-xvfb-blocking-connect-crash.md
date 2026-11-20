@@ -37,7 +37,7 @@ just a stale registration pointer (see also
 [[feedback-v7-restart-stale-zenka-registration]] for the cube-session-routing variant of
 this same family of issue), an actual duplicate OS process each time, confirmed via
 `instance_pids <id>` returning two distinct real pids. **Naming correction (this memory
-predates the 2026-09-02 v7→v7-zenki rename, `b81fa7d10`): the zenka is `v7-zenki`, not
+predates the 2026-09-02 v7→v7-zenki rename, `2a19b6cd3`): the zenka is `v7-zenki`, not
 `v7`** — `p7c v7.list` returns "client not present". Cleanup:
 `v7-zenki.instance_pids <id>` on each listed instance id to get pids (note: this is the
 numeric instance id from `v7-zenki.list zenki`, NOT the cube session id from
@@ -51,8 +51,8 @@ via `p7c v7-zenki.commands` rather than guessing from the filename).
 in the `src/` filename — see [[feedback-network-command-omits-cmd-infix]], the thing that
 looked like an access-control gap in this same incident and wasn't one.
 
-#,,.,,.,,,,,.,,..,,,,,..,,,,,,,,,,..,,...,...,..,,...,...,,,.,,,.,,..,,,,,,.,,
-#SZBGEJT3MZRBPBMDUDZCBRM7HFFL76FWDFJ7OP6NXONFW5P7SDOKYA6PRS5N7L4NA56HGRSQZ75HI
-#\\\|5FB77HDBZX5K26HUUFSRXCYXS34PAC32TV247YHOIYJHWDQ6BS5 \ / AMOS7 \ YOURUM ::
-#\[7]R6VB7JG3A6ZSXXGAPMNRUVXMRBKPMUMF3OOVPZXKALJLHNICH6CY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,,..,.,.,,,,,,,.,,,.,.,.,...,..,,...,...,,.,,,.,,,..,,..,.,.,
+#RS65LBSINKITO2XYT42IFJHAWWBMS5BE2DZUFTNLR2YWLIADUHMI5PO6Y4GMPFKNFADNKQRJECBGC
+#\\\|PZAGXORSX2KOKFA3JD2C5IB74UFA7D4252TBKTHLO3QHB6JSB2C \ / AMOS7 \ YOURUM ::
+#\[7]ZKVSU4QYCKWASMZVX24F7KOWET6OV3MTCRNGCH3DGGNT6IH62KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
