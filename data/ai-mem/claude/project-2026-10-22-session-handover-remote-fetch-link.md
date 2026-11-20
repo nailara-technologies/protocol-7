@@ -90,8 +90,8 @@ minus 6 design sessions [ expire 2026-11-05 ].
   proof ] and sometimes a claude/<topic>-<suffix> branch too : a new branch
   is never 'done'
 
-#,,..,,.,,,..,...,,,,,,,.,,..,,,.,.,.,,,.,,,,,..,,...,..,,.,.,.,.,,,,,.,.,.,,,
-#6ABSRYZ4DJX4MU4URI3WTN5D4URO3VSVUG2YH3FADFR5DB6DV4YDM6KOZ6GQQQ53V7UNV5EGNLOQE
-#\\\|DQG5GIQTFLUCZCX2GWABYP6JKOA4ATZSRAMVWDHSYOJMYTUTR4E \ / AMOS7 \ YOURUM ::
-#\[7]TAQSG7T4TFIS7GIYHD7O7BH5JOKK5F7TJ45AXGM7HEHJ3HEWXWCA 7  DATA SIGNATURE ::
+#,,..,,..,..,,..,,,.,,,..,.,.,,,.,,,,,.,,,,.,,..,,...,...,.,.,,.,,,,,,...,,..,
+#WJLWNZJ6KSIBKY2QFLIWYBG7AT2XOT5W4RACOPK4EORDVBWAJWPTCFCWMX46XSG3SKSIP3OA7OCEO
+#\\\|IMXIO2JDTRHI6RWWSRBIVCWKJDK2JHADDPIFKN2RYN7QI3Z347T \ / AMOS7 \ YOURUM ::
+#\[7]E6YNX2PYICPYKLWWP5R3TBJAJWLSP77IF2H2H6VU45XMUWKJ2GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
