@@ -6,12 +6,17 @@
 my $args_str = $call->{'args'} // '';
 
 ## parse args: zone=<zone> name=<name> type=<type> value=<value>
-## or positional: <zone> <type> <name> <value>
+## or positional: <zone> <type> <name> <value>  the key=value form only when
+## the args START with zone= : a txt value [ spf, dkim, dmarc ] always carries
+## '=' and spaces, any '=' anywhere sent the positional form here and \S+ cut
+## the value [ 2026-11-20 ]
 my %args;
-if ( $args_str =~ m|=| ) {
-    ## key=value format
-    while ( $args_str =~ m|(\w+)=(\S+)|g ) {
-        $args{$1} = $2;
+if ( $args_str =~ m|^\s*zone=| ) {
+    ## key=value format -- value= takes the rest of the line ##
+    my $kv = $args_str;
+    $args{'value'} = $1 if $kv =~ s|\s*\bvalue=(.*)\z||s;
+    while ( $kv =~ m|(\w+)=(\S+)|g ) {
+        $args{$1} //= $2;
     }
 } else {
     ## positional: zone type name value
@@ -90,8 +95,8 @@ my $msg
     = sprintf( "record added: %s %s %s", $rec_name, $rec_type, $rec_value );
 return { mode => 'true', data => $msg };
 
-#,,..,.,.,,,.,..,,,..,,..,.,.,.,,,,,,,.,.,,,,,..,,...,...,..,,..,,..,,.,,,,,.,
-#7UYZFVMGHIYJUNWTVS7GIYRZ7PIVXW2NA3QCLPYSJZFR7GWMI4QQ6MGSO6PRKUTR7SRDN3GMYOYDC
-#\\\|R5XMZXLUVREMTEF6X7XBTAMD2DJB33JFQQLQLPKDKJKECKPLIQE \ / AMOS7 \ YOURUM ::
-#\[7]TM2LBUQ24CMSYCR6OD7DIWUTTUGXPFKQOWCWNAR3HNT4RJDDJYBY 7  DATA SIGNATURE ::
+#,,..,...,,..,.,.,,,,,..,,,.,,.,.,,,.,,,,,...,..,,...,...,.,,,.,.,,.,,..,,,,,,
+#T4JF4RKCISTPRGKEI7HXTONC3XOT3VDGHOAZ6BHMTVRXAD42K7RS6KEP6V75TTBASQ3XPFQZPHRKK
+#\\\|IOUDE6I5JZBKRHHCBTJUD4YQ4ATFLUPKJIPVJ6ETKDVH27OLA7D \ / AMOS7 \ YOURUM ::
+#\[7]MCL33F374KSJS5XZLUKIR7N5YWBFQZDZKFIKUQI3SWI2VFMZ6QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
