@@ -38,10 +38,25 @@ for my $token (@tokens) {
     <[nameserv.sync.peer.arm]>->($token);
 }
 
+## peers no longer configured : end their loop -- adding only kept a    ##
+## renamed peer polling the old name next to the new one [ 2026-11-20 ] ##
+my %wanted = map { $ARG => 1 } @tokens;
+foreach my $token ( keys %{$peers} ) {
+    next if $wanted{$token};
+    <[nameserv.sync.peer.release]>->($token);
+    my $timer = $peers->{$token}{'timer'};
+    $timer->cancel
+        if ref $timer
+        and $timer->can('is_active')
+        and $timer->is_active;
+    delete $peers->{$token};
+    <[base.logs]>->( 1, ': sync peer removed : %s', $token );
+}
+
 return TRUE;
 
-#,,.,,,..,,,.,,,.,,.,,,..,,..,..,,,.,,.,,,.,,,..,,...,...,,.,,,,.,,,,,.,,,..,,
-#Y3X2CK2LIJJPNPE5WCALTUM6MYS6M2XYWOPZDVKOATTGFGTWHWFIKKTL25YSVGLD5Z5YOUAYEW5CK
-#\\\|UZAIA6F7A3RR6D2W66TQEVVFPJYAPES64BL7MAUGIEA3QRNU7ZS \ / AMOS7 \ YOURUM ::
-#\[7]ZQK5MJ7PCTIQCJSUK27XLK4DJD7VD5HACBXNDRQ635EEJNXU3OAA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,,,.,.,.,,,,.,,..,,...,.,,,.,,,..,,...,...,,.,,.,,,.,,,,..,,,.,
+#25ZE6CGALWA5OWUDDOI6W26NKDTDXEM546EOHIQI3WEHUU3WLZDZ6ASSFR3ECYLXTDODVTWNQ7OVC
+#\\\|5P6VAD34U6NR6PC6HP4SJLCLN4JII7Z4E4RU6N4KMWUC47UKRU6 \ / AMOS7 \ YOURUM ::
+#\[7]H6USRAFA3KMWBHIDS3DS7R7UGYICFR4N5I635YFDJ3TYUBDCKQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

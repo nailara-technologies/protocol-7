@@ -36,7 +36,20 @@ if ( $arg eq qw| config | or $arg eq qw| all | ) {
         $reply->{'data'} .= sprintf "%s reload config  [  error  ]\n", $s_str;
     }
     <[base.parser.access_conf]> if $arg eq qw| config | or $arg eq qw| all |;
-    $success &&= TRUE;        ## true ##
+
+    ## runtime state built from config values                               ##
+    ## [ e.g. nameserv's sync peer loops ] : a zenka registers a handler in ##
+    ## callbacks.config_reloaded, new values alone never reached what init  ##
+    ## built from them                                                      ##
+    foreach my $handler ( @{ <callbacks.config_reloaded> // [] } ) {
+        next if not <[base.code.exists]>->($handler);
+        eval { $code{$handler}->(); 1 }
+            or <[base.logs]>->(
+            0,        ': config_reloaded handler %s failed : %s',
+            $handler, $EVAL_ERROR // '?'
+            );
+    }
+    $success &&= TRUE;    ## true ##
 }
 if ( $arg eq qw| perl-mods | or $arg eq qw| all | ) {
     $keyword_match = TRUE;    ## true ##
@@ -223,8 +236,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,.,,,,.,...,...,.,,,...,.,,,.,,,,,,,...,,,,,..,,...,...,.,,,,,.,.,,,.,,,.,,,
-#EOFDJKNERRULXJIQALNBZRSWQIAQCWNAPBFOK5N23KTXWSAUMGFJZMBERUPQU7USOHDCLCZY7WUJE
-#\\\|MKPYH2DC2V6FJELRKFMEQADUJLX5Q5LITJ3ZNFST2GAEXPCZS5C \ / AMOS7 \ YOURUM ::
-#\[7]I2NLG6CIFAGZ54JOFUNSET3VV6RZDZWXGCB3PDRJDO7W2CFPB4DA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,..,,,,.,.,,,,,.,.,,,.,,,,,.,,..,..,,...,...,...,..,,,,.,..,,..,,
+#6V5FZGA2VPYIHDRZRVRBDDQLT7CGXUW2AZ3JKTS265C2R73D277CODAELNK4WMUTT2A34YEHQWAKE
+#\\\|YXDHFTDL7ARUFWSAYOCWEK4QPDU5ZL63UVYZTNNBVWEUPRBDRMY \ / AMOS7 \ YOURUM ::
+#\[7]C3427DVS6HTVCMT4KYAAFHE5UXKZVM52DBBOYTQLVW53IYMWMUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

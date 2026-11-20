@@ -6,17 +6,24 @@
 ## listener side : only with sync.listen = yes [ checked there ] ##
 <[nameserv.sync.listen]>;
 
-## peer side : one long-poll per configured peer ##
+## peer side : one long-poll per configured peer  always called : an empty ##
+## list ends every running peer loop                                       ##
 my $peers = <nameserv.cfg.sync.peers> // '';
-<[nameserv.sync.peers.start]>->($peers) if length $peers;
+<[nameserv.sync.peers.start]>->($peers);
+
+## a config reload rebuilds the peer loops from the new value ##
+<callbacks.config_reloaded> //= [];
+push <callbacks.config_reloaded>->@*, qw| nameserv.sync.peers.start |
+    if not grep { $ARG eq qw| nameserv.sync.peers.start | }
+    <callbacks.config_reloaded>->@*;
 
 ## a grant-set change re-pulls once the zones it newly covers ##
 <[nameserv.sync.grants.renew]>;
 
 return TRUE;
 
-#,,..,.,,,.,,,..,,,,,,..,,.,.,...,.,,,..,,..,,..,,...,...,.,.,..,,...,,,.,,.,,
-#3S6VH3GA2WPBRK55AC6HD4QUCR2H7YZFPAMIXEOOUMWCNONKXKHRLSXTIYYBQ7VQOFPS3XAG4LSSO
-#\\\|4JFLF4TIKOU7C4D2INWFGG2XKJG3RDC5D4ZUPYVQWDX6IXVW75S \ / AMOS7 \ YOURUM ::
-#\[7]GUGTFXFFFXW23ZDMR6JCN22IUTRCVC2HF6M6NOR643WIG3327MAQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,...,,,,,..,,,.,,...,,,,,.,.,,,,,..,,...,...,,..,,,.,.,.,...,,,,,
+#TPBSG7L6K2PYYGYHBUWOD2EQ55JP7Z4B6KNMUNGTUERAMQ2T7RYQLKTHAG7WZVFWOES62APY7KSKS
+#\\\|DIIUGTJTLUQDHOEM6EYLKPI2ETPRTJ3MRAXFPJO7336V5J3VDKJ \ / AMOS7 \ YOURUM ::
+#\[7]YYARFLD67BA4WBX2MCUGK7ZX524AKYQMCDR6O4UIRE7Q3FAMBIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
