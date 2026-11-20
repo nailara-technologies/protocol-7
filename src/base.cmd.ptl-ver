@@ -6,7 +6,7 @@
 return { 'mode' => qw| false |, 'data' => 'not defined' }
     if not <[base.is_defined_recursive]>->(qw| system.p7.ext-proto-ver |);
 
-if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
+if ( index( <system.p7.ext-proto-ver>, '\\', 0 ) != 0 ) {
     ##[ translating syntax ]##
     <[base.parser.protocol-version]>->(<system.p7.ext-proto-ver>);
 }
@@ -16,8 +16,8 @@ return {
     'data' => sprintf( ': protocol version : %s', <system.p7.ext-proto-ver> )
     }
 
-#,,..,,,.,,,,,..,,,.,,..,,,,,,,,,,,.,,...,,,,,..,,...,...,.,.,,..,,,.,...,,,,,
-#5GAEAYAUOWFWAR6LOC5WBGS7OY4L2FKSHKZNIUDRREIXIWEMASCSED3VN3OK2WATSDS46DXKGQ436
-#\\\|ACJHU2QNOWOM3BBFNRDNZKFODXGHBUPR4S2KMJSTEAVP3YZTA6J \ / AMOS7 \ YOURUM ::
-#\[7]OJ3KLHSXF7M2QZBNH66SN5JLJCFWUYZWS3GIOZYJQIYK25I3T2DA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,,,,,,,,,,,.,,,.,.,.,,,,,,..,..,,...,...,,,,,,,,,,,.,...,.,.,
+#CXLJWFB7TWLOANQGUNV7Y5XNX6YK5TTDFDZEIKO4UXVK5USVI25QHZA62JZ4R32PEAU7B6ZXDFGI6
+#\\\|X2JLQF4QIKDEQY5I3KPQONFODZY5J3YIDXO6KWTGZ34H6UB46GM \ / AMOS7 \ YOURUM ::
+#\[7]ZQMRRVLATBOSH3ZWD65T6ISILBOSXPCV6ZM4WJT7W3SIIV6KHICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

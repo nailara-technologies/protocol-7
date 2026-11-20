@@ -52,7 +52,7 @@ if (    defined $version_param_string
         ##  converting format  ##
         ##
         if ( <[base.is_defined_recursive]>->(qw| system.p7.ext-proto-ver |)
-            and index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
+            and index( <system.p7.ext-proto-ver>, '\\', 0 ) != 0 ) {
             <[base.parser.protocol-version]>->(<system.p7.ext-proto-ver>);
         }
 
@@ -74,8 +74,8 @@ if (    defined $version_param_string
 
 return <system.p7.ext-proto-ver>;    ##  returning current value  ##
 
-#,,.,,,,,,,,,,,..,,.,,...,,.,,,,,,.,,,,,.,,..,..,,...,...,...,,,,,..,,...,...,
-#EOJWOKXII45T3VAMSASHQKZC3GLTVFPTD72ES33X66CYQBVCUZGTCGQC7BSIQXHEGIXSOLQZEQNW2
-#\\\|3I4BE4XBCOTVALDRZVCJLZIYVJAZSMBM2Y737TZ4HY745ACZOYQ \ / AMOS7 \ YOURUM ::
-#\[7]3YV3525B372XY22ZGFXGKJSLGRQBIDBXVK2DMRAQVE2S2O3F2EDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,,,.,...,,..,,.,,,..,,,.,,,,,..,,...,.,.,..,,.,,,.,.,.,.,..,,
+#23NEXSQT35N2FDHFX5YDLRL7JAIWHKIXI2GHBK3KVB3I35JKFVEA7RRTEN42QNUSITVVKZ7WAU5AC
+#\\\|T5LF4SSM3JRWH4R2TTX2EQYWNBISFID72MK5IYUGHP534OXB5HI \ / AMOS7 \ YOURUM ::
+#\[7]UPZEK5U6NZ7B6ZLZ3RHCJFX42QTM4XW2DHU6ZEC7XXM7WBVN4QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
