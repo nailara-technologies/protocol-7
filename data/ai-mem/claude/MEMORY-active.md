@@ -252,8 +252,8 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 - [render-pipeline-direction](project-2026-11-07-render-pipeline-direction.md) — owner 2026-11-07 : native self-refining render loop over reference channels, interim batch edit of queued items, elfdb review + design note promised after N7FS stage 3
 
-#,,,,,..,,,,.,,.,,.,,,.,,,.,,,..,,,,,,...,,,,,..,,...,...,...,,..,,,.,...,..,,
-#W5NJOTJ56NRZ6KEGQYYOGNGDG23BK7Q3GKOYKUE3KOZWDCTIQSBP5HBUVTEN6V4WDZBRD3P7HTETW
-#\\\|OQRUPDTVRKEWHFNMBZ5F2B2RYPIOB66LJUQYOBP6RS2RJ767QLC \ / AMOS7 \ YOURUM ::
-#\[7]JK3OQMHOWRUNTGTGOB5UCXU6PS77XE5S3SG7SMWXMILVA3KCSUBI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,..,,..,..,,.,,,,,.,,,,,..,,...,..,,...,..,,,,,,,..,,,.,,,,,..,,
+#OAZ72BR33UEB7IYQHP6A46XPEOTZKINI6LOL6SFQIGCQT7Y3AVSJFQGW6ZFI52S7NFBXPS6C4FRMA
+#\\\|JRSMHKDZ7QTXPBHVBG7NSWVQPC65QVLUXT4XMEECOGSFW77XIO7 \ / AMOS7 \ YOURUM ::
+#\[7]KSGK7FX4ODIPPEQJUSCNAS5XE53FP7NVOYRXLJYX5OJW2O4BZODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

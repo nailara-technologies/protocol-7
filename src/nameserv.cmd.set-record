@@ -6,10 +6,10 @@
 my $args_str = $call->{'args'} // '';
 
 ## parse args: zone=<zone> name=<name> type=<type> value=<value>
-## or positional: <zone> <type> <name> <value>  the key=value form only when
+## or positional: <zone> <type> <name> <value>. the key=value form only when
 ## the args START with zone= : a txt value [ spf, dkim, dmarc ] always carries
-## '=' and spaces, any '=' anywhere sent the positional form here and \S+ cut
-## the value [ 2026-11-20 ]
+## '=' and spaces -- any '=' anywhere used to pick the key=value form, whose
+## \S+ cut the value at its first space [ 2026-11-20 ]
 my %args;
 if ( $args_str =~ m|^\s*zone=| ) {
     ## key=value format -- value= takes the rest of the line ##
@@ -31,6 +31,10 @@ my $zone_name = lc( $args{'zone'} // '' );
 my $rec_name  = lc( $args{'name'} // '' );
 my $rec_type  = uc( $args{'type'} // 'A' );
 my $rec_value = $args{'value'} // '';
+
+## '@' is the apex : the zone stores it under the zone name -- taken literally
+## it became a second record nobody served [ 2026-11-20 ]
+$rec_name = $zone_name if $rec_name eq '@';
 
 if ( not $zone_name or not $rec_name or not $rec_value ) {
     return {
@@ -95,8 +99,8 @@ my $msg
     = sprintf( "record added: %s %s %s", $rec_name, $rec_type, $rec_value );
 return { mode => 'true', data => $msg };
 
-#,,..,...,,..,.,.,,,,,..,,,.,,.,.,,,.,,,,,...,..,,...,...,.,,,.,.,,.,,..,,,,,,
-#T4JF4RKCISTPRGKEI7HXTONC3XOT3VDGHOAZ6BHMTVRXAD42K7RS6KEP6V75TTBASQ3XPFQZPHRKK
-#\\\|IOUDE6I5JZBKRHHCBTJUD4YQ4ATFLUPKJIPVJ6ETKDVH27OLA7D \ / AMOS7 \ YOURUM ::
-#\[7]MCL33F374KSJS5XZLUKIR7N5YWBFQZDZKFIKUQI3SWI2VFMZ6QBY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,,,,.,,,,.,,,.,,.,,..,,,..,,,,,..,,...,...,.,.,,,,,,,.,.,,,,..,
+#Z6WXH3I6IU3U2AZDYGSNERAY5PYMQNECRIJIKKUCBF3SULKOEFAHBAXYTMT5GZAKCQCK25CNEUXZG
+#\\\|FA5LPHUZJKVXDAI2PTVHZE7V23LM4BGXHJ7SQCBHNFDJV24QDGD \ / AMOS7 \ YOURUM ::
+#\[7]TYKBKTADBJVXTFVOWPXB2S4TBJCBF4ARLFJVMXWIT3PKQFAKYMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,6 +23,9 @@ my $zone_name = lc( $args{'zone'} // '' );
 my $rec_name  = lc( $args{'name'} // '' );
 my $rec_type  = uc( $args{'type'} // '' );
 
+## '@' is the apex, stored under the zone name [ same as set-record ] ##
+$rec_name = $zone_name if $rec_name eq '@';
+
 if ( not $zone_name or not $rec_name ) {
     return {
         mode => 'false',
@@ -68,8 +71,8 @@ $zone->{'serial'} = time();
 my $msg = sprintf( "removed %d record(s) from %s", $removed, $zone_name );
 return { mode => 'true', data => $msg };
 
-#,,,.,...,.,,,,.,,,,.,...,..,,...,,,,,.,,,..,,..,,...,.,.,.,.,...,.,,,...,,..,
-#NNI7N577UTEHAKGOXUUPMWJUWLGOAIC43L72LHGANTGLBAGHOIVJQNNSWEO5DMBC5MPDOABVNM4B6
-#\\\|T67BPHLZNSPSJXVGLZTENEV3F7XFPM33BQ6KTSZK2HMZD3P5DZ6 \ / AMOS7 \ YOURUM ::
-#\[7]WAWRRSLD7XE7ZUSSDUVBGKFAYHUHW4MRDKLT6FM6QTDINO4IHIBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,,,.,.,,.,,,.,,,..,.,,,...,..,,..,,...,...,..,,...,,,.,.,,,.,,,
+#YGT6FEHO3YVTLWFZNLDKBWB3MUIPZ7UFCWCI24JZYX2PL4CEYL4AS4U74S6M3HQ3YQQNIS5MVZWA4
+#\\\|WGFMC7GOH2ZM4JZ5JKEEICS3HDBIBPG5ILVBU53BSYCAZXVU2JN \ / AMOS7 \ YOURUM ::
+#\[7]LEXDALELFKRO3NM2WA7SALSAV5ZMADNUC6VXL6AR3ZWHKFL4D2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
