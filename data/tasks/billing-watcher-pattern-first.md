@@ -180,6 +180,44 @@ envelope and strips it, the content goes on alone.
   read-me/documentation/dev/NRT.NRD.asc ] : a host's paid-until time is a resource
   balance like any other, money in from the owner's side, time of service out
 
+## raw mail archive : incoming and outgoing [ owner 2026-11-20 ]
+
+every received mail lands in an n7fs append-only store BEFORE any client touches it --
+the frame, the patterns and every later tool read from there, never from an inbox.
+sent mail goes there too : once sent it no longer changes either.
+
+- outgoing : the bytes as handed to the relay [ after the client composed them, headers
+  as sent ] -- not the client's sent folder, which it may rewrite or move
+- capture on a postfix host : always_bcc [ or sender_bcc_maps \ recipient_bcc_maps per
+  direction ] to an archive address, delivered by a pipe transport [ master.cf ] to the
+  store command. postfix queues the copy itself : no latency on the real delivery, and
+  a store that is briefly down only delays the copy [ postfix retries ]. later the
+  smtpd zenka takes the same place
+- the relay's answer is an event on the message : postfix log lines by queue id
+  [ status=sent \ deferred \ bounced, the remote's reply text ]
+- one store for both directions : a thread is then complete in one place [ our report,
+  the provider's reply, our follow-up ], which is what an issue episode needs
+- replicated : the other remotes and the local machines hold it as n7fs remote holders
+  [ sealed replicas, data/md/design/N7FS-SEALED-REPLICAS.md ] -- the mail host is not
+  the only copy ; append-only makes the sync a plain forward of new entries
+- a pattern beyond mail : a task gets its own n7fs store [ the mail archive, a disk
+  rescue's files, the stream-grab corpus ] -- written by one task, held by many hosts,
+  never edited in place
+
+- raw : the message bytes as received, addressed by checksum [ dedups repeated fetches ] ;
+  never changed, so nothing is overwritten -- each arrival only appends
+- client state is a second append-only layer of events about a message, not a change to
+  it : seen, moved to <folder>, deleted, replied. a mail client [ mutt moves mail into
+  archive files, sets flags ] is one producer of such events ; any view, its own
+  included, is rebuilt from raw + events
+- source, whichever comes first : the postfix bcc copy above [ both directions ], else
+  an imap fetch that only reads and sets no flags -- later the smtpd
+  zenka receives the mail itself. the target store stays the same, only the source
+  changes
+- the archive is the corpus for the tracking zenki : e.g. a provider support thread
+  [ problem report, provider fix, fallback hint, our verification ] is one issue
+  episode to learn from, see the episode corpus under "infrastructure link" above
+
 ## positioning
 
 a thin layer on generic modules [ smtpd + frame, pattern registry, task \ models inference,
@@ -198,8 +236,8 @@ the data never leaves the owner's hosts.
   the checkout [ /etc/protocol-7 or a data dir ]
 - related : resource ledger [ vendor accounts and invoices are the same accounting shape ]
 
-#,,..,,,,,,..,..,,.,,,.,.,,,.,,,.,,..,,..,.,.,..,,...,...,...,,,,,.,.,,,,,,..,
-#TIYS3J62R75MXUOMSRHWO5CYZTPHVWNORVGT4JMICJK5DRJER6LOLTQZ64BWPG3XHMCPHL4KW3NJY
-#\\\|S3UF4D723DCYEFRLKTYY5GBLPRIK7HWODVU7PL45MTIM6E2QSQ7 \ / AMOS7 \ YOURUM ::
-#\[7]CXXCITIZZXJID46BHQZ67EF3EYYC4BEW2ZD4AJ7POKGCI2JBF4BY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,.,,,,,.,,,.,...,,,,,.,.,,,.,..,,...,...,,.,,.,,,.,.,...,,..,
+#5MKLQKOKU4HMNL3V6ZAYRESNZ6IDSNUD7VDVIWKTGQK74CV2M6WGEEQL4NTUFFSTR76YCUORYHG64
+#\\\|CP5A7UMSNWQZRVPPEL4NFNCLPXN656THKTRWN3WZBALKLPOBHPU \ / AMOS7 \ YOURUM ::
+#\[7]N2AJODSGCJCPEYF2NQMXVBM4A32CKQQ2SPPQRK2EYRTPO6INF6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
