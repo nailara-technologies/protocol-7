@@ -12,7 +12,7 @@ use warnings;
 use FindBin;
 
 BEGIN {
-    unshift @INC, "$FindBin::Bin/../../data/lib-path/pm";
+    unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -28,7 +28,7 @@ use AMOS7::N7FS::Journal qw| journal_replay journal_write |;
 use AMOS7::N7FS::Release qw| release_node store_reclaim tombstone_latest |;
 use AMOS7::N7FS::Convert qw| upgrade confirm release_epoch |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 use constant TRUE  => 5;
 use constant FALSE => 0;
 
@@ -48,7 +48,7 @@ sub cli_n7fs {
     if ( $pid == 0 ) {
         open( STDOUT, '>:raw', $out ) or exit 98;
         open( STDERR, '>:raw', $err ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args )
             or exit 99;
     }
@@ -569,8 +569,8 @@ say ':: regressions found by review';
 
 done();
 
-#,,.,,,.,,,..,.,.,,,.,.,.,,.,,...,,,,,..,,,,.,..,,...,...,.,.,..,,.,.,,,.,.,.,
-#N65X6LPZSSQPSGPMJBSYY4WBXMLTSFUHDJOQ25LXRPML7JC3IONER4QPULGYLWFCTJG5WSLJLB6HI
-#\\\|U2ITCM7O5MT5ECL2DS3S7EVLIPJA4CKV25W33URQDNMKLDCKAEP \ / AMOS7 \ YOURUM ::
-#\[7]HC67TTS3YUFAE2KRD6KOET5XCUEU7RF3IJSXEKIWOKZ64PNEISAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,.,,,...,.,,,.,,,.,.,,,.,,.,,..,,...,...,,.,,,,,,.,,,...,.,,,
+#346XSOHAAGKDANXGPCGLHM4JIHJ2K23LDAQ544522D7XC4Q6OMEXUSSESTUBBW4EJSE7DUFRCN4RW
+#\\\|VGEZJ2IBXVONVZUD56BYKDJVLOY62C3WVBBME4ZMKTBNYEJWNEA \ / AMOS7 \ YOURUM ::
+#\[7]KOII5VDA6PGXMCOOI5AK2GKSV433UQCRXCU7OHYNU5FJ5HHGTICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

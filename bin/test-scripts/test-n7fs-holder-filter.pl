@@ -7,11 +7,11 @@ use warnings;
 ## placement filters on a holder : -categories <list> and -min-priority <n>
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::Vault qw| vault_init |;
 use AMOS7::N7FS  qw| make_dirs |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -30,7 +30,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
@@ -126,8 +126,8 @@ ok( $rc == 0 && -f "$base/rec/f3", 'a filtered holder recovers its tree' )
 
 done();
 
-#,,,.,,,,,..,,...,,,,,,,.,,..,.,.,,,.,,,.,,..,..,,...,...,.,,,,..,.,,,.,.,,,,,
-#6FOXYXVMUXGYMW6LYJK7BOSSWUZR3MTCXXXKK2Z2VQN532HWFACBIBIVBMC7BTTQLRORWWA7ZHHKC
-#\\\|5I5LUMM26AK3AICAISZEQ24VS3LCMXWDDOKCMGRXH7JRPKZLP73 \ / AMOS7 \ YOURUM ::
-#\[7]R33QEFWEDVBHFP55RWRAFMQKSKJ5WDJHG6MSGN74EY5YOHIHX4DI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,..,,,..,,,.,,,.,.,.,.,.,.,.,..,,...,...,.,.,.,,,,,.,,.,,.,,,
+#74RQXANYPVXCHDSCA34354NT4TLCDRTEZN64A2GA3UWYJ2IMOBFZVYQZ27N4SWLUJN7LZHCNL2VYQ
+#\\\|FORPRCK27554AIZ3PPGSNX2RXOUKV6O4T5CXKJ7P6NE6U6G5MH2 \ / AMOS7 \ YOURUM ::
+#\[7]QDLFSR5P73KU6UXJGRMKY5YPOGVS7HKMF5FS4SAVI5MIMQ2RICBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

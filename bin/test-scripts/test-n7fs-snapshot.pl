@@ -7,7 +7,7 @@ use warnings;
 ## stage 8 : independent staging pulls, snapshot headers and shrink freezes.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::N7FS          qw| make_dirs read_file |;
 use AMOS7::N7FS::Disk    qw| disk_read_id |;
@@ -16,7 +16,7 @@ use AMOS7::N7FS::Sign    qw| key_file_signer |;
 use AMOS7::N7FS::Snapshot;
 use AMOS7::N7FS::Tree qw| manifest_open |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -29,7 +29,7 @@ sub cli {
     if ( $pid == 0 ) {
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args )
             or exit 99;
     }
@@ -250,8 +250,8 @@ ok( $rc != 0 && $out =~ m|tree names refuse /|,
 
 done();
 
-#,,,,,..,,,,,,.,.,,.,,..,,,,,,...,.,,,..,,.,.,..,,...,...,,..,,,.,,.,,,,.,,..,
-#QLHWCTPBJDHJST2YWNGGN5YQUTRQYAI46ZOAI3DFCMIVLNVEY7C4NLRO7PKAH3SZQ5IKTPSFHRRYA
-#\\\|ISG6GOOLDSY3XSHCYSPJPH5AREAWTY4YI6A6ZHDRQVZ4SFWMB5V \ / AMOS7 \ YOURUM ::
-#\[7]PK56H3F7UUNLUUMXHRKQA6QC7AQAY6XRW7VYNU3ER7PPYWABX6AI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,,,.,.,.,.,,,...,,.,,.,,,.,,,..,,...,.,.,,,.,,..,,,,,...,,,,,
+#7D2EXYTNN6OFYPL43MFLWERFUA2LRRL6GH4RC6KXQCN54DE6DN2LVAJEJMRSB4W6VJN34POLYWQBQ
+#\\\|2FL5UXJJVPEPWT55W26INMFIKSAEVPAPIFOWJSNRPJBNKO4JNXY \ / AMOS7 \ YOURUM ::
+#\[7]22CYVGZY2Q75SKEC55K6SYJNTIRDYELCO27EOBTSMQ5NYXUPS6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

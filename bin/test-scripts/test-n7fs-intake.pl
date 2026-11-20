@@ -8,12 +8,12 @@ use warnings;
 ## version, draining an intake into its own failure domain.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::Vault     qw| vault_init |;
 use AMOS7::N7FS      qw| make_dirs read_file |;
 use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -32,7 +32,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
@@ -239,7 +239,7 @@ ok( $rc != 0 && $out =~ m|room for 0| && !blobs("$base/full"),
 
 ## over ssh : to a remote holder and back from it ##
 my $fake = "$base/fake-ssh.sh";
-copy_tree( "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh", $fake );
+copy_tree( "$FindBin::RealBin/fixtures/n7fs/fake-ssh.sh", $fake );
 chmod 0755, $fake or die $OS_ERROR;
 make_dirs( "$base/remote", 0700 );
 write_file( "$base/ssh.log", '' );
@@ -277,8 +277,8 @@ ok( $rc == 0 && read_file("$base/rec-back/g3") eq "more 3\n",
 
 done();
 
-#,,,.,...,,,,,.,.,...,,..,.,.,.,,,...,,..,,.,,..,,...,...,,,.,...,,,.,.,.,...,
-#5NT7RCC75CYB7UHXTLQ4YSZSHQIGTSZXRMVU3HIFKZANK2S5MK73E3P54B24RE2VALXOF6K7G4TRO
-#\\\|ZESN7JRTTEDKJXEMI27OZ4TACTS6YONSNYZDNALBJM7DARJZ22R \ / AMOS7 \ YOURUM ::
-#\[7]F5DFPWMNYP44WI5OFRREHGHTOQ7SOGAXNMOMOQOFN364233FHYBY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,.,,.,,,,,,,,.,,,.,.,,,.,,,...,..,,...,...,.,,,,.,,...,.,,,.,.,
+#QNFW56HWFVO7E2SV57RHYN6AJPEIZIU77QW2ZLG66US6DJDNRXMRNQXSBSSO5254YEVA4JLKPWXCW
+#\\\|I2HQRTWIZSJEE4IC35BOJIQ3NVFRVFEDQFOOLOPUEVU4EYVWFDF \ / AMOS7 \ YOURUM ::
+#\[7]WY5FYK5S5CIG6JF3VS4SM24XKVBLXDHSCZOVU3VSQCADTZIQQMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

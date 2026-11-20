@@ -28,7 +28,7 @@ use POSIX      ();
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::Vault qw| vault_init |;
 
@@ -47,7 +47,7 @@ sub ok {
 
 my $tmp       = tempdir( CLEANUP => 1 );
 my $dir       = "$tmp/vault";
-my $vault_bin = "$FindBin::Bin/../p7-vault";
+my $vault_bin = "$FindBin::RealBin/../p7-vault";
 vault_init( $dir, 'pass phrase', undef, t => 1, m => 8192, p => 1 );
 
 ## run the shell in a pty, keep the slave's tty name : the tty flag checks
@@ -215,8 +215,8 @@ $h->{'done'}->();
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,..,,,.,.,,,...,...,..,,...,,,.,,..,..,,,,.,..,,...,...,,,,,...,.,.,.,.,,.,,
-#VV2TDPHYCZVC35AG44ITOG6THELOFJJXD5P6YFJSDB35HGSRZOVJG5HFMWR27CNQDSSZZBRHEO2IW
-#\\\|PXHJLB2MST55VDMDCOXS2REQYIEONFZKAE4ORNAY5IM3222N5ET \ / AMOS7 \ YOURUM ::
-#\[7]FZB7YNZ6CFI2BLWJXD55YY4NMJXTLM5DPE5CM6GDHYKXKCNATYBA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,..,.,.,,..,,.,,..,,,,.,.,.,..,,..,,...,...,.,,,,..,,,.,,,,,.,.,
+#LBC3VWA27UBSLXKBQL5WRU2U7TIF2L7TYYOC2W5TIC3VD6RAEYYK267FYWESTDHCWCEZYTTAGKR36
+#\\\|TY42PPSMP4Q7KK6VIYI3DLAOO6BVQJ7V4X3VVBJ6DLR4HEAR6JJ \ / AMOS7 \ YOURUM ::
+#\[7]INXVSAZF3YBTDZHCFLOYI6H6AIKS3WZEEAV6JIEWS6TXNLRW3CCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

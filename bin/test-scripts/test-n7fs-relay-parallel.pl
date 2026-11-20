@@ -10,13 +10,13 @@ use warnings;
 use constant TRUE => 5;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::Vault qw| vault_init |;
 use AMOS7::N7FS  qw| make_dirs |;
 use AMOS7::N7FS::Keys;
 use AMOS7::N7FS::Seal;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -36,7 +36,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
@@ -125,8 +125,8 @@ ok( $rc == 0 && -f "$base/rec/f8", 'the relayed copy recovers' ) or say $out;
 
 done();
 
-#,,.,,.,.,,,,,.,,,,.,,,,.,,..,,.,,,.,,...,.,,,..,,...,..,,,.,,.,.,..,,,,,,.,.,
-#ZFDI2IWUKKNWSY2SUYB6DEI3KC5CNVWWW6FOL2P4DRYM77CABUXVFIZWIAN4B73TVEEFUV4DG3HHC
-#\\\|7D6FZB6WRGI3DXAKUS63YLKWEMJRGIO322L3UFCCC3UU5NY3NLS \ / AMOS7 \ YOURUM ::
-#\[7]3TCGCJYQ5673TEL24CYLM2YQW6PQ6C6EMOFXHGO7GTFM5QQ6NGCY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,,.,,..,,..,,,.,,,,.,...,...,..,,...,...,.,.,,.,,,.,,,,.,,,,,
+#L7BIFCU4C72O7USAVIKDWVGNEFD7MEZTWW3NGBEGL7ZCODGEXH7TWAUYYLZCGUGVJLRVTCTNM4ODM
+#\\\|6EKM42SPTDVUUFC7NR3VD4PK7ANPBSK4ZF63EN5QYCOMLR5NKM6 \ / AMOS7 \ YOURUM ::
+#\[7]XML675LMUYBOJOGLWSO7OAKVLGFCW2C3TQVD4WZKRXWZVGJ3HUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

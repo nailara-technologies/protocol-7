@@ -7,7 +7,7 @@
 use strict;
 use warnings;
 use FindBin;
-use lib "$FindBin::Bin/../../data/lib-path/pm";
+use lib "$FindBin::RealBin/../../data/lib-path/pm";
 
 use AMOS7;
 use AMOS7::Assert::Truth;
@@ -64,8 +64,8 @@ die "FAIL: all samples produced same score -- distribution is degenerate\n"
 
 print "PASS: spread distribution confirmed\n";
 
-#,,,,,..,,.,,,..,,,,,,.,.,...,,,,,.,.,,.,,,..,..,,...,...,,..,,,.,.,.,.,.,.,,,
-#WJF7UT7CLWKEHMEFYTHP5U5LXALS3SNSK5E7GBNWZHXWX2VIIR756GZ7NVSSDW2ONK7T7XV62D37S
-#\\\|QCAOQYUYOWK6HSZX57XRZSZSRP6QX2FHQROM373TA5P74WXXZXR \ / AMOS7 \ YOURUM ::
-#\[7]5YNWHGQ7UTNYY5EWVX66LBQ7SSS44SSSHAG7442SGCGSVSBKCQAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,.,,..,,.,.,.,.,,,,,..,,,,,,,,,,..,,...,...,...,...,,..,,.,,.,,,
+#DDBPW3DYQBCYLK6LTK54XZ4BLVGGXB2TEITUHVL6FR3XQHPVDXTLBIRFVHN5R4B547D4XYUYBYFXK
+#\\\|WXN5TLY6CAAS7UBGRSTG7LZLBZLB7NLPGQW7EAESEOHEMXLGL5V \ / AMOS7 \ YOURUM ::
+#\[7]7PVXXPD3UAM5756BVOIAJP5M5OC63EWV3BK63EQEIAAGE5WOTCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

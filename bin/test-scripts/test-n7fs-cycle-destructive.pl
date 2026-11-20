@@ -7,7 +7,7 @@ use warnings;
 ## stage 11 : the strict cycle gate and per-holder destructive phase.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::NTIME         qw| parse_y_age y_level_ntime |;
 use AMOS7::N7FS          qw| make_dirs read_file ntime_now |;
@@ -19,7 +19,7 @@ use AMOS7::N7FS::Store   qw| assimilate |;
 use AMOS7::N7FS::Keys;
 use AMOS7::N7FS::Seal;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -42,7 +42,7 @@ sub cli {
         open( STDIN,  '<&',    $stdin ) or exit 98;
         open( STDOUT, '>:raw', $out )   or exit 98;
         open( STDERR, '>:raw', $err )   or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, '-pass-fd', 0, @args )
             or exit 99;
     }
@@ -369,8 +369,8 @@ ok( $rc == 0 && read_file("$base/final-restore/pinned") eq "pinned bytes\n",
 
 done();
 
-#,,..,...,,,,,,,,,.,,,.,,,,,.,.,.,.,.,,.,,.,.,..,,...,.,,,.,.,.,.,,.,,,,.,..,,
-#DLEUWDZ2BSIUXF2ITM2FSPDN3BNQ6DNIWOALEC4VNHUVR7IS5KNO5NHMVZ3KXNVS5JY7O4B7GGJ3M
-#\\\|Z32YEFN7CUTKNEP5BNEBXP2LLWSCLM7OOEOJHB5K2HT5BFOR2S3 \ / AMOS7 \ YOURUM ::
-#\[7]Q7DDDLE2YSP3LD7MP7NMU453DWIW45KB4QYKI7YOGJ2NH6JUAWCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,..,,,..,,,,,.,.,..,,,,.,.,,,,.,,..,,...,...,,.,,.,,,...,,,.,.,,,
+#UPMQRWE4FXN52JTRKFMAN3CS7CT2DOU7G3BE5RAA2HDFCHWN7ZRPBOE2OOOCP5EESJXLZ6MSPN6PY
+#\\\|CRCPD7QWRJDJLSIODDN7TCNNNE2A4YM4E6EEGOHN75QGIPI3DJZ \ / AMOS7 \ YOURUM ::
+#\[7]RIYXCFU7ULGKESXQAU4RA4ASGR4OHEB7JF6GLEBNFEV3LWWPUMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

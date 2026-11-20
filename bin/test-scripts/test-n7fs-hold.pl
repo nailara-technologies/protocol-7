@@ -7,7 +7,7 @@ use warnings;
 ## stage 9 : pre-sync holds, bounded restore and hold-aware reclaim.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::N7FS       qw| read_file make_dirs ntime_now ntime14 |;
 use AMOS7::NTIME      qw| parse_y_age |;
@@ -18,7 +18,7 @@ use AMOS7::N7FS::Store   qw| reference_entries reference_drop store_repair |;
 use AMOS7::N7FS::Journal qw| journal_replay |;
 use AMOS7::N7FS::Record  qw| record_write |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -34,7 +34,7 @@ sub cli {
     if ( $pid == 0 ) {
         open( STDOUT, '>:raw', $out ) or exit 98;
         open( STDERR, '>:raw', $err ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args )
             or exit 99;
     }
@@ -249,8 +249,8 @@ ok( scalar(
 
 done();
 
-#,,,.,...,,.,,,.,,...,,..,,.,,.,.,,.,,.,.,,,.,..,,...,..,,...,,..,..,,..,,,..,
-#2NVOPCSFJKFRWNXFBBFT7DJYU3XX7H2KHXEB66OBXRKW43VNF5PHYP4WMOVOTLSUUGO6GIXO6273O
-#\\\|VKJKSWWIRDBXVYHUN2CJMNCFKYA64ZTQZXX3BLZJLT2GYKEIMZE \ / AMOS7 \ YOURUM ::
-#\[7]PYTV3LPMSGIGIWM2KBVZFYALMPVGX5KDNFWDSU2ABWZFT6RINSBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,.,,,,,,,.,,,.,,,.,,,,,.,,,,,.,..,,...,...,..,,,,,,,..,,,,,,,.,
+#45AC4W45WYLBZALW2GAOO3Z6PCY2L56VSNGINJMWIBIINRO743AHIF63F5EID4XVXAFVJZ6OJVSEY
+#\\\|VYMEHOPYQAU2KDL27KPZALHEFWJPMFDP4JRA3CHIKJ3RZDSRFIR \ / AMOS7 \ YOURUM ::
+#\[7]DVGD234BAVWI32UQMBS353A4UDDOBC3EH6CI4EGJH3OWA2PW4KAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,11 +7,11 @@ use warnings;
 ## small sealed nodes packed into shared blobs : recovery, checks, damage.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::N7FS qw| make_dirs |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -28,7 +28,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0 )
             or exit 99;
     }
@@ -169,8 +169,8 @@ ok( $rc != 0, 'holder check finds the damaged packed node' );
 
 done();
 
-#,,,.,...,,..,,.,,,..,,,.,,,.,,,,,.,.,,..,.,.,..,,...,...,,..,...,,.,,,.,,,,.,
-#CCLLJQZS7MAUJL6RGUXTULYXUA6RXST7ET7WMQPHOHUVVCZOKICBSXW2SXUVOFDYT3DGL3SF6NZRC
-#\\\|KBDCWJTIW2PG6DYZ6HBJOTJH56BHX7YGAAFCWB7E2K2XNUNEFNQ \ / AMOS7 \ YOURUM ::
-#\[7]P4NJJITWHUXF46JU3KRJIUQAT47AILANURU7MJ4OJQWTGNOWE4BQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,,.,,.,,,,,.,.,.,,,.,,..,,,.,..,,...,...,.,.,,,.,,.,,,,,,..,,
+#ROG4JLQDAKIK3B45QW7CLS5V5HPOYHWQIAF7FKCHTMVL6XOFJXUK5KLIT6TZUX3P7KO2FQDBM63GW
+#\\\|VO7VHNWIDNEV47E35GZFXWEECYNGK5SU2US3F2QUTXLW3B5AFE3 \ / AMOS7 \ YOURUM ::
+#\[7]FVJEJJDHQ54H4WX4XHUF5NXEK5HWPKSHJWU45JUWTFRRJGMUCKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

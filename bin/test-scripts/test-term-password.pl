@@ -26,7 +26,8 @@ use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
 ## P7_TERM_TEST_LIB : another lib dir [ an older TERM.pm to compare with ]
-my $lib = $ENV{'P7_TERM_TEST_LIB'} // "$FindBin::Bin/../../data/lib-path/pm";
+my $lib = $ENV{'P7_TERM_TEST_LIB'}
+    // "$FindBin::RealBin/.." . "/../data/lib-path/pm";
 my $tmp = tempdir( CLEANUP => 1 );
 my ( $pass, $fail ) = ( 0, 0 );
 
@@ -185,11 +186,11 @@ my @cases = (
         'single', 13, [ 0, "$u8\r", 1 ]
     ],
     [   'DEL typed', $ok, 'single', 13,
-        [ 0, "correct horsX\x7fe " . "battery\r", 1 ]
+        [ 0, "correct horsX\x7fe battery\r", 1 ]
     ],
     [ 'DEL paste', $ok, 'single', 13, [ 0, "correct horsX\x7fe battery\r" ] ],
     [   'BS typed', $ok, 'single', 13,
-        [ 0, "correct horsX\x08e " . "battery\r", 1 ]
+        [ 0, "correct horsX\x08e battery\r", 1 ]
     ],
     [   'ESC[3~ typed', $ok, 'single', 13,
         [ 0,   'correct horsX', 1 ],
@@ -197,7 +198,7 @@ my @cases = (
         [ 0.1, "e battery\r", 1 ]
     ],
     [   'ESC[3~ paste', $ok, 'single', 13,
-        [ 0, "correct horsX\e[3~e " . "battery\r" ]
+        [ 0, "correct horsX\e[3~e battery\r" ]
     ],
     [   'ESC[D typed', $ok, 'single', 13,
         [ 0,   'correct horsX', 1 ],
@@ -224,7 +225,7 @@ my @cases = (
         $ok, 'single', 13,
         [ 0,   'garbage', 1 ],
         [ 0.3, "\x15co" ],
-        [ 0,   "rrect horse " . "battery\r", 1 ]
+        [ 0,   "rrect horse battery\r", 1 ]
     ],
     [   'unknown csi typed',
         $ok, 'single', 13,
@@ -246,7 +247,7 @@ my @cases = (
         13,
         [ 0, "correct\x01\x02\x05\x09 horse battery\r" ]
     ],
-    [   'cr alone, then ' . 'the value',
+    [   'cr alone, then the value',
         $ok, 'single', 13,
         [ 0,   "\r" ],
         [ 0.5, "$pw\r" ]
@@ -330,15 +331,20 @@ my @cases = (
         [ [qr|min len|], '' ],
         [ 2.5,           "$pw\r", 1 ]
     ],
-    [   'memory : typed, ' . 'wiped',
-        'rc=0 hits=0', 'scan', 13, [ 0, $scan_typed, 1 ]
+    [   'memory : typed, wiped',
+        'rc=0 hits=0',
+        'scan',
+        13,
+        [ 0, $scan_typed, 1 ]
     ],
-    [   'memory : ' . 'pasted, wiped',
+    [   'memory : pasted, wiped',
         'rc=0 hits=0', 'scan', 13, [ 0, $scan_typed ]
     ],
-    [   'memory : ' . 'control, not wiped',
+    [   'memory : control, not wiped',
         qr|^rc=0 hits=[1-9]|,
-        'scan-control', 13, [ 0, $scan_typed, 1 ]
+        'scan-control',
+        13,
+        [ 0, $scan_typed, 1 ]
     ],
     [   'repeated : match',
         "rc=0 $hpw -", 'repeated', 13,
@@ -376,8 +382,8 @@ foreach my $case (@cases) {
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,,,,,,.,,.,,.,,,.,.,,..,..,,,,.,,,.,.,,,..,,...,...,..,,...,,..,,,,,..,,
-#QLYEPSFDUCUGQYCHXM46TCDK3UDD5OXWPWDAM3GZEBCR4TSAMMIVQZJISQTN4D42NEB4C72325LFS
-#\\\|FSR4STQ36TSCZ3WFI6OJTYGK4ZQEWUPAW7HZVTJYKUGYLPGNWAT \ / AMOS7 \ YOURUM ::
-#\[7]2ESKP43DEYWHASHSALMDAJ4U5QPLGLJ5PBQOZUMX7DEIIBRHMCDY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,,,,..,..,,...,,,,,...,,.,,.,,,..,,...,..,,,..,.,.,.,.,,,,,,.,,
+#FZX6JOOFKYFW35YR4YASLKJ2ZXRYSBRLMZRJ5T3UMJFV4IN7DKCXFMTXI3OWQVMCF7LSV4SC4BMR2
+#\\\|WXG673NSVE4LW3Q2TWLRTL26IWDECFSSGF2PGFVJSG76YCMYOAV \ / AMOS7 \ YOURUM ::
+#\[7]MRSXGDBTC7IG5SABXH6QKOIAZXL2PRPNNAXGGZR3TZHR7CKYAGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

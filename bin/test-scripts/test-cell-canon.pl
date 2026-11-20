@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use Test::More;
 use Time::HiRes qw| time |;
@@ -595,7 +595,8 @@ subtest 'new files carry no forbidden codec imports' => sub {
         qw| data/lib-path/pm/AMOS7/cell/canon.pm
         data/lib-path/pm/AMOS7/cell/canon/list.pm |
     ) {
-        open( my $fh, '<:raw', "$FindBin::Bin/../../$path" ) or die $OS_ERROR;
+        open( my $fh, '<:raw', "$FindBin::RealBin/../../$path" )
+            or die $OS_ERROR;
         local $INPUT_RECORD_SEPARATOR;
         my $source = <$fh>;
         unlike( $source, qr|JSON::|i,      "$path has no json module" );
@@ -797,8 +798,8 @@ subtest '1024 shard benchmark' => \&run_benchmark;
 
 done_testing;
 
-#,,.,,.,.,.,,,.,,,,..,,,.,,,,,..,,,,.,,,,,,.,,..,,...,.,.,.,.,..,,,,.,..,,,..,
-#EFJBSLX6F5TAOEHRAS6WQUTZVAG2QFDHOM4ZXEHGJPWGCDEMQLHRBOW5GJWISF5Q4YBSXLFTLR346
-#\\\|ZAV4VW4ZINLBEWSNJOSY3XKRBLMWJNORUKF2XSCEVBY6JSBF7Z6 \ / AMOS7 \ YOURUM ::
-#\[7]SFQ7YELWHB4MZDWWDFHEW6DJD774TAJGRKTWVYSG63P6QOV3XUBI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,,,.,.,.,...,,,,,,,.,,,.,,,.,..,,...,...,..,,,,.,,,.,,..,,,,,
+#BNPNHTMEG7QJMAYKL7BXDW6IGXV53EEIBYQFYDQMC2SNRKIVASFYA54JP57HI75YGHMRRUMUWRLLM
+#\\\|DLHBZAAPHYIHSBDWRD3MTX3LXB27XLPY3LMPJO2L3DUNSBLJ6NF \ / AMOS7 \ YOURUM ::
+#\[7]NJRRAZ5XCIPA7V3IDTGBKZLPQJB2YEZG5UGDNRFLF2K6R5N2HIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

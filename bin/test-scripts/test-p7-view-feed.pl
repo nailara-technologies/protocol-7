@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use FindBin;
 
-my $root = "$FindBin::Bin/../..";
+my $root = "$FindBin::RealBin/../..";
 my $test = "$root/data/web-root/vhosts/visual"
     . ".v7.ax/tests/test-p7-view-feed.js";
 
@@ -26,8 +26,8 @@ if ( not defined $node ) {
 
 exec( $node, $test ) or die "exec $node : $!\n";
 
-#,,,,,,,,,.,,,,,,,,.,,..,,,,.,,,.,,,.,,,.,...,..,,...,..,,.,.,.,.,,..,,,,,.,.,
-#GSQBZK5WQ3QWY3YTC2OB5CSTW7TXBQMOPIUIOUMPWPDN6RCZST4FKPYNL7YCEHW52D4G3SFDLDHJM
-#\\\|MNNKOZKDGRTPUX7LEK6745UUARE4MXSIKTUIGB6QY6IZTFG7DOM \ / AMOS7 \ YOURUM ::
-#\[7]F725WHPMTHDNEVAS7LFXR2E3BOYVB6UIROK3H6EDKNKYXHGWU6CI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,..,,,,.,...,,..,...,...,.,,,..,,...,..,,...,,..,,..,,,.,.,.,
+#GLFBM25NXPW6337ZVAYJN4NNIP7UTXHMVE6IIZ7EX37NLSUD5QOOVK3VYVWV3XWANI5MCFBFFVNDQ
+#\\\|Q3D3646CTQJEA6V3T6EC4CJAZVJBJIZSWO4FC7VNWH2Z7EJ7ASV \ / AMOS7 \ YOURUM ::
+#\[7]XXO3OWFUGPXNRNNXEKWQHI5YIBVKJ6Z3SM2NWFQ3OZCVULXEXGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

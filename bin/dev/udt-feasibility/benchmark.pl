@@ -8,7 +8,7 @@ use Getopt::Long qw| GetOptions |;
 use IO::Socket::INET;
 use POSIX       qw| WNOHANG |;
 use Time::HiRes qw| sleep time |;
-use lib "$FindBin::Bin/lib";
+use lib "$FindBin::RealBin/lib";
 use UDT::Simple;
 
 my $bytes     = 64 * 1024 * 1024;
@@ -18,7 +18,7 @@ my $burst     = 1;
 my $timeout   = 45;
 my $transport = 'all';
 my $loss_arg  = '';
-my $output    = "$FindBin::Bin/results.tsv";
+my $output    = "$FindBin::RealBin/results.tsv";
 GetOptions(
     'bytes=i'     => \$bytes,
     'runs=i'      => \$runs,
@@ -129,7 +129,7 @@ sub start_relay {
     my $script = $kind eq 'udt' ? 'udp-loss-relay.pl' : 'tcp-stall-relay.pl';
     my $pid    = fork // die "relay fork failed : $!\n";
     if ( $pid == 0 ) {
-        exec $^X, "$FindBin::Bin/$script",
+        exec $^X, "$FindBin::RealBin/$script",
             '--listen-port', $listen_port,
             '--target-port', $target_port,
             '--loss',        $loss,
@@ -246,8 +246,8 @@ for my $kind (@transports) {
     }
 }
 
-#,,,.,,.,,,..,.,,,,..,.,.,.,,,.,,,...,.,.,.,.,..,,...,...,...,.,.,,,,,.,,,,..,
-#VLMPY2HGY32MKMNNEG3QI7EEGRBD3IOIGAJG6VDJNRDDAV6C5DTIZXMPUGTZRLUNI5X6PFPA6WQQS
-#\\\|4EGV77EFM3H2ZAFXG75K6HRQBICYPF4K7KMODYBOSY2Z6OVA2KF \ / AMOS7 \ YOURUM ::
-#\[7]DFW2HWXGRNZCWBISPBZULMK3T7KEEKF3TNYOU2KNDJZA2U27EUAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,.,,.,,..,,,,,,,..,.,.,.,,,..,,..,,...,...,,..,,,.,,,,,...,,,.,
+#DW732HIMIF6C6LPPMZD5TPCQWUSBSCHCPUNF22M3THZHUUSDPX4TMEZCQWBCTUCGCWXED2UPG2ERS
+#\\\|26QQGWO3VRRV2VAFIPLRLYWNHY3GQ547VS4ENBVDLD3R6V2MOXQ \ / AMOS7 \ YOURUM ::
+#\[7]VOTSKS4LASMVTOCR3W4XX5RDDQOCZWKA5TGN5JZZVNQ6RVLJE2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

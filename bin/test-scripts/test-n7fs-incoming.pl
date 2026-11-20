@@ -9,7 +9,7 @@ use warnings;
 use FindBin;
 
 BEGIN {
-    unshift @INC, "$FindBin::Bin/../../data/lib-path/pm";
+    unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -23,7 +23,7 @@ use AMOS7::N7FS::Journal  qw| journal_replay journal_write |;
 use AMOS7::N7FS::Incoming qw| incoming_tag |;
 use AMOS7::N7FS::Batch    qw| batch_read batch_write |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 use constant TRUE => 5;
 
 my $box = sandbox();
@@ -50,7 +50,7 @@ sub cli_n7fs {
     if ( $pid == 0 ) {
         open( STDOUT, '>:raw', $out ) or exit 98;
         open( STDERR, '>:raw', $err ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args )
             or exit 99;
     }
@@ -440,8 +440,8 @@ if ( $ENV{'N7FS_INCOMING_SCALE'} ) {
 
 done();
 
-#,,,,,.,.,...,,.,,.,.,..,,...,,.,,...,,,.,.,.,..,,...,...,...,,,,,,.,,..,,,..,
-#IMEUXKTUMQQG5LPSFNFMSEA7IURI762E4QNFL67CSCDWRD6XS4A4VWQYO4733RO25XXXOAW7CY5FW
-#\\\|DEEGHBYNIQOCKPSZ3T3HX4ZKVDOOGF6HI3KAEEL55J74R4WLQ7H \ / AMOS7 \ YOURUM ::
-#\[7]42POJQYR7ZTKUMTFO7CTJO6HALJL2ZCKBIEQNCZKBJCTMC37PYDY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,.,.,,,,,.,,,,.,,..,,...,.,.,..,,...,...,,,.,.,,,,.,,,.,,.,,,
+#63HR5S64A4VZWDKYB4GOS7GF4NWOQF63DUMANEZMXQ7LDDVE66PMWY3ABQD3XOL7C5FZKJSILNSHQ
+#\\\|Z7YXSGH24353U3V3VYSEPL62MII3KGFJYGU4UIKNALZLXPP2N3C \ / AMOS7 \ YOURUM ::
+#\[7]4DWLHDGJ7MGP4NNBAE3ZIZ43MI3HUUZE7MMPFDP5NNVBR3VMHUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use Test::More;
 use File::Temp         qw| tempdir |;
@@ -806,7 +806,8 @@ subtest 'prior type checks and new module source boundaries' => sub {
         qw| data/lib-path/pm/AMOS7/N7FS/Canon.pm
         data/lib-path/pm/AMOS7/N7FS/Prior.pm |
     ) {
-        open( my $fh, '<:raw', "$FindBin::Bin/../../$path" ) or die $OS_ERROR;
+        open( my $fh, '<:raw', "$FindBin::RealBin/../../$path" )
+            or die $OS_ERROR;
         local $INPUT_RECORD_SEPARATOR;
         my $source = <$fh>;
         unlike( $source, qr|Digest::SHA|i, "$path has no sha module" );
@@ -1178,8 +1179,8 @@ subtest 'switch record and complete kind inventory' => sub {
 
 done_testing;
 
-#,,..,..,,...,,,,,...,,..,.,,,,.,,.,,,,,,,..,,..,,...,...,.,,,.,.,...,,,.,,,.,
-#S3LFBMGTY5H77QFC2T3ZVMKOMWNKJILNAXLHSC7GMDILVFA4PIYFD2LPZ7G743KPHVYY3UJNZ2JZS
-#\\\|2N5OXSG4QJWYAD42GIRHSDKF6KJ4455FHIGTWSJNPGL4ZMXGBA7 \ / AMOS7 \ YOURUM ::
-#\[7]EJKQSM4DRA6SB55NJ3JBNBZX7RMFP6MLNS6Z5C6OQOSKIA3YDCBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,,,.,,..,,.,,,,.,,.,,...,...,,.,,..,,...,...,.,,,,,.,,,,,,.,,..,,
+#FMENPPZNNKX7DPIJGSSN452S5F3Z2F3IAMPGVVBYQU6HY5ODFJBOU5ENIPZUS6PFHUGJQVVJVWA6S
+#\\\|YFMAKV3YHBQZO5XF56GA2XQLM7NF7VSHXP3R6G5UICSBIUBAJLO \ / AMOS7 \ YOURUM ::
+#\[7]FS4HUNJTTERX4HG3X2I5IKMTPL735PPKENE75EVHEVM2PRRJGWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,7 +16,7 @@ use File::Temp qw| tempdir |;
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::Vault qw| vault_init vault_open vault_unlock entry_save
     blob_import |;
@@ -29,8 +29,8 @@ sub ok {
     else         { $fail++; say "  FAIL  $name" }
 }
 
-my $vault_bin = "$FindBin::Bin/../p7-vault";
-my %kdf       = ( t => 1, m => 8192, p => 1 );    ## cheap, test only ##
+my $vault_bin = "$FindBin::RealBin/../p7-vault";
+my %kdf       = ( t => 1, m => 8192, p => 1 );     ## cheap, test only ##
 my $tmp       = tempdir( CLEANUP => 1 );
 
 ## ssh stand-in : 'wrapper <host> <command>' -> sh -c <command> ##
@@ -306,7 +306,7 @@ ok( $rc == 0
     ok( $rc == 0 && $out =~ m|saved : \Q$drive\E fakehost:| && -e $list,
         'saved targets : -a saves, a repeat once' );
     ok( ( ( stat $list )[2] & 07777 ) == 0600,
-        'saved targets : ' . 'the list is 0600'
+        'saved targets : the list is 0600'
     );
     ( $out, $rc ) = $run->( '-a', q{'bad;host'} );    ## quoted for qx ##
     ok( $rc != 0 && $out =~ m|unsafe sync target|,
@@ -368,8 +368,8 @@ ok( $rc == 0
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,..,,,.,,,,,.,.,,..,,..,,..,..,,.,,,,..,.,.,..,,...,...,...,.,,,,.,,,.,,.,,,
-#UDS2JXMY4KQK4AGYFNY5Z2VXPLNYKLJVFMSGMPKHRZU77QA3PRYPW2MNIQ5VRKKLPPOWA3S5FVJAG
-#\\\|XQZZVRABXP5V3C4LAFB4AIALD5MDSOJUOG7JFNECENKMFMIP5CL \ / AMOS7 \ YOURUM ::
-#\[7]5GVQ63YCX6VDKA7MMAG5QJBQK7UWNULHHBTGJYJ2TIEOPJAQ4CAI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,..,,,,,,.,.,,,,,.,,,.,.,,,,,,,,,..,,...,...,..,,.,.,.,,,.,.,.,.,
+#2A5VE5KHXVOVW2RGPS4NWBESAEXWOR3YKNRY5Q7WNU4FQ5PEURZ3LV335YBNGSMGQKOUD6JOYHGRE
+#\\\|B6FGCD67GZZPQ3MJEDTUG6GNBWDUO4OTESANBJ4SVDZUNGCJ4DQ \ / AMOS7 \ YOURUM ::
+#\[7]H4AVWYVEXCBGGKU2MHKCN57TLL57ZNDSLTVRITC5LN7PFGWBCECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

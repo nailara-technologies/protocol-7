@@ -10,7 +10,7 @@ use warnings;
 use FindBin;
 
 BEGIN {
-    unshift @INC, "$FindBin::Bin/../../data/lib-path/pm";
+    unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -24,7 +24,7 @@ use AMOS7::N7FS::Store qw| assimilate store_verify store_nodes meta_entries
 use AMOS7::N7FS::Convert qw| upgrade confirm |;
 use AMOS7::N7FS::Journal qw| journal_replay |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 use constant TRUE  => 5;
 use constant FALSE => 0;
@@ -55,7 +55,7 @@ sub cli_n7fs {
     if ( $pid == 0 ) {
         open( STDOUT, '>:raw', $out ) or exit 98;
         open( STDERR, '>:raw', $err ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args )
             or exit 99;
     }
@@ -251,8 +251,8 @@ ok( store_verify( %crash_run, disk => $crash_disk )->{'nodes'} == 1
 
 done();
 
-#,,,,,,.,,,..,,.,,...,.,.,,.,,,.,,.,,,.,,,...,.,.,...,...,..,,,.,,,..,,,,,,,,,
-#DEMW4ZZ7KE6FKK4KXDVYEWJV765QSCPYRNGOP43GNOC55WSSELEBGNDOQF3XXEJOQ55XAA7MLLZTA
-#\\\|3B775MFVZAMIJOTER7I5IQB4NXQQUOCP2PGW6E5X5R7UFIM3JJR \ / AMOS7 \ YOURUM ::
-#\[7]URKI5ISC6K34J7KETDCO7ECEJXYVYU7FXURSY6BBF7HELIYIAIAI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,.,,.,.,,,,,..,,,..,.,,,,,.,.,,,.,.,...,...,...,.,.,.,,,.,.,,..,
+#IY3UNHTYFXAC4UP7OFFJA5XKJRDRCRBN6FAE4FOAKYDXMJQELW7YXSYP2Z7VCSEV6TOOUN6NTRIGU
+#\\\|W2IWADVBNQWJ765PKVGJRZVJ7YXIGN36SDA44E2WOFSQGG3IJG5 \ / AMOS7 \ YOURUM ::
+#\[7]6WZRHGJS4W7VT6RIV46WF2GUH6V3VOV62AZREMV2NEH5XMOAUOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

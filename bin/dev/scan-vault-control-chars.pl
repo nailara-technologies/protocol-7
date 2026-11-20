@@ -14,7 +14,7 @@ use English;
 
 use FindBin;
 
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::Vault qw| vault_open vault_unlock vault_lock entries_latest
     entry_versions |
@@ -98,8 +98,8 @@ say $seen
     : 'no control characters in any note version';
 exit(0);
 
-#,,,,,.,.,,.,,...,,,,,...,,,,,,.,,.,.,.,,,.,,,..,,...,...,,.,,.,,,.,,,,,,,.,,,
-#AWLA4VHECA4WGQZSXH656YYWOPOZEH6PIIG73NLR6MSBK3LDAOGPTOGT7K6IKPGU3ZZNXJFASYCZA
-#\\\|FMNOYTWZHXHERXQZNOC6H2DGN7OH2CEA72YJOVJZOPU6YRGIFQP \ / AMOS7 \ YOURUM ::
-#\[7]P5UXQVNIZPYKUQRRHCOZMAAJGRRRRDPSLIFUPVI6U3ODBMAQPGCA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,,..,,,,,.,,,.,.,.,.,...,,,,,..,,...,...,.,.,.,.,.,.,,,,,...,
+#ZSL5EXZJUZVVHTJQPGVW5Z72D6UMMSZ3C6DAJT2GPPIRY4G5GTHDZVMGTNKCOF62NBGCLQ6AFQ6R2
+#\\\|WFIY4XPXOYDEFCZKBMZLZGGLNGAY6YH3VXUA6KYGFDZEBLYX2RY \ / AMOS7 \ YOURUM ::
+#\[7]TNEKQWGSTVNYNP3SOXMF6MKFL4AQYJ6UJZN74IQW3LVCKBOSA4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,7 +12,7 @@ use warnings;
 use FindBin;
 
 BEGIN {
-    unshift @INC, "$FindBin::Bin/../../data/lib-path/pm";
+    unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -27,7 +27,7 @@ use AMOS7::N7FS::Store qw| assimilate store_verify store_nodes meta_entries
     reference_entries reference_drop store_repair codec |;
 use AMOS7::N7FS::Journal qw| journal_replay journal_head journal_write |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 use constant TRUE  => 5;
 use constant FALSE => 0;
@@ -50,7 +50,7 @@ sub cli_n7fs {
     if ( $pid == 0 ) {
         open( STDOUT, '>:raw', $out ) or exit 98;
         open( STDERR, '>:raw', $err ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args )
             or exit 99;
     }
@@ -755,8 +755,8 @@ ok( store_verify( %base, disk => $disk ), 'and the journal has no fork' );
 
 done();
 
-#,,,,,,,.,..,,,,.,...,,.,,.,,,,,,,,,,,,.,,,.,,.,.,...,...,...,,,.,.,,,,..,,,.,
-#A4YA2TL2Y5GKMFTBPEV27NEWXWBATYZFF7LPC6CRBUID2R7X6SK5XT4B5A3TNLQNNFDXVYXQXETAS
-#\\\|XE3G4NX5FW64JBZWRAN7FSL2S77VRRKO6UGFHYWIO6UVCDZSGWN \ / AMOS7 \ YOURUM ::
-#\[7]75A6R77PWXIWXNH3YYMGJJ3ICLIEUXJUILNGCLTCFZOFWJEY74CA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,.,.,,,.,...,.,.,,,.,,..,..,,.,.,...,..,,,..,..,,.,,,...,..,,
+#H3XNE4TJPCOEVHFHEQX2W4MSVF6EMH5PFJBWKUJ7VN3ANZ6PJVJ6ZSLLG2YAXZCPHUUDA4SIWHS76
+#\\\|73WCIKZVGUNVIDUMJS4W5I7G63OTV4BXNMWUDKW25HAN5EPVMPO \ / AMOS7 \ YOURUM ::
+#\[7]4TAID5XQOI2BOEQHQSFAEP6BJ37FVI6EDKNTAJPXTKCMPQHKTYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

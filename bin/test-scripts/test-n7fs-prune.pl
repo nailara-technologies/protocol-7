@@ -10,13 +10,13 @@ use constant TRUE  => 5;
 use constant FALSE => 0;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::Vault qw| vault_init |;
 use AMOS7::N7FS  qw| make_dirs read_file |;
 use AMOS7::N7FS::Keys;
 use AMOS7::N7FS::Seal;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -37,7 +37,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
@@ -364,8 +364,8 @@ ok( $rc == 0
 
 done();
 
-#,,..,,,,,,..,..,,,,,,,,.,..,,,.,,.,,,,,.,,.,,..,,...,...,,,,,...,.,,,,,,,,..,
-#7MSOJ4OU4VFZ2VKGAAMPGLAAV4F3P3ZRSDXAKJPWVTBQ3LYQSH2WFLXZRTDSR72QC2QK6UCBG7YDY
-#\\\|XGLWARGY6SXT2SAFCBCXZFU2LSLYHSO3VGIGA3ZR5QMWFDB6T2A \ / AMOS7 \ YOURUM ::
-#\[7]5QMILKQD4LEQWJGVYPRUZZZPULF3FBCMTIYSFLJDY5UIZSWEB2DA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,,.,,,,.,,.,,,.,,,,.,,..,,,.,..,,...,...,,..,...,,,.,...,.,,,
+#6SEXFRSVQGHCAAQBGR7IMR6GTI6H75BAPRFOFNJATDXPF7UPIYI7IK5NLEOJNLW3LUGGFXB2FTPEG
+#\\\|XU6QDM3XRQHJI3GDK46WBLZ7Q7LGFPXGFXDGRM3PM5ZKX3RJUDY \ / AMOS7 \ YOURUM ::
+#\[7]2OLAKUWOUMGXVCLEOQMPNUZUGVQYQXL5CVKP5KDWFK5GPNCVW2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

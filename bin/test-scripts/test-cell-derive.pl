@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use Math::BigInt;
 use Math::BigRat;
@@ -14,7 +14,7 @@ use AMOS7::N7FS::Sum  qw| epoch_int epoch_num epoch_window |;
 use AMOS7::NTIME      qw| y_level_ntime ntime_now |;
 
 my $report_name = qw| cell-time-float-mismatches.txt |;
-my $report_path = "$FindBin::Bin/../../data/state/$report_name";
+my $report_path = "$FindBin::RealBin/../../data/state/$report_name";
 my @float_mismatches;
 
 sub mismatch_line {
@@ -143,7 +143,7 @@ sub run_suite {
         }
     }
 
-    my $report_dir = "$FindBin::Bin/../../data/state";
+    my $report_dir = "$FindBin::RealBin/../../data/state";
     mkdir $report_dir if not -d $report_dir;
     my $report_ok = open( my $report_fh, '>', $report_path );
     if ($report_ok) {
@@ -281,7 +281,7 @@ my $floor_status = -1;
 if ( defined $floor_perl ) {
     local $ENV{'P7_CELL_FLOOR_CHILD'} = 1;
     open( my $floor_fh, '-|', $floor_perl,
-        "$FindBin::Bin/test-cell-derive.pl" )
+        "$FindBin::RealBin/test-cell-derive.pl" )
         or die "floor perl : $OS_ERROR";
     local $INPUT_RECORD_SEPARATOR;
     $floor_output = <$floor_fh> // '';
@@ -329,8 +329,8 @@ if ( defined $nearest ) {
 }
 exit( $floor_ok ? 0 : 1 );
 
-#,,..,...,,.,,,,.,.,.,,..,..,,,.,,,..,,,.,.,,,..,,...,...,...,.,,,,..,,,.,,,,,
-#EMWHRJGCWBQ6J66B52NOX32HHPVR45U3ZD7EOOW34FJ7L6JKLXIHNPZX54WUP2T2T7OJ4EX5BYA7M
-#\\\|A5VCES4FAI3CLQEI4ZWZSL5DUMLPVFXNQH443WQOOFN636PDAIN \ / AMOS7 \ YOURUM ::
-#\[7]OL4RKB3JR3TK646KPOBGUGZUFO5SUH36PF7WESIUIEMRSWOAUOBA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,,.,,..,,,..,,.,,.,.,,..,.,.,..,,...,...,,..,...,,,.,.,,,.,.,
+#MYE4NBV3RXPSX4PEIA25D3WLRDTLVCMF4IJDFSIJB7DAY72HWJNDLXXDBIPZYKARCLUEXJNJNU46G
+#\\\|IADSB6ZZIZAOZO26NEQ6DVN26MVU5COFWDFTTW2QZZEPOEXXCQE \ / AMOS7 \ YOURUM ::
+#\[7]HUPP25FABUEOST5KLAJ3PXD3DRYCJFNE6MJXLIW2JWGCWHGNEKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

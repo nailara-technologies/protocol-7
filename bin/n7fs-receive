@@ -53,7 +53,7 @@ use warnings;
 ## sealed and unreadable here.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../data/lib-path/pm" }
 use Fcntl            qw| O_RDONLY O_WRONLY O_CREAT O_EXCL LOCK_EX |;
 use AMOS7::N7FS      qw| b32 unb32 read_file make_dirs remove_tree sync_dir |;
 use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
@@ -766,8 +766,8 @@ if ( $verb eq 'delete' ) {
 
 out('unknown request');
 
-#,,,.,,.,,,,,,,,,,,,.,,.,,...,,,,,,..,...,,,.,..,,...,...,..,,...,,,,,.,,,...,
-#CE3NKFXZVWNPW7K75LORPM2BYWVVFITOLNO6I4HK3GFSWOOSLKANUNZC244PLBIIHDNHOH2IJJE5U
-#\\\|KPYYHTN4UIIGIKWNPXX5PN7AEZQ75ZO76K5QJOGIQZ6PD4F2PFH \ / AMOS7 \ YOURUM ::
-#\[7]YJRIPVLML7XDA7ZF536RDRPHGWKH4NRR6JAGH7XXVOSVWABZ2UAQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,,..,...,.,.,,.,,.,.,,,.,.,.,..,,...,..,,,.,,,.,,,.,,,,,,,..,
+#ITLGAJXKPB4CBZRKNOL4HMVVENISB3Z4VKR4NNKCRPDBG5QZLB2QNR3DF6VHEI7GBVIRWYERO54O6
+#\\\|UBV7WDR5BNSNIMWFTBRDDNTRWKOD6CBHKF7MSCKNAFF5ODQQLJW \ / AMOS7 \ YOURUM ::
+#\[7]LYDUGBAEB5YRTNK6JT4NNL7UDI4527N3EOJZMCVOJ6K2DGNIO4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

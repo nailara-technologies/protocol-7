@@ -16,7 +16,7 @@ use warnings;
 use FindBin;
 
 BEGIN {
-    unshift @INC, "$FindBin::Bin/../../data/lib-path/pm";
+    unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -28,7 +28,7 @@ use AMOS7::N7FS::Store qw| assimilate store_verify store_nodes meta_entries
     codec |;
 use AMOS7::N7FS::Convert qw| steps upgrade confirm |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -73,7 +73,7 @@ sub cli_n7fs {
     if ( $pid == 0 ) {
         open( STDOUT, '>:raw', $out ) or exit 98;
         open( STDERR, '>:raw', $err ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args )
             or exit 99;
     }
@@ -316,8 +316,8 @@ sub unchanged_after_v2 {
 
 done();
 
-#,,,.,,,,,.,,,.,,,...,.,,,...,,,.,...,.,,,..,,.,.,...,...,,.,,.,,,,,.,,.,,...,
-#NKQBSWJOBZK5VTRIRIOW3UZKWZQ7T3OE7HRVGQT4XHFU6RB36EJFCF7WJP2SUCJD7ZPWLORRALKSK
-#\\\|B5RQOHCWGL4M3CRZPHJB3O6ZJQZBKZMJGSY42Q57WZTHS5NYYDO \ / AMOS7 \ YOURUM ::
-#\[7]XXLL6OKOT33YQYDV6QGYTIIAFOVID3UVTMNOC7DVS3FUAJVJHODA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,,,,,,..,,,.,,.,,.,,,...,..,,.,.,...,...,..,,,..,..,,,..,,,,,
+#446MSGC3QKUIWCVLKL7WY52TIVCIWMOLCXLFGFXVA6WIYM6A6TJRYWXZBTCSA7PF36J3FFIVKJUDS
+#\\\|M3JP37IR6RLJYL6YHYN6HBSXJCAQZOJCWAKVA3NVEBVYULOHW52 \ / AMOS7 \ YOURUM ::
+#\[7]W73IK6NEQTVHB6K2MEGDQP56R7OF5LLMJIJT4OUEONRIM36W7KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

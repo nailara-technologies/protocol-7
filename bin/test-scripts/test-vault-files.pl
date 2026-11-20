@@ -17,7 +17,7 @@ use IPC::Open2 qw| open2 |;
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::Vault qw|
     vault_init vault_open vault_unlock
@@ -197,7 +197,7 @@ ok( !$locked_ok, 'locked vault : import refused' );
 
 ## CLI tests : import -a / export -a / export -d through bin/p7-vault -- the
 ## passphrase and the confirms travel on stdin [ no tty ]
-my $vault_bin = "$FindBin::Bin/../p7-vault";
+my $vault_bin = "$FindBin::RealBin/../p7-vault";
 
 sub p7vault {
     my ( $input, @args ) = @ARG;
@@ -520,8 +520,8 @@ SKIP_UNREADABLE: {
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,..,,..,,..,,.,,,,,,.,,,.,,,,..,..,,,.,,..,,...,..,,,.,,.,,,,,.,,.,,.,.,
-#VAENDRRCXQLRU47D2LFQYH5WGDCZ6OOL2432AXWC7B5X6N427L5NNNI6GORVX22JWFER2XSHSKTY2
-#\\\|IJL4HNX7ZDJV6Y2FDIEZLMPUX5V7GLSWZUIUPTCCXPT6IXHNTBN \ / AMOS7 \ YOURUM ::
-#\[7]B634OC6PNVUU3VX7ZPEUUOVVFCYZA5E2I2T4JMPB52SAXKNYWQCI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,,..,,,,,.,.,,..,,..,.,.,,,,,..,,...,...,...,.,.,.,.,,,.,..,,
+#N7HMMXU4TVFC32NVHDUVJJQL7SFUKC2PW3UWFVIZDG3OVKKBQA7LQ7QQRBMRZTBRLB72VPTA5PMVW
+#\\\|S25P2WR2SAP7UTNFXXGKBX3XYMCSRN36YLVO4U4EC7DHXX7WZ3F \ / AMOS7 \ YOURUM ::
+#\[7]ART2FR3FL6LPWNLVLRACAVWER6MSMM4TVD63K7DHCPKVUZPGTEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

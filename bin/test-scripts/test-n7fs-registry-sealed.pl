@@ -7,7 +7,7 @@ use warnings;
 ## stage 6 : root registries, sealed recovery copies and per-root relays.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use JSON::PP;
 use AMOS7::Vault qw| vault_init |;
 use AMOS7::N7FS  qw| make_dirs read_file unb32 |;
@@ -15,7 +15,7 @@ use AMOS7::N7FS::Keys;
 use AMOS7::N7FS::Seal;
 use AMOS7::N7FS::Holder qw| holder_read |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 
@@ -35,7 +35,7 @@ sub cli {
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
         exec(
-            $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs",
+            $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs",
             '-root',          $root,
             '-host-dir',      $hdir,
             '-vault-dir',     $missing_vault,
@@ -328,8 +328,8 @@ ok( exists $reg_vault->{'vault-one'} && !-e "$v->{'path'}.state/registry",
 
 done();
 
-#,,..,,.,,.,,,.,.,.,.,,,.,.,.,,,.,.,.,.,,,...,..,,...,...,,.,,...,,..,...,...,
-#AOQCNO4DV7U3WQ7XZAQLECTCEXZY337HRHRAU3ZQKCHUNJDOQZPIDNE6MSJW56FIRWOXRHGJBG7GI
-#\\\|HA3SY4MCT4XZMK44R54FE3S4Z47INHUZXGOISLNOVT7P6O5TAS6 \ / AMOS7 \ YOURUM ::
-#\[7]GVQ6PFY2JPYDOXBIXWOROSCIGV6FP2PY2V43CZACACRTGTG2DUDA 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,,,,,.,.,,..,.,.,...,,.,,.,.,..,,...,...,,,,,,..,,,,,..,,.,,,
+#FXHPJNJTMVC2DJZYL7JPXUQR76GS4OJRYNSEYRWXB7BLAFVM22RN6NXAJOITG6H2P2BT663A5SRYI
+#\\\|KQUJ6JQ5T7BGZMS5S6LTPXLYCSGCAMMCWBKJCUOXSUA34VJMLHY \ / AMOS7 \ YOURUM ::
+#\[7]JKKCGPHPYTYUCVBIEP7SDWQKFDGZ5CXLDR5PVJXOT5H3CU2666CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

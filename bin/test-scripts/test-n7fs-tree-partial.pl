@@ -7,7 +7,7 @@ use warnings;
 ## stage 5 : mixed-tree placement limits, partial heads and combined recovery
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::Vault      qw| vault_init |;
 use AMOS7::N7FS       qw| make_dirs read_file |;
@@ -16,7 +16,7 @@ use AMOS7::N7FS::Seal;
 use AMOS7::N7FS::Sign qw| key_file_signer |;
 use AMOS7::N7FS::Placement;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 my $box  = sandbox();
@@ -36,7 +36,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
@@ -342,8 +342,8 @@ ok( @seal_attempts == 3
 
 done();
 
-#,,..,..,,,,,,,,.,...,.,.,,.,,,,.,,.,,..,,.,.,..,,...,...,,.,,..,,,..,,..,,.,,
-#SIUEJWW3OR5CUVQ2AI2V4L3YTM2QVKXNOOSDRAUZ7UJELPKQOSVLJSHIL4TX66K2DFTG43HYPO6TG
-#\\\|WE57AALQTXL57O2E56B7PSSCR4EEMCYSUZKBDRNAIWKF2RYACKA \ / AMOS7 \ YOURUM ::
-#\[7]UXL2QFMW7VBFRA5UVYL2VTASCATO7UTLCACTBZYCD3PEQFNFXGDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,,,,,,.,,,.,,,.,,..,,,..,,,,,..,,...,...,,,,,...,.,,,,,.,,,,,
+#GRM5D73D24JGIOJTLFJQ2JVT3ANCZPOKQSOE3UDSWP7D7LCRY6SOEFFN3EWCFSGNHH5PAINU5O45U
+#\\\|XHUZNFCC2IIHJTCZSXJIIOW3BYJ6X4ARQWEYK5XALTFLULVSM7Y \ / AMOS7 \ YOURUM ::
+#\[7]CH4QTP35YQF7OFLY2ZBNAS2LNDUIEDVNXRYFR3OTYPFXDXPINOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

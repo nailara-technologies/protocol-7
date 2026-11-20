@@ -8,7 +8,7 @@ use warnings;
 ## subdirectory per root, holder-migrate [ the host lock is f5bd660d6 ].
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::Vault         qw| vault_init |;
 use AMOS7::N7FS          qw| make_dirs read_file |;
 use AMOS7::N7FS::Sum     qw| bmw384_bytes bmw_b32 |;
@@ -19,7 +19,7 @@ use AMOS7::N7FS::Seal;
 use AMOS7::NTIME           qw| y_level_ntime parse_y_age y_age_str |;
 use AMOS7::N7FS::Placement qw| parse_age |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 ## single node blobs : every node is its own blob here ##
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
@@ -72,7 +72,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
@@ -435,7 +435,7 @@ ok( $rc == 0, 'gc after migrate is structural, no -only-root' )
 ##[ the same over fake ssh ]##################################################
 
 my $fake = "$base/fake-ssh.sh";
-copy_tree( "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh", $fake );
+copy_tree( "$FindBin::RealBin/fixtures/n7fs/fake-ssh.sh", $fake );
 chmod 0755, $fake or die $OS_ERROR;
 my $remote = "$base/remote";
 make_dirs( $remote, 0700 );
@@ -493,8 +493,8 @@ sub _today {
 
 done();
 
-#,,.,,...,..,,,.,,..,,,,,,..,,.,.,,,,,.,.,,.,,..,,...,..,,...,..,,...,,..,,..,
-#VFCNNGHEM6X4GZFPVP2VMHCCUULTG7K3XVJAVDMGM5RAAMWQ7WLFN6CUR52QFAFR3R6FPGXBXXGBY
-#\\\|EN7KZ2OHRB5DFMH3YNV3SGFU2JBK4KU62BV5MQDW2XSDR37INMA \ / AMOS7 \ YOURUM ::
-#\[7]CAIX333GMDXP6BE7OWPCPMNTALEFCM7SEO7IID26T3FQIJ5VMKAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,.,.,.,,,,,.,,,.,.,,.,,..,,.,,,..,,...,...,..,,.,.,.,.,,..,,,.,
+#GLFZCMN6C35GBCA2JX5DDVDWQFLRN4JKIEYOAQSLABC7ZT7IO2R5Y5X7VHXVCCNFI43F332NX3X7O
+#\\\|OTHTLWZZ6QTI2VR6CBYL2BDXGKWJQ4BSFAWT455B2DCE2S3OBQV \ / AMOS7 \ YOURUM ::
+#\[7]JGB7SR7FA5IHXJMTCFOXEHWOGKMGYIVJFEL56IG4ZKKMA5BSSWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,7 +12,7 @@ use Symbol     qw| gensym |;
 
 $^F = 100;
 
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use JSON::PP;
 use AMOS7::N7FS        qw| make_dirs read_file |;
 use AMOS7::N7FS::Disk  qw| disk_init disk_attach |;
@@ -21,7 +21,7 @@ use AMOS7::N7FS::Keys  qw| root_open |;
 use AMOS7::N7FS::Seal;
 use AMOS7::N7FS::Drill qw| drill_records drill_latest drill_status |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 
@@ -38,8 +38,8 @@ sub cli {
     open( my $pass, '<:raw', $passfile ) or die $OS_ERROR;
     my ( $in, $out, $err ) = ( undef, undef, gensym );
     my $pid
-        = open3( $in, $out, $err, $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs",
-        '-pass-fd', fileno($pass), @args );
+        = open3( $in, $out, $err, $EXECUTABLE_NAME,
+        "$FindBin::RealBin/../n7fs", '-pass-fd', fileno($pass), @args );
     close $in;
     my $stdout = do { local $INPUT_RECORD_SEPARATOR; <$out> }
         // '';
@@ -364,8 +364,8 @@ ok( snap_equal( $before, snapshot($clean) ),
 chmod 0700, $clean or die $OS_ERROR;
 done();
 
-#,,,.,,,,,,,.,,,.,,..,.,,,...,.,.,,..,.,,,...,..,,...,...,..,,,,,,,..,.,,,.,.,
-#NPQHV27OBK5GRYCOVW6P4CNCJ6PXN77WCSYXCVZBMHSR7WOR5KYUCFOA7HCDRRT2UOL3JJVDHZ22Q
-#\\\|XYZXJL2TPBCE52YOJCIC5VMVBOP2BDNGFEFL7KEXLEBHKV45VXL \ / AMOS7 \ YOURUM ::
-#\[7]5S5Q7YIF5AQ2O7Z2CXPNLRPDEQUCODRJEHYW5JLSYXM5WZDLFYAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,...,.,.,..,,,,,,...,.,,,..,,..,,...,...,.,.,,..,...,.,.,.,,,
+#FANKDKM7EM3RX6RT24V65E674XHNLVWHM2E5KVCX2PX4ANAJRG3G22DJ6AYVZDXJPMZLQVILHWG7G
+#\\\|2LC7VSHZHTHUS263P3PJ3246JSHSQJ2RLETY3PUE5WVO6KPHYJA \ / AMOS7 \ YOURUM ::
+#\[7]DJNA3WLPOKX4AODVBQKINMWBXBC3P35PCUGHJ5WFB2BB53FOJ4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

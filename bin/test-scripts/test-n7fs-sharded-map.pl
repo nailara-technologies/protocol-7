@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use JSON::PP;
 use AMOS7::N7FS        qw| read_file write_new_file unb32 make_dirs |;
@@ -15,7 +15,7 @@ use AMOS7::N7FS::Keys  qw| root_init root_open |;
 use AMOS7::N7FS::Seal;
 use AMOS7::NTIME qw| parse_y_age |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 my $json = JSON::PP->new->utf8->canonical;
@@ -261,8 +261,8 @@ my $clock       = 1_000_000;
 
 done();
 
-#,,,,,.,.,.,.,,,,,.,,,,.,,,,,,.,,,,.,,.,.,...,..,,...,..,,...,.,.,...,.,,,,.,,
-#CJYRST4CFSMHWZFHV53UZTFQ5S5L522MD5XYGQA6VXIIOP7CSASGHZWWNORULXMS2YHQTPGLVOOBQ
-#\\\|KE27XVJ7FWW5DLVG2SWDIMVNWMVUFZGQ7HTR6TP5BNA2IXHGVST \ / AMOS7 \ YOURUM ::
-#\[7]56QQ4WKQ6ZV22JXS6IWNFBSKLDQI5HSSHPUXE6PNADFPBUJCWQBY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,..,,,.,,,.,,,..,,,,,,.,,,,,,,.,,..,,...,...,...,,..,,,,,...,,..,
+#M44LSFI2WPJLXDORWLVMK67UMI5INNXVTKYOZOKJVAFEFVFV2523K4NL7XY2FIHFCWLJ6YLMDLVFO
+#\\\|NLA27LQYQLKYDVFYYLCZ2LGXNNO63D6D5M2RAIYDEXVIVIRZR7U \ / AMOS7 \ YOURUM ::
+#\[7]FPKBYANYVDTZ6YI6XPIGB5IJVFVFKVJKPCSOAA6TBCCVY2GUYKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

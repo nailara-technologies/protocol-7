@@ -73,7 +73,8 @@ use constant FALSE => 0;    ##  false  ##
 
 BEGIN {
     ## repo layout first [ bin/ + data/lib-path/pm ] ##
-    unshift @INC, "$FindBin::Bin/../data/lib-path/pm", "$FindBin::Bin";
+    unshift @INC, "$FindBin::RealBin/" . "../data/lib-path/pm",
+        "$FindBin::RealBin";
     ## no Inline C object in this process, ever : the compiled cache under ##
     ## ~/.7/inline-code is user-writable and carries no signature          ##
     ## [ todo RCM ] -- this process holds the unlocked signing key, so     ##
@@ -1207,9 +1208,8 @@ sub tty_watch_mode {
 ## the files a restart runs : the agent itself and its repo modules under
 ## data/lib-path/pm [ what the new process will load ]
 sub restart_files {
-    my $lib_root
-        = Cwd::abs_path( sprintf qw| %s/../data/lib-path/pm |, $FindBin::Bin )
-        // '';
+    my $lib_root = Cwd::abs_path( sprintf qw| %s/../data/lib-path/pm |,
+        $FindBin::RealBin ) // '';
     my %files = ( $script_path => TRUE );
     foreach my $loaded ( values %INC ) {
         my $abs = Cwd::abs_path($loaded) // next;
@@ -1267,7 +1267,7 @@ sub start_files_gate {
 ## files on disk vs the last commit [ the fresh-start view of a change ] ##
 sub head_diff {
     my @paths = @ARG;
-    my $tree  = Cwd::abs_path( sprintf qw| %s/.. |, $FindBin::Bin );
+    my $tree  = Cwd::abs_path( sprintf qw| %s/.. |, $FindBin::RealBin );
     my $read  = sub {
         open( my $fh, '-|', @ARG ) or return '';
         local $INPUT_RECORD_SEPARATOR;
@@ -1309,7 +1309,7 @@ sub code_snapshot_diff {
         close $fh;
         return $out;
     };
-    my $tree  = Cwd::abs_path( sprintf qw| %s/.. |, $FindBin::Bin );
+    my $tree  = Cwd::abs_path( sprintf qw| %s/.. |, $FindBin::RealBin );
     my $pager = $read->( qw| git -C |, $tree, qw| config --get core.pager | );
     $pager =~ s|\s+$||;
     my $color = length $pager ? qw| always | : qw| never |;
@@ -1463,8 +1463,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,,,,,.,...,,..,,,,,,.,,.,.,,,,,..,,,.,,,.,,..,,...,...,...,,..,...,.,.,,,,,
-#EJO7GCKDGOWDK6DWIKGC2V4U5LVQXQURB6DEIAAVEXK2A5CWBPJEUWOPGEBNEY7UK4J5X5X6B3KWC
-#\\\|QXZO2OGIOSI4ANDT3WNVV6GBRZXV6MRBQIV3YTJAOOPISFX3PSK \ / AMOS7 \ YOURUM ::
-#\[7]JUSLRHC5HSQ5N3JXC7JPZVHZXCFJ3PHWEMGIQXKHICJ6OLBBNMDI 7  DATA SIGNATURE ::
+#,,,.,...,,..,,..,,,,,..,,,.,,.,.,,..,...,,,,,..,,...,...,..,,,,,,,,,,,.,,,,,,
+#2JQWJQR5MJWYBHHRHFZFJLWWFQI4COFXSFNQV4UEIIN76RWUEGGDDT6SQBSD7MMLZLHBUZUHEFX7A
+#\\\|FICUFQFNP2XLUIIFEPR45QOM4MXNIEKLKQXQSSI2YMDKFELSJV7 \ / AMOS7 \ YOURUM ::
+#\[7]77RBAJ57J6A7EQYDNYXB2MIT65GZVT246IM5IVGUZ7FB3ZGBB6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@ use warnings;
 ## review finding 2 : a home holder through only its forced receiver command.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::Vault     qw| vault_init |;
 use AMOS7::N7FS      qw| make_dirs read_file b32 |;
 use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
@@ -17,7 +17,7 @@ use AMOS7::N7FS::Receiver qw| holder_id request_sign |;
 use AMOS7::N7FS::Sign     qw| seed_signer new_seed |;
 use AMOS7::N7FS::Holder;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 ## single-node blobs make one shred produce one unreferenced blob for gc ##
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
@@ -39,7 +39,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
@@ -70,7 +70,7 @@ sub receive {
         open( STDIN,  '<:raw', $pf )                    or exit 98;
         open( STDOUT, '>:raw', "$base/receive-output" ) or exit 98;
         open( STDERR, '>&',    \*STDOUT )               or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs-receive",
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs-receive",
             "$base/remote", @args )
             or exit 99;
     }
@@ -125,12 +125,12 @@ my @receiver_args = (
     '-head-name', "$main_root->{'root_id'}:$head_name",
 );
 ## only the disposable copy is made executable, never the tracked fixture ##
-copy_tree( "$FindBin::Bin/fixtur" . "es/n7fs/forced-ssh.sh",
+copy_tree( "$FindBin::RealBin/fixtur" . "es/n7fs/forced-ssh.sh",
     "$base/forced-ssh.sh" );
 chmod 0755, "$base/forced-ssh.sh" or die $OS_ERROR;
 $ENV{'N7FS_SSH'}         = "$base/forced-ssh.sh";
 $ENV{'FORCED_PERL'}      = $EXECUTABLE_NAME;
-$ENV{'FORCED_RECEIVE'}   = "$FindBin::Bin/../n7fs-receive";
+$ENV{'FORCED_RECEIVE'}   = "$FindBin::RealBin/../n7fs-receive";
 $ENV{'FORCED_DIR'}       = $remote;
 $ENV{'FORCED_ARGS'}      = join ' ', @receiver_args;
 $ENV{'N7FS_SSH_BACKOFF'} = '0,0,0,0,0';
@@ -336,8 +336,8 @@ ok( $rc == 3 && $out =~ m|outer signature|,
 
 done();
 
-#,,..,.,,,,,,,..,,,,.,,..,..,,.,,,,..,.,,,..,,..,,...,..,,,.,,,,.,,..,.,,,,,,,
-#LBGYJTPVPKX43OM64RGBIT6RAWFJPYQSRBTKAQDHMLLFAVTSYNGFRTRSG67KF2B77EWVQIFVPOCVI
-#\\\|JBZQZTASNU2JCRQRZ7DLUMGWXK3YGDXZCGIIJPBBFHAKFNN5EWP \ / AMOS7 \ YOURUM ::
-#\[7]RIFGKMIEUPNBCLTKDHSG3NR6QDYG7TGMAO5IG7W5MPKZGBDCZODI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,,,.,,,.,,..,..,,.,.,,..,.,.,..,,...,...,.,,,.,.,.,,,.,,,,,,,
+#VW5W7PV6ZPBBTO3EVZN7XXEL7FAWDPX7NCXYLAUKAEJEE5LOVMWZVNPWXB4A5TLRWQZAA7K5Z4NKO
+#\\\|FIWXIM2HSNXVKJ5AKSZFO3EZW5JM4PUVD3HUW33JNJOAUIS5HXI \ / AMOS7 \ YOURUM ::
+#\[7]DXMZXCGLGF2JN37DFAYWU7FGCALTS4XL4OZUHFWDGEFYNENJPYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

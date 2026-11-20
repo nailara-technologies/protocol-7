@@ -7,13 +7,13 @@ use warnings;
 ## stage 5 : vault holder registry, receipts, placement report and place.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use JSON::PP;
 use AMOS7::Vault     qw| vault_init |;
 use AMOS7::N7FS      qw| make_dirs read_file b32 |;
 use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -32,7 +32,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
@@ -806,8 +806,8 @@ ok( $rc == 0 && $out =~ m|would drop 5|,
 
 done();
 
-#,,,.,,,.,...,.,.,,.,,.,,,,.,,.,.,,,.,,..,.,,,..,,...,...,,.,,,..,,..,.,,,,.,,
-#PYJDEHS6CIRVYDOIQDJTYHXFPAHY7U4347Y4SULXKOAXYWMWD7AZJZRGZKKOLTAL5GMZKTNJIYKQQ
-#\\\|H7JFWGYL6N32UNTMVSLYDDIMAQS7RVXTUJTO37BPI7XIGVCHYH2 \ / AMOS7 \ YOURUM ::
-#\[7]CN4OIYBYAG3BVHSW6QQWIBR5B6H62KAJOZOCICNI2647266IZQAA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,,,.,,,.,,,.,.,.,,..,,,.,,,,,..,,...,.,.,.,.,..,,,,,,..,,,,.,
+#PRKV23CI5H5DSWZNAXRHO2DJJ3XTG5DTQMZFJR2RYN46AYALP257CIN357NFL4R7GG4ZNPBRW74RW
+#\\\|65VROA7AOHATQ2CBZAF7QPMLLAYO6BHGE3JUDDIG3ZE2I2CJPBF \ / AMOS7 \ YOURUM ::
+#\[7]BZCO26BGVWVB45DLUFBYYTRUDBAX6UOIYJUUGN5FMZTGTNNOTYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@ use warnings;
 
 use FindBin;
 $^F = 100;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use IPC::Open3         qw| open3 |;
 use Symbol             qw| gensym |;
@@ -17,7 +17,7 @@ use AMOS7::N7FS::Keys  qw| root_init root_open |;
 use AMOS7::N7FS::Seal;
 use AMOS7::N7FS::Placement qw| receipt_digest |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 my $box  = sandbox();
@@ -284,7 +284,7 @@ sub cli {
     my @args = @ARG;
     open( my $fh, '<:raw', $pass ) or die $OS_ERROR;
     my ( $in, $out, $err ) = ( undef, undef, gensym );
-    my $pid = open3( $in, $out, $err, "$FindBin::Bin/../n7fs",
+    my $pid = open3( $in, $out, $err, "$FindBin::RealBin/../n7fs",
         '-pass-fd', fileno($fh), '-root-key', $cli_root, @args );
     close $in;
     my $stdout = do { local $INPUT_RECORD_SEPARATOR; <$out> }
@@ -325,8 +325,8 @@ ok( $tag eq substr( $root->{'root_id'}, 0, 7 )
 
 done();
 
-#,,,.,,..,,.,,,.,,.,.,,..,,,,,...,.,,,.,,,,,,,..,,...,...,,,.,,,.,.,.,,,.,..,,
-#MWHQ3QZM3O5GPPYX3IARV3B73E4SNO3HKLPHHWNARBESAIWNVZZRMTT5IQLLM66SX5MUE7E2UHKLA
-#\\\|NAMSF43ZVEFGUSYU4JBRSXUOB3KKVSOYRTNQNZQJQF6W4L3HMNU \ / AMOS7 \ YOURUM ::
-#\[7]4HXTZ3ZWOH3KSAPIUBEWUT4GMFI7IVD5F2BMDDT4FOJDJAXCPKDY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,..,,,,.,.,.,.,,,,,.,..,,,.,,..,,...,...,.,,,,..,,,,,...,,..,
+#CZU3ZKIWVNN7AIGTH2RSQ5OPL5JXFFSTUGRBXKOA25JHK4PA3L5JUQLIAKFQA4CVWH3KK6KLFRDB4
+#\\\|WUYWRNRA5Z6DRVM6GVJ7VWQUYY64UGMCZJWD2QCKGHHJT2F52CA \ / AMOS7 \ YOURUM ::
+#\[7]Y4TGGGZCMWQBZNHNOFRNJK4EV6PRLZXH2FSL7MFBYAPOBBAZAGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

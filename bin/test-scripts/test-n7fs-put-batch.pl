@@ -9,17 +9,17 @@ use warnings;
 ## changed bytes refused
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::N7FS         qw| make_dirs read_file write_new_file |;
 use AMOS7::N7FS::Sum    qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Holder qw| holder_put_batch |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
 my $fake = "$base/fake-ssh.sh";
-copy_tree( "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh", $fake );
+copy_tree( "$FindBin::RealBin/fixtures/n7fs/fake-ssh.sh", $fake );
 chmod 0755, $fake or die $OS_ERROR;
 my $remote = "$base/remote";
 make_dirs( "$remote/holder", 0700 );
@@ -106,8 +106,8 @@ ok( !grep( { !-e "$remote/holder/$ARG->[1]" } @many ),
 
 done();
 
-#,,,,,.,,,..,,.,.,...,,..,.,,,,.,,,..,,..,...,..,,...,...,.,,,,,,,,.,,,..,,..,
-#7O5VLZIHSSNDSVCTUXK5JF7IOFJOMGEK63ION4QMG6EYVVX3RE374YTSTMJGJJLUDINWZW2IKUVB4
-#\\\|2KRCMWI46SE75QXED2TBCO4HX5EZ6V3IX2GLVL5VAUTWGCHKG3Q \ / AMOS7 \ YOURUM ::
-#\[7]YEZSSIPLP7CCR2XZNUGDKKV7AC3GKMSGJQDKRNKCIZQWIKSPXCAY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,,,..,,,..,.,.,,..,,,,,.,,,.,.,..,,...,...,,.,,..,,,,.,,,,,.,,,
+#OQG7S3WZGMSFXCQ42C3KEWGECSQY6RJ3XBPCJBM2MAS7ZNNVSBYH7JM3M4HRX5F6LCBGJQS654KLK
+#\\\|R2E3HBD2ZBTKDZAACXHK5IGO5E4ETHNB4PWL7ZSYMMTOFQJMGM2 \ / AMOS7 \ YOURUM ::
+#\[7]X4OWS5XPAHTB6DDZWAZ46IRFZ3BNEK6HV3AEIGU52E373RFZPCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

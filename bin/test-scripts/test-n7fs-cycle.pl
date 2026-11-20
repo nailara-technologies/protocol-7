@@ -9,12 +9,12 @@ use warnings;
 use FindBin;
 use Fcntl qw| LOCK_EX LOCK_NB |;
 use JSON::PP;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::N7FS        qw| make_dirs read_file |;
 use AMOS7::N7FS::Cycle qw| config_read state_read |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -37,7 +37,7 @@ sub cli {
         open( STDIN,  '<&',    $stdin ) or exit 98;
         open( STDOUT, '>:raw', $out )   or exit 98;
         open( STDERR, '>:raw', $err )   or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, '-pass-fd', 0, @args )
             or exit 99;
     }
@@ -219,8 +219,8 @@ ok( $rc == 4 && $err =~ m|needs disk and root-key|,
 
 done();
 
-#,,..,,.,,,.,,.,.,.,,,,,,,,..,.,,,,.,,.,.,,,,,..,,...,...,.,.,.,,,,,,,.,.,.,.,
-#D2IA4IJMLZPO42I7DFBIMQIXDU2N4XDVLJAXWUYQBX7OMQ7GY2SH72TC7B4KEHBHBT2DLIEMQEUVQ
-#\\\|XO5ZTCPTKEFZK7YSJLWQ5L5I5TSB5E3RIB32AIYDUJ22455CPXY \ / AMOS7 \ YOURUM ::
-#\[7]MUFFZGSCXKLJI7W3KELVFWKVFTZNHCVCOBBUSKHZKALS3VKLSIDI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,...,,..,,..,..,,,.,,,.,,...,..,,...,...,,..,.,.,,,,,,.,,,,,,
+#IV53B26UAXJUMNUK2A6TYWWAZZEDBECEGZDIWM6G2NADISJCJNQ44ZHIAEQIUWRELGPFCQFC4NTMU
+#\\\|RJWHE7RSIVJHQ6ZIPT3EJETK4HCXCVCLUHE3NYQENL6KD5G7PH3 \ / AMOS7 \ YOURUM ::
+#\[7]PG6PMPYNDDWYCIBHB7CNBTMZSCPNZMHMKLNGBXXYYG36OAFN4IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

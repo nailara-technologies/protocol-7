@@ -12,7 +12,7 @@ use Symbol     qw| gensym |;
 $^F = 100;
 
 BEGIN {
-    unshift @INC, "$FindBin::Bin/../../data/lib-path/pm";
+    unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -24,15 +24,15 @@ use AMOS7::N7FS::Store qw| assimilate |;
 use AMOS7::N7FS::Seal;
 use AMOS7::N7FS::Keys;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 ## these checks address single node blobs ; packs : test-n7fs-pack.pl ##
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 
 my $box  = sandbox();
-my $cli  = "$FindBin::Bin/../n7fs";
+my $cli  = "$FindBin::RealBin/../n7fs";
 my $fake = "$box->{'base'}/fake-ssh.sh";
-copy_tree( "$FindBin::Bin/fixtures/n7fs/fake-ssh.sh", $fake );
+copy_tree( "$FindBin::RealBin/fixtures/n7fs/fake-ssh.sh", $fake );
 chmod 0755, $fake or die $OS_ERROR;
 my $remote = "$box->{'base'}/remote";
 make_dirs( $remote, 0700 );
@@ -353,8 +353,8 @@ refused(
 
 done();
 
-#,,,.,..,,,,,,...,...,,,,,..,,,,.,.,,,..,,,,,,..,,...,...,.,,,,.,,,..,,..,,,.,
-#ZXBLTG3WOKGCYPT4RHTY2BY3U2BG5HCFXNMUJMLO3TVI44KLDGLRVCBXBYJOTKRWR7ZUK5QJKJYYK
-#\\\|AEM4WUGURSEZ7O25TDCXMTOKDZ3LDF5CBUO7WE4Y5WLSMEXYQVS \ / AMOS7 \ YOURUM ::
-#\[7]YVEW52KFQHFNL4X6ME4FJ4MZ2UMMSIE5ZIYVSMVFBYKUZIR4GYAI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,...,,,.,..,,,,.,.,,,,..,,,,,..,,...,..,,.,,,.,,,...,.,,,,,,,
+#J35D2XI6AZJPAUQB7NYAOYWF7WDFEYDMRODLTGTO5ATCKXLGYPDZ5PA72XBVFFVAWNIE3SIM46RYE
+#\\\|FPU5QIS4CQXNN24EYIXAWMRMUU2DGC2XVTU7PYZ5K34UTVBKQZD \ / AMOS7 \ YOURUM ::
+#\[7]IPJJ6GK77AVUAQBPOTI4N7M4YNFRCPL37RFLKSLPPWLA3J7QIOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,7 @@ use warnings;
 use FindBin;
 
 BEGIN {
-    unshift @INC, "$FindBin::Bin/../../data/lib-path/pm";
+    unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -26,7 +26,7 @@ use AMOS7::N7FS::Sign qw| seed_signer new_seed command_signer verify
 use AMOS7::N7FS::Disk qw| disk_init disk_read_id disk_attach disk_detach
     disk_status mount_history witness_read host_mounts state_read |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -418,7 +418,7 @@ say ':: the parent signer plug [ external command, list-form exec ]';
     my $plug   = key_file_write($key);
     my $script = write_file( "$dir/sign.pl", <<"EOS" );
 use strict; use warnings;
-use lib '$FindBin::Bin/../../data/lib-path/pm';
+use lib '$FindBin::RealBin/../../data/lib-path/pm';
 use AMOS7::N7FS qw| b32 unb32 |;
 use AMOS7::N7FS::Sign qw| key_file_signer |;
 my \$s = key_file_signer('$key');
@@ -451,7 +451,7 @@ say ':: cli : a missing root is refused, never created';
     my $missing = "$box->{'base'}/no-such-root";
     my $before  = -e '/N7FS' ? 1 : 0;
     my $rc
-        = system( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root',
+        = system( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root',
         $missing, '-parent-key', $key, 'init', '-name', 'x', '-intent', 'y' );
     ok( $rc != 0 && !-e $missing,          'cli refuses a missing root' );
     ok( ( -e '/N7FS' ? 1 : 0 ) == $before, '/N7FS untouched' );
@@ -461,8 +461,8 @@ sub remove_tree_all { AMOS7::N7FS::remove_tree(shift) }
 
 done();
 
-#,,.,,.,.,,,.,.,.,,..,,,,,.,,,...,.,.,...,,..,..,,...,.,.,...,.,,,...,,,,,...,
-#NT6Z4M5QUEIYZXNOZVKX6FAMZOLMOJAFC5KGYWQLQZX6Z7HN5SGGQNGSJ5NCJGNC6IFSVBRYZJOP2
-#\\\|ZNYKF6553NXBK4QOKYDLQYO4LNP6TCDEFP7S5KSZLSAN3MXOLZU \ / AMOS7 \ YOURUM ::
-#\[7]VZLJEWIJK34GNZF667KKERETAFTRFPX6LRDWJ3VRR36YDVOAYOBY 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,.,,.,,,..,,,.,,..,,..,..,,,,,,..,,...,.,.,,.,,.,.,,,.,...,,..,
+#E7PIGKYMQ4XDHAPKUPUIILHDHHENWPONWACRYRWIN3M2UUZYYFNPPGB6IYHCNTORS5WULCBWX7BAQ
+#\\\|IUE4XWQG64Y4ZVQNO54T77A65SKAKXMS3QDLYAW5PZE5WPGHITB \ / AMOS7 \ YOURUM ::
+#\[7]7LTRNVC33W6M2P3YLP4SQTVGGKMCD7SZYXIUFODNL4IBSHB4MOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

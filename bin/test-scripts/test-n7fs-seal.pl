@@ -13,7 +13,7 @@ use Symbol     qw| gensym |;
 $^F = 100;
 
 BEGIN {
-    unshift @INC, "$FindBin::Bin/../../data/lib-path/pm";
+    unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -25,13 +25,13 @@ use AMOS7::N7FS::Keys  qw| root_open |;
 use AMOS7::N7FS::Seal
     qw| new_keypair seal_bytes open_sealed_bytes twofish_crypt |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 ## these checks address single node blobs ; packs : test-n7fs-pack.pl ##
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 
 my $box      = sandbox();
-my $cli      = "$FindBin::Bin/../n7fs";
+my $cli      = "$FindBin::RealBin/../n7fs";
 my $passfile = "$box->{'base'}/pass";
 write_new_file( $passfile, "correct horse\ncorrect horse\n" );
 my $rootfile = "$box->{'base'}/root.key";
@@ -586,8 +586,8 @@ cli( 1, 'cascade refused rather than ignored',
 
 done();
 
-#,,.,,..,,,,,,..,,.,.,.,.,.,,,,.,,.,,,,,,,...,..,,...,...,..,,,,.,.,,,,,,,.,.,
-#FTFUMKNOQFM27BW53FJFU2SSPIF3FUUXRDH2G2JHMA6HT6FVEDE5KF7EJZTNOAJCI7AKY3AFJJCVW
-#\\\|DPJA34PVPCX4BAEMRYLPD3UHOYULPGFDEL524OBCVVAJEXBUOE7 \ / AMOS7 \ YOURUM ::
-#\[7]H6LZHMX4H55MOTK4I7NI4DSWFA3UBHG3U2VBSMIXFWIGPYNFXGDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,..,,..,,,,,,.,.,...,,.,,,,,,,.,,..,,...,...,.,,,.,.,,,.,,,.,,.,,
+#JMWPEZ675R6X6U2YKLQ43VYQWWZTOESYT537N4UNCVSXU2LQJJXDGLRJK7OADQFZXU46EUFF5YLBK
+#\\\|QC4ILOOY4JNR3KAU4VJQGC5SGFUO4NYKTQNNMIGRX4IYDUVZ5VX \ / AMOS7 \ YOURUM ::
+#\[7]AXSSECH66NGG3FR6CRN4JRIUERZTFKCUD7IPWL4XAYIJPXIM5ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use Test::More;
 use File::Temp qw| tempdir |;
@@ -22,7 +22,7 @@ use AMOS7::NRT::journal::canon             qw| kind |;
 use AMOS7::NRT::transaction                qw| prepare_issue |;
 use AMOS7::NRT::user::account::transaction qw| prepare_transfer |;
 
-my $root = "$FindBin::Bin/../..";
+my $root = "$FindBin::RealBin/../..";
 my $tmp  = tempdir( 'nrt-journal-test.XXXXXX', TMPDIR => 1, CLEANUP => 1 );
 my $time = '31703855078';
 my %key_path;
@@ -737,8 +737,8 @@ subtest '13 : scratch state is cleaned' => sub {
 
 done_testing;
 
-#,,,,,,,.,,.,,...,...,.,.,,,.,.,,,.,,,..,,.,.,..,,...,..,,..,,.,,,,..,.,.,...,
-#TUVUV6QWYFPLDDSGX6Y4VMMRX4Z4FPGPBTSSS4DC4VFLCLPFFLBZVHITXFKP46DMYKGKJ4QMXU6XC
-#\\\|DKI3UZ6QXBX6LUJXOFYIBBTOOZKAWPRJH7KC2LBVSB3QHBQFC3E \ / AMOS7 \ YOURUM ::
-#\[7]BFP5OFDXHITBB7RL4GL4IQGXOIPNV2S3ANVNOQAL7A2DGGSVE4CQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,,..,.,,,,..,,,,,...,,,,,,.,,..,,...,...,,.,,...,.,.,..,,,.,,
+#LXC7D4TTQVIXJF6P5467HLUQBEQ3URFLA3VPXSUFZQRVYIAIB3LIC6I2VXTFP5LSNYEJ7N5NHLJAY
+#\\\|D4RWN5TU67H7WRPOWZ4NRNITNRBDOVRI5CEXERUAKH5SICQIKLL \ / AMOS7 \ YOURUM ::
+#\[7]Z6RZAHMYJE3JVI3O2GODLYEI4G6BXAWBODRD52UFJGZFNFYGVOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

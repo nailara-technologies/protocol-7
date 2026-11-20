@@ -9,7 +9,7 @@ use warnings;
 ## holder subdirectories -- never the main root's.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::Vault     qw| vault_init |;
 use AMOS7::N7FS      qw| make_dirs read_file b32 |;
 use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
@@ -18,7 +18,7 @@ use AMOS7::N7FS::Seal;
 use AMOS7::N7FS::Receiver qw| holder_id request_sign |;
 use AMOS7::N7FS::Holder;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 
@@ -42,7 +42,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, '-vault-dir', $vdir, @args, '-pass-fd', 0 )
             or exit 99;
     }
@@ -261,12 +261,12 @@ my @receiver_args = (
     '-head-name',
     "$main->{'root_id'}:" . AMOS7::N7FS::Seal::_head_name($main),
 );
-copy_tree( "$FindBin::Bin/fixtur" . "es/n7fs/forced-ssh.sh",
+copy_tree( "$FindBin::RealBin/fixtur" . "es/n7fs/forced-ssh.sh",
     "$base/forced-ssh.sh" );
 chmod 0755, "$base/forced-ssh.sh" or die $OS_ERROR;
 $ENV{'N7FS_SSH'}         = "$base/forced-ssh.sh";
 $ENV{'FORCED_PERL'}      = $EXECUTABLE_NAME;
-$ENV{'FORCED_RECEIVE'}   = "$FindBin::Bin/../n7fs-receive";
+$ENV{'FORCED_RECEIVE'}   = "$FindBin::RealBin/../n7fs-receive";
 $ENV{'FORCED_DIR'}       = $remote;
 $ENV{'FORCED_ARGS'}      = join ' ', @receiver_args;
 $ENV{'N7FS_SSH_BACKOFF'} = '0,0,0,0,0';
@@ -299,7 +299,7 @@ sub receive {
         open( STDIN,  '<:raw', $pf )                    or exit 98;
         open( STDOUT, '>:raw', "$base/receive-output" ) or exit 98;
         open( STDERR, '>&',    \*STDOUT )               or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs-receive",
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs-receive",
             "$base/remote", @args )
             or exit 99;
     }
@@ -361,8 +361,8 @@ ok( !-e "$remote/$main_tag/$svc_blob",
 
 done();
 
-#,,..,.,,,..,,,..,,.,,...,.,,,...,,.,,.,,,,.,,..,,...,...,...,...,.,.,.,,,.,,,
-#NWOXHX7SZEBNDCVEYV3WFTUZZXS3SIWGXNPCCUQKVXQIC2GZA4MAMMW2T4F2TGRUUWTJZRSKYYNGC
-#\\\|AJXR46PV3MTVIRTBWMMNCKSRP3FNKJOIDAUWIRHNMMK6XA5MEPB \ / AMOS7 \ YOURUM ::
-#\[7]RPMROPCVNRLVUBWSQGPLQQEQFGLVFEGTNMN6RX4VB5JNLUDFLYCY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,..,,..,,,.,,,,,,,.,,.,,,,,.,.,.,..,,...,..,,.,,,,,.,...,,,,,.,,,
+#P6WH5MQTFPO5ZBGT7ZJCZTNUF57TZH6EEJTOBJINCIPNNKTZT3UB2TQWW67JZFX66GULMTWQKQCZS
+#\\\|FKHCULRCU7PDNQVAL4XTPZO6PMO4LPNXNROA3D4SL6XROU5LSAM \ / AMOS7 \ YOURUM ::
+#\[7]SLQRMOQSITPJOY3DFYOVGTZWYW5LN2ENLWSTLPVW5HOFUHJKFQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

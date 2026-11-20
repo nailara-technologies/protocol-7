@@ -9,7 +9,7 @@ use warnings;
 
 use FindBin;
 use Time::HiRes ();
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::NTIME qw|
     ntime_now ntime_b32_now unix_to_ntime ntime_to_unix
@@ -92,8 +92,8 @@ say '';
 say "  $pass passed, $fail failed  [ perl $^V ]";
 exit( $fail ? 1 : 0 );
 
-#,,,.,..,,.,.,,..,.,.,,.,,,,,,..,,,,.,..,,...,..,,...,...,...,.,,,..,,.,,,.,.,
-#DBEIPYAG5ATJPU7OI4M7TKLIMJIE3WDBN3KLUFJVCVES3ZLIYJ57IE2OQKO5MFMJ4G4ZBVOUFYUCU
-#\\\|A7YUD5R5H3PENSO5DG4NRKAAC7562YN4OGA6EEMDRBYWXDKNEA2 \ / AMOS7 \ YOURUM ::
-#\[7]R3GR4DD4QO4A54IFRX4EUGYZ3CUE73F7PJPTMOJFQMIP42H524CI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,...,..,,,..,.,,,..,,.,.,,..,...,..,,...,...,..,,.,,,.,,,,,.,.,,,
+#CYYILIIRYCWMOONVBS2BB4D3IJDR7RMJ646Z2BB5FZPH5NCS5WWL4UTE7D3D4IC5DXN4QJ6CJH5RM
+#\\\|KMVYVCX24UV4BY4YTCFU5GPMWWP4P4EAJFH5RISCWTZXNK4L2FP \ / AMOS7 \ YOURUM ::
+#\[7]WE2PHU2QPBXXEKSGBCVLLI3EJMZZ4BJB5F3PP4ZXFFYAHV3SF2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

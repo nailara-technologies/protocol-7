@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::N7FS        qw| read_file write_new_file unb32 make_dirs |;
 use AMOS7::N7FS::Disk  qw| disk_init disk_attach |;
@@ -13,7 +13,7 @@ use AMOS7::N7FS::Store qw| assimilate |;
 use AMOS7::N7FS::Keys  qw| root_init root_open |;
 use AMOS7::N7FS::Seal;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 $ENV{'N7FS_TEST_PACK_LIMIT'}       = 0;
 $ENV{'N7FS_TEST_MANIFEST_ENTRIES'} = 1;
@@ -243,8 +243,8 @@ refused(
 
 done();
 
-#,,,,,.,.,..,,,..,,,,,.,,,.,.,,..,,,.,,.,,,,,,..,,...,...,,,.,,,.,.,,,.,.,,.,,
-#DMWNJOQ2MIGINLV3OMJJMHXGQEMEBFU65JDUKQQD2J2KLCJKCDUP2FZIAWPDSXGJXSH3XBW4VUBJS
-#\\\|HSFFYAEZ52VZDZQUIIWAHWCVMZFKL2H6322JAYKPUW7MOXNSEJ2 \ / AMOS7 \ YOURUM ::
-#\[7]ALYMHRX5PCO5I6ITIDVIXEPYE7WDYLYPXPBC73RXOTK4PK4GRQCA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,.,,,,.,,.,,,,,,...,,..,.,.,,.,,..,,...,...,.,.,...,..,,.,,,,..,
+#XE4Z2BPF2PQ7EBI47G26LXA5AYDESUWVNNZP5UAUM4TERAHQHRAVJV2RK4GPST5LFV3V5LWKQK762
+#\\\|Z2ROBXRY4ONBMFUFY4QLI75HL6RYZIAW4CVD53AWJHSVLY47HLJ \ / AMOS7 \ YOURUM ::
+#\[7]6DTB6QRMIIXCUH52UIHK6OV2BFZKJL6IIZCZRWSNVHH53MIDGOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

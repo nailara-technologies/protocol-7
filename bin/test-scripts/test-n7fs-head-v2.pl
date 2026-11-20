@@ -7,7 +7,7 @@ use feature qw| bitwise |;
 
 use FindBin;
 $^F = 100;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use JSON::PP;
 use File::Copy         qw| copy |;
@@ -19,7 +19,7 @@ use AMOS7::N7FS::Store qw| assimilate |;
 use AMOS7::N7FS::Keys  qw| root_init root_open |;
 use AMOS7::N7FS::Seal;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 $ENV{'N7FS_TEST_PACK_LIMIT'} = 0;
 my $box  = sandbox();
@@ -272,7 +272,7 @@ open( my $cli_pass, '<:raw', $pass ) or die $OS_ERROR;
 my ( $in, $out, $err ) = ( undef, undef, gensym );
 my $pid = open3(
     $in,            $out,
-    $err,           "$FindBin::Bin/../n7fs",
+    $err,           "$FindBin::RealBin/../n7fs",
     '-pass-fd',     fileno($cli_pass),
     '-root-key',    "$base/root.key",
     '-from',        $holder_c,
@@ -323,8 +323,8 @@ refused(
 
 done();
 
-#,,,.,.,.,..,,,,,,,,.,...,...,,,.,.,,,,,,,,.,,..,,...,..,,.,.,.,.,,.,,...,...,
-#NBZNH5Z4UCCUEJ67QDN7YCXWTPU6YMZYBTDXURR3ZMRRFDMXP5KD33O7BZX5OW3ZINREKAG2E6BSK
-#\\\|FRH4UIXTK2XZCDUPOFEFM5UWLFYCQYOAN5AFNWRJEG2OHKDLEUK \ / AMOS7 \ YOURUM ::
-#\[7]DZZ74LWLTR6BTE2X7PFY2FMQSDKQSACKNXBX245JVJZDZXV72ICQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,,..,.,,,...,...,,,.,,,,,.,.,..,,...,...,...,,.,,,..,.,.,...,
+#4NVHRGFOGDEMVNV7RT666UNTNUR3ZPKKKM4C2FXHRVOTT4ZYMBIEHXBTLZSBVPEHOQQ4SQYDLV5ES
+#\\\|3F5OD4BEKVAPRC6HUGIEPFOBBM626PPGUNQGFO2PPNGYN4YHKSF \ / AMOS7 \ YOURUM ::
+#\[7]MZASCMEDS4LCSHRJFQDG2OGNIKZZIRMSQQ4FEUGOBJFYTK53M6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

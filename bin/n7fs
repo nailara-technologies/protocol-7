@@ -241,7 +241,8 @@ Getopt::Long::Configure('prefix_pattern=^-');
 
 BEGIN {
     ## repo layout first, then a copy [ AMOS7/ beside the script ] ##
-    unshift @INC, "$FindBin::Bin/../data/lib-path/pm", "$FindBin::Bin";
+    unshift @INC, "$FindBin::RealBin/" . "../data/lib-path/pm",
+        "$FindBin::RealBin";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -2803,7 +2804,7 @@ sub cmd_holder_receiver_line {
     fail('holder-receiver-line : unexpected arguments') if @ARG;
     my $h = AMOS7::N7FS::Holder::holder_parse($holder);
     fail('receiver lines are for ssh holders') if $h->{'type'} ne qw| ssh |;
-    my $program = "$FindBin::Bin/n7fs-receive";
+    my $program = "$FindBin::RealBin/n7fs-receive";
     fail('receiver path must be absolute ASCII without whitespace or quotes')
         if $program !~ m|\A/[A-Za-z0-9_./-]+\z|;
     my $spec = AMOS7::N7FS::Holder::holder_canonical($holder);
@@ -3134,8 +3135,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,..,,,,,,..,,,.,,,..,.,,,.,.,,,,,,,,,,..,..,,...,...,...,,..,.,,,..,,.,,,
-#R6WAANQYW3UFCOFDUP6Z77U7I3XXRHJBGOI7F35LBS6FGWPKEIB2ILBDDX4QQT5YVQMPJV6NS4ZSO
-#\\\|WTLR34EWJJ4JXVHTFMT4FDSNIFLG4PSLFHAPCA3TZUBNTXV5DAO \ / AMOS7 \ YOURUM ::
-#\[7]PLFUR34HKVOMOL363G2DW45FKF2H2U42Y32JG2PT25T6BDCKMCAY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,,.,,...,,.,,,,.,.,,,,,,,,,,,..,,...,...,...,.,,,,.,,.,.,...,
+#HG35TVSHRJPE42YIHCISF4K57WGNUCDJV6L43PGJUGRR2B4MA3JDGSQ7EZVHO5XPRF2XZ67WXH42M
+#\\\|SRYZMZ7CBEYGIUGIO33DMHYU6USHTJ4EVLZTPNILR7VLALIIACZ \ / AMOS7 \ YOURUM ::
+#\[7]EVPMS6GU2OUXJAEEPWC5LO7DW52ZYLH73KENNDW4DUA4SOEJCSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

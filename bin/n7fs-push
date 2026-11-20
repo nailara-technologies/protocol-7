@@ -15,7 +15,7 @@ use warnings;
 ## receiver has is skipped, so a rerun after an interruption continues
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../data/lib-path/pm" }
 use JSON::PP;
 use Time::HiRes qw| time sleep |;
 
@@ -134,8 +134,8 @@ print ": sent $sent blobs, $bytes bytes ; $skipped already there"
     . ( $failed ? " ; $failed failed" : '' ) . "\n";
 exit( $failed ? 1 : 0 );
 
-#,,..,,,.,.,.,.,.,.,.,,.,,,.,,,,.,.,,,,,.,,,,,..,,...,...,..,,,.,,,,.,.,.,,.,,
-#SZGKBUUQTMTGG2HAFFFKF5OJIB37YJFRXZJOWQXXN6FFDQSX7W6IIW23CTWDEF4752RTQODJDCB6A
-#\\\|A7FRIZ75H2E7ZA333KDWQNRPBF6KQGDPEOJQNE2E4IBG4VBEOMM \ / AMOS7 \ YOURUM ::
-#\[7]4SYYQJUKMMAFU4IJN3Y3XVW6STUFJGIXAJQ2UXX72HNBRPSRQ4BA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,,,.,.,.,,,.,,,,,...,.,,,.,.,..,,...,...,,.,,,..,,,.,,.,,...,
+#7BBGAPTIZWAJQVBQ67JXBWWLQNRHJNRMFBKVWJ5FYX6KVH3JZKUR5PKRBPJXGLYGMUEEQUYFCHOJO
+#\\\|HZABML4KA67FQQCQUGFZFRGJ4JMT5HHAU7NFW4Z2CZCSK2LV43X \ / AMOS7 \ YOURUM ::
+#\[7]2IYYNQRDIXDHXYQOLJEBJQD3RL2JFMRSO26PPWFNVVBSLHCHJYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

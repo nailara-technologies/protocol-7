@@ -8,10 +8,10 @@ use warnings;
 ## files.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::Vault qw| vault_init |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box = sandbox();
 my ( $root, $hdir, $src ) = @{$box}{qw| root host src |};
@@ -30,8 +30,8 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", @args, '-pass-fd', 0,
-            '-vault-dir', $vdir )
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", @args,
+            '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
     waitpid $pid, 0;
@@ -130,8 +130,8 @@ sub read_file_all {
 
 done();
 
-#,,,,,..,,,..,,.,,,.,,..,,.,.,...,,,,,,,.,..,,..,,...,...,..,,,,.,,,.,..,,,.,,
-#SNTY4EXQCJYPRIRVNYV5LWHEVH5LVALUSEMZPVLO2PCOUHIASXVZTIGV6COMNBTY3QVX44FNR3P2M
-#\\\|ZVSBVCQ77ZME6AFD6SPBFZ57OQV2E4AU6QVXL257O7KTM4DG7FY \ / AMOS7 \ YOURUM ::
-#\[7]7QQ6RUNYIMF4HU64MGEX4XJZR4DXK5BXTX4Z4UUGQG5WDMFB3WAQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,..,,...,.,.,.,.,...,,.,,.,,,,.,,..,,...,...,...,,,.,.,.,..,,..,,
+#3BUCF4DRTC3LX3V7OHT2VXQXISPLNKJ3CZDTCXEXF6CB5PGOTVNOSJJQOHNI64OGF4JGQCKFUZFAK
+#\\\|BDXGCHLBX3JLUB3ZZFZXARMSP36ZJEAB4I7Q4KCE7YIMCUIIQDD \ / AMOS7 \ YOURUM ::
+#\[7]LEDFO2OPSKGX3OHVTLG6X4KDNGSR4N2FAWYGRZT3STCS4IEGWECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

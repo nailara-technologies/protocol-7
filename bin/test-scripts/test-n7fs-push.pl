@@ -9,12 +9,12 @@ use warnings;
 ## adopts.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use AMOS7::Vault     qw| vault_init |;
 use AMOS7::N7FS      qw| make_dirs read_file |;
 use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -44,8 +44,8 @@ sub run {
 
 sub cli {
     my ( $lines, @args ) = @ARG;
-    return run( $lines, "$FindBin::Bin/../n7fs", '-root', $root, '-host-dir',
-        $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir );
+    return run( $lines, "$FindBin::RealBin/../n7fs", '-root', $root,
+        '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir );
 }
 
 sub blobs {
@@ -79,7 +79,7 @@ sub receive {
             = ( $extra[0] // '' ) eq '-first'
             ? ( @extra[ 1 .. $#extra ], $dir )
             : ( $dir, @extra );
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs-receive", @args )
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs-receive", @args )
             or exit 99;
     }
     waitpid $pid, 0;
@@ -156,9 +156,10 @@ ok( $rc == 0 && $out =~ m|relayed 0 nodes| && $out =~ m|3 nodes wait|,
 ) or say $out;
 
 $ENV{'N7FS_SSH'} = "$base/forced-ssh.sh";
-copy_tree( "$FindBin::Bin/fixtures/n7fs/forced-ssh.sh", $ENV{'N7FS_SSH'} );
+copy_tree( "$FindBin::RealBin/fixt" . "ures/n7fs/forced-ssh.sh",
+    $ENV{'N7FS_SSH'} );
 $ENV{'FORCED_PERL'}    = $EXECUTABLE_NAME;
-$ENV{'FORCED_RECEIVE'} = "$FindBin::Bin/../n7fs-receive";
+$ENV{'FORCED_RECEIVE'} = "$FindBin::RealBin/../n7fs-receive";
 $ENV{'FORCED_DIR'}     = $far;
 chmod 0755, $ENV{'N7FS_SSH'};
 {
@@ -166,14 +167,15 @@ chmod 0755, $ENV{'N7FS_SSH'};
     local $ENV{'FORCED_DROP_ONCE'}  = "$base/drop-once";
     local $ENV{'N7FS_PUSH_BACKOFF'} = '0,0';
     ( $rc, $out )
-        = run( [], "$FindBin::Bin/../n7fs-push", $hub, $list, 'far' );
+        = run( [], "$FindBin::RealBin/../n7fs-push", $hub, $list, 'far' );
 }
 ok( $rc == 0 && $out =~ m|sent 5 blobs|, 'the hub pushes without any key' )
     or say $out;
 ok( -e "$base/drop-once" && $out =~ m|retry \S+ in 0 s \[ 255 \]|,
     'a dropped connection is retried, the push goes on'
 ) or say $out;
-( $rc, $out ) = run( [], "$FindBin::Bin/../n7fs-push", $hub, $list, 'far' );
+( $rc, $out )
+    = run( [], "$FindBin::RealBin/../n7fs-push", $hub, $list, 'far' );
 ok( $rc == 0 && $out =~ m|sent 0 blobs| && $out =~ m|5 already there|,
     'a second push skips what arrived' )
     or say $out;
@@ -387,8 +389,8 @@ ok( $rc == 0 && $out !~ m|^bad|m && $out !~ m|trash|,
 
 done();
 
-#,,..,.,.,.,.,,.,,.,,,,..,,,,,,,.,,,,,.,.,...,..,,...,...,.,.,..,,,,,,...,,.,,
-#KMGSGJW3IWOLWVZKYILW3SEJR6NDT5MCZ57UGS6W3JK7PNQPBHV6DQ4XXST7H4ILCEWH2APRT54RA
-#\\\|JCC3EAAPW2HC4TX6DQAG4YUIR4Z5HHO4PQMCN23MBMQBUGL7JJ5 \ / AMOS7 \ YOURUM ::
-#\[7]OYCMOVWVYK7V5EW3VQX7TW775I3S5IE7XBW73TDDZV3PAIJGZ2AA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,.,.,.,,,.,,,,,.,.,,.,,.,.,,,.,..,,...,..,,.,,,,,.,,,,,...,.,.,
+#3VWIQRZMEFQXH7FSNPLKWFRGQYC5KSQMNNC7WHCRJNPO3BS35KZNIMRH7JHQZCQAPQ36LH75WE362
+#\\\|N6ZTO4VR57TYUGL5M7XS7NH7OJL4CHYO7HPVFHA2CURCZFIGQJX \ / AMOS7 \ YOURUM ::
+#\[7]SN2VM7YKJH4ZU2Y5UILKH65G62GZOUN3QPK5M3WN3VQE3VCCVMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

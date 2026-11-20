@@ -9,7 +9,7 @@ use warnings;
 use FindBin;
 
 BEGIN {
-    unshift @INC, "$FindBin::Bin/../../data/lib-path/pm";
+    unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm";
     unshift @INC, $ENV{'N7FS_TEST_LIB'} if $ENV{'N7FS_TEST_LIB'};
 }
 
@@ -21,7 +21,7 @@ use AMOS7::N7FS::Store   qw| reference_entries |;
 use AMOS7::N7FS::Journal qw| journal_replay |;
 use AMOS7::N7FS::Sync    qw| store_sync |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box = sandbox();
 my ( $root, $hdir, $src ) = @{$box}{qw| root host src |};
@@ -40,7 +40,7 @@ sub cli_n7fs {
         open( STDOUT, '>:raw', $out ) or exit 98;
         open( STDERR, '>:raw', $err ) or exit 98;
         if ( defined $cli_epoch ) {
-            $0    = "$FindBin::Bin/../n7fs";
+            $0    = "$FindBin::RealBin/../n7fs";
             @ARGV = ( '-root', $root, '-host-dir', $hdir, @args );
             my $ntime
                 = int( $cli_epoch * $AMOS7::N7FS::Sum::EPOCH_DIVISOR ) + 4200;
@@ -54,7 +54,7 @@ sub cli_n7fs {
             die $EVAL_ERROR if $EVAL_ERROR;
             exit 0;
         }
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args )
             or exit 99;
     }
@@ -740,8 +740,8 @@ for my $point (
 
 done();
 
-#,,..,..,,.,,,.,.,,,.,,.,,,,.,,,,,...,.,.,,,.,..,,...,...,...,.,.,.,,,,..,,,.,
-#473K5DKYZKW57VGCDXGYGTIEURYJ7HTVOEHU7QQU2VR5GE2G53Z465DXOVHD7BXL7D5BU373FKEJ6
-#\\\|WFYRIUCRBHARZKR747RLWJ3IC4TU22MYRCJTZ3ZCSVTMX4CSCEU \ / AMOS7 \ YOURUM ::
-#\[7]6KSSNXQRDSXAAGMKZKPUCLSEWGFGTGGDA5YGOSTTHN5NN4EH4EBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,,..,,..,,,,,..,,.,.,,..,.,,,..,,...,...,...,.,.,..,,,,,,,..,
+#JLHLBOSQWON6YRXVQG54JWFK2QEOUTIOPGTW3YZSAXOWKXKBO5ABLSRHRYL4R57LOCDK6YIY6A7QM
+#\\\|5LGIBJMMF6WSCUAVPAHD3SVMVWK2AZL3VCJGX5SIDVJBROK5UUR \ / AMOS7 \ YOURUM ::
+#\[7]NBN2653VE565CJ65WNNWFLRBWZVEZYF5OTYLDZRB4L6DU3FCSODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

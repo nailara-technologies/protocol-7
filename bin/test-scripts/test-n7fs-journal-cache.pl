@@ -7,12 +7,12 @@ use warnings;
 ## place reuses one authenticated journal replay for planning and every seal.
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use Time::HiRes  qw| time |;
 use AMOS7::Vault qw| vault_init |;
 use AMOS7::N7FS  qw| make_dirs |;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box  = sandbox();
 my $base = $box->{'base'};
@@ -31,7 +31,7 @@ sub cli {
         open( STDIN,  '<',     $pf )      or exit 98;
         open( STDOUT, '>:raw', $out )     or exit 98;
         open( STDERR, '>&',    \*STDOUT ) or exit 98;
-        exec( $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs", '-root', $root,
+        exec( $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs", '-root', $root,
             '-host-dir', $hdir, @args, '-pass-fd', 0, '-vault-dir', $vdir )
             or exit 99;
     }
@@ -99,8 +99,8 @@ ok( !eval { AMOS7::N7FS::Placement::journal_replay_cached($id); 1 },
 
 done();
 
-#,,..,,,.,,,.,,..,,,.,...,...,,.,,.,.,,..,,..,..,,...,...,...,,,,,.,.,,.,,.,.,
-#A24AFICNCEF3ES5OSJKEW2REVO3YOMKB66EXNZC5DE7IRYI5P6STYYFIL4FRFQL4AYZZ4IPXKNMZY
-#\\\|RE5G2HUSSVAQG3EM2DACASUPHNOLQJQ5X43QBX5YV55ZLUAYZKF \ / AMOS7 \ YOURUM ::
-#\[7]O6IPUJZ4RQJBV2I5ISTQPQVBDH73CEFYBP76KQ5PBVCVYXLYISBY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,,.,,...,..,,..,,.,.,,.,,...,..,,...,..,,...,,,,,,,.,..,,...,
+#65XBABQ7O3CSMIWWEVAM556XZ6335EDPKGCHWKRGWW2UKIQY7OB3UMZFGPXPJFZPWIPZ3ZMIFJKZY
+#\\\|MYFMJTRQGFJ7R2RFXTXKBCTX35HW7DD4DFCVCLO7EFX47HSHLXN \ / AMOS7 \ YOURUM ::
+#\[7]IULHZKLBHCGAH26ZJJQY3QQJ4MXAREQBTJKWG6EWFMX4N4A6IYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

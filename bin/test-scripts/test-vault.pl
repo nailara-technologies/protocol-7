@@ -19,7 +19,7 @@ use File::Copy qw| copy |;
 use constant TRUE  => 5;    ##  TRUE.  ##
 use constant FALSE => 0;    ##  false  ##
 
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::Vault qw|
     vault_init vault_open vault_unlock vault_rewrap vault_wraps
@@ -107,7 +107,7 @@ ok( framed(
     ok( AMOS7::Vault::_b32_text_decode($tabbed) eq $bin,
         'reader : reindented frame' );
     ok( AMOS7::Vault::_b32_text_decode($crlf) eq $bin,
-        'reader : ' . 'crlf frame' );
+        'reader : crlf frame' );
     ok( $old =~ m|\n:\n:\.\n\n\z|, 'older frame built as before' );
 }
 ok( index( $raw, 's3cret' ) == -1 && index( $raw, 'Example' ) == -1,
@@ -256,8 +256,7 @@ ok( !grep( {m|\.tmp\.|} glob "$dir/entries/* $dir/*" ),
         pack( 'a4 C', 'P7VK', 9 ) . "\0" x 40 );
     my ( undef, $f1_err ) = vault_open($f1_dir);
     ok( ( $f1_err // '' ) =~ m|format 9 not supported|,
-        'unknown vault ' . 'format ' . 'refused'
-    );
+        'unknown vault format refused' );
 
     my $v1_name = "$dir/entries/$id.00000000000001.AAAAAAAA.vlt.B32";
     my $bin_9   = $bin_c;
@@ -308,7 +307,7 @@ ok( !grep( {m|\.tmp\.|} glob "$dir/entries/* $dir/*" ),
         'archive : restored into an empty directory' );
     my ($r1) = vault_open($rdir);
     ok( vault_unlock( $r1, $recovery, 'recovery' ),
-        'restored ' . 'vault : opens' );
+        'restored vault : opens' );
     my ( $r_ok, $r_err ) = vault_verify($r1);
     ok( $r_ok == $total && !@{$r_err}, 'restored vault : every version' );
     my ($r2) = vault_open($rdir);
@@ -329,7 +328,7 @@ ok( !grep( {m|\.tmp\.|} glob "$dir/entries/* $dir/*" ),
 
     ## passphrase + key file : any file, here this test script ##
     my $key_file = $PROGRAM_NAME;
-    my $other    = "$FindBin::Bin/test-ntime.pl";
+    my $other    = "$FindBin::RealBin/test-ntime.pl";
     my $fsecret  = AMOS7::Vault::file_secret( 'archive phrase', $key_file );
     my ( undef, undef, $fwraps )
         = AMOS7::Vault::archive_write( $v4,
@@ -483,8 +482,8 @@ say '';
 say "  $pass passed, $fail failed  [ perl $^V ]";
 exit( $fail ? 1 : 0 );
 
-#,,..,.,.,,..,,..,..,,.,,,,..,,,,,,.,,.,.,,..,..,,...,...,.,,,,,,,...,,,.,,.,,
-#5GI4BCDH7KVVDUPJIXDMJMCWJ5R6BCEQEVHQF5BMYXHXBCPBVKRXUTHAGIQN55UJRGMQHMRURV4Q6
-#\\\|AJ5OKRTJJXYVQI3B677SABWQENKVL5CRA57O5J5ZXGXAZ2WHYNJ \ / AMOS7 \ YOURUM ::
-#\[7]HVQBUENV2BR5SFTOAU6W6RSKA65NUBHIZ5GMV2NUKUN4SEFFM4AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,..,,,,,,.,,...,...,,.,,,,,,.,.,..,,...,..,,..,,.,.,,,,,,,.,,,,,
+#INYPR5X7TGRMURLJRD73LO7FOTCWSTLP5EOG5HYDF3SUNZ7A4XCJFMOVRLKN2CYKGIPV6MKUQTQVQ
+#\\\|WAEV2I7UWPTKQY7ACN7PG52LXOXE3RIGJDTE6Y5BW5AUT6B5EC3 \ / AMOS7 \ YOURUM ::
+#\[7]DHOKOQQ2CKRXECKCMYD4EEDTBET4CK7CMX3MZG2XPMANKX3YOUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

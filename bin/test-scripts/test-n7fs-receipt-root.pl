@@ -5,7 +5,7 @@ use English;
 use warnings;
 
 use FindBin;
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use JSON::PP;
 use AMOS7::NTIME      qw| parse_y_age |;
 use AMOS7::N7FS       qw| b32 make_dirs read_file |;
@@ -13,7 +13,7 @@ use AMOS7::N7FS::Sum  qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Sign qw| verify |;
 use AMOS7::N7FS::Placement;
 
-require "$FindBin::Bin/fixtures/n7fs/helpers.pl";
+require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
 
 my $box    = sandbox();
 my $hdir   = $box->{'host'};
@@ -188,7 +188,7 @@ ok( !$ok && read_file($path_a) eq $before_failure,
 
 sub clock_floor_cli {
     my @args = @ARG;
-    open( my $fh, '-|', $EXECUTABLE_NAME, "$FindBin::Bin/../n7fs",
+    open( my $fh, '-|', $EXECUTABLE_NAME, "$FindBin::RealBin/../n7fs",
         '-host-dir', $hdir, 'clock-floor', $root_c, @args )
         or die $OS_ERROR;
     local $INPUT_RECORD_SEPARATOR;
@@ -209,8 +209,8 @@ ok( $floor_rc == 0
 
 done();
 
-#,,,.,.,.,.,.,...,,..,,,,,,.,,,,.,,,,,...,,.,,..,,...,...,,..,,..,,..,.,.,,,.,
-#ICZFDLU4CXKJKRAGVTSNUZ6WKSFJAUTNVEDF3DPERQ5VQGYNPMTX2SRRXVSKYCK3RUXDVTLUV3CA4
-#\\\|IVJSV6PGPLZ77MAUGZABG4EA7NJL4NS4CDDNK5QPHIAMYIRXA5O \ / AMOS7 \ YOURUM ::
-#\[7]THUNUPG22RVZLGPSLGLPC7OQLXCXZ77CVLSFKZMFBRN4PTLA3CDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,,,,,,,.,,,..,,.,,,.,.,,.,,...,..,,...,..,,.,.,..,,.,,,,.,,,,.,
+#DDKGLH5TWCN4UM3M2TZKRQPKKJMLABKFTM2TYQGXWOSJXCQK5I7DSEW5LCR23ZBVC43DFCRWTG3ZS
+#\\\|WL5CCVPFJ43SEGEDTSWVLCDXECGCUXZOUJI6VDMRORTWBQ6HVXG \ / AMOS7 \ YOURUM ::
+#\[7]D66F567LDGUAL3JRPHFK76HXCAKFORBZEHWLIEMXXYJ7FP7A5OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

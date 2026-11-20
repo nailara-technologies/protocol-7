@@ -34,10 +34,10 @@ use Digest::BMW ();
 use File::Temp  ();
 use POSIX       ();
 
-BEGIN { unshift @INC, "$FindBin::Bin/../../data/lib-path/pm" }
+BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 use Crypt::Misc qw| encode_b32r |;
 
-my $root_path = Cwd::abs_path("$FindBin::Bin/../..");
+my $root_path = Cwd::abs_path("$FindBin::RealBin/../..");
 chdir $root_path or die "p7-commit : chdir $root_path : $OS_ERROR\n";
 my $state_dir = "$root_path/data/state";
 ## octets on disk : the files are :raw ##
@@ -202,8 +202,8 @@ if ( $command eq qw| show | ) {
 
 fail('p7-commit prepare -op <op> < message | commit <id> | show <id>');
 
-#,,,,,,..,.,,,,.,,.,,,.,.,.,,,.,,,,,.,.,,,,..,..,,...,...,,.,,,,,,,,.,.,,,,,.,
-#CGZ5OTNA4ZDD2RN3QOA5YFM3R34IVUMPMUHUK4D3JQJLWPMP3MYCMIBKMG67ITM4BYW6JLIGF43NQ
-#\\\|6JRKVLNRC4SWLJPNVKTPTDCBO6VXWEJ3Z4WWO5JBHF4TKGDIDSN \ / AMOS7 \ YOURUM ::
-#\[7]J5HADZU3SRDCFUVR6HUOIFFMRE3K6KZOAOMOPFB34DEX5KOEVADY 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,.,,.,,,,,,,,,,,,.,,..,..,,,,.,..,,...,.,,,.,,,...,,,,,,..,,..,
+#BDMIDBFJ6DKMNOMDPDY5QWS6ET25CITWYZR52Q752ECJE23EHEOGKSYRFN3BQB4T3FFRI7I5C7LPC
+#\\\|TQ5OL7DGBUDU6OZ7HIDNH5BXRE5LDZTURVZNT5THAAXVWX6BVIF \ / AMOS7 \ YOURUM ::
+#\[7]UEBQJR63EFNH2DXXC34VWR22QYRLLM2CNZLVZOXZWRKURRI6D4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

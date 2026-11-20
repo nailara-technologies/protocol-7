@@ -37,7 +37,8 @@ use File::Spec  ();
 
 BEGIN {
     ## repo layout first, then a backup copy [ AMOS7/ beside the script ] ##
-    unshift @INC, "$FindBin::Bin/../data/lib-path/pm", "$FindBin::Bin";
+    unshift @INC, "$FindBin::RealBin/" . "../data/lib-path/pm",
+        "$FindBin::RealBin";
 }
 
 use AMOS7::Vault qw|
@@ -974,7 +975,7 @@ sub unlock_prompt {
     my ( $wrap, $label )
         = $use_recovery ? ( qw| recovery |, 'recovery code' )
         : defined $key_file
-        ? ( qw| passphrase-file |, 'passphrase [ ' . '+ key file ]' )
+        ? ( qw| passphrase-file |, 'passphrase [ + key file ]' )
         : ( qw| passphrase |, 'vault passphrase' );
 
     ## each form of the secret in its own variable, each one wiped : a
@@ -1034,7 +1035,7 @@ sub pick {
 
     if ( not -t STDIN ) {
         say STDERR msg( 'refuse',
-            "'%s' matches %s entries " . "-- be more specific",
+            "'%s' matches %s entries -- be more specific",
             $filter, $ARG )
             for scalar @hits;
         return undef;
@@ -1201,7 +1202,7 @@ sub cmd_add {
         return FALSE;
     }
     if ( not type_fields($type) ) {
-        say msg( 'refuse', "unknown type '%s' [ " . "login note contact ]",
+        say msg( 'refuse', "unknown type '%s' [ login note contact ]",
             $type );
         return FALSE;
     }
@@ -1375,7 +1376,7 @@ sub cmd_show {
         $value =~ s|\n|\n               |g;
         say sprintf "  $C{T}%-12s$C{R} $C{V}%s$C{R}", $field, $value;
     }
-    say sprintf "  $C{T}%-12s$C{R} " . "$C{V}%s " . $C{0} . '[ %s ]' . $C{R},
+    say sprintf "  $C{T}%-12s$C{R} $C{V}%s " . $C{0} . '[ %s ]' . $C{R},
         'updated',
         scalar localtime( ntime_b32_to_unix( $record->{'updated'} ) // 0 ),
         $record->{'updated'} // '';
@@ -1407,7 +1408,7 @@ sub cmd_copy {
 
     my $tool = clipboard_tool() // do {
         say msg( 'refuse',
-            'no clipboard tool [ wl-copy, ' . 'xsel, xclip, clip.exe ]' );
+            'no clipboard tool [ wl-copy, xsel, xclip, clip.exe ]' );
         return FALSE;
     };
     clipboard_set( $tool, $value ) or do {
@@ -2216,7 +2217,7 @@ sub _export_archive {
     if (@skipped) {
         say msg(
             'info',
-            '%s path%s not in the archive ' . '[ unreadable at import ]',
+            '%s path%s not in the archive [ unreadable at import ]',
             scalar @skipped,
             @skipped == 1 ? '' : 's'
         );
@@ -3351,7 +3352,7 @@ sub cmd_history {
     foreach my $version ( reverse @{$versions} ) {
         my ( $record, $err ) = entry_load( $v, $entry->{'id'}, $version );
         my $stamp = int( version_to_unix($version) // 0 );
-        say sprintf "  $C{0}%s  %s$C{R} " . " $C{V}%s$C{R}",
+        say sprintf "  $C{0}%s  %s$C{R}  $C{V}%s$C{R}",
             scalar localtime($stamp), $version,
             $err // (
             $record->{'deleted'}
@@ -3586,7 +3587,7 @@ sub cmd_verify {
     say $C{o} . "  << $ARG >>" . $C{R} foreach @{$errors};
     say msg(
         @{$errors} ? 'refuse' : 'done',
-        '%s version%s decrypted, ' . '%s failed',
+        '%s version%s decrypted, %s failed',
         $ok,
         $ok == 1 ? '' : 's',
         scalar @{$errors}
@@ -3664,8 +3665,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,.,.,.,.,.,.,,,.,,,,,.,,,,..,,.,,..,,,..,..,,...,...,.,.,.,.,,..,,,,,,,,,
-#DROM43PY5NW6BMVLSVHTJTXHPDMWAQ2KOCCOCDVJWUSOV6VICPO2BQHIQZPH4UPJCTGVRKG3ITW6I
-#\\\|DL74T3NJDSGLYS2GXAL7HQUS46P2QDAKFPLASNFEVUFB2ZRT425 \ / AMOS7 \ YOURUM ::
-#\[7]PMRCJCJWWTLAK4F2QQMCFUSGTPRPQMKNCBQR4BCUFAFNQGI53YDA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,...,,,.,,..,,,.,,,,,...,,,.,,,.,..,,...,...,...,,,.,...,.,.,,.,,
+#GPKE4B2UMOXJ3CQNE4UXWQGX5WYGPC4WQ33MDFQUI4DNOMRM3PRCLA54MPEY5GPVFZYGB5K77PCMK
+#\\\|BX2FQWDTJGF3BFF247SRKS3EMKHBMHLL5ENFYB2U4NE7MHTLO3B \ / AMOS7 \ YOURUM ::
+#\[7]UWRFHVUQFU7KVPDF5BOXXIKKJNJOJU6CCSF7MKLDOBETOL5UWMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
