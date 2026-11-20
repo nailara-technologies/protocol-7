@@ -316,6 +316,26 @@ one round trip per new site group -- cheap once sticky ]. decision open.
 each stage works on its own ; stage 2 already moves traffic off atom for
 everything contabo is allowed to fetch.
 
+## update [ owner 2026-11-20 ] : an exit pool instead of one exit host
+
+- goal : no single exit host carries the blocked sites ; when one is retired,
+  its exit role moves into the pool [ its other services move separately,
+  not tied to the smtpd zenka ]
+- the pool needs no "better" range : exits in at least two range classes. a
+  site that blocks one class is served by another, the learned table
+  [ section 3 ] decides per site group ; a second class also spreads the
+  requests so one address stays below a site's rate limits
+- verify each critical site with a probe from the new exits BEFORE an old
+  exit goes, not after
+- last resort : a residential exit through an always-on home host for a site
+  group EVERY class blocks -- that group only, never the default : low
+  upload, and the home address becomes the visible source
+- stage order to move an exit role : 1 + 2 [ records, wiring ] then 6 [ new
+  nodes as exits ] ; learning [ 3 ] and the tunnel [ 5 ] make it robust, UDT
+  [ 7 ] follows the tunnel
+- the proxy zenka [ src/proxy.* ] is the entry point already built ; stage 2
+  wiring landed 2026-11-20 [ proxy co-loads transport, registry keyed by exit ]
+
 ## open questions
 
 - which sites besides stepstone.de -- and which video streaming services
@@ -340,8 +360,8 @@ everything contabo is allowed to fetch.
 - grouping : is a public suffix list available offline for the
   registrable domain, or a small own list first
 
-#,,,.,,,,,,,,,...,,,.,...,,,,,...,.,.,,,,,.,,,..,,...,...,..,,..,,.,,,..,,.,.,
-#M7FUWQG2D7NTGSDZVJ53KOUICKPHOW5QCOG6DLJ7RJTAK7EFWXRDEEQHETZLBWCWA5A2IONCTNDJM
-#\\\|WBQDPQZQN6A4N3GYBSUNANS4NPMTYC2AEGJD4EXCDSDFYB7LXTK \ / AMOS7 \ YOURUM ::
-#\[7]LLMT6ENTTU6KLDCK2ZVNIVXBQ5HDE6TZU7VVPNRLE2NZWAASYCBI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,,,,,.,.,,,...,...,...,.,,,...,..,,...,..,,,..,..,,,.,,,,.,,.,,
+#XM6IAUFJDH3ZLM4MNOSMDC24MHCJ7QKYRNPAEHVEAFCJMJMA4PBB72E2KXL3C25C5GMNE6EMZ664K
+#\\\|FRWI4REOZJHJ74M3RTXTRCJEWOFBXMFGNGQ25QX2JHOL65QLVG4 \ / AMOS7 \ YOURUM ::
+#\[7]67HEGLWKQRBXLOD7MLRD4ETSPZ7EZIIRSUCHXNVYUCENU6AVCGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
