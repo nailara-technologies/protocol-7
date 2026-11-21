@@ -34,7 +34,7 @@ foreach my $chk_dir (@check_dirs) {
         if not @st
         or -l _
         or not -d _
-        or $st[4] != $EUID
+        or $st[4] != $>    ## $EUID is not always aliased in zenka scope ##
         or ( $st[2] & 022 );
     $first_dir = $subdir_path;
     last;
@@ -117,8 +117,8 @@ if ($register) {
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,..,,.,,,..,...,.,.,,.,,.,,,..,,,,,,.,.,,,.,..,,...,...,.,.,.,,,,,,,,,.,,.,,
-#CFTVWZSOLWM4J7GSWZX2JDQNZRP4IRBDDLD7N7RVDQPWSOZHCVYLL6IBQPQELW4WLXTUENLYVZLEA
-#\\\|JIW7RDCKE5KTMMZ6TT7FO4SZLVWRWIL2KAEOJ4F4RFKQRX5UPFP \ / AMOS7 \ YOURUM ::
-#\[7]RY64TUSAHVAZH5UZJ6AJKTCAUWKSBP5OQRQEUPEY2QANP7RUC4BI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,...,,..,,..,...,.,.,,,.,.,,,,.,,..,,...,...,,,,,.,,,.,,,...,.,.,
+#YS64YG3LQ2FRYZSNMZFBIMSSWMTDEXZRVC5NB34RKOYE7GXASNG2CQNMUUED2HUIBBBIIJY2K4INQ
+#\\\|H7HJQFV4UPLVHLVW7K3X5HPOTOUAKWNWGS4SVYJZT74C6TC3ODG \ / AMOS7 \ YOURUM ::
+#\[7]SBFHM6AIS4F7IBKKZQ5CQMLAKF7ECMQVDSBOU3M3DBHOAAHAG2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
