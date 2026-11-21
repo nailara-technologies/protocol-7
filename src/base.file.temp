@@ -4,8 +4,10 @@
 
 my $tmpl       = shift // 'X' x 13;
 my @check_dirs = shift;
-my $unlink     = shift // TRUE;     ## unlink in end code callback ##
-my $register   = shift // FALSE;    ## register for unlinking at v7 zenka ##
+## a list of candidate directories may be given as one array reference ##
+@check_dirs = $check_dirs[0]->@* if ref $check_dirs[0] eq qw| ARRAY |;
+my $unlink   = shift // TRUE;     ## unlink in end code callback ##
+my $register = shift // FALSE;    ## register for unlinking at v7 zenka ##
 
 if ( $tmpl =~ m|/| ) {    # allow paths later
     warn 'filename template syntax not valid [ no paths ] <{C1}>';
@@ -32,10 +34,18 @@ foreach my $chk_dir (@check_dirs) {
     my @st = lstat $subdir_path;
     ## the effective uid from the kernel : /proc/self belongs to it -- no ##
     ## special variable needed [ one was undefined in zenka scope ]       ##
-    my $euid = ( stat qw| /proc/self | )[4];
+    my @self = stat qw| /proc/self |;
+    my $euid = $self[4] // $>;
+    my $egid = $self[5] // ( split m| |, $) )[0];
     if ( not @st or not defined $st[4] or not defined $euid ) {
         <[base.logs]>->(
-            0, ': tmp-dir owner check impossible : %s', $subdir_path
+            0,
+            ': tmp-dir owner check impossible '
+                . ': %s [ lstat %s, euid %s, proc %s ]',
+            $subdir_path,
+            ( @st ? 'ok' : "failed : $OS_ERROR" ),
+            $euid // 'undef',
+            ( @self ? 'ok' : 'unavailable' )
         );
         next;
     }
@@ -43,7 +53,8 @@ foreach my $chk_dir (@check_dirs) {
         if -l $subdir_path
         or not -d $subdir_path
         or $st[4] != $euid
-        or ( $st[2] & 022 );
+        or ( $st[2] & 002 )    ## world-writable : never ##
+        or ( $st[2] & 020 and $st[5] != ( $egid // -1 ) );
     $first_dir = $subdir_path;
     last;
 }
@@ -125,8 +136,8 @@ if ($register) {
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,,,,.,.,..,,,,.,,.,,,,.,,,.,..,,,,.,,.,,,..,..,,...,...,..,,.,,,...,.,,,...,
-#YEL5VB5MPRJJXBKT53YYXBBXOKTAWTMDPBUK3IQLZGXF64LN4II6EIOW4KLFAXWXZ6EBHW3TWQG3I
-#\\\|D5CVNYMJS2SK6XR75UYF32UKUNNDQPEL5SMM4JMDOLM2DUMXAGC \ / AMOS7 \ YOURUM ::
-#\[7]YR3CRFJXCVWNXGQNK54K3KYBSUVIW56ZODALCYX772QMMLQJLECA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,..,,,,,,,,.,,,.,,,.,,,,,,.,,,,,,..,,...,...,,,.,,,.,,,,,.,,,,,,,
+#LWZQIXKHNWTR45LASO6EE3YO6NYW76BFOKCAY7RVKZRRY3GSDQPZQWO53LH3FZ377RF62I3SEWFAK
+#\\\|FC5DEJROEB6VAK6NNLGVBIQVZ6KB5XLLO3VGYY4MBOQEZHAFEVD \ / AMOS7 \ YOURUM ::
+#\[7]2TGSRV4V2AAKWTOZYOWPPMRKD6BIF7BJH2IOCXEEYSN7ZN3AA4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

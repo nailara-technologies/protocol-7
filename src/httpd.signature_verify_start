@@ -31,8 +31,10 @@ pipe( my $result_r, my $result_w ) or do {
 binmode($result_r);
 binmode($result_w);
 
-my ( $body_fh, $body_path )
-    = <[file.temp]>->( qw| signed-body-XXXXXXXXXXXXX /var/tmp |, TRUE );
+my ( $body_fh, $body_path ) = <[file.temp]>->(
+    qw| signed-body-XXXXXXXXXXXXX |,
+    [qw| /var/protocol-7 /var/tmp |], TRUE
+);
 if ( not defined $body_fh ) {
     close $result_r;
     close $result_w;
@@ -110,8 +112,8 @@ $session->{'watcher'}->{'signature_handler'} = <[event.add_io]>->(
 
 return 0;
 
-#,,,.,..,,,..,...,.,,,,,,,,.,,,,,,,,.,,,,,...,..,,...,...,,.,,..,,,,.,..,,,..,
-#HY2M6ZGWFVYNEAZLFPTPW62TGHC6OPBV5MOAFN5W3P73JVPJPY336IJYX7SMGQ2PPPXVTKW7ZJJC6
-#\\\|XOMVSJZWI3PKEZSTCAWBUSN4W467EOGKVI26OS7GHADLPYOP3UA \ / AMOS7 \ YOURUM ::
-#\[7]QFPUVFVDEAAZWY74DCQDAUFEGHBFC5WB7DAIMMFRIBKKGH54FOCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,,.,,..,,,..,,.,,.,.,.,.,..,,..,,...,..,,,,,,.,,,,..,,..,...,
+#JREDL2P3MHYIA5R6C7C7R2WG6KSN7LJUZ6WYX6P3ESD2TF3FE7PJLZK4VCIBALVB7KYL5SMPEQAFK
+#\\\|BSA57EDO6AL2XX5OYHMWM274QQMQY5TGEXB56DIGHAXYLJSUYCJ \ / AMOS7 \ YOURUM ::
+#\[7]TDIAVFGBQUFCA52R6CSUHN3QL74TGTAAJWNRDCX23IEL5ASW5SDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
