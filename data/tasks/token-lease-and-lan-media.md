@@ -21,9 +21,21 @@ the existing split stays : the users zenka holds the per-host records [ value-ge
 value-set, remote-get \ remote-fetch for peers ], user-edit is the form for ONE record,
 host-edit the host records. groups are missing :
 
-- the users zenka owns group records next to the user records : name, members, scopes,
-  ttl ceilings. commands group-create \ group-add \ group-remove \ group-list \ group-get,
-  and remote-fetch for groups as for users [ exchange between hosts ]
+- groups and levels ALREADY EXIST and are reused, not duplicated : the cube access
+  groups [ `<admin-user>`, `<AMOS-user>` in access.zenki, resolved by cube for every
+  command check ], a security level per group with the caller's effective level = the
+  maximum over its groups [ data/md/design/UI-SHOW-SECURITY-LEVELS.md, built as
+  ui.caller.security-level ], web roles per relayed command in access.web with the
+  user -> role map in host config and the approval ladder [ click, pin, passphrase,
+  second passphrase -- data/md/design/WEB-UI-USER-LOGIN.md ]
+- what is missing is MANAGEMENT of them : the users zenka gets group commands
+  [ group-list \ group-get \ group-add \ group-remove, later group-create ] that edit the
+  same group definitions cube resolves -- one source, no parallel identity mechanism.
+  per group : members, security level, scopes, ttl ceilings ; remote-fetch for groups
+  as for users [ exchange between hosts ]
+- the later key-based level source [ per-key level, maxed with the group level, see
+  UI-SHOW-SECURITY-LEVELS.md ] is where lease tokens plug in : a lease carries a scope
+  and at most its group's level
 - host-edit defines a host's user bucket : one field on the host record names the
   group[s] whose users exist there ; installing a host creates exactly those users
   [ the same path that provisions 'root' through users.record.default_fields ]
@@ -94,8 +106,8 @@ consumer uses, shaped so that outside software can speak to it without protocol-
 - a grant is per lease user and ttl ceiling, fail closed when absent
 - no host names, addresses or personal data in repo files
 
-#,,,.,,,.,...,,,.,,,,,.,.,.,.,,,,,...,,.,,,,,,..,,...,...,...,,..,,..,,..,,..,
-#3JTBEU4CJPCMVIDVR45IU32FURO4AUIZSS2ULM3XFGNNVEFDYMUPFM2KCPXZRFZEXTXEMWNKKKARW
-#\\\|LIOUJ6LNYYK45S6HSWOLXZD7RQCDI6XTODUUQWXP44PXDYCGWU7 \ / AMOS7 \ YOURUM ::
-#\[7]7TKJJNHEZZEFFKNAGFII5YKI5FU2EWMD6FHPB4ZLKO7UOJOBHCAY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,.,.,,,.,,..,,..,,,,,,..,..,,..,,...,...,,.,,,.,,,..,,.,,,,,,
+#SYWINRLI2IUJIMXZLJ7GBFCB5QQE7OJUYRCBQDS3DVPQLQMSRAU3XF6NC72FFRFCEBTMHXXCM7KM6
+#\\\|MHUFYNZ5EMMKSUMW35B4G7BIHRCJJKFITEPFOKN46HSC4ZVQFI6 \ / AMOS7 \ YOURUM ::
+#\[7]RPYAFPPFFGANPPI2OP34PCA557BKOLNK25DJZM4I7XPDVMCET2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
