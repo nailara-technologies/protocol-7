@@ -417,6 +417,76 @@ for a future `data/yaml/coding-tasks/dancing-zenki-formation.yaml`:
   readings (anonymous overwatch vs setup+collector vs initialized-idle
   alternates) — task file must pick one and record the decision; the
   kittens spec's Z6/Z7 reading is the most complete.
+  **owner 2026-11-21** : the 2 are hot-standby alternates -- 5 active workers,
+  2 alternates warm ; when an alternate is promoted, TWO new ones are spawned.
+  the alternates are the burst buffer [ sized to cover the spawn time ], the
+  2-for-1 replacement is the geometric rescaling : under sustained load the
+  reserve grows faster than it is used, and shrinks back to 2 when calm.
+  the same principle as the consensus of the same name
+  [ TASK-CUBE-CONSENSUS-ARCHITECTURE.md ] : the 5 that work are the 5 that vote,
+  the alternates keep work AND quorum whole -- consensus and redundancy are one
+  structure, native at protocol level, not two mechanisms.
+  two modes, as with the formations : PARALLEL [ the ring -- the 5 work on the same
+  input at once and vote, the alternates keep the quorum ] and SERIAL [ the helix --
+  the 5 form a chain, each checks the previous result before passing it on ; an
+  alternate replaces a failed stage and the chain continues ]. the dancing zenki
+  formation COMBINES both, in phases [ owner 2026-11-21 -- this reconciles the
+  competing readings of the 2 : each belongs to a phase ] :
+  - travelling [ serial ] : the 7 move together -- ONE sets up the session, ONE
+    collects the results, the 5 between them work and report to the lead zenka over
+    the hyperspace channel [ the tachyon wind ]
+  - arriving [ parallel ] : when they find something they descend to it, and
+    parallel work begins there -- the ring, the vote, alternates keeping the quorum
+  so 'setup + collector' is the reading while travelling, 'hot-standby alternates'
+  the reading while working in place.
+  while travelling, the network offers the formation its features over a
+  hyperspace TRUNK -- one channel the moving formation keeps, through which it
+  reaches services [ lookup, storage, inference, the lead zenka ] without
+  re-establishing a link at every stage.
+  the trunk routes to zenki that offer services ; zenki roaming along the routes
+  are closest and get the FIRST opportunity : serve the request themselves, or
+  broker it -- re-sell a service they know how to reach. proximity orders who is
+  asked ; serving and brokering are both accounted in the resource ledger
+  [ RESOURCE-ACCOUNTING-UNIFIED.md ], and a broker passes on only what its
+  delegation allows [ no trust is widened by re-selling ].
+  economic activity glows : a localized activity pool emits a blacklight,
+  bioluminescent-like mist [ owner 2026-11-21 ; visualized earlier as 'cubic space
+  neural pathways with blacklight activity trails' :
+  data/asc/what-AI-thinks/html-form/protocol7/protocol7-bioluminescent.html, first
+  version in .../cubic-space/archive/v1-early-experiments/bioluminescent.html ] -- a gradient signal of 'work happening here' that
+  attracts zenki from afar to join the pool. routes travelled by many zenki are the
+  strongest attractors : economic zones crystallize along them. the mist carries
+  only that activity exists and its kind, never whose or what data [ the presence
+  rules : intensity is public to the ring, content is not ].
+  the mist is frequency-tuned : each kind of activity glows in its own band of the
+  spectrum [ a category ], and a zenka perceives only the bands of its partial
+  interest -- an inference worker sees inference pools, a holder sees storage
+  demand. no zenka is flooded by activity irrelevant to it, and a pool attracts
+  exactly the zenki that can take part.
+  perception is relative : every zenka sees its relevant bands only as blacklight
+  and blue, whatever their absolute frequency -- the same band may lie at any hue
+  from another zenka's perspective. the edges of a pool shimmer in fluorescent
+  gradients into translucency. visually this is the desktop's own look [ blue
+  translucent, desktop-ui-surfaces.md ], so the mist renders natively there.
+  related, for the band \ hue mapping later [ owner 2026-11-21 ] : the colour wheel
+  experiments -- the BMW384 field wheel [ src/route.bmw384.visual.wheel.*, command
+  visual-wheel ], the spectrum visualizations [ data/asc/what-AI-thinks/html-form/
+  visualizations/spectrum/iris-spectrum.html, psychedelic-spectrum.html ] and
+  VISUAL-ELEMENT-DEDUP-HOLOGRAPHIC-CORE.md ; and iris [ owner 2026-11-21 ] -- the
+  iris routes of httpd [ src/httpd.route.handler.iris-route \ -pulse \ -negotiate
+  \ -ledger, httpd.handler.iris-svg.relay ], data/md/development/VORTEX-LAYER-IRIS-
+  CONNECTION.md, FOUR-VISUAL-DOMAINS.md ; and an orbital -> spectral mapping
+  [ owner 2026-11-21, idea ] : a position \ phase in the orbital data space maps to a
+  band of the spectrum, so neighbouring orbits glow in neighbouring hues and the
+  mist's bands gain a spatial order [ the orbital data space notes in
+  data/ai-mem/claude/archive/topic-orbital-data-space-archive.md ] ; and orbital
+  position + ring mapped onto the iris rings -- the same structure read at another
+  scale [ orbit -> iris ring, phase -> position on the ring, band -> hue ], cross-
+  mapped scales as elsewhere in the design. cubic space mappings render with
+  povray : the cubic grid is exact geometry, rendered reproducibly and in
+  distributed slices [ VISUAL-GENERATION-NATIVE-ZENKA.md ] -- each mapping is a
+  camera, material and parameter set on the same scene. any reuse keeps the calm defaults : slow,
+  easily slowed colour movement, no fast high-contrast cycling.
 - **steps**: port/adapt the Part 10 Perl reference to P7 module style;
   wire formation lifecycle to zenka spawn/stop (roadmap 7.1 machinery);
   integrate with `space.jump.bubble` formation_id convention; add
@@ -428,8 +498,8 @@ for a future `data/yaml/coding-tasks/dancing-zenki-formation.yaml`:
   fractal nesting, epoch/calendar semantics, loves-it priority wiring
   (separate task at `LOVES_IT_RESOURCE_ALLOCATION.md:257`).
 
-#,,.,,...,..,,,..,.,,,,,,,..,,,,.,.,,,.,.,..,,..,,...,...,..,,,..,,,.,,,,,,,.,
-#AUEEDVB6NPL7BSNE2CPA675WVVNLSAYUBIZSPEHRYGUXDRFFTGMRZSTKDZKAJJD6HPFM4LX4K5VY4
-#\\\|3C6FM2HDHUDWPPZ77YOEYSBVKHCMYSUUC2C7OQZ2SAU2CLR4A4L \ / AMOS7 \ YOURUM ::
-#\[7]WKB5DTF3NMQMPUBJPDDDJ57ZX7SRRIQI3GCK5D624O4BYRQ2JIDY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,..,,,.,,.,,,.,,,,,.,.,,,,..,,.,,..,,...,...,...,,..,.,.,,.,,,,.,
+#OISVLQ6DDVLJZZFXZYBALIEDUUQZGLNT7TGW47ZVQCNYIIPJ3YNZWHVKHAKVSRI2FKZXEHX7Z3ENC
+#\\\|SJN25QO4DJ2F37FVPPHZRDRINWNAFDF6IV6DLMO2G6OA75YYODR \ / AMOS7 \ YOURUM ::
+#\[7]LCZ5NUF4KT4HYF3OEQG2FMQW73QSD7N7FALBZNKC44IJTISWXQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -50,6 +50,48 @@ file, which browsers read as broken rules.
   new signed manifest drops it ; anything not listed or not matching does not exist
   for httpd
 
+## later : a slow path for exploit scanners [ owner 2026-11-21 ]
+
+- scanners show themselves : probes for paths no site of ours has [ /.env,
+  /wp-admin, /phpmyadmin, ../ sequences ], many in quick succession. a source that
+  matches is moved onto a slow path instead of a fast 404 -- bytes trickle out, the
+  connection is held, each further probe is slower
+- it must cost us almost nothing : handled in the event loop, no process per
+  connection, a hard cap on held connections and on bytes sent, so the slow path
+  can never become a denial of service against ourselves. the real cost is the
+  connection count ; tarpitted connections are the FIRST to be dropped when the
+  system approaches its limits [ file descriptors, memory, the load signals ] --
+  real clients never wait behind a held scanner
+- escalation to the packet filter : a scanner that keeps returning is dropped in the
+  kernel [ nftables set with a timeout per source ] -- no connection is made at all.
+  per host the owner chooses the default : the tarpit [ scanners waste their time ]
+  or quiet [ filter early, the server stays silent ]. entries expire by themselves,
+  the set has a size cap, and the owner's own ranges and the ring's hosts are never
+  added
+- known users are not scanners : a source authenticated as one of the ring's users
+  [ a valid session or lease, a pinned host ] experimenting with their own
+  applications -- odd paths, bursts of 404s from a buggy client -- stays out of the
+  slow path and the filter until it is clearly justified [ sustained, harmful ]. if it
+  does get blocked, the user is told over a native channel [ presence : the host they
+  are at, the menu's pending questions ] with the reason and an unblock action ; the
+  unblock is a small signed intent, no shell session needed. for users the first
+  countermeasure is a gentle slowdown [ a lower rate class, not the tarpit ], which
+  a buggy client survives and the user may not even notice ; a block comes only
+  after it, and with the notification. in the normal case this is not protection at
+  all but load balancing : a rate class smooths one client's burst and shares the
+  capacity fairly -- compensation, the same as the load signals elsewhere
+- statistics come either way : from the requests until a filter block triggers, and
+  after it from the filter's own counters [ dropped packets per source ]. what the
+  tarpit adds is samples : the exploit requests themselves -- kept in a quarantined archive [ an
+  n7fs tree of its own category, inert data : never served, never executed, never
+  parsed by anything but the analysis ]. the samples feed the scan signal list and,
+  with the work-and-private-contexts provenance, show which routes are being tried
+- built on the existing admission gate [ plugin.web.auth.admit.* : fair queue, 429 ]
+  as a very slow class ; the source class is remembered for a while [ hysteresis, as
+  with the load signals ] and shared with the other hosts of the ring
+- a signed-list server [ above ] has no unlisted paths at all : every probe for one
+  is a scan signal by definition
+
 ## rules
 
 - reuse the sourcecode zenka's verification and strip logic ; no second signature parser
@@ -57,8 +99,8 @@ file, which browsers read as broken rules.
 - never block the event loop : verification of a large file runs in the existing
   async file path or a child
 
-#,,..,.,.,.,.,,.,,,,.,,..,..,,,,.,,..,,.,,,..,..,,...,..,,...,.,.,.,.,,.,,,,,,
-#SSNHLFTS5SM6VWWWNMKFQAAPPYFTFW6TVHZ5WF2RPEW3NDFESXSQQ5SGFK5JA45B6RDLKLL3ITT4U
-#\\\|5PVUMRPRNC6CQE7WU37IAPK6WVBAW2XEENBQQGN5LLGTS6RCFHB \ / AMOS7 \ YOURUM ::
-#\[7]HIZJLQBNUNZEWBHVAJ4UUCMPCS36G4CBQZ2DTUHJR5MZY7G626BA 7  DATA SIGNATURE ::
+#,,.,,...,...,...,.,,,.,.,.,.,,,,,,,.,.,.,,,.,..,,...,..,,..,,,,,,,..,,.,,,..,
+#IXKSSK52PTM5KTVUUHFOU74H3JMP7SAINJOGM2VETN6CZD7R42MIPMD455UE2PJGIZ34QVGUELQ5I
+#\\\|WH7LJD56KDFOBYO3TRK4NGXFHWPRP2JPRKVHZESYZ4QZG52X7XP \ / AMOS7 \ YOURUM ::
+#\[7]KIUROVSRWUVBKOO7I46WULH2W2WTJR43P6VA3VQ6OJOWRUGZPCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -49,6 +49,29 @@ full desktop forwarding [ xvnc sessions ] stays its own feature in that design d
   rebuilt as a web desktop, in the browser since 2001 -- a whole desktop ui written for
   the browser, not emulated ] ; data/md/design/WEB-BROWSER-VIEW-STACK.md [ the n-view
   stack in the amiga screen-pull model ]
+- applications for a platform the device can no longer run [ owner 2026-11-21 ] :
+  e.g. android apps that need a newer android than an older phone gets. they run on a
+  server or the home machine in an android environment [ waydroid, an emulator,
+  android-x86 in a vm ] and the phone shows the screen and sends touches back, as if
+  local. limits : apps with hardware \ attestation checks [ banking, some streaming ]
+  may refuse an emulator ; camera, sensors and location must be forwarded explicitly
+  [ each its own opt-in, in the user's context ] or are absent.
+  the security gain is general : the phone runs only one small, checked viewport
+  client and no third-party code ; apps run sandboxed on the user's own machines,
+  each in its context with only the mapped access [ the work vm model ]. a lost phone
+  holds no app data, a malicious app cannot reach the phone. what remains is the
+  viewport itself [ screen and input while in use -- the overlapping trust of
+  work-and-private-contexts.md ], a far smaller surface than a phone full of apps
+- a capable phone can also be a full node : a local linux vm with native protocol-7
+  [ android's virtualization framework where the device has it, else termux \ proot
+  or a postmarketos install ] -- offline capable, a native presence and position
+  source, a small holder for a few context-encrypted trees ; heavy work runs remote,
+  light work local, by the same load signals [ battery included ]
+- one native but very generic android app assists the viewport : it shows the view,
+  passes touch and keys, and exposes the phone hardware [ camera, location, sensors,
+  notifications, vibration ] as channels the user approves one by one. it speaks the
+  protocol-7 wire protocol to the local vm and to remote nodes alike ; being generic,
+  it needs no application-specific updates -- new features come from the zenki
 - a first stage may use an existing tool [ xpra ] as one more X-11 mode, the way the
   design doc takes xvnc for full desktops -- own transport later, same commands
 
@@ -231,8 +254,8 @@ by application type :
 - timers \ retries through <[base.interval.next]> ; the event loop never blocks
 - no host names, addresses or personal data in repo files
 
-#,,,,,,,.,...,.,.,...,.,,,,,.,...,.,,,..,,,,,,..,,...,..,,...,...,.,,,.,.,,,.,
-#46Y3IC3WH5PKJJ6KG2IAPUWU74DFCRBWNS5YPYEAWGPLY6MGRUJBVQPYJXIJL4KVXOU5KW53M3AYI
-#\\\|BR6TH47N27J4Q47IRKKBXWNMAN5N5T2BDKC6SD3K5JYVVSVHOLT \ / AMOS7 \ YOURUM ::
-#\[7]YC6M2REWDAURF245G7GYET44UQQ5UIOVRKVJD5NIJBYPIMG4OCDA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,...,..,,.,,,,.,,.,.,,..,.,.,...,..,,...,...,,.,,,,.,...,.,.,,,.,
+#JBLQXY3KLOQLZC7EL5WYUKNG2HYTUQHZ5W2JBQQKZOJ3NRDGJNPSK5C27N3IPXHFAUKDEDCZVHXSI
+#\\\|2AWYKAM4UUS377DSDRY3Q6H5NYEXOJ2YMCZERZ7MPEFYWC3E3PE \ / AMOS7 \ YOURUM ::
+#\[7]3SNCFJTUM6YY5SHNPAK7FDHP7XZFPEJPN7XIAGB2GHTI6MZLZ4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

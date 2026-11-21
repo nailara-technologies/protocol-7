@@ -39,6 +39,16 @@ code changes.
 - the icon theme is generated into one directory and referenced by tint2 \ the menu ;
   re-rendering after a token change is one command
 - inputs and templates in the repo ; rendered pngs are build output, not tracked
+- the catch-all [ owner 2026-11-21 ] : any existing icon is mapped onto the blue
+  translucent material as an image_map -- its colours fold into the theme range, its
+  shape stays recognisable. every third-party icon, whatever its colour profile, gets
+  the same look without redrawing a symbol ; own symbols stay for what has no icon.
+  first pass works, then fine-tuning [ tint strength, translucency, edge light ] per
+  token set
+- redrawing as a second route : where mapping is not enough [ a busy logo turning
+  muddy under the tint ], a local image model redraws the symbol in the house style
+  from a fine-tuned generic qwen2 prompt ; the result then goes through the same
+  material pass. the prompt is tuned once and reused for any icon
 
 ## part 4 : comfortable dpi
 
@@ -154,8 +164,8 @@ code changes.
   tree [ part 5 ]
 - no host names or personal data in repo files
 
-#,,.,,,.,,,..,,.,,.,,,,.,,,,.,...,,.,,,,.,,..,..,,...,...,,.,,,.,,,..,...,,.,,
-#DHJFZWFSXNZ22KB5HZMPDPIJ4S2W6YYUKBIDTY4XSTD7ZQHCN7E3XRFF2HI7BEQPYY5N7UIPZJLD2
-#\\\|2OEQ4CDG4LZD2GQKFRTPYFZVCYF6RCGI6QUD2EMIH5BWIYQDZNB \ / AMOS7 \ YOURUM ::
-#\[7]BF2RLNSHTRTBQZCEMEADO3KQCL2U2ULH5LPAO4DBROA7OXCJXMAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,.,,...,,.,,.,,,...,,,.,,,.,..,,...,...,.,.,...,.,.,.,,,,,,,
+#2MPQD3OC5R6EOBITY7YLWAI27CAECZXYQIZHJVYT5SXXQVVGXG6QGKPF57N4TEV3K46GIGNCDE5DU
+#\\\|JOIK7KI7GJC4Z2ITDONL6A4P3W3SZQWGG7CEPL3QEAROKDRL6WK \ / AMOS7 \ YOURUM ::
+#\[7]XL2GVH2O3OANQGY6VEF3QSQLIN57YEUFYQOXKYIJB6ZFGNEBDECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

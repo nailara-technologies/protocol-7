@@ -336,6 +336,37 @@ everything contabo is allowed to fetch.
 - the proxy zenka [ src/proxy.* ] is the entry point already built ; stage 2
   wiring landed 2026-11-20 [ proxy co-loads transport, registry keyed by exit ]
 
+## update [ owner 2026-11-21 ] : vpn providers as exits
+
+- a widely available exit class : commercial vpn services that hand out wireguard
+  configurations [ e.g. mozilla vpn, and any provider with the same form ]. one
+  generic exit type 'wireguard' : a configuration file per exit, brought up in its
+  own network namespace, with a local socks port the proxy zenka routes into --
+  the host's own routing never changes
+- each such exit is a range class of its own [ the provider's addresses ] in the
+  block table [ section 3 ], with its provider's terms as attributes : what traffic
+  it may carry [ e.g. no torrent ], bandwidth, region. routing only sends a traffic
+  class through an exit whose terms allow it
+- first consumers : jobsite \ site-yaml scans [ another range class for sites that
+  block server ranges ] and the android application forwarding of
+  data/tasks/input-and-window-forwarding.md [ the app's exit chosen per app ]
+- credentials of a provider account live in the vault \ host config, never in
+  the repo ; configurations are host secrets
+- user browsing sessions use the same exits : a site group that blocks a range class
+  [ the job board case ; video sites by range ] is opened through an exit whose class
+  it accepts -- the block table decides for browsers as for scans
+- block signals differ by layer, and the table records which one a site shows :
+  a waf in front of a site [ cdn \ edge protection ] often drops the http2 stream
+  [ stream reset, protocol error ] instead of answering ; a plain web server answers
+  cleanly [ 403, 401 ] ; others throttle [ 429 ] or redirect to a challenge. a
+  protocol-level break counts as a block when it is reproducible per site group and
+  range class while another class works -- otherwise it is a network fault.
+  where it breaks tells the layer : tcp refused \ timeout = network edge ; tls or sni
+  refused = sni filter ; http2 stream reset AFTER tls and alpn succeeded = the request
+  already reached the application path, a waf decided on headers, reputation or
+  fingerprint ; a clean status = the web server. the table keeps the layer per site
+  group -- another exit helps against all of them, header changes only at the waf
+
 ## open questions
 
 - which sites besides stepstone.de -- and which video streaming services
@@ -360,8 +391,8 @@ everything contabo is allowed to fetch.
 - grouping : is a public suffix list available offline for the
   registrable domain, or a small own list first
 
-#,,..,.,,,...,.,.,...,.,,,.,,,,,,,...,...,..,,..,,...,...,..,,,,.,..,,,..,,..,
-#PTESTQAQV3WM54X5FLMVODMZD3DF6GRB3GBHPZILHGPMDVJXDCEFDVM4UCELCRRYAJ6SZG6ECQGFS
-#\\\|4FDDC2UXJMAW2QMGV2YCC5V7AIHCKRLYOM2AOC7OCHB3UVGIZB3 \ / AMOS7 \ YOURUM ::
-#\[7]Q4L26JNKVMVQ24DQATRLXUB2HUKFVRLUDTL5EYWXAAYXIQMC44DY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,.,,,,,,,,..,...,,,.,...,,.,,..,,...,...,.,.,.,.,.,.,.,.,,.,,
+#OEDXXGIUPJBFBTH6ERLD6NZZ7YYT7QA55ZCIRWWED2AYW43OFJTPUT5GJQH2QEYBM57LB4JQRPCOU
+#\\\|4QODDHWZCDDSNI4MDA3B5LUKC6Y7P7XQ4Z3UBCO65TZ5LYHDAM3 \ / AMOS7 \ YOURUM ::
+#\[7]ATZNA6USREJXDDXEAWCZJK4FTXGIBMDAPTKIJO6U3Y32IKVPUIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
