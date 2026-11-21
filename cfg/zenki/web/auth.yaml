@@ -5,8 +5,11 @@
 
 ---
 session:
-  ttl_seconds: 86400        ## 24 hours ##
-  prune_after_epochs: 7     ## keep expired sessions for 7 epochs ##
+  ttl_seconds: 86400         ## 24 hours ##
+  idle_timeout_seconds: 900  ## 15 minutes without real user activity ##
+  max_age_seconds: 43200     ## 12 hours from the first token login ##
+  overlap_seconds: 30        ## previous-token grace for concurrent tabs ##
+  prune_after_epochs: 7      ## keep expired sessions for 7 epochs ##
 
 ## no secret in this tracked file -- ever. the token secret comes from   ##
 ## host config only [ /etc/protocol-7/host-config/<zenka>.cfg :                 ##
@@ -18,9 +21,12 @@ session:
 ##   web.auth.group = httpd     ## unix group of the shared session     ##
 ##                              ## store [ default 'httpd' ]            ##
 ##   web.auth.exempt_peers = .. ## extra peers for auth.exempt-loopback ##
+##   web.auth.session.idle_timeout_seconds = 900                        ##
+##   web.auth.session.max_age_seconds = 43200                           ##
+##   web.auth.session.overlap_seconds = 30                              ##
 
-#,,..,,..,.,,,,..,...,,,,,.,.,,,.,,.,,,.,,,,.,..,,...,...,...,...,,..,...,...,
-#7WG6ZSZD5QPZ6ORPQ6II5MJOLUIJR2A565SZXSNZALIE44GPAJ23RNRGJCP5SOHCBBAP2LDZ42VXG
-#\\\|5OVLEYLYEYFHUWFLXQ5TSLZAY4ZGDLB2JF5FXDBXWXRTURQVDHF \ / AMOS7 \ YOURUM ::
-#\[7]GOCVYZQPOEVQB7HM2KJ3N36KCNBUMVLZ2G7MFYBJDOSXA33M5SDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,,,,,.,,,,,,,.,,,,,,,...,...,..,,...,...,.,.,,.,,,.,,.,.,.,,,
+#TNZDRTOGWRGPP5BJ5IIRIYE72EE6PBL5PBBRZVT6G3NFWSKCRTUCA2WXVH7YRVMDVPCIMUDXLXRZ6
+#\\\|3AOO5HPLS4IULKP2D7KDRZBKK2STOSX4MRO4W5VNL4LB3OGMLK6 \ / AMOS7 \ YOURUM ::
+#\[7]5RZNOOMDT6F5AOVIA7GQFSDTZAOAOGOCJSHMCXIDHSF6CRL2ZICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

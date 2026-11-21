@@ -2,13 +2,12 @@
 
 # name  = plugin.web.auth.destroy_session
 # descr = invalidate session (logout) — move to expired bucket
-# param = token string or token_hash string, then qw| hash | when the
-#         first one already is the hash
+# param = token or hash, qw| hash | for a hash, related flag
 
 ## the caller says which it passes : this guessed by length, and a BMW-L13 ##
 ## token is 13 characters like its hash -- a logout would have taken the   ##
 ## token for a hash and revoked nothing [ 2026-10-23 ]                     ##
-my ( $input, $form ) = @ARG;
+my ( $input, $form, $related ) = @ARG;
 $input //= '';
 return FALSE if not length $input;
 
@@ -70,13 +69,7 @@ chmod 0660,
     $expired_file
     );
 
-if ( unlink($active_file) ) {
-    rmdir "$session_base/active/$token_hash";    ## remove empty parent dir ##
-    <[base.logs]>->(
-        2, 'plugin.web.auth : session destroyed [ %s ]', $token_hash
-    );
-    return TRUE;
-} else {
+if ( not unlink($active_file) ) {
     <[base.s_warn]>->(
         'plugin.web.auth.destroy_session : unlink %s failed : %s',
         $active_file, <[base.str.os_err]>
@@ -84,8 +77,36 @@ if ( unlink($active_file) ) {
     return FALSE;
 }
 
-#,,,.,,.,,,..,...,...,,..,..,,...,.,,,.,.,.,,,..,,...,...,.,.,,,.,,.,,..,,.,.,
-#DNM7HBXNCRFFWZEMMBGPC62XUTJ33BQI6KA4DJSV453ANLWFFQ7FXT7XR2GY4NJYTVNK7TTN4XKEI
-#\\\|EDCLUYGBLW34LGYSW443WQ3W72O57AW6MNJ33BV74VUXTWFT7PO \ / AMOS7 \ YOURUM ::
-#\[7]2N7PZNOLGQZC2YR46E3ZWPBXIFLBGBD3MGVD4XC7C5PE4YQNVQAI 7  DATA SIGNATURE ::
+rmdir "$session_base/active/$token_hash";    ## remove empty parent dir ##
+<[base.logs]>->(
+    2, 'plugin.web.auth : session destroyed [ %s ]', $token_hash
+);
+
+my $cache = $data{'plugin.web.auth'}{'rotation'} // {};
+for my $key ( keys %{$cache} ) {
+    delete $cache->{$key}
+        if $key eq $token_hash
+        or ( $cache->{$key}{'token_hash'} // '' ) eq $token_hash;
+}
+
+my $ok = TRUE;
+if ($related) {
+    my $rotation = $session_data->{'rotation'} // {};
+    for my $kind (qw| previous_hash current_hash |) {
+        my $other = $rotation->{$kind} // '';
+        next if $other !~ m|^[A-Z0-9]{13}$| or $other eq $token_hash;
+        my $other_file = "$session_base/active/$other/session.yaml";
+        next if not -f $other_file;
+        $ok = FALSE
+            if not
+            <[plugin.web.auth.destroy_session]>->( $other, qw| hash |, TRUE );
+    }
+}
+
+return $ok;
+
+#,,.,,..,,,..,.,,,.,,,,,,,,..,...,,,,,,,,,,,.,..,,...,...,.,,,.,.,.,.,,,.,.,,,
+#KHEZSDDKBMB5RWNZCXJORU5DYSM3MLADGFYCSIMIDTTTOLGJMT3QNCWL2IADR24U4CY245DEPKRY2
+#\\\|PTEJOMSHRIJ4SNHVXJ3C5QLUFKYOWPKZLPGK7VJRX7TALW2NILM \ / AMOS7 \ YOURUM ::
+#\[7]T7ZZIOJEPTR4PYUEDCE6DETPZGRI4FTYLWQNIIG347BHHLDQO4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

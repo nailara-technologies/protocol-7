@@ -80,6 +80,36 @@ if ( $expires > 0 and $now > $expires ) {
     return undef;
 }
 
+## ui bounds : polling updates last_seen, never real user activity ##
+my $extra = $session_data->{'data'};
+if ( defined $extra and ref $extra ne qw| HASH | ) {
+    <[plugin.web.auth.destroy_session]>->( $token_hash, qw| hash | );
+    return undef;
+}
+$extra //= {};
+my $ui = $extra->{'ui'};
+if ( ( exists $extra->{'ui'} or ( $extra->{'scope'} // '' ) eq qw| ui | )
+    and ref $ui ne qw| HASH | ) {
+    <[plugin.web.auth.destroy_session]>->( $token_hash, qw| hash | );
+    return undef;
+}
+if ( ref $ui eq qw| HASH | ) {
+    my $last_activity = $ui->{'last_activity_epoch'}  // 0;
+    my $max_expires   = $ui->{'max_expires_at_epoch'} // 0;
+    if (   $last_activity !~ m|^\d+$|
+        or $max_expires !~ m|^\d+$|
+        or $max_expires < 1 ) {
+        <[plugin.web.auth.destroy_session]>->( $token_hash, qw| hash | );
+        return undef;
+    }
+    my $cfg = <[plugin.web.auth.session.cfg]>;
+    if (   $now - $last_activity >= $cfg->{'idle_timeout_seconds'}
+        or $now >= $max_expires ) {
+        <[plugin.web.auth.destroy_session]>->( $token_hash, qw| hash | );
+        return undef;
+    }
+}
+
 ## update last_seen ##
 $session_data->{'last_seen'}       = <[base.ntime.b32]> // '';
 $session_data->{'last_seen_epoch'} = $now;
@@ -88,8 +118,8 @@ $session_data->{'last_seen_epoch'} = $now;
 
 return $session_data;
 
-#,,,.,,..,...,,.,,...,,,,,..,,,.,,.,.,,.,,,..,..,,...,.,.,,..,,.,,,..,.,.,,..,
-#XIKXZBWXIEIOBXMTGO4SQPNAZNXCNWEXRVBXMBA2XZKIDSEFVAWI26DF6SDMSI3XTAOTJ62OFTIUO
-#\\\|N7RIS4QEJ3TSYUVSRWN5VEKQZ5XTJBA2CSRMX6EKYNTG4AYL2OD \ / AMOS7 \ YOURUM ::
-#\[7]XETHRTMKK37PNTSSGUKXIZKI2ZRP52SP7BTNE2C7624LGHRYSSBY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,,,,..,,,.,,,..,...,,.,,.,,,..,,..,,...,...,..,,,.,,,..,..,,.,,,
+#PO5EDQNIM6A4FUFLZCEIOUX7HL2WPTJILXU7IICCQ5DNU7EZA3L5XDPFFHOKBURDXXPK3IAEUPOCO
+#\\\|MAEFZH2Q2ZRKV4U7BMS43UYZ5BYO37A4EVYGTUK3SR5WTIYGBOR \ / AMOS7 \ YOURUM ::
+#\[7]I6D5VZHDETQNZ5HIE3O7UYQIGIQKSLNZMRZWCPZIY2IS4JHMVIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

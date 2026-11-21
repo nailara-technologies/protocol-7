@@ -107,8 +107,9 @@
             ##   web.auth-login  src/httpd.route.handler.web-login [ POST         ##
             ##   /auth/login -> the admission queue, LOGIN-ADMISSION.md ]         ##
             ##   web.auth-status web.auth-logout web.auth-bearer                  ##
+            ##   web.auth-activity web.auth-renew : bounded ui session paths      ##
             ##   src/httpd.route.handler.web-status \ web-logout \ web-relay    ##
-            ##   [ the admission gate on the other three check paths ]            ##
+            ##   [ the admission gate on the other check paths ]                  ##
             ## web.auth-issue is deliberately NOT here [ admin-only :              ##
             ## cfg/zenki/cube/access.users ] -- a compromised httpd can no longer  ##
             ## mint tokens. httpsd authenticates as user 'httpsd' : its own grant  ##
@@ -120,6 +121,7 @@
                                      web.context web.request \
                                      web.auth-login web.auth-status \
                                      web.auth-logout web.auth-bearer \
+                                     web.auth-activity web.auth-renew \
                                      jobsite.list-trashed jobsite.rescue-http \
                                      jobsite.import-url-http \
                                      jobsite.get-prefs jobsite.set-prefs \
@@ -133,6 +135,7 @@
                                      web.context web.request \
                                      web.auth-login web.auth-status \
                                      web.auth-logout web.auth-bearer \
+                                     web.auth-activity web.auth-renew \
                                      jobsite.list-trashed jobsite.rescue-http \
                                      jobsite.import-url-http \
                                      jobsite.get-prefs jobsite.set-prefs \
@@ -583,8 +586,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,,,,,.,,,,.,.,.,,.,,.,,,...,.,.,.,.,,..,,.,,.,.,...,...,..,,,.,,.,.,.,.,...,
-#WYKBNEHGOMSO6YMAPUHYWFOACM5PFYXC4PO3RV3UXAYMP2NE5ZHKXPGUBRLR66QDVBEMDXNCLVUNO
-#\\\|SUBBNQFQRBYWK3RQDOUTZY6CI3CJQWCGWHW2XO4HIR7JO6DSNWS \ / AMOS7 \ YOURUM ::
-#\[7]JXMC7ZLYJK3U7JSNCIP5LUIJPOU5GVNYHRNA77Q2ZLOO7A62MUDQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,.,,,,,.,.,,,,,.,,..,..,,.,,,.,.,...,...,.,,,,..,.,.,,.,,,,.,
+#YKKZ3D2TPAH2VPRIZXETLT5AJUSYBF2HNQDL43JKFEAUNETTGR6UJBANYU5RLMFEB2MD36WL2ZXES
+#\\\|VHRW3EF22SCKLFMDESU5ILKMG6355UCQZSSE7GEDB6EXWCD7EQ3 \ / AMOS7 \ YOURUM ::
+#\[7]Q47TKFVMKCWAXICD6NWE25UUIWWCXS6GFF65EVXFATBQKXGKQODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

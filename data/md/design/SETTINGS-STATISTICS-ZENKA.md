@@ -127,6 +127,10 @@ the extension is also the reader's unwrap instruction : for `.7y` verify the
 signature footer, then strip it and the `## [:< ##` header and parse the yaml in
 between ; for `.7YX` verify, base32 decode, xz decompress, then parse as `.7y`.
 stripping follows the check, it never replaces it.
+unlike today's configs the extension declares the type even WITHOUT header and
+footer [ a fresh export, a file in transit, a copy outside the tree ] : the reader
+then parses directly and treats the file as unsigned. the envelope adds context and
+trust ; it is no longer the only carrier of the type.
 
 ## Statistics Zenka (`statistics`)
 
@@ -456,8 +460,8 @@ access.cmd.usr.cube = report status opt-out
 
 *Privacy-preserving configuration through inheritance and minimal diffs.*
 
-#,,,.,..,,,..,...,,,.,,..,.,,,..,,.,.,..,,.,.,..,,...,...,.,.,.,.,,,,,..,,,..,
-#2S2BGDTYOIPIPNAA4YGR2VUI2MZVV5EKAVOBFAKQHOW6M2YU65QBTBJP7KCG66WVXC76KWCSC6RRA
-#\\\|VIW2CFDHKNEN3E5KVDFGW52OC4FPED6L2K543D32ZMR2WY3N3E3 \ / AMOS7 \ YOURUM ::
-#\[7]XOJ33EXDMZOOV5SIA6HBYG3H67JRHPGKBV5Q5BO3XUGDFONN6EDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,...,,..,,.,,,,.,,,,,,.,,,,,,..,,...,...,.,,,.,.,...,,..,..,,
+#HBOJ3GMRSG7OWF7KWEK3773XRRFC6YYN6KXWR6QDHHONQAXGPCFFFLXWVWZATSE5N7AZ6CILMJZMQ
+#\\\|5YD35XAP4GDTKME3SEFBBJ6T6IQOITTCZYY5I7AJAMKX46KE4CC \ / AMOS7 \ YOURUM ::
+#\[7]ELOJBBC3DWCU3HEKNQWEM2ZQPLIJHXQGCIJX7P6VKN5RONIMYEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

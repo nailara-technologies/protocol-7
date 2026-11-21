@@ -50,7 +50,7 @@ if ( ref $payload eq qw| HASH | and length( $payload->{'token'} // '' ) ) {
 
 my $ok = FALSE;
 if ( length $token ) {
-    $ok = <[plugin.web.auth.destroy_session]>->($token);
+    $ok = <[plugin.web.auth.destroy_session]>->( $token, '', TRUE );
 }
 
 my $json_str
@@ -85,8 +85,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,.,...,...,...,...,,,.,..,,,.,,..,,,,,,.,,,..,,...,..,,..,,,.,,.,,,,,,,,,.,
-#F3SOYYRQ7WBCMXKN4RQW7HEE42YSFZ23JNSDFRLWPP6EAEEBSKLJGGBKSUERJIB4OV4BMNYNLASFO
-#\\\|4IOPV3F77XFHHY5LW55ZWWYIXHWS5OTZ4YALQ3XXXEUCECLZ3KW \ / AMOS7 \ YOURUM ::
-#\[7]3RUYLKL3MIEUS2IWXNYND7X5IWORCWINZKFVLX5C2YIB7MXQUUAA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,..,,..,,,,.,.,.,,,.,.,,,,.,,..,,...,...,.,.,...,,.,,,.,,...,
+#VE3ELRJE36MKBHEGPNXN45WF34XFSVBMBJCYKQRETA4FW5Q6JYTW7OHSRA2O5RKLZGT2WEVAYXJWK
+#\\\|IDTPQ2SAWDKR7GJLLJVTYCRD3N567FGSDMEQLOVR2PELQAR7DK4 \ / AMOS7 \ YOURUM ::
+#\[7]QYTEAWWHCKEKTA2WVNNVJDWOIKYNEPUU7452XRPMONLPKKI6L4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = httpd.route.handler.web-session-command
+# descr = relay ui activity and renewal with socket facts
+# note  = the route selects web.auth-activity or web.auth-renew ; both
+#         answer through the generic auth envelope handler
+
+my $id      = shift;
+my $args    = shift // {};
+my $session = $data{'session'}->{$id};
+
+return 2 if <[plugin.web.auth.refuse_plaintext]>->($id);
+
+my $command = $args->{'auth_command'} // '';
+return <[httpd.send_error_page]>->( $id, 500 )
+    if $command ne qw| web.auth-activity |
+    and $command ne qw| web.auth-renew |;
+
+my $headers   = $session->{'http'}->{'request'}->{'headers'}          // {};
+my $peer_addr = $session->{'http'}->{'request'}->{'client'}->{'addr'} // '';
+my $peer_fh   = $session->{'handle'};
+my $peer_tls  = ( ref $peer_fh and $peer_fh->isa('IO::Socket::SSL') ) ? 1 : 0;
+
+$session->{'http'}->{'close'} = TRUE;
+
+if ( defined $session->{'watcher'}{'input_handler'} ) {
+    my $fd = $session->{'watcher'}{'input_handler'}->fd;
+    $session->{'watcher'}{'input_handler'}->cancel;
+    $session->{'watcher'}{'input_handler'} = Event->io(
+        'fd'     => $fd,
+        'cb'     => sub { &{ $code{'base.handler.read'} } },
+        'poll'   => qw| r |,
+        'prio'   => 1,
+        'repeat' => FALSE,
+        'data'   => $id,
+        'desc'   => sprintf( '[%d] input handler [ no timeout ]', $id ),
+    );
+}
+
+my $auth_header   = $headers->{'authorization'} // '';
+my $cookie_header = $headers->{'cookie'}        // '';
+for my $value ( $auth_header, $cookie_header ) {
+    $value =~ s|[\r\n]+||g;
+}
+
+<[protocol-7.route-send]>->(
+    {   'command'   => $command,
+        'call_args' => {
+            'param' => {
+                'peer_addr'     => $peer_addr,
+                'peer_tls'      => $peer_tls,
+                'auth_header'   => $auth_header,
+                'cookie_header' => $cookie_header,
+            },
+        },
+        'reply' => {
+            'handler' => qw| httpd.handler.web-relay.auth |,
+            'params'  => { 'http_sid' => $id },
+        },
+    }
+);
+
+return 0;
+
+#,,..,,,,,,,,,,..,,.,,,,.,,..,.,,,...,,,,,...,..,,...,...,,..,.,.,,,.,,..,,,,,
+#XWKKT5TE6YRKFMOX2MPBLTO27SBSPCYTAGBFFH4D3BRC2WEY34X3IAACYAELSHMVULXPAFGYAXUOG
+#\\\|O3EIBXUS3DDDMY63USXKVZLANT5EWQLSZXKRJPQEJEIG466KHEV \ / AMOS7 \ YOURUM ::
+#\[7]M6334CHVOKCFNNL5NV3MHEJKPBVTGIM4SAQZTLFUWP537TZMRIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

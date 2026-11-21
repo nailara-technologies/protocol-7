@@ -209,7 +209,17 @@ my $me = getpwuid($EFFECTIVE_USER_ID) // qw| protocol-7 |;
     },
     'plugin.web.auth.refuse_plaintext' => sub { return $refuse_plaintext },
     'plugin.web.auth.secure_transport' => sub { return $secure_transport },
-    'plugin.web.auth.destroy_session'  => sub {
+    'plugin.web.auth.ui_session.begin' => sub { return shift },
+    'plugin.web.auth.ui_session.info'  => sub {
+        my $session = shift // {};
+        return {
+            'user_id'    => $session->{'user_id'}    // '',
+            'node_id'    => $session->{'node_id'}    // '',
+            'created_at' => $session->{'created_at'} // '',
+            'last_seen'  => $session->{'last_seen'}  // '',
+        };
+    },
+    'plugin.web.auth.destroy_session' => sub {
         my $token = shift // '';
         push @destroy_calls, $token;
         return $destroy_ok{$token} // FALSE;
@@ -588,7 +598,7 @@ reset_state();
     ok( ( $env10->{'set_cookie'} // '' ) =~ m|; Secure$|,
         'tls peer : cookie Secure' );
     ok( ( $src_state->{'fails'}{'login'} // -1 ) == 0,
-        'success : failures ' . 'reset' );
+        'success : failures reset' );
     ok( ( $src_state->{'ok_epoch'} // 0 ) == $now, 'success : source known' );
 }
 
@@ -1121,7 +1131,8 @@ reset_state();
     my $r6 = status_call( 5307, $peer, cookie_header => "p7_session=s6", );
     my $e6 = eval { JSON::XS::decode_json( $r6->{'data'} ) } // {};
     ok( ( $e6->{'status'} // 0 ) == 401,
-        '6th status failure ' . ': still checked' );
+        '6th status failure : still checked'
+    );
 
     my $r7 = status_call( 5308, $peer, cookie_header => "p7_session=s7", );
     my $e7 = eval { JSON::XS::decode_json( $r7->{'data'} ) } // {};
@@ -1270,8 +1281,8 @@ reset_state();
         my $rl
             = logout_call( 5410 + $n, $peer, body => "{\"token\":\"z$n\"}" );
         push @modes, $rl->{'mode'} // q||;
-        my $rb = bearer_call( 5420 + $n, $peer,
-            auth_header => "Bearer " . "z$n", );
+        my $rb
+            = bearer_call( 5420 + $n, $peer, auth_header => "Bearer z$n", );
         push @modes, $rb->{'mode'} // q||;
     }
     ok( ( scalar grep { $ARG eq qw| deferred | } @modes ) == 0,
@@ -1307,8 +1318,7 @@ reset_state();
         ->( 7, 'auth-status', { 'param' => $param } );
     ok( defined $packet, 'packet built' );
     ok( $packet =~ m|^\(7\)auth-status\+\n|,
-        'packet head : ' . '(7)auth-status+'
-    );
+        'packet head : (7)auth-status+' );
     ok( $packet =~ m| cookie_header : p7_session=guess1\n|,
         'packet : cookie_header line' );
     ok( $packet =~ m| auth_header : \n|,
@@ -1465,8 +1475,8 @@ if ($fail_count) {
 say 'all tests passed';
 exit 0;
 
-#,,.,,,,.,,,,,,,.,,,.,.,,,.,.,.,,,,..,,..,.,.,..,,...,...,.,,,,..,...,,.,,.,,,
-#57Z556WLE3EHLG3TIZYCCE6V4IMQX7O6HIMYIAN2FHV2XPC7GZW25HROJDOYVIOBVYX5U7ODC2MJ4
-#\\\|TAHLLAT6SFBFMMKSUUGIB3UHS66FQJZRXSSFCXXLI4Z7Y2PAHMN \ / AMOS7 \ YOURUM ::
-#\[7]SBUKDIBAMYQO5I2YT5TUXMDTJSN3XQOXB2NDK3DC7HMG4AWKYKBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,,,,,.,,.,,,.,,.,,,,,.,,..,.,,,..,,...,...,.,.,.,.,,,.,.,,,,,.,
+#GCRAD32COWEYSBOMEP72OA274NYA2RM6FSL5D76JCN552W6QEWTSZQQ27CDDB4YX6TTJRUNP66BJK
+#\\\|HAPVJP3FPH6U5R4JNHTV35SY4UKE5LQKH3V4WGS5LMBUH3CPE7M \ / AMOS7 \ YOURUM ::
+#\[7]RYRDWFZBLKM7XJKMNW6UVZSTV3JDQ25O72FNY6O32DXHY4DVVIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

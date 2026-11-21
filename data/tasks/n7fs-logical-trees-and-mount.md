@@ -67,6 +67,20 @@ a zenka owns the stores of a host and serves trees \ views as a mount :
 5. remap across holders ; lifecycle stages ; category policy enforced
 6. add-only writes through the incoming pool
 
+## follow-up : category assignment performance [ 2026-11-21 ]
+
+measured : `set-category` on a disk with ~270,000 references ran > 4 hours at 99 %
+cpu and 2.5 GB rss, writing ~12 KiB/s. category_set_reference walks every
+reference of every node and tests each one against the target ; `tree-name:` uses
+the same loop. fix :
+- `tree-name:` resolves through the tree manifest's file list directly [ the node
+  set is known ] and reads only those nodes' references, not the whole disk
+- `tree:` \ `path:` keep the scan but index references by holder path once
+- assignments are written as ONE journal entry per call [ a batch record ], not
+  one record per reference
+- progress output [ references visited \ total ] so a long run is visibly alive
+target : minutes, not hours, for a disk of this size
+
 ## rules
 
 - p7 config style, no json ; internal checksums BMW \ AMOS, no sha ; perl floor 5.32
@@ -75,8 +89,8 @@ a zenka owns the stores of a host and serves trees \ views as a mount :
   a copy or a test store
 - no host names, disks or personal data in repo files
 
-#,,.,,.,,,..,,,,,,,.,,,.,,..,,,..,,,.,,,.,,.,,..,,...,...,...,..,,.,.,..,,.,.,
-#QEAHGAOVIUWUJD6M35FAOU4432MGU4RN3MOJUPG2NESRQEGTYH53SZ7LVL5GUL2I23BOVZA73HNB4
-#\\\|Z3COV6QFRZZGPHA4WHBWVLWRVRYOAHH3VPB6TSNYXCZPIWVHXWX \ / AMOS7 \ YOURUM ::
-#\[7]7EBF6ZB5BTBXZFCPZX2DHJ5UHZJFXK7RRVD2XIUSHG4JJZJHJ6CI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,.,,,,.,,,,,,..,,,.,..,,.,,,,,.,..,,...,...,.,,,,,,,,,.,.,,,,,.,
+#SY3OX7BQNGKYJUC7MMU4HRY3SJLZ6JRFJEYG72XZHG5UXIXD4KCA46VTAQA566I6KPP6Y2ANKNEEG
+#\\\|37JXLESPZUWDZMLUPMAHLLNSOU5DA7TPYY5TS7AHKU7ATIBWTQ3 \ / AMOS7 \ YOURUM ::
+#\[7]LMUGL5QG62SOCY4IZUSYSOCQCSHWO5OOEL2MZWTWEK7MXK5742DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

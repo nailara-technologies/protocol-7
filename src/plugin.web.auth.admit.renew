@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.renew
+# descr = rotate a bounded ui session through admission
+# param = relayed socket facts and token headers
+# return = immediate renewal or generic refusal envelope
+
+my $call  = shift // {};
+my $now   = <[base.time]>->();
+my $param = $call->{'param'} // {};
+
+my ( $blocked, $src, $groups ) = <[plugin.web.auth.admit.gate]>->(
+    $param->{'peer_addr'} // '',
+    qw| renew |, $now
+);
+return {
+    'mode' => qw| size |,
+    'data' => <[plugin.web.auth.admit.envelope_429]>->($blocked),
+    }
+    if $blocked;
+
+my $token       = '';
+my $from_cookie = FALSE;
+if ( ( $param->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
+    $token = $LAST_PAREN_MATCH;
+}
+if ( not length $token
+    and ( $param->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
+    $token       = $LAST_PAREN_MATCH;
+    $from_cookie = TRUE;
+}
+
+my ( $status, $body, $set_cookie );
+if ( not length $token ) {
+    ( $status, $body ) = ( 401, '{"ok":false,"error":"unauthorized"}' );
+} else {
+    my $session  = <[plugin.web.auth.verify_session]>->($token);
+    my $ui       = $session->{'data'}{'ui'} if defined $session;
+    my $cfg      = <[plugin.web.auth.session.cfg]>;
+    my $lease    = $ui->{'lease_seconds'} // 0 if ref $ui eq qw| HASH |;
+    my $max_left = ( $ui->{'max_expires_at_epoch'} // 0 ) - $now
+        if ref $ui eq qw| HASH |;
+
+    my $rotation;
+    if (    ref $ui eq qw| HASH |
+        and $lease =~ m|^\d+$|
+        and $lease > 0
+        and $max_left > 0 ) {
+        my $ttl = $lease < $max_left ? $lease : $max_left;
+        $rotation = <[plugin.web.auth.rotate_session]>->(
+            {   'previous'        => $session,
+                'user_id'         => $session->{'user_id'} // '',
+                'ttl'             => $ttl,
+                'data'            => $session->{'data'} // {},
+                'overlap_seconds' => $cfg->{'overlap_seconds'},
+                'not_after_epoch' => $ui->{'max_expires_at_epoch'},
+            }
+        );
+    }
+
+    if ( ref $rotation eq qw| HASH | and $rotation->{'ok'} ) {
+        my $current
+            = <[plugin.web.auth.session.read]>->( $rotation->{'token_hash'} );
+        if ( ref $current eq qw| HASH | ) {
+            my $reply = {
+                'ok'      => JSON::XS::true(),
+                'session' => <[plugin.web.auth.ui_session.info]>->($current),
+            };
+            if ($from_cookie) {
+                my $cookie_expiry = $current->{'expires_at_epoch'} // 0;
+                my $max_expiry
+                    = $current->{'data'}{'ui'}{'max_expires_at_epoch'} // 0;
+                $cookie_expiry = $max_expiry
+                    if $max_expiry > 0 and $max_expiry < $cookie_expiry;
+                my $max_age = $cookie_expiry - $now;
+                $max_age = 0 if $max_age < 0;
+                $set_cookie
+                    = sprintf( 'p7_session=%s; Path=/; Max-Age=%d; '
+                        . 'HttpOnly; SameSite=Strict%s',
+                    $rotation->{'token'}, $max_age,
+                    $param->{'peer_tls'} ? '; Secure' : '' );
+            } else {
+                $reply->{'token'} = $rotation->{'token'};
+            }
+            $status = 200;
+            $body   = JSON::XS::encode_json($reply);
+        }
+    }
+
+    ( $status, $body ) = ( 401, '{"ok":false,"error":"unauthorized"}' )
+        if not defined $status;
+
+    <[plugin.web.auth.admit.record]>->(
+        $status == 200 ? qw| success | : qw| failure |,
+        qw| renew |, $src // '', $groups // []
+    ) if defined $src;
+}
+
+my $envelope = { 'status' => $status, 'body' => $body };
+$envelope->{'set_cookie'} = $set_cookie if defined $set_cookie;
+return { 'mode' => qw| size |, 'data' => JSON::XS::encode_json($envelope) };
+
+#,,,,,,.,,...,,.,,,,,,,..,,,,,,.,,...,.,,,,,.,..,,...,...,...,.,.,.,,,,,,,,,,,
+#NZGFAXGFUTQSQX7RCDTI7H5RSJBUBDIX3XM7N6R3F7BDBKIYKMU5FDXPSYM5VM3XABRJATLRTM2T6
+#\\\|XEKLYVFDAPZWQ73O43Z3WMDMZKV55QC7T6GV7R7U5C44DIEL3NL \ / AMOS7 \ YOURUM ::
+#\[7]GKPDO3TWFPXDDDOSJ5BEKNOPMAXJWKWNEBM7ZB2SJK2ND3WDA4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

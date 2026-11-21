@@ -34,6 +34,8 @@ if ( not length $token
 my $login_session;
 $login_session = <[plugin.web.auth.verify_session]>->($token)
     if length $token;
+$login_session = <[plugin.web.auth.ui_session.begin]>->($login_session)
+    if defined $login_session;
 
 my ( $status, $body, $set_cookie );
 
@@ -52,7 +54,12 @@ if ( not length $token ) {
     ## session cookie : HttpOnly + SameSite=Strict always, Secure when the  ##
     ## request arrived over tls [ the flag is a real socket fact, passed by ##
     ## httpd -- never a header ]                                            ##
-    my $max_age = ( $login_session->{'expires_at_epoch'} // 0 ) - $now;
+    my $cookie_expiry = $login_session->{'expires_at_epoch'} // 0;
+    my $max_expiry    = $login_session->{'data'}{'ui'}{'max_expires_at_epoch'}
+        // 0;
+    $cookie_expiry = $max_expiry
+        if $max_expiry > 0 and $max_expiry < $cookie_expiry;
+    my $max_age = $cookie_expiry - $now;
     $max_age = 0 if $max_age < 0;
     $set_cookie
         = sprintf(
@@ -76,8 +83,8 @@ $envelope->{'set_cookie'} = $set_cookie if defined $set_cookie;
 
 return JSON::XS::encode_json($envelope);
 
-#,,,.,..,,...,..,,,..,.,.,,,,,.,.,,,,,..,,,..,..,,...,...,...,...,,..,,,,,,,.,
-#X6MCBNSMAQHP6OEFNJVIPLOVDLSPWP27P7VLY7KSITN727W2QLKJHBGHGD6KURSYGJSOZRBPX7VDC
-#\\\|XBXYKPOPOI6JGIHCYK7NDSMOV4AHF5HCYW7MIOD2U4SWDKZRT4F \ / AMOS7 \ YOURUM ::
-#\[7]TD7KSQ2CSHIHQ644YS7WE57EXFJFUP4RJLMFIM3B3FYNRY5JYGDQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,,,..,,,,,,,,,,..,,.,,,,,,,,,.,..,,...,...,.,,,..,,,,.,,,.,.,.,
+#LA6NSGSSINUV5SKA7UAVLI6OVTXFIT4UK7RGGHRDFWTWG6Y7UCQP7ABAS2LK5TJU35NSSSLGBKPO4
+#\\\|4OTGOAZBIUOYUOL3TWJWZUZSB5SUP56WQUXYKEFINSGLJYMLG7N \ / AMOS7 \ YOURUM ::
+#\[7]V2ODRQVJLNZOEDPANRVKP5RQZVGDZ5QN6BM2WG2C7SLDT2STHYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

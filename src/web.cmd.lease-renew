@@ -49,30 +49,25 @@ my $previous_hash = $previous->{'token_hash'} // '';
 return { 'mode' => qw| false |, 'data' => $refusal }
     if $previous_hash !~ m|^[A-Z0-9]{13}$|;
 
-my $result = <[plugin.web.auth.create_session]>->(
-    {   'user_id' => $user_id,
-        'ttl'     => $ttl,
-        'data'    => { 'scope' => $scope },
+my $rotation = <[plugin.web.auth.rotate_session]>->(
+    {   'previous' => $previous,
+        'user_id'  => $user_id,
+        'ttl'      => $ttl,
+        'data'     => { 'scope' => $scope },
     }
 );
 return {
     'mode' => qw| false |,
     'data' => 'token creation failed [ web.auth.secret in host config? ]'
     }
-    if not defined $result;
+    if ( $rotation->{'error'} // '' ) eq qw| create |;
+return {
+    'mode' => qw| false |,
+    'data' => 'previous token revocation failed ; rotation aborted'
+    }
+    if not $rotation->{'ok'};
 
-## rotation order : the replacement is active before the old hash moves ##
-if ( not <[plugin.web.auth.destroy_session]>->( $previous_hash, qw| hash | ) )
-{
-    <[plugin.web.auth.destroy_session]>->(
-        $result->{'token_hash'},
-        qw| hash |
-    );
-    return {
-        'mode' => qw| false |,
-        'data' => 'previous token revocation failed ; rotation aborted'
-    };
-}
+my $result = $rotation;
 
 <[base.logs]>->(
     2,        'web.lease-renew : rotated lease token [ user=%s scope=%s ]',
@@ -88,8 +83,8 @@ return {
     $result->{'expires_at_epoch'},
 };
 
-#,,..,,,,,,.,,,.,,...,,.,,,,.,..,,,..,,..,,,.,..,,...,...,,.,,,,.,.,,,.,.,,,,,
-#ZW7AI5WW553TIIG5ZWWKPCI7HIIYA55LBXS2UUHPANOFCG2TVB74SFYXXRJG2YI5FRQEAGNRPUHKY
-#\\\|ZQMP4WTZ2LXXSYIJKJMWQPCV2OZALFXHCY2DTPKG3FSQVF3KSWN \ / AMOS7 \ YOURUM ::
-#\[7]DPBD2TQIQY42ULY5ML7YIDP5NTNFBQF5AVGS62GUDQ55RW23BCCY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,,,,,,,..,,.,.,,,,,.,,,..,,,.,,..,,...,...,..,,,.,,.,.,.,.,,..,
+#JQF6JZKGKRYGBHEN4E5THSXYLAQ73G262MJY6TWDT5CP5FCFK6JPYUJSSFM3PBT3S2TLHPT5AVXQQ
+#\\\|LDHMDMOONR7A5B77BMWBQYSPJOFCQWIPSDLBDV3SN5SNTEOONRI \ / AMOS7 \ YOURUM ::
+#\[7]JMLHMRGA4QZZZORF3PB534GBKADIJQIZ4FM3ZEBO6HLJN6R42EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,15 +12,16 @@
 ##       need [base.white-list.register:'plugin.name'] in the start file.
 ##       plugins under the loaded namespace (plugin.httpd.*) work as-is.
 
-## web auth endpoints -- every token check is relayed to the web zenka's    ##
-## admission gate [ LOGIN-ADMISSION.md section 2 on all four paths : login  ##
-## holds in the fair queue, status \ logout \ bearer answer at once, never  ##
-## queued ] ; the real socket facts travel in the call, never a header.     ##
-## token minting is admin-only : p7c  web.auth-issue <user> [ -ttl <s> ] -- ##
-## the ui shows a paste-token prompt on any 401 from /jobs*                 ##
+## web auth endpoints -- every token check is relayed to the web zenka's   ##
+## admission gate [ LOGIN-ADMISSION.md section 2 : login holds in the fair ##
+## queue, the other auth paths answer at once ] ; the real socket facts    ##
+## travel in the call, never a header. token minting is admin-only : p7c   ##
+## web.auth-issue <user> [ -ttl <s> ] ; the ui prompts on any jobs 401     ##
 GET   /auth/status   httpd.route.handler.web-status
 POST  /auth/login    httpd.route.handler.web-login
 POST  /auth/logout   httpd.route.handler.web-logout
+POST  /auth/activity httpd.route.handler.web-session-command [auth_command:web.auth-activity]
+POST  /auth/renew    httpd.route.handler.web-session-command [auth_command:web.auth-renew]
 
 ## job pipeline api -- auth.required since 2026-10 [ these routes are     ##
 ## served on a PUBLIC host : bearer token [ jobsite push, minted via      ##
@@ -68,8 +69,8 @@ POST  /iris/negotiate httpd.route.handler.iris-negotiate
 POST  /cursor       plugin.web.space.handler.cursor_update
 POST  /context      httpd.route.handler.context
 
-#,,.,,..,,...,,,.,.,.,.,,,..,,.,.,..,,,,.,..,,..,,...,..,,..,,..,,.,,,,.,,,,.,
-#3I4WX6W6DLFEZ5AHT6CLSDXADXD2AFLEP7NL5YYM3NN2RQO33QIUALSUCGOZAUM7VHYJA7JC3SFEY
-#\\\|HWPINNW5XPR5CCGEHP73YCG3N3AWVWHIZOQ3SOORFENTC3YWFFC \ / AMOS7 \ YOURUM ::
-#\[7]3NAGOWX3Q3OAJXMT5ANKEJQ45WF6YHYR2XHKSZO2NIBRNCX56MBA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,,..,..,,...,.,.,,.,,,.,,...,..,,...,...,...,...,,,,,...,.,,,
+#C6J4STO52QBH7TL7AQC6J55DLRKYLSIX2V5GPLYX2BU7RGGTZAU456Y4KA7JSGQGTCSMP7PW7GINW
+#\\\|D47JG6S234UA62T6R7GIB4JWFBNT6KAYM6ZSMMDVDEMVJNM3QFR \ / AMOS7 \ YOURUM ::
+#\[7]B2EZML5G6O7J7DP4U7XB2JWVJCI5MVOKCUIM6OJESSSEP6IYTAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

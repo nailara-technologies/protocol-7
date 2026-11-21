@@ -768,6 +768,7 @@ return [ qw[
         web.menu_generator
         web.cmd.auth-login
         web.cmd.auth-issue
+        web.cmd.auth-renew
         web.cmd.lease-renew
         weather.cmd.widget
         vault-edit.repaint
@@ -1006,6 +1007,7 @@ return [ qw[
         web.cmd.auth-revoke
         web.cmd.auth-logout
         web.cmd.auth-bearer
+        web.cmd.auth-activity
         web.assets.registry
         web.assets.register
         web-browser.js_call
@@ -3541,6 +3543,8 @@ return [ qw[
         plugin.web.jobs.events.send
         plugin.web.jobs.cache.write
         plugin.web.auth.store.group
+        plugin.web.auth.session.cfg
+        plugin.web.auth.admit.renew
         plugin.web.auth.admit.check
         plugin.web.attention.states
         plugin.usage.kimi.init_code
@@ -3875,6 +3879,8 @@ return [ qw[
         plugin.web.auth.store.set-up
         plugin.web.auth.session.read
         plugin.web.auth.session.path
+        plugin.web.auth.rotate_session
+        plugin.web.auth.admit.activity
         plugin.web.auth.admit.status
         plugin.web.auth.admit.source
         plugin.web.auth.admit.select
@@ -4190,6 +4196,7 @@ return [ qw[
         plugin.web.auth.session.write
         plugin.web.auth.session.prune
         plugin.web.auth.handler.login
+        plugin.web.auth.ui_session.info
         plugin.usage.claude.init_code
         plugin.storage.util.find_path
         plugin.image-resize.init_code
@@ -4495,6 +4502,7 @@ return [ qw[
         plugin.web.auth.handler.status
         plugin.web.auth.handler.logout
         plugin.web.auth.create_session
+        plugin.web.auth.ui_session.begin
         plugin.web.auth.lease_caller
         plugin.web.auth.admit.schedule
         plugin.web.attention.pop_state
@@ -4612,6 +4620,7 @@ return [ qw[
         httpd.vhost.handler.cert_reply
         httpd.route.handler.web-status
         httpd.route.handler.web-logout
+        httpd.route.handler.web-session-command
         httpd.route.handler.iris-route
         httpd.route.handler.iris-pulse
         httpd.handler.shm_replay_sweep
@@ -6561,8 +6570,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,.,,,,,,..,,,.,,.,,...,,.,,,,.,.,,,...,.,.,...,...,.,.,...,...,.,.,,.,,
-#ZJWTI72EQOTXLY7PJEAAAE73WBNRYLID5TNCDZPBWRDHHO4AME46ALXU7XPGJQ432CZ5DHBRXXB54
-#\\\|CYRWPQT7D7GKWE5H3KRT572RHEQEQEBYMVSZ74IUAIM5XBSBSQV \ / AMOS7 \ YOURUM ::
-#\[7]EUZZKFYYCVS6IVUT33VKUISKOZNQZKTL6JQZFDFI5NDQ6XGUTWBI 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,.,.,,,.,.,,.,,,..,.,,,,,.,.,,,.,.,...,...,...,...,.,.,,,.,,.,,
+#ZL7E7DXX5DIVN7UBHLUKBOFANNJNJZMOES6RRXIKAQ2C3D7GAM5VCMYP5V35H2ZKV2MFGU7UUQNUM
+#\\\|IJ5N3YRRTAS4B4K545SUGRNWO3UMNBGRDB4PQTWLU643IDBENU6 \ / AMOS7 \ YOURUM ::
+#\[7]EXW4UZ3RSSQIN2PQD5FWDLFWKHSHZTKDFBBYMZLMJC5B3G5QZCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

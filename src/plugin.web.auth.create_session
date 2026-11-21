@@ -2,7 +2,7 @@
 
 # name  = plugin.web.auth.create_session
 # descr = generate token and create session file
-# param = optional { user_id => '...', ttl => <seconds>, data => {} }
+# param = user_id, ttl, data, optional not_after_epoch
 
 my $params  = shift                // {};
 my $user_id = $params->{'user_id'} // <system.amos-zenka-user>
@@ -61,6 +61,11 @@ my $session_data = {
     'expires_at_epoch' => $now_epoch + $ttl,
     'data'             => $extra_data,
 };
+my $not_after = $params->{'not_after_epoch'} // 0;
+$session_data->{'expires_at_epoch'} = $not_after
+    if $not_after =~ m|^\d+$|
+    and $not_after > 0
+    and $session_data->{'expires_at_epoch'} > $not_after;
 
 my $written
     = <[plugin.web.auth.session.write]>->( $token_hash, $session_data );
@@ -74,8 +79,8 @@ return {
     'expires_at_epoch' => $session_data->{'expires_at_epoch'},
 };
 
-#,,.,,.,.,..,,.,,,,.,,...,.,,,...,,,,,,..,,,.,..,,...,..,,..,,...,.,,,,,,,,,,,
-#7QIYYE2NLW63N36QO3OZ23U32AMTM432LPZKFVCB6KRW3PBRPBESHLFNNF26IXTJYMGWMCIE7Y3FA
-#\\\|VWPBPS3RXDKH2O4GODUPS2LTCAWO7Y7MSRZIGKZJ57Z3JGYZD6B \ / AMOS7 \ YOURUM ::
-#\[7]NVO4GNEYPRXEXNB44M5CZGFPJHIPVHUR7IWPUU36HXQPOPOJ5MDQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,,..,..,,,,,,,..,,,,,,.,,.,.,..,,...,...,,.,,..,,...,,..,...,
+#4T3YLZYGSMJAPJK6K3XUJENAKAMH23XSH5DIKYCCEWKQJ53E5H5TJGMBFMRYGVITQFTEGZZBJXIZQ
+#\\\|DAYXNXN3DDCI263SNBG7M22T5H2GAMXPN5ZPCU26FJCEC632MU4 \ / AMOS7 \ YOURUM ::
+#\[7]V3TSZJ7JFRL2RZI3JHIWAMF64DH22Y7NFHLSC7DLN4OBNXX26AAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

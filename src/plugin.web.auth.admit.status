@@ -55,12 +55,8 @@ if ( not length $token ) {
         $status = 200;
         $body   = JSON::XS::encode_json(
             {   'ok'      => JSON::XS::true(),
-                'session' => {
-                    'user_id'    => $session_data->{'user_id'}    // '',
-                    'node_id'    => $session_data->{'node_id'}    // '',
-                    'created_at' => $session_data->{'created_at'} // '',
-                    'last_seen'  => $session_data->{'last_seen'}  // '',
-                }
+                'session' =>
+                    <[plugin.web.auth.ui_session.info]>->($session_data),
             }
         );
     } else {
@@ -80,8 +76,8 @@ return {
         JSON::XS::encode_json( { 'status' => $status, 'body' => $body } ),
 };
 
-#,,,.,,..,,.,,,..,...,,..,,..,.,,,.,.,,..,.,.,..,,...,...,...,...,.,,,.,,,.,,,
-#5EG7YQEOFTM7BZW2EMIZW3BGA2RE6SV2V3EREQWVHK5JS2Z5HABH3PZAIJSYCLDHSABZEIDMUS2LK
-#\\\|TCSSYGA3Q4GCF7JSWTJPBLL3RATOJ4LMHVVPGY5PE6GXA7BBVCR \ / AMOS7 \ YOURUM ::
-#\[7]WQPVD4ETBC574IG2HQFCZQM7KREM3G2ZCLMWO756Z7FGS5CTJQBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,.,,,,,,.,,,,,,,,,,,.,,,,.,,,,,..,,...,..,,,.,,..,,,,,,,..,...,
+#HJY33WMHIBECRM3Z6HE3THZFNBGAPOJTMOMS6MEWRJGCTEYGXSIP75WM3I6R4JVOVO7BUFTTD2EB2
+#\\\|QLRYR3OVGCD34NFH6ASIIBGUMVWCSATESADWBLDDG7FX6UIZ5KJ \ / AMOS7 \ YOURUM ::
+#\[7]FLII2IGBWGJGVSPC4PYZQXQ4TXPCNQSNYHPKQWI22P3OY4VXA6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

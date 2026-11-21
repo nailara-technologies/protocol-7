@@ -133,6 +133,7 @@ compile_module($_) for qw|
     plugin.web.auth.destroy_session
     plugin.web.auth.create_session
     plugin.web.auth.verify_session
+    plugin.web.auth.rotate_session
     plugin.web.auth.lease_caller
     base.session.user
     base.reply.mode_text
@@ -396,8 +397,8 @@ ok( $code{'jobsite.sync.token_for_url'}->('other-url') eq
 say sprintf "\n :. %d passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,,.,,,,,..,,,,,,.,,,..,,,,,,,,,,,,,,.,,,..,,...,...,...,..,,.,.,...,,,.,
-#CVJ3TYTAZLB4RBXCMYHXWOFFXZBAYC3ZCL3IPX7O54FRL7HU7J5WARQJZMBF6DXWLAYSFVL4PH6KC
-#\\\|QMTTQ63YZSJNXR5VKFHQWGQ66AXAUMBSAZPD7I7G6KG72WZLA6A \ / AMOS7 \ YOURUM ::
-#\[7]D4ZMGJAFE6IBGXOBEGKUPSGXZD7HXCPO5I3NWLWSJ4P22WDCGAAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,,..,,..,.,,,,.,,...,,,.,,,,,..,,...,...,...,...,,..,,..,..,,
+#EB7XC5OX3MQ4UQJWJTIOKAS2ERPUCGMFLO7VWGSXZ3FPDF7DSS647PDMULEQVJTMJGT33M3LS5XAO
+#\\\|KQORQZXMTR2C6WQOBLNUCOC5RU373ZB53CBXWAOUSCMQNNCILGY \ / AMOS7 \ YOURUM ::
+#\[7]ACQWSIFOCA4NAVAQIUCZM4FUTZFS43PJ43FD6A6U5JNYIPDFXICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

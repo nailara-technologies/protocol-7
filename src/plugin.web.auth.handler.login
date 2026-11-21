@@ -52,6 +52,8 @@ my $json_str;
 my $login_session;
 if ( length $token ) {
     $login_session = <[plugin.web.auth.verify_session]>->($token);
+    $login_session = <[plugin.web.auth.ui_session.begin]>->($login_session)
+        if defined $login_session;
     if ( defined $login_session ) {
         $json_str = eval {
             JSON::XS::encode_json(
@@ -86,7 +88,12 @@ if ($is_httpd) {
         my $peer_fh     = $data{'session'}->{$http_sid}->{'handle'};
         $secure_flag = '; Secure'
             if ref $peer_fh and $peer_fh->isa('IO::Socket::SSL');
-        my $max_age = ( $login_session->{'expires_at_epoch'} // 0 ) - time;
+        my $cookie_expiry = $login_session->{'expires_at_epoch'} // 0;
+        my $max_expiry
+            = $login_session->{'data'}{'ui'}{'max_expires_at_epoch'} // 0;
+        $cookie_expiry = $max_expiry
+            if $max_expiry > 0 and $max_expiry < $cookie_expiry;
+        my $max_age = $cookie_expiry - time;
         $max_age = 0 if $max_age < 0;
         $header->{'Set-Cookie'}
             = sprintf(
@@ -105,8 +112,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,,.,,,,,,.,,..,,..,,...,.,,,.,,,.,.,,.,,,..,..,,...,...,,,.,,.,,.,.,..,,,,.,
-#2RYSEEQTUKBQGFTEHLNRQDISRGT3E62XUXXGI6D234C4K4NOBIPDYJDOPIDTB77JIIO32MUYFCAV4
-#\\\|KKGGLSPTNRJNO6BHRXGOUVH2P5CBJRYEVNNMQ7J6NW5EW5BCTM4 \ / AMOS7 \ YOURUM ::
-#\[7]2DEA6362WXHLZMZ5I7YOX5HVEBM3VFVAWLCWP3PKAPMS27GE6CCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,,.,,...,...,...,.,,,,.,,.,,,..,,...,...,...,.,,,..,,.,,,..,,
+#3ZVDOZFFA7AS6UZLOSWJOWO7ETSIW4G3OIRVHQAF2UA66L4HEX27HEXGUBHK55WHLVFJ7PDXWHR7S
+#\\\|R4CWW2YTPRP77RGP7C3CPRFIJLBF3H2NI2GEEKOYTRFBHUVPY6R \ / AMOS7 \ YOURUM ::
+#\[7]IH73AYA37CPY2S33RLPJA7MLYMJVNW7S7ZQKBRHBKMBLOF5DMQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

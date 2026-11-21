@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = plugin.web.auth.ui_session.info
+# descr = public session timing without token material
+# param = verified session hashref
+
+my $session = shift // {};
+return {} if ref $session ne qw| HASH |;
+
+my $info = {
+    'user_id'           => $session->{'user_id'}          // '',
+    'node_id'           => $session->{'node_id'}          // '',
+    'created_at'        => $session->{'created_at'}       // '',
+    'last_seen'         => $session->{'last_seen'}        // '',
+    'expires_at_epoch'  => $session->{'expires_at_epoch'} // 0,
+    'server_time_epoch' => time,
+};
+
+my $ui = $session->{'data'}{'ui'};
+if ( ref $ui eq qw| HASH | ) {
+    my $cfg = <[plugin.web.auth.session.cfg]>;
+    $info->{'started_at_epoch'}     = $ui->{'started_at_epoch'}     // 0;
+    $info->{'last_activity_epoch'}  = $ui->{'last_activity_epoch'}  // 0;
+    $info->{'max_expires_at_epoch'} = $ui->{'max_expires_at_epoch'} // 0;
+    $info->{'idle_timeout_seconds'} = $cfg->{'idle_timeout_seconds'};
+    $info->{'max_age_seconds'}      = $cfg->{'max_age_seconds'};
+}
+
+return $info;
+
+#,,,,,,..,...,,,,,..,,..,,.,.,..,,,..,,..,,,.,..,,...,..,,.,.,,..,.,.,.,,,..,,
+#ZZNVTXNHRRMN26ARLQZFD4EDIYOY4I7YNCUNMJZV25PO2GF5IUPTMBMNEIY2TASAFSKMBZHGSWHSK
+#\\\|J5AE7AVSM2TXX3GWBV7NPIARBEQOZOQAUPQLKXTIQQB2PBD4LJB \ / AMOS7 \ YOURUM ::
+#\[7]ST62MXNOSIY6QJWK5TTVYWORFYHL55FSTXURCOEGHUAMIWQT5EAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

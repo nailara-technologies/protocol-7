@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = plugin.web.auth.admit.activity
+# descr = record real ui activity through admission
+# param = relayed socket facts and token headers
+# return = immediate http response envelope
+
+my $call  = shift // {};
+my $now   = <[base.time]>->();
+my $param = $call->{'param'} // {};
+
+my ( $blocked, $src, $groups ) = <[plugin.web.auth.admit.gate]>->(
+    $param->{'peer_addr'} // '',
+    qw| activity |, $now
+);
+return {
+    'mode' => qw| size |,
+    'data' => <[plugin.web.auth.admit.envelope_429]>->($blocked),
+    }
+    if $blocked;
+
+my $token = '';
+if ( ( $param->{'auth_header'} // '' ) =~ m|^Bearer\s+(\S+)$|i ) {
+    $token = $LAST_PAREN_MATCH;
+}
+if ( not length $token
+    and ( $param->{'cookie_header'} // '' ) =~ m|\bp7_session=([^;\s]+)| ) {
+    $token = $LAST_PAREN_MATCH;
+}
+
+my ( $status, $body );
+if ( not length $token ) {
+    ( $status, $body ) = ( 401, '{"ok":false,"error":"unauthorized"}' );
+} else {
+    my $session = <[plugin.web.auth.verify_session]>->($token);
+    my $ui      = $session->{'data'}{'ui'} if defined $session;
+    if ( ref $ui eq qw| HASH | ) {
+        $ui->{'last_activity_epoch'} = $now;
+        if (<[plugin.web.auth.session.write]>->(
+                $session->{'token_hash'} // '', $session
+            )
+        ) {
+            $status = 200;
+            $body   = JSON::XS::encode_json(
+                {   'ok'      => JSON::XS::true(),
+                    'session' =>
+                        <[plugin.web.auth.ui_session.info]>->($session),
+                }
+            );
+        }
+    }
+    ( $status, $body ) = ( 401, '{"ok":false,"error":"unauthorized"}' )
+        if not defined $status;
+
+    <[plugin.web.auth.admit.record]>->(
+        $status == 200 ? qw| success | : qw| failure |,
+        qw| activity |, $src // '', $groups // []
+    ) if defined $src;
+}
+
+return {
+    'mode' => qw| size |,
+    'data' =>
+        JSON::XS::encode_json( { 'status' => $status, 'body' => $body } ),
+};
+
+#,,.,,,.,,,..,,,.,.,.,,,,,,,.,,,,,,.,,.,.,,.,,..,,...,...,.,.,,,,,...,..,,,..,
+#MIZLRXXOLQBVDWODI33UNQS5FIBZIHJKJ6DXD6P5EIVBHKYW7F4TOJE7KGF45PY5KOOBFI5W2RTBK
+#\\\|5VBBUB2YUWVOB2HHYTDRVNGSXDDL4EMEUTZ72CNFOEIHGJSFPCY \ / AMOS7 \ YOURUM ::
+#\[7]YA24BESR7ICP7AT7SIUB6WJMI7F6YTTT3ICM74Y6WCRZV6FHJMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

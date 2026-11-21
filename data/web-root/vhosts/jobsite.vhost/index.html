@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Job Pipeline — Application Tracker</title>
+<link rel="stylesheet" href="theme.css">
 <style>
 @font-face {
     font-family: 'White Rabbit';
@@ -12,23 +13,6 @@
     font-style: normal;
 }
 
-:root {
-    --p7-bg:        #00040c;
-    --p7-bg-mid:    #031542;
-    --p7-bg-dark:   #12061B;
-    --p7-fg:        #0028c0;
-    --p7-fg-bright: #5a70ff;
-    --p7-fg-dim:    #2a3a9a;
-    --p7-btn:       #001a88;
-    --p7-btn-top:   #000ea0;
-    --p7-accent:    #4427AC;
-    --p7-gold:      #C58D07;
-    --p7-outline:   #000208;
-    --p7-held:      #05082A;
-    --p7-text-soft: #6a8cff;
-    --p7-text-mid:  #4a68c0;
-    --p7-text-dim:  #344080;
-}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
     font-family: 'White Rabbit', 'Courier New', Courier, monospace;
@@ -105,6 +89,7 @@ h1 { color: var(--p7-fg-bright); font-size: 1.25rem; font-weight: bold; text-sha
 .ctrl-row .spacer { flex: 1; }
 .controls .sep { color: var(--p7-accent); padding: 0 0.03rem; }
 #btn-sync { min-width: 3.2rem; text-align: center; }
+#auth-remaining { color: var(--p7-text-dim); font-size: 0.68rem; white-space: nowrap; }
 
 /* score filter slider */
 .min-score-wrap {
@@ -721,6 +706,7 @@ input[type="date"], textarea {
       <span class="spacer"></span>
       <button id="btn-clear-local" class="red" title="lokale Daten löschen">reset</button>
       <button id="btn-sync">↻ <span id="btn-sync-label">sync</span></button>
+      <span id="auth-remaining" hidden></span>
       <button id="btn-logout" title="session beenden">logout</button>
     </div>
     <div id="export-panel" style="display:none; margin-top:0.5rem;
@@ -909,9 +895,21 @@ let searchQuery    = '';
 let searchDebounce = null;
 let filterApplySug = false;
 
-/* ── auth : token login on 401 [ session via p7_session http-only cookie,  ──
-   ── set by POST /auth/login ] -- concurrent 401s share one prompt          */
+/* auth : the cookie holds the token ; only trusted input reports activity. */
 let authPromptPromise = null;
+let authInfo = null;
+let authClockOffsetMs = 0;
+let authLastActivityMs = Date.now();
+let authLastActivitySent = 0;
+let authActivityPromise = null;
+let authRenewPromise = null;
+let authRenewTimer = null;
+let authDisplayTimer = null;
+let authExpiryCheck = false;
+let authEnded = false;
+const AUTH_ACTIVITY_SEND_MS = 60000;
+
+function authNowMs() { return Date.now() + authClockOffsetMs; }
 function jobsFetch(url, opts) {
     opts = opts || {};
     opts.credentials = 'same-origin';
@@ -927,6 +925,137 @@ function ensureAuthToken() {
     }
     return authPromptPromise;
 }
+function endAuthSession() {
+    authEnded = true;
+    authInfo = null;
+    if (authRenewTimer) clearTimeout(authRenewTimer);
+    authRenewTimer = null;
+    updateAuthRemaining();
+    return ensureAuthToken();
+}
+function applyAuthInfo(info) {
+    if (!info || !info.expires_at_epoch) return;
+    authInfo = info;
+    authEnded = false;
+    if (info.server_time_epoch)
+        authClockOffsetMs = info.server_time_epoch * 1000 - Date.now();
+    if (info.last_activity_epoch) {
+        const reported = info.last_activity_epoch * 1000 - authClockOffsetMs;
+        authLastActivityMs = Math.max(authLastActivityMs, reported);
+    }
+    updateAuthRemaining();
+    scheduleAuthRenewal();
+}
+function authRemainingMs() {
+    if (!authInfo) return 0;
+    const now = authNowMs();
+    const ends = [authInfo.expires_at_epoch * 1000 - now];
+    if (authInfo.max_expires_at_epoch)
+        ends.push(authInfo.max_expires_at_epoch * 1000 - now);
+    if (authInfo.last_activity_epoch && authInfo.idle_timeout_seconds) {
+        const idleEnd = (authInfo.last_activity_epoch +
+            authInfo.idle_timeout_seconds) * 1000;
+        ends.push(idleEnd - now);
+    }
+    return Math.max(0, Math.min(...ends));
+}
+function updateAuthRemaining() {
+    const el = document.getElementById('auth-remaining');
+    if (!authInfo) {
+        el.hidden = true;
+        el.textContent = '';
+        return;
+    }
+    const left = authRemainingMs();
+    const seconds = Math.ceil(left / 1000);
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    el.hidden = false;
+    el.textContent = 'sitzung ' + (h > 0
+        ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+        : `${m}:${String(s).padStart(2, '0')}`);
+    el.title = 'verbleibende sitzungszeit';
+    if (!authDisplayTimer)
+        authDisplayTimer = setInterval(updateAuthRemaining, 1000);
+    if (left <= 0 && !authExpiryCheck) {
+        authExpiryCheck = true;
+        refreshAuthStatus().finally(() => { authExpiryCheck = false; });
+    }
+}
+function scheduleAuthRenewal() {
+    if (authRenewTimer) clearTimeout(authRenewTimer);
+    authRenewTimer = null;
+    if (!authInfo || authEnded) return;
+    const tokenLeft = authInfo.expires_at_epoch * 1000 - authNowMs();
+    const lead = Math.min(60000, Math.max(5000, tokenLeft * 0.1));
+    const delay = Math.min(2147483647, Math.max(0, tokenLeft - lead));
+    authRenewTimer = setTimeout(renewAuthSession, delay);
+}
+async function refreshAuthStatus(promptOnExpiry = true) {
+    const hadSession = !!authInfo;
+    try {
+        const r = await fetch('/auth/status', { credentials: 'same-origin' });
+        if (r.status === 401) {
+            if (hadSession && promptOnExpiry) endAuthSession();
+            return false;
+        }
+        if (!r.ok) return false;
+        const payload = await r.json();
+        if (!payload.ok || !payload.session) return false;
+        applyAuthInfo(payload.session);
+        return true;
+    } catch (e) { return false; }
+}
+async function renewAuthSession() {
+    if (authRenewPromise || !authInfo || authEnded) return authRenewPromise;
+    const idleMs = (authInfo.idle_timeout_seconds || 0) * 1000;
+    if ((idleMs && Date.now() - authLastActivityMs >= idleMs) ||
+        authRemainingMs() <= 0) {
+        await refreshAuthStatus();
+        return null;
+    }
+    authRenewPromise = (async () => {
+        try {
+            const r = await fetch('/auth/renew', {
+                method: 'POST', credentials: 'same-origin',
+            });
+            if (r.status === 401) { endAuthSession(); return; }
+            if (!r.ok) throw new Error('renewal unavailable');
+            const payload = await r.json();
+            if (!payload.ok || !payload.session) throw new Error('renewal refused');
+            applyAuthInfo(payload.session);
+        } catch (e) {
+            if (authRenewTimer) clearTimeout(authRenewTimer);
+            authRenewTimer = setTimeout(renewAuthSession, 30000);
+        } finally { authRenewPromise = null; }
+    })();
+    return authRenewPromise;
+}
+function noteAuthActivity(e) {
+    if (!e.isTrusted) return;
+    authLastActivityMs = Date.now();
+    if (!authInfo || authEnded || document.getElementById('auth-overlay').classList.contains('open'))
+        return;
+    if (authActivityPromise || Date.now() - authLastActivitySent < AUTH_ACTIVITY_SEND_MS)
+        return;
+    authLastActivitySent = Date.now();
+    authActivityPromise = (async () => {
+        try {
+            const r = await fetch('/auth/activity', {
+                method: 'POST', credentials: 'same-origin',
+            });
+            if (r.status === 401) { endAuthSession(); return; }
+            if (!r.ok) return;
+            const payload = await r.json();
+            if (payload.ok && payload.session) applyAuthInfo(payload.session);
+        } catch (e) { /* the next real action retries */ }
+        finally { authActivityPromise = null; }
+    })();
+}
+for (const eventName of ['pointerdown', 'keydown', 'touchstart', 'click'])
+    document.addEventListener(eventName, noteAuthActivity, true);
+
 function openAuthPrompt() {
     return new Promise(resolve => {
         const ov  = document.getElementById('auth-overlay');
@@ -934,6 +1063,7 @@ function openAuthPrompt() {
         const err = document.getElementById('auth-error');
         const btn = document.getElementById('auth-login-btn');
         err.textContent = '';
+        btn.disabled = false;
         ov.classList.add('open');
         setTimeout(() => inp.focus(), 50);
         const done = ok => {
@@ -953,7 +1083,14 @@ function openAuthPrompt() {
                     credentials: 'same-origin',
                     body: JSON.stringify({ token }),
                 });
-                if (r.ok) { inp.value = ''; startJobEvents(); done(true); return; }
+                if (r.ok) {
+                    inp.value = '';
+                    authEnded = false;
+                    await refreshAuthStatus(false);
+                    startJobEvents();
+                    done(true);
+                    return;
+                }
                 err.textContent = 'ungültiges token';
             } catch (e) {
                 err.textContent = 'fehler: ' + e.message;
@@ -967,9 +1104,13 @@ function openAuthPrompt() {
 async function logout() {
     try {
         await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' });
-    } catch (e) { /* session cookie cleared client-side anyway on reload */ }
+    } catch (e) { /* reload returns to a clean prompt */ }
+    authInfo = null;
+    if (authRenewTimer) clearTimeout(authRenewTimer);
+    if (authDisplayTimer) clearInterval(authDisplayTimer);
     location.reload();
 }
+refreshAuthStatus(false);
 
 /* ── localStorage — reload cache only, not source of truth ── */
 function saveCache() {
@@ -2867,3 +3008,9 @@ startJobEvents();
 </script>
 </body>
 </html>
+
+#,,,.,,,,,.,.,,.,,..,,,..,.,.,,.,,,..,,,,,..,,..,,...,...,,,,,,,,,,,,,.,,,,.,,
+#HTFKRIZAHT6Q3UEJGG7R5CNKEQSRNNI6OCWSNIE4MSEU3OL7BTHIIOBJMX7HV556BBHITQ4HZTY4C
+#\\\|NZAL5HFFCK3BVMGNFNLVMNYGT3QTJFDORW7TQXHUBG6VFQ4Z2PF \ / AMOS7 \ YOURUM ::
+#\[7]HKQQTWYERJQCFDHXT36ELCTYXSWWIUDHE6QAZ4IYG5L5JKNT4WAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

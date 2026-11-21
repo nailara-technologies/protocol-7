@@ -59,7 +59,7 @@ if ( not length $token ) {
     ( $status, $body_out ) = ( 400, '{"ok":false,"error":"logout failed"}' );
 
 } else {
-    my $ok = <[plugin.web.auth.destroy_session]>->($token);
+    my $ok = <[plugin.web.auth.destroy_session]>->( $token, '', TRUE );
 
     if ($ok) {
         $status   = 200;
@@ -87,8 +87,8 @@ $envelope->{'set_cookie'} = $set_cookie if defined $set_cookie;
 
 return { 'mode' => qw| size |, 'data' => JSON::XS::encode_json($envelope) };
 
-#,,,,,,..,,.,,,,,,,,,,,,,,,..,,,.,,.,,..,,..,,..,,...,..,,,,,,,..,,,,,..,,.,,,
-#SEJ3YD4WAORTDUOPHDGHKBGXGS7J2TEZZII6TW5DOLJ6R4RL2OTO3UO2YM3H72JZVEBCKAW5AFMAA
-#\\\|OKES7PS3BJWXPW25R6HAHTQ47L2UHX2O2L52PB6ZJZYUS2S2Q52 \ / AMOS7 \ YOURUM ::
-#\[7]EXS2BQXJL4T5BBRGCF6JBKUW3P7UQKUYNQPUDKMDWN65L6LK5YDI 7  DATA SIGNATURE ::
+#,,..,,.,,...,,.,,...,,..,.,,,..,,,,,,...,,,,,..,,...,...,,..,.,.,,..,,..,,,,,
+#BAZB6NFGY67JREF3APRO6E6KMFLYUQJF3Q54ARLZMYB3Q2Y2YKFJTM34WNWI2CHATHLEOXCAIKQ3S
+#\\\|AWJ3ID4DQRVL2BXOT36IPWYW5EV72DGYMCA7U6BER54CI5GXBQF \ / AMOS7 \ YOURUM ::
+#\[7]L3T34DGLTXAMCQQABUGIPTAASF3MALVWTRK7RLWJXYWAGE3GDCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

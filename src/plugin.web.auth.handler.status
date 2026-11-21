@@ -36,12 +36,8 @@ if ( defined $session_data ) {
     $json_str = eval {
         JSON::XS::encode_json(
             {   'ok'      => JSON::XS::true(),
-                'session' => {
-                    'user_id'    => $session_data->{'user_id'}    // '',
-                    'node_id'    => $session_data->{'node_id'}    // '',
-                    'created_at' => $session_data->{'created_at'} // '',
-                    'last_seen'  => $session_data->{'last_seen'}  // '',
-                }
+                'session' =>
+                    <[plugin.web.auth.ui_session.info]>->($session_data),
             }
         );
     } // '{"ok":true}';
@@ -70,8 +66,8 @@ return {
     'content_type' => qw| application/json |,
 };
 
-#,,..,,,,,..,,.,.,...,,,.,,..,..,,,,.,,,.,,,.,..,,...,...,...,,,,,..,,,,.,.,,,
-#4F3DHBPCLV2SAM5NG2NKWFPXT47Y745JEPIOTUZ4KC2L7KGZQGYVDO2ZDW5SK7LZ3G2X2SNMHVCB6
-#\\\|Q54RPCNB4PGQY4PVWJYR7KF2VTBFRK4LT5X4X5X2GVDK7YUSX75 \ / AMOS7 \ YOURUM ::
-#\[7]SCHB57N55I5NLDGNGH73GAR252V3NS6G52WWJUKKWCDPVI7L3WAI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,.,..,,.,.,..,,,.,,...,,..,.,,,..,,...,...,..,,.,,,,,,,..,,.,,,
+#FHZ6VAK767CDWVNAQI2BL73BH7YTSZN662M3AARHLKTHBRR7M27HGZSUNEKAMU63KXWP3JHN6Z3YE
+#\\\|LCLBCV52UWQQ6EW35CABYIYHQZWWH7FHGVQIM57ANRMDNI5SAH3 \ / AMOS7 \ YOURUM ::
+#\[7]MN7HMUFXLJF4XH2WULXYP6K3OWWIQOE74AIWZW3QBB4X7Q6LYUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

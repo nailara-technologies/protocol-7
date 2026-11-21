@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = plugin.web.auth.ui_session.begin
+# descr = bind a token login to bounded ui session state
+# param = verified session hashref
+
+my $session = shift;
+return undef if ref $session ne qw| HASH |;
+
+my $token_hash = $session->{'token_hash'} // '';
+return undef if $token_hash !~ m|^[A-Z0-9]{13}$|;
+
+my $cfg = <[plugin.web.auth.session.cfg]>;
+my $now = time;
+my $ui  = $session->{'data'}{'ui'};
+$session->{'data'} = {} if ref $session->{'data'} ne qw| HASH |;
+
+if ( ref $ui ne qw| HASH | ) {
+    my $lease = ( $session->{'expires_at_epoch'} // $now ) - $now;
+    $lease = 1 if $lease < 1;
+    $ui    = {
+        'started_at_epoch'     => $now,
+        'last_activity_epoch'  => $now,
+        'max_expires_at_epoch' => $now + $cfg->{'max_age_seconds'},
+        'lease_seconds'        => $lease,
+    };
+} else {
+    return undef
+        if ( $ui->{'started_at_epoch'} // 0 ) !~ m|^\d+$|
+        or ( $ui->{'max_expires_at_epoch'} // 0 ) !~ m|^\d+$|
+        or ( $ui->{'lease_seconds'}        // 0 ) !~ m|^\d+$|
+        or $ui->{'lease_seconds'} < 1;
+    $ui->{'last_activity_epoch'} = $now;
+}
+
+$session->{'data'}{'scope'} = qw| ui |;
+$session->{'data'}{'ui'}    = $ui;
+
+return undef
+    if not <[plugin.web.auth.session.write]>->( $token_hash, $session );
+
+return $session;
+
+#,,.,,,.,,..,,.,.,,.,,.,,,.,,,..,,,,,,...,..,,..,,...,...,...,...,,..,.,,,.,,,
+#DGCGCPPSUNLYLHM5KZ67B4UKTHTO45FJZF6PXFAYMUG3PAN37G2SNAEQVMSP5AJ3OY34PIIU27S52
+#\\\|NFWDAM2UB3KP72ANQFRTBSV5CRYR6CZDNPNT5PZL3YSPWHQ3NRT \ / AMOS7 \ YOURUM ::
+#\[7]5RUW5JAW3ABEQEFIAKEGEVJZTHHZJ5GSOSFN5N2A2FEHCX6NN2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

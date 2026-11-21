@@ -12,52 +12,34 @@ my ( $screen, $opt ) = @ARG;
 return undef if not defined $screen;
 $opt //= {};
 
-my %color = (
-    'background' => '#000013',
-    'panel'      => '#000042',
-    'text'       => '#0055CC',
-    'hover'      => '#0088FF',
-    'focus'      => '#00084A',
-    'border'     => '#0055CC',
-    'muted'      => '#003A8C',
-    'selection'  => '#1A0946',
+<[base.perlmod.autoload]>->('AMOS7::Desktop::Theme');
+my $theme = AMOS7::Desktop::Theme::read(
+    {   'root'    => <system.root_path>,
+        'zenka'   => <system.zenka.name>,
+        'etc_dir' => ( <system.path.zenka-dirs> // {} )->{'etc_P7'}
+            // '/etc/protocol-7',
+        'zenka_user' => <system.amos-zenka-user> // 'protocol-7',
+    }
+);
+
+my %role_token = (
+    'background' => 'color.background',
+    'panel'      => 'color.background_mid',
+    'text'       => 'color.foreground',
+    'hover'      => 'color.foreground_bright',
+    'focus'      => 'color.background_focus',
+    'border'     => 'color.foreground',
+    'muted'      => 'color.foreground_dim',
+    'selection'  => 'color.selection',
 );
 foreach my $role ( keys %{ $opt->{'color'} // {} } ) {
     my $hex = $opt->{'color'}->{$role} // next;
     next if $hex !~ m|^#?([0-9a-fA-F]{6})$|;
-    $color{$role} = '#' . ${^CAPTURE}[0];
+    $theme->{ $role_token{$role} } = ${^CAPTURE}[0]
+        if defined $role_token{$role};
 }
 
-my $family = $opt->{'font_family'} // 'White Rabbit';
-$family =~ s|[{};"]| |g;
-my $size = $opt->{'font_size'};
-my $size_css
-    = ( defined $size and $size =~ m|^\d+$| ) ? "font-size: ${size}px;" : '';
-
-my $css_text = <<"EOT";
-* { background-image: none; box-shadow: none; text-shadow: none;
-    outline-color: $color{'border'}; }
-window, dialog, grid, box {
-    background-color: $color{'background'}; color: $color{'text'};
-    font-family: "$family"; $size_css }
-label { background-color: transparent; color: $color{'text'}; }
-.muted { color: $color{'muted'}; }
-entry {
-    background-color: $color{'panel'}; color: $color{'text'};
-    caret-color: $color{'text'};
-    border: 1px solid $color{'border'}; border-radius: 0; }
-entry:focus { background-color: $color{'focus'}; }
-entry selection, entry selection:focus {
-    background-color: $color{'selection'}; color: $color{'hover'}; }
-button {
-    background-color: $color{'panel'}; color: $color{'text'};
-    border: 1px solid $color{'border'}; border-radius: 0; }
-button:hover, button:focus { background-color: $color{'focus'}; color: $color{'hover'}; }
-button label { color: inherit; }
-menu { background-color: $color{'background'}; border-color: $color{'panel'};
-       color: $color{'text'}; }
-menu *:hover, menu *:focus { background-color: $color{'panel'}; color: $color{'hover'}; }
-EOT
+my $css_text = AMOS7::Desktop::Theme::gtk_css( $theme, $opt );
 $css_text .= $opt->{'css'} if defined $opt->{'css'};
 
 my $provider = Gtk3::CssProvider->new();
@@ -65,8 +47,8 @@ $provider->load_from_data($css_text);
 Gtk3::StyleContext::add_provider_for_screen( $screen, $provider, 600 );
 return $provider;
 
-#,,.,,..,,,..,,,,,.,,,,.,,,,.,,,.,.,.,...,..,,..,,...,...,...,.,.,,,.,.,,,..,,
-#CNABLPHU3T2M6KRA7D5G6YCNRDSJHBOZI7NNHOCUNKWHVWNNHI6BTPGS7PLLLXNGDLHXMWH3H4RHM
-#\\\|YOTRFFBMVJD573WR7LL3SLXWDE643HPV35HGAQ45GMD4W7UOVGP \ / AMOS7 \ YOURUM ::
-#\[7]HTN7DL6276RF4AF2FICYREAKRG45NLJBZQ5AHGXNBLDYGV56UEAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,,,.,..,,,.,,,.,,,.,,,,.,,,,,..,,...,...,,..,,.,,..,,,..,...,
+#E6RDTIYOJMVTEZNM5A4NCMCJBNOMGJABCVK6JU6NHTCLLFFEIYP7HV4BS6YJVGVOQJCQBT64AJV5M
+#\\\|BHVJGW4IN67JLDFAGDZCEOJX7PIX6G727SGOYL5OHWQCTR27LXK \ / AMOS7 \ YOURUM ::
+#\[7]2AVDPMYFIREWDNK5KJ3LTOKPYBCXOSR7D2JXTE3PZ4GZSQ6A6QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
