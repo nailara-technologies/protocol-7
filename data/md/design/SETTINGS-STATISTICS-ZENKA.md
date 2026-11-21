@@ -110,6 +110,15 @@ Diff Sync (what user shares):
   └─────────────────────────────────────┘
 ```
 
+### Open decision : file naming signals who writes [ owner 2026-11-21 ]
+
+today `cfg/` files carry no extension [ hand-maintained, signed ] while the host
+overlays are `/etc/protocol-7/host-config/<zenka>.cfg`. an extension could mark
+files that zenki write themselves [ `.cfg`, `.ncfg` or similar ] apart from files only
+people edit -- e.g. screen-setup's dpi `persist` writes `host-config/screen-setup.cfg`.
+decided together with the settings zenka, once the whole tree is in view ; until then
+the existing names stay [ `cfg/desktop` has no extension, host overlays keep `.cfg` ].
+
 ## Statistics Zenka (`statistics`)
 
 ### Data Classification
@@ -438,8 +447,8 @@ access.cmd.usr.cube = report status opt-out
 
 *Privacy-preserving configuration through inheritance and minimal diffs.*
 
-#,,,.,,..,.,.,.,.,,..,,,,,,,,,,,.,...,,,,,..,,..,,...,...,...,...,...,...,..,,
-#XGHV76VG6L6LHUJAYSZKKM54K3SMEKR7TL3NTSD5GZ36ZHWQYSXJ7MDFHELTHFSVUZ2OYTBH6WQU6
-#\\\|4TEA5DOQ2RBRAO6MQFNMQ6YVKKKJHSMHEWH63WYVXQ64U3OK4VQ \ / AMOS7 \ YOURUM ::
-#\[7]IDMW4VN35OORDDGMMOQ2YEMA7TKQNV2VWRWT65RMVMKJ273YLGBA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,,,.,,,,..,,,.,,.,,..,,,,.,,,,,..,,...,...,...,,..,.,,,.,,,.,,,
+#SDPV225YH4LY2TKH7CU57KCEORQNZBBQIHFJBZ2MSOZNXYDZQIH3NTP2EDSM4N5LXF66J53JNIQGY
+#\\\|UGBXXVJJNUVVIH2DJPL3FPIDIJN57UE5CJNN2MNWW264A7HDNKG \ / AMOS7 \ YOURUM ::
+#\[7]N6G5CUMMWNFHBGWCLN7B7B44SQFHCU4ZTQVCCVKY4QDP7BWPNQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
