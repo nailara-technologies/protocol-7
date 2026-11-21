@@ -87,6 +87,50 @@ my $old_rotation = $previous->{'rotation'};
 my $overlap_end  = $now + $overlap;
 $overlap_end = $old_expiry if $old_expiry > 0 and $old_expiry < $overlap_end;
 
+## finish and read back the replacement before touching the presented one ##
+my $current = <[plugin.web.auth.session.read]>->( $result->{'token_hash'} );
+if ( ref $current ne qw| HASH | ) {
+    <[plugin.web.auth.destroy_session]>->(
+        $result->{'token_hash'},
+        qw| hash |
+    );
+    return {
+        'ok'    => FALSE,
+        'error' => qw| rotation |,
+        'step'  => qw| current-read |
+    };
+}
+$current->{'rotation'}{'previous_hash'} = $previous_hash;
+if (not
+    <[plugin.web.auth.session.write]>->( $result->{'token_hash'}, $current ) )
+{
+    <[plugin.web.auth.destroy_session]>->(
+        $result->{'token_hash'},
+        qw| hash |
+    );
+    return {
+        'ok'    => FALSE,
+        'error' => qw| rotation |,
+        'step'  => qw| current-write |
+    };
+}
+my $stored = <[plugin.web.auth.session.read]>->( $result->{'token_hash'} );
+if (   ref $stored ne qw| HASH |
+    or ( $stored->{'token_hash'} // '' ) ne $result->{'token_hash'}
+    or ( $stored->{'rotation'}{'previous_hash'} // '' ) ne $previous_hash
+    or ( $stored->{'expires_at_epoch'} // 0 )
+    != $result->{'expires_at_epoch'} ) {
+    <[plugin.web.auth.destroy_session]>->(
+        $result->{'token_hash'},
+        qw| hash |
+    );
+    return {
+        'ok'    => FALSE,
+        'error' => qw| rotation |,
+        'step'  => qw| current-readback |
+    };
+}
+
 $previous->{'expires_at_epoch'} = $overlap_end;
 $previous->{'rotation'}         = {
     %{ ref $old_rotation eq qw| HASH | ? $old_rotation : {} },
@@ -101,34 +145,15 @@ if ( not <[plugin.web.auth.session.write]>->( $previous_hash, $previous ) ) {
     } else {
         delete $previous->{'rotation'};
     }
-    <[plugin.web.auth.session.write]>->( $previous_hash, $previous );
     <[plugin.web.auth.destroy_session]>->(
         $result->{'token_hash'},
         qw| hash |
     );
-    return { 'ok' => FALSE, 'error' => qw| rotation | };
-}
-
-my $current = <[plugin.web.auth.session.read]>->( $result->{'token_hash'} );
-$current->{'rotation'}{'previous_hash'} = $previous_hash
-    if ref $current eq qw| HASH |;
-
-if ( ref $current ne qw| HASH |
-    or not
-    <[plugin.web.auth.session.write]>->( $result->{'token_hash'}, $current ) )
-{
-    $previous->{'expires_at_epoch'} = $old_expiry;
-    if ( ref $old_rotation eq qw| HASH | ) {
-        $previous->{'rotation'} = $old_rotation;
-    } else {
-        delete $previous->{'rotation'};
-    }
-    <[plugin.web.auth.session.write]>->( $previous_hash, $previous );
-    <[plugin.web.auth.destroy_session]>->(
-        $result->{'token_hash'},
-        qw| hash |
-    );
-    return { 'ok' => FALSE, 'error' => qw| rotation | };
+    return {
+        'ok'    => FALSE,
+        'error' => qw| rotation |,
+        'step'  => qw| previous-write |
+    };
 }
 
 $cache->{$previous_hash} = {
@@ -143,8 +168,8 @@ $cache->{$previous_hash} = {
 $result->{'ok'} = TRUE;
 return $result;
 
-#,,.,,,,.,,,,,,..,.,,,,.,,,.,,.,,,,..,,..,...,..,,...,...,,,.,,,,,,,,,,.,,...,
-#TTRG2TIJUPNKVAMREPEG5QZULLIPSW4BJY7OPP5GO24MABCWRTCCOWDD65XJKOHKSGD6UVA7FI3K4
-#\\\|PEANJM7QA2UBUEMIG25B6C5537NZFFO67V2HRNGFQCIJG5V2JNE \ / AMOS7 \ YOURUM ::
-#\[7]AE3BC74KICUQK5TJG2GFIFUKOMV5FT7UJKPOB2TYOXBMZLPMPOBA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,..,,,.,,,,,,,..,.,,,..,,,,,,,,,,..,,...,...,,.,,,,.,.,.,.,,,,,.,
+#7OMPRGMNYRQ3J7JUPJ3I7YFQ3BDSZQB3G32ZA2E2RA75QZS7W4566CBFCZF63RUR3CLUGNEMZ7YD2
+#\\\|Z6JFLWGIB6LOG6IC7PXVSK54PNLCZODISVIA4FDDIRJIFEZSDUQ \ / AMOS7 \ YOURUM ::
+#\[7]AI7DFI2NZMXXQ44O2C6UGLSD2EK6ZC65ALG7ZPMIOGONZHIR2WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

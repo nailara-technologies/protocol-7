@@ -70,7 +70,7 @@ sub compile_module {
 }
 
 my @logged;
-my $now           = time;
+my $now           = time + 0.5;
 my $ntime_counter = 1000;
 my $prng_counter  = 0;
 
@@ -88,20 +88,18 @@ $code{'base.prng.bytes'}            = sub {
     return join '',
         map { chr( ( $prng_counter + $ARG ) % 256 ) } 0 .. $amount - 1;
 };
-$code{'format.yaml.load_file'} = sub {
-    my $path = shift;
-    return eval { YAML::XS::LoadFile($path) };
+$code{'base.caller'}          = sub { return qw| test | };
+$code{'base.str.eval_error'}  = sub { return $EVAL_ERROR // '' };
+$code{'base.buffer.add_line'} = sub {
+    my ( $buffer, $line ) = @ARG;
+    push @logged, [ 'yaml', $buffer, $line ];
+    return TRUE;
 };
 $code{'file.make_path'} = sub {
     my $dir = shift;
     require File::Path;
     File::Path::make_path($dir);
     return -d $dir ? TRUE : FALSE;
-};
-$code{'file.open'} = sub {
-    my $file = shift;
-    open my $fh, '>', $file or return undef;
-    return $fh;
 };
 $code{'chk-sum.bmw.L13-str'} = sub {
     my $in   = join '', map { defined $ARG ? $ARG : '' } @ARG;
@@ -111,6 +109,15 @@ $code{'chk-sum.bmw.L13-str'} = sub {
 };
 $code{'plugin.web.auth.admit.gate'}   = sub { return ( 0, undef, [] ) };
 $code{'plugin.web.auth.admit.record'} = sub { return TRUE };
+
+compile_module(qw| format.yaml.load_file |);
+compile_module( qw| base.file.open |,
+    "$module_prefix\nuse Fcntl qw| O_CREAT |;" );
+$code{'file.open'} = $code{'base.file.open'};
+$data{'format'}{'yaml'} = {
+    'loader'  => \&YAML::XS::LoadFile,
+    'backend' => qw| YAML::XS |,
+};
 
 compile_module($_) for qw|
     plugin.web.auth.session.path
@@ -172,8 +179,10 @@ sub renew_cookie {
     my $env = envelope(
         $code{'web.cmd.auth-renew'}->(
             {   'param' => {
-                    'cookie_header' => "p7_session=$token",
+                    'peer_addr'     => '',
                     'peer_tls'      => $tls // 1,
+                    'auth_header'   => '',
+                    'cookie_header' => "p7_session=$token",
                 },
             }
         )
@@ -186,8 +195,17 @@ sub renew_cookie {
 
 sub renew_bearer {
     my $token = shift;
-    my $env   = envelope( $code{'web.cmd.auth-renew'}
-            ->( { 'param' => { 'auth_header' => "Bearer $token" } } ) );
+    my $env   = envelope(
+        $code{'web.cmd.auth-renew'}->(
+            {   'param' => {
+                    'peer_addr'     => '',
+                    'peer_tls'      => 0,
+                    'auth_header'   => "Bearer $token",
+                    'cookie_header' => '',
+                },
+            }
+        )
+    );
     my $body = reply_body($env);
     push @tokens, $body->{'token'} if defined $body->{'token'};
     return ( $env, $body );
@@ -295,6 +313,14 @@ ok( ( $activity_env->{'status'} // 0 ) == 200
         > $activity_session->{'data'}{'ui'}{'last_activity_epoch'},
     'the dedicated activity action advances server-side activity'
 );
+my ( $env_after_activity, undef, $after_activity_current )
+    = renew_cookie($activity_token);
+ok( ( $env_after_activity->{'status'} // 0 ) == 200
+        and defined $after_activity_current
+        and
+        defined $code{'plugin.web.auth.verify_session'}->($activity_token),
+    'fractional activity time cannot invalidate the next renewal'
+);
 
 my $machine = $code{'plugin.web.auth.create_session'}
     ->( { 'user_id' => qw| machine-user |, 'ttl' => 300 } );
@@ -310,6 +336,64 @@ my ( $env_corrupt, $body_corrupt ) = renew_bearer($corrupt_token);
 ok( refused( $env_corrupt, $body_corrupt ),
     'missing state on a ui-scoped token fails closed'
 );
+
+say "\n :. refused rotations preserve the presented session";
+my $real_session_write = $code{'plugin.web.auth.session.write'};
+{
+    my ( $fail_token, $fail_session ) = mint_ui(300);
+    my $fail_hash   = $fail_session->{'token_hash'};
+    my $fail_expiry = $fail_session->{'expires_at_epoch'};
+    local $code{'plugin.web.auth.session.write'} = sub {
+        my ( $hash, $record ) = @ARG;
+        return FALSE
+            if ref $record->{'rotation'} eq qw| HASH |
+            and ( $record->{'rotation'}{'previous_hash'} // '' ) eq
+            $fail_hash;
+        return $real_session_write->( $hash, $record );
+    };
+    my ( $env_fail, $body_fail ) = renew_cookie($fail_token);
+    ok( refused( $env_fail, $body_fail ),
+        'replacement write failure is refused'
+    );
+    my $still_valid = $code{'plugin.web.auth.verify_session'}->($fail_token);
+    ok( defined $still_valid
+            and $still_valid->{'expires_at_epoch'} == $fail_expiry
+            and !exists $still_valid->{'rotation'},
+        'replacement write failure leaves old session valid and unchanged'
+    );
+    my $step_lines = grep {
+                ( $ARG->[0] // '' ) == 1
+            and ( $ARG->[2] // '' ) eq qw| current-write |
+    } @logged;
+    ok( $step_lines == 1, 'refusal logs the current-write step once' );
+}
+{
+    my ( $fail_token, $fail_session ) = mint_ui(300);
+    my $fail_hash   = $fail_session->{'token_hash'};
+    my $fail_expiry = $fail_session->{'expires_at_epoch'};
+    local $code{'plugin.web.auth.session.write'} = sub {
+        my ( $hash, $record ) = @ARG;
+        return FALSE
+            if $hash eq $fail_hash
+            and ref $record->{'rotation'} eq qw| HASH |
+            and exists $record->{'rotation'}{'current_hash'};
+        return $real_session_write->( $hash, $record );
+    };
+    my ( $env_fail, $body_fail ) = renew_cookie($fail_token);
+    ok( refused( $env_fail, $body_fail ),
+        'presented-record write failure is refused' );
+    my $still_valid = $code{'plugin.web.auth.verify_session'}->($fail_token);
+    ok( defined $still_valid
+            and $still_valid->{'expires_at_epoch'} == $fail_expiry
+            and !exists $still_valid->{'rotation'},
+        'old-record write failure preserves its original expiry'
+    );
+    my $step_lines = grep {
+                ( $ARG->[0] // '' ) == 1
+            and ( $ARG->[2] // '' ) eq qw| previous-write |
+    } @logged;
+    ok( $step_lines == 1, 'refusal logs the previous-write step once' );
+}
 
 say "\n :. logout revokes both overlap tokens";
 my ( $logout_old, undef ) = mint_ui(300);
@@ -347,8 +431,8 @@ ok( $logged_tokens == 0, 'no token appears in logs' );
 say sprintf "\n :. %d passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,..,,,,,,,..,.,.,.,.,.,,,...,,.,,,..,.,,,..,,...,...,...,,,,,,.,,.,,,,..,
-#WADYGLDEGAZC7ZZJSLHCA2ASWQGNWI73KNBAXLXXBK6FYPQJO3RPM7PCTR5DNSBL6TKNNCF5RLZLS
-#\\\|JKAVIBM2MVWZGUCFFPJQQ3KWN4REVSU3L5WTXPDC5RG3OHYNMO2 \ / AMOS7 \ YOURUM ::
-#\[7]MOIKGIQHPJXMVXN6ZUXRKYCS5Y7FMBE2Y4ZJ3TF5Y6RWD2ZMK6AI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,.,,,..,,,.,,,,,..,,..,,,..,.,.,..,,...,...,.,,,.,,,,,,,,,.,,.,,
+#QTIB7WKT6P4QSNKIJQ6B6CJABSPWITMOSLJKPX4X6CYSWDZ7B7OOLUZZE5JARQPHFMCE5WBDZKGFG
+#\\\|LFFDZHGOI6NUTLUOKZ4EIUZ24R6BYJBXYMOWBWZASW4NI6IDKBJ \ / AMOS7 \ YOURUM ::
+#\[7]2YZ2CBOHVPZSPXJV5PEOOBKJMWHI4XILNT2RFZKZEYOYCQA33QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@
 # return = immediate http response envelope
 
 my $call  = shift // {};
-my $now   = <[base.time]>->();
+my $now   = int( <[base.time]>->() );
 my $param = $call->{'param'} // {};
 
 my ( $blocked, $src, $groups ) = <[plugin.web.auth.admit.gate]>->(
@@ -64,8 +64,8 @@ return {
         JSON::XS::encode_json( { 'status' => $status, 'body' => $body } ),
 };
 
-#,,.,,,.,,,..,,,.,.,.,,,,,,,.,,,,,,.,,.,.,,.,,..,,...,...,.,.,,,,,...,..,,,..,
-#MIZLRXXOLQBVDWODI33UNQS5FIBZIHJKJ6DXD6P5EIVBHKYW7F4TOJE7KGF45PY5KOOBFI5W2RTBK
-#\\\|5VBBUB2YUWVOB2HHYTDRVNGSXDDL4EMEUTZ72CNFOEIHGJSFPCY \ / AMOS7 \ YOURUM ::
-#\[7]YA24BESR7ICP7AT7SIUB6WJMI7F6YTTT3ICM74Y6WCRZV6FHJMCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,.,,,.,,,,.,,..,,,.,.,,,.,.,,.,,..,,...,.,.,.,,,..,,,.,,,,.,.,.,
+#GBRJ2WN2QG2EJ62IRBJQHIMVY3EPWX7M7SLP62SASJAYQACTEGHJWYW3JMB7IS6PESNZHVK2TLOYO
+#\\\|HUSZDNG44HUZWI3OQHMQ7UBN2RJK3BCQV2BRYAOHIJQ6JRSIB24 \ / AMOS7 \ YOURUM ::
+#\[7]WIUKGOJLEC25MAR265CUFGUKKR65QK7ZP7EPMVEPMZZZXUMRUACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

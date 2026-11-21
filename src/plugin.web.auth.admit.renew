@@ -6,18 +6,20 @@
 # return = immediate renewal or generic refusal envelope
 
 my $call  = shift // {};
-my $now   = <[base.time]>->();
+my $now   = int( <[base.time]>->() );
 my $param = $call->{'param'} // {};
 
 my ( $blocked, $src, $groups ) = <[plugin.web.auth.admit.gate]>->(
     $param->{'peer_addr'} // '',
     qw| renew |, $now
 );
-return {
-    'mode' => qw| size |,
-    'data' => <[plugin.web.auth.admit.envelope_429]>->($blocked),
-    }
-    if $blocked;
+if ($blocked) {
+    <[base.logs]>->( 1, 'web.auth-renew : refused [ step=admission ]' );
+    return {
+        'mode' => qw| size |,
+        'data' => <[plugin.web.auth.admit.envelope_429]>->($blocked),
+    };
+}
 
 my $token       = '';
 my $from_cookie = FALSE;
@@ -30,11 +32,13 @@ if ( not length $token
     $from_cookie = TRUE;
 }
 
-my ( $status, $body, $set_cookie );
+my ( $status, $body, $set_cookie, $failure_step );
 if ( not length $token ) {
     ( $status, $body ) = ( 401, '{"ok":false,"error":"unauthorized"}' );
+    $failure_step = qw| token-required |;
 } else {
-    my $session  = <[plugin.web.auth.verify_session]>->($token);
+    my $session = <[plugin.web.auth.verify_session]>->($token);
+    $failure_step = defined $session ? qw| bounds | : qw| verify |;
     my $ui       = $session->{'data'}{'ui'} if defined $session;
     my $cfg      = <[plugin.web.auth.session.cfg]>;
     my $lease    = $ui->{'lease_seconds'} // 0 if ref $ui eq qw| HASH |;
@@ -57,8 +61,12 @@ if ( not length $token ) {
             }
         );
     }
+    $failure_step = $rotation->{'step'} // $rotation->{'error'}
+        // qw| rotate |
+        if ref $rotation eq qw| HASH | and not $rotation->{'ok'};
 
     if ( ref $rotation eq qw| HASH | and $rotation->{'ok'} ) {
+        $failure_step = qw| reply-read |;
         my $current
             = <[plugin.web.auth.session.read]>->( $rotation->{'token_hash'} );
         if ( ref $current eq qw| HASH | ) {
@@ -96,12 +104,20 @@ if ( not length $token ) {
     ) if defined $src;
 }
 
+if ( $status != 200 ) {
+    <[base.logs]>->(
+        1,
+        'web.auth-renew : refused [ step=%s ]',
+        $failure_step // 'unknown'
+    );
+}
+
 my $envelope = { 'status' => $status, 'body' => $body };
 $envelope->{'set_cookie'} = $set_cookie if defined $set_cookie;
 return { 'mode' => qw| size |, 'data' => JSON::XS::encode_json($envelope) };
 
-#,,,,,,.,,...,,.,,,,,,,..,,,,,,.,,...,.,,,,,.,..,,...,...,...,.,.,.,,,,,,,,,,,
-#NZGFAXGFUTQSQX7RCDTI7H5RSJBUBDIX3XM7N6R3F7BDBKIYKMU5FDXPSYM5VM3XABRJATLRTM2T6
-#\\\|XEKLYVFDAPZWQ73O43Z3WMDMZKV55QC7T6GV7R7U5C44DIEL3NL \ / AMOS7 \ YOURUM ::
-#\[7]GKPDO3TWFPXDDDOSJ5BEKNOPMAXJWKWNEBM7ZB2SJK2ND3WDA4AY 7  DATA SIGNATURE ::
+#,,,,,...,,..,..,,.,.,...,.,,,.,,,..,,.,,,.,.,..,,...,.,.,...,...,.,.,.,.,,,.,
+#IP6MTCMTUIGVMZRT2ARBDCXDMHEP5KCDJUNY7Z6OFDBBKLT7ZHISWWYDPGUGCMFEJ4UMPUCDM265E
+#\\\|UM5LJLR7UT2ONGKGV23J3EKCDU2KOVRJNVTBP7YCB5KAE7VX2QF \ / AMOS7 \ YOURUM ::
+#\[7]TEGJ4YCANYGSLTE2ERHQEF7XJCEGWP6774YZEUNJ2XPO7LLEGWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
