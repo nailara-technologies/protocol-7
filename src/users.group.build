@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = users.group.build
+# param = <group-name> <fields_href> <existing_href_or_undef>
+# descr = build a group record envelope on the users-record pattern
+
+my ( $group_name, $fields_href, $existing_href ) = @ARG;
+
+$fields_href = {} if ref $fields_href ne qw| HASH |;
+my %fields = %{$fields_href};
+
+$fields{'namespace'}      //= qw| web |;
+$fields{'members'}        //= [];
+$fields{'security_level'} //= 0;
+$fields{'scopes'}         //= [];
+$fields{'ttl'}            //= 0;
+
+$fields{'members'} = [ <[base.sort]>->( $fields{'members'} ) ];
+$fields{'scopes'}  = [ <[base.sort]>->( $fields{'scopes'} ) ];
+
+my $timestamp = <[base.ntime]>;
+$timestamp = $existing_href->{'timestamp'}
+    if ref $existing_href eq qw| HASH |
+    and defined $existing_href->{'timestamp'}
+    and length $existing_href->{'timestamp'};
+
+my $identity = sprintf qw| group:%s:%s |, $fields{'namespace'}, $group_name;
+my $checksum = substr( <[chk-sum.amos]>->($identity), 0, 7 );
+
+return {
+    'name'      => $group_name,
+    'checksum'  => $checksum,
+    'timestamp' => $timestamp,
+    'metadata'  => { 'updated_at' => <[base.ntime]> },
+    'fields'    => \%fields
+};
+
+#,,,,,,,,,,..,.,.,,.,,..,,..,,...,,..,,,,,,,,,.,.,...,...,..,,.,,,...,,,,,..,,
+#XAU6OZGJNHT5RGVPKPE5EQAOQKAGKLEXLVVZA6D6JOYF47BXT7XGFL6GBZNORVUEPNDZ2YYPZCTIM
+#\\\|JSTITVVHEPMOZ5WCVYP2CKFHADSZE6PLXEMIHG6BSPHAHKYWNJ3 \ / AMOS7 \ YOURUM ::
+#\[7]YPEVYH5XRCCCNJJITBXJ7MVODLCIHANAJDC57OGK3ENX6FVQQMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

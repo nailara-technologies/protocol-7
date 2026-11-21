@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = users.group.read
+# param = <group-name> [ <namespace> ]
+# descr = read a web record or a resolved cube group
+
+my ( $group_name, $namespace ) = @ARG;
+
+if ( defined $namespace and $namespace eq qw| cube | ) {
+    my $cube_groups = <[users.group.cube_records]>;
+    return $cube_groups->{$group_name};
+}
+
+return if defined $namespace and $namespace ne qw| web |;
+
+my $file_path = <[users.group.path]>->( qw| web |, $group_name );
+return if not defined $file_path;
+
+my $loaded = <[format.yaml.load_keyword_path]>->($file_path);
+return if not defined $loaded;
+
+my ( $record, $err )
+    = <[users.group.validate]>->( $loaded, $group_name, qw| web | );
+
+if ( not defined $record ) {
+    <[base.logs]>->(
+        1,           "web group '%s' record failed validation: %s",
+        $group_name, $err
+    );
+    return;
+}
+
+return $record;
+
+#,,.,,..,,,..,,,.,,,.,,,.,,,,,,,,,,,,,,,.,...,.,.,...,...,,..,,..,.,.,,,.,...,
+#VEACDT23KNUQLBNZ5TAOBXUQ5WIVTA34YLCTHRTH4CYKNTEGRTHFQPBRX4U2DAPV667WYKKT75KQK
+#\\\|AH57M2IPIC7MC3CFJMMVC3ZJKBWBQWQPKBZ3OBC3PVFMQIHPL2F \ / AMOS7 \ YOURUM ::
+#\[7]Q5QVA7INK4BG6QEPJBTV6AXVMI3RJPK4ZR4NQRLOODYB7S7FX6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = users.group.path
+# param = <namespace> <group-name> [ <document> ]
+# descr = keyword path of a group record document
+
+my ( $namespace, $group_name, $document ) = @ARG;
+
+return undef if not defined $namespace or $namespace !~ m{^(?:cube|web)$};
+return undef
+    if not defined $group_name
+    or $group_name !~ m|^[a-z0-9][a-z0-9_.+-]{0,63}$|;
+
+$document //= qw| details |;
+
+return sprintf( qw| [USERS_HOST]/groups/%s/%s/%s.yaml |,
+    $namespace, $group_name, $document );
+
+#,,..,...,,,.,,..,,..,,.,,,.,,.,,,,,.,,,.,,,,,.,.,...,..,,..,,...,,,.,.,,,,,.,
+#HUCTEYAR4MTMOSC37ULDLFKOYK2ROUYM2S2TIQU3UMA5X2UNN6VI7MP7BFQ22D2YOTLGUTNELWYLA
+#\\\|G3LGPHVUK7RVC47PQKD2DB47J2BQEMPRXEGYEEVOB6N6QYXJK3R \ / AMOS7 \ YOURUM ::
+#\[7]ZYZEIVK2JTB4L5FCXTO6HF73XOZ6DSWGNQORBQZ4HX2MNO7NF4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

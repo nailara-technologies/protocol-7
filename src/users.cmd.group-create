@@ -1,0 +1,109 @@
+## [:< ##
+
+# name  = users.cmd.group-create
+# param = <name> namespace=web [ level= scopes= ttl= ]
+# descr = create a web group record
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my ( $group_name, @params ) = split m|\s+|, $args;
+my $fields = {
+    'namespace'      => qw| web |,
+    'members'        => [],
+    'security_level' => 0,
+    'scopes'         => [],
+    'ttl'            => 0
+};
+
+foreach my $param (@params) {
+    my ( $key, $value ) = split m|=|, $param, 2;
+    return {
+        'mode' => qw| false |,
+        'data' => 'group parameters use key=value'
+        }
+        if not defined $value;
+
+    if ( $key eq qw| namespace | ) {
+        $fields->{'namespace'} = $value;
+    } elsif ( $key eq qw| level | ) {
+        $fields->{'security_level'} = $value;
+    } elsif ( $key eq qw| scopes | ) {
+        $fields->{'scopes'} = [ grep {length} split m|,|, $value ];
+    } elsif ( $key eq qw| ttl | ) {
+        $fields->{'ttl'} = $value;
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( "unknown group parameter '%s'", $key )
+        };
+    }
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'cube groups : read-only in stage 0'
+    }
+    if $fields->{'namespace'} eq qw| cube |;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.group-create <name> '
+        . 'namespace=web [level=N scopes=word,word ttl=N]'
+    }
+    if not defined $group_name
+    or not defined
+    <[users.group.path]>->( $fields->{'namespace'}, $group_name );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "group '%s' record exists already", $group_name )
+    }
+    if defined <[users.group.read]>->( $group_name, qw| web | );
+
+my $envelope = <[users.group.build]>->( $group_name, $fields, undef );
+my ( $record, $err )
+    = <[users.group.validate]>->( $envelope, $group_name, qw| web | );
+
+return { 'mode' => qw| false |, 'data' => $err } if not defined $record;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'web group level above the web ceiling [ '
+        . 'users.cfg.group.web_level_max, below the cube admin '
+        . 'level ]'
+    }
+    if $fields->{'security_level'} >= <[users.group.cube_admin_level]>;
+
+return {
+    'mode' => qw| false |,
+    'data' =>
+        sprintf( "cannot create record directory for '%s'", $group_name )
+    }
+    if not <[users.group.ensure_dir]>->( qw| web |, $group_name );
+
+my $file_path = <[base.path.resolve_keywords]>
+    ->( <[users.group.path]>->( qw| web |, $group_name ) );
+my ( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $file_path, $envelope );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        "failed to create group '%s': %s",
+        $group_name, $write_err // 'unknown error'
+    )
+    }
+    if not $ok;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( "web group '%s' created", $group_name )
+};
+
+#,,.,,..,,.,.,,,,,,..,,,.,,,.,..,,.,.,.,,,.,.,.,.,...,...,,..,.,.,,..,.,.,,.,,
+#E2XZ6XNDQB2LCEZKHSDYND2RNRK422Z6MDDFKMLHT4EYEFKWJXK4LL6MEHNSWX3WYHXDDZHVPRYWO
+#\\\|CKNH7OZBROHRHVBZBOFMN5UISJ35TJHAQI5Y5QZNPMLQETIJDGZ \ / AMOS7 \ YOURUM ::
+#\[7]DH53UI5SA2ZZ5V4YXQE43I3JIV4VLXEAJMMCWKO3PMILVKZZZQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

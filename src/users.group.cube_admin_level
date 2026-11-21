@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = users.group.cube_admin_level
+# descr = first level a web group may NOT reach [ ceiling + 1 ]
+
+my $cube_groups = <[users.group.cube_records]>;
+my $admin_level = 0;
+
+foreach my $group_name (qw| <admin-user> <unix-admin> |) {
+    my $record = $cube_groups->{$group_name}           // next;
+    my $level  = $record->{'fields'}{'security_level'} // 0;
+    $admin_level = $level if $level > $admin_level;
+}
+
+## the cube admin level is the unbounded sentinel                          ##
+## [ 1_000_000, as in ui.caller.security-level ] whenever an admin group   ##
+## has wildcard access -- 'below admin' alone would let a web group reach  ##
+## 999999.  web levels therefore stop at an explicit ceiling, 0 when unset ##
+## [ fail closed ], and never at or above the admin level                  ##
+$admin_level ||= 1_000_000;
+my $ceiling = <users.cfg.group.web_level_max> // 0;
+$ceiling = 0                if $ceiling !~ m|^\d+$|;
+$ceiling = $admin_level - 1 if $ceiling >= $admin_level;
+
+return $ceiling + 1;    ## callers refuse levels >= this value ##
+
+#,,,,,.,,,...,..,,.,,,.,,,...,,..,,.,,.,.,...,.,.,...,...,...,..,,,..,.,,,,,.,
+#RO52IIMTBNF6AJOOKDPRIADPZ5WKCLLA4EPDS5C7UE3MZTBFUUCDDGO7GZQBNMU4A6B4CIC3INZZY
+#\\\|5434QNGEUQVPTJZC2FP3O57FCXUF7ZEIGXSQA2APSVFBEXB6VDI \ / AMOS7 \ YOURUM ::
+#\[7]ZYGY5QEUFC35YQM6CCNIHV6ND5A4IMYMVCTLVRHT7UKRIO5PRSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

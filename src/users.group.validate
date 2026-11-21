@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = users.group.validate
+# param = <loaded_href> <expected_group_name> [ <expected_namespace> ]
+# descr = validate a group envelope and its fixed field shapes
+
+my ( $loaded_href, $expected_name, $expected_namespace ) = @ARG;
+
+return ( undef, 'record is not a hash' ) if ref $loaded_href ne qw| HASH |;
+
+return ( undef, 'missing or mismatched name field' )
+    if not defined $loaded_href->{'name'}
+    or $loaded_href->{'name'} ne $expected_name;
+
+return ( undef, 'missing checksum field' )
+    if not defined $loaded_href->{'checksum'}
+    or not length $loaded_href->{'checksum'};
+
+return ( undef, 'missing timestamp field' )
+    if not defined $loaded_href->{'timestamp'}
+    or not length $loaded_href->{'timestamp'};
+
+return ( undef, 'missing or invalid fields payload' )
+    if ref $loaded_href->{'fields'} ne qw| HASH |;
+
+my $fields    = $loaded_href->{'fields'};
+my $namespace = $fields->{'namespace'} // '';
+
+return ( undef, 'invalid group namespace' )
+    if $namespace !~ m{^(?:cube|web)$};
+
+return ( undef, 'mismatched group namespace' )
+    if defined $expected_namespace and $namespace ne $expected_namespace;
+
+my $identity = sprintf qw| group:%s:%s |, $namespace, $expected_name;
+my $checksum = substr( <[chk-sum.amos]>->($identity), 0, 7 );
+
+return ( undef, 'group checksum mismatch' )
+    if $loaded_href->{'checksum'} ne $checksum;
+
+return ( undef, 'members must be a list' )
+    if ref $fields->{'members'} ne qw| ARRAY |;
+
+return ( undef, 'invalid member name' )
+    if grep { not defined $ARG or $ARG !~ m|^[\w.+\@:-]{1,64}$| }
+    $fields->{'members'}->@*;
+
+return ( undef, 'security level must be a non-negative integer' )
+    if not defined $fields->{'security_level'}
+    or $fields->{'security_level'} !~ m|^\d+$|;
+
+return ( undef, 'scopes must be a list' )
+    if ref $fields->{'scopes'} ne qw| ARRAY |;
+
+return ( undef, 'invalid scope word' )
+    if grep { not defined $ARG or $ARG !~ m|^[\w:+.@-]{1,128}$| }
+    $fields->{'scopes'}->@*;
+
+return ( undef, 'ttl ceiling must be a non-negative integer' )
+    if not defined $fields->{'ttl'}
+    or $fields->{'ttl'} !~ m|^\d+$|;
+
+return ( $loaded_href, undef );
+
+#,,..,,,.,,,.,,,,,..,,,,.,,.,,...,.,,,,,,,.,,,.,.,...,..,,.,,,,,.,,..,,..,,..,
+#6DND4NQ54XSKEQVZD5SQMVRLRMTJL5UJEFECXATSFXH476DFIGH3CHOC2CYYINISZAC3TAIPT7B7U
+#\\\|HQAQZZHFRYK3E2SPVCYRXNLLLHQOHNGTG3WAMUVKXXZHSOLX7UI \ / AMOS7 \ YOURUM ::
+#\[7]FJ7OLJIE3B4YHUT72MC2Y4BNIAO6GNL3IG22F2RPIOJOSNJ6VOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

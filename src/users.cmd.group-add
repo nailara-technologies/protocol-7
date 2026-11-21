@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = users.cmd.group-add
+# param = <group-name> <member>
+# descr = add a member to a web group
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my ( $group_name, $member ) = split m|\s+|, $args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.group-add <group-name> <member>'
+    }
+    if not defined $group_name or not defined $member;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'cube groups : read-only in stage 0'
+    }
+    if defined <[users.group.read]>->( $group_name, qw| cube | )
+    and not defined <[users.group.read]>->( $group_name, qw| web | );
+
+my $record = <[users.group.read]>->( $group_name, qw| web | );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "web group '%s' not found", $group_name )
+    }
+    if not defined $record;
+
+my $fields = { %{ $record->{'fields'} } };
+$fields->{'members'} = [ @{ $fields->{'members'} } ];
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( "member '%s' already present", $member )
+    }
+    if grep { $ARG eq $member } $fields->{'members'}->@*;
+
+push $fields->{'members'}->@*, $member;
+my $envelope = <[users.group.build]>->( $group_name, $fields, $record );
+my ( $valid, $err )
+    = <[users.group.validate]>->( $envelope, $group_name, qw| web | );
+
+return { 'mode' => qw| false |, 'data' => $err } if not defined $valid;
+
+my $file_path = <[base.path.resolve_keywords]>
+    ->( <[users.group.path]>->( qw| web |, $group_name ) );
+my ( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $file_path, $envelope );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        "failed to update group '%s': %s",
+        $group_name, $write_err // 'unknown error'
+    )
+    }
+    if not $ok;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( "member '%s' added to '%s'", $member, $group_name )
+};
+
+#,,..,...,,,,,...,,..,...,..,,.,,,..,,,,,,..,,.,.,...,...,...,,..,.,,,.,,,,,,,
+#64TLZLXVS3WEHI4UUY7ZVMTVKMW2RVGSO3NAUWDLAJSRWLLXKROYFJCNWU5IS52PBLGJSFKSN2NHO
+#\\\|AFD4BUUHU3KSSN2LK6ZFJVBK5AFMRJSLUEVTMJDU6453FFJFO3R \ / AMOS7 \ YOURUM ::
+#\[7]NLVOFHHZTFZL4GLSNQB2V4KG2HRLLP7XLXGUKXTPNQGBQ3RATGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

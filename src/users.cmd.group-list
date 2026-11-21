@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = users.cmd.group-list
+# param = [ cube | web ]
+# descr = list resolved cube groups and stored web groups
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.group-list [cube|web]'
+    }
+    if length $args and $args !~ m{^(?:cube|web)$};
+
+my @names;
+
+if ( not length $args or $args eq qw| cube | ) {
+    my $cube_groups = <[users.group.cube_records]>;
+    push @names,
+        map { sprintf qw| cube/%s |, $ARG } <[base.sort]>->($cube_groups);
+}
+
+if ( not length $args or $args eq qw| web | ) {
+    my $web_path
+        = <[base.path.resolve_keywords]>->(qw| [USERS_HOST]/groups/web |);
+
+    if ( -d $web_path ) {
+        my @dirs = <[file.match_dirs]>->( $web_path, qw| * | );
+        foreach my $dir_path (@dirs) {
+            next if $dir_path !~ m|/([^/]+)/?$|;
+            my $group_name = $1;
+            next
+                if not -f <[base.path.resolve_keywords]>
+                ->( <[users.group.path]>->( qw| web |, $group_name ) );
+            push @names, sprintf qw| web/%s |, $group_name;
+        }
+    }
+}
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @names ) };
+
+#,,..,..,,,,.,,.,,..,,.,.,,..,.,.,.,.,,.,,..,,.,.,...,...,,..,..,,...,,,.,.,.,
+#BYPXEEYMK2WBKVFCHVJNPODIFDSAEU4E5VWHI3B6N77EAZTDHUJYD3QYZO4OOS427FY7YJUJABGQQ
+#\\\|SSUSGBNLLSN727LC56LEBR42CUZTTRZC2KMWWQFDJAQYZYUKGUN \ / AMOS7 \ YOURUM ::
+#\[7]YBWC3SKUU5LF6IAJBOV7W2VW3BYQQM4JSSSW6U364WEQP3HDLKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

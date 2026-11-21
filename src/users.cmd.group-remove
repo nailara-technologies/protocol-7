@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = users.cmd.group-remove
+# param = <group-name> <member>
+# descr = remove a member from a web group
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my ( $group_name, $member ) = split m|\s+|, $args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.group-remove <group-name> <member>'
+    }
+    if not defined $group_name or not defined $member;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'cube groups : read-only in stage 0'
+    }
+    if defined <[users.group.read]>->( $group_name, qw| cube | )
+    and not defined <[users.group.read]>->( $group_name, qw| web | );
+
+my $record = <[users.group.read]>->( $group_name, qw| web | );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "web group '%s' not found", $group_name )
+    }
+    if not defined $record;
+
+my $fields = { %{ $record->{'fields'} } };
+$fields->{'members'}
+    = [ grep { $ARG ne $member } @{ $fields->{'members'} } ];
+
+my $envelope  = <[users.group.build]>->( $group_name, $fields, $record );
+my $file_path = <[base.path.resolve_keywords]>
+    ->( <[users.group.path]>->( qw| web |, $group_name ) );
+my ( $ok, $write_err )
+    = <[format.yaml.write_file]>->( $file_path, $envelope );
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf(
+        "failed to update group '%s': %s",
+        $group_name, $write_err // 'unknown error'
+    )
+    }
+    if not $ok;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( "member '%s' removed from '%s'", $member, $group_name )
+};
+
+#,,..,..,,.,.,,,,,,,,,,,.,.,,,...,.,.,...,..,,.,.,...,...,.,.,...,..,,,,,,,,,,
+#DMPBVDH2LFW2QHYKWLZHHR672F725CVK7EVXWOAQU7M5FNVNNOP5IWMTUCJS2I4AKS5MKYXICTNVU
+#\\\|2JMNVXGP2EXWBXUTHL4SSEG7PQT2UAOJL5ARDAGEIXO32P4VVUL \ / AMOS7 \ YOURUM ::
+#\[7]LDDMLMY2ST7PMC5PUCJMVCYOSF74HNLJGAI3RMOK3NBQMNNT6EAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

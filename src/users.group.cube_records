@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = users.group.cube_records
+# descr = expose cube access principals through the existing resolver
+
+my $cube_access;
+
+{
+    local $data{'access'};
+    local $data{'system'}{'config'}{'reload_order'};
+
+    <[base.load_config_file]>->(qw| zenki/cube/access.zenki |);
+    <[base.load_config_file]>->(qw| zenki/cube/access.users |);
+
+    $cube_access = {
+        'commands' => { %{ $data{'access'}{'cmd'}{'usr'}            // {} } },
+        'levels'   => { %{ $data{'access'}{'security-level'}{'usr'} // {} } }
+    };
+}
+
+my $records       = {};
+my @special_users = <[base.access.special-user-map]>;
+
+foreach my $group_name ( keys $cube_access->{'commands'}->%* ) {
+    my $mapped_user = <[base.access.special-user-map]>->( $group_name, TRUE );
+    my @members
+        = defined $mapped_user
+        && length $mapped_user
+        && $mapped_user ne qw| * | ? ($mapped_user) : ();
+
+    my $mask = $cube_access->{'commands'}{$group_name} // '';
+    my $level
+        = $mask =~ m|\*\*|
+        ? 1_000_000
+        : $cube_access->{'levels'}{$group_name} // 0;
+
+    my @scopes = grep {length} split m|\s+|, $mask;
+
+    $records->{$group_name} = <[users.group.build]>->(
+        $group_name,
+        {   'namespace'      => qw| cube |,
+            'members'        => \@members,
+            'security_level' => $level,
+            'scopes'         => \@scopes,
+            'ttl'            => 0
+        },
+        undef
+    );
+}
+
+return $records;
+
+#,,..,,.,,.,,,...,...,.,.,.,,,.,,,,,.,,..,.,.,.,.,...,...,,,,,..,,.,,,,..,,,,,
+#MPWL23PNY74IDXJCSCMHMY4LKZM2V6LZE7GQ2C6TVJRKZRLZBC5NBTN72X6YVSQDBQ5SUW22HEHDE
+#\\\|7LUY3WW265OCLIGJKYENRZV52KM6IFXZUHZDN24ULYQ7SZCHIYE \ / AMOS7 \ YOURUM ::
+#\[7]54GQRI2E2GKO4MQYTOOYYGYSSMDNBBTLR6J27ZYZ3WT2D7OWBKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

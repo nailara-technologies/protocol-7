@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = users.cmd.group-get
+# param = <group-name> [ cube | web ]
+# descr = return a resolved cube group or a stored web group
+
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my ( $group_name, $namespace ) = split m|\s+|, $args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage: users.group-get <group-name> [cube|web]'
+    }
+    if not defined $group_name
+    or not length $group_name
+    or defined $namespace && $namespace !~ m{^(?:cube|web)$};
+
+my $record;
+
+if ( not defined $namespace or $namespace eq qw| web | ) {
+    $record = <[users.group.read]>->( $group_name, qw| web | );
+}
+
+if ( not defined $record
+    and ( not defined $namespace or $namespace eq qw| cube | ) ) {
+    $record = <[users.group.read]>->( $group_name, qw| cube | );
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => sprintf( "group '%s' not found", $group_name )
+    }
+    if not defined $record;
+
+return {
+    'mode' => qw| size |,
+    'data' => <[format.yaml.dump_str]>->($record)
+};
+
+#,,..,.,.,,..,,,.,...,..,,..,,..,,.,,,.,,,,,.,.,.,...,...,,.,,,..,..,,,..,...,
+#T6IWCAQTWQJU2NYGJW7QWIG3VPBB337NMP3MBRDWW7CBNCKZ4G2KYLLZHSDQ4JLKEYZMQPNDWCEQS
+#\\\|I7SBJ5THP6RUYFZRAOMRROVXBFWOZUEDBAZCFXLSMTRMV4HYN7B \ / AMOS7 \ YOURUM ::
+#\[7]G3MYPL4BW56YJFKTPJWLRLBQQMKPEVEKT57JHG33MTSZSMOMUCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
