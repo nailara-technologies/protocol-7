@@ -31,10 +31,12 @@ foreach my $chk_dir (@check_dirs) {
         if not -e $subdir_path and not -l $subdir_path;
     ## a shared parent [ /var/tmp ] lets anyone pre-create the subdir : use ##
     ## it only when it is a real directory, ours, not writable by others    ##
-    my @st = lstat $subdir_path;
+    ## CORE:: : a zenka may have File::stat loaded, which turns stat \      ##
+    ## lstat into an object -- the list form is needed here                 ##
+    my @st = CORE::lstat $subdir_path;
     ## the effective uid from the kernel : /proc/self belongs to it -- no ##
     ## special variable needed [ one was undefined in zenka scope ]       ##
-    my @self = stat qw| /proc/self |;
+    my @self = CORE::stat qw| /proc/self |;
     my $euid = $self[4] // $>;
     my $egid = $self[5] // ( split m| |, $) )[0];
     if ( not @st or not defined $st[4] or not defined $euid ) {
@@ -136,8 +138,8 @@ if ($register) {
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,,.,..,,.,,,..,,,,,,,,.,,,.,,,.,,,,,,.,,,,,,..,,...,...,,,.,,,.,,,,,.,,,,,,,
-#LWZQIXKHNWTR45LASO6EE3YO6NYW76BFOKCAY7RVKZRRY3GSDQPZQWO53LH3FZ377RF62I3SEWFAK
-#\\\|FC5DEJROEB6VAK6NNLGVBIQVZ6KB5XLLO3VGYY4MBOQEZHAFEVD \ / AMOS7 \ YOURUM ::
-#\[7]2TGSRV4V2AAKWTOZYOWPPMRKD6BIF7BJH2IOCXEEYSN7ZN3AA4BI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,,,,,,.,,...,.,,,,..,.,,,,.,,..,,...,...,,..,,.,,...,.,.,.,,,
+#BJHG45MEKJRYGBBZJOWNKM4BBYCTEZNN5YLD4F6L46VVPDTW44NJJR7VRARHVHQRSLGSQWPKGB53O
+#\\\|IVGUY7LTN3GGFTUE6HCEK7235F5BDKIT2MIHWFXMX3CMNTKRNDD \ / AMOS7 \ YOURUM ::
+#\[7]TJ6WQCBPPBTQ5QX2HW4WYRA2G5BEDJOMS24GZGGTM3SZYENHIAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
