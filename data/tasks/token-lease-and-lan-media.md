@@ -49,6 +49,26 @@ update.notify_zenki ] and mpv.get_playlist.
 6. later : n7fs trees as one more source behind the same list command [ the n7fs mount,
    data/tasks/n7fs-logical-trees-and-mount.md ]
 
+## generic and interoperable [ owner 2026-11-21 ]
+
+the lease is not a jobsite, ui or media feature : one identity \ token layer every
+consumer uses, shaped so that outside software can speak to it without protocol-7 code.
+
+- standard wire forms at the edge : bearer use as rfc 6750, revocation as rfc 7009,
+  introspection as rfc 7662, renewal as an oauth 2 refresh-token grant [ rfc 6749 ] with
+  rotation ; zenka-to-zenka renewal as token exchange [ rfc 8693 ] where a caller acts
+  for a lease user. a later oidc provider face [ discovery, userinfo ] reuses the same
+  store -- not stage 1, but nothing may block it
+- the internal model is the reference, the standards are views onto it : users, groups,
+  lease users with a scope + ttl ceiling, tokens stored as hashes. internal checksums
+  stay BMW \ AMOS ; external token formats follow their spec only at the edge
+- scopes, not per-feature flags : 'jobs-sync', 'media:read:<share>', 'ui' -- a new
+  consumer declares a scope, it adds no auth code of its own
+- one store, every consumer : web.auth.*, zenka access grants and the lan media urls
+  read the same users \ leases, so a revoke ends access everywhere at once
+- p7 config style for the declarations [ users, lease users, scopes, ceilings ] ;
+  json only where an rfc defines the wire body
+
 ## rules
 
 - p7 config style, no json ; internal checksums BMW \ AMOS, no sha ; perl floor 5.32
@@ -57,8 +77,8 @@ update.notify_zenki ] and mpv.get_playlist.
 - a grant is per lease user and ttl ceiling, fail closed when absent
 - no host names, addresses or personal data in repo files
 
-#,,.,,,,.,,..,,,,,,,.,...,.,,,,,.,.,.,..,,,..,..,,...,...,,.,,,.,,.,.,..,,,..,
-#JTD6FC5GNQEQIBRJHN3D6V2F7657JT6H7WVOHDSPDN7Q5RR7RURU2TANLBBKZNR3CRPFY4YRD6IJO
-#\\\|GC5OH6CKVIHYO2QSJQW5AFG4W7K67NQZ24XNBF4ANL7D24KFSNB \ / AMOS7 \ YOURUM ::
-#\[7]L6OOA3JZRWLX6GI7XEWDIKDQTZTSCWFRDUPCWIL2IRDTQRYZ44DA 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,,,..,,.,,,.,,,,,,,,,,,.,,,..,,..,,...,...,...,...,.,,,...,,,.,
+#A3RBZLSLGLNF7LR2EYRZZFC3AC5TDG4OLYWVCDKFHGXESLKE5RUAHPYI5CQAANF6XIQRF2TJDXQHU
+#\\\|XWT65AL6ESUBZ6YWMHCQFCK6CCZYNUGVECHKJH7VFGNP2R2XL3D \ / AMOS7 \ YOURUM ::
+#\[7]YQHQUOWXA4IZWUBN5VU37R6DI2WGHHWGGEWLDMPBJ3IVC2NXLGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
