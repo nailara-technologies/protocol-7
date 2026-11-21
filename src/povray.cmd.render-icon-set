@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = povray.cmd.render-icon-set
+# descr = render all desktop icons at tint2 sizes
+
+return { 'mode' => qw| false |, 'data' => 'icon set render already active' }
+    if defined <povray.icon_set>;
+
+my $out_dir = <povray.cfg.icon_output_dir> // sprintf '%s/icon-set',
+    <povray.cfg.output_dir>;
+$out_dir =~ s|/+$||;
+my $scenes_dir = sprintf '%s/scenes', $out_dir;
+<povray.icon_set> = {
+    'out_dir'    => $out_dir,
+    'scenes_dir' => $scenes_dir,
+    'reply_id'   => $call->{'reply_id'},
+    'results'    => [],
+};
+
+my ( $ok, $jobs ) = <[povray.icon-set.jobs]>;
+if ( not $ok ) {
+    delete <povray.icon_set>;
+    return { 'mode' => qw| false |, 'data' => $jobs };
+}
+<povray.icon_set>->{'jobs'} = $jobs;
+
+for my $dir ( $out_dir, $scenes_dir ) {
+    if ( not -d $dir ) {
+        <[file.make_path]>->($dir);
+        chmod( 0775, $dir );
+    }
+}
+
+<[povray.icon-set.next]>;
+return { 'mode' => qw| deferred | };
+
+#,,,,,,,,,,,.,,,,,...,,,,,,,,,,,.,..,,,,.,.,,,..,,...,...,...,.,,,.,.,,,.,,,,,
+#JUJZE3CL6SPVLQDRNQRUGMBCHFTKNXNI5QWC3PKPMGNCXCGGK5FQBZBFIVCZBRXIVZ3QPXS4TWOXO
+#\\\|E5OMTMVXCNIYGP5ZOQCJOG5CLJV3F3UVOCXOA2QOIC5C6B7UZBW \ / AMOS7 \ YOURUM ::
+#\[7]RLAFCYOOD75BNNT4YWBVORQ4KGPPV2DP3WBG7FKJU3ZFXXRQ3QDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -67,7 +67,13 @@ if ( $pid == 0 ) {
                 binmode $output_fh;
                 print $output_fh $verification->{'body'}->$*;
                 close $output_fh;
-                $result = "valid\n";
+                $result = "valid source\n";
+                if ( defined $verification->{'generator_public_key'} ) {
+                    my $public_b32 = encode_b32r(
+                        $verification->{'generator_public_key'} );
+                    my $chain = $verification->{'generator_chain'} // '';
+                    $result = "valid generated\n$public_b32\n$chain\n";
+                }
             } else {
                 $result = "invalid temporary-write\n";
             }
@@ -104,8 +110,8 @@ $session->{'watcher'}->{'signature_handler'} = <[event.add_io]>->(
 
 return TRUE;
 
-#,,.,,,,,,...,,,.,,.,,,.,,...,.,,,,..,..,,..,,..,,...,...,,.,,..,,,.,,,,.,,,,,
-#2DHIYUBBIDVVKD3FPOYC3PQVKDOKRIHTRD2FQY4L53VV2HPMZN5X3KFORC36XSE6Y2SLVXYR2WIE6
-#\\\|X4I3PXWTUKDC7EWTL5HRG53SOYPTTD4CFBS72N5O3RISLHT5ETZ \ / AMOS7 \ YOURUM ::
-#\[7]JMYQWJ5MPAISHSZRZFGPNRAFHC6J5VETMBW5BVOWHMYNHZ4NBMDA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,,,.,,,.,...,.,,,..,,.,.,,.,,..,,...,...,...,,,.,.,.,,.,,.,.,
+#VTQGQY4GR45HZOQITWPXADEWIF5P63QMJMWT5N2LVRON6PWCQVA5UFRIMMBWP67CZIPPB3FZLUO44
+#\\\|Q6QQ7ELGUANPMB5ZBUIJWBOZLGBFRO4SOAB3OAX3D2ZCF7K7KDZ \ / AMOS7 \ YOURUM ::
+#\[7]RJVLEYTIO4LHLC7PYBGOLWHHB5E7GDEE27O65TCOVZJOXAL32GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

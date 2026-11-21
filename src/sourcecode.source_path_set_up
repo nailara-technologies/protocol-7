@@ -102,11 +102,13 @@ if ( not chdir(<system.root_path>) ) {
     return undef;
 } else {
 
-    return <[base.source.collect_file_list]>->( \@copy_sources );
+    my @source_paths = <[base.source.collect_file_list]>->( \@copy_sources );
+    return
+        grep { not <[sourcecode.signature_excluded]>->($ARG) } @source_paths;
 }
 
-#,,,.,,,,,.,.,...,...,.,,,..,,...,.,,,.,.,,,,,..,,...,...,.,.,...,,,.,,..,...,
-#YKCKAJLYJKJJNUDWIXUFGXQR4UQKDX7TBT452V5C5U3U72RRDM4OBGWZSDWJWZHVMXSLLVQTVPYAC
-#\\\|EUHVRXHCK44ICDNT273VV6WKSJNLENGQULTPYYZ3L3NOMUGDWPT \ / AMOS7 \ YOURUM ::
-#\[7]LBUIQASN6COGRTGSKGRSXELWXIJH5DRERH2BFGATPVNE7YXAC4DA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,..,.,.,..,,,.,,,.,,,,.,,,,,,.,,..,,...,...,...,,..,.,,,,..,.,.,
+#FSR2AMWFCVS2PSZL6MAMVGXZBL4DFB72DMFNGNJFPSBNIQUPNBG2RTQZ47LWEBOERPTTOJZSXMRGM
+#\\\|N56EXR6RFRNY6TH3PMXQKBKIUCQZC6WCAQUDBM5WXJLA7PFS7J6 \ / AMOS7 \ YOURUM ::
+#\[7]TKEJJF6X775LOEOJEUHSLR4KZNMEHGSBBGLKB7GWSEZ3LTIWTUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

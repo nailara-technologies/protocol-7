@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = povray.icon-set.jobs
+# descr = build themed desktop icon jobs and doubled sizes
+# return = ( TRUE, \@jobs ) or ( FALSE, $error )
+
+my @symbols = split m|\s+|, <povray.cfg.icon_symbols> // '';
+return ( FALSE, 'no icon symbols configured' ) if not @symbols;
+
+my %size = map { $ARG => TRUE }
+    grep { m|^\d+$| and $ARG > 0 } split m|\s+|,
+    <povray.cfg.icon_sizes> // '';
+return ( FALSE, 'no valid icon sizes configured' ) if not keys %size;
+foreach my $base_size ( keys %size ) {
+    $size{ $base_size * 2 } = TRUE;
+}
+my @sizes = sort { $a <=> $b } keys %size;
+
+<[base.perlmod.autoload]>->('AMOS7::Desktop::Theme');
+my $theme = AMOS7::Desktop::Theme::read(
+    {   'root'    => <system.root_path>,
+        'zenka'   => <system.zenka.name>,
+        'etc_dir' => ( <system.path.zenka-dirs> // {} )->{'etc_P7'}
+            // '/etc/protocol-7',
+        'zenka_user' => <system.amos-zenka-user> // 'protocol-7',
+    }
+);
+my $icon_rgb = join ', ',
+    map { sprintf '%.6f', $ARG }
+    AMOS7::Desktop::Theme::cairo_rgb( $theme, 'color.foreground' );
+my $accent_rgb = join ', ',
+    map { sprintf '%.6f', $ARG }
+    AMOS7::Desktop::Theme::cairo_rgb( $theme, 'color.accent' );
+my $transmit = 1 - $theme->{'translucency.muted'};
+
+my @jobs;
+foreach my $symbol (@symbols) {
+    return ( FALSE, sprintf 'invalid icon symbol : %s', $symbol )
+        if $symbol !~ m|^[a-z][a-z0-9-]{0,31}$|;
+    my $symbol_file = sprintf '%s/symbols/%s.pov',
+        <povray.cfg.template_dir>, $symbol;
+    return ( FALSE, sprintf 'icon symbol not readable : %s', $symbol_file )
+        if not -f $symbol_file or not -r $symbol_file;
+    foreach my $icon_size (@sizes) {
+        push @jobs,
+            {
+            'symbol'  => $symbol,
+            'size'    => $icon_size,
+            'out_png' => sprintf( '%s/%s-%d.png',
+                <povray.icon_set>->{'out_dir'},
+                $symbol, $icon_size ),
+            'pov_path' => sprintf( '%s/%s-%d.pov',
+                <povray.icon_set>->{'scenes_dir'},
+                $symbol, $icon_size ),
+            'context' => {
+                'icon_rgb'  => $icon_rgb,
+                'icon_rgbt' =>
+                    sprintf( '< %s, %.4f >', $icon_rgb, $transmit ),
+                'accent_rgb'  => sprintf( '< %s >', $accent_rgb ),
+                'symbol_file' => $symbol_file,
+            },
+            };
+    }
+}
+
+return ( TRUE, \@jobs );
+
+#,,,,,..,,..,,.,,,.,,,,..,...,.,.,...,.,.,,.,,..,,...,..,,,,,,...,,,,,,,.,.,.,
+#7L55T7S45MSDCWWV7HNL2X4CGFQS7RRZPUA6D36WAGUU2QT7L3ODGEMQVWXJ7XIOKEVZB2RC2GIQU
+#\\\|5ZISSV5SF5JBJ3FASCRSH4AG7VBUTBIYBEXYCEZ46DU6HT6ZXJ2 \ / AMOS7 \ YOURUM ::
+#\[7]EW6M4WUQ5TRMBN7HUIQQNN7ODNYV4PW2C4FRG4KDYB2LDUGPVUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

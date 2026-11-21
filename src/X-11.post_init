@@ -98,11 +98,18 @@ if ( $mode ne qw| host | ) {
     $bin_name = qw|  Xvfb   | if $mode eq qw|  xvfb   |;
     $bin_name = qw|  Xnest  | if $mode eq qw|  xnest  |;
     $bin_name = qw| nxagent | if $mode eq qw| nxagent |;
+    $bin_name = qw|  xpra   | if $mode eq qw|  xpra   |;
 
     my $server_bin = <X-11.bin_path>->{$bin_name};
 
-    die "X-11 binary '$bin_name' not found. [ installed ? ]"
-        if not defined $server_bin or not -x $server_bin;
+    if ( not defined $server_bin or not -x $server_bin ) {
+        if ( $mode eq qw| xpra | ) {
+            <X-11.xpra.status> = qw| not-installed |;
+            <[base.logs]>->( 0, 'xpra mode : not-installed' );
+            return FALSE;
+        }
+        die "X-11 binary '$bin_name' not found. [ installed ? ]";
+    }
 
     $server->{'bin_name'} = $bin_name;
 
@@ -158,8 +165,8 @@ if ( $mode ne qw| host | ) {
 
 return 0;    ## success
 
-#,,.,,..,,.,.,..,,,,.,,.,,,,,,...,...,.,,,,,,,..,,...,...,,,,,.,.,,,,,,..,.,,,
-#56HN3GWDWSGY2RSUKGG3OKZ2J53ZKHUTOXTCGDXWF6IZHLNLHVHPD537EKL4MZP4YBPLEUSFVQ5CU
-#\\\|NJZCMMWX3OM6WG3VBCK3VN3SCDAVDNAARVTKI5HTGPSKXIYQBMV \ / AMOS7 \ YOURUM ::
-#\[7]7ZJIIWNTORZEMKLYSYR2QHZY7TPSC7RAK7EPXHFLAWKUCEW4TGAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,..,,..,,..,,,.,,,.,,.,,,,,,..,,...,...,.,.,..,,,,,,,,.,.,.,
+#AAZTSVSTVZK6VVQJWOVJW3KHT4OYMROIKK2J4UZ3NHYVCMSZ6OAELQXNRMFR656EK2P74X6HIM66K
+#\\\|CTZDNGBDO6VJF56WF7RFL5VD6JGXZ3TXS3PBY6SILX3AUW4NWO5 \ / AMOS7 \ YOURUM ::
+#\[7]A6T7UQZJ5R3TWQOMEHLK3WHRVESWNLZWEIDENKKTSEC4YMK6PMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

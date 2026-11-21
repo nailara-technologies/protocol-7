@@ -40,6 +40,16 @@ file, which browsers read as broken rules.
      something it did not intend -- a much harder attack surface than editing a file
      on disk ; editing alone only produces a file httpd refuses to serve
 
+## later : serving n7fs trees through their signed manifests [ owner 2026-11-21 ]
+
+- a signed n7fs tree manifest is already a signed list : every path with its content
+  address, signed as a whole. httpd can serve a tree [ or a view, via the n7fs mount ]
+  by checking the manifest signature once and each file's bytes against its address --
+  no per-file footer needed
+- a path appears on the web as soon as it is in a signed list, and disappears when a
+  new signed manifest drops it ; anything not listed or not matching does not exist
+  for httpd
+
 ## rules
 
 - reuse the sourcecode zenka's verification and strip logic ; no second signature parser
@@ -47,8 +57,8 @@ file, which browsers read as broken rules.
 - never block the event loop : verification of a large file runs in the existing
   async file path or a child
 
-#,,,,,,..,,,.,...,.,,,,.,,.,,,...,...,,,,,..,,..,,...,...,,.,,.,.,,,,,,..,,,.,
-#IW3HNJ5AUYGKOA7E3SQYAGSIEPDEOYNZ7JHBJZJA22RTOATI3LFUVFLRB22K4YRBD5H345LAJMIDU
-#\\\|TSQIXBQC6M2KR5KDMJ7W5ZVYKAFJ3IDIC5KDGXU2JC2PPI2M4EA \ / AMOS7 \ YOURUM ::
-#\[7]GWQXYSBLD2ZF3H4UQZKNOSETKDF2LNLMACA5ZUX7LOXPXPA7MMBQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,,,.,,..,..,,,,.,,..,,.,,,..,..,,...,..,,...,.,.,.,.,,.,,,,,,
+#SSNHLFTS5SM6VWWWNMKFQAAPPYFTFW6TVHZ5WF2RPEW3NDFESXSQQ5SGFK5JA45B6RDLKLL3ITT4U
+#\\\|5PVUMRPRNC6CQE7WU37IAPK6WVBAW2XEENBQQGN5LLGTS6RCFHB \ / AMOS7 \ YOURUM ::
+#\[7]HIZJLQBNUNZEWBHVAJ4UUCMPCS36G4CBQZ2DTUHJR5MZY7G626BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

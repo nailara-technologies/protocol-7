@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = httpd.cmd.generator-delegation
+# descr = register a signed generator delegation
+# return = command result hash ; no key material is included or logged
+
+my $args = $call->{'args'} // '';
+my ( $vhost, $prefix, $chain ) = split m|\s+|, $args, 3;
+my $record = <[httpd.generator_delegation]>->(
+    {   qw| vhost  | => $vhost  // '',
+        qw| prefix | => $prefix // '',
+        qw| chain  | => $chain  // '',
+    }
+);
+
+return { qw| mode | => qw| false |, qw| data | => qw| delegation refused | }
+    if ref $record ne qw| HASH |;
+return {
+    qw| mode | => qw| true |,
+    qw| data | =>
+        sprintf( 'generator delegation accepted for %s%s', $vhost, $prefix )
+};
+
+#,,,,,...,,,.,,,,,,..,,..,,.,,,,,,,.,,.,.,...,..,,...,..,,..,,,,,,,.,,,,,,,..,
+#LRUN6BDUWQH6WB7EWSR5JPYIVZ6VRG3DIXRGB5WBTBRBVRADPNRKQKOW7PK37QDSXC4C36N5F6RSG
+#\\\|6K6PDMOJFQPHFHSI32J75XUDZK6OCVWS27AU4TWKQGHA5K3HH7F \ / AMOS7 \ YOURUM ::
+#\[7]S5QEDKCW2MYXKWYFU227GCZV4QTEEZKURKTASXSP4GNKFSQNLEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

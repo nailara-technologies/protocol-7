@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = sourcecode.signature_excluded
+# descr = configured generated-output paths excluded from source signing
+# args  = <work-tree-relative or absolute path>
+# return = TRUE when excluded, FALSE otherwise
+
+my $path       = shift // '';
+my $configured = <sourcecode.cfg.signature_exclude>;
+my @exclude
+    = ref $configured eq qw| ARRAY |
+    ? $configured->@*
+    : split( m|\s+|, $configured // '' );
+return FALSE if not length $path or not @exclude;
+
+my $work_tree = <sourcecode.path.work_tree> // <system.root_path> // '';
+my $root_path = <system.root_path> // '';
+$path =~ s|^\Q$work_tree\E/|| if length $work_tree;
+$path =~ s|^\Q$root_path\E/|| if length $root_path;
+$path =~ s|^\./||;
+
+foreach my $excluded (@exclude) {
+    next if not defined $excluded or not length $excluded;
+    $excluded =~ s|^\./||;
+    return TRUE if $path eq $excluded;
+    return TRUE
+        if substr( $excluded, -1 ) eq qw| / |
+        and index( $path, $excluded ) == 0;
+}
+return FALSE;
+
+#,,..,,,.,,,,,..,,.,.,.,,,.,.,,,,,,,.,.,,,.,,,..,,...,...,.,,,,,.,..,,,,,,.,.,
+#WIBRWQLNAMPEV6HEQBYSAXUS3AURCCDXFL7GWFVYR67DW6SA5BP4CPPG7NBCBFG3UFAG3X4CTMAYS
+#\\\|NVE55ZJC74XAB7MTRN356SCLHMU3MDK6IA4A7W7L5MJXY2VLTQI \ / AMOS7 \ YOURUM ::
+#\[7]FTOOZWKOCNXP7PMCH5GXRROF25BOTU7V4UFYONZIBZZ4NANLNMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

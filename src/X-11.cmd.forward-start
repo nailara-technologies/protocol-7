@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = X-11.cmd.forward-start
+# param = <application> [argument ..]
+# descr = start an application in its own local-only xpra display
+
+my @app_argv
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->@*
+    : split( m| +|, $call->{'args'} // '' );
+
+return { 'mode' => qw| false |, 'data' => 'application required' }
+    if not @app_argv
+    or not length $app_argv[0];
+
+my $xpra_bin = <X-11.bin_path>->{'xpra'};
+if ( not defined $xpra_bin or not -x $xpra_bin ) {
+    <X-11.xpra.status> = qw| not-installed |;
+    return { 'mode' => qw| false |, 'data' => 'not-installed' };
+}
+
+my ( $width, $height ) = <X-11.dev.dimensions_xvfb> =~ m|^(\d+)x(\d+)$|;
+return { 'mode' => qw| false |, 'data' => 'invalid xpra geometry' }
+    if not defined $width;
+
+<X-11.xpra.dep.resource> //= {};
+my $res_key    = sprintf '%dx%dx24', $width, $height;
+my $res_dep_id = <X-11.xpra.dep.resource>->{$res_key};
+if ( not defined $res_dep_id ) {
+    $res_dep_id = <[dependency.add_object]>->(
+        {   'type'   => qw| xvfb_resource_available |,
+            'width'  => $width,
+            'height' => $height,
+            'depth'  => 24,
+        }
+    );
+    <[dependency.add]>->( $res_dep_id, $res_dep_id );
+    <X-11.xpra.dep.resource>->{$res_key} = $res_dep_id;
+}
+return {
+    'mode' => qw| false |,
+    'data' => 'resource limit exceeded (dimensions or memory)'
+    }
+    if not <[dependency.ok]>->($res_dep_id);
+
+my ( $display_num, $label ) = <[X-11.helper.alloc_xvfb_display]>->(qw| odd |);
+return { 'mode' => qw| false |, 'data' => 'display allocation failed' }
+    if not defined $display_num;
+
+my $display = ":$display_num";
+<X-11.servers>->{$display} = {
+    'mode'      => qw| xpra |,
+    'display'   => $display,
+    'bin_name'  => qw| xpra |,
+    'label'     => $label,
+    'app_argv'  => \@app_argv,
+    'forwarded' => TRUE,
+};
+<X-11.forwarding>->{$label} = $display;
+
+<[jobqueue.add_job]>->(
+    {   'name'            => "X-11 start xpra $display",
+        'job_callback'    => qw| X-11.job.start_server |,
+        'object_id'       => 0,
+        'callback_params' => {
+            'display'  => $display,
+            'mode'     => qw| xpra |,
+            'bin_name' => qw| xpra |,
+            'primary'  => FALSE,
+        },
+    }
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( '%s :%s', $label, $display_num )
+};
+
+#,,,,.,,,.,,,,..,,.,,..,,,,,.,,,,,,,,.,,,,..,,,,,.,,,,,..,,,,,.,,,,,,,.,,
+
+#,,.,,,,.,..,,.,.,,.,,..,,,,,,.,,,.,,,,..,,.,,..,,...,...,..,,.,,,,.,,.,,,.,.,
+#37EHY7CK3RDDYTLREIT6JI624AXPUQIZMDV5PPB6RR6C25V6DDUT676LHKL2V2AN6HVFB5M2R7RWW
+#\\\|HL4J6I7VABPIHYSDD6A7RJOJ3S3KEVRDUPSU7CZZC2N3GLNNCJE \ / AMOS7 \ YOURUM ::
+#\[7]MOEB4R2JWVN376FGJSESH2JH2LOYVCUEKTDEAJSXPUVEQEQYOKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

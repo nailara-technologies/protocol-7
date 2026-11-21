@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = X-11.cmd.forward-attach
+# param = <forward-id>
+# descr = print the xpra attach command [ ssh boundary ]
+
+my $label
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->[0]
+    : $call->{'args'};
+$label = '' if not defined $label;
+$label =~ s|^\s+||;
+$label =~ s|\s+$||;
+
+my $display = <X-11.forwarding>->{$label};
+return { 'mode' => qw| false |, 'data' => 'unknown forward-id' }
+    if not defined $display;
+my $server = <X-11.servers>->{$display};
+return { 'mode' => qw| false |, 'data' => 'forwarding not running' }
+    if not defined $server
+    or $server->{'mode'} ne qw| xpra |
+    or not defined $server->{'pid'};
+
+my ($display_num) = $display =~ m|^:(\d+)$|;
+return {
+    'mode' => qw| true |,
+    'data' => "xpra attach ssh://HOST/$display_num"
+};
+
+#,,,,,.,,,.,,,,,,,..,,,..,,,,,,..,,.,,,,,.,,,,..,,.,,,,..,,,.,,,,,,,,,
+
+#,,,.,,..,,,,,,,,,,.,,,..,,,,,,,,,,..,,.,,...,..,,...,...,...,,..,.,,,...,.,,,
+#OXKM6XA3OOGUWU5DEUTR24O6GHIUKJTMUMFXVLVVRQDELDYQ7E3U3HPJKF7TPKUZR7GZS4ABKZWC4
+#\\\|EA2L33XILVIIRLAOWSHSUQKNAQNG4CWLSJZM757IOA2KYUF6CDA \ / AMOS7 \ YOURUM ::
+#\[7]SKHL3RHMLSPC2NCW4M6SYC72ENIHL3P6PRWMWCI43BSYUTIV34BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

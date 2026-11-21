@@ -1,0 +1,151 @@
+## [:< ##
+
+# name  = httpd.generator_key_trust
+# descr = delegated or first-use-pinned generator key for a vhost path
+# args  = { vhost, path, public_key, [ chain ] }
+# return = accepted trust record, undef [ list context : undef, reason ]
+
+my $param = shift;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('parameters') if ref $param ne qw| HASH |;
+my $vhost = $param->{'vhost'}      // '';
+my $path  = $param->{'path'}       // '';
+my $pub   = $param->{'public_key'} // '';
+my $field = $param->{'chain'}      // '';
+return $refuse->('vhost') if not length $vhost;
+return $refuse->('path')  if $path !~ m{\A/[^\x00?#]*\z};
+return $refuse->('public-key')
+    if ref $pub
+    or not utf8::downgrade( $pub, 1 )
+    or bytes::length($pub) != 32;
+return $refuse->('chain') if ref $field;
+
+my $valid_prefix = sub {
+    my $prefix = shift;
+    return FALSE
+        if not defined $prefix
+        or $prefix !~ m{\A/[^\x00-\x20?#]*\z}
+        or $prefix =~ m{(?:\A|/)\.\.?(?:/|\z)};
+    return TRUE;
+};
+my $matches = sub {
+    my $prefix = shift;
+    return TRUE  if $prefix eq qw| / |;
+    return FALSE if index( $path, $prefix ) != 0;
+    return TRUE  if substr( $prefix, -1 ) eq qw| / |;
+    return TRUE  if length($path) == length($prefix);
+    return substr( $path, length($prefix), 1 ) eq qw| / | ? TRUE : FALSE;
+};
+
+my $key_id = <[trust.key_id]>->($pub);
+return $refuse->('public-key') if not defined $key_id;
+
+## first use \ host-root introduction : longest configured matching prefix ##
+my $configured = <httpd.cfg.generator_prefixes>->{$vhost};
+my @prefix
+    = ref $configured eq qw| ARRAY |
+    ? $configured->@*
+    : split( m|\s+|, $configured // '' );
+@prefix = qw| / | if not @prefix;
+@prefix = grep { $valid_prefix->($ARG) and $matches->($ARG) } @prefix;
+return $refuse->('prefix') if not @prefix;
+@prefix = sort { length($b) <=> length($a) } @prefix;
+
+<httpd.generator.delegations> //= {};
+<httpd.generator.pins>        //= {};
+my $delegations = <httpd.generator.delegations>->{$vhost} //= {};
+my $pins        = <httpd.generator.pins>->{$vhost}        //= {};
+
+my $current;
+my $current_kind;
+foreach my $kind (qw| delegations pins |) {
+    my $records = $kind eq qw| delegations | ? $delegations : $pins;
+    foreach my $prefix ( keys $records->%* ) {
+        next if not $matches->($prefix);
+        next
+            if defined $current
+            and ( length($prefix) < length( $current->{'prefix'} )
+            or length($prefix) == length( $current->{'prefix'} )
+            and $current_kind eq qw| delegations | );
+        $current      = $records->{$prefix};
+        $current_kind = $kind;
+    }
+}
+
+my $chain;
+if ( length $field ) {
+    $chain = <[trust.chain]>->( qw| split |, $field );
+    return $refuse->('rotation-chain') if ref $chain ne qw| ARRAY |;
+}
+
+## a host-root statement introduces or rotates a delegated key directly ##
+if ( defined $chain ) {
+    my @anchors = split m|\s+|, <httpd.cfg.generator_host_roots> // '';
+    if (@anchors) {
+        my $verified = <[trust.verify]>->(
+            {   qw| chain   | => $chain,
+                qw| anchors | => \@anchors,
+                qw| subject | => $pub,
+                qw| now     | => time,
+            }
+        );
+        if ( ref $verified eq qw| HASH | ) {
+            my $prefix = defined $current ? $current->{'prefix'} : $prefix[0];
+            $current = {
+                qw| prefix     | => $prefix,
+                qw| public_key | => $pub,
+                qw| key_id     | => $key_id,
+                qw| name       | => $verified->{'name'},
+                qw| not_after  | => $verified->{'not_after'},
+            };
+            $delegations->{$prefix} = $current;
+            delete $pins->{$prefix};
+            $current_kind = qw| delegations |;
+        }
+    }
+}
+
+if ( defined $current and $current->{'key_id'} eq $key_id ) {
+    return $refuse->('delegation-expired')
+        if $current_kind eq qw| delegations |
+        and ( $current->{'not_after'} // 0 ) < time;
+    return $current;
+}
+
+## rotation by the currently accepted key ; host-root was attempted above ##
+if ( defined $current and defined $chain ) {
+    my $rotated = <[trust.verify]>->(
+        {   qw| chain   | => $chain,
+            qw| anchors | => [ $current->{'key_id'} ],
+            qw| subject | => $pub,
+            qw| now     | => time,
+        }
+    );
+    if ( ref $rotated eq qw| HASH | ) {
+        $current->{'public_key'} = $pub;
+        $current->{'key_id'}     = $key_id;
+        return $current;
+    }
+    return $refuse->('rotation-key');
+}
+
+return $refuse->('untrusted-key') if defined $current or length $field;
+
+my $record = {
+    qw| prefix     | => $prefix[0],
+    qw| public_key | => $pub,
+    qw| key_id     | => $key_id,
+};
+$pins->{ $prefix[0] } = $record;
+return $record;
+
+#,,..,,.,,.,.,,.,,.,,,,,,,..,,.,,,,.,,,..,,,.,..,,...,...,.,.,,,.,,,,,,,,,,..,
+#FGSEITENCLSN74DC32AYGB7EKHL54KMNCEA5K5U5N6SNLKOT6WK4G3QZZDF5MYTC7HPHT3J24IGW2
+#\\\|WOJNZUGKU3BNIFHCF5UPAYUABIGEB64XTY3LTPKIYP7BKKRZYNZ \ / AMOS7 \ YOURUM ::
+#\[7]QE7WUFM2YBMZK7X2PC3BUN4MNSIXZDRCRSTCGHPLWDE7KRMMSCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

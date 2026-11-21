@@ -59,8 +59,9 @@ if ( not defined $payload_data_ref->{'signature'} ) {
             }
         );
     } else {
-        $payload_data_ref->{'signature'}
-            = <[source.sign_data]>->( \$sign_data_buffer );
+        $payload_data_ref->{'signature'} = <[source.sign_data]>->(
+            \$sign_data_buffer, $payload_data_ref->{'sign-key-name'}
+        );
     }
 
     ## sign_data already warned the specific cause                         ##
@@ -139,8 +140,8 @@ $calc_result_href->{'signature-footer-str'} = $template_str;
 
 return $calc_result_href;
 
-#,,..,..,,..,,.,,,.,,,,,,,,.,,,,.,,.,,...,.,,,..,,...,...,..,,,.,,...,.,.,,.,,
-#XJJYLFXHTR4GHBNKO63X46T665Z3K3FYJTZENSNEGGLY6LMFNA7PE72K6MH35AOW3P63RXQIGFW4W
-#\\\|B6ZIIMFR2INOUMVSE4NSJ5WBQRE6AJ25VC4GA34XU4VI24OUPK6 \ / AMOS7 \ YOURUM ::
-#\[7]UM5FC5S4YKYPT7KR2MXSKYVUGS2HXHFUDYJ4XXZDQCPBDY7KTYCY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,...,,,.,,,,,.,,,.,,,...,...,,..,..,,...,..,,.,.,,.,,,,,,,..,.,,,
+#IDWDEUUK5NOQVZC432NBYTEG3CHWIN2ZW5425HO6ONUOQV4DDEKR3IXOVJ3H7PEF2WVLZTG65KK6E
+#\\\|HYNZD3XHOW4BOQYL6RYR7F6IN3QAEGKGZHEVKC5FIS4SM3NXQOT \ / AMOS7 \ YOURUM ::
+#\[7]J3W5L3CBLPKWHBGW7JVWMXTOLZV7Y3BSHZID2B5TBZUCFQUSC2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

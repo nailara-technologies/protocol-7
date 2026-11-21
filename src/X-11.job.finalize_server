@@ -46,6 +46,23 @@ if ( defined $fh and defined $pid ) {
 
 <[base.logs]>->( 1, "[%s] : .. display ready .. :", $display_str );
 
+if (    $server->{'mode'} eq qw| xpra |
+    and ref( $server->{'app_argv'} ) eq qw| ARRAY |
+    and not defined $server->{'app_pid'} ) {
+    local $ENV{'DISPLAY'} = $display_str;
+    my $app_pid
+        = eval { open3( undef, undef, undef, $server->{'app_argv'}->@* ); };
+    if ( defined $app_pid ) {
+        $server->{'app_pid'} = $app_pid;
+        push <system.kill_list>->@*, $app_pid;
+        <[base.zenki.report_child_pid]>->($app_pid);
+    } else {
+        <[base.logs]>->(
+            0, 'cannot start forwarded application : %s', $EVAL_ERROR
+        );
+    }
+}
+
 ## auxiliary [ eg. xvfb ] display: build the minimal per-server         ##
 ## window-management bundle [ WM, keyboard, extension flags ] so        ##
 ## X-11.disp-ctl can operate on it -- NOT the richer host-mode-specific ##
@@ -386,8 +403,8 @@ $server->{'has_randr'}     = <X-11.has_randr>;
 $server->{'has_dpms'}      = <X-11.has_dpms>;
 $server->{'is_composited'} = <X-11.is_composited>;
 
-#,,.,,,.,,,,.,,,.,...,.,.,,,.,,..,.,,,,..,,,,,..,,...,...,.,,,,,,,,,,,,..,,,.,
-#6F5QTNYNZOU66O3FM42RHSOEPCSU3S3MKNYUI2U25M6WT3XYTXLAV63RVHP74YEO7GEQVG7HIYNFQ
-#\\\|LLEAHJAYBQU3MBWOHLW6DL2ZH5DGG5GRIZNO4WNOB3LED6S5ZVF \ / AMOS7 \ YOURUM ::
-#\[7]YWL2BSK6SWVJJVIDIC3YTWHNGNMP5MNJBUY7IBQCQV5JQZAYJYDA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,.,...,,..,,.,,,.,,.,.,.,,,,.,,..,,...,...,..,,.,,,..,,..,,...,
+#DSC7XQF7W3PHRLCNG6UZPIVYTEANPXOK3CD5D6VHDWHZIUBETE5KKNXVRVSACB4OK3IDJGCGJ6VMM
+#\\\|JBOAZTHJQ2HZOWTC742NLM75GGZKBCPT2ZYOXIN3N7KXCXW53JO \ / AMOS7 \ YOURUM ::
+#\[7]HZVRS43Z2A6SHSCAA4NCO7A2HSGRCAOKWU3SRZSKAZRML5CZQ4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

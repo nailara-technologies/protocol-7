@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = X-11.cmd.forward-list
+# descr = list forwarded xpra applications [ no args ]
+
+my @rows;
+for my $label ( sort keys %{ <X-11.forwarding> // {} } ) {
+    my $display = <X-11.forwarding>->{$label};
+    my $server  = <X-11.servers>->{$display} // next;
+    next if $server->{'mode'} ne qw| xpra |;
+    my $pid    = $server->{'pid'};
+    my $status = defined $pid && kill 0, $pid ? 'running' : 'stopped';
+    push @rows, sprintf '%s %s %d %s', $label, $display, $pid // 0, $status;
+}
+
+return { 'mode' => qw| true |, 'data' => 'no forwarded applications' }
+    if not @rows;
+return { 'mode' => qw| size |, 'data' => join( "\n", @rows ) };
+
+#,,,,,..,,,..,,,,.,,,,,..,,.,,,.,,,.,,,,,,..,,,,.,,,,.,,,,,,,,,,,..,,,.,,
+
+#,,..,..,,.,,,...,,..,,.,,...,,..,,.,,,,.,...,..,,...,...,..,,...,,,.,..,,,..,
+#NHS6FB4Q6AZ4I74XH36M4IF5XZBNI6TG7CZETDUQPJKM44UT34XRPJ3RUFES64KNYMPU2EEIE54MS
+#\\\|53TNH2D4XVVR2PLALDRQTAP6OD7P2ALHY36CH3NIGYLEDL4WLRY \ / AMOS7 \ YOURUM ::
+#\[7]PPVPRV2IFFM4TP4GMUBQ5CSVGMW3XRSORMAVRNVP6JP2AAH5F2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

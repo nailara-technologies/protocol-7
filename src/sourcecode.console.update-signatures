@@ -191,6 +191,9 @@ if ( length $command_params ) {
     @source_paths = <[sourcecode.source_path_set_up]>;
 }
 
+@source_paths
+    = grep { not <[sourcecode.signature_excluded]>->($ARG) } @source_paths;
+
 if (   @source_paths == 0
     or @source_paths == 1 and not defined $source_paths[0] ) {
     <[base.log]>->(
@@ -612,8 +615,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,.,,...,.,,,,,,,...,..,,..,,..,,..,,,..,,..,..,,...,...,..,,.,,,,,.,,..,,.,,
-#MW7CZ4CX36NFWNH2WAGRHB22PSKHUL7CJDDZKXFUNQBLEO2R6RIMOG4UF7DKVY5RQHWFQJEFQXBAI
-#\\\|W7OPNIHFZ3JASHRWMKTX7Z6B5CVUMZOWL2V6BJWODZXB4J3T55L \ / AMOS7 \ YOURUM ::
-#\[7]MEUYTVOVRJQPMDP22RNEYQ2PG7AKZK3IPU2RHQMCWTCMFRSHAKCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,..,,,,.,...,,..,..,,.,.,,,,,...,..,,...,..,,,..,,,.,,,.,,..,...,
+#NAVYMS6XREHDSI2HLTEVUEN3BBI6BWMV6VI5EBWLE653UDXE63VCAVMMA6J65HEUQENFSPCS7FTTS
+#\\\|KVARM645JCQRRLBXBGMRGHIQ3DZLV6TE5AH73SHGQBVINDO7OZB \ / AMOS7 \ YOURUM ::
+#\[7]IDTR57DHNNHYY4DU7Z7CKTZPSSLIE7N3KAAGJ2DSTRQ3UPUH6EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

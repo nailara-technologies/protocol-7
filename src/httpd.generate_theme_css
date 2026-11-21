@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = httpd.generate_theme_css
+# descr = generate and sign the jobsite theme with this zenka's key
+# args  = [ <output path> ], [ <rotation chain> ]
+# return = signed scalar reference without an output path, otherwise TRUE
+
+my $output_path = shift;
+my $chain       = shift // '';
+
+<[base.perlmod.autoload]>->(qw| AMOS7::Desktop::Theme |);
+my $theme
+    = AMOS7::Desktop::Theme::read( { qw| root | => <system.root_path> } );
+my $css      = AMOS7::Desktop::Theme::web_css($theme);
+my $key_name = <httpd.cfg.generator_key_name> // <system.zenka.name>;
+my $signed
+    = <[source.sign_generated]>->( \$css, $key_name, qw| css |, $chain );
+return undef   if ref $signed ne qw| SCALAR |;
+return $signed if not defined $output_path or not length $output_path;
+
+return undef if not <[file.put]>->( $output_path, $signed->$* );
+return TRUE;
+
+#,,,.,...,,.,,,,.,,,,,,.,,...,,..,,.,,,..,,..,..,,...,...,,..,...,,.,,.,.,.,.,
+#KVFZ6DQMIPE72BE2RJNB3SI6ORAM57OKLN2FVGYNYL4DXHCYSMLX5JTILULJWG53P7TPKMJNJJHIC
+#\\\|RVEGBPDZRTGG6WOF2H2HQF2BFMQSNZUEDFM2I7DKLTKPYZQRIEE \ / AMOS7 \ YOURUM ::
+#\[7]L7QBHZB24FZPLAV5P4C4SSC4QQILVPQOO6ICQKST5OGGTDK4VYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

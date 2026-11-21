@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = povray.icon-set.next
+# descr = advance the sequential desktop icon render queue
+
+my $set = <povray.icon_set>;
+return FALSE if not defined $set;
+
+if ( defined $set->{'error'} or not @{ $set->{'jobs'} // [] } ) {
+    $set = delete <povray.icon_set>;
+    my $reply
+        = defined $set->{'error'}
+        ? { 'mode' => qw| false |, 'data' => $set->{'error'} }
+        : {
+        'mode' => qw| true |,
+        'data' => sprintf( '%s [ %d icons ]',
+            $set->{'out_dir'}, scalar @{ $set->{'results'} } )
+        };
+    <[base.callback.cmd_reply]>->( $set->{'reply_id'}, $reply )
+        if defined $set->{'reply_id'};
+    return TRUE;
+}
+
+my $job = shift @{ $set->{'jobs'} };
+$set->{'current'} = $job;
+
+my $id;
+do { $id = <[base.prng.chars-anum]>->(8) }
+    while exists <povray.render>->{$id};
+
+my ( $ok, $result ) = <[povray.template.resolve]>->(
+    'desktop-icon', $job->{'context'}, $job->{'pov_path'}
+);
+if ($ok) {
+    my $spawn_err = <[povray.spawn_render]>->(
+        $id,
+        $job->{'pov_path'},
+        $job->{'out_png'},
+        undef,
+        {   'width'    => $job->{'size'},
+            'height'   => $job->{'size'},
+            'alpha'    => TRUE,
+            'icon_set' => TRUE,
+        }
+    );
+    if ( defined $spawn_err ) {
+        $set->{'error'} = $spawn_err;
+        delete <povray.render>->{$id};
+    } else {
+        <povray.render>->{$id}{'symbol'} = $job->{'symbol'};
+        <povray.render>->{$id}{'size'}   = $job->{'size'};
+        return TRUE;
+    }
+} else {
+    $set->{'error'} = $result;
+}
+
+$set->{'error'} = sprintf '%s-%d : %s', $job->{'symbol'}, $job->{'size'},
+    $set->{'error'};
+return <[povray.icon-set.next]>;
+
+#,,,,,...,,,,,...,,,.,,..,,,,,,,.,,.,,,.,,.,,,..,,...,...,...,..,,,,,,,,.,,..,
+#4RH3JD5ANYZIUDNZ2ZN4BJ76TLYSFQBVAWC545MZWYMYZN46XFJJBNHRFZI4VLVETY7EFH7OJOGE6
+#\\\|2SCFHNYEDVPWA2V2HH5WWHTY3FBOG73HJS73C3Z2SDIKR2HLPDX \ / AMOS7 \ YOURUM ::
+#\[7]JKQYRXZOBEAW3RNPBYJFMMW5JCO6GK7CJHQGXZXL55AKIX4XXODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

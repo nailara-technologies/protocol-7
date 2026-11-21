@@ -17,7 +17,7 @@
 ## can offset the configured per-mode base display by this instance's index ##
 ## [ 'xvfb-0000' -> offset 0, 'xvfb-0001' -> offset 1, etc. ]               ##
 my $modes_re = <X-11.modes_re>
-    = qr{^(host|xnest|nxagent|xorg|xephyr|xvfb)(?:-(\d+))?$};
+    = qr{^(host|xnest|nxagent|xorg|xephyr|xvfb|xpra)(?:-(\d+))?$};
 
 if ( defined <system.zenka.subname> ) {
     my $override_mode = <system.zenka.subname>;
@@ -51,7 +51,7 @@ foreach my $bin_name ( qw [
 }
 
 ## optional intel gpu tools : silent lookup, not an error if absent
-for my $bin_name (qw[ intel_gpu_top intel_gpu_frequency ]) {
+for my $bin_name (qw[ xpra intel_gpu_top intel_gpu_frequency ]) {
     ( <X-11.bin_path>->{$bin_name} ) = <[file.which]>->($bin_name);
 }
 
@@ -130,8 +130,8 @@ push $data{'sig_warn_blacklist'}->@*,
 
 0;
 
-#,,,,,,..,..,,,,.,,.,,.,,,...,,.,,.,,,,.,,,.,,..,,...,...,,,,,,,.,,,,,..,,..,,
-#AH35Q6RI33XMIWFWHBJL77WQMZ5YM6GHBW2UDXRRDAF3N3BMW3U5HQSHP5YIC4HJG2A5GK54SUHTK
-#\\\|YUYQWJ4PJAPG2NV6ZPQSG7WB5JP7YXQI4LVITXMZKFYS7M7X7FG \ / AMOS7 \ YOURUM ::
-#\[7]532FYGJZACPWBKPJNTQEK5Q5HOLOIVSJ746T6WYPKXNYNNDU7KBI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,,.,,,,.,.,.,,,.,,.,,,..,..,,..,,...,...,...,,..,..,,.,,,...,
+#3CI5ZQTE2B7L77FSRCI6SYLAAJON7GRSUGZJ6HSJNL7NVRLVB5C6WXZJTLR5F32IJJJA3HMBK6ME4
+#\\\|T3PCBIE4M6HWEMLZ3NMUTI34JK65TZ6WRBUDM6CLUJEDUUTS3KZ \ / AMOS7 \ YOURUM ::
+#\[7]CDEZJDO2OMTD3OPDCZ53KLLTWDBFXONFJZDOR4V6N5BVBNTD7KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

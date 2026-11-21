@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = source.sign_generated
+# descr = sign a generated payload in a language-valid comment envelope
+# args  = <payload_sref>, <key name>, <css|js|html>, [ <rotation chain> ]
+# return = signed scalar reference, undef on invalid input or signing failure
+
+my $payload_sref = shift;
+my $key_name     = shift;
+my $file_type    = shift // qw| css |;
+my $chain        = shift // '';
+
+return undef
+    if ref $payload_sref ne qw| SCALAR |
+    or not defined $payload_sref->$*
+    or not defined $key_name
+    or ref $key_name
+    or not length $key_name
+    or ref $chain;
+
+my ( $open, $close );
+if ( $file_type eq qw| css | or $file_type eq qw| js | ) {
+    ( $open, $close ) = ( '/* ', '*/' );
+} elsif ( $file_type eq qw| html | ) {
+    ( $open, $close ) = ( '<!-- ', '-->' );
+} else {
+    return undef;
+}
+
+if ( length $chain ) {
+    my $parsed = <[trust.chain]>->( qw| split |, $chain );
+    return undef if ref $parsed ne qw| ARRAY |;
+}
+
+my $public_key = $keys{'C25519'}{$key_name}{'public'};
+return undef if not defined $public_key or length($public_key) != 32;
+my $public_b32 = encode_b32r($public_key);
+
+my $envelope_open = sprintf '%sP7-GENERATED %s', $open, $public_b32;
+$envelope_open .= sprintf '%s', $chain if length $chain;
+$envelope_open .= "\n";
+
+my $signed = $payload_sref->$* . $envelope_open;
+my $footer
+    = <[source.extract_sig_body]>->( \$signed, qw| strip |, qw| strict | );
+return undef if not defined $footer;
+$footer->{'sign-key-name'} = $key_name;
+
+my $harmonic = <[source.create_harmonic_footer]>->($footer);
+return undef if not defined $harmonic;
+$signed .= $harmonic->{'signature-footer-str'} . $close . "\n";
+
+return \$signed;
+
+#,,.,,...,,..,,,.,,.,,..,,.,.,.,,,.,,,.,,,,.,,..,,...,..,,.,.,...,,,,,,..,...,
+#2RJ63AAF5VB4EG2N7RAJ6ZVXDSW5Z6LGR4BKPTKQL6V4SESXJ2ELTHW5TKKXWQQZJXC77BH7FGPXG
+#\\\|FFWBO4RIYWOJELH3OKZAV3OBP2LIBV663GNU4EOKDJBW6VKMNUX \ / AMOS7 \ YOURUM ::
+#\[7]SHS25L4PNIJNYS75DHQPWK3S54KVZWGPOCULKZFNT3KPLQWZTGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

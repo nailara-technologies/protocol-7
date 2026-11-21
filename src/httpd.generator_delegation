@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = httpd.generator_delegation
+# descr = accept a host-root signed generator delegation for a vhost prefix
+# args  = { vhost, prefix, chain }
+# return = delegation record, undef [ list context : undef, reason ]
+
+my $param = shift;
+
+my $refuse = sub {
+    my $reason = shift;
+    return wantarray ? ( undef, $reason ) : undef;
+};
+
+return $refuse->('parameters') if ref $param ne qw| HASH |;
+my $vhost  = $param->{'vhost'}  // '';
+my $prefix = $param->{'prefix'} // '';
+my $field  = $param->{'chain'}  // '';
+return $refuse->('vhost')
+    if not length $vhost or $vhost =~ m{[\x00-\x20/\\]};
+return $refuse->('prefix')
+    if $prefix !~ m{\A/[^\x00-\x20?#]*\z}
+    or $prefix =~ m{(?:\A|/)\.\.?(?:/|\z)};
+
+my $chain = <[trust.chain]>->( qw| split |, $field );
+return $refuse->('chain') if ref $chain ne qw| ARRAY |;
+my $leaf = <[trust.statement]>->( qw| parse_wire |, $chain->[-1] );
+return $refuse->('subject') if ref $leaf ne qw| HASH |;
+
+my @anchors = split m|\s+|, <httpd.cfg.generator_host_roots> // '';
+return $refuse->('anchors') if not @anchors;
+my $verified = <[trust.verify]>->(
+    {   qw| chain   | => $chain,
+        qw| anchors | => \@anchors,
+        qw| subject | => $leaf->{'subject_pub'},
+        qw| now     | => time,
+    }
+);
+return $refuse->('delegation') if ref $verified ne qw| HASH |;
+
+my $record = {
+    qw| prefix     | => $prefix,
+    qw| public_key | => $leaf->{'subject_pub'},
+    qw| key_id     | => <[trust.key_id]>->( $leaf->{'subject_pub'} ),
+    qw| name       | => $verified->{'name'},
+    qw| not_after  | => $verified->{'not_after'},
+};
+<httpd.generator.delegations> //= {};
+<httpd.generator.delegations>->{$vhost}{$prefix} = $record;
+return $record;
+
+#,,,.,,,,,.,,,,,.,,,.,,,,,,.,,..,,...,,.,,..,,..,,...,...,...,..,,.,,,..,,.,.,
+#JRP5WNQ5JK6ZNMEE36ELD4BLOCO3V4KZRN5N24H2S4B6GYMUWAIE7AWPDLUHQH5666T6SIUZSWBSI
+#\\\|WRVPDYSX3OCHGEAZF3Y5Z54CGLBDPYFH64CL7T47XT66ZD2TYN5 \ / AMOS7 \ YOURUM ::
+#\[7]Z5K2IMF2S5LWBEGKIBFYEPTTVKCLBXJ3BA3PZCNGIE73MKOVQ2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

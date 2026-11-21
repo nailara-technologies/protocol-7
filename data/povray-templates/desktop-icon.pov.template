@@ -1,0 +1,27 @@
+// desktop-icon.pov.template
+// shared blue translucent material, camera and lights for desktop symbols
+
+#version 3.7;
+#global_settings { assumed_gamma 1.0 max_trace_level 8 }
+
+camera { orthographic
+         location <0, 0, -8>
+         right    x*image_width/image_height
+         up       y
+         look_at  <0, 0, 0> }
+
+light_source { <-3, 4, -5> color rgb <1, 1, 1> shadowless }
+light_source { < 3,-2, -4> color rgb {{accent_rgb}} shadowless }
+
+background { color rgbt <0, 0, 0, 1> }
+
+#declare IconMaterial = material {
+    texture {
+        pigment { color rgbt {{icon_rgbt}} }
+        finish { ambient 0.25 diffuse 0.65 specular 0.65 roughness 0.02
+                 reflection 0.08 }
+    }
+    interior { ior 1.46 }
+}
+
+#include "{{symbol_file}}"

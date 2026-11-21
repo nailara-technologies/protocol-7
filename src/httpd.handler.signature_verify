@@ -34,6 +34,25 @@ my ( $status, $error ) = $result =~ m{^(valid|unsigned|invalid) ?([^\n]*)};
 $status //= qw| invalid |;
 $error = 'child-result' if not length $error and $status eq qw| invalid |;
 
+if ( $status eq qw| valid | and ( $error // '' ) eq qw| generated | ) {
+    my ( $public_b32, $chain )
+        = $result =~ m|\Avalid generated\n([A-Z2-7]{52})\n([A-Z2-7.]*)\n\z|;
+    my $public_key
+        = defined $public_b32 ? eval { decode_b32r($public_b32) } : undef;
+    my ( $trusted, $trust_error );
+    ( $trusted, $trust_error ) = <[httpd.generator_key_trust]>->(
+        {   qw| vhost      | => $session->{'http_host'}            // '',
+            qw| path       | => $pending->{'handler_args'}{'path'} // '',
+            qw| public_key | => $public_key                        // '',
+            qw| chain      | => $chain                             // '',
+        }
+    ) if defined $public_key and length($public_key) == 32;
+    if ( ref $trusted ne qw| HASH | ) {
+        $status = qw| invalid |;
+        $error = sprintf qw| generator-%s |, $trust_error // qw| public-key |;
+    }
+}
+
 my $cache_entry = {
     qw| identity | => $pending->{'identity'},
     qw| status   | => $status,
@@ -58,8 +77,8 @@ if ( $status eq qw| valid | and -f $pending->{'body_path'} ) {
 
 return <[httpd.serve_static]>->( $id, $pending->{'handler_args'} );
 
-#,,,,,...,,,,,..,,..,,..,,.,,,,..,..,,,,,,,.,,..,,...,...,.,.,.,.,,,,,,,.,.,.,
-#FEPEHUSLH27HL4EIHECGRBARJXM6UFS5DWKK4FGYCCOTKRLFESDHS357AV426FCGXIURMXXLQPKNE
-#\\\|5355HORR7BCKNGLDYGEKCJMENLXCM37NB5TEUYBBYNL3ENE2TEH \ / AMOS7 \ YOURUM ::
-#\[7]VDJQR74NDAREZ42KRMEYKXSDRZ2ROD6QAONCRRX7YNV6UEP4FUAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,.,.,.,.,,..,,..,...,.,.,,.,,..,,...,...,...,.,.,.,.,..,,...,
+#77D437JWA2SXHUAQQNV7RTVVGBYYOX37YER375GVXIXHX663OW4MZ6L553BGU7RR5445SY564PZWY
+#\\\|CEXECHKOPUVDX4HSSH2GYBPH2JVDMC3AXITFQ2E5GM4GAGSO7OW \ / AMOS7 \ YOURUM ::
+#\[7]UXNMPGPSQMEYQPFYT5WIIGQ7JSUVTHJTPL64EFIUKTDLFYUQIQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

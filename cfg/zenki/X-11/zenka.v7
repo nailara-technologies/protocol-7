@@ -5,8 +5,10 @@
 
 [load_config_file:'X11-vars']
 
-X-11.mode = host          # [host|xorg|xephyr|nxagent|xnest|auto-xephyr|xvfb]
+X-11.mode = host          # [host|xorg|xephyr|nxagent|xnest|auto-xephyr|xvfb|xpra]
                           # override configured zenka mode using zenka subname
+
+X-11.xpra.socket_dir = /var/protocol-7/X-11
 
 X-11.xorg-mode.no-root-start-up = yes  ##  do not run Xserver as root  ##
 
@@ -112,7 +114,8 @@ access.cmd.usr.cube = commands message heart reload verify-instance get_mode \
                       get_window_ids keep_above keep_below get_driver \
                       set_opacity get_opacity get_gpu_load \
                       hide_window_frame show_window_frame \
-                      show-log-move hide-log-move  * # [ LLL ]
+                      show-log-move hide-log-move forward-start forward-list \
+                      forward-attach forward-stop * # [ LLL ]
 
 
 ## host overlay [ /etc/protocol-7/host-config/X-11.cfg : e.g. X-11.mode ] ##
@@ -145,8 +148,8 @@ modules.load = auth.client net protocol io.unix io.ip ui jobqueue X-11   ## devm
 
 [zenka.loop]
 
-#,,,.,,..,.,.,...,.,.,,..,.,.,,,.,,,.,,..,,.,,..,,...,...,...,..,,...,.,,,.,,,
-#IQYCMLW4IOOG6DDNDMXPHHT5XAECNKD7M52KC3ZHR4OOVJ5NBFAQBA5FXHYA7APKEVQMVE6JXCTRE
-#\\\|HVOQRPLOECZZOQWDWYYABBCFXAJELOAWQ4GJC5PQI5VMRKX2YEE \ / AMOS7 \ YOURUM ::
-#\[7]QKD7JICTHGKWQZILVXYWV36A5UCKL6RMXC5G4PCAKLJN5XF342DI 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,,..,...,.,.,..,,,.,,,..,.,,,..,,...,...,,.,,.,.,.,,,.,,,,.,,
+#MO252ACA4G4HNQGJ6DP5GRP37DK73GFBGGDIDEPAORFJKGDM7EX4WFNUPXHQY2OHSZSZP4GEPAW7Q
+#\\\|R3BI2YGSMCGVNDGS3NVOT7PZPFJBYICE5PSVPIF3AQFIZ3QUNTA \ / AMOS7 \ YOURUM ::
+#\[7]COBBQV6NZVAUFRHKU4RIDUFPYP4ZZ3K7XWDSFOVCVD7EJ4S3R2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,6 +3,7 @@
 # name  = source.sign_data
 
 my $src_data_ref = shift // '';
+my $key_name     = shift;
 warn 'expected scalar reference to content buffer <{C1}>' and return undef
     if ref $src_data_ref ne qw| SCALAR |;
 
@@ -11,10 +12,11 @@ warn 'expected scalar reference to content buffer <{C1}>' and return undef
     length($$src_data_ref)
 );
 
-return encode_b32r( <[crypt.C25519.sign_data]>->($src_data_ref) );
+return encode_b32r(
+    <[crypt.C25519.sign_data]>->( $src_data_ref, $key_name ) );
 
-#,,,.,,.,,,..,.,.,.,,,.,,,.,,,..,,,.,,.,,,,..,..,,...,..,,...,.,.,.,,,.,,,,..,
-#7XCWY77GBLODSJ33WCA7PXC5PKJGF473F7HPI5UGJJYNFPMIOVJDESYOOGBUS26GYCT7ZAJLP4Q5M
-#\\\|4KEOEK5BDT23FHVTL7GOUMQMNDF7KB7C6IM56DYNBZ7VQR6V3DK \ / AMOS7 \ YOURUM ::
-#\[7]R6H3WXTE4CKKTMZZPSKIPGVWMZNYIWCE4YCHVFIL43FFR4VP64CI 7  DATA SIGNATURE ::
+#,,,,,...,...,..,,,,.,,,.,,,,,,,.,..,,,,,,.,.,..,,...,...,...,,,,,,.,,...,,..,
+#ZRAO6S653Q5GR57OFFGQFHC2QCHZCTEGST6SJ63HMMVMRC6YD3TDHUPEX7ZN4FJIDU7AR7RKVVANU
+#\\\|B4MH6VSHTHSIITA54DF2FLNU4J46EUD5UGVURS6M3X53SFXDT36 \ / AMOS7 \ YOURUM ::
+#\[7]4ENFG67WZGHWQRR7MQFMGYC3VMLGUNNDP7WS2GQZQGA27OE25SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

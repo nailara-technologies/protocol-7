@@ -16,6 +16,48 @@ return {
     if ref $payload_sref ne qw| SCALAR |
     or not defined $payload_sref->$*;
 
+## generated envelope : the opening line                                    ##
+## [ including key and optional chain ] stays in the signed payload ; only  ##
+## the language comment closer is removed before the shared AMOS7 parser    ##
+## runs. the unsigned capture is restored only after every normal checksum, ##
+## truth and signature check has succeeded.                                 ##
+my $generated;
+if ($payload_sref->$* =~ m{
+        \A(.*)
+        ((?:/\*|<!--)[\t ]*P7-GENERATED[\t ]+([A-Z2-7]{52})
+            (?:[\t ]+([A-Z2-7.]+))?[\t ]*\n\n?)
+        (\#[\.,]{70,}\n(?:\#[^\n]+\n)+)
+        (\*/|-->)[\t ]*\n?\z
+    }sx
+) {
+    my ( $unsigned, $opening, $public_b32, $chain, $standard_footer, $close )
+        = ( $1, $2, $3, $4 // '', $5, $6 );
+    my $pair_valid
+        = $opening =~ m{\A/\*}
+        ? $close eq qw| */ |
+        : $close eq qw| --> |;
+    if ($pair_valid) {
+        my $public_key = eval { decode_b32r($public_b32) };
+        return {
+            qw| status | => qw| invalid |,
+            qw| body   | => $payload_sref,
+            qw| error  | => qw| generator-public-key |
+            }
+            if not defined $public_key
+            or length($public_key) != 32;
+        $generated = {
+            qw| original_ref  | => $payload_sref,
+            qw| unsigned_body | => $unsigned,
+            qw| public_key    | => $public_key,
+            qw| chain         | => $chain,
+        };
+        my $signed = $unsigned . $opening . $standard_footer;
+        $payload_sref                        = \$signed;
+        $key_name                            = qw| generated.verify |;
+        $keys{'C25519'}{$key_name}{'public'} = $public_key;
+    }
+}
+
 $footer //= <[source.extract_sig_body]>
     ->( $payload_sref, qw| strip |, qw| strict | );
 
@@ -69,15 +111,26 @@ if ( not $valid ) {
     };
 }
 
+if ( defined $generated ) {
+    $generated->{'original_ref'}->$* = $generated->{'unsigned_body'};
+    $payload_sref = \$generated->{'unsigned_body'};
+}
+
 return {
     qw| status | => qw| valid |,
     qw| body   | => $payload_sref,
     qw| footer | => $footer,
-    qw| report | => $report
+    qw| report | => $report,
+    (   defined $generated
+        ? ( qw| generator_public_key | => $generated->{'public_key'},
+            qw| generator_chain      | => $generated->{'chain'}
+            )
+        : ()
+    )
 };
 
-#,,.,,,,.,,.,,..,,..,,,,.,,,,,,,,,...,,,,,,,.,..,,...,...,,..,,.,,,,,,.,.,,.,,
-#ERO3UQTSRLCN4RV5CZU7VPO7VT7LKO2XEJGRDYPLJDOD2IP6EAXVNQ37GMZGKNMEIQDRHRBAI3JNK
-#\\\|2XOA7U3ZYFGKTZTAX5VFF6QAZQETNWMOYYNSQHNSF4FJZQVOG4E \ / AMOS7 \ YOURUM ::
-#\[7]MPFL64DLO6IXPHJNQRQJZVUFMQ222AUKDOKH6L23G2QBNCYLEUCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,.,,,..,,.,.,.,,,,.,,,,.,,.,,,,.,..,,...,..,,.,,,,,.,,.,,..,,,,,,
+#T2FIVEYGB2WKNNW4LOL5W2KV5BOXWI73NVEMJO7E4BMT7JI3LFXGVWTAYWUM2XZPLTMC7C2X5X4ZS
+#\\\|BS5BMHXRLOYGGC54DNUSCC3BTSIUIEVVYARMHAQXDQZNP7KRWBK \ / AMOS7 \ YOURUM ::
+#\[7]6ECIFHYN3P5SSSK6RMCRLWC6ZZ7NZKGZSVM3STZW33IIUJEB7WDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

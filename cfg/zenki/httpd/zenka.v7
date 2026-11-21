@@ -36,6 +36,10 @@ httpd.cfg.allow_range_overlap = 1 # allow overlapping range request? [same data]
 ## optional per-vhost requirement [ default off ] :
 ## httpd.cfg.require_signature_html.example.org = 1
 httpd.cfg.signature_key_name = proto-7.sourcecode
+httpd.cfg.generator_key_name = httpd
+## whitespace-separated key ids \ per-vhost prefixes, respectively :
+## httpd.cfg.generator_host_roots = <77 char host-root key id> [ .. ]
+## httpd.cfg.generator_prefixes.example.org = / /assets/
 
 httpd.cfg.max_post_size = 5242880  ## 5MB
 
@@ -81,8 +85,8 @@ httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 
 [zenka.loop]
 
-#,,,.,,..,.,.,.,,,.,,,,.,,,,.,,,,,,.,,,,,,..,,..,,...,...,,,,,.,.,,..,.,,,.,,,
-#EOXPPHBMGYIRBQ4WJSOTPESSSHNML6WOODNBQDQGCGWDNDVSUHABHPEW574UHGHNEHCNIQ6EU3DPA
-#\\\|ECYWT6YS3J6Z6I7FVIQAXSFJVHNQDVITVCMFCTSX3IIKKDCRO7P \ / AMOS7 \ YOURUM ::
-#\[7]ETYLVW3QIVPND6VEAZGHZDH3KQIRFM5HZJDO3LQNMYFSSOBROGCI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,,..,.,.,.,,,,,,,,.,,,,.,,,,,..,,...,...,.,,,...,.,,,...,,,.,
+#FED4COAI5LR5H3ZRTDFZEZC74NOVO4DZNXQEAQXZVKNQJYLSZUGMUTVBSMWGBOACLI5NAPXY2IATI
+#\\\|KLERIPI2IFGHAA2CMSJLXYBDQNOE77R3MT3YMVSR5DGQLSMFZRG \ / AMOS7 \ YOURUM ::
+#\[7]KLVHCIXRAKCPDE77XXHNBTOBWRWAMZ4RKWQKSEPYO74BPCJ5K6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

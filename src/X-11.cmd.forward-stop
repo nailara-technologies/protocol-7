@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = X-11.cmd.forward-stop
+# param = <forward-id>
+# descr = stop a forwarded app and its xpra server
+
+my $label
+    = ref( $call->{'args'} ) eq qw| ARRAY |
+    ? $call->{'args'}->[0]
+    : $call->{'args'};
+$label = '' if not defined $label;
+$label =~ s|^\s+||;
+$label =~ s|\s+$||;
+
+my $display = <X-11.forwarding>->{$label};
+return { 'mode' => qw| false |, 'data' => 'unknown forward-id' }
+    if not defined $display;
+my $server = <X-11.servers>->{$display};
+return { 'mode' => qw| false |, 'data' => 'forwarding not running' }
+    if not defined $server
+    or $server->{'mode'} ne qw| xpra |;
+
+for my $pid_key (qw| app_pid pid |) {
+    my $pid = $server->{$pid_key} // next;
+    <X-11.intentional_stop>->{$pid} = TRUE;
+    kill 15, $pid if kill 0, $pid;
+}
+delete <X-11.forwarding>->{$label};
+delete <X-11.servers>->{$display};
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( '%s stopped', $label )
+};
+
+#,,,,.,,,,,.,,,.,,,,,,,..,,,.,,,,.,,,,,,,.,,,.,,,,,..,,,,,,.,,,,,.,,,,
+
+#,,.,,,,.,.,,,,..,,..,,.,,.,.,,,,,...,,..,.,.,..,,...,...,,.,,.,.,,.,,,,,,.,.,
+#YYNLI2TYRE4WRBRIVV64LL4LUNBFZQT45FCWHLKTYTWROJZXS674LMN64FGP2HGPIDLBDETHU4VBY
+#\\\|RIQY5PUAPBGQGZC2R5YXDN3LSXDD4FK42TNQ3GY27YFCIN7W54H \ / AMOS7 \ YOURUM ::
+#\[7]IOETQLTY25HHNAWBPANWOQ7YSN5AG5MZ2FC3522GYKXSR6MQM2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

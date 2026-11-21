@@ -44,13 +44,22 @@ if ( $state->{'timed_out'} or not length $out_png or not -s $out_png ) {
     <povray.finished>->{$id} = { 'ok' => TRUE, 'path' => $out_png };
 }
 
+if ( $state->{'icon_set'} and defined <povray.icon_set> ) {
+    my $set = <povray.icon_set>;
+    push @{ $set->{'results'} }, $out_png if $reply->{'mode'} eq qw| true |;
+    $set->{'error'} = sprintf '%s-%d : %s', $state->{'symbol'} // 'icon',
+        $state->{'size'} // 0, $reply->{'data'}
+        if $reply->{'mode'} eq qw| false |;
+    return <[povray.icon-set.next]>;
+}
+
 <[base.callback.cmd_reply]>->( $state->{'reply_id'}, $reply )
     if defined $state->{'reply_id'};
 
 return TRUE;
 
-#,,,,,,.,,...,,,.,,.,,,,,,,.,,,..,...,.,,,.,.,..,,...,...,,.,,.,,,,,,,...,,,,,
-#6MZDP5O7AKNX2ZNZQKH52GDNUGBHWTH2ZFR6DDM2XRLKJALGE2FB7GSVMHCK5IMSW6UCIMAQRM4MU
-#\\\|NY3JJN4JWUFSMEAIVUR5NCX2NXSXWI6XVWEHQ4T35NCTF2BVQO3 \ / AMOS7 \ YOURUM ::
-#\[7]6OLCNUD6K6UHHQUZS65PH4GGNSPFTSELZSQSZYY3DJ3N2Q32AECY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,,,,,.,...,.,,,.,.,,.,,,,,,.,.,..,,...,...,...,..,,.,.,,.,,.,,,
+#72QRXXEI5HA6GOMBJTBTQJEZ5P6J72KH2RILENMQ6Y5GCKGLSZMU6YV2TVJ7ZMRK2PU56KCKKD54G
+#\\\|GOVXSHUOZBNWV42F6UTCS7ZKTQGRVRQFVY423TKIARC6XK447SU \ / AMOS7 \ YOURUM ::
+#\[7]RSN4CZGSXZ2CIS5TR63VWAXVWTNGDQ3HUB57PDY6NJQ4W5ZQLUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

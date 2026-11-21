@@ -39,9 +39,7 @@ if ( not defined $server_bin or not -x $server_bin ) {
 
 <[base.logs]>->( 2, ':: xsrv-bin-path :: %s', $server_bin );
 
-my $server_params = join( ' ', $display_str, $extra_params );
-my $bin_name_lc   = lc $bin_name;
-my $cmd_line      = sprintf '%s %s 2>&1 |', $server_bin, $server_params;
+my $bin_name_lc = lc $bin_name;
 
 <[base.logs]>->(
     1,            "starting '%s' server process on %s .,",
@@ -49,8 +47,24 @@ my $cmd_line      = sprintf '%s %s 2>&1 |', $server_bin, $server_params;
 );
 
 my $spawn_start = <[base.time]>->(4);
-my $server_pid  = open( my $out_fh, $cmd_line );
-my $spawn_ms    = ( <[base.time]>->(4) - $spawn_start ) * 1000;
+my $server_pid;
+my $out_fh;
+if ( $mode eq qw| xpra | ) {
+    my $socket_dir    = <X-11.xpra.socket_dir> // qw| /var/protocol-7/X-11 |;
+    my ($display_num) = $display_str =~ m|^:(\d+)$|;
+    my $socket        = sprintf '%s/xpra-%s.sock', $socket_dir,
+        $display_num // return;
+    $server->{'socket'} = $socket;
+    my @server_argv = <[X-11.helper.xpra_server_argv]>->(
+        $server_bin, $display_str, $socket
+    );
+    $server_pid = open3( undef, $out_fh, $out_fh, @server_argv );
+} else {
+    my $server_params = join( ' ', $display_str, $extra_params );
+    my $cmd_line      = sprintf '%s %s 2>&1 |', $server_bin, $server_params;
+    $server_pid = open( $out_fh, $cmd_line );
+}
+my $spawn_ms = ( <[base.time]>->(4) - $spawn_start ) * 1000;
 <[base.logs]>->(
     2, ": '%s' server spawn took %.2f ms [ %s ]",
     $bin_name_lc, $spawn_ms, $display_str
@@ -132,8 +146,8 @@ $server->{'poll_timer'}   = <[event.add_timer]>->(
     }
 );
 
-#,,,,,,..,,.,,...,..,,,..,,..,,,,,,..,,.,,...,..,,...,...,,..,,.,,,,.,..,,.,,,
-#AZK2LSIYV5R2YTGLM2GVJRJU3J357DT2KZFJCCFLHMWZY4R7SLSUBTMUPMWOYGEEBMIMDXVKIU3D6
-#\\\|PEGVG7EQSQSSMNUOMGEJJX5VUN7XR4E6O3P6C4LTITHF5WKW6EK \ / AMOS7 \ YOURUM ::
-#\[7]IM2OCLKBJTONIAUAQ6VHLSAK2AEYRFQYED2UOTSZ4VL35OKHUIBQ 7  DATA SIGNATURE ::
+#,,..,..,,...,,,,,...,.,,,.,.,,..,,,,,.,,,..,,..,,...,...,...,.,,,.,,,...,...,
+#F5YHAJIEZBMSWDUVBBDVI2TCJMOOXE7NKDL6YEDICLN527RFWZ6NYXIQDJBMFLBPT7FOTP6CGDK3Y
+#\\\|PMS3GN5JYV5SKUJZFQMWMDJVQ5IILWMJGBWTHOEWQCCV4WFGJLB \ / AMOS7 \ YOURUM ::
+#\[7]K6NXJ7GGLMB2JZOJ3XQ54XM3M3SVC2CGHPKTKHHJDQLVDSQTDCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
