@@ -119,6 +119,11 @@ people edit -- e.g. screen-setup's dpi `persist` writes `host-config/screen-setu
 decided together with the settings zenka, once the whole tree is in view ; until then
 the existing names stay [ `cfg/desktop` has no extension, host overlays keep `.cfg` ].
 
+candidate for a yaml variant [ owner 2026-11-21, checked with `harmony` ] :
+`.7y` [ TRUE ] for the readable p7 yaml variant, `.7YX` [ TRUE ] for the same
+content wrapped as a base32 encoded xz archive ; `.7Y` is TRUE as well, `.7yX` is
+FALSE -- so lowercase marks the readable form, uppercase the wrapped one.
+
 ## Statistics Zenka (`statistics`)
 
 ### Data Classification
@@ -447,8 +452,8 @@ access.cmd.usr.cube = report status opt-out
 
 *Privacy-preserving configuration through inheritance and minimal diffs.*
 
-#,,..,.,.,,..,,,,,.,,,,..,,,.,,.,,..,,,,.,,,,,..,,...,...,...,,..,.,,,.,,,.,,,
-#SDPV225YH4LY2TKH7CU57KCEORQNZBBQIHFJBZ2MSOZNXYDZQIH3NTP2EDSM4N5LXF66J53JNIQGY
-#\\\|UGBXXVJJNUVVIH2DJPL3FPIDIJN57UE5CJNN2MNWW264A7HDNKG \ / AMOS7 \ YOURUM ::
-#\[7]N6G5CUMMWNFHBGWCLN7B7B44SQFHCU4ZTQVCCVKY4QDP7BWPNQAY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,..,,,,,,.,,,,..,...,.,.,,,,,..,,...,...,,.,,,,.,.,,,...,...,
+#4AGDH3MXS45OXY4PMUBL7XVPVY76W7RGOCZDAVG4BU35S4H63K2Y7EOOCPH6AF44NQF46RBDDIOAM
+#\\\|5K2QKBHZ2QN7SBQANDNHRYTXVTSAZBXJQWFAQYS3APORSHLJXDR \ / AMOS7 \ YOURUM ::
+#\[7]POF4P7D4OZADMN7VSXJIV25BL3PMMJDQGSMNERV57RMFVMEN6WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
