@@ -9,6 +9,11 @@
 my $param   = ref $call->{'param'} eq qw| HASH | ? $call->{'param'} : {};
 my $user_id = $param->{'user'} // '';
 my $token   = $call->{'data'}  // '';
+## a '+' body arrives line by line with a trailing newline                ##
+## [ base.handler. command ] : the proof is the token alone -- '$' in the ##
+## format check below would accept 'TOKEN\n', the session hash would not  ##
+## match it                                                               ##
+$token =~ s{\s+\z}{} if not ref $token;
 my $refusal = 'denied : lease renewal refused';
 
 return { 'mode' => qw| false |, 'data' => $refusal }
@@ -83,8 +88,8 @@ return {
     $result->{'expires_at_epoch'},
 };
 
-#,,.,,...,,.,,,,,,.,.,,,,,,,,,.,.,,,.,.,,,.,,,..,,...,...,,..,.,.,,,.,,,.,,,,,
-#22XNQMKFEE4OQTX4IBVVIKQLT2WTFKLRJLYHSVZXUDG5RQAZLHLZYZ4SJF6VFDZ4GXODNKCHICRCW
-#\\\|WEPHXVOYYLZDNE7GG6EP7CITUDI6GKKBHF3ZHVJ3EXXYS7WF7XH \ / AMOS7 \ YOURUM ::
-#\[7]DSAOQDQ7HHTFKVHEOSQLEES3AKPAZLMBF7CQX4UFT77GPKTM4UCY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,.,,...,,.,,,,.,..,,,..,,..,,,.,..,,...,...,,.,,,,.,.,,,.,.,,,,,
+#ZW7AI5WW553TIIG5ZWWKPCI7HIIYA55LBXS2UUHPANOFCG2TVB74SFYXXRJG2YI5FRQEAGNRPUHKY
+#\\\|ZQMP4WTZ2LXXSYIJKJMWQPCV2OZALFXHCY2DTPKG3FSQVF3KSWN \ / AMOS7 \ YOURUM ::
+#\[7]DPBD2TQIQY42ULY5ML7YIDP5NTNFBQF5AVGS62GUDQ55RW23BCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

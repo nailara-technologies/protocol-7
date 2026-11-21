@@ -288,6 +288,14 @@ ok( @revocation_new_active and $revocation_new_active[-1],
     'replacement is stored before old-token revocation'
 );
 
+## a '+' body carries a trailing newline [ base.handler.command ] ##
+$reply = lease_call( qw| lease-user |, ( $second_token // '' ) . "\n", 30 );
+my ($third_token) = $reply->{'data'} =~ m{^token \[ shown once \] : (\S+)};
+ok( $reply->{'mode'} eq qw| true | and defined $third_token,
+    'a token body with a trailing newline is accepted as proof'
+);
+$second_token = $third_token;
+
 say "\n :. consumer scheduling and failure retention";
 $data{'jobsite'}{'cfg'}{'sync_url'}    = qw| test-sync-url |;
 $data{'jobsite'}{'cfg'}{'sync_token'}  = qw| bootstrap-token-value |;
@@ -388,8 +396,8 @@ ok( $code{'jobsite.sync.token_for_url'}->('other-url') eq
 say sprintf "\n :. %d passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,,,,,,,,,.,.,.,,..,,,.,.,.,...,...,...,..,,...,...,,..,.,.,...,.,,,..,,
-#XOINFXNLGTEOJG4G5OWMPMV27AZHCYLKMOEPOKEPCM3WGNA7MJ4H2PE4AYJ7KJ7L4ZUVWQB5Q6CBI
-#\\\|FZCZQUGTTUJ5ZSOKJWVQ2BSC4KAA7BSWVANILG4ANKPETWN7VLY \ / AMOS7 \ YOURUM ::
-#\[7]TO76JGAAJIZNPEQJM47PFLQRO5DNRDVU7OFU23AI2L5N3HJ4N6AA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,..,,,,,,.,,,..,,,,,,,,,,,,,,.,,,..,,...,...,...,..,,.,.,...,,,.,
+#CVJ3TYTAZLB4RBXCMYHXWOFFXZBAYC3ZCL3IPX7O54FRL7HU7J5WARQJZMBF6DXWLAYSFVL4PH6KC
+#\\\|QMTTQ63YZSJNXR5VKFHQWGQ66AXAUMBSAZPD7I7G6KG72WZLA6A \ / AMOS7 \ YOURUM ::
+#\[7]D4ZMGJAFE6IBGXOBEGKUPSGXZD7HXCPO5I3NWLWSJ4P22WDCGAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
