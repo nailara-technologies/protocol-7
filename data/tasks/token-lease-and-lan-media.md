@@ -42,6 +42,13 @@ host-edit the host records. groups are missing :
   - no implicit crossing : a web group never grants cube rights by itself ; where a web
     role needs a cube command an explicit mapping names it [ as access.web does today ].
     web levels are capped below the cube admin level
+  - later : profiles for admin levels [ owner 2026-11-21 ], in the devmod pattern
+    [ cfg/devmod-commands allow-lists the safe commands, base.devmod.unsafe_commands is
+    everything else, base.devmod.unload_unsafe removes them ] : e.g. admin-read
+    [ status \ list \ show ], admin-modify [ + changing commands ], full admin. a command
+    reaches a lower profile only when listed there ; an unclassified new command is
+    full admin only [ fail closed ]. profiles resolve into the same command masks as
+    access.* -- no second enforcement path
 - the later key-based level source [ per-key level, maxed with the group level, see
   UI-SHOW-SECURITY-LEVELS.md ] is where lease tokens plug in : a lease carries a scope
   and at most its group's level
@@ -115,8 +122,8 @@ consumer uses, shaped so that outside software can speak to it without protocol-
 - a grant is per lease user and ttl ceiling, fail closed when absent
 - no host names, addresses or personal data in repo files
 
-#,,.,,,,.,.,.,.,.,,,,,.,,,..,,,,.,..,,,.,,,.,,..,,...,...,...,,,.,,..,,.,,,..,
-#YQDVIPLS73NYB7V47QBLKTUGC3JOFLFONYG27FVCPKM3JR4OPLL5466MCRR4KHDB62EDQZUJETYKE
-#\\\|H5JNYNIXLRZ2L27OFCCXHRAKCPX3Q2VTMQUZZ3Z3S7RIXL3KGL4 \ / AMOS7 \ YOURUM ::
-#\[7]5WCMYISU7PHUXS5MNBG5RLUQX4GSGZURSPTEQZBJREFI4VBRPQBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,,,,,,,..,,,,,,..,,.,.,...,.,,,..,,...,...,,.,,,.,,,,.,,,,,.,.,
+#U5RKPACXUYHVWGEK2IOMBVBZ2TGHV6N67BIMIXIXLL4WJ3CVJRYPES4QUW7NDELJHU7UOJGWE4BCO
+#\\\|P7F2KM33XKPWB5HPC5RMSZ5ZNOKCTLTQ3YYWEG5TNMHPWFCDIXD \ / AMOS7 \ YOURUM ::
+#\[7]HKPTMTTA6ZVDRIEESGHSFQWOVS6YYUKSQREQ4CV5W6RNBZMFGUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
