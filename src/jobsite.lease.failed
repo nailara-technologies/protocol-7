@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = jobsite.lease.failed
+# param = short failure reason [ never a reply body ]
+# descr = keep the current token, warn once near expiry, back off
+
+my $reason = shift // qw| unknown |;
+<jobsite.lease.in_progress> = FALSE;
+
+<[base.logs]>->( 2, 'jobsite.lease : renewal failed [ %s ]', $reason );
+
+my $expires  = <jobsite.lease.expires_at_epoch> // 0;
+my $lifetime = <jobsite.lease.lifetime>         // 0;
+my $left     = $expires - time;
+if ( $lifetime > 0 and $left < $lifetime / 10 and not <jobsite.lease.warned> )
+{
+    <jobsite.lease.warned> = TRUE;
+    <[base.logs]>->(
+        0,
+        'jobsite.lease : issuer unavailable ; current token expires in %d s',
+        $left > 0 ? $left : 0
+    );
+}
+
+return <[jobsite.lease.schedule]>->(qw| retry |);
+
+#,,..,,..,,..,.,.,,,,,,,.,,..,.,.,,,.,..,,.,,,..,,...,...,,..,.,.,.,.,,,.,,..,
+#7MBERVHRNZ6C774HJQSXGBTOJLH72SVTZD6CTPAH3QM2GXM75AX3P64EFCLHX2WS7VIEUVGPV7N4K
+#\\\|MN7OP3IJBJ3L2PGK4TNUVFFOA25YFAWZW5I5H3RIDJ27ZDIVPES \ / AMOS7 \ YOURUM ::
+#\[7]IQ4OWSIR5WHCP5RIYKHNKYVASD44IP2QD4BEVR4FNCCCZ45LBABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = jobsite.handler.lease-renewed
+# descr = install a renewed lease token and schedule its next rotation
+
+my $call = shift // {};
+my ( $mode, $text ) = <[base.reply.mode_text]>->($call);
+return <[jobsite.lease.failed]>->(qw| reply |) if $mode ne qw| true |;
+
+my $user = $call->{'params'}{'lease_user'} // '';
+my ( $token, $reply_user, $expires )
+    = $text
+    =~ m{^token \[ shown once \] : (\S+)  user=(\S+) expires_at_epoch=(\d+)$};
+return <[jobsite.lease.failed]>->(qw| invalid-reply |)
+    if not defined $token
+    or $reply_user ne $user
+    or $expires <= time;
+
+my $token_hash = <[chk-sum.bmw.L13-str]>->($token);
+return <[jobsite.lease.failed]>->(qw| hash |) if not defined $token_hash;
+
+my $now = time;
+<jobsite.lease.token>            = $token;
+<jobsite.lease.token_hash>       = $token_hash;
+<jobsite.lease.expires_at_epoch> = $expires;
+<jobsite.lease.lifetime>         = $expires - $now;
+<jobsite.lease.retry_state>      = {};
+<jobsite.lease.in_progress>      = FALSE;
+<jobsite.lease.warned>           = FALSE;
+undef $token;
+
+<[base.logs]>->( 2, 'jobsite.lease : token renewed [ user=%s ]', $user );
+return <[jobsite.lease.schedule]>->( qw| renew |, TRUE );
+
+#,,,.,.,.,...,,,,,...,...,,.,,..,,.,.,.,.,,,,,..,,...,...,,,.,.,,,,,.,...,,.,,
+#GQCSV3IOD5H6PXV6Y5MPUKC3A7E6B3ZNGVB4N2Y57H7OASG6CBX7IDUHEFKHB5IIRKJKDHPXQUP44
+#\\\|3LV47ISHZR4ZC32QIM4EFNMPPV2JD7HCALXN3ZY4KSVOK37EM35 \ / AMOS7 \ YOURUM ::
+#\[7]JR7ZVESTR3JOWWCAAKNRYRMK5KROABPUWBL7KQFN5QHXFJWPY2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

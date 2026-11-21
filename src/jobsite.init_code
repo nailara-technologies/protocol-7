@@ -212,6 +212,9 @@ if ( $interval > 0 and not <[jobsite.replica.enabled]> ) {
     <[base.logs]>->( 1, 'jobsite: rescan timer %ds', $interval );
 }
 
+## lease renewal : static sync tokens remain the bootstrap fallback ##
+<[jobsite.lease.start]>;
+
 ## sync push timer : only when interval > 0
 my $sync_interval = <jobsite.cfg.sync_interval> // 0;
 if ( $sync_interval > 0 and not <[jobsite.replica.enabled]> ) {
@@ -319,8 +322,8 @@ my $fetch_zenka = <jobsite.cfg.fetch_zenka> // qw| site-yaml |;
 
 TRUE;
 
-#,,,,,,,,,,..,,..,,..,.,.,,.,,,,.,.,,,,..,.,,,..,,...,...,.,,,,..,,,.,,.,,,..,
-#56HGIVNC3K3BND46QO3Y67252GNXQUUJEYBHC2373NAW76OP325DV23O7QBU34E3H2RF2SWMNWMWE
-#\\\|TYKIR3Y36WUKHVHZUIK4PYT3CGRDOG6ZUEBC7X63UG2FQAQGZF3 \ / AMOS7 \ YOURUM ::
-#\[7]H2UIKSDKXXL32VSZZGFBHDS4KPN6K66PIXHRFKABEYNEMS4TGOCQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,,,..,,,,,,.,,,..,,.,.,...,...,..,,...,...,.,.,.,.,..,,.,,,.,,,
+#KZEK2KFPIJHDXL3DGOFCBJQXFQA4GPH7CSHEXCEWZ2LQQHNRC64PB3X4HYT5PCTCZPDZQQ6OEA5RI
+#\\\|WL7P4FQFLZRVI73GRP2NIRXV5JBLPBFXHAGEUSVIZIDYIU4YGV7 \ / AMOS7 \ YOURUM ::
+#\[7]2X5DNINU2H3IBEHWR5DM2JQKCQKRCMOEFUYQZHLWHN77I5USPQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -768,6 +768,7 @@ return [ qw[
         web.menu_generator
         web.cmd.auth-login
         web.cmd.auth-issue
+        web.cmd.lease-renew
         weather.cmd.widget
         vault-edit.repaint
         valued.node.create
@@ -3284,6 +3285,11 @@ return [ qw[
         keys.console.clear-chksums
         keys.console.change-passwd
         jobsite.sync.token_for_url
+        jobsite.lease.schedule
+        jobsite.lease.start
+        jobsite.lease.failed
+        jobsite.lease.renew
+        jobsite.handler.lease-renewed
         jobsite.sync.apply_reverse
         jobsite.report.render_html
         jobsite.removed_log.append
@@ -4489,6 +4495,7 @@ return [ qw[
         plugin.web.auth.handler.status
         plugin.web.auth.handler.logout
         plugin.web.auth.create_session
+        plugin.web.auth.lease_caller
         plugin.web.auth.admit.schedule
         plugin.web.attention.pop_state
         plugin.web.attention.init_code
@@ -4956,6 +4963,7 @@ return [ qw[
         base.p7refs.gen_template_chksum
         base.number-cache.get-templates
         base.interval.rhythm.non-linear
+        base.interval.rhythm.lifetime
         base.inotify.install_io_watcher
         base.handler.link-upgrade.input
         base.file.zenka_dir.unlink_file
@@ -6553,8 +6561,8 @@ return [ qw[
     ]
 ];
 
-#,,..,.,,,.,,,...,...,...,,.,,,,,,,,,,,,,,.,.,.,.,...,...,,,.,...,.,.,...,...,
-#2Z2QW5PSJQWDCZNZM6UD3VIDFUD4ZGLCLCFSEEJKSU75CXISG2ESWT2IB2DYUSY76HL5T4VRQZPH6
-#\\\|34FDBOAKK724QJ7XRVZZBNDFVTJD35D2TY2TXPL7MZRPG6AIGTH \ / AMOS7 \ YOURUM ::
-#\[7]LAG2HKAYDX2BCCCNRK374PJ7R4RBFJSYCSUJI2GBLGH3TNCFPSDY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,,,.,,.,,...,,.,,,,.,.,,,...,.,.,...,...,.,.,...,...,.,.,,.,,
+#ZJWTI72EQOTXLY7PJEAAAE73WBNRYLID5TNCDZPBWRDHHO4AME46ALXU7XPGJQ432CZ5DHBRXXB54
+#\\\|CYRWPQT7D7GKWE5H3KRT572RHEQEQEBYMVSZ74IUAIM5XBSBSQV \ / AMOS7 \ YOURUM ::
+#\[7]EUZZKFYYCVS6IVUT33VKUISKOZNQZKTL6JQZFDFI5NDQ6XGUTWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

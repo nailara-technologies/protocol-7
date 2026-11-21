@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = jobsite.lease.renew
+# descr = request a replacement token from the configured issuer
+
+<jobsite.lease.timer_pending> = FALSE;
+return if <jobsite.lease.in_progress>;
+
+my $issuer = <jobsite.cfg.lease.issuer> // '';
+my $user   = <jobsite.cfg.lease.user>   // '';
+return <[jobsite.lease.failed]>->(qw| configuration |)
+    if not length $issuer or $user !~ m|^[\w.+-]+$|;
+
+my $old_token
+    = <[jobsite.sync.token_for_url]>->( <jobsite.cfg.sync_url> // '' );
+return <[jobsite.lease.failed]>->(qw| no-token |) if not length $old_token;
+
+<jobsite.lease.in_progress> = TRUE;
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => "$issuer.lease-renew",
+        'call_args' => {
+            'param' => { 'user' => $user },
+            'data'  => $old_token,
+        },
+        'reply' => {
+            'handler' => qw| jobsite.handler.lease-renewed |,
+            'params'  => { 'lease_user' => $user },
+        },
+    }
+);
+undef $old_token;
+return <[jobsite.lease.failed]>->(qw| route |) if not $sent or $sent <= 0;
+return TRUE;
+
+#,,,,,.,.,,..,,,,,,,,,,.,,,.,,,,.,,.,,.,.,,.,,..,,...,...,...,.,.,..,,,.,,,,,,
+#GN2KHCSVYIYTRD34BVUFYIES2BV64NZK3FOLD3PIFPBSH3PFAF6AJUQTYMHH72ICF2KDA7IC662QG
+#\\\|TCGDTMNA2R34XJ42UYQLSJ4EMHTICLLMJDU6NERT4DCPEYGERVO \ / AMOS7 \ YOURUM ::
+#\[7]DZR2BMNQKDZQQKKO6MNJ6MDVPHI7XKFZT5QP3CI3L2JZTHBDVOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

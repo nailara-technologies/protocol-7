@@ -165,6 +165,8 @@ if ( $step eq qw| install | ) {
     );
     return $error->("install : $why") if ref $r ne qw| HASH |;
     $s->{'installed'} = $r->{'state'};
+    ## later : read user_groups from the stored host record here and provision
+    ## exactly those members ; stage 0 only stores and shows them
     return $next->(qw| done |);
 }
 
@@ -180,8 +182,8 @@ if ( $step eq qw| done | ) {
 
 return FALSE;    ## need_passphrase \ error : waiting or finished ##
 
-#,,,,,.,,,,,.,..,,...,,,,,.,.,..,,.,.,..,,,,.,..,,...,...,..,,.,,,..,,,,.,.,,,
-#WSNM2DR4MTSLBERKMXGFAP6ZV3KGNMC4HKYDRBXVP2W7QD5R5XDRJREDDQQTR74FFOUMMZCAJVDPM
-#\\\|ZEMMNQBJGNJONFKTPM2567BM6UTMQTQ7P46DX66NQ2BGHENORNL \ / AMOS7 \ YOURUM ::
-#\[7]EM2JROCZHNYXZ7LSYNTEMBZEUU7JLLOLDPT52IPUA7HIQ7JPJ6AY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,,,.,.,.,.,.,,,,,,,...,,..,..,,..,,...,...,,,,,,,.,,,.,,,.,,..,
+#EO5SHX4IFJ4C6QL26IVQ6PYNNXZPS6K3XQZ44S2PZR57ZG3ZOTGHSRIZGG6T34ZGXAG7QXH7XQFPU
+#\\\|XPC6AHIFEWAUSU6PIKA6IBTDVS5UP6I3VMH4WL375WQ7VHF3L5V \ / AMOS7 \ YOURUM ::
+#\[7]7GTIIILLXWFVXCWH7CUNZ3RCNUAHAU7CBWKWQFRWUE5K4ZT42UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

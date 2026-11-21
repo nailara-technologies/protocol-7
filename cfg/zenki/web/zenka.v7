@@ -13,6 +13,11 @@ access.cmd.usr.cube = commands heart reload verify-instance \
 ## [ base.load_host_config : /etc/protocol-7/host-config/web.cfg ] -- MUST ##
 ## carry the same web.auth.secret as the httpd host config : the web zenka ##
 ## mints the session tokens                                                ##
+## lease grants [ host config ] : callers are DIRECT local users only ;    ##
+## routed calls use cube access + live-token proof, not this caller list   ##
+##   web.cfg.lease.<user>.callers = <caller> [<caller> ..]                 ##
+##   web.cfg.lease.<user>.ttl_max = <seconds>                              ##
+##   web.cfg.lease.<user>.scope   = <scope-word>                           ##
 [load_host_config]
 
 modules.load = auth.client net protocol io.unix ui format.yaml web devmod \
@@ -31,8 +36,8 @@ plugins.load = plugin.web
 
 [zenka.loop]
 
-#,,,,,,.,,,,,,,,,,..,,,.,,,,.,.,.,...,..,,.,,,..,,...,..,,,.,,...,,..,.,.,,,,,
-#HXM7VAHPSDQ2UU7EH6L6Z55YDYIZEIOE4TKNDJV6ADBRW3XJBORMCWA7IUKBHOC4YMGD4C5MUG5EK
-#\\\|EAXUGAUF2UKR7OZZMVAO6CFAN7N3U43BHWJJZVKAHBK42XW7MMK \ / AMOS7 \ YOURUM ::
-#\[7]LAH2IRKEZ6DFMFGRRYAT5ZZ7ZXRMDIM53F3GNWXDBQFPD4KGKSDI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,...,,.,,,,.,...,,..,.,,,,,.,..,,...,...,..,,,.,,,,.,..,,.,.,
+#5NUIK56RUFAYE2ZSOO226P5I3IRF5INO2CY6FICZ3CRLLWPFYWNI3EYZGUYACZMT25CHNE4IVEZEU
+#\\\|AHCLBCIOGRP35N63CZUQWEBIERHGE4FJSUU46P7OIQEZR5B732V \ / AMOS7 \ YOURUM ::
+#\[7]L3GM5MRY4IPXG7PSEE6ZPLRR4DUJ7XGXPGRZXC5HHDP7EW3VJ4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

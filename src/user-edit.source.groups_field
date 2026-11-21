@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = user-edit.source.groups_field
+# descr = build the read-only group membership row
+# param = $record
+
+my ($record) = @ARG;
+
+my $groups = $record->{'fields'}{'group_memberships'} // [];
+$groups = [] if ref $groups ne qw| ARRAY |;
+
+return [
+    {   qw| name |             => qw| group_memberships |,
+        qw| type |             => qw| freeform_line |,
+        qw| default |          => join( q{, }, $groups->@* ),
+        qw| readonly |         => TRUE,
+        qw| separator_before | => TRUE,
+    }
+];
+
+#,,.,,,,,.,,,,,,,.,,,,,.,,,.,.,..,,,..,,,,.,,,..,,.,,,.,,,..,.,,,.,,,,..,,,,
+
+#,,,,,,,.,,,,,...,...,,..,...,,,,,..,,..,,..,,..,,...,...,..,,,..,.,.,,,.,...,
+#AVKQXCJQPSG6K2P4XJBH7POLWUIM2Z3Y26MSCYLQHCO5DCJLFLTBBZSSLK2MKTNMNQBYB5JPJICSO
+#\\\|6MGFLA7MGR6R5E4W225BULM2HOM2IOLW3TDRWW25H6KHO4UKKRQ \ / AMOS7 \ YOURUM ::
+#\[7]3UGNLVFWJMATGGDWHVDDZGI32KEYYNIK3WWBI6MLQ6TV33X2YOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,13 +17,20 @@ my $cube_sid = <form.cube_sid> // return FALSE;
 
 return <[protocol-7.command.send.local]>->(
     {   qw| command |   => sprintf( '%d.users.value-get', $cube_sid ),
-        qw| call_args | => { qw| args |    => $record_name // '' },
-        qw| reply |     => { qw| handler | => $reply_handler }
+        qw| call_args | => { qw| args | => $record_name // '' },
+        qw| reply |     => {
+            qw| handler | => qw| user-edit.source.memberships_reply |,
+            qw| params |  => {
+                qw| phase |         => qw| record |,
+                qw| record_name |   => $record_name // '',
+                qw| reply_handler | => $reply_handler,
+            },
+        },
     }
 );
 
-#,,.,,,..,..,,.,.,...,..,,,,.,,.,,..,,,.,,...,..,,...,...,..,,,..,,,,,..,,...,
-#BLB7F77IU6SNGMKGVBDF5D5U42PNA2UMQBJW6RJF5NSJHXP4FMEGC6JMOEESN544E3OVTHEABGOE2
-#\\\|7ZJ3NSPT63FH54YFRSK2JS5WSOSPHYEY6GKOEPB7MPDIHNTMTD3 \ / AMOS7 \ YOURUM ::
-#\[7]MSIVRAFNJZREJBW7XJK45FCA7SESUDTAYQEWFSZMSJ64SWFXGKBY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,,.,,..,,..,.,.,,,.,,.,,..,,.,.,..,,...,..,,...,...,.,.,,..,..,,
+#HGJ22WDZ645GSI5W2FRZAG2WHIBUBGX7NDSL2GI26YMBFQKEGKYKKOCBBJ7CY23QXR2SGGDNXNYJS
+#\\\|OXXC3J2XAEJMJ3CICZVCECQ3YDDPQX4IG5LUP7QB447F3XVMZZH \ / AMOS7 \ YOURUM ::
+#\[7]K6VYAU7KWRBMMXSBT5VGAELUGLRUUMGAYDOVM2UIJ5KMWEC5KIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

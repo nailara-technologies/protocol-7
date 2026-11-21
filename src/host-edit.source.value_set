@@ -50,6 +50,39 @@ if ( not <[host-edit.record.name_valid]>->($record_name) ) {
         }
         $kept{'name'} = $record_name;    ## the label is authoritative ##
 
+        my $group_error = '';
+        if ( exists $kept{'user_groups'} ) {
+            if ( ref $kept{'user_groups'} ne qw| ARRAY | ) {
+                $group_error = 'user_groups must be a list';
+            } else {
+                ## the web group-name rule from users.group.path ##
+                my @invalid_groups = grep {
+                    not defined $ARG
+                        or $ARG !~ m|^[a-z0-9][a-z0-9_.+-]{0,63}$|
+                } $kept{'user_groups'}->@*;
+                $group_error = sprintf "invalid web group name '%s'",
+                    $invalid_groups[0] // ''
+                    if @invalid_groups;
+            }
+        }
+
+        if ( length $group_error ) {
+            $info = {
+                qw| sid |       => <form.cube_sid> // 0,
+                qw| cmd |       => qw| FALSE |,
+                qw| call_args | => { qw| args | => $group_error },
+                qw| data |      => $group_error
+            };
+            <[event.add_timer]>->(
+                {   qw| after | => 0,
+                    qw| desc |  => 'host-edit.source.value_set '
+                        . 'deferred reply',
+                    qw| cb | => sub { <[$reply_handler]>->($info) },
+                }
+            );
+            return TRUE;
+        }
+
         my $existing = <[host-edit.record.read]>->($record_name);
 
         my $envelope = {
@@ -101,8 +134,8 @@ if ( not <[host-edit.record.name_valid]>->($record_name) ) {
 
 return TRUE;
 
-#,,,,,,..,,,,,,,.,,,,,,,.,,.,,,.,,,.,,.,.,..,,..,,...,...,...,,,,,..,,,..,,,.,
-#R4XHJZ4FMNWAKI3GJ4UJC27FNGE4AZT622LOETPQAZSWERS67EXTDV5NRVHCVE7CPZV2MNRDNHPGA
-#\\\|PTQ3PFFRIC7E6RZXRYA775K5BOOTFGIK2U25D46FS4ZIVOEDJ5U \ / AMOS7 \ YOURUM ::
-#\[7]BXMNYG4C3XTKZ272HC6ETL5UFMSOVAIOZWTWHNBIIXUFU3BMVSAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,,..,...,,.,,...,,..,,..,,.,,..,,...,...,.,,,,,,,,,,,,..,,.,,
+#FOS6VVRCRTC5MSREAYSGFAO4RLRHUI35FCGUOUHMVBJSLL24CALKEL4XFFG6LPRFYAO3EUJGQZKDO
+#\\\|JO4Z3ZMODFGAZNRHY4ZONKHDRPIY3437YHXUCU2XIIFWXRCRXE4 \ / AMOS7 \ YOURUM ::
+#\[7]SVSUW3DH73IRJZOMOCYRYGY6EG775I5Y3YS4ZL6MLMRDTJ7SBKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

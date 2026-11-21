@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = web.cmd.lease-renew
+# param = user=<lease user> [ttl=<seconds>] ; token in body
+# descr = rotate a live lease token [ proof of possession ]
+# note  = web.lease-renew+ user=<user> [ttl=<seconds>] ; only the reply
+#         carries the new token. request \ reply tokens are never logged.
+
+my $param   = ref $call->{'param'} eq qw| HASH | ? $call->{'param'} : {};
+my $user_id = $param->{'user'} // '';
+my $token   = $call->{'data'}  // '';
+my $refusal = 'denied : lease renewal refused';
+
+return { 'mode' => qw| false |, 'data' => $refusal }
+    if $user_id !~ m|^[\w.+-]+$|
+    or ref $token
+    or $token !~ m|^[\w.+/-]{8,}$|;
+
+my $caller = <[plugin.web.auth.lease_caller]>->($user_id);
+return { 'mode' => qw| false |, 'data' => $refusal }
+    if not defined $caller;
+
+my $grant = $data{'web'}{'cfg'}{'lease'}{$user_id} // {};
+$grant = {} if ref $grant ne qw| HASH |;
+my $ttl_max = $grant->{'ttl_max'} // '';
+my $scope   = $grant->{'scope'}   // '';
+return { 'mode' => qw| false |, 'data' => $refusal }
+    if $ttl_max !~ m|^\d+$|
+    or $ttl_max < 1
+    or $scope !~ m|^[\w:+.@-]+$|;
+
+my $ttl = $param->{'ttl'} // $ttl_max;
+return { 'mode' => qw| false |, 'data' => $refusal }
+    if $ttl !~ m|^\d+$| or $ttl < 1;
+$ttl = $ttl_max if $ttl > $ttl_max;
+
+my $previous = <[plugin.web.auth.verify_session]>->($token);
+undef $token;
+return { 'mode' => qw| false |, 'data' => $refusal }
+    if not defined $previous
+    or ( $previous->{'user_id'} // '' ) ne $user_id;
+
+my $previous_hash = $previous->{'token_hash'} // '';
+return { 'mode' => qw| false |, 'data' => $refusal }
+    if $previous_hash !~ m|^[A-Z0-9]{13}$|;
+
+my $result = <[plugin.web.auth.create_session]>->(
+    {   'user_id' => $user_id,
+        'ttl'     => $ttl,
+        'data'    => { 'scope' => $scope },
+    }
+);
+return {
+    'mode' => qw| false |,
+    'data' => 'token creation failed [ web.auth.secret in host config? ]'
+    }
+    if not defined $result;
+
+## rotation order : the replacement is active before the old hash moves ##
+if ( not <[plugin.web.auth.destroy_session]>->( $previous_hash, qw| hash | ) )
+{
+    <[plugin.web.auth.destroy_session]>->(
+        $result->{'token_hash'},
+        qw| hash |
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'previous token revocation failed ; rotation aborted'
+    };
+}
+
+<[base.logs]>->(
+    2,        'web.lease-renew : rotated lease token [ user=%s scope=%s ]',
+    $user_id, $scope
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf 'token [ shown once ] : %s  '
+        . 'user=%s expires_at_epoch=%d',
+    $result->{'token'},
+    $result->{'user_id'},
+    $result->{'expires_at_epoch'},
+};
+
+#,,.,,...,,.,,,,,,.,.,,,,,,,,,.,.,,,.,.,,,.,,,..,,...,...,,..,.,.,,,.,,,.,,,,,
+#22XNQMKFEE4OQTX4IBVVIKQLT2WTFKLRJLYHSVZXUDG5RQAZLHLZYZ4SJF6VFDZ4GXODNKCHICRCW
+#\\\|WEPHXVOYYLZDNE7GG6EP7CITUDI6GKKBHF3ZHVJ3EXXYS7WF7XH \ / AMOS7 \ YOURUM ::
+#\[7]DSAOQDQ7HHTFKVHEOSQLEES3AKPAZLMBF7CQX4UFT77GPKTM4UCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

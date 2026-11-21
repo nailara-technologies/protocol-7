@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = jobsite.lease.start
+# descr = start token renewal when both lease settings are configured
+
+my $issuer = <jobsite.cfg.lease.issuer> // '';
+my $user   = <jobsite.cfg.lease.user>   // '';
+return TRUE if not length $issuer and not length $user;
+
+if ( not length $issuer or $user !~ m|^[\w.+-]+$| ) {
+    <[base.logs]>->( 0, 'jobsite.lease : incomplete lease configuration' );
+    return FALSE;
+}
+
+<jobsite.lease.state>       //= {};
+<jobsite.lease.retry_state> //= {};
+<jobsite.lease.in_progress> = FALSE;
+<jobsite.lease.warned> //= FALSE;
+return <[jobsite.lease.schedule]>->( qw| retry |, TRUE );
+
+#,,..,,,.,,,,,,..,,.,,,..,..,,...,.,.,.,.,.,.,..,,...,...,,,.,,.,,,..,.,,,.,,,
+#KME3WHNY5IQAJAIQJEGDIYQRXNQQ2CXL74WNIUZCVWXAOJYKQUAA4Z33J673BV5XSXOOWAXW3H4ZI
+#\\\|U6SXTTGUXK4OKQEG6VGNJYGV6PF3AYG44YKY453GKA7MYX3L5D4 \ / AMOS7 \ YOURUM ::
+#\[7]6HQMO7PN73KEE67EWIOF6VOOH3T4EN44AW6E7TNIOXG7GZZGKYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

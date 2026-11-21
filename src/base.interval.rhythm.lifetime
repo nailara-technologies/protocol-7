@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = base.interval.rhythm.lifetime
+# descr = delay at a configured fraction of a token lifetime
+# param = { type, state, reset, cfg, harmonize } -> seconds | undef
+
+my $ctx       = shift;
+my $state     = $ctx->{'state'};
+my $cfg       = $ctx->{'cfg'};
+my $harmonize = $ctx->{'harmonize'};
+
+my $ttl = $state->{'ttl_seconds'} // 0;
+return undef if $ttl !~ m|^\d+(?:\.\d+)?$| or $ttl <= 0;
+
+my $fraction = $cfg->{'lifetime_fraction'} // 0.667;
+return undef
+    if $fraction !~ m|^\d+(?:\.\d+)?$|
+    or $fraction <= 0
+    or $fraction >= 1;
+
+my $jitter = $cfg->{'jitter'} // 0.03;
+$jitter = 0.03 if $jitter !~ m|^\d+(?:\.\d+)?$| or $jitter > 0.2;
+my $harmonic
+    = defined $cfg->{'harmonic'}
+    ? <[base.cfg_bool]>->( $cfg->{'harmonic'} )
+    : TRUE;
+my $jitter_factor = 1;
+$jitter_factor += -$jitter + rand( 2 * $jitter ) if $jitter > 0;
+my $delay = $ttl * $fraction * $jitter_factor;
+return $harmonic ? $harmonize->($delay) : $delay;
+
+#,,.,,.,.,.,.,..,,,,,,.,,,,.,,,.,,,..,...,.,.,..,,...,...,,..,,,,,,.,,,..,.,.,
+#CFQDWM3ZSL6OEWOUCAJHUERPJFIXPHNLVNBSINUQFEMPHR2DS2JR5QBDNZAPNAQHPCYLYSAH3OBMI
+#\\\|ZMR42NNACD3VBWXE6BEAQIJ3UGYAK4WSOUILQZNDJCEW32NAN3H \ / AMOS7 \ YOURUM ::
+#\[7]D5VGOBBLBKEE6D4RD2VURO72X3ILUOX6L6ZAMYHWAEU36XUFPGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

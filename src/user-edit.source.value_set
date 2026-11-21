@@ -8,12 +8,21 @@
 ## for why the send lives here rather than in the form engine.  users.
 ## cmd.value-set splits '<record> <json>' with an /s-flagged (.*) capture, so
 ## the pretty-printed multi-line json survives the line-based wire only
-## because form.submit flattens it first -- that flattening stays in the
-## caller, on the engine side of the table
+## because form.submit flattens it first ; the display-key filter below
+## flattens it again after re-encoding
 
 my ( $record_name, $json_fields, $reply_handler ) = @ARG;
 
 my $cube_sid = <form.cube_sid> // return FALSE;
+
+## group_memberships is a read-only view resolved from the group records,
+## never user-record content ; drop it even if a caller submits it directly
+my $fields = <[format.json.decode]>->($json_fields);
+delete $fields->{'group_memberships'} if ref $fields eq qw| HASH |;
+if ( ref $fields eq qw| HASH | ) {
+    $json_fields = <[format.json.encode]>->($fields);
+    $json_fields =~ s|\n\s*||g;
+}
 
 return <[protocol-7.command.send.local]>->(
     {   qw| command |   => sprintf( '%d.users.value-set', $cube_sid ),
@@ -23,8 +32,8 @@ return <[protocol-7.command.send.local]>->(
     }
 );
 
-#,,..,,,,,.,,,.,,,,..,..,,.,,,.,,,.,,,.,,,..,,..,,...,...,..,,..,,.,.,...,,,,,
-#RMQZKYFAJMH3RRY5UFNZPCKLJEFBY24IUFEPS6WBVROQFCAMBPLBXGANTQ3UK3SPIYV426WWLSEXA
-#\\\|ERH4DCFOYM4A4KPOHXZGLS3OGBNVMNFM657MXGLX2MKDC5VZE3Y \ / AMOS7 \ YOURUM ::
-#\[7]BASGSDPUIRFKYAMTSLZCXWQXE375CF464UMFMMFZ5YL632KGEOCY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,..,,,,,.,,,...,,.,,,.,,,,,,,,.,..,,...,...,,,.,,,,,,.,,...,,.,,
+#RKOKFZP2REEEQAMTB7Q6JVYKA5ODWTCZCXRTNR7M4OWCLXZM6N6UU6KUEZIWLQMK27LPQ6RJ752IK
+#\\\|PKSIJSECYKLZIU3QM22UMD4QDZ6H52B2P5W3ZQDWG5MJIDKOJTD \ / AMOS7 \ YOURUM ::
+#\[7]EPBT55KN3UEIXTOCQRIS47BZ7N3NRIZ2CBWYW7OBBGRWGL2Y5MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

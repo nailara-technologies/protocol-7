@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = jobsite.lease.schedule
+# param = renew | retry [ reset ]
+# descr = arm the lease timer through the shared interval helper
+
+my ( $kind, $reset ) = @ARG;
+return FALSE if ( $kind // '' ) !~ m{^(?:renew|retry)$};
+
+my $type
+    = $kind eq qw| renew |
+    ? qw| jobsite-lease-renew |
+    : qw| jobsite-lease-retry |;
+my $state
+    = $kind eq qw| renew |
+    ? ( <jobsite.lease.state> //= {} )
+    : ( <jobsite.lease.retry_state> //= {} );
+
+if ( $kind eq qw| renew | ) {
+    my $expires = <jobsite.lease.expires_at_epoch> // 0;
+    $state->{'ttl_seconds'} = <jobsite.lease.lifetime> // 0;
+    return <[jobsite.lease.failed]>->(qw| no-lifetime |)
+        if $expires <= time
+        or $state->{'ttl_seconds'} <= 0;
+}
+
+my $delay = <[base.interval.next]>->(
+    {   'type'  => $type,
+        'state' => $state,
+        'reset' => $reset ? TRUE : FALSE,
+    }
+);
+if ( not defined $delay or $delay <= 0 ) {
+    <[base.logs]>->( 0, 'jobsite.lease : interval helper returned no delay' );
+    return FALSE;
+}
+
+<jobsite.lease.timer_pending> = TRUE;
+<[event.add_timer]>->(
+    {   'after'   => $delay,
+        'repeat'  => FALSE,
+        'handler' => qw| jobsite.lease.renew |,
+    }
+);
+return TRUE;
+
+#,,,,,,,,,,..,,,.,,,.,,,,,.,.,,,,,..,,...,.,.,..,,...,...,...,...,,,.,,..,.,.,
+#BIRGGSXRMDLRVFGZQT6QPK7E533AE4F2ROEIAIQ6AVLTWCL53HQUAYZHUGSJIW3BANA5T34J57HWA
+#\\\|WFXOKHIKEPGQDLDQFPSQFJBFNW3VFUGJ3DWGMPP3LZVPBTYLHJC \ / AMOS7 \ YOURUM ::
+#\[7]JPYMTGNIPIT2XMWGSZUBHUOJBK5IUUANA6EEPG7XF6VMQLY2BSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

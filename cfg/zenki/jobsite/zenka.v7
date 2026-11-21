@@ -97,6 +97,18 @@ jobsite.cfg.deleted_keep_epochs = 2  ## plain deleted stage before purging
 jobsite.cfg.sync_url      = http://127.0.0.1/jobs-sync
 jobsite.cfg.sync_urls     =
 
+## optional token lease : issuer is the route of the issuing web zenka.  ##
+## both settings enable renewal ; the static token above is the fallback ##
+## jobsite.cfg.lease.issuer = <web zenka route>                          ##
+## jobsite.cfg.lease.user   = <lease user>                               ##
+base.interval.cfg.type.jobsite-lease-renew.rhythm = lifetime
+base.interval.cfg.type.jobsite-lease-renew.lifetime_fraction = 0.667
+base.interval.cfg.type.jobsite-lease-renew.jitter = 0.03
+base.interval.cfg.type.jobsite-lease-retry.start = 2
+base.interval.cfg.type.jobsite-lease-retry.factor = 1.618
+base.interval.cfg.type.jobsite-lease-retry.cap = 377
+base.interval.cfg.type.jobsite-lease-retry.cap_jitter = 34
+
 ## replica mode [ set only in host-config ] : primary_url is the       ##
 ## primary's /jobs-sync url, using sync_tokens for its bearer token.   ##
 ## empty = own stock [ default ]. a replica only pulls jobs.json and   ##
@@ -154,8 +166,8 @@ modules.load = auth.client net protocol io.unix ui format.yaml jobsite \
 
 [zenka.loop]
 
-#,,.,,.,,,..,,..,,...,,,.,,..,,,,,.,.,,,,,...,..,,...,...,,,,,,,,,,..,,..,,..,
-#PMT3HFYI7MGEB325MOJ2A3Q3DJ5VRTRPRTCGESDYGPSBQC7VH2QFIE57ABLH6BHF6EIE4MMUR2VPG
-#\\\|7IRSR4XIIT6NCHR5GQQTTXO7XDCGAE52MY3UXDC3VKS632XPWVH \ / AMOS7 \ YOURUM ::
-#\[7]7TPAXRML6Z33H6OKMIIAYOQORMHAQTCBDB6CGEY5YD44LX5DVOBY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,,.,,,.,,,.,,,.,...,.,,,...,,,.,..,,...,...,.,.,..,,,.,,,,,,...,
+#ZX436DJS7RGTIQD5ONPZ2AEAZPLK24H3M4HC6ZVMIAQNGQPXH2YNQBSGGZJKBLNIHQ2ZOTIN4OSIW
+#\\\|RIM4KYBMTIURZMDQ4QBT7QW5P7O2GH7DTZ7FFJQFXBQEE6FA5W3 \ / AMOS7 \ YOURUM ::
+#\[7]HVDFHKUNYIPRGTHYGFBIIL7DE5MU3SVY6THEHZDLYU6DE2XFNQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

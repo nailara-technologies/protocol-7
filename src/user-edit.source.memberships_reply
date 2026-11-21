@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = user-edit.source.memberships_reply
+# descr = resolve both group namespaces before showing a user record
+# param = $info [ reply params carry the lookup state ]
+
+my ($info)        = @ARG;
+my $state         = $info->{'params'}         // {};
+my $record_name   = $state->{'record_name'}   // '';
+my $reply_handler = $state->{'reply_handler'} // return FALSE;
+
+my $finish = sub {
+    my $record_info = $state->{'record_info'} // return FALSE;
+    my ( $record, $yaml_error )
+        = <[format.yaml.load_str]>->( $record_info->{'data'} // '' );
+
+    if ( not defined $yaml_error and ref $record eq qw| HASH | ) {
+        $record->{'fields'} //= {};
+        $record->{'fields'}{'group_memberships'}
+            = [ <[base.sort]>->( $state->{'memberships'} // [] ) ];
+        $record_info->{'data'} = <[format.yaml.dump_str]>->($record);
+    }
+
+    return <[$reply_handler]>->($record_info);
+};
+
+my $send_groups = sub {
+    my ( $command, $args, $phase ) = @ARG;
+    return <[protocol-7.command.send.local]>->(
+        {   qw| command | =>
+                sprintf( '%d.users.%s', <form.cube_sid>, $command ),
+            qw| call_args | => { qw| args | => $args },
+            qw| reply |     => {
+                qw| handler | => qw| user-edit.source.memberships_reply |,
+                qw| params |  => { %{$state}, qw| phase | => $phase },
+            },
+        }
+    );
+};
+
+my $next_group;
+$next_group = sub {
+    my $queue = $state->{'queue'} // [];
+    return $finish->() if not $queue->@*;
+
+    my $qualified_name = shift( $queue->@* );
+    my ( $namespace, $group_name ) = split m|/|, $qualified_name, 2;
+    $state->{'queue'}         = $queue;
+    $state->{'current_group'} = $qualified_name;
+    my $sent = $send_groups->(
+        qw| group-get |,
+        sprintf( '%s %s', $group_name, $namespace ),
+        qw| group |
+    );
+    return $next_group->() if not $sent;
+    return $sent;
+};
+
+my $phase = $state->{'phase'} // qw| record |;
+
+if ( $phase eq qw| record | ) {
+    return <[$reply_handler]>->($info)
+        if uc( $info->{'cmd'} // '' ) ne qw| SIZE |;
+
+    $state->{'record_info'} = $info;
+    $state->{'memberships'} = [];
+    return $finish->()
+        if not $send_groups->( qw| group-list |, '', qw| list | );
+    return TRUE;
+}
+
+if ( $phase eq qw| list | ) {
+    $state->{'queue'} = [
+        grep {length}
+            split m|\n|,
+        uc( $info->{'cmd'} // '' ) eq qw| SIZE |
+        ? $info->{'data'} // ''
+        : ''
+    ];
+    return $next_group->();
+}
+
+if ( $phase eq qw| group | and uc( $info->{'cmd'} // '' ) eq qw| SIZE | ) {
+    my ( $group, $yaml_error )
+        = <[format.yaml.load_str]>->( $info->{'data'} // '' );
+    my $members
+        = ref $group eq qw| HASH |
+        ? $group->{'fields'}{'members'} // []
+        : [];
+
+    if ( ref $members eq qw| ARRAY |
+        and grep { defined $ARG and $ARG eq $record_name } $members->@* ) {
+        push $state->{'memberships'}->@*, $state->{'current_group'};
+    }
+
+    return $next_group->();
+}
+
+return $next_group->() if $phase eq qw| group |;
+return FALSE;
+
+#,,.,,,,,.,,,,,,,.,,,,,.,,,.,.,..,,,..,,,,.,,,..,,.,,,.,,,..,.,,,.,,,,..,,,,
+
+#,,,,,.,,,,.,,.,.,,,,,.,,,,,,,..,,.,,,,,,,.,.,..,,...,...,.,,,.,.,,,,,,,,,...,
+#HHOVZE2BFTWCS2QDFLTYXYHGIWKFCQLIR3NMYCG2OVRDTNIA7U24Z2XZGTLZW65JNYTI36V76PXLA
+#\\\|BQIQQ726OX4NHXZEPFEYH4UJFGKCRMN6K37ITG43OY7GEZJ5Z3P \ / AMOS7 \ YOURUM ::
+#\[7]LYQXMGFLMGU5CJBZ746A5ELH7235HCPNHKVDSDTC4KYBR572T2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

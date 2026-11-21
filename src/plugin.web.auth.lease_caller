@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = plugin.web.auth.lease_caller
+# param = <lease user>
+# descr = routed cube or direct caller with a lease grant, else undef
+# note  = callers applies to DIRECT connections only. routed calls accept
+#         cube after its access table check ; live-token proof is separate.
+
+my $lease_user = shift // '';
+return undef if $lease_user !~ m|^[\w.+-]+$|;
+
+my @client_sessions = grep {
+            defined $data{'session'}{$ARG}
+        and defined $data{'session'}{$ARG}{'mode'}
+        and $data{'session'}{$ARG}{'mode'} ne qw| server |
+} keys %{ $data{'session'} // {} };
+
+my $caller_user
+    = @client_sessions == 1
+    ? <[base.session.user]>->( $client_sessions[0] )
+    : '';
+
+return $caller_user if $caller_user eq qw| cube |;
+
+my $grant = $data{'web'}{'cfg'}{'lease'}{$lease_user} // {};
+$grant = {} if ref $grant ne qw| HASH |;
+my @callers = split m|[ \t]+|, $grant->{'callers'} // '';
+return $caller_user
+    if length $caller_user
+    and grep { $ARG eq $caller_user } @callers;
+
+<[base.logs]>->(
+    1,
+    'web.lease-renew : refused [ caller=%s lease_user=%s ]',
+    length $caller_user ? $caller_user : '(unknown)', $lease_user
+);
+return undef;
+
+#,,.,,..,,,,,,,.,,.,.,,.,,,.,,,.,,..,,,..,,.,,..,,...,...,,.,,.,,,,..,,.,,.,.,
+#4G2REUZAOFPTZLDDXK2DYDFEL5YVR3NKYNSHLOEZ7TU3VP7YRTCLPOKUGKJPC6375ICRDTCHVZ7XU
+#\\\|GNKARK66XZTM23NAYFVER4Z6LMK4RFWSPYF3CCIDXKUGH2M5VGB \ / AMOS7 \ YOURUM ::
+#\[7]V55WTKHXCPX6FDFKL6AVBZNS5GWVGQBPJBTYYU6UUZJFXNG55QBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
