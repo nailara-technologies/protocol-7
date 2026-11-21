@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = screen.setup.dpi.report
+# descr = format the dpi value and independent consumer statuses
+# param = { value, results, dry_run } -> text
+
+my $args  = shift // {};
+my @lines = sprintf 'desktop.dpi = %d%s', $args->{'value'},
+    $args->{'dry_run'} ? ' [dry-run]' : '';
+push @lines, map {"$_ : $args->{'results'}{$_}"} qw| xrdb gtk tint2 openbox |;
+return join "\n", @lines;
+
+#,,..,,,.,,.,,..,,...,,..,.,,,.,,,...,..,,.,,,..,,...,...,.,.,...,,..,...,,..,
+#JLCRWZDSFKCKALFH6TQT4YDNRVA6TIU45LZFYVWBIDCNFY6IH2ZWGGZ62VZOU3JEBYHXJYWZFMFNG
+#\\\|IHSVWRSLGOHSDOC2Z7LKXZ7IKSICO5ZL5BODB2YD4NTRYYSAIA7 \ / AMOS7 \ YOURUM ::
+#\[7]SU2V6Q7J3KLP4653PMQOES2FOBXVJXXXH5WYXN2ZPV4JFZIZJ4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

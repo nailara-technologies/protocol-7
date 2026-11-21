@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = screen.setup.cmd.dpi-restore-original
+# descr = restore original consumer files and clear dpi
+
+my $reply_id = $call->{'reply_id'};
+my $result   = <[screen.setup.dpi.restore-original]>->(
+    {   'cb' => sub {
+            my $restored = shift;
+            my @lines    = map {"$_ : $restored->{'results'}{$_}"}
+                qw| gtk tint2 openbox settings |;
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                { 'mode' => qw| size |, 'data' => join( "\n", @lines ) }
+            ) if length $reply_id // '';
+        },
+    }
+);
+return $result if not length $reply_id // '';
+return { 'mode' => qw| deferred | };
+
+#,,..,..,,,,,,,..,...,..,,,,.,...,.,,,,,,,.,.,..,,...,...,...,,,.,,,,,,.,,.,,,
+#RJYR4MKMWRY6OMHWJVD6DL2K7A7NM2C6YV7E4ST5URELK35YWR5EKYN5MYR7PNQHYWYTKGZ3RRA6W
+#\\\|SJB45J3J6WFOO7VDQMJHIRZQNZO6IQWRJKBSQJC34YEG2O6M3K4 \ / AMOS7 \ YOURUM ::
+#\[7]KGJNXMP543HBLBGKTIHT77IUTM5VO2UB3B7X5666AM7TH6Y33SAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

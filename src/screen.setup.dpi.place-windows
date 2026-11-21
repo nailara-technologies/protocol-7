@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = screen.setup.dpi.place-windows
+# descr = rerun placement after confirmed dpi change
+
+<[base.zenki.resolve_primary_sid]>->(
+    'X-11',
+    sub {
+        my $sid = shift;
+        return if not defined $sid;
+        <[protocol-7.route-send]>->(
+            {   'command'   => "$sid.get-windows",
+                'call_args' => { 'args' => '' },
+                'reply'     =>
+                    { 'handler' => qw| screen.setup.dpi.handler.windows |, },
+            }
+        );
+    }
+);
+return TRUE;
+
+#,,.,,,,.,...,.,,,,..,.,,,,,,,.,.,,,.,,,.,,..,..,,...,...,...,,..,..,,.,.,,.,,
+#VW6UVPBCYEHSU3IKI3CZCOUVVKU35IVIVO5XEHXBTGDHLDKNRM7XVTIQ7PNZPJR47JFZBFQ33MHRG
+#\\\|RCODP6K2L2PQZ7HFJPO6GKZKEGDYASRD2E25IQN4YANK5TB3IHC \ / AMOS7 \ YOURUM ::
+#\[7]M5VOXX3Y7P3L46HCDPI6JXBLKLR75RQCJRGCNTQY5C6QDQHQRGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

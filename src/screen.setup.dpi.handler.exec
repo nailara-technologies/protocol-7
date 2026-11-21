@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = screen.setup.dpi.handler.exec
+# descr = collect one dpi consumer command result
+
+my $event = shift;
+my $job   = $event->w->data;
+my $fh    = $event->w->fd;
+my $bytes = <[base.s_read]>->( $fh, \$job->{'buffer'}, 4096 );
+return TRUE if $bytes > 0;
+
+$event->w->cancel;
+close $fh;
+<[base.waitpid]>->( $job->{'pid'} );
+my $status = $CHILD_ERROR;
+$job->{'cb'}->( $status == 0 ? TRUE : FALSE, $job->{'buffer'} )
+    if ref $job->{'cb'} eq qw| CODE |;
+return FALSE;
+
+#,,,.,.,.,,,.,,..,.,,,...,,..,,,,,,.,,,,,,...,..,,...,...,..,,..,,,.,,,..,,,.,
+#HL34OB5KJBNTNLSCKRQPWK2JUV4ZXS22WLYGBM4AETOSG3ZLTTRYYASFBTJVD6A5E2V3I63BBITG4
+#\\\|FN6XBHTGOFKW4BMKJNUHSPRVFGOO5QUFFWYLYBPE7ABQ2QNSRBP \ / AMOS7 \ YOURUM ::
+#\[7]NF2MHQOVPEQPVQI5BW2JANKYFSJZGVWCDX5XOTZ5ISNKJL5ICIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

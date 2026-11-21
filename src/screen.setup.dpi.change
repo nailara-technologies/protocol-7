@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = screen.setup.dpi.change
+# descr = preview dpi and arm the revert timer
+# param = { value, dry_run, cb } -> apply result or deferred
+
+my $args     = shift // {};
+my $value    = $args->{'value'};
+my $dry      = $args->{'dry_run'} // FALSE;
+my $settings = <[screen.setup.dpi.settings]>;
+
+if ($dry) {
+    return <[screen.setup.dpi.apply]>->(
+        {   'value'    => $value,
+            'settings' => $settings,
+            'dry_run'  => TRUE,
+            'cb'       => $args->{'cb'}
+        }
+    );
+}
+
+my $transaction = <screen.setup.dpi.transaction>;
+if ( not defined $transaction ) {
+    $transaction = {
+        'original'  => $settings->{'value'},
+        'persisted' => $settings->{'value'},
+    };
+    <screen.setup.dpi.transaction> = $transaction;
+}
+return undef if not <[screen.setup.dpi.persist]>->($value);
+
+$transaction->{'value'} = $value;
+<screen.setup.dpi.value> = $value;
+
+<screen.setup.dpi.revert_timer> //= AMOS7::Desktop::DPI::RevertTimer->new(
+    'next_delay' => sub {
+        return <[base.interval.next]>->(
+            {   'type'  => qw| dpi-revert |,
+                'state' => <screen.setup.dpi.interval_state> //= {},
+                'reset' => TRUE,
+            }
+        );
+    },
+    'schedule' => sub {
+        my ( $delay, $cb ) = @ARG;
+        return <[event.add_timer]>->( { 'after' => $delay, 'cb' => $cb } );
+    },
+    'on_revert' => sub {<[screen.setup.dpi.revert]>},
+);
+$transaction->{'delay'} = <screen.setup.dpi.revert_timer>->arm;
+
+return
+    <[screen.setup.dpi.apply]>->(
+    { 'value' => $value, 'settings' => $settings, 'cb' => $args->{'cb'} } );
+
+#,,,.,,,,,,.,,...,.,,,,.,,.,,,.,.,..,,...,,..,..,,...,...,...,.,,,.,.,,.,,...,
+#FPYMPPPCK2AN7NN7DKRLKVVGNYWZCLGEMZKR4KVUVZYNBCEZNBKXZTFAFVHJCXBOMLRXKH2CTZPHS
+#\\\|DGXK3RL5J4MY65ETSZMOPSA5LCPTMUAFQC6B6EUBXU5YTAFETHQ \ / AMOS7 \ YOURUM ::
+#\[7]VNHQXSQ5KZSVUT4AU7WSITCGHB2ZZASWOMF3Q27PW25JXB5EUEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

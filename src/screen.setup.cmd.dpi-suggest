@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = screen.setup.cmd.dpi-suggest
+# descr = suggest dpi from xrandr physical monitor dimensions
+
+if ( not defined <[file.which]>->('xrandr') ) {
+    return { 'mode' => qw| false |, 'data' => 'xrandr : not-installed' };
+}
+my $reply_id = $call->{'reply_id'};
+my $spawned  = <[screen.setup.dpi.exec]>->(
+    {   'argv' => [ 'xrandr', '--current' ],
+        'cb'   => sub {
+            my ( $ok, $output ) = @ARG;
+            my @lines;
+            if ($ok) {
+                my $monitors = AMOS7::Desktop::DPI::parse_xrandr($output);
+                @lines = map {
+                    sprintf '%s : %d dpi [shown only, not applied]',
+                        $_->{'name'}, $_->{'dpi'}
+                } @$monitors;
+            }
+            push @lines, 'no physical monitor dimensions found' if not @lines;
+            <[base.callback.cmd_reply]>->(
+                $reply_id,
+                {   'mode' => $ok && @lines ? qw| size | : qw| false |,
+                    'data' => join( "\n", @lines )
+                }
+            ) if length $reply_id // '';
+        },
+    }
+);
+return { 'mode' => qw| false |, 'data' => 'could not start xrandr' }
+    if not $spawned;
+return { 'mode' => qw| deferred | };
+
+#,,,,,,,,,,..,,,,,,..,..,,,,,,,.,,.,.,,.,,,.,,..,,...,...,..,,,..,..,,,,.,,,.,
+#6OL5LYBMRYM44MDVCVYMCKKAGWSVPWPSMZM3WOVDBCMDUCIQTOJJPP5VKYSIBBRAA2L4ZAAHYYPCY
+#\\\|6RJNKXQMLLBIEDEZTAUBAZAF566J6ES2JZEJX3JJKODBIVDHTMV \ / AMOS7 \ YOURUM ::
+#\[7]MCOZCASCZGRCRLRY2H2MCADJYSDQZFETV56YRDROY72F3NRVN2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

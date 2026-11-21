@@ -10,6 +10,9 @@ return undef if not defined $id;
 my $inst = delete <screen-setup.instances>->{$id};
 return undef if not defined $inst;
 
+<[screen.setup.dpi.revert]>
+    if $inst->{'dpi_control'} and defined <screen.setup.dpi.transaction>;
+
 my $timer = delete $inst->{'placement_timer'};
 eval { $timer->cancel } if defined $timer;
 
@@ -18,8 +21,8 @@ eval { $window->destroy } if defined $window;
 
 return TRUE;
 
-#,,..,,,.,.,,,,,.,.,,,,.,,.,,,...,.,,,.,,,.,.,..,,...,..,,,.,,.,,,,,.,...,..,,
-#RM5SKV4RT7Z7CD35LYXO43OHOQJV4J536JV6IWOOY7WDOE3JJQINMWJ732VI6WNNSQS2XPPRPBMDG
-#\\\|SIIY6BWB4UYCCKODFKDXSAHFXEUVN2N65RUOQ3BLK667KMPIJ7N \ / AMOS7 \ YOURUM ::
-#\[7]GJ7X32MAZ4SBPQECPYW7US6YKUQLZE44JIBDOHBXH2ZOH5DRLYBI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,.,.,..,,,.,,...,,,,,.,,,,,,,..,,...,...,...,,.,,.,.,..,,..,,
+#BZMVA3F2OAPA5RCSLYQGN57277QR5ZOTZ5KHSIJE4WXCVEJAGAYGCE7QR72F3LCUTDSUSS5JXI7DA
+#\\\|BQAR4U6KEO5NKDZYGV3NZRT6K2INPOZXRGTTRTTGUFORTK26S2K \ / AMOS7 \ YOURUM ::
+#\[7]JYM4IGROGXNWMD7VUKLBBFXW347C6AY6X436HTTSG5JFXDRHDSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

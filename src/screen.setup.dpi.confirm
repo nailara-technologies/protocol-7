@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = screen.setup.dpi.confirm
+# descr = keep dpi and rerun window placement
+
+my $transaction = delete <screen.setup.dpi.transaction>;
+my $value       = $transaction->{'value'} // <screen.setup.dpi.value>
+    // <[screen.setup.dpi.settings]>->{'value'};
+return { 'mode' => qw| false |, 'data' => 'no dpi change to confirm' }
+    if not defined $value;
+
+<screen.setup.dpi.revert_timer>->cancel
+    if defined <screen.setup.dpi.revert_timer>;
+delete <screen.setup.dpi.value>;
+<[screen.setup.dpi.place-windows]>;
+return { 'mode' => qw| true |, 'data' => "confirmed desktop.dpi = $value" };
+
+#,,,,,,..,.,.,,,.,,,,,,.,,..,,,,.,.,.,,..,.,,,..,,...,..,,,.,,..,,,..,.,,,..,,
+#JDB5XKVEFD67IZP4ADGK5W6DUZBNO6YD7XKZDFU2B3PPHU443OTG4KX47MUO5RUVMON4TXN5QC4CC
+#\\\|WVQTZYHOQNWDEU4E5663ZOCPXPFASLSMNNZBHYBOFBUVJMI2FCP \ / AMOS7 \ YOURUM ::
+#\[7]KIJ4LABNF2ISW65664CLJ5RIZDY5H4BNLCWXGQYOGOMZVDSNRIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

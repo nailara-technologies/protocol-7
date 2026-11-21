@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = screen.setup.dpi.persist
+# descr = write desktop.dpi into the trusted host settings layer
+# param = integer dpi, or undef to remove the host override
+
+my $value = shift;
+my $path  = <[base.host.config_dir]> . '/screen-setup.cfg';
+my $old   = -f $path ? <[file.slurp]>->($path) : undef;
+return undef if -f $path and not defined $old;
+
+my $old_text = defined $old ? $$old : '';
+my $new = AMOS7::Desktop::DPI::update_p7_config( $old_text, 'desktop.dpi',
+    $value );
+return TRUE if $new eq $old_text and ( not -f $path or -w $path );
+return <[file.put]>->( $path, $new );
+
+#,,.,,.,,,.,,,,,,,,..,,.,,,..,..,,.,,,,,.,...,..,,...,...,.,.,.,.,..,,.,.,,,.,
+#7BHYPL447GQXZJYC5EFR5KFI6ANJEYYCI4ZA7WTHSGGVNNZ2UXUVOA37RG73ZC7RDVHPJKD3J7LK6
+#\\\|2VZIK2UFFS6UTMLPLXCWRQQ5HLBHM5IJFZQTLNTSH24IKUMPWRM \ / AMOS7 \ YOURUM ::
+#\[7]4UAVTNBKBEGN7PT2CQAMYA5C4MT55NV4GGQDDAAO4IN2WQT24GAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

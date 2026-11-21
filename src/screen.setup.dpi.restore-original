@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = screen.setup.dpi.restore-original
+# descr = restore consumer originals and clear host dpi
+# param = { settings, cb } -> result or deferred
+
+my $args     = shift               // {};
+my $settings = $args->{'settings'} // <[screen.setup.dpi.settings]>;
+my $home     = <[base.get_homedir]>;
+my %paths    = (
+    'gtk' => $settings->{'gtk_settings'}
+        // "$home/.config/gtk-3.0/settings.ini",
+    'tint2'   => $settings->{'tint2rc'}    // "$home/.config/tint2/tint2rc",
+    'openbox' => $settings->{'openbox_rc'} // <system.conf_path>
+        . '/zenki/openbox/openbox.'
+        . ( <openbox.config_name> // 'minimal' ) . '.xml',
+);
+my %results;
+my $pending = 0;
+my $done    = FALSE;
+my $finish  = sub {
+    return if $pending or $done;
+    $done = TRUE;
+    my $result = { 'results' => \%results };
+    $args->{'cb'}->($result) if ref $args->{'cb'} eq qw| CODE |;
+    return $result;
+};
+my $reload = sub {
+    my ( $name, $bin, $argv ) = @ARG;
+    if ( not defined <[file.which]>->($bin) ) {
+        $results{$name} = qw| not-installed |;
+        return;
+    }
+    $pending++;
+    my $spawned = <[screen.setup.dpi.exec]>->(
+        {   'argv' => $argv,
+            'cb'   => sub {
+                my $ok = shift;
+                $results{$name} = $ok ? qw| changed | : qw| failed |;
+                $pending--;
+                $finish->();
+            },
+        }
+    );
+    if ( not $spawned ) {
+        $results{$name} = qw| failed |;
+        $pending--;
+        $finish->();
+    }
+};
+
+<screen.setup.dpi.revert_timer>->cancel
+    if defined <screen.setup.dpi.revert_timer>;
+delete <screen.setup.dpi.transaction>;
+delete <screen.setup.dpi.value>;
+delete $ENV{'GDK_DPI_SCALE'};
+
+for my $name ( keys %paths ) {
+    $results{$name} = AMOS7::Desktop::DPI::restore_consumer( $paths{$name} );
+}
+$results{'settings'}
+    = <[screen.setup.dpi.persist]>->(undef) ? qw| changed | : qw| failed |;
+
+$reload->( 'tint2', 'tint2', [ 'pkill', '-USR1', '-x', 'tint2' ] )
+    if $results{'tint2'} eq qw| changed |;
+$reload->( 'openbox', 'openbox', [ 'openbox', '--reconfigure' ] )
+    if $results{'openbox'} eq qw| changed |;
+return $finish->();
+
+#,,,,,,.,,,,.,.,.,.,.,,,.,.,,,.,,,.,,,.,,,.,.,..,,...,...,,,.,..,,...,.,,,,.,,
+#X6D52AKH5KQFMGOAKZ3XNNYQ5GICM2USTLT6UDMKGPL5CAXRJZETU2TLDBXA2N3U5JZTDIPJ3755I
+#\\\|XJQ36FKAN3T4BUDWBOBDMA5RU6A2VLANNSUXOLSLY4DHKMOG44E \ / AMOS7 \ YOURUM ::
+#\[7]MOHFPX7YPSSYFGL2AR6W6SOOSEJDYHTIC2TDB6L24BH6KOUDAQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

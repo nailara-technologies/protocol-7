@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = screen.setup.dpi.settings
+# descr = read layered desktop dpi and consumer path settings
+
+my $reader = AMOS7::Config::Reader->read(
+    'desktop',    ## its own file : not loaded into every zenka ##
+    {   'root'    => <system.root_path>,
+        'zenka'   => qw| screen-setup |,
+        'etc_dir' => ( <system.path.zenka-dirs> // {} )->{'etc_P7'}
+            // '/etc/protocol-7',
+        'zenka_user' => <system.amos-zenka-user> // 'protocol-7',
+    }
+);
+
+my $value = $reader->get('desktop.dpi');
+$value = undef if defined $value and $value !~ m|^\d+$|;
+
+return {
+    'value' => $value,
+    ## the reference divides every size : only a plain value in the dpi ##
+    ## range counts, anything else [ 0, text ] falls back to 96         ##
+    'reference' => do {
+        my $ref = $reader->get('desktop.dpi_reference') // '';
+        ( $ref =~ m|^\d+$| and $ref >= 72 and $ref <= 288 ) ? $ref : 96;
+    },
+    'reader'       => $reader,
+    'tint2rc'      => $reader->get('desktop.tint2rc'),
+    'openbox_rc'   => $reader->get('desktop.openbox_rc'),
+    'gtk_settings' => $reader->get('desktop.gtk_settings'),
+};
+
+#,,.,,,.,,...,,.,,,..,,..,.,,,,,.,..,,..,,,,.,..,,...,...,,..,.,.,.,.,,..,.,.,
+#FYVSJ6OTQITCWJVOWF32ETKP3M2ERMN4C5OC2FF4O4PPCQIUMSW6NJ5AWOIN5NNMKBI7JNFLQDTEA
+#\\\|UZZETPOBPMQW6SMV23PHUW75C3XT7Z2MC3DD3NMZYTRC2POY4BG \ / AMOS7 \ YOURUM ::
+#\[7]UOE7HOBCPNSFZ3OLWNCBWSC5VSVXXPFNDD4ZZKSU3DZN6NFXHWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

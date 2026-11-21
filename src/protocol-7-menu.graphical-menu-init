@@ -21,6 +21,10 @@ unless ( scalar keys %{$graphical_actions} ) {
         label   => 'OFF ( backlight )',
         command => 'p7c X-11.dpms_force_off',
     };
+    $graphical_actions->{display_dpi} = {
+        label   => 'display : font size / dpi',
+        command => 'p7c screen-setup.dpi-control',
+    };
     $graphical_actions->{exit} = {
         label    => 'exit p7 menu',
         callback => sub { Gtk3->main_quit },
@@ -54,8 +58,8 @@ $menu->show_all;
 
 return 0;
 
-#,,.,,.,.,,.,,.,.,,,.,,,.,,,,,.,,,,,.,,,,,...,.,.,...,...,.,.,.,.,,..,.,,,..,,
-#4LMZNNR3IGLVDPAPNFWSAEMSACKYBKYLHP4BFTKMHT4U6PSHDI2MMTUDYIGNNOVPVJGABKTIUL6HA
-#\\\|36SEVJTJ4ZDINDDL47WQ3XI2B6VDPKXXXNWSZ4HITBN2PZF6T2D \ / AMOS7 \ YOURUM ::
-#\[7]H5MYUE6UM3XCQDRPMXQHEOGMINK2EDOI4IUT5K5WZFP4EFTCEQDA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,.,,,..,,,,,,..,...,,,.,..,,..,,.,.,...,..,,..,,,..,.,.,,..,,,.,
+#C3O7LA2YVIGVDCWNT2BVP5JK6CIRWDZCVIXE26CBF64B2YX4H3QZF2X22OBMPQG4ZBATRGU565U4C
+#\\\|GOMMULVBNWOCNISAWQE2EPWQJN64QUAONMDJHTO5WBTE7D4CCQD \ / AMOS7 \ YOURUM ::
+#\[7]BFPNWM32ZHXQBMPY3KOCXRRAZP6P6OJ4RVK7CMMY664Y2KZEHABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

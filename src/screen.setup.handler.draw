@@ -55,8 +55,9 @@ my $gap     = 14;
 my $pad     = $border + $gap;
 my $inner_w = $w - 2 * $pad;
 my $inner_h = $h - 2 * $pad;
-my $bbox_w  = $model->{'width'}  || 1;
-my $bbox_h  = $model->{'height'} || 1;
+$inner_h -= 44 if $inst->{'dpi_control'};
+my $bbox_w = $model->{'width'}  || 1;
+my $bbox_h = $model->{'height'} || 1;
 
 my $scale   = $inner_w / $bbox_w;
 my $scale_y = $inner_h / $bbox_h;
@@ -206,10 +207,29 @@ $context->move_to( ( $w - $tie->{'width'} ) / 2 - $tie->{'x_bearing'},
     $border / 2 + $tie->{'height'} / 2 );
 $context->show_text($title);
 
+if ( $inst->{'dpi_control'} ) {
+    my $value = <screen.setup.dpi.value>
+        // <[screen.setup.dpi.settings]>->{'value'} // 96;
+    my $hint = sprintf
+        'dpi %d : up/down or +/- change : enter confirm : esc revert',
+        $value;
+    $hint .= ' : volume keys active'
+        if eval { Gtk3::Gdk::keyval_from_name('XF86AudioRaiseVolume') }
+        and eval { Gtk3::Gdk::keyval_from_name('XF86AudioLowerVolume') };
+    $context->set_source_rgba( 0.60, 0.72, 0.90, 0.95 );
+    $context->set_font_size(13);
+    my $hint_extents = $context->text_extents($hint);
+    $context->move_to(
+        ( $w - $hint_extents->{'width'} ) / 2 - $hint_extents->{'x_bearing'},
+        $h - $border - 8
+    );
+    $context->show_text($hint);
+}
+
 return TRUE;
 
-#,,.,,.,,,,.,,,.,,,.,,.,.,...,.,.,..,,,..,...,..,,...,...,..,,..,,...,,,,,...,
-#EX4NWIUWZ6KPUFFN2NZTL746ULS57KJWYI6HMMPY5BT632XCNMMDAJJPXMAZWZW7BCQJQJRRZGAP6
-#\\\|MSBHHNJFVBSPP56UL6Z3AMYBESBYD2DSUYQMYEHLK7WH7IU23FP \ / AMOS7 \ YOURUM ::
-#\[7]2ZAUOCK6YBYJ3PKCV4S2IZJVNXITLBY4RS5KC6AV7DXAYQTV6CCI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,,,.,,..,,..,...,,..,,,,,,..,..,,...,...,..,,.,.,.,,,.,,,.,.,
+#CIQ6N5247L6JXYENJ434HNA3K4IGL2AEWUWFYX4MUQRBC2VUAGN2EASHE7J6AOGCYDN2RFCRTZY26
+#\\\|3WTUUFMK5ZPYZHTDE7ZAXCMU23TRO2HPLVFPY6MGAZLUONT4XPL \ / AMOS7 \ YOURUM ::
+#\[7]YLWLJEFRKLAPHHQ4GPQ57M6YBLU67ESVXFNQYTAEOEOX3CQEWIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

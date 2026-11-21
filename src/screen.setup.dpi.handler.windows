@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = screen.setup.dpi.handler.windows
+# descr = pass each open window to the existing placement command
+
+my $reply   = shift            // {};
+my $windows = $reply->{'data'} // $reply;
+if ( ref $windows eq qw| HASH | ) {
+    $windows = $windows->{'windows'} // [];
+}
+return FALSE if ref $windows ne qw| ARRAY |;
+
+for my $window (@$windows) {
+    my $winid
+        = ref $window eq qw| HASH |
+        ? $window->{'winid'} // $window->{'id'}
+        : $window;
+    next if not defined $winid or $winid !~ m|^\d+$|;
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| window-place.place-for-window |,
+            'call_args' => { 'args' => "caller=desktop-dpi winid=$winid" },
+        }
+    );
+}
+return TRUE;
+
+#,,,,,.,,,,..,,,,,..,,.,.,..,,,,.,,,,,.,,,,,,,..,,...,...,.,,,..,,,,.,,..,.,,,
+#5G3ZB2WL7AZXOBQV2CDTZFENLWA3XVR5C3K45LEWNERL6JF6BB442K27FR5BPIJHNZMOQAJOA37A6
+#\\\|4SDEEFPYPXOWXHZXGOCQBNDPX3AQC675543NCJEQMDTBBFIDJD7 \ / AMOS7 \ YOURUM ::
+#\[7]Y3VJ4RFU3N3KTVFZSMAGF5KTZYIGWBK6IO4IXMM7FH4ZL6D66KDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

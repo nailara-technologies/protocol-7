@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = screen.setup.dpi.exec
+# descr = spawn one dpi consumer without blocking
+# param = { argv, input, cb } -> success
+
+my $args = shift           // {};
+my $argv = $args->{'argv'} // [];
+return FALSE if ref $argv ne qw| ARRAY | or not @$argv;
+
+my ( $pid, $in_fh, $out_fh );
+eval { $pid = open3( $in_fh, $out_fh, undef, @$argv ) };
+if ( not $pid ) {
+    <[base.logs]>->(
+        0, '[dpi.exec] spawn failed : %s',
+        <[base.str.eval_error]>
+    );
+    return FALSE;
+}
+
+if ( defined $args->{'input'} ) {
+    print {$in_fh} $args->{'input'};
+}
+close $in_fh;
+push <system.kill_list>->@*, $pid;
+
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => qw| screen.setup.dpi.handler.exec |,
+        'data'    => {
+            'pid'    => $pid,
+            'cb'     => $args->{'cb'},
+            'buffer' => '',
+        },
+    }
+);
+return TRUE;
+
+#,,..,.,,,,,.,.,.,...,.,.,.,,,.,,,,,.,.,.,,,,,..,,...,...,,.,,...,,.,,.,,,,,,,
+#WPIF3GMH4ECDE7MNS5KDYEURJHEFDWYMODJUNF4IJHZ6R3CNJRKLOQOZPUEPU5FAKIV54FKW3VB7K
+#\\\|EKMM6SFSQJDJAVXNXXEQZYFIQQXRRRJTTC7FPIVO7FYHZMW742M \ / AMOS7 \ YOURUM ::
+#\[7]D7RVCROIEOONK2BAZJXTTVPGTKR46EH5QGOVD6OPEXUN2TY3J2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = screen.setup.dpi.revert
+# descr = restore the value before the dpi preview
+
+my $transaction = delete <screen.setup.dpi.transaction>;
+return { 'mode' => qw| true |, 'data' => 'no dpi change to revert' }
+    if not defined $transaction;
+
+<screen.setup.dpi.revert_timer>->cancel
+    if defined <screen.setup.dpi.revert_timer>;
+
+my $value = $transaction->{'original'};
+<[screen.setup.dpi.persist]>->($value);
+delete <screen.setup.dpi.value>;
+
+## an unset original uses the neutral baseline to undo the visible preview ##
+$value //= 96;
+<[screen.setup.dpi.apply]>->( { 'value' => $value } );
+return { 'mode' => qw| true |, 'data' => "reverted desktop.dpi to $value" };
+
+#,,..,,..,.,.,,,.,,,,,...,..,,,..,,..,,,,,.,,,..,,...,.,.,..,,.,.,.,,,,.,,...,
+#NVWTSWTSS3ZCZUQ27AXXIVV2MGBC2VWOCXDJJ4AJGXNQAGTMBT4MJYYCGONVYKBHEKJ345MBYXEKI
+#\\\|IKEUBSIO7K45O53CMFWXDHVWNGQQY5NUSFQZKJYNG6LNMKRGOLU \ / AMOS7 \ YOURUM ::
+#\[7]CJNT7QJPXGHJWNWJWPRO52SMNLR2O43JEAXPALQN2AVJKHDAWOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

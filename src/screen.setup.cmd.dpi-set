@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = screen.setup.cmd.dpi-set
+# descr = preview absolute or relative dpi with automatic revert
+# param = <value|+n|-n> [-dry-run]
+
+my $args = $call->{'args'} // '';
+my $dry  = $args =~ s|\s*-dry-run\b||;
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+my $settings = <[screen.setup.dpi.settings]>;
+my $current  = <screen.setup.dpi.value> // $settings->{'value'} // 96;
+my ( $value, $error ) = AMOS7::Desktop::DPI::parse_value( $args, $current );
+return { 'mode' => qw| false |, 'data' => $error } if not defined $value;
+
+my $reply_id = $call->{'reply_id'};
+my $result   = <[screen.setup.dpi.change]>->(
+    {   'value'   => $value,
+        'dry_run' => $dry,
+        'cb'      => $dry ? undef : sub {
+            my $applied = shift;
+            my $text    = <[screen.setup.dpi.report]>->($applied);
+            $text .= sprintf "\nrevert after %.3f s unless confirmed",
+                <screen.setup.dpi.transaction>->{'delay'}
+                if not $dry and defined <screen.setup.dpi.transaction>;
+            <[base.callback.cmd_reply]>->(
+                $reply_id, { 'mode' => qw| size |, 'data' => $text }
+            ) if length $reply_id // '';
+        },
+    }
+);
+return { 'mode' => qw| false |, 'data' => 'could not persist host dpi' }
+    if not defined $result;
+return {
+    'mode' => qw| size |,
+    'data' => <[screen.setup.dpi.report]>->($result)
+    }
+    if $dry;
+return { 'mode' => qw| deferred | };
+
+#,,,,,,,.,,,,,.,,,,,.,,.,,,,,,.,,,,,,,,.,,.,.,..,,...,...,.,.,.,,,.,,,,.,,,,.,
+#4O5M6UGUUAUBU4D2LZUDS6TRAYAVISVBMMTFFPQC47FG54GQNR4LWLSC4BYTHCQIIMFTFQTW5M2GY
+#\\\|ESN4Z45IMNZ2ATNYMML7P2ZBOBY7JHDTF6R4EPB5XQGDWINOCTW \ / AMOS7 \ YOURUM ::
+#\[7]K7JALQ4QFC2ET6FV6CB2KDECX7LRYARE6VCFUIMLDBBNC7UVDEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

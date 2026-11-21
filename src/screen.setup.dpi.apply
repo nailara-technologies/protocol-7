@@ -1,0 +1,173 @@
+## [:< ##
+
+# name  = screen.setup.dpi.apply
+# descr = apply dpi to xrdb gtk tint2 and openbox
+# param = { value, settings, dry_run, cb } -> result or deferred
+
+my $args      = shift // {};
+my $value     = $args->{'value'};
+my $settings  = $args->{'settings'}      // <[screen.setup.dpi.settings]>;
+my $dry_run   = $args->{'dry_run'}       // FALSE;
+my $reference = $settings->{'reference'} // 96;
+return undef if $value !~ m|^\d+$| or $value < 72 or $value > 288;
+return undef if $reference !~ m|^\d+(?:\.\d+)?$| or $reference <= 0;
+
+my %results = map { $ARG => qw| ok | } qw| xrdb gtk tint2 openbox |;
+my $pending = 0;
+my $done    = FALSE;
+my $finish  = sub {
+    return if $pending or $done;
+    $done = TRUE;
+    my $result = {
+        'value'   => $value,
+        'results' => \%results,
+        'dry_run' => $dry_run,
+    };
+    $args->{'cb'}->($result) if ref $args->{'cb'} eq qw| CODE |;
+    return $result;
+};
+my $complete = sub {
+    $pending--;
+    $finish->();
+};
+my $run = sub {
+    my ( $name, $bin, $argv, $input ) = @ARG;
+    if ( not defined <[file.which]>->($bin) ) {
+        $results{$name} = qw| not-installed |;
+        return;
+    }
+    $pending++;
+    $results{$name} = qw| set |;
+    my $spawned = <[screen.setup.dpi.exec]>->(
+        {   'argv'  => $argv,
+            'input' => $input,
+            'cb'    => sub {
+                my ( $ok, $output ) = @ARG;
+                $results{$name} = $ok ? qw| changed | : qw| failed |;
+                <[base.logs]>->( 0, '[dpi.%s] %s', $name, $output )
+                    if not $ok and length $output // '';
+                $complete->();
+            },
+        }
+    );
+    if ( not $spawned ) {
+        $results{$name} = qw| failed |;
+        $complete->();
+    }
+};
+my $write_consumer = sub {
+    my ( $name, $path, $new_text, $changed ) = @ARG;
+    if ( not $changed ) {
+        $results{$name} = qw| ok |;
+        return FALSE;
+    }
+    if ($dry_run) {
+        $results{$name} = qw| changed |;
+        return FALSE;
+    }
+    if ( not AMOS7::Desktop::DPI::consumer_write( $path, $new_text ) ) {
+        $results{$name} = qw| failed |;
+        return FALSE;
+    }
+    $results{$name} = qw| changed |;
+    return TRUE;
+};
+my $read_original = sub {
+    my $path = shift;
+    my $original_path
+        = -f "$path.p7-dpi-original" ? "$path.p7-dpi-original" : $path;
+    return \'' if not -f $original_path;
+    return <[file.slurp]>->($original_path);
+};
+
+$ENV{'DISPLAY'} = <x11.display> // $ENV{'DISPLAY'} // '';
+
+if ($dry_run) {
+    $results{'xrdb'}
+        = defined <[file.which]>->('xrdb')
+        ? qw| changed |
+        : qw| not-installed |;
+} else {
+    $run->( 'xrdb', 'xrdb', [ 'xrdb', '-merge' ], "Xft.dpi: $value\n" );
+}
+
+my $home     = <[base.get_homedir]>;
+my $gtk_path = $settings->{'gtk_settings'}
+    // "$home/.config/gtk-3.0/settings.ini";
+my $gtk_old      = -f $gtk_path ? <[file.slurp]>->($gtk_path) : undef;
+my $gtk_original = $read_original->($gtk_path);
+if ( ( -f $gtk_path and not defined $gtk_old ) or not defined $gtk_original )
+{
+    $results{'gtk'} = qw| failed |;
+} else {
+    my $gtk_text = defined $gtk_old ? $$gtk_old : '';
+    my ( $gtk_new, $gtk_changed )
+        = AMOS7::Desktop::DPI::gtk_settings_ini( $gtk_text, $$gtk_original,
+        $value, $reference );
+    if ($gtk_changed) {
+        <[file.make_path]>->("$home/.config/gtk-3.0")
+            if not -d "$home/.config/gtk-3.0" and not $dry_run;
+        $write_consumer->( 'gtk', $gtk_path, $gtk_new, $gtk_changed );
+    }
+    if ( $results{'gtk'} ne qw| failed | ) {
+        my $scale = sprintf '%.6f', $value / 96;
+        $scale =~ s|0+$||;
+        $scale =~ s|\.$||;
+        $ENV{'GDK_DPI_SCALE'} = $scale if not $dry_run;
+    }
+}
+
+my $tint_path = $settings->{'tint2rc'} // "$home/.config/tint2/tint2rc";
+if ( not -f $tint_path ) {
+    $results{'tint2'} = qw| failed |;
+} else {
+    my $old      = <[file.slurp]>->($tint_path);
+    my $original = $read_original->($tint_path);
+    if ( not defined $old or not defined $original ) {
+        $results{'tint2'} = qw| failed |;
+    } else {
+        my ( $new, $changed )
+            = AMOS7::Desktop::DPI::tint2rc( $$old, $$original, $value,
+            $reference );
+        my $reload = $write_consumer->( 'tint2', $tint_path, $new, $changed );
+        $results{'tint2'} = qw| not-installed |
+            if $dry_run
+            and $changed
+            and not defined <[file.which]>->('tint2');
+        $run->( 'tint2', 'tint2', [ 'pkill', '-USR1', '-x', 'tint2' ] )
+            if $reload;
+    }
+}
+
+my $openbox_path = $settings->{'openbox_rc'} // <system.conf_path>
+    . '/zenki/openbox/openbox.'
+    . ( <openbox.config_name> // 'minimal' ) . '.xml';
+if ( not -f $openbox_path ) {
+    $results{'openbox'} = qw| failed |;
+} else {
+    my $old      = <[file.slurp]>->($openbox_path);
+    my $original = $read_original->($openbox_path);
+    if ( not defined $old or not defined $original ) {
+        $results{'openbox'} = qw| failed |;
+    } else {
+        my ( $new, $changed )
+            = AMOS7::Desktop::DPI::openbox_rc( $$old, $$original, $value,
+            $reference );
+        my $reload
+            = $write_consumer->( 'openbox', $openbox_path, $new, $changed );
+        $results{'openbox'} = qw| not-installed |
+            if $dry_run
+            and $changed
+            and not defined <[file.which]>->('openbox');
+        $run->( 'openbox', 'openbox', [ 'openbox', '--reconfigure' ] )
+            if $reload;
+    }
+}
+
+return $finish->();
+
+#,,.,,.,,,,,.,,.,,,,.,.,.,.,.,,..,,.,,,,,,.,,,..,,...,...,,.,,,.,,,,,,.,,,,..,
+#HMWLWLZJPFDX2VCLAO6IZZ7OK3ILYDG5HNQ7QVXNO5EGZ5GFRZXCA7IWZ75WAZBB7IMA7JGFM4HFU
+#\\\|TSO2BE7ODTRT3CN7UUENZCHKFYQQA6O6IPHL7GUNGNTGH2SRMAR \ / AMOS7 \ YOURUM ::
+#\[7]PCFJTOULO3MJVHIBLE2HF3ROHKK62FHKY7PJXFQQR5WDNTJLHABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,6 +12,60 @@ my $keyval = $event->keyval;
 my $KEY_ESC = eval { Gtk3::Gdk::KEY_Escape() } // 65307;
 my $KEY_RET = eval { Gtk3::Gdk::KEY_Return() } // 65293;
 my $KEY_Q   = eval { Gtk3::Gdk::KEY_q() }      // 113;
+my $inst    = <screen.setup.instances>->{$id};
+
+if ( $inst->{'dpi_control'} ) {
+    my $up       = eval { Gtk3::Gdk::KEY_Up() }          // 65362;
+    my $down     = eval { Gtk3::Gdk::KEY_Down() }        // 65364;
+    my $plus     = eval { Gtk3::Gdk::KEY_plus() }        // 43;
+    my $minus    = eval { Gtk3::Gdk::KEY_minus() }       // 45;
+    my $equal    = eval { Gtk3::Gdk::KEY_equal() }       // 61;
+    my $add      = eval { Gtk3::Gdk::KEY_KP_Add() }      // 65451;
+    my $subtract = eval { Gtk3::Gdk::KEY_KP_Subtract() } // 65453;
+    my $raise = eval { Gtk3::Gdk::keyval_from_name('XF86AudioRaiseVolume') };
+    my $lower = eval { Gtk3::Gdk::keyval_from_name('XF86AudioLowerVolume') };
+
+    if ( $keyval == $KEY_ESC ) {
+        <[screen.setup.dpi.revert]>;
+        <[screen.setup.close]>->($id);
+        return TRUE;
+    }
+    if ( $keyval == $KEY_RET ) {
+        <[screen.setup.dpi.confirm]>;
+        <[screen.setup.close]>->($id);
+        return TRUE;
+    }
+
+    my $delta
+        = $keyval == $up
+        || $keyval == $plus
+        || $keyval == $equal
+        || $keyval == $add || defined $raise && $keyval == $raise ? 6
+        : $keyval == $down
+        || $keyval == $minus
+        || $keyval == $subtract
+        || defined $lower && $keyval == $lower ? -6
+        : 0;
+    if ($delta) {
+        my $current = <screen.setup.dpi.value>
+            // <[screen.setup.dpi.settings]>->{'value'} // 96;
+        my ( $value, $error )
+            = AMOS7::Desktop::DPI::parse_value( sprintf( '%+d', $delta ),
+            $current );
+        if ( defined $value ) {
+            <[screen.setup.dpi.change]>->(
+                {   'value' => $value,
+                    'cb'    => sub {
+                        my $live = <screen.setup.instances>->{$id};
+                        $live->{'window'}->queue_draw
+                            if defined $live and defined $live->{'window'};
+                    },
+                }
+            );
+        }
+        return TRUE;
+    }
+}
 
 if ( $keyval == $KEY_ESC or $keyval == $KEY_RET or $keyval == $KEY_Q ) {
     <[screen.setup.close]>->($id);
@@ -20,8 +74,8 @@ if ( $keyval == $KEY_ESC or $keyval == $KEY_RET or $keyval == $KEY_Q ) {
 
 return FALSE;
 
-#,,.,,,,,,.,,,...,,.,,,,,,,,.,.,.,.,,,...,,.,,..,,...,...,.,.,..,,,..,..,,.,.,
-#IVCGV6JBQF3SBTTPM7DJA55E56W5FD4SPUAOHPASCHRIW4VYU5Y6CLEV7A2BBEKW7KZOGDJZ6HZYS
-#\\\|2WUAKO5FZ24FZ2QNXLUCGIFYDMM37RJJMOXIDPE2HB327CJ5HU7 \ / AMOS7 \ YOURUM ::
-#\[7]6HKOP6VNTKN35RNL3FEGRTMDZE3XU26KL7K3WKXKPIS5SUUDSKAA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,.,...,,..,...,.,,,.,.,...,,.,,..,,...,...,.,.,.,,,.,,,,.,,,.,,
+#O7RQ4LQKJUJA5JHXPPPHZIDFKUO6HXOKNJ4JGZCROO4C63B7NKRKJVUWHESRR2ISHM3PERLZDHKN4
+#\\\|FSAVWPJIR6RJOMQ73WIAHW634HBRZ4V56H7FRGLDYBWZPOAIOSL \ / AMOS7 \ YOURUM ::
+#\[7]6ZY7PURCVC74MV4HUSEB6P5Y3KFVCUPGJGUVY47HHVKRI6OCJ2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
