@@ -15,6 +15,23 @@ update.notify_zenki ] and mpv.get_playlist.
 - long ttls [ one year ] exist only because renewal is manual
 - media on one lan host cannot be played by the mpv zenka of another
 
+## stage 0 : groups in the users zenka [ owner 2026-11-21 ]
+
+the existing split stays : the users zenka holds the per-host records [ value-get \
+value-set, remote-get \ remote-fetch for peers ], user-edit is the form for ONE record,
+host-edit the host records. groups are missing :
+
+- the users zenka owns group records next to the user records : name, members, scopes,
+  ttl ceilings. commands group-create \ group-add \ group-remove \ group-list \ group-get,
+  and remote-fetch for groups as for users [ exchange between hosts ]
+- host-edit defines a host's user bucket : one field on the host record names the
+  group[s] whose users exist there ; installing a host creates exactly those users
+  [ the same path that provisions 'root' through users.record.default_fields ]
+- user-edit edits one user's details and shows its memberships ; membership changes go
+  through the users commands, so rights are checked in one place
+- lease users and scopes [ stage 1 ] hang off groups : 'may get jobs-sync tokens' is a
+  group property, not a special case inside a consumer
+
 ## stage 1 : token leases [ jobsite first ]
 
 1. a lease grant : a consuming zenka may call `web.auth-issue` on the issuing host over the
@@ -77,8 +94,8 @@ consumer uses, shaped so that outside software can speak to it without protocol-
 - a grant is per lease user and ttl ceiling, fail closed when absent
 - no host names, addresses or personal data in repo files
 
-#,,,,,..,,...,.,,,..,,.,,,.,,,,,,,,,,,.,,,..,,..,,...,...,...,...,.,,,...,,,.,
-#A3RBZLSLGLNF7LR2EYRZZFC3AC5TDG4OLYWVCDKFHGXESLKE5RUAHPYI5CQAANF6XIQRF2TJDXQHU
-#\\\|XWT65AL6ESUBZ6YWMHCQFCK6CCZYNUGVECHKJH7VFGNP2R2XL3D \ / AMOS7 \ YOURUM ::
-#\[7]YQHQUOWXA4IZWUBN5VU37R6DI2WGHHWGGEWLDMPBJ3IVC2NXLGDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,,,,,.,.,.,.,,,,,...,,.,,,,,,..,,...,...,...,,..,,..,,..,,..,
+#3JTBEU4CJPCMVIDVR45IU32FURO4AUIZSS2ULM3XFGNNVEFDYMUPFM2KCPXZRFZEXTXEMWNKKKARW
+#\\\|LIOUJ6LNYYK45S6HSWOLXZD7RQCDI6XTODUUQWXP44PXDYCGWU7 \ / AMOS7 \ YOURUM ::
+#\[7]7TKJJNHEZZEFFKNAGFII5YKI5FU2EWMD6FHPB4ZLKO7UOJOBHCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
