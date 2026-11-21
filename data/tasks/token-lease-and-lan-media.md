@@ -28,11 +28,20 @@ host-edit the host records. groups are missing :
   ui.caller.security-level ], web roles per relayed command in access.web with the
   user -> role map in host config and the approval ladder [ click, pin, passphrase,
   second passphrase -- data/md/design/WEB-UI-USER-LOGIN.md ]
-- what is missing is MANAGEMENT of them : the users zenka gets group commands
-  [ group-list \ group-get \ group-add \ group-remove, later group-create ] that edit the
-  same group definitions cube resolves -- one source, no parallel identity mechanism.
-  per group : members, security level, scopes, ttl ceilings ; remote-fetch for groups
-  as for users [ exchange between hosts ]
+- what is missing is MANAGEMENT, on one shared base with two namespaces
+  [ owner 2026-11-21 ] :
+  - the base : one generic group record [ name, members, security level, scopes, ttl
+    ceilings ] with one set of commands in the users zenka [ group-list \ group-get \
+    group-add \ group-remove, later group-create ], signed like user records, exchanged
+    between hosts by remote-fetch as users are
+  - namespace 'cube' : system principals [ zenki, host users ], single-member as
+    implemented today, resolved by cube for every command check -- unchanged in
+    behaviour, only managed through the base
+  - namespace 'web' : people and roles for web access [ access.web roles, lease users,
+    media shares ], multi-member, own levels
+  - no implicit crossing : a web group never grants cube rights by itself ; where a web
+    role needs a cube command an explicit mapping names it [ as access.web does today ].
+    web levels are capped below the cube admin level
 - the later key-based level source [ per-key level, maxed with the group level, see
   UI-SHOW-SECURITY-LEVELS.md ] is where lease tokens plug in : a lease carries a scope
   and at most its group's level
@@ -106,8 +115,8 @@ consumer uses, shaped so that outside software can speak to it without protocol-
 - a grant is per lease user and ttl ceiling, fail closed when absent
 - no host names, addresses or personal data in repo files
 
-#,,,.,,..,,.,,..,,.,.,,,.,,..,,..,,,,,,..,..,,..,,...,...,,.,,,.,,,..,,.,,,,,,
-#SYWINRLI2IUJIMXZLJ7GBFCB5QQE7OJUYRCBQDS3DVPQLQMSRAU3XF6NC72FFRFCEBTMHXXCM7KM6
-#\\\|MHUFYNZ5EMMKSUMW35B4G7BIHRCJJKFITEPFOKN46HSC4ZVQFI6 \ / AMOS7 \ YOURUM ::
-#\[7]RPYAFPPFFGANPPI2OP34PCA557BKOLNK25DJZM4I7XPDVMCET2AY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,.,,,,,.,,,..,,,,.,..,,,.,,,.,,..,,...,...,...,,,.,,..,,.,,,..,
+#YQDVIPLS73NYB7V47QBLKTUGC3JOFLFONYG27FVCPKM3JR4OPLL5466MCRR4KHDB62EDQZUJETYKE
+#\\\|H5JNYNIXLRZ2L27OFCCXHRAKCPX3Q2VTMQUZZ3Z3S7RIXL3KGL4 \ / AMOS7 \ YOURUM ::
+#\[7]5WCMYISU7PHUXS5MNBG5RLUQX4GSGZURSPTEQZBJREFI4VBRPQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
