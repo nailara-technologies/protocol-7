@@ -20,25 +20,25 @@ if ( not exists $keys{'C25519'}{$key_name}{'public'} ) {
 if ( not exists $keys{'C25519'}{$key_name}{'public'} ) {
     <[base.logs]>->( 1, '[%d] signed-file public key unavailable', $id );
     <[httpd.send_error_page]>->( $id, 500 );
-    return TRUE;
+    return 0;
 }
 
 pipe( my $result_r, my $result_w ) or do {
     <[base.logs]>->( 1, '[%d] signed-file pipe failed : %s', $id, $OS_ERROR );
     <[httpd.send_error_page]>->( $id, 500 );
-    return TRUE;
+    return 0;
 };
 binmode($result_r);
 binmode($result_w);
 
 my ( $body_fh, $body_path )
-    = <[file.temp]>->( qw| signed-body-XXXXXXXXXXXXX |, undef, TRUE );
+    = <[file.temp]>->( qw| signed-body-XXXXXXXXXXXXX /var/tmp |, TRUE );
 if ( not defined $body_fh ) {
     close $result_r;
     close $result_w;
     <[base.logs]>->( 1, '[%d] signed-file temporary file failed', $id );
     <[httpd.send_error_page]>->( $id, 500 );
-    return TRUE;
+    return 0;
 }
 close $body_fh;
 
@@ -49,7 +49,7 @@ if ( not defined $pid ) {
     unlink $body_path;
     <[base.logs]>->( 1, '[%d] signed-file fork failed : %s', $id, $OS_ERROR );
     <[httpd.send_error_page]>->( $id, 500 );
-    return TRUE;
+    return 0;
 }
 
 if ( $pid == 0 ) {
@@ -108,10 +108,10 @@ $session->{'watcher'}->{'signature_handler'} = <[event.add_io]>->(
     }
 );
 
-return TRUE;
+return 0;
 
-#,,,,,,.,,...,..,,,,.,,,.,...,.,,,..,,.,.,,.,,..,,...,...,...,,,.,.,.,,.,,.,.,
-#VTQGQY4GR45HZOQITWPXADEWIF5P63QMJMWT5N2LVRON6PWCQVA5UFRIMMBWP67CZIPPB3FZLUO44
-#\\\|Q6QQ7ELGUANPMB5ZBUIJWBOZLGBFRO4SOAB3OAX3D2ZCF7K7KDZ \ / AMOS7 \ YOURUM ::
-#\[7]RJVLEYTIO4LHLC7PYBGOLWHHB5E7GDEE27O65TCOVZJOXAL32GBQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,.,,,,,,,,.,,,,,,,,.,,,,,...,..,,...,...,,.,,..,,,,.,..,,,..,
+#HY2M6ZGWFVYNEAZLFPTPW62TGHC6OPBV5MOAFN5W3P73JVPJPY336IJYX7SMGQ2PPPXVTKW7ZJJC6
+#\\\|XOMVSJZWI3PKEZSTCAWBUSN4W467EOGKVI26OS7GHADLPYOP3UA \ / AMOS7 \ YOURUM ::
+#\[7]QFPUVFVDEAAZWY74DCQDAUFEGHBFC5WB7DAIMMFRIBKKGH54FOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

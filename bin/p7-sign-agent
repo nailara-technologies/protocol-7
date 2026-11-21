@@ -5,6 +5,11 @@ use strict;
 use English;
 use warnings;
 
+## a write to a client that already closed its socket raises SIGPIPE, whose ##
+## default action ends the process silently -- a late approve did exactly   ##
+## that. ignored, the write just fails and is reported [ respond_ok \ _no ] ##
+$SIG{'PIPE'} = 'IGNORE';
+
 ###                  ###
 ##  p7-sign-agent     ##
 ###                  ###
@@ -808,9 +813,14 @@ sub peer_uid_check {
 
 ##[ protocol ]################################################################
 
+## a client may have given up before the owner answered [ a late approve ] ##
+## : writing to its closed socket must fail quietly, never end the agent   ##
+## [ SIGPIPE is ignored at start, see below ]                              ##
 sub respond_ok {
     my $client = shift;
-    print {$client} join( ' ', qw| OK |, @ARG ) . "\n";
+    print {$client} join( ' ', qw| OK |, @ARG ) . "\n"
+        or warn "p7-sign-agent : client gone "
+        . "before the reply [ $OS_ERROR ]\n";
     return TRUE;
 }
 
@@ -819,7 +829,9 @@ sub respond_no {
     my $reason = join q| |, @ARG;
     $reason = qw| refused | if not length $reason;
     $reason =~ s|\s|_|g;
-    print {$client} "NO $reason\n";
+    print {$client} "NO $reason\n"
+        or warn "p7-sign-agent : client gone "
+        . "before the reply [ $OS_ERROR ]\n";
     return FALSE;
 }
 
@@ -1463,8 +1475,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,.,...,,..,,..,,,,,..,,,.,,.,.,,..,...,,,,,..,,...,...,..,,,,,,,,,,,.,,,,,,
-#2JQWJQR5MJWYBHHRHFZFJLWWFQI4COFXSFNQV4UEIIN76RWUEGGDDT6SQBSD7MMLZLHBUZUHEFX7A
-#\\\|FICUFQFNP2XLUIIFEPR45QOM4MXNIEKLKQXQSSI2YMDKFELSJV7 \ / AMOS7 \ YOURUM ::
-#\[7]77RBAJ57J6A7EQYDNYXB2MIT65GZVT246IM5IVGUZ7FB3ZGBB6DA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,,,.,.,.,,,,,.,,,,.,,,..,.,,,..,,...,...,..,,...,.,,,,,.,,..,
+#5QNYSWAUUSUGNP33Q2R236KSQDWFM6V6DY3ZGP4NBXR5H7E2JDBPVU2L3CFP4XZRUC23TASLYPWF6
+#\\\|TE3NMRFVCLJLRQXJEL5IGJYXCG22HV3G67LDE365MUOT7MNG4GV \ / AMOS7 \ YOURUM ::
+#\[7]WNFDLTMXAUZAS53BIM5HJKTU7RUJJJHTCUZLML4X3L3PZE75XKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

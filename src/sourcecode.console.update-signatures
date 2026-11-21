@@ -101,7 +101,7 @@ if ($agent_mode) {
         <[base.logs]>->(
             0,
             ':  : %s',
-            not defined $agent_pub
+            ( not defined $agent_pub )
             ? 'agent unreachable'
             : 'agent key does not match the on-disk public key'
         );
@@ -615,8 +615,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,.,,,,.,,.,,..,,,,.,...,,..,..,,.,.,,,,,...,..,,...,..,,,..,,,.,,,.,,..,...,
-#NAVYMS6XREHDSI2HLTEVUEN3BBI6BWMV6VI5EBWLE653UDXE63VCAVMMA6J65HEUQENFSPCS7FTTS
-#\\\|KVARM645JCQRRLBXBGMRGHIQ3DZLV6TE5AH73SHGQBVINDO7OZB \ / AMOS7 \ YOURUM ::
-#\[7]IDTR57DHNNHYY4DU7Z7CKTZPSSLIE7N3KAAGJ2DSTRQ3UPUH6EAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,.,.,.,,..,...,..,,,..,,..,..,,..,,...,...,...,...,..,,,,.,...,
+#7FVVQH3N3JUQT3EANRJ3NEIACM3TRJQYSGLZR2AWFR5B7PQF3V7IWNP6XZJ4POQF2C6SJPVXRORKY
+#\\\|PICGFKO4WRREJ7S4K2WOJADU2SQCUQI2PSZZYJBRCZ5P5DW6FKO \ / AMOS7 \ YOURUM ::
+#\[7]5HVG3JDZM3OP73ZWEB7SO43OEGTDDIY5LXLNCOBWACTIMFKZKMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

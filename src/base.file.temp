@@ -25,11 +25,19 @@ my $zenka_name = <system.zenka.name>;
 foreach my $chk_dir (@check_dirs) {
     my $subdir_path = catfile( $chk_dir, $zenka_name );
     <[base.logs]>->( 2, ':. tmp-dir-chck :. %s', $subdir_path );
-    if ( -d $subdir_path and -w $subdir_path
-        or File::Path::make_path( $subdir_path, { 'mode' => 0750 } ) ) {
-        $first_dir = $subdir_path;
-        last;
-    }
+    File::Path::make_path( $subdir_path, { 'mode' => 0750 } )
+        if not -e $subdir_path and not -l $subdir_path;
+    ## a shared parent [ /var/tmp ] lets anyone pre-create the subdir : use ##
+    ## it only when it is a real directory, ours, not writable by others    ##
+    my @st = lstat $subdir_path;
+    next
+        if not @st
+        or -l _
+        or not -d _
+        or $st[4] != $EUID
+        or ( $st[2] & 022 );
+    $first_dir = $subdir_path;
+    last;
 }
 if ( not defined $first_dir ) {
     <[base.s_warn]>->(
@@ -62,10 +70,21 @@ if ( not wantarray ) {    # <-- scalar context does not open the file
 <[base.logs]>->( 2, ' :. opening file : %s .,', $tmp_file_path );
 
 my $tmp_fh;
-if ( not open( $tmp_fh, qw| > |, $tmp_file_path ) ) {
+## exclusive create, never through a link, private mode ##
+<[base.perlmod.load]>->('Fcntl') if not <[base.perlmod.loaded]>->('Fcntl');
+if (not sysopen(
+        $tmp_fh,
+        $tmp_file_path,
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        0600
+    )
+) {
     <[base.s_warn]>->( '> %s : %s', $tmp_file_path, <[base.str.os_err]> );
     return undef;
 }
+## same layer a plain open would get [ bin/Protocol-7 'use open' ] ##
+binmode( $tmp_fh, ':encoding(UTF-8)' );
 
 if ($unlink) {
     ## register generic cleanup callback once, collect filenames in array
@@ -98,8 +117,8 @@ if ($register) {
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,,.,.,,,,..,..,,..,,...,...,..,,,.,,.,.,,,.,..,,...,...,..,,.,,,..,,.,,,.,,,
-#PLJN3KBSUIELBLSC5ZZE7MYV3HQMMSC5GYNPLGJRME7UHGR2RMF3XBEPQIM5QGRGMFWJT2NGIRNE4
-#\\\|36TB7HYXCGDQEKZ72SFGXEJW3MML6I2XG65JYPHWT2STQBYJBTK \ / AMOS7 \ YOURUM ::
-#\[7]QCFFNLJKOJXOIUBUMJHE46TGTSQKJPKR7WCX3EHCYTOM6S2OTGCI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,.,.,,.,,.,,,..,,,,,,.,.,,,.,..,,...,...,.,.,.,,,,,,,,,.,,.,,
+#CFTVWZSOLWM4J7GSWZX2JDQNZRP4IRBDDLD7N7RVDQPWSOZHCVYLL6IBQPQELW4WLXTUENLYVZLEA
+#\\\|JIW7RDCKE5KTMMZ6TT7FO4SZLVWRWIL2KAEOJ4F4RFKQRX5UPFP \ / AMOS7 \ YOURUM ::
+#\[7]RY64TUSAHVAZH5UZJ6AJKTCAUWKSBP5OQRQEUPEY2QANP7RUC4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
