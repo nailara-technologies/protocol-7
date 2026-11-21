@@ -591,6 +591,13 @@ eval {
     );
 };
 my $sig_unverifiable = not defined $sig_valid;
+if ( length $EVAL_ERROR ) {
+    my $sig_error = $EVAL_ERROR;
+    $sig_error =~ s|\s+| |g;
+    $sig_error =~ s|^ ||;
+    $sig_error =~ s| $||;
+    $truth_status_report->{'signature-error'} = $sig_error;
+}
 
 if ($sig_valid) {
     $truth_status_report->{'signature-is-valid'} = TRUE;    ## true ##
@@ -653,8 +660,8 @@ foreach my $type (qw| footer-complete |) {    ## [..,]
 return ( $verified_true, $truth_status_report ) if wantarray;
 return $verified_true;
 
-#,,,.,...,,..,,,.,,..,,,.,,..,.,.,,..,,,,,..,,..,,...,...,..,,,,.,,..,.,,,,,,,
-#2Q5BCENLM57XYLPESV2GLZ46Y3X3DQOVXTTIVVL7LAJDU2ELUX4BM7SW4GMQ2TXMI3DXGG4C5ZM6K
-#\\\|DP7L74OOTN6QNVGKHXNBRHDOMPPSNRSNSXW5XLVKV6MISLFJYBH \ / AMOS7 \ YOURUM ::
-#\[7]UEIO35TQP56RF47J6NDHOIKMNXJSLLGROHMHGFRZA5DVCSNMGWDA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,,,,,.,,,,,..,,.,.,,.,,..,,,,,,..,,...,...,...,...,.,.,...,..,,
+#XBSQ3XNTZNHHM6PRD5FWKTUV6A3SBGGWWVLNJZOOUGDXJMGYLJRESYWTP22PQH77SXJQU4OWNKLNQ
+#\\\|DSMBVQGFWZSDSQJZ4R6CA4JZXW4O2XFWM5U7QHQ3XKIQD7XJFQR \ / AMOS7 \ YOURUM ::
+#\[7]PJK4PQWKBNWSPK2P5J54BDAWEEO7S2U7XSQ55YMNAFAOY3YLRMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,6 +35,7 @@ BEGIN {
     $main::root_path = $root_path;
 }
 
+use AMOS7::B32                qw| encode_b32r |;
 use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate |;
 
 use constant TRUE  => 5;
@@ -142,6 +143,7 @@ sub fixture_body {
     'base.parser.ellipse_center' => sub { return shift },
     'base.cnt_s'                 => sub { return '' },
     'chk-sum.elf.vax-BASE32'     => sub { return 'test-etag' },
+    'chk-sum.bmw.strsum'         => sub { return 'test-signed-bmw' },
     'file.slurp'                 => sub {
         my ( $path, $target ) = @ARG;
         my $content = eval { read_file($path) };
@@ -332,10 +334,15 @@ ok( !defined $session->{'test_error'},
 
 compile_module($_)
     foreach qw| httpd.signature_verify_start httpd.handler.signature_verify |;
+ok( ( grep {m{signed-file debug :}} @logs ) == 0,
+    'signature diagnostics are off by default'
+);
+$data{'httpd'}{'cfg'}{'signature_debug'} = 1;
 my $async_path = File::Spec->catfile( $site_dir, 'async.html' );
 write_file( $async_path, $signed_content );
 $session = request('/async.html');
 my $poll_rounds = 0;
+
 while ( exists $session->{'signature_pending'} and $poll_rounds++ < 200 ) {
     my $watcher = $session->{'watcher'}{'signature_handler'};
     my $readset = '';
@@ -354,12 +361,18 @@ ok( !defined $session->{'test_error'}
 ($served_body) = $session->{'buffer'}{'output'} =~ m{\n\n(.*)$}s;
 ok( $served_body eq $valid_payload,
     'asynchronous path serves the child-written stripped body' );
+ok( ( grep {m{signed-file debug : /async.html : .*status=valid}} @logs ) == 1,
+    'enabled diagnostics identify the verified file and status'
+);
+ok( ( grep {m{signature=1;signature-unverifiable=na}} @logs ) == 1,
+    'enabled diagnostics report individual signature checks'
+);
 
 say $fail_count ? ": FAIL [ $fail_count ]" : ': all tests passed';
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,.,,,.,,,,..,,..,,..,..,,,,.,,,,,..,,,..,..,,...,...,,,.,,..,...,..,,,,.,
-#2W24GMDXHRYWCIAVKLXAMHO46TOGBSXPJXQDEJKZKYPP6JPW4RJH54WCTSHEUDMZGRNSSCULBEWMQ
-#\\\|QU4HPKBX3NSWXCGNB3HQVUFQWOECSPCB52RS65JUVHSFY4YLT5T \ / AMOS7 \ YOURUM ::
-#\[7]MRWL6MIQOUMXI7SPZDVAAYL3Q3QHMY7DTN5DJBUMFIDFXN6GL2AA 7  DATA SIGNATURE ::
+#,,.,,...,...,,,.,...,.,.,,..,..,,.,.,,,.,,.,,..,,...,...,..,,,.,,...,,.,,..,,
+#HVH7RZB2MM7VM7XUSJROKSTHVABWMD6SZFO4THMFDWV4XF2MIMXKOH5SI2QXMP7E3DRMHK7VEXKYC
+#\\\|VBHGMYU7T7UCG63WVO5BZRKJ23QVYB2SO466V5JZK4IB2363F3S \ / AMOS7 \ YOURUM ::
+#\[7]UUNRR7DBUNMUWH7GOLRQNFH5OYLWXPWMNFY6ONXK26NCZP4TRECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

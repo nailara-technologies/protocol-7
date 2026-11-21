@@ -3,6 +3,8 @@ use v5.32;
 use strict;
 use warnings;
 use English;
+use File::stat;
+use User::pwent;
 
 use Cwd qw| abs_path |;
 use File::Spec;
@@ -46,12 +48,9 @@ $data{'source'}{'sign_template'}                = <<'EOT';
 EOT
 
 %code = (
-    'base.log'              => sub { return TRUE },
-    'base.logs'             => sub { return TRUE },
-    'base.s_warn'           => sub { return TRUE },
-    'crypt.C25519.key_vars' => sub {
-        return { key_name => 'proto-7.sourcecode' };
-    }
+    'base.log'    => sub { return TRUE },
+    'base.logs'   => sub { return TRUE },
+    'base.s_warn' => sub { return TRUE }
 );
 
 sub compile_module {
@@ -74,7 +73,9 @@ compile_module($_) foreach qw|
     source.verify_and_strip
     source.restore_payload_endline_state
     amos7.decode_octal_bit_header
+    base.get_homedir
     base.chk-sum.from_substr
+    crypt.C25519.key_vars
     crypt.C25519.verify_sign
     |;
 compile_module( 'base.chk-sum.elf.inline', 'chk-sum.elf.inline' );
@@ -94,6 +95,21 @@ my $signed = join '', <$fh>;
 close $fh;
 
 my $failures = 0;
+
+my $current_user  = CORE::getpwuid($EUID);
+my $expected_home = ( CORE::getpwnam($current_user) )[7];
+my $resolved_home = $code{'base.get_homedir'}->($current_user);
+say +(
+    defined $resolved_home
+        and defined $expected_home
+        and $resolved_home eq $expected_home
+    ? '  ok   : passwd overrides retain CORE list semantics'
+    : '  FAIL : passwd overrides retain CORE list semantics'
+);
+$failures++
+    if not defined $resolved_home
+    or not defined $expected_home
+    or $resolved_home ne $expected_home;
 
 sub check {
     my ( $condition, $label ) = @ARG;
@@ -141,8 +157,8 @@ check( $result->{'body'}->$* eq $unsigned, 'unsigned payload is unchanged' );
 say $failures ? ": FAIL [ $failures ]" : ': all tests passed';
 exit( $failures ? 1 : 0 );
 
-#,,..,...,,,,,...,,,.,...,..,,,.,,,.,,,,,,...,..,,...,...,.,.,,..,.,,,,.,,,..,
-#NIC3TIKKDPMKXSZBT2KPL2AEXZINWDP2F6QD2MOUHL2Q2DXE6MWSQD2LC52KD5YBENGHFQUEWWSFI
-#\\\|NVPPYQ46NTZJENPQ6WI3UPRSYDKAN37IJTBHVLW2MJNTOLV2VAI \ / AMOS7 \ YOURUM ::
-#\[7]GOMLRL36UJAMAO5LBEYGKQKHRGY5KELBQCWS7GQSIZW5C7NE3IDI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,.,,,,,,,.,,,.,.,,..,,.,,...,..,,...,...,.,.,...,,..,,,.,,..,
+#3WZ2DMRUNQ76AEAVGTABJHOPZ6KERTINY26GNILZT7JLFIJWVO3EELB6CR5IZT75FUPFO32CIW4IE
+#\\\|74G6NBXGLLDUI6BVA2QVEIG5W6AATKCGFZ67Z37X6HBFNI6DLU5 \ / AMOS7 \ YOURUM ::
+#\[7]CEOUKF2GYEHZ3OPQLZ5NVAWHJ7ETLA3YIBGJ7L5OCUCXNTWLAKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

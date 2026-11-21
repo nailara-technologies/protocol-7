@@ -22,15 +22,16 @@ if ( $user eq qw| :env-user: | ) {    ##  read from %ENV if present  ##
 
 if ( $user eq '' ) {
 
-    $user = getpwuid($EUID);    ## current user[id] ##
+    $user = CORE::getpwuid($EUID);    ## current user[id] ##
 
 } elsif ( $user =~ m|^\d+$| ) {
 
-    $user = getpwuid($user);    ##[  by uid  ]##
+    $user = CORE::getpwuid($user);    ##[  by uid  ]##
 
 }    # else provided as name .,
 
-my @pwnam = getpwnam($user);
+## CORE:: : User::pwent may replace these with object-returning functions ##
+my @pwnam = CORE::getpwnam($user);
 
 $homedir = $pwnam[7];    ## updating from pwnam ##
 
@@ -45,8 +46,8 @@ if ( @pwnam == 0 ) {
 
 return $homedir;
 
-#,,.,,.,.,..,,,..,,..,,,.,,.,,.,.,,,.,,,,,,..,..,,...,...,.,,,.,,,...,...,,,,,
-#XSDWRCS42YRP32SOWB4CL5LDHJGP6RZ62ZDVYMVFGBKDKOXNXJIAEMCOX54MFFQH3JHZENDEOPJ4K
-#\\\|UCN2X3TUQ5QMCPUYRK3CU5ILXK3LTKXVC267DBWFWAAF5YUEQBL \ / AMOS7 \ YOURUM ::
-#\[7]VI3DCMYHD6MT5YX2HGXWRGJNYBKSSIOC4J4ZWALQPMOGIFVWUSDQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,..,,,,.,,,.,.,,,.,,,.,,,.,.,..,,..,,...,...,...,...,,,.,...,,,,,
+#JU5STWH2XULVFNGMTXULHCUTHBPOVV7CTXGFUTHCQGOBK4A6JVIZEWB7GGZ6S6M4ZQXLYVE22KX2G
+#\\\|VLY3QLJ6OKDAGOOQRTTGIET3BNBYXDMCMOIEZ2P63TIVLAJWXA6 \ / AMOS7 \ YOURUM ::
+#\[7]FV5MDCGHM5GYKTN54CRO2RAHSMBA6RGKOIF7DDAUZXJCHDBCLSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

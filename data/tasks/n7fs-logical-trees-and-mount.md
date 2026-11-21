@@ -80,6 +80,21 @@ the same loop. fix :
   one record per reference
 - progress output [ references visited \ total ] so a long run is visibly alive
 target : minutes, not hours, for a disk of this size
+measured after the change [ 2026-11-21, ~338,000 references ] : ~270 references \
+second, ~21 minutes for the whole disk [ the old code ran > 9 hours unfinished ]
+
+## follow-up : a progress bar for long n7fs runs
+
+- set-category [ and assimilate, place, restore ] show a progress bar on a terminal :
+  percentage, rate, estimated time left -- following bin/format-code's console bar
+  [ reuse its code or move it into a shared module, no second implementation ]
+- when output is not a terminal [ a file, a log, a pipe ], the plain progress lines
+  stay as they are now
+- colours for the n7fs console output in general [ bars, ok \ refused \ warnings,
+  tree and disk names ], following bin/amos-chksum's colourised command output --
+  the same palette rules as the other surfaces [ background on the element only,
+  calm colours, the theme tokens where the console adapter reads them ], plain text
+  when not on a terminal or when -nc [ -no-color ] is given
 
 implemented [ 2026-11-21 ] : `tree-name:` and address targets resolve node paths
 directly ; `tree:` \ `path:` build a replay-backed holder index and read only
@@ -105,8 +120,8 @@ bin/test-scripts/test-n7fs-tree-category-performance.pl`.
   a copy or a test store
 - no host names, disks or personal data in repo files
 
-#,,,,,,,.,,,,,,,.,..,,...,,.,,,,,,.,.,..,,,.,,..,,...,...,.,.,,..,,..,,..,...,
-#IBWW6CA4V3XF7GAFNM662M6SXZNEXEHTLKG2GXOGQ5HCAMXCMDQ5FWPSFMPHDS4LORQUUJKI76LLE
-#\\\|K5KFTITXAFRKIKQPGJNDQOXUIF74CSJYT44KHFPSP4FOESZDIW3 \ / AMOS7 \ YOURUM ::
-#\[7]YPUXQZXNQVL7ABT3AKAX5ZEOLZQOXXFYE25U2QL6CBT2JUHKZ4AA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,.,,,.,,,.,,,.,,,...,...,...,..,,...,...,...,,,.,,.,,,.,,...,
+#CIZRSZLDF5KQLCU7RLX4D2Y44QLWVKILINZJ6VPYRTBYSCHEJRNHG23ZHDSNE24LGYGYM4N5FOYYU
+#\\\|B6LB3AE6DPGJKGNNI2QZ7ODL3YFSNNUE7TZ6DCMA4U76JJBDKD4 \ / AMOS7 \ YOURUM ::
+#\[7]ZJJOCO2WKAXE5SGDXPGO5SZZNYAHE7IUBHNUD7CFLFZH3DC3XGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

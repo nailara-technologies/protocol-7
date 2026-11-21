@@ -12,6 +12,11 @@ my $session = $data{'session'}{$id};
 return FALSE if not defined $session;
 
 my $key_name = <httpd.cfg.signature_key_name> // qw| proto-7.sourcecode |;
+my $debug    = <httpd.cfg.signature_debug>    // FALSE;
+my $key_origin
+    = exists $keys{'C25519'}{$key_name}{'public'}
+    ? qw| pre-existing |
+    : qw| embedded |;
 if ( not exists $keys{'C25519'}{$key_name}{'public'} ) {
     <[crypt.C25519.load_from_string]>->(
         $key_name, <[protocol-7.source-key]>
@@ -58,12 +63,14 @@ if ( $pid == 0 ) {
     require POSIX;
     close $result_r;
     my $payload;
+    my $payload_bytes = -1;
     my $result;
+    my $verification;
     if ( not defined <[file.slurp]>->( $file_path, \$payload, qw| :raw | ) ) {
         $result = "invalid file-read\n";
     } else {
-        my $verification
-            = <[source.verify_and_strip]>->( \$payload, $key_name );
+        $payload_bytes = length $payload;
+        $verification = <[source.verify_and_strip]>->( \$payload, $key_name );
         if ( $verification->{'status'} eq qw| valid | ) {
             if ( open( my $output_fh, '>', $body_path ) ) {
                 binmode $output_fh;
@@ -86,6 +93,61 @@ if ( $pid == 0 ) {
             $error =~ s|[\r\n]| |g;
             $result = "invalid $error\n";
         }
+    }
+    if ($debug) {
+        my $report
+            = ref $verification->{'report'} eq qw| HASH |
+            ? $verification->{'report'}
+            : {};
+        my $footer
+            = ref $verification->{'footer'} eq qw| HASH |
+            ? $verification->{'footer'}
+            : {};
+        my $truth
+            = ref $report->{'entire-payload'} eq qw| HASH |
+            ? $report->{'entire-payload'}
+            : {};
+        my $signed_data
+            = substr( $footer->{'signature-footer-str'} // '', 0, 163 );
+        my $public_key   = $keys{'C25519'}{$key_name}{'public'};
+        my $report_value = sub {
+            my $name = shift;
+            return qw| na |    if not exists $report->{$name};
+            return qw| undef | if not defined $report->{$name};
+            return $report->{$name};
+        };
+        my @debug_values = (
+            qw| status= | . ( $verification->{'status'} // qw| file-read | ),
+            qw| check= | .  ( $verification->{'error'}  // qw| none | ),
+            qw| key= | . $key_name,
+            qw| key-origin= | . $key_origin,
+            qw| public= |
+                . (
+                defined $public_key ? encode_b32r($public_key) : qw| na |
+                ),
+            qw| payload-bytes= | . $payload_bytes,
+            qw| payload-utf8= |
+                . ( defined $payload and utf8::is_utf8($payload) ? 1 : 0 ),
+            qw| signed-bytes= | . length($signed_data),
+            qw| signed-bmw384= |
+                . (
+                length $signed_data
+                ? <[chk-sum.bmw.strsum]>->( $signed_data, 384 )
+                : qw| na |
+                ),
+            qw| AMOS-checksum= | . $report_value->('AMOS-chksum-matches'),
+            qw| BMW-checksum= | . $report_value->('bmw-chksum-matches'),
+            qw| ELF-truth-4= | . ( $truth->{4} // qw| na | ),
+            qw| ELF-truth-7= | . ( $truth->{7} // qw| na | ),
+            qw| signature= | . $report_value->('signature-is-valid'),
+            qw| signature-unverifiable= |
+                . $report_value->('signature-unverifiable'),
+            qw| signature-error= | . $report_value->('signature-error')
+        );
+        foreach my $value (@debug_values) {
+            $value =~ s|[\r\n;]| |g;
+        }
+        $result .= join( '', 'debug ', join( ';', @debug_values ), "\n" );
     }
     print $result_w $result;
     close $result_w;
@@ -112,8 +174,8 @@ $session->{'watcher'}->{'signature_handler'} = <[event.add_io]>->(
 
 return 0;
 
-#,,,.,.,.,.,.,,,.,,.,,..,,,..,,.,,.,.,.,.,..,,..,,...,..,,,,,,.,,,,..,,..,...,
-#JREDL2P3MHYIA5R6C7C7R2WG6KSN7LJUZ6WYX6P3ESD2TF3FE7PJLZK4VCIBALVB7KYL5SMPEQAFK
-#\\\|BSA57EDO6AL2XX5OYHMWM274QQMQY5TGEXB56DIGHAXYLJSUYCJ \ / AMOS7 \ YOURUM ::
-#\[7]TDIAVFGBQUFCA52R6CSUHN3QL74TGTAAJWNRDCX23IEL5ASW5SDY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,,,.,.,..,,.,.,,.,,,,.,,,,,..,,..,,...,...,,.,,,..,,,,,,.,,,..,
+#3QDSA2BOE7T5JVJXUOKGJTDMNISQ5ARDTCOYBVB5YMIOG3IPQ5GYFQR2K27J3C3KQYDDVGXOYNYQ6
+#\\\|XA7PNV7I7APQQ2LUS3U5GV232N4OAM3OJTWB4AUBR3N76USM2QV \ / AMOS7 \ YOURUM ::
+#\[7]REQ64PMDJEVGD3FHR7JZGQBWAUYJS4FTGZP2I7W4BITRGDT2B6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

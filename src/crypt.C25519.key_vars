@@ -16,7 +16,8 @@ return <crypt.C25519.key_vars>
         and $key_name eq <crypt.C25519.base_key_name> )
     );
 
-my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
+## CORE:: : User::pwent may replace these with object-returning functions ##
+my $cur_usr = $ENV{'USER'} // CORE::getpwuid($EUID);
 
 ## Use explicitly set usr_name, or fall back to current user  Security: each
 ## process uses its own home directory for keys
@@ -26,7 +27,7 @@ my $key_usr = <crypt.C25519.usr_name> // $cur_usr;
 #
 $key_usr = $cur_usr if $key_usr ne $cur_usr and $cur_usr ne qw| root |;
 
-( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
+( my $uid, my $gid ) = ( CORE::getpwnam($key_usr) )[ 2, 3 ];
 
 if ( defined $key_name ) {
     ## explicit-name lookup : must NEVER mutate base_key_name as a side   ##
@@ -128,8 +129,8 @@ my $key_vars_ref = {
 
 return $key_vars_ref;
 
-#,,,.,,..,,.,,,..,..,,,,.,.,.,.,.,..,,,.,,.,,,..,,...,...,.,.,,,,,..,,.,,,.,.,
-#HOMXDGJMOMCF6FD7J6UUPED3F7A62AUMHCWCLNRKMPUFROUQPQGW64GDXCB2HAT4Q5OVTMLBFXJYU
-#\\\|SWMOVY7SVXQXTKDSXBWNTB6N2BV3DVGYQEIFW2NH3B4547KY2R4 \ / AMOS7 \ YOURUM ::
-#\[7]FVALGWQILJ2VHLYVRQ3FRCV7AUYMIQC6M2TYSWN2D32MNXBMGYDA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,..,.,.,,.,,,.,,,,.,...,.,,,.,.,..,,...,...,...,.,.,,,,,.,.,,.,,
+#55QHOCV2VEYKBUWYIFSWCIEJNMPCUZJJMLM7P2WIZRUJJL4S6J6Q3OQ3WMVZ3GG32424HVXXVNYK6
+#\\\|QUKZPUSW2MGSEEGXTYEDPVRD2VMJCHFR3T7LZNFF2VG77NA4NPI \ / AMOS7 \ YOURUM ::
+#\[7]KVGJIQJ3J6GRA33R44HRAXRIJ4XVIRG6DDNK6L3KDZUK4UHD3WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
