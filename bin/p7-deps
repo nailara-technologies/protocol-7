@@ -59,6 +59,7 @@ use AMOS7::TERM::Frame       qw|
     frame_status_row frame_error_line frame_error_exit frame_option_list
     frame_terminal_width frame_fit_width
     |;
+use AMOS7::Config::Reader ();
 
 $OUTPUT_AUTOFLUSH = 1;
 
@@ -159,6 +160,8 @@ if ( $cmd eq 'check' ) {
     validate_zenka_declarations(@ARGV);
 } elsif ( $cmd eq 'dist-upgrade' ) {
     run_dist_upgrade(@ARGV);
+} elsif ( $cmd eq 'install-commands' ) {
+    cmd_install_commands(@ARGV);
 } elsif ( $cmd eq 'install-service' ) {
     cmd_install_service();
 } elsif ( $cmd eq 'enable-service' ) {
@@ -1272,6 +1275,124 @@ sub cmd_detect_hw {
     return;
 }
 
+##[ COMMAND PATH PLAN ]#######################################################
+
+sub cmd_install_commands {
+    my (@args) = @_;
+    frame_error_exit( $TOOL, 'stage 1 : dry-run only', { 'exit' => 1 } )
+        if @args != 1
+        or $args[0] ne qw| -dry-run |;
+
+    my $config = eval {
+        AMOS7::Config::Reader->read( 'install/commands',
+            { 'root' => $P7_ROOT, 'host_overlay' => 0 } );
+    };
+    frame_error_exit( $TOOL, "cannot read command declaration : $EVAL_ERROR" )
+        if not defined $config;
+
+    my %role_rule = (
+        'all'   => [ '755', 'root' ],
+        'admin' => [ '750', 'p7-admin' ],
+        'root'  => [ '700', 'root' ],
+        'dev'   => [ '750', 'p7-dev' ],
+    );
+    my $path_root = $ENV{'P7_DEPS_COMMAND_PATH_ROOT'}
+        // '/usr/local/lib/protocol-7/path';
+    my $values = $config->all();
+    my @commands;
+    foreach my $key ( sort keys %{$values} ) {
+        next if $key !~ m|^command\.(.+)\.role$|;
+        my $path = $1;
+        my $role = $values->{$key};
+        frame_error_exit( $TOOL, "invalid command path [ $path ]" )
+            if $path !~ m{\Abin/(?:admin/|dev/)?[^/]+\z}
+            or not -f catdir( $P7_ROOT, $path );
+        frame_error_exit( $TOOL, "invalid role [ $role ] for $path" )
+            if not exists $role_rule{$role};
+        push @commands,
+            {
+            'path'    => $path,
+            'role'    => $role,
+            'profile' => $values->{"command.$path.profile"},
+            };
+    }
+
+    my %used_roles = map { $ARG->{'role'} => 1 } @commands;
+    banner('command path plan [ dry-run ]');
+    say frame_section_header('rule plan');
+    foreach my $role (qw| all admin root dev |) {
+        next if not $used_roles{$role};
+        my ( $mode, $group ) = @{ $role_rule{$role} };
+        printf " DC %s u:root g:%s --> %s/%s\n", $mode, $group, $path_root,
+            $role;
+    }
+    my $profiles = load_profiles();
+    my ( @rows, @link_lines );
+    foreach my $command (@commands) {
+        my ( $path, $role ) = @{$command}{qw| path role |};
+        my @missing;
+        @missing
+            = missing_command_dependencies( $command->{'profile'}, $profiles,
+            {} )
+            if defined $command->{'profile'};
+        my $name = $path;
+        $name =~ s|.*/||;
+        my $link = "$path_root/$role/$name";
+        if (@missing) {
+            push @rows,
+                [
+                $path,                  'missing-dependency',
+                join( ', ', @missing ), 'warn'
+                ];
+            next;
+        }
+        ## absolute : the link lives outside ##
+        my $target = "$P7_ROOT/$path";
+        push @link_lines, sprintf ' CL --> %s --> %s', $link, $target;
+        my $state
+            = !-e $link && !-l $link     ? qw| set |
+            : !-l $link                  ? qw| changed |
+            : readlink($link) eq $target ? qw| ok |
+            :                              qw| changed |;
+        push @rows,
+            [ $path, $state, "$role : $link", $state eq 'ok' ? 'ok' : undef ];
+    }
+    say $ARG foreach @link_lines;
+    say frame_section_header('commands');
+    print_rows(@rows);
+    say frame_column_line();
+    return;
+}
+
+sub missing_command_dependencies {
+    my ( $profile_name, $profiles, $seen ) = @_;
+    return ("profile:$profile_name") if not exists $profiles->{$profile_name};
+    return ()                        if $seen->{$profile_name}++;
+    my $profile = $profiles->{$profile_name};
+    my @missing;
+    foreach my $included ( @{ $profile->{'includes'} // [] } ) {
+        push @missing,
+            missing_command_dependencies( $included, $profiles, $seen );
+    }
+    push @missing, map {"apt:$ARG"}
+        grep { not probe_apt($ARG) } @{ $profile->{'apt'} // [] };
+    push @missing, map {"cpan:$ARG"}
+        grep { not probe_module($ARG) } @{ $profile->{'cpan'} // [] };
+    foreach my $module ( @{ $profile->{'cpan_fallback'} // [] } ) {
+        my $resolved = resolve_install( $module, $known_deps );
+        next
+            if $resolved->{'method'} eq 'debian'
+            && probe_apt( $resolved->{'pkg'} );
+        push @missing, "cpan:$module" if not probe_module($module);
+    }
+    foreach my $entry ( @{ $profile->{'assets'} // [] } ) {
+        my $state = asset_state( $P7_ROOT, $entry );
+        push @missing, "asset:$state->{'label'}" if not $state->{'ok'};
+    }
+    my %unique = map { $ARG => 1 } @missing;
+    return sort keys %unique;
+}
+
 ##[ SERVICE COMMANDS ]########################################################
 
 ## root-only, idempotent, and none of them ever starts, stops or restarts ##
@@ -1555,6 +1676,9 @@ sub show_help {
     -install .......................  install that profile [ with -write ] ;
                                       microcode reports when reboot is needed
 
+    install-commands -dry-run ......  print the role directory and link plan
+                                      [ stage 1 : dry-run only ]
+
     install-service ................  unit, install link, launcher symlinks
     enable-service .................  enable the unit [ systemctl enable ]
     disable-service ................  disable the unit [ systemctl disable ]
@@ -1595,8 +1719,8 @@ sub show_help {
 EOL
 }
 
-#,,,.,,.,,..,,,.,,.,,,..,,,.,,,.,,,.,,..,,,.,,..,,...,...,..,,...,...,.,,,...,
-#MYFXMKDXCP4YYJE3S7ITNPC3RDIKECHIWSU6KLAF3S6UN5YLDIBAWHJQ7T6JZCALD7GTLHWNJDYCU
-#\\\|WTVRLR2OMEOA2DCEROYM55VUPH3MD52HPTU3XR5LDVJN4LEDFXB \ / AMOS7 \ YOURUM ::
-#\[7]QU5HDGT2PCL6R6I5YQZLIBNWLFYJFK6TX7CEJKN5JDGFAR3CYWCI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,,,..,,,.,,..,,,,,,.,.,,.,,.,,,..,,...,..,,,,,,..,,,.,,..,,,,,,
+#CPWQ6XAGF5HVLRT2B6D53XECNHZQ7MPVDHCPXTMJNOCE3DTU7AJVVVF3TF22Q4R3PUBMNNEMWOTLM
+#\\\|IMOVNYMDJ2OOWDTYVCUQ2773NYEAI4T5G3V4GU5O3H577VAU5GZ \ / AMOS7 \ YOURUM ::
+#\[7]HOOHGLIYPECSJJJOCJWPNPAS6QOVZV3RBK5DU7BTDEWN5ISNVMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

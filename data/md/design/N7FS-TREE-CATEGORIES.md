@@ -95,7 +95,7 @@ n7fs category <disk> set <name> [ -local-encryption none|cascade ]
     [ -layer private|generic ]
 n7fs category <disk> list
 n7fs category <disk> show <address>
-n7fs set-category <disk> <address|tree:path-prefix> <name>
+n7fs set-category <disk> <address|tree-name:name|path:source-prefix> <name>
 ```
 
 `-tree` takes exactly one directory root. category rules also work without a
@@ -108,8 +108,11 @@ that encryption is not enforced yet.
 `category show` prints each historical reference's current assignment and the
 effective node policy : cascade over none, maximum copies, maximum priority,
 full over manifest, no over yes, private over generic, and sorted union of want.
-address assignment covers all live references to that address. `tree:` prefix
-assignment matches live reference holder paths.
+address assignment covers all live references to that address. `tree-name:`
+selects the file addresses in the exact live tree's manifest and assigns every
+live reference to those nodes. `path:` matches live reference holder [ original
+source ] path prefixes; `tree:` retains the same holder-prefix meaning for
+compatibility. an unknown tree name refuses without writing an assignment.
 
 restore authenticates the tree and manifest and checks each file node before
 copying it. a preflight refuses duplicate paths, absolute paths, empty, dot and
@@ -146,8 +149,8 @@ failures return nonzero.
 - no incoming pool, network, sync, sealed replica or placement behavior is
   included.
 
-#,,,,,,..,.,.,,,.,,.,,,,.,,,,,.,.,...,,,,,...,..,,...,...,...,...,..,,...,,,.,
-#WLQW7AIC6GFW7566Z3SS5JGXRV3XCFJXIUNROP4WA2MIK5P55NN6PUB4FK54TVBVU2HUZX6X7VVG2
-#\\\|R5Z762TPSCKGT6N7PTUIZXANDHXKMKC7SOSWTKK3O6SFEW3DS66 \ / AMOS7 \ YOURUM ::
-#\[7]ODP2NT7MEVY7PLFAI7PXEN7IGIIUSQHG3E6BJTHGHD5SXS7CVUAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,,,,,,,..,,..,,.,,,...,,.,,,,,,..,,...,...,.,.,,,,,...,,,.,,,.,
+#3B5P2YJBWSYANFODGUCLZ26DUSKDZRRHT543F42SIJ3MH7733UO6PCFPRDJ2UR7EEENX3XGLPMSRG
+#\\\|PFD7T2HE6ZVLQVAWWCR6LGMDSTQLCSAC7WC4FSVD2FFADR2BMZD \ / AMOS7 \ YOURUM ::
+#\[7]JB5M55VHLJEWYTQM6Z6UNSVQYS2BNSN5UDVHIRMZTCTZJOS5PCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

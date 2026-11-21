@@ -8,6 +8,8 @@ use File::Find;
 use Cwd        qw| abs_path |;
 use FindBin    qw| $RealBin |;
 use File::Path qw| make_path |;
+BEGIN { unshift @INC, "$RealBin/../../data/lib-path/pm" }
+use AMOS7::Perms qw| parse_rules |;
 ## SYS_mknod and SYS_lchown ##
 require 'syscall.ph';
 use constant { TRUE => 5, FALSE => 0 };
@@ -105,24 +107,9 @@ die "  : rule file not found.\n  : : [ $perm_file ]\n\n"
 
 open( my $perm_fh, qw| < |, $perm_file ) or die "$perm_file: $!";
 local $/ = undef;
-my $target_str;
 my $file_str = <$perm_fh>;
 close($perm_fh);
-## a comment starts a line or follows whitespace : '#' inside a path ##
-## [ editor lock links '.#name' ] stays part of it                   ##
-$file_str =~ s{(?:^|[ \t]+)#[^\n]*}{}mg;
-$file_str =~ s|^\n+||mg;
-$file_str =~ s|\n$||;
-
-foreach my $perm_line ( split "\n", $file_str ) {
-    ( my $rules_str, my $path_str, $target_str )
-        = split( m| *-?-> *|, $perm_line );
-
-    my @rules = split( m|\s+|, $rules_str );
-    push( @rules, sprintf( 'link_target:%s', $target_str ) )
-        if defined $target_str;
-    push $perm_table->@*, { $path_str => \@rules };
-}
+$perm_table = parse_rules($file_str);
 
 ## one in-memory pass instead of one tree walk per rule and parameter :   ##
 ## [ 1 ] create missing paths \ links in rule order, [ 2 ] walk each tree ##
@@ -171,19 +158,19 @@ sub chmod_key {    ## chmod follows a link : the key is its target ##
     return $rel;
 }
 
-foreach my $entry_ref ( @{$perm_table} ) {
-    my ( $path, $action_ref ) = %{$entry_ref};
+foreach my $rule ( @{$perm_table} ) {
+    my $path = $rule->{'path'};
     $path =~ s|^/+||;
 
     printf( "\n < %-33s >\t [ %s ]\n\n",
-        $path, join( ', ', $action_ref->@* ) )
+        $path, join( ', ', $rule->{'_actions'}->@* ) )
         if $verbose;
 
     my $params = {
-        'link_target' => undef,
-        'file_mode'   => undef,
-        'user'        => undef,
-        'group'       => undef,
+        'link_target' => $rule->{'link_target'},
+        'file_mode'   => $rule->{'mode'},
+        'user'        => $rule->{'user'},
+        'group'       => $rule->{'group'},
         'create'      => 0,
         'recursive'   => 0,
         'on_files'    => 0,
@@ -193,33 +180,19 @@ foreach my $entry_ref ( @{$perm_table} ) {
         'path'        => $path
     };
 
-    foreach my $param_str ( @{$action_ref} ) {    ## the flags 'accumulate' ##
-        my $type = qw| unknown |;
-        if ( $param_str =~ m|^[RFLDC]+$| ) {
-            $params->{'recursive'} = 1 if $param_str =~ m|R|;
-            $params->{'on_files'}  = 1 if $param_str =~ m|F|;
-            $params->{'on_links'}  = 1 if $param_str =~ m|L|;
-            $params->{'on_dirs'}   = 1 if $param_str =~ m|D|;
-            $params->{'create'}    = 1 if $param_str =~ m|C|;
-            $params->{'restricted'}
-                = $params->{'on_files'}
-                + $params->{'on_links'}
-                + $params->{'on_dirs'};
-            $type = 'flags';
-        } elsif ( $param_str =~ m|^link_target:\s*(.+)$|
-            and $params->{'restricted'} == 1
-            and $params->{'on_links'} ) {
-            $params->{'link_target'} = $LAST_PAREN_MATCH;
-            $type = 'link';
-        } elsif ( $param_str =~ m|^([ug]):(\w[-_\w\d]*)$| ) { # u:ser / g:roup
-            if ( $1 eq qw| u | ) { $params->{'user'} = $2; $type = qw|user| }
-            else                 { $params->{'group'} = $2; $type = 'group' }
-        } elsif ( $param_str =~ m|^([0-9]+)$| ) {             # file_mode
-            $params->{'file_mode'}
-                = oct( sprintf qw| %04d |, $LAST_PAREN_MATCH );
-            $type = qw| mode |;
-        }
+    foreach my $flags ( $rule->{'flags'}->@* ) {
+        $params->{'recursive'} = 1 if $flags =~ m|R|;
+        $params->{'on_files'}  = 1 if $flags =~ m|F|;
+        $params->{'on_links'}  = 1 if $flags =~ m|L|;
+        $params->{'on_dirs'}   = 1 if $flags =~ m|D|;
+        $params->{'create'}    = 1 if $flags =~ m|C|;
+    }
+    $params->{'restricted'}
+        = $params->{'on_files'}
+        + $params->{'on_links'}
+        + $params->{'on_dirs'};
 
+    foreach my $type ( $rule->{'_operations'}->@* ) {
         ## [ 1 ] creation : the rule path itself, when missing ##
         create( $path, $type, $params ) if selected($path);
 
@@ -490,8 +463,8 @@ sub read_user_names {
 
 }
 
-#,,.,,,,.,.,.,..,,..,,,..,,,.,,,,,.,,,,,.,,,.,..,,...,...,,,.,.,,,,,,,,.,,,,,,
-#FP5J7WB74H3DIEC7GBTS3ACPO6XV7OBUSVK6D5U6OUA3WT7T7EZ2YZYZCI6PTV7BULHETV6FPSCA2
-#\\\|WCBWPPUZXNBNJKBETGP5WF23LAEXCHFQROIYXBUWSG34BEO3SP5 \ / AMOS7 \ YOURUM ::
-#\[7]SP3AFUNMAEJOJVKQYZ4PMJZIY24I7E5N2A2XBBEYEZFQLYTYUUCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,.,,,,,..,,.,.,...,..,,,,,,,,.,..,,...,...,.,.,,.,,,,,,.,,,,,,,
+#K74LHFUMANFKFJGM7WFWQYRZ67Y2ZRJBIWY3ASU3QGKWNJGBCRGK2GVOGY4VI4OFVVSJCJNTN4P54
+#\\\|YN5O2J6BNNYO2FMKHMIR4NEVQLDIAGW6XMBKXQX3AYK22RB4Z7W \ / AMOS7 \ YOURUM ::
+#\[7]NOIQOVL75YTFO2IFWR55ATHKUU7DJHJCKMNPKJAS4VVEGDO632CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

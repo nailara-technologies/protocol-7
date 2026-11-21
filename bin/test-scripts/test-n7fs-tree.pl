@@ -517,6 +517,37 @@ ok( 2 == scalar(
     ),
     'later per-reference assignments supersede earlier ones'
 );
+my $cli_err;
+( $cli_rc, $cli_out, $cli_err )
+    = cli_n7fs( 'set-category', $disk, 'tree-name:sample', 'work' );
+my %sample_files
+    = map { $ARG->{'a'} => 1 } grep { defined $ARG->{'a'} } @{$entries};
+my $tree_replay = journal_replay($id);
+my @tree_refs
+    = grep { $sample_files{ $ARG->{'node'} } and not $ARG->{'dropped'} }
+    values $tree_replay->{'references'}->%*;
+my @wrong_tree_categories = grep {
+    ( $tree_replay->{'assignments'}
+            { join( "\0", $ARG->{'node'}, $ARG->{'path'} ) }->{'category'}
+            // qw| default | ) ne qw| work |
+} @tree_refs;
+ok( $cli_rc == 0 && @tree_refs && !@wrong_tree_categories,
+    'tree-name assigns every live reference to the manifest file nodes'
+) or say $cli_err;
+my $before_tree_unknown = snapshot( $root, $hdir );
+refused(
+    sub {
+        category_set_reference(
+            %run,
+            target   => 'tree-name:samp',
+            category => 'work'
+        );
+    },
+    qr|set-category : unknown tree \[ samp \]|,
+    'an unknown exact tree name refuses clearly'
+);
+ok( snap_equal( $before_tree_unknown, snapshot( $root, $hdir ) ),
+    'an unknown tree name changes nothing' );
 my $rule_file = write_file( "$src/rule-file", 'rule bytes' );
 assimilate(
     %run,
@@ -819,8 +850,8 @@ ok( $cli_rc == 0 && $cli_out =~ m|repair|,
 
 done();
 
-#,,,,,...,,..,...,..,,,,,,.,.,..,,,..,.,,,,.,,..,,...,...,..,,,,,,...,,.,,,.,,
-#AJXWXQDFLZPSGLJPAEK3QWKPJ6EGWNHJCYZVF5S5N36GZKWKVA2RH4RPMQ47NEEU5CZF2R25NDPVY
-#\\\|PIYGQR6YPENYIXI3TQZKHQ6FFD2EF76OYKXC5PMZY7TABGT4RXH \ / AMOS7 \ YOURUM ::
-#\[7]GDDLLL7ZYDBWY6DZDBGI6S3EIVBFSNCMBJ4QZ7OLMVHCOR3CHACA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,...,,,.,,.,,,.,,..,,..,,.,,,.,,,..,,...,...,.,,,...,...,,.,,,,.,
+#I46IW3ENDJJXHJ66GKGI4OYBYR6LRFCUBYNYVONRYAQXBZKMU52ZTDCXX7GMMLZVOYKLY2VYEYWA2
+#\\\|YOWPNPGDVMPTPTNR7YTG5HFZIGRVFTNCXJJCWN2CUU6J54I5BNI \ / AMOS7 \ YOURUM ::
+#\[7]7XBXZOTBCVH7EY2HBL27PMTC6JGY3757SNXPSUHYKROK5RXDS4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

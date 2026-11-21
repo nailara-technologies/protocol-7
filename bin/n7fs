@@ -64,7 +64,8 @@ use warnings;
 ##                  [ review finding 6 ]
 ## n7fs category <disk> list           category definitions
 ## n7fs category <disk> show <address> reference and effective policies
-## n7fs set-category <disk> <address|tree:path-prefix> <name>
+## n7fs set-category <disk> <address|tree-name:name|path:source-prefix> <name>
+##                  tree:source-prefix remains accepted for compatibility
 ## n7fs incoming <disk> list [ -under <prefix> ] [ -depth <n> ] [ -limit <n> ]
 ## n7fs incoming <disk> tag <prefix|glob|address> <category>
 ## n7fs incoming <disk> tag -from <file>  lines of <selector> <category> ; one run
@@ -1506,7 +1507,7 @@ sub cmd_category {
 sub cmd_set_category {
     my $disk   = disk_arg(shift);
     my $target = shift
-        // fail('set-category needs an address or tree prefix');
+        // fail('set-category needs an address, tree name or source prefix');
     my $name = shift // fail('set-category needs a category');
     fail('set-category : unexpected arguments') if @ARG;
     my $r = category_set_reference(
@@ -3135,8 +3136,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,..,,..,.,,,,.,,...,,.,,,,.,.,,,,,,,,,,,..,,...,...,...,.,,,,.,,.,.,...,
-#HG35TVSHRJPE42YIHCISF4K57WGNUCDJV6L43PGJUGRR2B4MA3JDGSQ7EZVHO5XPRF2XZ67WXH42M
-#\\\|SRYZMZ7CBEYGIUGIO33DMHYU6USHTJ4EVLZTPNILR7VLALIIACZ \ / AMOS7 \ YOURUM ::
-#\[7]EVPMS6GU2OUXJAEEPWC5LO7DW52ZYLH73KENNDW4DUA4SOEJCSDQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,.,,,.,.,,,.,.,,,,,.,,,.,,,,..,..,,...,...,...,.,.,,,.,,,,,,,,,
+#SMSAOVJL47LR6E2MBKUNBSNFW2W3HTRUAD7E6PLUKMYDXH7GPB5TXSP2PJCHHRJT6PYJA4HEERHA2
+#\\\|KXLGNKUYSOLMWN4IV3RMT3LKPTFENGLGZES2LA6M6GVTJ7H2VTL \ / AMOS7 \ YOURUM ::
+#\[7]O3ZLQK5G3TJJIVLZKR5SBENIWCFE7SQC3ZCOWMI5UOJ2E75G6UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

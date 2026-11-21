@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Category-VERSION.LUJTOKI |;
+our $VERSION = qw| AMOS7::N7FS::Category-VERSION.PD74WAY |;
 
 @EXPORT_OK
     = qw| category_default category_definitions category_set category_list
@@ -297,13 +297,26 @@ sub category_set_reference {
     refuse( 'unknown category [ %s ]', $category )
         if not exists category_definitions( $id, $replay )->{$category};
     my @refs;
+    my %tree_files;
+
+    if ( $target =~ m|\Atree-name:(.*)\z|s ) {
+        my $tree_name = $1;
+        my $tree      = $replay->{'trees'}{$tree_name};
+        refuse( 'set-category : unknown tree [ %s ]', $tree_name )
+            if not defined $tree;
+        require AMOS7::N7FS::Seal;
+        $tree_files{$ARG} = TRUE
+            for AMOS7::N7FS::Seal::_manifest_files( $id,
+            $tree->{'manifest'} );
+    }
 
     foreach my $node ( store_nodes( $id->{'path'}, $state->{'epochs'}->@* ) )
     {
         foreach my $ref ( grep { not $ARG->{'dropped'} }
             reference_scan( $node, $id ) ) {
             my $match
-                = $target =~ m|\Atree:(.*)\z|s
+                = $target =~ m|\Atree-name:| ? $tree_files{ $ref->{'node'} }
+                : $target =~ m|\A(?:tree\|path):(.*)\z|s
                 ? index( $ref->{'holder'}, $1 ) == 0
                 : $ref->{'node'} eq $target;
             push @refs, $ref if $match;
@@ -409,8 +422,8 @@ sub category_report {
 
 1;
 
-#,,..,.,,,,..,..,,,..,,,,,.,.,,,.,..,,,.,,...,..,,...,...,...,,..,.,.,,.,,.,,,
-#VS3MT7F4VDPEW2NCPF44SVDF5JJDH4ZT3AS3H6FENYHVGCGDEQEIJS6EL3ARXYEOMNWF3XKQUSB5O
-#\\\|SZ43GJTM7NWJT3YMFKSYNDGZS735DX5RGAZILL45RZHPFFEIOQH \ / AMOS7 \ YOURUM ::
-#\[7]3OKFRZFOX4MSQOPSQ6DVOUK5U3G6EFQO2AACK5PPIKDGWHIZHUCI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,,.,,,..,..,,..,,..,,,..,,..,..,,...,...,...,...,.,,,,,,,,..,
+#5PAFZ7S3FABXNCO6G7OQQPZKAGTTOZUBMH4ZTCBANLTJ7IXGTJKV7SZ7ARBNFXVFVCVVE43233V3G
+#\\\|M22MWSPJ6XXMNRAPWWAPSVL2NQDK6UYQIGPXDODLSDDH5IDZ37K \ / AMOS7 \ YOURUM ::
+#\[7]CJZXBS6HOEGESMZL3ES6WRZMQNBHSTKMXVJ5ZK32PPRQ3GSIFIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
