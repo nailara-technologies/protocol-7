@@ -83,6 +83,48 @@ target : minutes, not hours, for a disk of this size
 measured after the change [ 2026-11-21, ~338,000 references ] : ~270 references \
 second, ~21 minutes for the whole disk [ the old code ran > 9 hours unfinished ]
 
+## requirement : every mobile holder is a full recovery point [ owner 2026-11-21 ]
+
+- each mobile holder alone can recreate the whole set-up : it carries the complete
+  critical set [ important documents, the key trees, the private notes ], the
+  checkout with the n7fs tool, and the host configurations as n7fs trees -- not just
+  a share of the copies
+- the root key travels only inside the passphrase-protected vault, never in plain
+  text : a lost device yields nothing, the owner restores everything with the
+  passphrase
+- network boot : one mobile holder can boot the other over a cable [ pxe : dnsmasq as
+  dhcp \ tftp on that link ], serving a small rescue system that restores the other
+  machine's os tree and host configuration from n7fs -- partitions from the saved
+  layout, the original configuration back, the bootloader installed. two devices and
+  a cable are enough for a bare-metal restore
+- a phone node [ a linux vm or termux on the phone ] can do the same over wlan, with
+  one limit : pxe firmware boots over cable only. so the phone either presents itself
+  as a usb boot medium [ needs root on the phone ] or as a usb network card [ uefi
+  http boot on newer firmware ] ; the booted rescue system then fetches the trees
+  from the phone over wlan or usb tethering. what boots is chosen on the phone : the
+  generic android app shows a selection in the house style [ amnesic session, install
+  the user desktop, restore a given host, rescue only ]. needs a real data cable --
+  many phone cables only charge. while the system runs, the same app is its
+  dashboard [ state, load, what is mounted, sync progress ] and remote control :
+  hibernate the session TO the phone [ the session image, encrypted with the context
+  key, stored on the phone node -- input-and-window-forwarding.md part c ], then power
+  the machine off ; resume later on this or another machine. on a headless machine
+  [ a server, a board without a screen ] the phone app is the console : it drives
+  installation and operation, and offers an optional shell [ nshell or a plain shell,
+  over the authenticated link -- never an open port ]. it also guides disk
+  replacement : identify the disk [ model, full serial from hdparm, not a truncated
+  sysfs string ], show smart and firmware, walk the steps [ power off, insert,
+  hot-plug ] with confirmation on the phone, show copy progress live, and start
+  `n7fs place` afterwards to refill the copies
+- amnesic boot : the rescue system runs from ram, the user desktop comes in through
+  the n7fs mount [ read-only or add-only ], nothing is written to the local disk and
+  nothing remains after shutdown -- for a borrowed or unknown machine, the
+  prepared-and-locked session of input-and-window-forwarding.md
+- proven, not assumed : a regular `n7fs drill` from each mobile holder with no other
+  host involved, and occasionally the network boot itself
+- the rarely changing critical data [ document masters ] syncs once and then only
+  adds redundancy ; fast-changing working data stays on the fixed hosts
+
 ## follow-up : a progress bar for long n7fs runs
 
 - set-category [ and assimilate, place, restore ] show a progress bar on a terminal :
@@ -120,8 +162,8 @@ bin/test-scripts/test-n7fs-tree-category-performance.pl`.
   a copy or a test store
 - no host names, disks or personal data in repo files
 
-#,,,,,,,.,,,.,,,,,.,,,.,,,.,,,.,,,...,...,...,..,,...,...,...,,,.,,.,,,.,,...,
-#CIZRSZLDF5KQLCU7RLX4D2Y44QLWVKILINZJ6VPYRTBYSCHEJRNHG23ZHDSNE24LGYGYM4N5FOYYU
-#\\\|B6LB3AE6DPGJKGNNI2QZ7ODL3YFSNNUE7TZ6DCMA4U76JJBDKD4 \ / AMOS7 \ YOURUM ::
-#\[7]ZJJOCO2WKAXE5SGDXPGO5SZZNYAHE7IUBHNUD7CFLFZH3DC3XGBQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,..,,,..,,..,,.,,,.,,,,,,..,,..,,...,...,...,...,...,,.,,...,
+#H6D36DN2MUKSPERHTZV2CIJALT5KYMWHIQCLFMYNH7FRP2T3E4TSCYFIID2B4VAT4XQ7RUGY65GAQ
+#\\\|R6XOIRIXJXOF2EHDUAEEUBIBA6YSIWL5D7HZM4HISESVV4VSTM5 \ / AMOS7 \ YOURUM ::
+#\[7]BYGVUQJNVJHFO2IEJ22S4KFK4QHEWZMPVLOWLJ4PBLJKFAKQ3GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
