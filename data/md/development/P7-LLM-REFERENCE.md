@@ -63,7 +63,7 @@ p7c p7-log.append <zenka> <id> <buffer> <time> <level> <msg>
 p7c sourcecode.update-signatures          — resign all modified modules
                                             (requires signing key passphrase —
                                              run by human, not LLM)
-p7c sourcecode.verify-p7-signatures       — verify all module signatures
+p7c sourcecode.verify-signatures       — verify all module signatures
 p7c sourcecode.verify-dev-signatures      — verify developer signatures
 ```
 
@@ -117,8 +117,8 @@ p7c v7-zenki.restart <zenka>
 
 ---
 
-#,,,,,,.,,,..,,..,.,,,...,...,.,.,...,.,,,,,,,..,,...,...,.,,,..,,,..,..,,,,,,
-#OHZFFT64QUI34ONUWR7MSBJFSPBWTSQQHL4LB6RAKRNOUCRZETWUSFW6YBX4SC24RDH7WVBC37NO2
-#\\\|R7HLYLBAVWHCU2QZJTK6JKEAPW7WU5FTRUMMT6LOVHBRALSVTJO \ / AMOS7 \ YOURUM ::
-#\[7]6W2ECCCGBGHP2EENQDK4EHS2DYRXXDLPZDGX7XQ77SVV6PCO3MCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,,,,,.,,,.,.,,,..,,,,.,,..,.,,,..,,...,..,,,.,,..,,,..,.,,,...,
+#LVOFMCSGHJAUXLQIBQYTK45ZWBJPKER43TDC43A7HQEGPD6EHUDMNYT52DTU222NBQUK63E3FSC4M
+#\\\|MGPB2MZRLFIHJTWCUX2MBAQNCI544YK4BBQIBXYOUMZXYXPSUBZ \ / AMOS7 \ YOURUM ::
+#\[7]S6PRIYNBFCLYH5BT3RAXDCVZR5BBITPE3EFXABSQKJRFKLD3EGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

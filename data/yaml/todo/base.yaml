@@ -427,7 +427,7 @@ items:
 - added: 3XAPPQ4YJU
   details: |-
     bin/dev/git-hooks/pre-commit:304 runs `bin/Protocol-7 sourcecode
-    verify-p7-signatures`, which currently re-verifies signatures broadly
+    verify-signatures`, which currently re-verifies signatures broadly
     rather than scoping to just the staged file set -- so `update-signatures`
     has to sign everything each commit, not just what actually changed. This
     gets painful fast on a multi-file session (e.g. a whole zenka's worth of
@@ -437,7 +437,7 @@ items:
     Idea 1 (original): scope both the verify step (line 304) and the signing
     pass itself to `git diff --cached --name-only` (the hook already
     computes this list earlier for the descr/param-length check, around
-    line 84) rather than whatever broader set verify-p7-signatures currently
+    line 84) rather than whatever broader set verify-signatures currently
     walks. Would speed up commits significantly on multi-file work.
 
     Idea 2 (2026-08-31/09-01, background pre-computation, bigger win):
@@ -461,7 +461,7 @@ items:
     templates). Extremely accelerated for the actual commit-time path,
     without weakening who gets to decide a file is actually signed.
 
-    Needs: reading verify-p7-signatures' and update-signatures' actual
+    Needs: reading verify-signatures' and update-signatures' actual
     current scoping logic first (idea 1) to see whether they already accept
     a file-list argument or would need one added; for idea 2, needs its own
     design pass (inotify watcher process lifecycle, where precomputed
@@ -2808,8 +2808,8 @@ items:
   - style
   text: shared non-linear interval helper for every periodic sender
 
-#,,.,,...,,,,,,,.,.,.,.,.,,..,.,,,...,,..,,,.,..,,...,...,,,.,,,.,.,,,,.,,,,.,
-#VLW2S4Q3E6IWEYBXKWAWQXDBS2XKD764P4JYQEJRB2MKYT5ZQHC4EJZPLKKZYSHAW2O5YHZA6JFZM
-#\\\|2SUU63AQBXNXC4PBB3H5GAVCIBIFL4QSVKESTZSDBA6763VB3FF \ / AMOS7 \ YOURUM ::
-#\[7]VXPDGOENAKDJDZTYGNEGXKTGW3FLGEU7RZUQ35O33LHEN7KRQYAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,..,,.,,,.,,,,,,,,.,,..,,,..,..,,...,...,..,,...,,.,,,.,,,.,,
+#5TQPJVVP44TCL7V5VYKBI4N3JG567B5XCAGB5VLED6TJDP3RA3B77WHAPS6DSFJ36L4N6W4K2BU76
+#\\\|66I5NTN4EUIOU52OYNDQDFMW24N7KIPDSDRU5Q3TT65NE2EXMDY \ / AMOS7 \ YOURUM ::
+#\[7]ZKQBOIJ4SAMISJXP2JTDSPT5V7VH6VASYWCUO4O2E4Z4DLUY4QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

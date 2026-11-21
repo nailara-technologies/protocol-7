@@ -16,20 +16,21 @@ my $p7_root = p7_root_dir();
 
 chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
 
-## an untracked file the incoming commits start tracking with the SAME ##
-## content [ e.g. a deps/.placeholder a zenka created before it was     ##
-## committed ] would make the pull refuse -- it is removed, the pull    ##
-## brings it back tracked. a differing file is left and still refuses   ##
+## an untracked file the incoming commits start tracking with the SAME  ##
+## content                                                              ##
+## [ e.g. a deps/.placeholder a zenka created before it was committed ] ##
+## would make the pull refuse -- it is removed, the pull brings it back ##
+## tracked. a differing file is left and still refuses                  ##
 system(qw| git fetch --quiet |) == 0
     or die ":\n:: git fetch failed : $OS_ERROR\n\n";
 
-## refresh the index stat info -- a file with only a newer timestamp   ##
-## [ same content ] would otherwise refuse the pull as 'not uptodate'  ##
-## non-zero exit = real modifications, the check below reports those   ##
+## refresh the index stat info -- a file with only a newer timestamp  ##
+## [ same content ] would otherwise refuse the pull as 'not uptodate' ##
+## non-zero exit = real modifications, the check below reports those  ##
 system(qw| git update-index -q --refresh |);
 
-foreach my $path ( split m|\0|, git_out(qw| ls-files --others --exclude-standard -z |) )
-{
+foreach my $path ( split m|\0|,
+    git_out(qw| ls-files --others --exclude-standard -z |) ) {
     next if not length $path or -l $path or not -f $path;
     my $incoming = git_out( qw| rev-parse --verify --quiet |, "\@{u}:$path" );
     next if not length $incoming;
@@ -79,8 +80,8 @@ if ( $rebase_exit != 0 ) {
 ## restore file permissions (fixes perms even without git hooks) ##
 print ": restoring file permissions after pull ..\n:\n";
 
-system(qw| bin/admin/restore-p7-permissions |) == 0
-    or die ":\n:: restore-p7-permissions failed : $OS_ERROR\n\n";
+system(qw| bin/admin/restore-permissions |) == 0
+    or die ":\n:: restore-permissions failed : $OS_ERROR\n\n";
 
 print "\n:\n: file permissions restored successfully .\n:\n";
 
@@ -88,8 +89,8 @@ exit 0;
 
 #[ SUBROUTINES ]##############################################################
 
-## git output without a shell [ list form ], trailing newline removed ; ##
-## '' when git fails                                                    ##
+## git output without a shell [ list form ], trailing newline removed ; '' ##
+## when git fails                                                          ##
 sub git_out {
     open( my $pipe, '-|', qw| git |, @_ ) or return '';
     local $RS = undef;
@@ -108,8 +109,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,..,...,...,.,,,.,.,,,.,,.,,,,,,.,.,,.,,,,.,..,,...,...,..,,,..,,,.,,,.,,,,,
-#R66LQUTK5XRBKCOCMNJN5BV3N4GTDH2LX2FN5WUYTT3IHJEWXWLBIZZ3URN2SLDYK52FCSL3HZM2Q
-#\\\|RS5WDY6PTXHD7ASJGDKLRS7FW4VVQGOTCHZU46N73YQ6UHO3R3B \ / AMOS7 \ YOURUM ::
-#\[7]PXAKBQCBJDY5K3742RTPB4FEHUCBZAHOL5OVPAW6MU5C7NINZADA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,.,...,,..,.,,,,,,,,..,.,,,,,,,..,,...,..,,..,,,,.,.,.,,,.,,,.,
+#RKY7GAVH4R4DSTLJWFW5VVLQV5256ZQUXLUDKFS2PIKYW3IN4DESIBBLAFGBQIHYR2XHITW2MGUZE
+#\\\|OEJ6FKMKJ2GAKDULZS6IEKDLQNTRQXB736FZ5FJUZWHRDGOS6DB \ / AMOS7 \ YOURUM ::
+#\[7]OOLCJH4BFFMQCE4FLK73MNH6IYC4V36XJPCVUBJ6DMV6S5HTHCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

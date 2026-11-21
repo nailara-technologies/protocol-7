@@ -1,0 +1,497 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use File::Find;
+use Cwd        qw| abs_path |;
+use FindBin    qw| $RealBin |;
+use File::Path qw| make_path |;
+## SYS_mknod and SYS_lchown ##
+require 'syscall.ph';
+use constant { TRUE => 5, FALSE => 0 };
+
+our $up_dir = File::Spec->updir;
+our $Bin    = $RealBin;
+
+##  todo  ## :target: keyword for implied readlink
+
+## [LLL] ## add mknod feature \ parameter ##
+
+## -v : list every change ; -n \ --check : change nothing, list what would ##
+## change, exit 1 when anything differs                                    ##
+## -root <dir>  : apply \ generate against another tree [ a restore        ##
+##                target ] instead of the protocol-7 checkout              ##
+## -rules <file> : the rule file [ default <root>/.restore_permissions ]   ##
+## -gen-links    : print one ' CL --> path --> target' rule per link       ##
+##                 below the root [ paths relative to it ]                 ##
+## -gen-all      : links + mode \ owner rules for every dir and file       ##
+## -out <file>   : write generated rules there instead of stdout           ##
+## -filter <re>  : only paths matching the perl regex [ relative to the    ##
+##                 root ; repeatable, any match counts ] -- narrows        ##
+##                 recursive rules too, and what -gen-* writes             ##
+my ( $verbose, $check, $root_opt, $rules_opt, $gen, $out_opt ) = ( 0, 0 );
+my @filters;
+my @args = @ARGV;
+
+while (@args) {
+    my $arg = shift @args;
+    if    ( $arg eq qw| -v | )                          { $verbose = 1 }
+    elsif ( $arg eq qw| -n | or $arg eq qw| --check | ) { $check   = 1 }
+    elsif ( $arg eq qw| -gen-links | )                  { $gen = qw| links | }
+    elsif ( $arg eq qw| -gen-all | )                    { $gen = qw| all | }
+    elsif ( $arg eq qw| -filter | ) {
+        my $re_str = shift @args;
+        die "  :\n  :: -filter needs a value\n\n"
+            if not defined $re_str or not length $re_str;
+        my $re = eval {qr|$re_str|}
+            or die "  :\n  :: -filter is no valid regex : '$re_str'\n\n";
+        push @filters, $re;
+    } elsif ( $arg =~ m{^-(root|rules|out)$} ) {
+        my $name  = $1;
+        my $value = shift @args;
+        die "  :\n  :: -$name needs a value\n\n"
+            if not defined $value or not length $value;
+        if    ( $name eq qw| root | )  { $root_opt  = $value }
+        elsif ( $name eq qw| rules | ) { $rules_opt = $value }
+        else                           { $out_opt   = $value }
+    } else {
+        die "  :\n  :: unknown argument : '$arg'\n\n";
+    }
+}
+
+my $p7_dir = $root_opt ? undef : p7_root_dir();
+my $work_dir
+    = $root_opt
+    ? abs_path($root_opt)
+    : $p7_dir;
+die "  :\n  :: not a directory : '$root_opt'\n\n"
+    if not defined $work_dir or not -d $work_dir;
+
+## rule and output files are given relative to the caller, not the root ##
+$rules_opt = r2_abs($rules_opt) if defined $rules_opt;
+$out_opt   = r2_abs($out_opt)   if defined $out_opt;
+
+## true when no filter is given or any filter matches the path ##
+sub selected {
+    my $path = shift;
+    return TRUE if not @filters;
+    foreach my $re (@filters) { return TRUE if $path =~ $re }
+    return FALSE;
+}
+
+chdir($work_dir) or die "  :\n  :: \l$OS_ERROR : $work_dir\n\n";
+
+if ( defined $gen ) { exit generate_rules( $gen, $out_opt ) }
+
+print "\n  ::[ normalizing file permissions ]:.\n  :\n";
+say "  ::. working on '$work_dir' .,\n  :";
+
+my $changes    = 0;
+my $user_table = {};
+my $perm_table = [];
+my $perm_file  = $rules_opt // "$work_dir/.restore_permissions";
+
+## user maps belong to the checkout : skipped for a foreign root ##
+if ( defined $p7_dir ) {
+    my $cfg_dir = "$p7_dir/cfg";
+    map { read_user_names($ARG) }
+        ( "$cfg_dir/system-user-map", "$cfg_dir/X11-vars" );
+}
+
+die "  : rule file not found.\n  : : [ $perm_file ]\n\n"
+    if !-f $perm_file;
+
+open( my $perm_fh, qw| < |, $perm_file ) or die "$perm_file: $!";
+local $/ = undef;
+my $target_str;
+my $file_str = <$perm_fh>;
+close($perm_fh);
+## a comment starts a line or follows whitespace : '#' inside a path ##
+## [ editor lock links '.#name' ] stays part of it                   ##
+$file_str =~ s{(?:^|[ \t]+)#[^\n]*}{}mg;
+$file_str =~ s|^\n+||mg;
+$file_str =~ s|\n$||;
+
+foreach my $perm_line ( split "\n", $file_str ) {
+    ( my $rules_str, my $path_str, $target_str )
+        = split( m| *-?-> *|, $perm_line );
+
+    my @rules = split( m|\s+|, $rules_str );
+    push( @rules, sprintf( 'link_target:%s', $target_str ) )
+        if defined $target_str;
+    push $perm_table->@*, { $path_str => \@rules };
+}
+
+## one in-memory pass instead of one tree walk per rule and parameter :   ##
+## [ 1 ] create missing paths \ links in rule order, [ 2 ] walk each tree ##
+## once and apply every rule to a table of wanted modes \ owners -- later ##
+## rules override earlier ones in memory, [ 3 ] chmod \ chown only paths  ##
+## whose current state differs                                            ##
+
+my %entry;        ## path -> { mode uid gid link file dir } [ lstat once ] ##
+my %walked;       ## recursive roots already walked ##
+my %want_mode;    ## chmod key [ a link : its resolved target ] -> mode ##
+my %want_own;     ## path -> [ uid, gid ] ##
+
+sub remember {
+    my $path = shift;
+    my @st   = lstat($path);
+    return if not @st;
+    $entry{$path} = {
+        mode => $st[2] & 07777,
+        uid  => $st[4],
+        gid  => $st[5],
+        link => -l _     ? 1 : 0,
+        file => -f $path ? 1 : 0,    ## follows a link, as before ##
+        dir  => -d $path ? 1 : 0,
+    };
+}
+
+sub tree_paths {    ## every path below \ at $root, walked once ##
+    my $root = shift;
+    my ($ancestor) = grep { $root eq $ARG or index( $root, "$ARG/" ) == 0 }
+        keys %walked;
+    if ( not defined $ancestor ) {
+        find(
+            { no_chdir => 1, wanted => sub { remember($File::Find::name) } },
+            $root
+        );
+        $walked{$root} = 1;
+    }
+    return grep { $ARG eq $root or index( $ARG, "$root/" ) == 0 } keys %entry;
+}
+
+sub chmod_key {    ## chmod follows a link : the key is its target ##
+    my $path = shift;
+    return $path if not $entry{$path}{'link'};
+    my $real = abs_path($path) // return undef;
+    ( my $rel = $real ) =~ s|^\Q$work_dir\E/||;
+    return $rel;
+}
+
+foreach my $entry_ref ( @{$perm_table} ) {
+    my ( $path, $action_ref ) = %{$entry_ref};
+    $path =~ s|^/+||;
+
+    printf( "\n < %-33s >\t [ %s ]\n\n",
+        $path, join( ', ', $action_ref->@* ) )
+        if $verbose;
+
+    my $params = {
+        'link_target' => undef,
+        'file_mode'   => undef,
+        'user'        => undef,
+        'group'       => undef,
+        'create'      => 0,
+        'recursive'   => 0,
+        'on_files'    => 0,
+        'on_links'    => 0,
+        'on_dirs'     => 0,
+        'restricted'  => 0,
+        'path'        => $path
+    };
+
+    foreach my $param_str ( @{$action_ref} ) {    ## the flags 'accumulate' ##
+        my $type = qw| unknown |;
+        if ( $param_str =~ m|^[RFLDC]+$| ) {
+            $params->{'recursive'} = 1 if $param_str =~ m|R|;
+            $params->{'on_files'}  = 1 if $param_str =~ m|F|;
+            $params->{'on_links'}  = 1 if $param_str =~ m|L|;
+            $params->{'on_dirs'}   = 1 if $param_str =~ m|D|;
+            $params->{'create'}    = 1 if $param_str =~ m|C|;
+            $params->{'restricted'}
+                = $params->{'on_files'}
+                + $params->{'on_links'}
+                + $params->{'on_dirs'};
+            $type = 'flags';
+        } elsif ( $param_str =~ m|^link_target:\s*(.+)$|
+            and $params->{'restricted'} == 1
+            and $params->{'on_links'} ) {
+            $params->{'link_target'} = $LAST_PAREN_MATCH;
+            $type = 'link';
+        } elsif ( $param_str =~ m|^([ug]):(\w[-_\w\d]*)$| ) { # u:ser / g:roup
+            if ( $1 eq qw| u | ) { $params->{'user'} = $2; $type = qw|user| }
+            else                 { $params->{'group'} = $2; $type = 'group' }
+        } elsif ( $param_str =~ m|^([0-9]+)$| ) {             # file_mode
+            $params->{'file_mode'}
+                = oct( sprintf qw| %04d |, $LAST_PAREN_MATCH );
+            $type = qw| mode |;
+        }
+
+        ## [ 1 ] creation : the rule path itself, when missing ##
+        create( $path, $type, $params ) if selected($path);
+
+        next
+            if $type ne qw| mode |
+            and $type ne qw| user |
+            and $type ne qw| group |;
+
+        my @targets;
+        if ( $params->{'recursive'} and -d $path ) {
+            @targets = tree_paths($path);
+        } else {
+            remember($path) if not exists $entry{$path};
+            @targets = exists $entry{$path} ? ($path) : ();
+        }
+
+        ## [ 2 ] wanted state, in memory ##
+        foreach my $target (@targets) {
+            next if not selected($target);
+            my $e = $entry{$target};
+            next
+                if $params->{'restricted'}
+                and not( $params->{'on_files'} and $e->{'file'}
+                or $params->{'on_links'} and $e->{'link'}
+                or $params->{'on_dirs'}  and $e->{'dir'} );
+            if ( $type eq qw| mode | and defined $params->{'file_mode'} ) {
+                my $key = chmod_key($target);
+                $want_mode{$key} = $params->{'file_mode'} if defined $key;
+            } elsif ( defined $params->{'user'}
+                and defined $params->{'group'} ) {
+                my $uid = getpwnam( $params->{'user'} );
+                my $gid = getgrnam( $params->{'group'} );
+                $want_own{$target} = [ $uid, $gid ]
+                    if defined $uid and defined $gid;
+            }
+        }
+    }
+}
+
+## [ 3 ] only what differs -- without root, a path owned by another user ##
+## [ a zenka's own files ] cannot be changed : skipped, counted          ##
+my ( %changed, %skipped );
+my $not_mine = sub {
+    my $uid = shift;
+    return ( $EUID != 0 and $uid != $EUID ) ? TRUE : FALSE;
+};
+foreach my $key ( sort keys %want_mode ) {
+    my @st = stat($key);
+    next if not @st;
+    my $mode = $st[2] & 07777;
+    next if $mode == $want_mode{$key};
+    if ( $not_mine->( $st[4] ) ) {
+        $skipped{$key}++;
+        printf "  [not owner] %04o->%04o : %s\n  :\n", $mode,
+            $want_mode{$key}, $key
+            if $verbose;
+        next;
+    }
+    $changed{$key}++;
+    printf "  [%s] %04o->%04o : %s\n  :\n", ( $check ? 'differs' : 'change' ),
+        $mode, $want_mode{$key}, $key
+        if $verbose or $check;
+    next if $check;
+    chmod( $want_mode{$key}, $key )
+        or warn sprintf "\n:: cannot chmod : %s  [ %s ]\n\n", $key,
+        lcfirst($OS_ERROR);
+}
+foreach my $path ( sort keys %want_own ) {
+    my ( $uid, $gid ) = @{ $want_own{$path} };
+    my @st = lstat($path);
+    next if not @st or ( $st[4] == $uid and $st[5] == $gid );
+    if ( $EUID != 0 ) {    ## chown needs root ##
+        $skipped{$path}++;
+        next;
+    }
+    $changed{$path}++;
+    printf "  [%s] owner %d:%d->%d:%d : %s\n  :\n",
+        ( $check ? 'differs' : 'change' ), $st[4], $st[5], $uid, $gid, $path
+        if $verbose or $check;
+    next if $check;
+    if ( -l $path ) {      ##  chown link, not target  ##
+        syscall( &SYS_lchown, $path, $uid, $gid, $path )
+            && warn sprintf "\n:: cannot chown link : %s  [ %s ]\n\n",
+            $path, lcfirst($OS_ERROR);
+    } else {
+        chown( $uid, $gid, $path )
+            or warn sprintf "\n:: cannot chown path : %s  [ %s ]\n\n",
+            $path, lcfirst($OS_ERROR);
+    }
+}
+$changes = scalar keys %changed;
+my $skips = scalar keys %skipped;
+
+print "\n  :\n" if $verbose;
+my $s = $changes == 1 ? ''                              : 's';
+my $n = $changes      ? sprintf( qw| %03d |, $changes ) : qw| no |;
+say $check
+    ? "  ::[ $n difference$s ]::"
+    : "  ::[ $n change$s ]::";
+printf "  ::[ %03d skipped : not owner, not root ]::\n", $skips if $skips;
+print "\n";
+exit( $check && $changes ? 1 : 0 );
+
+sub create {    ## missing rule paths \ links [ C \ L rules ] ##
+    my ( $fname, $type, $params ) = @ARG;
+    return if -e $fname or -l $fname;
+    if ( $type eq qw| link |
+        and defined $params->{'link_target'} ) {
+        printf "  : %s link '%s' --> %s\n  :\n",
+            ( $check ? 'missing' : 'creating' ), $fname,
+            $params->{'link_target'};
+        return if $check;
+        symlink( $params->{'link_target'}, $fname )
+            or warn sprintf
+            "\n:: cannot create synlink :  %s --> %s  [ %s ]\n\n",
+            $fname, $params->{'link_target'}, lcfirst($OS_ERROR);
+    } elsif ( $type eq qw| flags |
+        and $params->{'create'}
+        and $params->{'restricted'} == 1 ) {
+        if ( $params->{'on_dirs'} ) {
+            printf "  : %s directory '%s'.,\n  :\n",
+                ( $check ? 'missing' : 'creating' ), $fname;
+            return if $check;
+            make_path($fname)
+                or warn sprintf
+                "\n:: cannot create directory : %s  [ %s ]\n\n",
+                $fname, lcfirst($OS_ERROR);
+        } elsif ( $params->{'on_files'} ) {
+            printf "  : %s file '%s'.,\n  :\n",
+                ( $check ? 'missing' : 'creating' ), $fname;
+            return if $check;
+            if ( open( my $zero_fh, qw| > |, $fname ) ) {
+                close($zero_fh);
+            } else {
+                warn sprintf "\n:: cannot create file : %s  [ %s ]\n\n",
+                    $fname, lcfirst($OS_ERROR);
+            }
+        }
+    }
+    return;
+}
+
+## the inverse of the rule reader : rules that rebuild the tree's links ##
+## [ and with 'all' its modes \ owners ] below the current directory    ##
+sub generate_rules {
+    my ( $what, $out_file ) = @ARG;
+    my ( @lines, $unsafe );
+    my $safe = sub {    ## a name the rule format can hold back unchanged ##
+        my $str = shift;
+        return FALSE
+            if $str =~ m|[\n\r]|
+            or $str =~ m|->|
+            or $str =~ m|\s#|
+            or $str =~ m|^\s|
+            or $str =~ m|\s$|
+            or $str eq '';
+        return TRUE;
+    };
+    my @paths;
+    find(
+        {   no_chdir   => 1,
+            preprocess => sub { sort @ARG },
+            wanted     => sub {
+                ( my $rel = $File::Find::name ) =~ s|^\./?||;
+                push @paths, $rel if length $rel;
+            }
+        },
+        '.'
+    );
+    foreach my $rel (@paths) {
+        next if not selected($rel);
+        my @st = lstat($rel);
+        next if not @st;
+        if ( -l _ ) {
+            my $target = readlink($rel);
+            if (   not defined $target
+                or not $safe->($rel)
+                or not $safe->($target) ) {
+                $unsafe++;
+                warn sprintf "  :: link not representable, skipped : %s\n",
+                    $rel =~ s|[^[:print:]]|?|gr;
+                next;
+            }
+            push @lines, sprintf ' CL  -->  %s  -->  %s', $rel, $target;
+            next;
+        }
+        next if $what ne qw| all |;
+        my $kind = -d _ ? qw| D | : -f _ ? qw| F | : undef;
+        next if not defined $kind;    ## devices, fifos, sockets ##
+        if ( not $safe->($rel) ) {
+            $unsafe++;
+            warn sprintf "  :: path not representable, skipped : %s\n",
+                $rel =~ s|[^[:print:]]|?|gr;
+            next;
+        }
+        my $user  = getpwuid( $st[4] );
+        my $group = getgrgid( $st[5] );
+        my $own
+            = ( defined $user and defined $group )
+            ? sprintf( ' u:%s g:%s', $user, $group )
+            : '';
+        push @lines, sprintf ' %s %04o%s  -->  %s',
+            ( $kind eq qw| D | ? qw| CD | : $kind ), $st[2] & 07777, $own,
+            $rel;
+    }
+    my $out_fh = \*STDOUT;
+    if ( defined $out_file ) {
+        open( $out_fh, qw| > |, $out_file )
+            or die "  :\n  :: \l$OS_ERROR : $out_file\n\n";
+    }
+    printf {$out_fh} "## generated by restore-permissions -gen-%s ##\n## "
+        . "apply : restore-permissions -root <dir> -rules "
+        . "<file> ##\n\n",
+        $what;
+    print {$out_fh} "$ARG\n" foreach @lines;
+    close($out_fh) if defined $out_file;
+    printf STDERR "  ::[ %d rules%s ]::\n", scalar @lines,
+        $unsafe ? sprintf( ', %d skipped', $unsafe ) : '';
+    return $unsafe ? 1 : 0;
+}
+
+sub c_dir  { File::Spec->catdir(@_) }
+sub r2_abs { File::Spec->rel2abs(@_) }
+
+sub p7_root_dir {
+    my $min_path_len = 13;
+    my $p7_root_path;
+    my $compare_git_path = 1;
+
+    my $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    die "  :\n  :: determined path too short "
+        . ": '$root_path' [ not expected ]\n\n"
+        if length($root_path) < $min_path_len;
+    die "  :\n  :: not a directory : '$root_path'\n\n"      if !-d $root_path;
+    die "  :\n  :: no write permission on '$root_path'\n\n" if !-w $root_path;
+
+    return $root_path if not $compare_git_path;
+
+    if ( -d c_dir( $root_path, qw| .git | ) ) { ## is under version control ##
+        chomp( my $bin_g = qx| which git | );
+        if ( length($bin_g) and -x $bin_g ) {
+            chdir($root_path) or die ":\n  :: \l$OS_ERROR : $root_path\n\n";
+            my $vc_root_path = qx| $bin_g rev-parse --show-toplevel |;
+            chomp($vc_root_path);
+            if ( length($vc_root_path) and -d $vc_root_path ) {
+                die ":\n  :: path determined and reported by 'git' "
+                    . "mismatch\n  ::\n:: : self determined : "
+                    . "'$root_path'\n  :: :\n:: :::: git-root-dir : "
+                    . "'$vc_root_path'\n\n"
+                    if $root_path ne $vc_root_path;
+            } elsif ( not -d $vc_root_path ) {
+                die ":\n  :: root path reported by 'git' is no directory "
+                    . ":.\n  ::\n:: : git returned : '$vc_root_path'\n\n";
+            }
+        }
+    }
+    return $root_path;
+}
+
+sub read_user_names {
+    my $file = shift;
+    my $uref = shift;
+    if ( !-f $file ) {
+        ( my $file_rel = $file ) =~ s|^$work_dir/?||;
+        say "\n :: < missing user file > :: skipped :: '$file_rel'\n";
+        return;
+    }
+
+}
+
+#,,.,,,,.,.,.,..,,..,,,..,,,.,,,,,.,,,,,.,,,.,..,,...,...,,,.,.,,,,,,,,.,,,,,,
+#FP5J7WB74H3DIEC7GBTS3ACPO6XV7OBUSVK6D5U6OUA3WT7T7EZ2YZYZCI6PTV7BULHETV6FPSCA2
+#\\\|WCBWPPUZXNBNJKBETGP5WF23LAEXCHFQROIYXBUWSG34BEO3SP5 \ / AMOS7 \ YOURUM ::
+#\[7]SP3AFUNMAEJOJVKQYZ4PMJZIY24I7E5N2A2XBBEYEZFQLYTYUUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,7 +51,7 @@ pre_commit_hook:
       - staged_file_changes
       - amend_operations (even without staged changes)
 
-    command: "bin/Protocol-7 sourcecode verify-p7-signatures"
+    command: "bin/Protocol-7 sourcecode verify-signatures"
     exit_code_semantics:
       "0": "All signatures valid"
       "N": "N invalid signatures (failure)"
@@ -78,7 +78,7 @@ endline_state_normalization:
 
 signature_system:
   components:
-    verify: "src/sourcecode.console.verify-p7-signatures"
+    verify: "src/sourcecode.console.verify-signatures"
     update: "src/sourcecode.console.update-signatures"
     sign: "src/source.cmd.get-code-signed"
     harmonize: "src/source.create_harmonic_footer"
@@ -180,7 +180,7 @@ debugging:
     command: "git rev-list --count HEAD"
 
   check_signature_status:
-    command: "bin/Protocol-7 sourcecode verify-p7-signatures"
+    command: "bin/Protocol-7 sourcecode verify-signatures"
 
   check_git_operation_type:
     command: "echo $GIT_REFLOG_ACTION"
@@ -214,8 +214,8 @@ versioning_philosophy:
   traceable: "Enables forensic analysis and precise code reproduction across distributed development"
   self_documenting: "Version identifier encodes full project state context"
 
-#,,,.,,,.,,.,,.,,,,.,,,.,,,,.,,..,...,,,.,,,,,..,,...,...,...,.,,,..,,,.,,..,,
-#ZSFWLSIL3E4GH2GJGKULWQKPBUVEC7VGVGYCDTMVMG7NQJSQ3GCSPZEOHF3M7F5V76YY4PA6LKE54
-#\\\|EGT3ZQ6ZLCZ35DF4NMP5FXW62MGBMXUJP2HSSRNUTOLKBCDXJKU \ / AMOS7 \ YOURUM ::
-#\[7]RXGPLDCE3LGBKBHTQTZYH3WURJN2RN6FVX4AEPH6VD7F3NGFPCCY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,..,,,.,,.,,,.,,,,..,.,,,,,.,..,,...,..,,,.,,,.,,,..,,,,,...,
+#IWL46V4H7I4QUFPJQMYHQ4GDUS5S6GCTNWDUQXW6QHEYRKHRR4YDEAEN5DWNTL7PYKKH5AZOKVHEE
+#\\\|KUF72E6AMBNKSFZ5IV6VQVTS5CQWXWMKWFQNLJNGEC3AH5OZ5JN \ / AMOS7 \ YOURUM ::
+#\[7]AA4FTFGSHOHNEFVU3ZYIIQUS6EUOXXDGC4PA5M3OORV5NNOIVKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

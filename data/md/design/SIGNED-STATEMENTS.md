@@ -50,7 +50,7 @@ capabilities, open question 19 ].
   mismatch'. there is one template, so the slots are pinned. the
   verifier picks the key :
   `crypt.C25519.verify_sign( msg, sig, key_name )` ; the
-  `verify-p7-signatures` run hardcodes `proto-7.sourcecode`, loaded from
+  `verify-signatures` run hardcodes `proto-7.sourcecode`, loaded from
   the `base.protocol-7.source-key` data block of `bin/Protocol-7`.
 - **other keys work already** : `source.load_signature_key( <name> )`
   and `crypt.C25519.sign_data( msg, <key> )` take any key name ;
@@ -67,7 +67,7 @@ capabilities, open question 19 ].
 - **the pre-commit check** [ `bin/dev/git-hooks/pre-commit` ] : line 358
   tests that a footer is PRESENT [ substring `YOURUM` \
   `AMOS7.*DATA.*SIGNATURE` ] on files that need one, then line 431 runs
-  `sourcecode verify-p7-signatures` on the staged set -- real
+  `sourcecode verify-signatures` on the staged set -- real
   verification [ corrected in review : an earlier draft said it verifies
   nothing ]. it knows no statements yet.
 - **`src/base.list.subroutines`** : a perl module returning 6200 module
@@ -859,7 +859,7 @@ each is a label table entry, not a new format.
    and starts without them.
 2. **verify** : a `sourcecode verify-module-set` command [ name open ] ;
    the pre-commit hook calls it on a staged statement, next to its
-   existing `verify-p7-signatures` run.
+   existing `verify-signatures` run.
 3. **the CODE sweep** [ section 3 ] : every code-class file re-signed as
    `CODE` def 1 in one commit, the module set regenerated after it, the
    window constant set.
@@ -967,8 +967,8 @@ each is a label table entry, not a new format.
 - the network witness [ N7FS-SPEC section 4 ]
 - unlinkable credentials [ their own design ]
 
-#,,.,,...,,..,,,,,..,,..,,,,,,,,,,,..,.,,,,.,,..,,...,...,.,.,..,,,,.,,,.,,,,,
-#3MIHV2R5PSK7JWBVHL5J3DAX4QU7HFBZWF6OQOUQIZGZOY47O7CM5ARZ42G63ZXST6XX4KGRGPQMO
-#\\\|4N2HEIBPFFKRNRMRS5SOSXLIZQZV7KSP6JKAXUKKTWHXMXNBRHI \ / AMOS7 \ YOURUM ::
-#\[7]RHLJF7QGDX5VIPGPLUECRQWOOXUR4D76V2V7FZXCIFLISLOPP4DQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,..,..,,..,,,..,,,.,.,,,,,.,...,..,,...,...,.,.,,.,,.,.,,,,,,,,,
+#IAXH5V4KFWRRS4Y2JZPAM3KET7KM27P5QETTAAMAW6T73LPYRCMFILKENDNZ6BVTCOFY3GNBZU3RA
+#\\\|FUQT55IBZLDHGP6L3A2MJMGMNHZ4VIMM6KTBG3P2VEMC67ERN5J \ / AMOS7 \ YOURUM ::
+#\[7]4PBA2RLSAO6NOC664V2WAX44CJS6W2AS5FBDNP5HR34ZEXDHHABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

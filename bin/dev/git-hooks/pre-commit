@@ -88,9 +88,9 @@ my $git = Git::Wrapper->new($root_path);
 {
     my $normalizer
         = File::Spec->catfile( $root_path,
-        qw| bin admin restore-p7-permissions | );
+        qw| bin admin restore-permissions | );
     system($normalizer) == 0
-        or die ":\n:: restore-p7-permissions failed\n\n";
+        or die ":\n:: restore-permissions failed\n\n";
 
     my @staged = eval {
         $git->diff( { cached => 1, name_only => 1, diff_filter => 'ACMR' } );
@@ -391,7 +391,7 @@ unless ($skip_signature_check) {
     ## :inlist: to just the staged files that exist on disk [ a deletion    ##
     ## has nothing to verify -- collect_file_list just logs a harmless "no  ##
     ## matches" for it and moves on, but there's no reason to hand it over  ##
-    ## ]. verify-p7-signatures itself intersects this candidate set against ##
+    ## ]. verify-signatures itself intersects this candidate set against    ##
     ## the real signed corpus, so anything staged but outside it            ##
     ## [ excluded paths, non-source files, etc ] is silently skipped rather ##
     ## than reported as unsigned -- see idea 1 of ADR 'scope pre-commit     ##
@@ -434,7 +434,7 @@ unless ($skip_signature_check) {
     if (@unrepresentable_files) {
         my $verify_cmd
             = "cd '$root_path' && bin/Protocol-7 "
-            . "sourcecode verify-p7-signatures 2>&1";
+            . "sourcecode verify-signatures 2>&1";
         $verify_output .= `$verify_cmd`;
         $verify_status ||= $? >> 8;
     }
@@ -449,7 +449,7 @@ unless ($skip_signature_check) {
         return if not @batch;
         my $verify_cmd
             = "cd '$root_path' && bin/Protocol-7 sourcecode "
-            . "verify-p7-signatures :inlist: @batch 2>&1";
+            . "verify-signatures :inlist: @batch 2>&1";
         $verify_output .= `$verify_cmd`;
         $verify_status ||= $? >> 8;
         @batch     = ();
@@ -492,8 +492,8 @@ sub shell_quote {
     return "'$str'";
 }
 
-#,,,,,..,,,.,,,,,,..,,,,.,,,,,,.,,.,,,,,.,..,,..,,...,...,,.,,,..,..,,,..,,..,
-#2ZVIVDXRHGNLTR44CDJJY7LWQFXDLSKPOEZBHQYOJ34QCFJAM46MAHGQ4P47PEN5TWLANRQHYL6PM
-#\\\|MUVVHXSSHXN5MPJ6ENIYHZIJEXEZTY6F42Q7WXE26DP2ZW355IQ \ / AMOS7 \ YOURUM ::
-#\[7]3PTWTOXHAOUCUXNYW5A3RMK7CS2VYA7B5JSDZ2B5JPAHMV5L2ICI 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,,.,,,.,.,.,.,,,.,,,,,,,.,.,..,,...,...,.,.,,,.,.,.,,.,,,..,
+#JG7MKR3POWPFYLXT6NSOYDHR25D7H2NHRVAI4UZO5HBD5R55WHPD4JBNR4MOGUYFQC4TOVJINO5Y4
+#\\\|YTBMFA7OPLD7C5RD4LDBVDTUJNRBMDHG6GP43KIJZ6RCOBIUKJZ \ / AMOS7 \ YOURUM ::
+#\[7]HG2GEZ2ZMPU2WBPFJSLNSABKKUKQYLNHEJ5SFH56KGJXMB365ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

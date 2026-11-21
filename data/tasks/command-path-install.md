@@ -47,7 +47,7 @@ src/v7-zenki.compile_bin_p7c, bin/p7-install [ steps 1-7 ].
 
 ## syntax : reuse cfg/p7-file-permissions
 
-the target profile uses the line form of cfg/p7-file-permissions [ restore_p7_permissions ] :
+the target profile uses the line form of cfg/p7-file-permissions [ restore_permissions ] :
 flags [ C create if missing, L links only, D \ F, R recursive ], octal mode, u:<user>
 g:<group>, then `path --> <:link-target:>` -- it already describes links [ e.g.
 `CL --> bin/Protocol-7.gtk3 --> Protocol-7` ]. a role directory and its links are then
@@ -56,7 +56,7 @@ ordinary entries, e.g.
     DC 750 u:root g:p7-admin  -->  /usr/local/lib/protocol-7/path/admin
     CL                        -->  /usr/local/lib/protocol-7/path/admin/ncode  -->  bin/ncode
 
-the reader is bin/admin/restore-p7-permissions [ standalone perl, -n \ --check dry run,
+the reader is bin/admin/restore-permissions [ standalone perl, -n \ --check dry run,
 -v ] -- its line parser moves into the shared AMOS7 module, the tool keeps working on it.
 the tool already had an optimization run [ fewer passes over the tree, in-memory
 normalizer 98cec1c01, net-change-only reporting 1f7dfebac ] : moving the parser must keep
@@ -73,8 +73,8 @@ needed here too [ a whole command profile as one entry ] and lands once for both
 - idempotent, every step reports ok \ set \ changed \ failed ; -dry-run reads only
 - p7 config style, no json ; perl 5.32 floor
 
-#,,,.,,,.,.,,,.,.,,.,,,,,,,,.,..,,..,,.,.,.,.,..,,...,...,.,,,.,,,,,.,.,.,.,,,
-#2AOC6V5ZSGNQNR7MIPT4LL2QBFM5CZ3UYMBC6UUENZTB6LOKACD4HGHG6MYVZAMPJ3ZZY63UT4ZNA
-#\\\|RCOBJY6BRHEF3PDHUAMONS34GELODC3JXWCKWPYXUTTZYDKPMSC \ / AMOS7 \ YOURUM ::
-#\[7]AUAJTAHULBMXGC7AELUC2UDAIEJZ6YAWRVBBN5L3JGBBCWYYI2DI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,.,,,...,,.,,,,.,..,,,,.,.,.,.,.,..,,...,...,...,...,,.,,,..,,..,
+#YT546W4FKILQDOBTVGONLG2ZVCYV47WHRXHYTUURZEAHMTVOJKTCMNC7LFHB4HLD2ENB5LGOXW7I4
+#\\\|X2YUGQDTF7EVSICBEHVPFAGJ3PECOIUKPEV6TXQAKA36NIZWDDI \ / AMOS7 \ YOURUM ::
+#\[7]YEABFWWFXRUDLDXYJJ4IC7SVPDNGDASDZ6LJU3YVCWYLXV765OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

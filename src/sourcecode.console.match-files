@@ -2,7 +2,7 @@
 
 # name  = sourcecode.console.match-files
 # descr = dry-run file-matching preview for update-signatures /
-#         verify-p7-signatures -- same parameters, same matching logic,
+#         verify-signatures -- same parameters, same matching logic,
 #         zero side effects [ no key loading, no signing, no verification,
 #         no git operations, no writes of any kind ]
 
@@ -20,7 +20,7 @@
 
 ## usage:
 ##   sourcecode.console.match-files <params>              [ raw collect_file_list params ]
-##   sourcecode.console.match-files :inlist: <params>      [ intersect against the signed corpus, same as update-signatures/verify-p7-signatures ]
+##   sourcecode.console.match-files :inlist: <params>      [ intersect against the signed corpus, same as update-signatures/verify-signatures ]
 ##   sourcecode.console.match-files                        [ no params : the full corpus, same as the other two tools' no-args branch ]
 ##
 ## deliberately does NOT call base.exit on an empty match -- unlike the real
@@ -85,8 +85,8 @@ print "\n";
 print "$ARG\n" foreach <[base.sort]>->(@source_paths);
 print "\n";
 
-#,,,.,..,,,,,,.,,,,.,,.,,,,..,...,.,,,,..,...,..,,...,...,...,...,,.,,,,.,,,,,
-#VZOO5R443FDA4UBFCP6XIEK3JYI6LBKXEUXBVH2MHTTADH6SADGXTW3VSKZDVQ5ZCDKMSG4OXGWWG
-#\\\|XVVXC7FIPZRLWSUBLPBPIMCQAVGS3KFDUNZZTXL2FTARKJKT7WG \ / AMOS7 \ YOURUM ::
-#\[7]IKKWOCI6GIGZ5WFQPWG2SNLMYNLTDAD2W4A4TFL2I46IPYUFT4CY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,..,.,.,,,,,.,,,,..,..,,,,.,..,,..,,...,...,.,.,,,.,..,,...,,.,,
+#PXRZNGINGIEDNJ5FEUCIYGMBEOGYQYUP2AWKANXEHUK7IJWWTZW7MMPA5AIPKZHRBA47AER27KKDC
+#\\\|RWVULA7XFGP47VOZ2WGRDF2OMDGBBUKNARJPXGVOABOSMIDX6V3 \ / AMOS7 \ YOURUM ::
+#\[7]YXYBVGBOKMMKWTOQJJLUHVMZFOLW5NEOJW4GFYJTWO2OLLL4UKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
