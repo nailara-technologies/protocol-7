@@ -30,11 +30,19 @@ foreach my $chk_dir (@check_dirs) {
     ## a shared parent [ /var/tmp ] lets anyone pre-create the subdir : use ##
     ## it only when it is a real directory, ours, not writable by others    ##
     my @st = lstat $subdir_path;
+    ## the effective uid from the kernel : /proc/self belongs to it -- no ##
+    ## special variable needed [ one was undefined in zenka scope ]       ##
+    my $euid = ( stat qw| /proc/self | )[4];
+    if ( not @st or not defined $st[4] or not defined $euid ) {
+        <[base.logs]>->(
+            0, ': tmp-dir owner check impossible : %s', $subdir_path
+        );
+        next;
+    }
     next
-        if not @st
-        or -l _
-        or not -d _
-        or $st[4] != $>    ## $EUID is not always aliased in zenka scope ##
+        if -l $subdir_path
+        or not -d $subdir_path
+        or $st[4] != $euid
         or ( $st[2] & 022 );
     $first_dir = $subdir_path;
     last;
@@ -117,8 +125,8 @@ if ($register) {
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,..,,.,,,,.,...,,..,,..,...,.,.,,,.,.,,,,.,,..,,...,...,,,,,.,,,.,,,...,.,.,
-#YS64YG3LQ2FRYZSNMZFBIMSSWMTDEXZRVC5NB34RKOYE7GXASNG2CQNMUUED2HUIBBBIIJY2K4INQ
-#\\\|H7HJQFV4UPLVHLVW7K3X5HPOTOUAKWNWGS4SVYJZT74C6TC3ODG \ / AMOS7 \ YOURUM ::
-#\[7]SBFHM6AIS4F7IBKKZQ5CQMLAKF7ECMQVDSBOU3M3DBHOAAHAG2CQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,.,,.,,,,.,,,.,..,,,,.,,.,,,..,..,,...,...,..,,.,,,...,.,,,...,
+#YEL5VB5MPRJJXBKT53YYXBBXOKTAWTMDPBUK3IQLZGXF64LN4II6EIOW4KLFAXWXZ6EBHW3TWQG3I
+#\\\|D5CVNYMJS2SK6XR75UYF32UKUNNDQPEL5SMM4JMDOLM2DUMXAGC \ / AMOS7 \ YOURUM ::
+#\[7]YR3CRFJXCVWNXGQNK54K3KYBSUVIW56ZODALCYX772QMMLQJLECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
