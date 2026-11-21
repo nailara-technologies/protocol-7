@@ -123,6 +123,10 @@ candidate for a yaml variant [ owner 2026-11-21, checked with `harmony` ] :
 `.7y` [ TRUE ] for the readable p7 yaml variant, `.7YX` [ TRUE ] for the same
 content wrapped as a base32 encoded xz archive ; `.7Y` is TRUE as well, `.7yX` is
 FALSE -- so lowercase marks the readable form, uppercase the wrapped one.
+the extension is also the reader's unwrap instruction : for `.7y` verify the
+signature footer, then strip it and the `## [:< ##` header and parse the yaml in
+between ; for `.7YX` verify, base32 decode, xz decompress, then parse as `.7y`.
+stripping follows the check, it never replaces it.
 
 ## Statistics Zenka (`statistics`)
 
@@ -452,8 +456,8 @@ access.cmd.usr.cube = report status opt-out
 
 *Privacy-preserving configuration through inheritance and minimal diffs.*
 
-#,,,,,,,,,...,..,,..,,,,,,.,,,,..,...,.,.,,,,,..,,...,...,,.,,,,.,.,,,...,...,
-#4AGDH3MXS45OXY4PMUBL7XVPVY76W7RGOCZDAVG4BU35S4H63K2Y7EOOCPH6AF44NQF46RBDDIOAM
-#\\\|5K2QKBHZ2QN7SBQANDNHRYTXVTSAZBXJQWFAQYS3APORSHLJXDR \ / AMOS7 \ YOURUM ::
-#\[7]POF4P7D4OZADMN7VSXJIV25BL3PMMJDQGSMNERV57RMFVMEN6WDI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,,,.,,..,.,,,..,,.,.,..,,.,.,..,,...,...,.,.,.,.,,,,,..,,,..,
+#2S2BGDTYOIPIPNAA4YGR2VUI2MZVV5EKAVOBFAKQHOW6M2YU65QBTBJP7KCG66WVXC76KWCSC6RRA
+#\\\|VIW2CFDHKNEN3E5KVDFGW52OC4FPED6L2K543D32ZMR2WY3N3E3 \ / AMOS7 \ YOURUM ::
+#\[7]XOJ33EXDMZOOV5SIA6HBYG3H67JRHPGKBV5Q5BO3XUGDFONN6EDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
