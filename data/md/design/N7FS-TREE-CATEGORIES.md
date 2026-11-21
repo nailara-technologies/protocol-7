@@ -7,7 +7,7 @@ sync, placement and enforcement are not part of this stage.
 
 ## records
 
-all four kinds use record format 3 and only the parent-signed id's store key.
+all five kinds use record format 3 and only the parent-signed id's store key.
 magic, format byte, label, payload length, signer and signature are checked.
 
 | kind | magic | label | location below `.n7fs/` |
@@ -16,17 +16,21 @@ magic, format byte, label, payload length, signer and signature are checked.
 | tree drop | `P7FL` | `p7 n7fs tree drop:0001` | `tree-drops/<ntime14>.<tail8>.tree-drop` |
 | category | `P7FC` | `p7 n7fs category:0001` | `categories/<ntime14>.<tail8>.category` |
 | assignment | `P7FB` | `p7 n7fs category assignment:0001` | `assignments/<ntime14>.<tail8>.assignment` |
+| batch assignment | `P7FI` | `p7 n7fs category batch:0001` | `batch-assignments/<ntime14>.<tail8>.batch-assignment` |
 
 a tree payload is `{ disk, name, manifest, created, ntime }`. a drop adds the
 original tree record's `tree` filename. category definitions carry the complete
 policy, not a delta. assignments carry `{ disk, node, reference, holder,
-category, ntime }`; the journal repeats their binding fields.
+category, ntime }`; the journal repeats their binding fields. a batch assignment
+carries `{ disk, ntime, category, bytes, references }`, with each reference
+entry limited to `{ node, reference }`.
 
-journal `add` gains `trees`, `categories` and `assignments`; `drop` gains
-`trees`. tree history, drop history, every category version and every assignment
-version remain authenticated. latest category definitions and assignments win.
-replay refuses duplicate live tree names, drops of non-live trees, assignments
-to unknown references and manifests not added as content nodes.
+journal `add` gains `trees`, `categories`, `assignments` and `batches`; `drop`
+gains `trees`. tree history, drop history, every category version and every
+assignment version remain authenticated. latest category definitions and
+assignments win across individual and batch records. replay refuses duplicate
+live tree names, drops of non-live trees, assignments to unknown references and
+manifests not added as content nodes.
 
 `verify` compares every record with the journal, verifies each live manifest
 content node and checks every address named by a live manifest. missing,
@@ -36,12 +40,12 @@ break pins just as it can break ordinary references. `tree-drop` removes only
 the live tree assertion; content and meta stay.
 
 a crash between a new stage-1 record and its journal entry leaves the operation
-uncompleted. `repair` moves every unjournaled tree, tree-drop, category or
-assignment record into `.n7fs/quarantine/<record-type>/`, reports each name and
-adopts nothing from it. quarantined files are retained but never scanned as
-records. ordinary unjournaled content/meta/reference crash data keeps the older
-explicit-adoption behavior. verification passes after quarantine and the
-operation can be retried.
+uncompleted. `repair` moves every unjournaled tree, tree-drop, category,
+assignment or batch-assignment record into `.n7fs/quarantine/<record-type>/`,
+reports each name and adopts nothing from it. quarantined files are retained but
+never scanned as records. ordinary unjournaled content/meta/reference crash data
+keeps the older explicit-adoption behavior. verification passes after quarantine
+and the operation can be retried.
 
 ## manifest encoding
 
@@ -114,6 +118,26 @@ live reference to those nodes. `path:` matches live reference holder [ original
 source ] path prefixes; `tree:` retains the same holder-prefix meaning for
 compatibility. an unknown tree name refuses without writing an assignment.
 
+selector resolution does not walk the whole store. `tree-name:` and address
+targets open their selected node paths directly. `tree:` and `path:` build a
+holder-to-reference index from the authenticated replay once, then open only
+nodes with a live prefix match. reference records are streamed one at a time;
+only the small assignment identity list is retained for the batch. progress
+goes to stderr after each five-second interval and once at completion, with
+references visited, the selected-node total and assignments so far.
+
+each `set-category` call writes one signed batch-assignment record and one
+journal entry containing one `add.batches` operation, regardless of match count.
+this uses the existing record and journal forms : there is no disk-format
+change. batch entries and old per-reference operations share one latest-wins
+`assignments` structure on replay. old journals with per-reference records, and
+journals whose optional batch list is absent, replay unchanged.
+
+the comparison test uses cloned temporary stores with 3000 synthetic references.
+across `tree-name:`, `tree:` and `path:`, the legacy selector and per-reference
+writer took 39.428 s and the indexed batch path took 8.532 s. both forms passed
+full verification and replayed to identical current assignments.
+
 restore authenticates the tree and manifest and checks each file node before
 copying it. a preflight refuses duplicate paths, absolute paths, empty, dot and
 `..` components, NULs and any entry or hardlink target with a proper symlink
@@ -149,8 +173,8 @@ failures return nonzero.
 - no incoming pool, network, sync, sealed replica or placement behavior is
   included.
 
-#,,,,,.,,,,,,,.,,,,,,,..,,..,,.,,,...,,.,,,,,,..,,...,...,.,.,,,,,...,,,.,,,.,
-#3B5P2YJBWSYANFODGUCLZ26DUSKDZRRHT543F42SIJ3MH7733UO6PCFPRDJ2UR7EEENX3XGLPMSRG
-#\\\|PFD7T2HE6ZVLQVAWWCR6LGMDSTQLCSAC7WC4FSVD2FFADR2BMZD \ / AMOS7 \ YOURUM ::
-#\[7]JB5M55VHLJEWYTQM6Z6UNSVQYS2BNSN5UDVHIRMZTCTZJOS5PCAA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,,..,.,.,,..,.,.,..,,..,,,,.,..,,...,...,...,,,,,,,.,.,,,.,.,
+#GP4Z7F4SCYRFVEJBX32O26KKIKHXRVRFFPVRQKHLBVGBC74EJSDNRMTOMDPFEKXFVKJU5CTZ4NRJ2
+#\\\|EG2TPB4OGIQHKOIQRSKKUGBP45XAM2XA73DCJF25AHHILV5OMYX \ / AMOS7 \ YOURUM ::
+#\[7]4NOKVZG5MOBURWY6YPWKS56WF7UWY733UN2KR7FN7SHW3IWFTQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

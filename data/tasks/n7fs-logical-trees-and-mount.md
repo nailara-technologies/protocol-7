@@ -81,6 +81,22 @@ the same loop. fix :
 - progress output [ references visited \ total ] so a long run is visibly alive
 target : minutes, not hours, for a disk of this size
 
+implemented [ 2026-11-21 ] : `tree-name:` and address targets resolve node paths
+directly ; `tree:` \ `path:` build a replay-backed holder index and read only
+candidate nodes. reference records stream instead of accumulating per-node scan
+results. each call writes one existing `batch-assignment` record and one journal
+entry ; journal and batch formats did not change, and old per-reference journals
+still replay into the same current assignments. stderr reports progress at
+five-second checks and completion.
+
+synthetic temporary-store measurement, 3000 references and all three selectors :
+legacy 39.428 s, new 8.532 s total [ tree-name 14.930 -> 4.961 s ; tree 11.501
+-> 1.771 s ; path 12.996 -> 1.800 s ]. the timers cover the set-category calls,
+not fixture creation or final verification. all 13 equivalence, selective-read,
+old-journal, batch-replay and full-verification checks passed. command :
+`N7FS_TREE_CATEGORY_SCALE=3000 perl
+bin/test-scripts/test-n7fs-tree-category-performance.pl`.
+
 ## rules
 
 - p7 config style, no json ; internal checksums BMW \ AMOS, no sha ; perl floor 5.32
@@ -89,8 +105,8 @@ target : minutes, not hours, for a disk of this size
   a copy or a test store
 - no host names, disks or personal data in repo files
 
-#,,,,,,..,.,.,,.,,,,.,,,,,,..,,,.,..,,.,,,,,.,..,,...,...,.,,,,,,,,,.,.,,,,,.,
-#SY3OX7BQNGKYJUC7MMU4HRY3SJLZ6JRFJEYG72XZHG5UXIXD4KCA46VTAQA566I6KPP6Y2ANKNEEG
-#\\\|37JXLESPZUWDZMLUPMAHLLNSOU5DA7TPYY5TS7AHKU7ATIBWTQ3 \ / AMOS7 \ YOURUM ::
-#\[7]LMUGL5QG62SOCY4IZUSYSOCQCSHWO5OOEL2MZWTWEK7MXK5742DI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,.,..,,...,,.,,,,,,.,.,..,,,.,,..,,...,...,.,.,,..,,..,,..,...,
+#IBWW6CA4V3XF7GAFNM662M6SXZNEXEHTLKG2GXOGQ5HCAMXCMDQ5FWPSFMPHDS4LORQUUJKI76LLE
+#\\\|K5KFTITXAFRKIKQPGJNDQOXUIF74CSJYT44KHFPSP4FOESZDIW3 \ / AMOS7 \ YOURUM ::
+#\[7]YPUXQZXNQVL7ABT3AKAX5ZEOLZQOXXFYE25U2QL6CBT2JUHKZ4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

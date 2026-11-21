@@ -82,6 +82,32 @@ because of the deadline', reversible where the default allows
   without its content. the source decides whether to look it up, through the same
   checked lookup -- awareness without disclosure
 
+## the content abstraction layer [ owner 2026-11-21 ]
+
+- all content reaches a model abstracted first : named entries, their kind, size,
+  age, data class and a short abstract -- the full content only through the checked
+  lookup. the layer works like an exoskeleton around the model : always the same
+  shape, the same interpretation rules
+- consistency builds trust : the model learns how the layer interprets for it and can
+  rely on it, already aligned to its perspective [ the abstracts are written for the
+  decision at hand, not as raw dumps ]
+- hints the system generates itself [ naming an entry, never its content ] may appear
+  as the model's own line of thought -- an efficient approximation without identity
+  or roles. content from outside or of uncertain origin stays marked as external,
+  never phrased as the model's own thinking [ the prompt-injection boundary ]
+- adjustable : the layer keeps a memory of its abstractions and success statistics --
+  which abstracts led to good decisions, which entries were looked up after all, where
+  a decision went wrong. abstracts that kept failing get more detail, entries that are
+  never read get shorter
+- a personal toolset per model : the tuned abstractions, lookup paths, hint forms and
+  their statistics persist across sessions -- after an initial phase each session
+  starts efficient. the model may extend and fine-tune it itself [ new abstract
+  forms, shortcuts, its own composite lookups ]
+- the boundary : the model tunes PRESENTATION, never ACCESS. every tool it builds uses
+  the same checked lookups and data classes ; widening what a model may read is an
+  intent signed by the user, never a toolset change. the toolset is versioned, so a
+  tuning that made decisions worse can be rolled back
+
 ## stages
 
 1. intent records : signed, bounded [ scope, effect, level, window, budget ], with the
@@ -99,8 +125,8 @@ because of the deadline', reversible where the default allows
 - timers through <[base.interval.next]>
 - no host names or personal data in repo files
 
-#,,.,,,..,,..,.,.,.,.,.,.,..,,..,,.,,,,,,,..,,..,,...,...,,..,,.,,,..,,.,,.,,,
-#GT43XWONT36JRL6CNKOYXU627WZBIOSHD55BIPLFMZEN7VTLAZZHVEUNSQNU5SMAV7S3UJ3TCYS2Q
-#\\\|ZZIGS2LBNR3TLIQVWCQOA45OZKFAXSYDEWUWZPYJC36I44V6LDF \ / AMOS7 \ YOURUM ::
-#\[7]C7KWEUIEZJRUBJL7JTZEJ5RWM34PTA47HD5HK2FGV5U4JGQQEEBI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,,..,,,.,..,,,.,,.,,,,,.,,,.,..,,...,...,...,,,.,.,,,..,,,,,,
+#WLRADBGCHLUDOCPTEKPHBIJCQV27M5GASV3FK7FNCVD25VFP3JUCSCBKPGHEPJLV7J6WC44T7AECQ
+#\\\|OIPMLHYKCMO3EDQTGU2BMQXKB2YTVPRVOIPAPI54CSVVOBFRZ2Q \ / AMOS7 \ YOURUM ::
+#\[7]BRNEWFHC2EC52PMVAYJ2N7TB7CXKIRETBALGNKBWXZTBF544PIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

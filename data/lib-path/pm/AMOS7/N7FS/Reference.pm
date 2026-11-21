@@ -24,10 +24,10 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Reference-VERSION.TU5INOY |;
+our $VERSION = qw| AMOS7::N7FS::Reference-VERSION.QKGYZPQ |;
 
-@EXPORT_OK = qw| reference_write reference_scan reference_drop_write
-    reference_address |;
+@EXPORT_OK = qw| reference_write reference_scan reference_each
+    reference_drop_write reference_address |;
 
 use AMOS7::N7FS qw| ntime_now ntime14 read_file write_new_file make_dirs
     signed_record_parse signed_record_pack refuse |;
@@ -88,13 +88,12 @@ sub _read {
     return $rec;
 }
 
-sub reference_scan {
-    my ( $node, $id ) = @ARG;
+sub reference_each {
+    my ( $node, $id, $code ) = @ARG;
     my $base = "$node->{'path'}/references";
-    return () if not -d $base;
+    return if not -d $base;
     my $addr = reference_address($node);
     my ( undef, $amos, $bmw ) = split m|/|, $addr;
-    my @out;
 
     foreach my $ntime ( _list( $base, $NT_RE ) ) {
         foreach my $a ( _list( "$base/$ntime", $AMOS_RE ) ) {
@@ -135,19 +134,26 @@ sub reference_scan {
                         // $expected{'disk'} ) ne
                         ( $p->{'origin'}{'disk'} // $expected{'disk'} );
                 }
-                push @out,
-                    {
-                    %{$p},
-                    qw| node |      => $addr,
-                    qw| node_path | => $node->{'path'},
-                    qw| path |      => $relative,
-                    qw| full_path | => "$dir/addr",
-                    qw| drop_path | => "$dir/drop",
-                    qw| dropped |   => $drop ? TRUE : FALSE,
-                    };
+                $code->(
+                    {   %{$p},
+                        qw| node |      => $addr,
+                        qw| node_path | => $node->{'path'},
+                        qw| path |      => $relative,
+                        qw| full_path | => "$dir/addr",
+                        qw| drop_path | => "$dir/drop",
+                        qw| dropped |   => $drop ? TRUE : FALSE,
+                    }
+                );
             }
         }
     }
+    return;
+}
+
+sub reference_scan {
+    my ( $node, $id ) = @ARG;
+    my @out;
+    reference_each( $node, $id, sub { push @out, $ARG[0] } );
     return @out;
 }
 
@@ -211,8 +217,8 @@ sub reference_drop_write {
 
 1;
 
-#,,.,,...,..,,.,,,..,,.,,,.,,,,,.,.,,,,..,,,,,.,.,...,...,..,,.,.,,,.,,..,,,.,
-#75IKZHU532TCMAYQVFGBJ6HGV52IER5PQHDX6YW43VQKGRNXK63NCIC2EUUEU2EHXJWWY3YDRF65A
-#\\\|QUB6QGUWJB5ZBNEHPYOEJA2EWF4GJSJOYL44XZUVH6YTWG2UAPQ \ / AMOS7 \ YOURUM ::
-#\[7]2CHULF5JBAF2EUCKQ4544TCDFU2AYFKOWEGT4IMISGHEVQNAPYCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,.,.,.,,,,..,..,,,,,,..,,.,.,.,.,...,...,,.,,,,.,,..,,..,.,,,
+#3QNNTZZTG44SZZGYNV5O47J3XMW4Z6LETK7LQKL6IV2JX4OYVK62CL672O5I3JGBZ252LJDX4EGZ2
+#\\\|C3NU4A5XEE55GHK6XSGD4KU5IMHO4CYQ62LEISBTOJKCOH752NE \ / AMOS7 \ YOURUM ::
+#\[7]BAQSWRC5CXWGVQNVIBZ62W27NWQN6FP4HY5RD5Z3CX2H6PFAHSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

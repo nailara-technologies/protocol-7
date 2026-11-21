@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = source.verify_and_strip
+# descr = verify a data signature and restore the unsigned payload
+# args  = <payload_sref>, [ <signature_key_name> ], [ <extracted_footer> ]
+# return = { status, body, footer, report, error }
+
+my $payload_sref = shift;
+my $key_name     = shift // <source.C25519.signature_key_name>;
+my $footer       = shift;
+
+return {
+    qw| status | => qw| invalid |,
+    qw| error  | => qw| payload-reference |
+    }
+    if ref $payload_sref ne qw| SCALAR |
+    or not defined $payload_sref->$*;
+
+$footer //= <[source.extract_sig_body]>
+    ->( $payload_sref, qw| strip |, qw| strict | );
+
+return {
+    qw| status | => qw| unsigned |,
+    qw| body   | => $payload_sref,
+    qw| footer | => $footer
+    }
+    if defined $footer and not $footer->{'was-present'};
+
+return {
+    qw| status | => qw| invalid |,
+    qw| footer | => $footer,
+    qw| error  | => qw| footer-extraction |
+    }
+    if not defined $footer;
+
+my $error = $footer->{'encountered-error'};
+$error //= qw| separator-endline | if $footer->{'needs_separator_endline'};
+$error //= qw| footer-structure |  if not $footer->{'structure-was-valid'};
+
+return {
+    qw| status | => qw| invalid |,
+    qw| body   | => $payload_sref,
+    qw| footer | => $footer,
+    qw| error  | => $error
+    }
+    if defined $error;
+
+my ( $valid, $report )
+    = <[source.signature_valid]>->( $payload_sref, $footer, {}, $key_name );
+
+if ( not $valid ) {
+    $report //= {};
+    my $check = qw| truth-check |;
+    $check = qw| AMOS-checksum |
+        if exists $report->{'AMOS-chksum-matches'}
+        and not $report->{'AMOS-chksum-matches'};
+    $check = qw| BMW-checksum |
+        if exists $report->{'bmw-chksum-matches'}
+        and not $report->{'bmw-chksum-matches'};
+    $check = qw| signature |
+        if exists $report->{'signature-is-valid'}
+        and not $report->{'signature-is-valid'};
+    return {
+        qw| status | => qw| invalid |,
+        qw| body   | => $payload_sref,
+        qw| footer | => $footer,
+        qw| report | => $report,
+        qw| error  | => $check
+    };
+}
+
+return {
+    qw| status | => qw| valid |,
+    qw| body   | => $payload_sref,
+    qw| footer | => $footer,
+    qw| report | => $report
+};
+
+#,,.,,,,.,,.,,..,,..,,,,.,,,,,,,,,...,,,,,,,.,..,,...,...,,..,,.,,,,,,.,.,,.,,
+#ERO3UQTSRLCN4RV5CZU7VPO7VT7LKO2XEJGRDYPLJDOD2IP6EAXVNQ37GMZGKNMEIQDRHRBAI3JNK
+#\\\|2XOA7U3ZYFGKTZTAX5VFF6QAZQETNWMOYYNSQHNSF4FJZQVOG4E \ / AMOS7 \ YOURUM ::
+#\[7]MPFL64DLO6IXPHJNQRQJZVUFMQ222AUKDOKH6L23G2QBNCYLEUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

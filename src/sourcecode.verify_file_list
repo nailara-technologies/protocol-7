@@ -90,9 +90,18 @@ foreach my $path_rel ( $path_aref->@* ) {
         }
     }
 
-    my ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
-        \$src_str, $footer_data, {}, $signature_key_name, $verify_mode
-    );
+    my ( $is_valid, $report_ref );
+    if ( $verify_mode eq qw| strict | ) {
+        my $verification = <[source.verify_and_strip]>->(
+            \$src_str, $signature_key_name, $footer_data
+        );
+        $is_valid   = $verification->{'status'} eq qw| valid |;
+        $report_ref = $verification->{'report'};
+    } else {
+        ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
+            \$src_str, $footer_data, {}, $signature_key_name, $verify_mode
+        );
+    }
 
     my $was_repaired
         = ( $report_ref && $report_ref->{'repaired'} ) ? TRUE : FALSE;
@@ -187,8 +196,8 @@ return {
     qw| repair_needed_count | => $repair_needed_count
 };
 
-#,,,.,,,,,..,,..,,.,.,.,.,..,,...,.,,,,,.,...,..,,...,..,,,.,,..,,...,.,.,.,,,
-#HDZOTURTVJZEM4FD46KPMNCDDC26OEIFRF72K6J7JNTN7CJ4YZZBFBS2567QHARPWJ3BBKTA265WC
-#\\\|VBARADJI7DDQFXLR4FJSZ6QK4ILZEXA4ZP6DCLRKFWR52QJSLMQ \ / AMOS7 \ YOURUM ::
-#\[7]HUNRMQQ4BOWKAKE5DDAG5VQ5CJ2DKRJXCBHSOJN35GUN37Q6KIAA 7  DATA SIGNATURE ::
+#,,,,,...,...,...,...,.,.,,..,...,,,.,,..,.,.,..,,...,..,,,..,.,,,..,,.,,,,.,,
+#JCF6RNAYGOXY7WOWJPAZCYAMSZRF663D5HMLS2QVFL5QU2DTIBPULE6ZDHKDSOHTK2IVWLDPCOC7U
+#\\\|NRF4KZ3RKDIGUHFGWCLWG3VYFWCD5E6Y6MLL57IU7CLVPIR7CO5 \ / AMOS7 \ YOURUM ::
+#\[7]QTKQZN4OXFA46DTUNSRMWFK26QLSDUZFI2N6AVOI2OZI7BRRIIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

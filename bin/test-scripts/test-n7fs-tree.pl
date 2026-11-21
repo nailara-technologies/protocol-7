@@ -515,7 +515,7 @@ $report = category_report( $id, journal_replay($id), $same_ref->{'node'} );
 ok( 2 == scalar(
         grep { $ARG->{'category'} eq 'work' } $report->{'references'}->@*
     ),
-    'later per-reference assignments supersede earlier ones'
+    'later batch assignments supersede earlier ones'
 );
 my $cli_err;
 ( $cli_rc, $cli_out, $cli_err )
@@ -850,8 +850,8 @@ ok( $cli_rc == 0 && $cli_out =~ m|repair|,
 
 done();
 
-#,,,.,..,,,.,,...,,,.,,.,,,.,,..,,..,,.,,,.,,,..,,...,...,.,,,...,...,,.,,,,.,
-#I46IW3ENDJJXHJ66GKGI4OYBYR6LRFCUBYNYVONRYAQXBZKMU52ZTDCXX7GMMLZVOYKLY2VYEYWA2
-#\\\|YOWPNPGDVMPTPTNR7YTG5HFZIGRVFTNCXJJCWN2CUU6J54I5BNI \ / AMOS7 \ YOURUM ::
-#\[7]7XBXZOTBCVH7EY2HBL27PMTC6JGY3757SNXPSUHYKROK5RXDS4BI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,,.,,...,,.,,,.,,...,...,,..,..,,...,...,...,,.,,,,.,,,.,..,,
+#OOWESGZR3JFE2353MWIOQ4TQNCLINQUUSWE6CQGPDCKDYNP6U57OOGUUIBUAQZGC4MELCDINZXVYE
+#\\\|PX2BPYASJDRGX3VSOVYGCPTIER36QDHHNG3ZHUIJU74ETSBYDL3 \ / AMOS7 \ YOURUM ::
+#\[7]FAWURK4BIQ2J4RBFKOAYZ2LMDRKOH676PHEPDSXES2HQ7P5364BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -87,6 +87,30 @@ code changes.
   profile accepted for one model applies to every host of that model, a host still
   overrides it. the same holds for dpi, theme tokens and icon sizes [ parts 2 - 4 ]
 
+## part 6 : pull-down desktops into a stack [ owner 2026-11-21 ]
+
+- a hybrid of the amiga screen pull [ data/md/design/WEB-BROWSER-VIEW-STACK.md ] and
+  an overview : the current desktop is pulled down and stays FLAT at full resolution
+  at first -- the desktop behind it shows above, exactly the familiar screen drag
+- pulled further, it flows smoothly into a stack : past a threshold the screen tilts
+  back and shrinks into a card of a 3d stack of all desktops, to choose from ;
+  released early, it snaps back flat
+- in between, the screen turns translucent and blue : during the transition its
+  colours blend toward the theme blue [ the tokens of part 2 : accent \ background
+  levels, translucency.overlay ] and the stack behind shows through -- the cards rest
+  in the same blue translucent look as the rest of the desktop, full colour returns
+  only for the chosen one
+- the tint hides latency : translucency and tint are cheap and start the transition
+  at once, so it feels immediate ; the costly work [ rendering the other desktops'
+  cards, fetching a remote host's current view, warming a renderer ] runs during the
+  tinted phase and only has to be ready when the stack settles. the same on the way
+  back : the chosen desktop un-tints while its full-colour frame is still arriving
+- the same for the web renderer and gtk surfaces ; desktops of other hosts [ input
+  forwarding, part a ] can appear in the same stack
+- fully keyboard driven [ a key to pull, arrows through the stack, enter to choose,
+  escape back ] ; the motion is calm by default and can be slowed or switched off --
+  no fast or flashing transitions
+
 ## stages
 
 1. inventory [ part 1 ]
@@ -99,10 +123,39 @@ code changes.
 
 - p7 config style, no json ; perl floor 5.32 ; timers through <[base.interval.next]>
 - dark violet \ blue by default ; slow, easily slowed animation only
+- everything reacts instantly ; anything expensive happens as an extension of a
+  response that has already started [ tint, translucency, a placeholder in the right
+  place ], never as a wait before it
+- motion is driven by time, not by frames : a transition's state is a function of
+  elapsed time, so it takes the same time and follows the same path at any
+  rendering rate -- a slow host or a remote view drops frames, never slows or
+  stutters the transition itself
+- the deliberate exception, a feature : a transition may SLOW its own timescale when
+  rendering or updates lag, so the motion stays fluid instead of jumping -- still
+  time-driven, only the clock is stretched, by intent and within a bound. calm motion
+  is preferred over keeping a fixed duration. this exists already from the display
+  appliance times and is reused, not rebuilt : tile.gpu_alerts.enable_auto_speed
+  watches gpu alerts and sends `slow_down` to the visible zenki [ web-browser,
+  universal, ticker ] ; ticker.cmd.slow_down eases toward a percent target. the
+  desktop transitions become one more listener of that load signal.
+  the signal widens beyond gpu alerts : memory pressure [ psi ], cpu load and
+  temperature, battery level and power source, a remote view's link quality -- each
+  a source feeding the same slow_down \ speed-up path with its own threshold and
+  hysteresis, so the zenki adapt to whatever is actually scarce.
+  a noise target : an optional calibration run steps the fan through its speeds
+  while the microphone measures the sound level, giving this device's speed -> noise
+  curve. per speed it measures several short segments and keeps the QUIETEST one as
+  the sample -- other sounds only ever add to the level, so the minimum is the fan
+  itself [ a passing car or a keystroke does not skew the curve ] ; the load signal
+  can then keep a target [ e.g. inaudible in a quiet room ]
+  by easing the visible zenki before the fan has to go above it. the microphone
+  yields a level only, locally, during the calibration the user starts -- nothing is
+  recorded or kept. the curve is part of the hardware-model layer of the settings
+  tree [ part 5 ]
 - no host names or personal data in repo files
 
-#,,,,,,..,...,,,.,,,.,,,,,.,,,,,.,,..,.,.,.,.,..,,...,..,,..,,..,,..,,,.,,,,.,
-#JV64J2Y67TLFYPVZJDJP3464G56EWCTQSVKMB7TL27M7RQV7XUCRGHT6WTGA2YUYHKQ3E6SZWIDXU
-#\\\|WJZO4SAJU5LASICZUYKECQWFT5TU4HTD7M7ZAEGGPD2NDAPANTM \ / AMOS7 \ YOURUM ::
-#\[7]ZARVEBAZNLKHLEHXBRHLK7DSBTL2DKHOXOQOR4TVG7SUF7V7U2CA 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,.,,.,,,,.,,,,.,...,,.,,,,.,,..,..,,...,...,,.,,,.,,,..,...,,.,,
+#DHJFZWFSXNZ22KB5HZMPDPIJ4S2W6YYUKBIDTY4XSTD7ZQHCN7E3XRFF2HI7BEQPYY5N7UIPZJLD2
+#\\\|2OEQ4CDG4LZD2GQKFRTPYFZVCYF6RCGI6QUD2EMIH5BWIYQDZNB \ / AMOS7 \ YOURUM ::
+#\[7]BF2RLNSHTRTBQZCEMEADO3KQCL2U2ULH5LPAO4DBROA7OXCJXMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

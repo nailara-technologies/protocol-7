@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = httpd.handler.signature_verify
+# descr = collect a child signature result without blocking the event loop
+
+my $event   = shift;
+my $id      = $event->w->data->{'id'};
+my $session = $data{'session'}{$id};
+return FALSE if not defined $session;
+my $pending = $session->{'signature_pending'};
+return FALSE if not defined $pending;
+
+my $watcher = $session->{'watcher'}->{'signature_handler'};
+my $read_fh = $event->w->fd;
+my $read    = sysread( $read_fh, my $chunk, 4096 );
+if ( defined $read and $read > 0 ) {
+    $pending->{'result'} .= $chunk;
+    return TRUE;
+}
+if ( not defined $read
+    and ( $OS_ERROR == Errno::EAGAIN() or $OS_ERROR == Errno::EWOULDBLOCK() )
+) {
+    return TRUE;
+}
+
+$watcher->cancel;
+close $read_fh;
+waitpid( $pending->{'pid'}, 0 );
+delete $session->{'watcher'}->{'signature_handler'};
+delete $session->{'signature_pending'};
+
+my $result = $pending->{'result'} // '';
+my ( $status, $error ) = $result =~ m{^(valid|unsigned|invalid) ?([^\n]*)};
+$status //= qw| invalid |;
+$error = 'child-result' if not length $error and $status eq qw| invalid |;
+
+my $cache_entry = {
+    qw| identity | => $pending->{'identity'},
+    qw| status   | => $status,
+    qw| error    | => $error,
+    qw| verifies | => 1,
+    qw| hits     | => 0
+};
+if ( $status eq qw| valid | and -f $pending->{'body_path'} ) {
+    $cache_entry->{'body_path'} = $pending->{'body_path'};
+    $cache_entry->{'body_size'} = -s $pending->{'body_path'};
+} else {
+    unlink $pending->{'body_path'};
+    $status = $cache_entry->{'status'} = qw| invalid |
+        if $status eq qw| valid |;
+    $cache_entry->{'error'} = qw| temporary-body |
+        if $cache_entry->{'status'} eq qw| invalid | and not length $error;
+}
+
+<httpd.signature.cache> //= {};
+<httpd.signature.cache>->{ $pending->{'file_path'} } = $cache_entry;
+<httpd.signature.verify_count>++;
+
+return <[httpd.serve_static]>->( $id, $pending->{'handler_args'} );
+
+#,,,,,...,,,,,..,,..,,..,,.,,,,..,..,,,,,,,.,,..,,...,...,.,.,.,.,,,,,,,.,.,.,
+#FEPEHUSLH27HL4EIHECGRBARJXM6UFS5DWKK4FGYCCOTKRLFESDHS357AV426FCGXIURMXXLQPKNE
+#\\\|5355HORR7BCKNGLDYGEKCJMENLXCM37NB5TEUYBBYNL3ENE2TEH \ / AMOS7 \ YOURUM ::
+#\[7]VDJQR74NDAREZ42KRMEYKXSDRZ2ROD6QAONCRRX7YNV6UEP4FUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

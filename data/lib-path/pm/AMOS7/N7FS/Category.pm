@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Category-VERSION.PD74WAY |;
+our $VERSION = qw| AMOS7::N7FS::Category-VERSION.7VDVQMY |;
 
 @EXPORT_OK
     = qw| category_default category_definitions category_set category_list
@@ -28,10 +28,12 @@ use AMOS7::N7FS qw| refuse fault |;
 use AMOS7::N7FS::Disk
     qw| disk_lock disk_read_id disk_require_attached state_read
     store_key_signer witness_note_format |;
+use Time::HiRes            ();
 use AMOS7::N7FS::Journal   qw| journal_replay journal_write |;
 use AMOS7::N7FS::Record    qw| record_write record_scan |;
-use AMOS7::N7FS::Store     qw| store_nodes |;
-use AMOS7::N7FS::Reference qw| reference_scan reference_address |;
+use AMOS7::N7FS::Store     qw| node_path |;
+use AMOS7::N7FS::Reference qw| reference_each reference_address |;
+use AMOS7::N7FS::Sum       qw| epoch_from_b32 |;
 
 sub category_default {
     return {
@@ -283,6 +285,26 @@ sub category_assignments {
     return \@out;
 }
 
+sub _selected_node {
+    my ( $id, $state, $address ) = @ARG;
+    return undef
+        if ( $address // '' )
+        !~ m|\A(V7[A-Z2-7]{5})/([A-Z2-7]{7})/([A-Z2-7]{77})\z|;
+    my ( $epoch_name, $amos, $bmw ) = ( $1, $2, $3 );
+    my $epoch = epoch_from_b32($epoch_name);
+    return undef
+        if not defined $epoch
+        or not grep { $ARG == $epoch } $state->{'epochs'}->@*;
+    my $addr = {
+        qw| epoch | => $epoch,
+        qw| amos |  => $amos,
+        qw| bmw |   => $bmw
+    };
+    my $path = node_path( $id->{'path'}, $addr );
+    return undef if not -d $path;
+    return { %{$addr}, qw| path | => $path };
+}
+
 sub category_set_reference {
     my %opt      = @ARG;
     my $category = _name( $opt{'category'} );
@@ -296,8 +318,7 @@ sub category_set_reference {
     my $replay = journal_replay($id);
     refuse( 'unknown category [ %s ]', $category )
         if not exists category_definitions( $id, $replay )->{$category};
-    my @refs;
-    my %tree_files;
+    my ( %selected, %wanted );
 
     if ( $target =~ m|\Atree-name:(.*)\z|s ) {
         my $tree_name = $1;
@@ -305,29 +326,91 @@ sub category_set_reference {
         refuse( 'set-category : unknown tree [ %s ]', $tree_name )
             if not defined $tree;
         require AMOS7::N7FS::Seal;
-        $tree_files{$ARG} = TRUE
+        $selected{$ARG} = TRUE
             for AMOS7::N7FS::Seal::_manifest_files( $id,
             $tree->{'manifest'} );
+    } elsif ( $target =~ m|\A(?:tree\|path):(.*)\z|s ) {
+        my $prefix = $1;
+        my %holders;
+        foreach my $key ( keys $replay->{'references'}->%* ) {
+            my $ref = $replay->{'references'}{$key};
+            next if $ref->{'dropped'};
+            push $holders{ $ref->{'holder'} }->@*, $key;
+        }
+        foreach my $holder ( keys %holders ) {
+            next if index( $holder, $prefix ) != 0;
+            foreach my $key ( $holders{$holder}->@* ) {
+                $wanted{$key} = TRUE;
+                $selected{ $replay->{'references'}{$key}{'node'} } = TRUE;
+            }
+        }
+    } else {
+        $selected{$target} = TRUE;
     }
 
-    foreach my $node ( store_nodes( $id->{'path'}, $state->{'epochs'}->@* ) )
-    {
-        foreach my $ref ( grep { not $ARG->{'dropped'} }
-            reference_scan( $node, $id ) ) {
-            my $match
-                = $target =~ m|\Atree-name:| ? $tree_files{ $ref->{'node'} }
-                : $target =~ m|\A(?:tree\|path):(.*)\z|s
-                ? index( $ref->{'holder'}, $1 ) == 0
-                : $ref->{'node'} eq $target;
-            push @refs, $ref if $match;
-        }
+    my $total = 0;
+    foreach my $ref ( values $replay->{'references'}->%* ) {
+        $total++ if $selected{ $ref->{'node'} };
     }
+    my @refs;
+    my $visited       = 0;
+    my $last_progress = Time::HiRes::time();
+    my $progress      = sub {
+        my $final = shift;
+        my $now   = Time::HiRes::time();
+        return if not $final and $now - $last_progress < 5;
+        $last_progress = $now;
+        printf STDERR ": n7fs : set-category : %d/%d "
+            . "references visited, %d assignments\n",
+            $visited, $total, scalar @refs;
+    };
+
+    foreach my $address ( sort keys %selected ) {
+        my $node = _selected_node( $id, $state, $address ) // next;
+        reference_each(
+            $node, $id,
+            sub {
+                my $ref = shift;
+                $visited++;
+                $progress->(FALSE) if $visited % 256 == 0;
+                return             if $ref->{'dropped'};
+                my $match
+                    = $target =~ m|\Atree-name:| ? TRUE
+                    : $target =~ m|\A(?:tree\|path):|
+                    ? $wanted{ join "\0", $ref->{'node'}, $ref->{'path'} }
+                    : $ref->{'node'} eq $target;
+                return if not $match;
+                push @refs,
+                    {
+                    qw| node |   => $ref->{'node'},
+                    qw| path |   => $ref->{'path'},
+                    qw| holder | => $ref->{'holder'},
+                    };
+            }
+        );
+    }
+    $progress->(TRUE);
     refuse( 'set-category : no live reference matches [ %s ]', $target )
         if not @refs;
-    my $assignments = category_assignments( $id, $store, \@refs,
-        sub { return $category } );
+    require AMOS7::N7FS::Batch;
+    my $record
+        = AMOS7::N7FS::Batch::batch_write( $id, $store, $category, \@refs,
+        0 );
+    my $assignments = [
+        map {
+            {
+                qw| node |          => $ARG->{'node'},
+                    qw| reference | => $ARG->{'path'},
+                    qw| path |      => $record->{'path'},
+                    qw| category |  => $category,
+                    qw| batch |     => TRUE,
+            }
+        } @refs
+    ];
     my $add = _empty_set();
-    $add->{'assignments'} = $assignments;
+    $add->{'batches'}
+        = [
+        { qw| path | => $record->{'path'}, qw| category | => $category } ];
     my $drop     = _empty_set();
     my %resolved = map { $ARG->{'path'} => TRUE } @refs;
     if ( keys $replay->{'sync_conflicts'}->%* ) {
@@ -422,8 +505,8 @@ sub category_report {
 
 1;
 
-#,,..,..,,,,,,.,.,,.,,,..,..,,..,,..,,,..,,..,..,,...,...,...,...,.,,,,,,,,..,
-#5PAFZ7S3FABXNCO6G7OQQPZKAGTTOZUBMH4ZTCBANLTJ7IXGTJKV7SZ7ARBNFXVFVCVVE43233V3G
-#\\\|M22MWSPJ6XXMNRAPWWAPSVL2NQDK6UYQIGPXDODLSDDH5IDZ37K \ / AMOS7 \ YOURUM ::
-#\[7]CJZXBS6HOEGESMZL3ES6WRZMQNBHSTKMXVJ5ZK32PPRQ3GSIFIDI 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,.,,,,,,,..,,.,,,,..,.,,,.,.,..,,...,...,,.,,,,,,,.,,,.,,.,.,
+#UCW6BD7KSX57V3R7MRQYPYYDAR3JK25VYYM4AZDJAVFJRNK6NDCLX7VO2H3WUDMLDHE4TPXNLGQ5W
+#\\\|77K5TXDD3CVIDTOE7SZDTE46GQ5VP5VGYPA3EQOODGCO4CYJ7SP \ / AMOS7 \ YOURUM ::
+#\[7]3UI4PIDZ3ZO5T5HAE4LFNSYJYWXI4HNLE7A735SWZTD4WWD3CCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@
 
 modules.load  =  auth.client net protocol io.unix io.ip ui format.json format.yaml \
                  httpd httpd.classify jobsite.job httpd.route route.bmw384 \
-                 devmod
+                 source devmod
 
 plugins.load = plugin.httpd.radio plugin.web.auth
 [load_plugins:<plugins.load>]
@@ -32,6 +32,10 @@ httpd.cfg.external_sitedirs = 1 # allow site_dir links to point outs. httpd dir?
 httpd.cfg.uploads_enabled   = 1 # files need to be explicitly announced to zenka
 
 httpd.cfg.allow_range_overlap = 1 # allow overlapping range request? [same data]
+
+## optional per-vhost requirement [ default off ] :
+## httpd.cfg.require_signature_html.example.org = 1
+httpd.cfg.signature_key_name = proto-7.sourcecode
 
 httpd.cfg.max_post_size = 5242880  ## 5MB
 
@@ -77,8 +81,8 @@ httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 
 [zenka.loop]
 
-#,,,,,,,.,,..,...,,,.,.,.,,.,,.,,,,..,.,,,...,..,,...,...,,..,...,..,,,.,,,..,
-#XWM3KRRY4L7XQICHY6YIRP2H7BUNV5OJD7RSSZN2HOMAIAI6RC2MPIFCGSZJNAJ6IG6AHYFK4U4ZG
-#\\\|UARLLRFVK6PHYZZRR7MLS7SQYN6B4KKWMHB5FUKCQUUHYTDV34X \ / AMOS7 \ YOURUM ::
-#\[7]4IXYHEZJW5VXJCZBGCOBA33R7IXA4ZHGJH6UGUHRUB5QH2ZDPMDA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,.,,,,.,,,,.,,,,,,.,,,,,,..,,..,,...,...,,,,,.,.,,..,.,,,.,,,
+#EOXPPHBMGYIRBQ4WJSOTPESSSHNML6WOODNBQDQGCGWDNDVSUHABHPEW574UHGHNEHCNIQ6EU3DPA
+#\\\|ECYWT6YS3J6Z6I7FVIQAXSFJVHNQDVITVCMFCTSX3IIKKDCRO7P \ / AMOS7 \ YOURUM ::
+#\[7]ETYLVW3QIVPND6VEAZGHZDH3KQIRFM5HZJDO3LQNMYFSSOBROGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

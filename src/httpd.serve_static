@@ -209,6 +209,59 @@ if ( $content_type =~ m{^(?:text|application/(?:json|xml|javascript|xhtml))} )
         unless $content_type =~ m{charset};    #FIX
 }
 
+my $signed_type
+    = $content_type
+    =~ m{^(?:text/html|text/css|(?:application|text)/(?:x-)?javascript)(?:;|$)};
+my $require_html = <httpd.cfg.require_signature_html>->{$http_host} // FALSE;
+if ( $signed_type or $content_type =~ m{^text/html(?:;|$)} and $require_html )
+{
+    my $identity = join( ':',
+        $file_stat->dev,  $file_stat->ino,
+        $file_stat->size, $file_stat->mtime );
+    <httpd.signature.cache> //= {};
+    my $cached = <httpd.signature.cache>->{$real_file_path};
+    if ( defined $cached and $cached->{'identity'} ne $identity ) {
+        unlink $cached->{'body_path'} if defined $cached->{'body_path'};
+        delete <httpd.signature.cache>->{$real_file_path};
+        $cached = undef;
+    }
+    if ( not defined $cached ) {
+        return <[httpd.signature_verify_start]>->(
+            $session_id, $real_file_path, $identity, $handler_args
+        );
+    }
+
+    if (   $cached->{'status'} eq qw| invalid |
+        or $cached->{'status'} eq qw| unsigned | and $require_html ) {
+        my $reason
+            = $cached->{'status'} eq qw| unsigned |
+            ? qw| required-signature-absent |
+            : $cached->{'error'} // qw| verification |;
+        <[base.logs]>->(
+            1, '[%d] signed-file refused : %s : %s',
+            $session_id, $path, $reason
+        );
+        return <[httpd.send_error_page]>->( $session_id, 403 );
+    }
+
+    $cached->{'hits'}++;
+    <httpd.signature.cache_hits>++;
+    if ( $cached->{'status'} eq qw| valid | ) {
+        $file_path    = $cached->{'body_path'};
+        $content_size = $cached->{'body_size'};
+    }
+}
+
+if ( exists $request->{'headers'}->{'range'}
+    and not exists $request->{'range'} ) {
+    $request->{'range'} = <[httpd.parse_range_header]>->(
+        $request->{'headers'}->{'range'},
+        $content_size
+    );
+    return <[httpd.send_error_page]>->( $session_id, 416 )
+        if not defined $request->{'range'};
+}
+
 # Generate ETag
 my $path_etag = <[chk-sum.elf.vax-BASE32]>
     ->("$content_inode.$content_size.$content_date.$file_path");
@@ -303,8 +356,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,,.,,.,,,.,,,,,,...,.,,,,.,,...,.,,,,..,,..,..,,...,..,,,..,,,.,..,,...,...,
-#CVSLGMQW5P7DZNTLPTZ5STZZL2W3IRNU4GJEJWR2IX73GRVON7S2SRUWMOCWT4N5346M636VLNSOO
-#\\\|KZT5UZB2OTB7A2PYTGYLFHQFFNOY2SXHYVINXVI4NYHNXV54IS2 \ / AMOS7 \ YOURUM ::
-#\[7]ZAVC53MFNTTOVBXENQ4PRCHHKS7KIINMLOJTEEVRS3JFHQTOVOAA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,..,,...,..,,,,.,,..,.,.,,,,,,,,,..,,...,...,..,,...,..,,,,.,...,
+#652KB42JKYYHI2QPLNJRVLPS7AIVZ47ORVCJ5BHN6CBWEMWGI3Y4SRC3MVQO2HMRZ7PYNS23ZZDYG
+#\\\|UKV45QAAD4NVIG3MFTSHEXEH7FG6IWTZST5BA6X4FJNSY3T5RHA \ / AMOS7 \ YOURUM ::
+#\[7]XWZKOC6JLGHQRWRSWCOOILQ3H2OR6FJT264CXWO5MJPGRRJ3R4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

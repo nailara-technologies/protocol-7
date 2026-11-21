@@ -32,8 +32,64 @@ full desktop forwarding [ xvnc sessions ] stays its own feature in that design d
 - resize locally -> randr resize of the remote virtual display, so the app relayouts
 - encoding staged : changed tiles losslessly compressed first ; a video codec later
   for fast-changing content [ playback, games ]
+- spice as a simplification where vms or whole displays are involved [ owner
+  2026-11-21 ] : multi-monitor, audio, clipboard, usb redirection, an html5 client
+  [ spice-html5 -- the web renderer path ], and xspice exposes an X server through
+  spice [ one more X-11 mode ]. it forwards whole displays, not single windows [ xpra
+  stays the single-window tool ] ; it runs inside our encrypted, padded link like
+  every other stream. natural fits : the sandboxed work vms of
+  work-and-private-contexts.md and full desktop forwarding
+- the counterpart to forwarding pixels : send the APPLICATION to the client instead
+  [ owner 2026-11-21 ] -- js \ wasm running in the browser, as a javascript amiga
+  emulator runs a whole system client-side. only state changes and inputs travel, or
+  nothing [ offline ] ; little bandwidth, needs a capable client and code allowed to
+  run there [ signed, served through the httpd signed-files path ]. for zenki a third
+  renderer beside gtk and the web renderer : the client gets the render logic once
+  and then only the zenka's state stream. references : TAWS [ the amiga workbench
+  rebuilt as a web desktop, in the browser since 2001 -- a whole desktop ui written for
+  the browser, not emulated ] ; data/md/design/WEB-BROWSER-VIEW-STACK.md [ the n-view
+  stack in the amiga screen-pull model ]
 - a first stage may use an existing tool [ xpra ] as one more X-11 mode, the way the
   design doc takes xvnc for full desktops -- own transport later, same commands
+
+## part c : moving applications -- re-hosting and remote hibernation [ owner 2026-11-21 ]
+
+three levels, cheapest first :
+
+1. move the view : an application in its own virtual display [ part b ] is detached
+   and re-attached on another host ; it keeps running where it is [ xpra already does
+   this -- nearly free once xpra is an X-11 mode ]
+2. move or hibernate the process : checkpoint the application TOGETHER with its own
+   virtual display [ criu : checkpoint \ restore in userspace ; the X state lives in
+   that display, so the pair is self-contained ] -- frozen to an image, resumed later
+   or on another host. limits : open network connections, devices and gpu contexts do
+   not survive ; the restore target needs compatible libraries [ same system profile ]
+3. zenki move themselves : their state is serialisable by design ; a zenka hands its
+   state over and starts on the target host -- the cleanest path for our own
+   applications
+
+by application type :
+
+- applications made of zenki : headless zenki move their state [ level 3 ] ; ui zenki
+  carry no state of their own beyond the view and re-render on the target from the
+  moved state -- the application moves as its parts, each where it fits best.
+  the renderer is exchangeable : the same zenka state can be shown by a gtk window, a
+  web renderer in a browser, or forwarded from an xvfb session on a server -- a
+  device without X still reaches the application through the web renderer, while the
+  zenki themselves keep running wherever they are
+- classical applications whose state is exactly reproducible : instead of a memory
+  image, record what produces the state -- the document plus its history [ undo
+  stack, the inputs or commands that led there ] -- and replay it on the target. the
+  web-browser zenka already does this for pages [ replay-record, state-play,
+  waypoints ]. smaller than a checkpoint, independent of library versions, and the
+  history comes along instead of being lost
+- everything else : a checkpoint of the application with its display [ level 2 ]
+
+- the image is private data : encrypted with the user's context key, stored and
+  placed through n7fs [ a holder can keep a hibernated session ], never readable on
+  the way
+- hibernate \ resume fits presence : sessions can be parked when the user leaves a
+  host and resumed where they arrive [ the prepared-and-locked session above ]
 
 ## presence : where the user is reachable [ owner 2026-11-21 ]
 
@@ -175,8 +231,8 @@ full desktop forwarding [ xvnc sessions ] stays its own feature in that design d
 - timers \ retries through <[base.interval.next]> ; the event loop never blocks
 - no host names, addresses or personal data in repo files
 
-#,,..,.,.,...,,,.,...,.,,,,..,,..,,..,.,,,.,,,..,,...,...,..,,,.,,,,.,,,,,..,,
-#UIQG2DCQXT453RI2W6Q5NCYGRMXAL42Z33IXGUCGMRNSLPTACE5T6JVKVJ4U4GNCRL3F5RQLRS2G6
-#\\\|XOOBM3XPKVWFMMRSD77FOUBLXK5OD2EX34HLJITGVPZC3PSNOPX \ / AMOS7 \ YOURUM ::
-#\[7]LVCGWEUB6UMY57UNXWHBGXMS7MN4JHPPFIAGEYJ75FDEDAIRWWBI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,.,...,.,,,,,.,...,.,,,..,,,,,,..,,...,..,,...,...,.,,,.,.,,,.,
+#46Y3IC3WH5PKJJ6KG2IAPUWU74DFCRBWNS5YPYEAWGPLY6MGRUJBVQPYJXIJL4KVXOU5KW53M3AYI
+#\\\|BR6TH47N27J4Q47IRKKBXWNMAN5N5T2BDKC6SD3K5JYVVSVHOLT \ / AMOS7 \ YOURUM ::
+#\[7]YC6M2REWDAURF245G7GYET44UQQ5UIOVRKVJD5NIJBYPIMG4OCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

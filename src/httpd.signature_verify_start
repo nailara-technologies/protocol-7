@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = httpd.signature_verify_start
+# descr = verify and strip a served text file in a child process
+
+my $id           = shift;
+my $file_path    = shift;
+my $identity     = shift;
+my $handler_args = shift;
+
+my $session = $data{'session'}{$id};
+return FALSE if not defined $session;
+
+my $key_name = <httpd.cfg.signature_key_name> // qw| proto-7.sourcecode |;
+if ( not exists $keys{'C25519'}{$key_name}{'public'} ) {
+    <[crypt.C25519.load_from_string]>->(
+        $key_name, <[protocol-7.source-key]>
+    );
+}
+if ( not exists $keys{'C25519'}{$key_name}{'public'} ) {
+    <[base.logs]>->( 1, '[%d] signed-file public key unavailable', $id );
+    <[httpd.send_error_page]>->( $id, 500 );
+    return TRUE;
+}
+
+pipe( my $result_r, my $result_w ) or do {
+    <[base.logs]>->( 1, '[%d] signed-file pipe failed : %s', $id, $OS_ERROR );
+    <[httpd.send_error_page]>->( $id, 500 );
+    return TRUE;
+};
+binmode($result_r);
+binmode($result_w);
+
+my ( $body_fh, $body_path )
+    = <[file.temp]>->( qw| signed-body-XXXXXXXXXXXXX |, undef, TRUE );
+if ( not defined $body_fh ) {
+    close $result_r;
+    close $result_w;
+    <[base.logs]>->( 1, '[%d] signed-file temporary file failed', $id );
+    <[httpd.send_error_page]>->( $id, 500 );
+    return TRUE;
+}
+close $body_fh;
+
+my $pid = <[base.fork]>;
+if ( not defined $pid ) {
+    close $result_r;
+    close $result_w;
+    unlink $body_path;
+    <[base.logs]>->( 1, '[%d] signed-file fork failed : %s', $id, $OS_ERROR );
+    <[httpd.send_error_page]>->( $id, 500 );
+    return TRUE;
+}
+
+if ( $pid == 0 ) {
+    require POSIX;
+    close $result_r;
+    my $payload;
+    my $result;
+    if ( not defined <[file.slurp]>->( $file_path, \$payload, qw| :raw | ) ) {
+        $result = "invalid file-read\n";
+    } else {
+        my $verification
+            = <[source.verify_and_strip]>->( \$payload, $key_name );
+        if ( $verification->{'status'} eq qw| valid | ) {
+            if ( open( my $output_fh, '>', $body_path ) ) {
+                binmode $output_fh;
+                print $output_fh $verification->{'body'}->$*;
+                close $output_fh;
+                $result = "valid\n";
+            } else {
+                $result = "invalid temporary-write\n";
+            }
+        } elsif ( $verification->{'status'} eq qw| unsigned | ) {
+            $result = "unsigned\n";
+        } else {
+            my $error = $verification->{'error'} // qw| verification |;
+            $error =~ s|[\r\n]| |g;
+            $result = "invalid $error\n";
+        }
+    }
+    print $result_w $result;
+    close $result_w;
+    POSIX::_exit(0);
+}
+
+close $result_w;
+<[httpd.base.file.nonblocking]>->($result_r);
+$session->{'signature_pending'} = {
+    qw| pid          | => $pid,
+    qw| identity     | => $identity,
+    qw| file_path    | => $file_path,
+    qw| body_path    | => $body_path,
+    qw| handler_args | => $handler_args,
+    qw| result       | => ''
+};
+$session->{'watcher'}->{'signature_handler'} = <[event.add_io]>->(
+    {   qw| fd      | => $result_r,
+        qw| handler | => qw| httpd.handler.signature_verify |,
+        qw| poll    | => qw| r |,
+        qw| data    | => { qw| id | => $id }
+    }
+);
+
+return TRUE;
+
+#,,.,,,,,,...,,,.,,.,,,.,,...,.,,,,..,..,,..,,..,,...,...,,.,,..,,,.,,,,.,,,,,
+#2DHIYUBBIDVVKD3FPOYC3PQVKDOKRIHTRD2FQY4L53VV2HPMZN5X3KFORC36XSE6Y2SLVXYR2WIE6
+#\\\|X4I3PXWTUKDC7EWTL5HRG53SOYPTTD4CFBS72N5O3RISLHT5ETZ \ / AMOS7 \ YOURUM ::
+#\[7]JMYQWJ5MPAISHSZRZFGPNRAFHC6J5VETMBW5BVOWHMYNHZ4NBMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
