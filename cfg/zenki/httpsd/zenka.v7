@@ -16,6 +16,10 @@ modules.load         =  auth.client net protocol io.unix io.ip ui io.ssl \
 plugins.load         =  plugin.web.auth
 [load_plugins:<plugins.load>]
 
+## signed-file serving : the key httpsd verifies with -- set per zenka, so ##
+## httpd and httpsd may use different keys [ httpd has its own entry ]     ##
+httpd.cfg.signature_key_name = proto-7.sourcecode
+
 net.https.addr       =  0:0:0:0:0:0:0:0
 net.https.port       =  443
 
@@ -100,8 +104,8 @@ httpsd.timeout      =  14
 
 [zenka.loop]
 
-#,,,,,,,.,,..,...,,,.,,.,,,..,,,,,,,,,.,.,,.,,..,,...,...,.,,,.,,,.,.,,..,,..,
-#475URAYXYJXQAPXDF4VS5542U4LU62SJ4SW2H76BFZTZAGDQ4KAZUQEGHHRJNFO5L2CSBPDVHK4KU
-#\\\|UU32347TVFHDLSHOLMW73TZNPY37EGXDDC6CA5RITZSZ2QWLOIT \ / AMOS7 \ YOURUM ::
-#\[7]FZHGNFLNZUUEY6FKIXDGO73YGR6INITB7MWCCLYH3YREAUEAMUBQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,.,,,.,.,.,.,...,,.,,,.,,.,,,..,,...,..,,,.,,,,,,..,,,,.,,,,,
+#A3K37FRUKBMRRHKI4ZSJ33N6MKAJCNDXJTPZXTWPV6QXAWAIJKRESREAKODDCE3GELL5IXB6NOEQQ
+#\\\|RYVJUO2F4VJPQGWBMXPX4IGIX73KHFXCOD4A7MEP7SM46UTHSSR \ / AMOS7 \ YOURUM ::
+#\[7]SECZMYFBND7LJIEYSVSYPWDG2SMB5KU72GXOE42ZRIZTPUBVQYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
