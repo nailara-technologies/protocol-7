@@ -21,7 +21,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.BUWMUVA |;
+our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.MHOYGUQ |;
 
 @EXPORT_OK = qw| journal_replay journal_head journal_write |;
 
@@ -30,6 +30,7 @@ use AMOS7::N7FS qw| ntime_now ntime14 read_file write_new_file make_dirs
     signed_record_parse signed_record_pack refuse fault |;
 use AMOS7::N7FS::Sum  qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Sign qw| verify |;
+use AMOS7::N7FS::AddressSet;
 
 our $JOURNAL_RE = qr{\A\d{14}\.journal\z};
 our $TMP_RE     = qr{\.tmp\.[A-Z2-7]{8}\z};
@@ -147,8 +148,10 @@ sub _operations {
                 refuse( 'journal seq %d : meta names an unlisted node %s',
                     $p->{'seq'}, $meta->{'node'} )
                     if not $expected->{'nodes'}{ $meta->{'node'} };
-                $expected->{'metas'}{$key}        = $meta;
-                $expected->{'meta_history'}{$key} = $meta;
+                if ( not $expected->{'_compact_place'} ) {
+                    $expected->{'metas'}{$key}        = $meta;
+                    $expected->{'meta_history'}{$key} = $meta;
+                }
             } else {
                 delete $expected->{'metas'}{$key};
             }
@@ -171,7 +174,14 @@ sub _operations {
                 refuse( 'journal seq %d : duplicate reference %s',
                     $p->{'seq'}, $ref->{'path'} )
                     if exists $expected->{'references'}{$key};
-                my $history = { %{$ref}, qw| dropped | => FALSE };
+                my $history
+                    = $expected->{'_compact_place'}
+                    ? {
+                    qw| node |    => $ref->{'node'},
+                    qw| path |    => $ref->{'path'},
+                    qw| dropped | => FALSE,
+                    }
+                    : { %{$ref}, qw| dropped | => FALSE };
                 $expected->{'references'}{$key}  = $history;
                 $expected->{'ref_history'}{$key} = $history;
             } else {
@@ -235,7 +245,10 @@ sub _operations {
         refuse( 'journal seq %d : assignment names an unknown reference',
             $p->{'seq'} )
             if not $expected->{'ref_history'}{$key};
-        $expected->{'assignments'}{$key} = $assignment;
+        $expected->{'assignments'}{$key}
+            = $expected->{'_compact_place'}
+            ? { qw| category | => $assignment->{'category'} }
+            : $assignment;
         $expected->{'assignment_history'}{ $assignment->{'path'} }
             = $assignment;
     }
@@ -252,16 +265,18 @@ sub _operations {
             refuse( 'journal seq %d : batch names an unknown reference',
                 $p->{'seq'} )
                 if not $expected->{'ref_history'}{$key};
-            $expected->{'assignments'}{$key} = {
+            $expected->{'assignments'}{$key}
+                = $expected->{'_compact_place'}
+                ? { qw| category | => $record->{'category'} }
+                : {
                 qw| node |      => $ref->{'node'},
                 qw| reference | => $ref->{'reference'},
                 qw| path |      => $batch->{'path'},
                 qw| category |  => $record->{'category'},
                 qw| batch |     => TRUE,
-                $batch->{'origin'}
-                ? ( qw| origin | => $batch->{'origin'} )
+                $batch->{'origin'} ? ( qw| origin | => $batch->{'origin'} )
                 : (),
-            };
+                };
         }
     }
     foreach my $release ( $p->{'drop'}{'sync_releases'}->@* ) {
@@ -371,6 +386,10 @@ sub journal_replay {
         qw| metas |      => {},
         qw| references | => {}
     );
+    if ( $opt{'compact_place'} ) {
+        tie %{ $expected{'nodes'} }, 'AMOS7::N7FS::AddressSet';
+        $expected{'_compact_place'} = TRUE;
+    }
     my ( $previous, $seq, $bounded, $baseline ) = ( '', 0, 0, FALSE );
     my ( %seen_seq, %seen_prev );
     my @entries;
@@ -400,7 +419,8 @@ sub journal_replay {
                 qw| name |    => $name,
                 qw| bytes |   => $r->{'bytes'},
                 qw| payload | => $p
-                };
+                }
+                if not $opt{'compact_place'};
         }
         $previous = bmw_b32( bmw384_bytes( $r->{'bytes'} ) );
         $seq      = $p->{'seq'};
@@ -531,8 +551,8 @@ sub journal_write {
 
 1;
 
-#,,.,,.,,,,.,,.,.,.,.,.,,,...,.,.,..,,..,,..,,.,.,...,...,..,,,..,.,,,.,.,.,,,
-#JYPYCIL5FCLLLXM7RDNTQHSEOWPAAC6DMOS4J3JGT7OUS6Z7TWCSMGT2R7JEZMJT4XO3OPQEEBRKG
-#\\\|JFZAU44LHQ2XZV3U2VUBICUO2N4DT3DZITQCXT6JXEEH3CRCMQU \ / AMOS7 \ YOURUM ::
-#\[7]P5UD6CZZDLNN7OOENRQWUX5XMY6LS5T3MLQDK2RDZL3C3KYMHUAY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,..,,,..,.,.,..,,,,.,..,,,.,,,,,,.,.,...,...,...,,..,..,,,.,,...,
+#GB63JPWUFLN2N3ABPQFT7WEUZWTGLBUICF6AVKSGIUEGRBAMQEFNXHDC2O64EXCZ6P6QCI4DNQ2KI
+#\\\|5H3RJB3JV7LCEHEU5OKBK3QSEPCZFJ7IJTD6R4PLXGP7EY4JGR6 \ / AMOS7 \ YOURUM ::
+#\[7]M74NN354SNWPQLAQCJVKZXN5RJZMKKWG7MZCHT7UZIILUOIBWYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

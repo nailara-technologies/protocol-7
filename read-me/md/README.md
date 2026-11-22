@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32YZT36DBA-10830.0 :::
+::: SOURCE-CODE VERSION :: 32Y2PEPWKY-10831.0 :::
 
 # [ [nailara 'protocol seven' network](http://protocol-7.network/) ]
 
@@ -190,165 +190,24 @@ systemctl start Protocol-7
 
 ### Interacting with the System
 
-Three primary methods for interacting with the Protocol-7 network:
+Three ways in : the `nshell` terminal, the `p7c` \ `p-7-r` command binaries, and the `p7-<zenka>` alias symlinks.
 
-1. **nshell Zenka Terminal Interface** (Recommended) ✅ Fully Refactored
-   ```bash
-   p7-nshell
-   ```
-   or equivalently:
-   ```bash
-   ./bin/Protocol-7 nshell
-   ```
-   - Interactive shell for direct Protocol-7 network access
-   - Pure-Perl implementation with non-blocking I/O
-   - Full UTF-8 support with proper character buffering
-   - **Enhanced history navigation**: Session-based Page Up/Down with LIFO symmetry
-   - **Sequential arrow keys**: Up/Down navigate sequentially through history
-   - **Ctrl+R search**: Real-time history search with phosphor-colored search term display
-   - **Ctrl+O cycle**: Execute and advance through history sequence (cycling two entries)
-   - Strips protocol reply strings for cleaner output (similar to p7c and p-7-r)
-   - ✅ All navigation features fully tested and production-ready
-   - **Live coding-zenka session integration**: split-screen mode, `Tab` toggles between
-     the coding-session view and normal Protocol-7 mode; auto-subscribes to a task and
-     streams its output live
-   - **Round-based rewind/redo**: `Esc` (after first aborting) steps back one round,
-     `F1`/`Shift+Esc` redo forward, `round-regen` forks a fresh-inference retry from any
-     point, `restream` resyncs the view manually
+- **nshell** [ recommended ] : interactive pure-perl shell with history search and live coding-zenka sessions ; start it with `p7-nshell` or `./bin/Protocol-7 nshell`
+- **p7c** : local command line client, compiled and installed by v7-zenki at startup [ `/usr/local/bin/p7c` ] ; authenticates as the current unix user
+- **p-7-r** : the remote counterpart [ default port 42 ] ; authenticates with the caller's key and pins the server's host-root on first contact
+- **short forms** : `::` = `p7c`, `:::` = `p-7-r` through `ssh -W`, using a `Host` alias from `~/.ssh/config`
+- **routing** : no `.` in a command routes to the local context, `zenka.command` routes to that zenka, `a.b.command` to a nested one
 
-   See: [`NSHELL_REFACTORING_COMPLETED.md`](./data/md/documentation/NSHELL_REFACTORING_COMPLETED.md) for implementation details
+```bash
+p7-nshell                        # interactive shell
+p7c list sessions                # active network sessions
+p7c commands                     # commands of the connected zenka
+p7c v7-zenki.list zenki          # running \ managed zenki
+::: node-local list sessions     # the same on a remote host, over ssh
+p-7-r [-v] [-strict] <hostname[:port]> <command> [args]
+```
 
-   **Legacy Alternative:** `bin/nshell`
-   - Still available for compatibility
-   - Prints full protocol reply strings for debugging
-   - Use when you need to see complete protocol details
-
-2. **Command Execution Binaries**
-
-   **p7c** (protocol-7 command):
-   ```bash
-   p7c <command> [args]
-   ```
-   - Local command execution
-   - Automatically compiled and installed during v7-zenki startup
-   - Connects directly to the Protocol-7 network
-   - Uses current Unix user for authentication
-   - Installed at: `/usr/local/bin/p7c`
-
-   **p-7-r** (protocol-7 remote):
-   ```bash
-   p-7-r [-v] [-strict] <hostname[:port]> <command> [args]
-   ```
-   - Remote command execution over network [ default port 42 ]
-   - Automatically compiled and installed during v7-zenki startup
-   - Authenticates with the caller's key [ auth-keypair, `~/.n/user-keys/` ] ;
-     the server has to authorize it first [ see *Authorizing a Remote User* ]
-   - The server proves its identity : its host-root is pinned on first
-     contact in `~/.n/remote-keys/servers/<host>_<port>.public`, a different
-     host-root later is refused. `-strict` refuses an unpinned server
-   - Installed at: `/usr/local/bin/p-7-r`
-
-   **Short forms** [ symlinks kept by v7-zenki ]:
-   ```bash
-   :: <command> [args]            # = p7c, local
-   ::: <alias> <command> [args]   # = p-7-r through 'ssh -W'
-   ```
-   - `<alias>` is a `Host` of the caller's `~/.ssh/config` [ no dots ] with a
-     `HostName` ; the link is `ssh -W 127.0.0.1:42 <alias>`, so a server
-     only needs to expose ssh. a dotted word is never a host here : a
-     slipped `::: zenka.cmd` fails before any lookup
-     ```
-     Host node-local
-         HostName host.example.local
-         User root
-     ```
-     then `::: node-local list sessions`, `::: node-local v7-zenki.list zenki`
-
-   **Authorizing a Remote User** [ on the server, once per user ]:
-   ```bash
-   USER=protocol-7 p7-keys add-incoming <user> <public key | file | -> cube
-   ```
-   - writes the user's public key [ e.g. a copied `<user>.base.public` ] to
-     the zenka user's `incoming/` and authorizes it for `cube` in one call
-   - cube watches its authorized keys [ inotify ] and re-reads them within a
-     second -- no reload, no restart ; revoking with `p7-keys
-     drop-authorized cube:<user>` applies the same way
-   - run as root, `p7-keys` works on root's own registry unless `USER`
-     names the zenka user [ it prints a note then ] ; every directory it
-     creates or finds root-owned is handed to the zenka user, so a repeated
-     call also repairs a root-made registry
-   - related : `p7-keys incoming`, `list-authorized`, `authorize
-     cube:<user>`, `re-pin cube:<user> <new key>` [ a rotated user key ]
-
-   ### Common Commands
-
-   - `p7c list sessions`: Display active network sessions
-     ```
-      : usid :.  : protocol :.  : type :.  : mode :.  : uname :.  : since :.
-     ---------------------------------------------------------------------------
-       3495297    protocol-7      unix      server       ---        16h 58'38"
-       7310444    protocol-7     ip.tcp     server       ---        16h 58'38"
-       5771202    protocol-7      unix      client    v7-zenki      16h 58'38"
-       7091700    protocol-7      unix      client     system       16h 58'36"
-       9079727    protocol-7      unix      client     p7-log       16h 58'35"
-       ...
-     ```
-
-   - `p7c commands`: List available commands for the current zenka
-
-     - Returns a flat list of every command the zenka accepts, each with a
-       one-line description and its argument form — session handling, network
-       time, log buffers, routing overrides, cryptographic utilities and so on
-
-   ### Command Routing Mechanism
-
-   - Local Context Commands:
-     * `p7c commands`: Commands for the currently connected zenka (local cube)
-     * `p7c <zenka>.commands`: Commands for specific zenki
-     * Recursive routing possible: `p7c weather.child.commands`
-
-   ### Zenka-Specific Command Discovery
-
-   - `p7c v7-zenki.list`: Lists specific to the v7-zenki management zenka
-     ```
-      : list name :.    : description :.
-     ------------------------------------------------------------------------------
-       dependency         current zenka dependency status
-        heartbeat         heartbeat latency per instance [ cube : v7 round trip ]
-        available         available zenki \ descriptions
-         subnames         'subnames' of registered zenki [ when available ]
-         sessions         registered \ connected sessions
-         children         PIDs of zenki and their children
-          buffers         [log] ring buffers in use
-           manual         zenki marked as 'manually stopped'
-            zenki         currently running \ managed zenka instances
-     ```
-
-   ### Routing Principles
-
-   - No `.` in command: Routes to local context
-   - `.` in command: Routes to specified zenka or nested zenki
-   - Enables flexible, hierarchical command routing
-
-   ### Command Capabilities
-
-   - Discover and interact with any zenka
-   - Retrieve zenka-specific lists and information
-   - Manage network sessions
-   - Execute operations across different agents
-
-3. **Zenka Alias Symlinks**
-
-   On startup, v7-zenki installs a `p7-<zenka>` symlink to
-   [bin/Protocol-7](bin/Protocol-7) for every zenka that carries console
-   commands — `p7-keys`, `p7-nshell`, `p7-work`, `p7-sourcecode` and so on.
-   Invoking the symlink starts that zenka directly, so `p7-nshell` is
-   equivalent to `bin/Protocol-7 nshell`.
-
-   - Symlink directory: `v7-zenki.cfg.zenka_symlink_dir` [ `/usr/local/bin` ]
-   - Installation toggle: `v7-zenki.cfg.install_zenka_symlinks`
-   - The earlier `v7.<zenka>` symlink form is deprecated: `bin/Protocol-7`
-     still recognizes it, but new installations get the `p7-` prefix only
+the full detail [ options, key authorization, routing, reply listings, alias symlinks ] lives in [Interacting with the Protocol-7 Network](/read-me/md/INTERACTING.md).
 
 ## Keys and Secrets
 
@@ -527,8 +386,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,..,...,,,,,,.,,..,,.,,,.,.,,.,,...,...,,,.,..,,...,...,...,.,.,...,.,.,...,
-#OF2T7L6FUZZNBBEFT5Y7K5YT6XBFINGBAMJNIEWFGXAMLBBHNHODKFEMXAJMIZXT5IGDRYKKSMRCO
-#\\\|BALNR6ORKYQ6XNIZ2KTWV3VWMU6ZN77TVUSE2WP6253YYEJT2R6 \ / AMOS7 \ YOURUM ::
-#\[7]MINE2KFNOJOLOGGORPFTRCLTZMSYSGF4RWTJFNXPBMOL5CYIIYDY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,,,,,..,,...,..,,,,,,,.,,,.,,..,,...,...,..,,,.,,,,,,,,.,.,.,
+#35SGQ75XUNSTM2YCNKKV6LPE7EUFBIIHWCRD2CPR7SMYRSNMRFU7VCDM5QTEVJNPNQYNWCM74TY3M
+#\\\|GQC6FOHXC2Z76Z6REHLMVLAR2KRQGGKYBXXDMQZCFK45KIPMNFM \ / AMOS7 \ YOURUM ::
+#\[7]DZ67QRSVAXV3TCSFVJ3RAR335ACSWQI7K4RSQZWJGXHDTH25Y6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

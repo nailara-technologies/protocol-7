@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.GRQNK6A |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.R6KARKQ |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -851,6 +851,7 @@ sub TIEHASH {
         qw| alt |    => $alt,
         qw| shards | => $shards,
         qw| cache |  => {},
+        qw| dirty |  => {},
         qw| plain |  => {},
     }, $class;
 }
@@ -858,6 +859,11 @@ sub TIEHASH {
 sub _load {
     my ( $self, $shard ) = @_;
     return $self->{'cache'}{$shard} if exists $self->{'cache'}{$shard};
+    if ( keys %{ $self->{'cache'} } >= 16 ) {
+        my ($old) = grep { not $self->{'dirty'}{$ARG} }
+            keys %{ $self->{'cache'} };
+        delete $self->{'cache'}{$old} if defined $old;
+    }
     my $desc = $self->{'shards'}{$shard} // return $self->{'cache'}{$shard}
         = {};
     ## remote shards arrive in bounded windows ; decoded shards release ##
@@ -904,22 +910,24 @@ sub EXISTS {
 
 sub STORE {
     my ( $self, $address, $entry ) = @_;
-    _load( $self, AMOS7::N7FS::Seal::_node_shard($address) )->{$address}
-        = $entry;
+    my $shard = AMOS7::N7FS::Seal::_node_shard($address);
+    _load( $self, $shard )->{$address} = $entry;
+    $self->{'dirty'}{$shard} = 1;
     return $entry;
 }
 
 sub DELETE {
     my ( $self, $address ) = @_;
-    return
-        delete _load( $self, AMOS7::N7FS::Seal::_node_shard($address) )
-        ->{$address};
+    my $shard = AMOS7::N7FS::Seal::_node_shard($address);
+    $self->{'dirty'}{$shard} = 1;
+    return delete _load( $self, $shard )->{$address};
 }
 
 sub CLEAR {
     my $self = shift;
     _load( $self, $ARG )
         for keys %{ $self->{'shards'} }, keys %{ $self->{'cache'} };
+    $self->{'dirty'}{$ARG} = 1 for keys %{ $self->{'cache'} };
     $ARG->%* = () for values $self->{'cache'}->%*;
     return;
 }
@@ -1764,15 +1772,19 @@ sub _select_addresses {
     refuse('sealing needs store format 3') if $state->{'store_format'} != 3;
     require AMOS7::N7FS::Placement;
     my $replay = AMOS7::N7FS::Placement::journal_replay_cached( $id,
-        \&journal_replay );
+        \&journal_replay, $opt{'_compact_place'} ? 'compact_place' : undef );
     my $definitions = category_definitions( $id, $replay );
     my %node_categories;
 
-    foreach my $ref ( values $replay->{'ref_history'}->%* ) {
-        my $assignment = $replay->{'assignments'}
-            { join( "\0", $ref->{'node'}, $ref->{'path'} ) };
-        my $category = $assignment->{'category'} // 'default';
-        $node_categories{ $ref->{'node'} }{$category} = 1;
+    if ( defined $opt{'_cats'} ) {
+        %node_categories = %{ $opt{'_cats'} };
+    } else {
+        foreach my $ref ( values $replay->{'ref_history'}->%* ) {
+            my $assignment = $replay->{'assignments'}
+                { join( "\0", $ref->{'node'}, $ref->{'path'} ) };
+            my $category = $assignment->{'category'} // 'default';
+            $node_categories{ $ref->{'node'} }{$category} = 1;
+        }
     }
     my %selected = map { $ARG => 1 } $opt{'addresses'}->@*;
     if ( defined $opt{'category'} ) {
@@ -1784,22 +1796,23 @@ sub _select_addresses {
     my %manifest_only
         = map { $ARG => TRUE } @{ $opt{'tree_manifests'} // [] };
     foreach my $name ( keys $replay->{'trees'}->%* ) {
-        my $tree   = $replay->{'trees'}{$name};
+        my $tree = $replay->{'trees'}{$name};
+        $tree->{'_file_set'} //= AMOS7::N7FS::Placement::_address_set(
+            [ _manifest_files( $id, $tree->{'manifest'} ) ] );
+        my $files  = $tree->{'_file_set'};
         my $wanted = $opt{'all_trees'}
             || grep { $ARG eq $name } $opt{'trees'}->@*;
-        my @files = _manifest_files( $id, $tree->{'manifest'} );
-        $wanted ||= grep { $selected{$ARG} } @files
+        $wanted ||= grep { $selected{$ARG} } keys %{$files}
             if defined $opt{'category'};
         next if not $wanted and not $manifest_only{$name};
-        my %distinct = map { $ARG => TRUE } @files;
         $trees{$name} = {
-            qw| manifest |        => $tree->{'manifest'},
-            qw| created |         => $tree->{'created'},
-            qw| files |           => scalar keys %distinct,
-            qw| _file_addresses | => [ sort keys %distinct ],
+            qw| manifest |  => $tree->{'manifest'},
+            qw| created |   => $tree->{'created'},
+            qw| files |     => scalar keys %{$files},
+            qw| _file_set | => $files,
         };
         if ($wanted) {
-            $selected{$ARG} = 1 for @files;
+            $selected{$ARG} = 1 for keys %{$files};
         }
     }
     foreach my $name ( $opt{'trees'}->@*, @{ $opt{'tree_manifests'} // [] } )
@@ -1841,7 +1854,7 @@ sub _tree_inventory {
     foreach my $name ( keys %{$trees} ) {
         my $record = $map->{'trees'}{$name} // next;
         my $held   = grep { exists $map->{'nodes'}{$ARG} }
-            @{ $trees->{$name}{'_file_addresses'} // [] };
+            keys %{ $trees->{$name}{'_file_set'} // {} };
         my $files = $trees->{$name}{'files'} // 0;
         my $state = $held == $files ? qw| complete | : qw| partial |;
         next
@@ -3731,8 +3744,8 @@ sub shred_node {
 
 1;
 
-#,,,,,..,,,,.,.,.,,,,,,,,,..,,.,.,,,.,,..,...,..,,...,.,.,,.,,,.,,.,.,,.,,,..,
-#5E3RNRVLJYTOTF26R5DT4NDJ2IWBE3ANKPJHLW4S4GVZSVDDFVZONRUIKFSV5L5ACSLG6HVPHKV5C
-#\\\|5ZWBQFH4YITWKQCXRPFP2LE57UMZFZFUE22QEGPUQDAHEZ5MPMP \ / AMOS7 \ YOURUM ::
-#\[7]7T3EONV6WRIKKDEUEB5LOAUFKORJK7UFQZS4XV2YPFLIYRHAJWBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,,,.,,.,,,,,,,,.,,,,,.,.,,,,,..,,...,...,.,.,...,,,.,,.,,.,.,
+#SDOIXUJ5JGUDU7QDYQYVGB4M4LOBTZJ5JYVXA6Z744AOJ5COMUZTD2JJXJF5R5LZW533RLI6UIOVY
+#\\\|7OPKBPY6CFNSCRPRH5QRMPPVU4WBFHPBHKPFTGNEDWEHSIPZCNU \ / AMOS7 \ YOURUM ::
+#\[7]25XSIKEYKKGJNZAG544L7KMQCZWVYEU2NNAV4FHY6RMV5PEYHGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

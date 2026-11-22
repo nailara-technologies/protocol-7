@@ -37,7 +37,7 @@ my $bar = console_progress_bar(
     unit    => 'entries/s',
     color   => 0,
 );
-ok( $bar =~ m|25\.00%| && $bar =~ m|5\.0 entries/s| && $bar =~ m|eta 0:30|,
+ok( $bar =~ m|25\.00%| && $bar =~ m|5\.0 entries/s| && $bar =~ m|eta\s+0:30|,
     'shared bar reports percentage, rate and estimated time left'
 );
 ok( console_progress_bar(
@@ -191,8 +191,8 @@ SKIP: {
 
 done();
 
-#,,,,,,,.,,,.,...,.,.,..,,..,,,..,,,.,,..,,,.,..,,...,...,.,,,...,,,.,...,.,,,
-#7LZ7IHHIBSHKINBDQZATFIENV2AJAOUX5HGTOWIP76SRQ7BD77HJCF2SFPWAJQ3NKKDKDDBIVYLII
-#\\\|QJWGAHWUPYAJOGET2CZ2HYRF7JUJXS2IGO7ME6DDXGTPWQ2M3GG \ / AMOS7 \ YOURUM ::
-#\[7]I3KRR35O5WFNM2CKFRYZIM6FIXPEZJHLPKZYJNKF4TJNMOTZWECI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,.,,,,.,..,,,,.,.,,,..,,,,.,...,..,,...,...,...,.,.,,,,,,,,,,,.,
+#DLI2C3N6NOWXL32AIIRQGMW7C2C7DQ3M667ZQG4RRGD6BAECKK4WBJZTSILVFHGEVDFXGUNKQCFDW
+#\\\|JNGMY3MMUXFKNFELMKTAVIZSP4LNI4TO2HF54Q345Y6NZCDZGO7 \ / AMOS7 \ YOURUM ::
+#\[7]KSSTA4WWFXVVF2VSBF26VTJZKEOUUMCMOVYFG664YJSG7JPYVWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

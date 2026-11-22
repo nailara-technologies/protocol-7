@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.Z4DQZEA |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.3O7Y5ZQ |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -36,6 +36,7 @@ use AMOS7::N7FS::Sign     qw| verify |;
 use AMOS7::N7FS::Disk     qw| disk_read_id state_read |;
 use AMOS7::N7FS::Journal  qw| journal_replay |;
 use AMOS7::N7FS::Category qw| category_definitions |;
+use AMOS7::N7FS::AddressSet;
 
 my $JSON = AMOS7::N7FS::json_codec();
 
@@ -597,16 +598,36 @@ sub _journal_position {
 }
 
 sub journal_replay_cached {
-    my ( $id, $replay_fn ) = @_;
+    my ( $id, $replay_fn, $mode ) = @_;
     $replay_fn //= \&journal_replay;
-    return $replay_fn->($id)
+    my %compact
+        = ( $mode // '' ) eq 'compact_place'
+        ? ( qw| compact_place | => TRUE )
+        : ();
+    return $replay_fn->( $id, %compact )
         if ( $ENV{'N7FS_JOURNAL_CACHE'} // 1 ) eq '0';
     my $disk     = join "\0", @{$id}{qw| path store_pub |};
     my $position = _journal_position($id);
-    return $REPLAY{"$disk\0$position"}
-        if exists $REPLAY{"$disk\0$position"};
+    my $key      = join "\0", $disk, $position, $mode // '';
+    return $REPLAY{$key} if exists $REPLAY{$key};
     delete @REPLAY{ grep { index( $ARG, "$disk\0" ) == 0 } keys %REPLAY };
-    return $REPLAY{"$disk\0$position"} = $replay_fn->($id);
+    return $REPLAY{$key} = $replay_fn->( $id, %compact );
+}
+
+sub _address_set {
+    my $addresses = shift // [];
+    my $set       = {};
+    tie %{$set}, 'AMOS7::N7FS::AddressSet';
+    $set->{$ARG} = TRUE for @{$addresses};
+    return $set;
+}
+
+sub _tree_name {
+    my ( $trees, $address ) = @_;
+    foreach my $name ( sort keys %{$trees} ) {
+        return $name if $trees->{$name}{$address};
+    }
+    return undef;
 }
 
 ## the live-node indexes shared by placement reports and bounded placing
@@ -617,14 +638,15 @@ sub _disk_context {
         defined $opt{'disk_root'} ? ( qw| root | => $opt{'disk_root'} ) : (),
         qw| disk | => $opt{'disk'}
     );
-    my $replay      = journal_replay_cached($id);
+    my $replay      = journal_replay_cached( $id, undef, 'compact_place' );
     my $definitions = category_definitions( $id, $replay );
     my %cats;
     foreach my $ref ( values $replay->{'ref_history'}->%* ) {
         next if $ref->{'dropped'} or $ref->{'released'};
         my $a = $replay->{'assignments'}
             { join( "\0", $ref->{'node'}, $ref->{'path'} ) };
-        $cats{ $ref->{'node'} }{ $a->{'category'} // qw| default | } = TRUE;
+        my $category = $a->{'category'} // next;
+        $cats{ $ref->{'node'} }{$category} = TRUE;
     }
     my %manifests = map { $replay->{'trees'}{$ARG}{'manifest'} => TRUE }
         keys $replay->{'trees'}->%*;
@@ -632,7 +654,8 @@ sub _disk_context {
     my %tree_nodes;
     foreach my $name ( keys $replay->{'trees'}->%* ) {
         my $tree = $replay->{'trees'}{$name};
-        $tree_nodes{$ARG} = $name
+        my $set  = $tree_nodes{$name} = _address_set();
+        $set->{$ARG} = TRUE
             for AMOS7::N7FS::Seal::_manifest_files( $id,
             $tree->{'manifest'} );
     }
@@ -649,7 +672,7 @@ sub _disk_nodes {
     while ( my ($address) = each $replay->{'nodes'}->%* ) {
         next if $manifests->{$address};
         my @c = sort keys %{ $cats->{$address} // {} };
-        next if not @c and not $tree_nodes->{$address};
+        next if not @c and not defined _tree_name( $tree_nodes, $address );
         @c = (qw| default |) if not @c;
         my $target = 0;
         foreach my $c (@c) {
@@ -726,7 +749,7 @@ sub _copies {
                 and ( $receipt->{'covered'} // '' ) ne ''
                 and $cache->{'digest'} eq $receipt->{'covered'} ) {
                 $state   = 'unreachable, counted';
-                $covered = { map { $ARG => TRUE } @{ $cache->{'covered'} } };
+                $covered = _address_set( $cache->{'covered'} );
             }
         } elsif ( not defined $head ) {
             $state = qw| empty |;
@@ -742,10 +765,8 @@ sub _copies {
                 $state = 'no fresh receipt';
             } else {
                 ## the exact version : it vouches for every mapped entry ##
-                $covered = {
-                    map { $ARG => TRUE }
-                        keys %{ $map->{'nodes'} // {} }
-                };
+                $covered
+                    = _address_set( [ keys %{ $map->{'nodes'} // {} } ] );
             }
         } else {
             ## entries the receipt's version covers ; a changed or dropped ##
@@ -755,8 +776,8 @@ sub _copies {
                 ## a void receipt vouches for nothing : no copy, no proof ##
                 $state = 'no fresh receipt';
             } else {
-                $covered = { map { $ARG => TRUE }
-                        receipt_covered( $map, $receipt->{'version'} ) };
+                $covered = _address_set(
+                    [ receipt_covered( $map, $receipt->{'version'} ) ] );
             }
         }
         if ( $excluded{$name} and $state eq 'counted' ) {
@@ -892,6 +913,8 @@ sub place_missing {
     ) if not $opt{'dry_run'};
     my ( $id, $replay, $definitions, $cats, $manifests, $tree_of )
         = _disk_context(%opt);
+    $opt{'_compact_place'} = TRUE;
+    $opt{'_cats'}          = $cats;
     my ( undef, undef, $status, undef )
         = _copies( %opt, qw| _stream | => TRUE, qw| _holders | => $holders );
     ## a holder that gets any file of a tree also gets its manifest ; the tree
@@ -995,7 +1018,8 @@ sub place_missing {
                     ## manifests                                   ##
                     qw| tree_manifests | => [
                         sort grep {defined}
-                        map       { $tree_of->{$ARG} } $chunk_plan{$name}->@*
+                            map { _tree_name( $tree_of, $ARG ) }
+                            $chunk_plan{$name}->@*
                     ],
                 );
             };
@@ -1016,14 +1040,18 @@ sub place_missing {
     ## the total : every address the walk below hands to a chunk
     foreach my $address ( keys $replay->{'nodes'}->%* ) {
         next if $manifests->{$address};
-        next if not $cats->{$address} and not defined $tree_of->{$address};
+        next
+            if not $cats->{$address}
+            and not defined _tree_name( $tree_of, $address );
         $total++;
     }
     my @chunk;
     keys $replay->{'nodes'}->%*;
     while ( my ($address) = each $replay->{'nodes'}->%* ) {
         next if $manifests->{$address};
-        next if not $cats->{$address} and not defined $tree_of->{$address};
+        next
+            if not $cats->{$address}
+            and not defined _tree_name( $tree_of, $address );
         push @chunk, $address;
         next if @chunk < $chunk_size;
         $execute->( \@chunk );
@@ -1324,8 +1352,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,.,,...,.,.,.,,,..,,,.,,,.,,.,,,,,,,,..,..,,...,...,.,,,,.,,,..,.,,,...,
-#XYQ3RDIL3EWQ4WNC5GMFGDD3N24TBB43Q7PL77WK7XHMMB23D6A3TMQPMC43SB46CLUD6YH4IW63A
-#\\\|GMFRILSQMKQZMGRPIVQARF3QCJAPOQS47VDWDIYIAMZMMBSVGTG \ / AMOS7 \ YOURUM ::
-#\[7]JYJK3P2EZKLXUO3M5GG3RTLR6MZN4LBI2PWSNHUAP2KDHDF2EQDI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,.,.,.,.,.,.,.,,,..,,,..,...,..,,...,...,...,...,...,,,,,,.,,
+#52FN2XKQZQIKJAGGLUCOHC73UDNWPBMDOV3QVWFH76L5DKCLRVMIWBVEG32JNKEACVLJMPEAMPOKI
+#\\\|WULJAC4774OVSIXHSRIGW3F2LU5JXKFUD23BE3S66WRWO5RUCQ4 \ / AMOS7 \ YOURUM ::
+#\[7]47VRFMUEM37HED4WCNARXBLDOW7FEB3LE35QMMQJM6GUFLHVYYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

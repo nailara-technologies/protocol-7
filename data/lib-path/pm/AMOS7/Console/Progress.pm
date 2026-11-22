@@ -16,7 +16,7 @@ use vars qw| @EXPORT_OK $VERSION |;
 use constant TRUE  => 5;
 use constant FALSE => 0;
 
-our $VERSION = qw| AMOS7::Console::Progress-VERSION.5Q5JZEA |;
+our $VERSION = qw| AMOS7::Console::Progress-VERSION.OPRLCXQ |;
 
 @EXPORT_OK = qw| console_progress_bar |;
 
@@ -77,7 +77,9 @@ sub console_progress_bar {
     $line .= $field->( sprintf '%7.1f %s', $rate, $opt{'unit'} // 'items/s' );
     $line .= $field->( sprintf 'eta %7s',  _eta($eta) );
     $line .= $field->($label) if length $label;
-    $line .= ".${reset}\e[K\r";
+    ## erase to end of line only with colours : -nc output stays escape free,
+    ## the fixed widths already cover a shorter redraw there
+    $line .= "." . $reset . ( $color ? "\e[K" : '' ) . "\r";
     return $line;
 }
 
@@ -85,8 +87,8 @@ sub console_progress_bar {
 
 #,,,,,,.,,,.,.,,,.,,,.,,,,.,,,.,,,.,,,.,,,,.,,,,..,,.,,,.,,,.,,,.,,,,.,,,
 
-#,,,,,.,,,,..,..,,,..,..,,,,,,.,.,...,.,.,,,.,..,,...,...,...,,,.,..,,...,..,,
-#7OFRJNBQ26RU4F5MDCXBZW37FGTKCM425KCO7IZSITPXZ6MZHK6FPRAM7LYQKRTFBROAW463MQ5EI
-#\\\|KPZP5LE3EPNH3NNOTBS3I43TJ3LPXG2HZWMC5WFGUR7M4SXOTYE \ / AMOS7 \ YOURUM ::
-#\[7]DRKYM3K3IYSL7C7KH3QENWE6SZRFH4G2IJVGMNWPHFK7Q5FF4ADI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,..,,..,,...,,,.,.,.,,.,,.,.,,,,,..,,...,..,,,..,,,.,,,,,,,.,.,.,
+#UWVXWISDMYXNYUJIQ2UOVINTGHLWQZNCJT6AJK3NUTLIDMZCVBBJT6V5F7YDYIY33IZPXRGTUGNYI
+#\\\|5T7OERTJ3PTWES2Q5IRHECXOIRQQBCH6Q6FGDR5TWCEMKNRTRK4 \ / AMOS7 \ YOURUM ::
+#\[7]6EYHCX47HCGY2I6ZPQ3H3E6664GQWRBLUSRMKRIXT4JQCLV2RGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
