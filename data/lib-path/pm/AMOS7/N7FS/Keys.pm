@@ -14,7 +14,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.CFYBEGA |;
+our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.CM7DWPA |;
 
 @EXPORT_OK = qw| root_init root_open root_convert root_passphrase
     vault_note_load vault_note_save |;
@@ -41,6 +41,17 @@ sub root_passphrase {
     require Term::ReadKey;
     require POSIX;
     POSIX::tcflush( fileno(STDIN), POSIX::TCIFLUSH() ) if -t STDIN;
+    ## a terminal gets the AMOS7::TERM prompt [ frame, stars, timeout ] like
+    ## every other passphrase prompt ; a pipe keeps the plain read below
+    if ( -t STDIN ) {
+        require AMOS7::TERM;
+        my ( $pass, $aborted )
+            = AMOS7::TERM::read_password_single(
+            ( $opt{'prompt'} // 'root passphrase' ),
+            undef, 0 );
+        refuse('passphrase input aborted') if $aborted or not defined $pass;
+        return $pass;
+    }
     print {*STDERR} ( $opt{'prompt'} // 'root passphrase' ), ' : ';
     Term::ReadKey::ReadMode(qw| noecho |);
     my $pass = <STDIN> // '';
@@ -321,8 +332,8 @@ sub root_convert {
 
 1;
 
-#,,.,,.,,,,.,,..,,,..,...,,,.,.,.,,..,..,,.,,,..,,...,..,,...,,.,,..,,,..,.,,,
-#4BUXEPNEWSW6LPWOCVAS4O6SXHXGO2UEIJND3XXV2NB3ZGV6N6KZBPAVQQFZJ53BB2FTSVCBGEAOI
-#\\\|ALNOKOA2NUZZH3DK443ZCNMQBB37XIBBBL4RCTP6ZCGOOU5B5IJ \ / AMOS7 \ YOURUM ::
-#\[7]OBEPY5UYME4UBULM66HNHTSTKH7GTTTHLXXVZIJS4SAF4AAOG4BY 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,.,,,,,.,.,.,.,,,,,,,.,,,,,.,.,..,,...,..,,.,.,,,.,.,,,,..,,.,,
+#XDCR2ZK3NRTSGWXECUPSMSKGO5WK35C5IWSNZWNMB44VEXZJP5BIFFA3MM2Q3V34MOCZW7A25AMX4
+#\\\|PB4Q6X3I6R36HHVKGPBSEJLCP4W76J6RJKJF7ZY27ERDPUINP2K \ / AMOS7 \ YOURUM ::
+#\[7]VDTIISQ554FLW2R2I73764FSMIZL5ZHGHTXIPYVJNPX3GEOUVIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

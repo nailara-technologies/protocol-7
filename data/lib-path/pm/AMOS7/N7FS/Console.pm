@@ -13,7 +13,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Console-VERSION.U37YZNA |;
+our $VERSION = qw| AMOS7::N7FS::Console-VERSION.76O5X6I |;
 
 @EXPORT_OK = qw| console_configure console_say console_error console_progress
     console_close_progress console_is_tty |;
@@ -36,10 +36,15 @@ sub console_is_tty { return $ERR_TTY }
 
 sub console_close_progress {
     return if not $PROGRESS_OPEN;
-    print STDERR "\n";
+    ## the bar line ends in \r : step past it and leave a frame line, so a
+    ## shell prompt cannot overwrite the last state
+    print STDERR "\n:\n";
     $PROGRESS_OPEN = 0;
     return;
 }
+
+## a run that ends without a final update still closes its bar
+END { console_close_progress() }
 
 sub _paint {
     my ( $text, $token, $enabled ) = @_;
@@ -80,6 +85,7 @@ sub console_progress {
         my $now = Time::HiRes::time();
         return if not $final and $now - $last < 0.2;
         $last = $now;
+        print STDERR ":\n" if not $PROGRESS_OPEN;
         print STDERR console_progress_bar(
             label   => $label,
             current => $current,
@@ -98,8 +104,8 @@ sub console_progress {
 
 #,,,,,,.,,,.,,,..,,,.,,,,.,,,,..,,,..,,.,,,,..,,.,,,,,,..,,..,,,.,,,.,,
 
-#,,..,,..,,,.,,,.,,..,.,.,...,,.,,..,,...,.,,,..,,...,..,,,.,,,.,,,..,.,.,...,
-#SLAQZWOSLAEW7DVG5GJYIIR3E3CZ35SRYIQIJIQ7V7NWKMKA3IO5M4KT6MYQPXKO7Q4T2FS2CZG32
-#\\\|FMMAEGKEAJSDW73ICYBUHNHFWMSISCP6XZLJXATXFBEE54PEDG3 \ / AMOS7 \ YOURUM ::
-#\[7]XK66PT2KWMEUHW7UIQ4TNQTILRYU5HYCDKFT2SECQF7JBETAUQAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,.,,,.,.,,.,,.,.,.,,,,.,,,.,,..,,...,..,,.,.,,.,,,.,,,..,,..,
+#GHXHPYY4QE6BOY5VPQ3Y3GKSDPUUVXX7STSEKKS6LUZ5LAX4ISC72FJLBW5UQ2QKGND37PRL2QARW
+#\\\|2URX4X55EWZ2MWZH74VV7XR2CR3QUECBYQUOW6S665BM3I57XGK \ / AMOS7 \ YOURUM ::
+#\[7]LJH7QB3TVSOP2WSSYZJIAGX6DDKGCDFE4Z2JDKKUXFXRZJIF2UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
