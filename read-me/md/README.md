@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 32YZN2NSLI-10828.0 :::
+::: SOURCE-CODE VERSION :: 32YZRCVMLA-10829.0 :::
 
 # [ [nailara 'protocol seven' network](http://protocol-7.network/) ]
 
@@ -457,11 +457,18 @@ Protocol-7 is a production-active multi-agent system with working HTTPS servers,
 
 ### Recent Developments
 
+- **Signed-File Serving** [ 2026-11-22 ] : httpd and httpsd verify signed html, css, js and templates before they are served or parsed -- modes `off` \ `verify` \ `require` per vhost, a persistent verification cache bound to content, key and delegation chain, a bounded ram cache with inotify invalidation. live on two public servers over http and https.
+- **Token Leases** [ 2026-11-21 ] : ui and web sessions hold short leases with proof of possession, renewed with overlap ; user groups and host user buckets share one identity layer.
+- **Desktop** [ 2026-11-21 ] : login-screen with lock transitions [ fade \ snapshot-fade \ image ], dpi control with one value per host for every consumer, keyboard driven and revertible, shared theme tokens for gtk and web, a themed povray icon set, xpra window forwarding, and gpu leases that pause the render queue when another user needs the gpu.
+- **Timer Rhythms** [ 2026-11-18 ] : timers, retries and blinks take their delays from `base.interval` -- jittered, non-linear rhythms per type instead of round, linear intervals.
+- **NRT Resource Ledger** [ stage 1a, 2026-11-16 ] : the AMOS resource tokens are no longer only a design -- `AMOS7::NRT` keeps a local ledger whose append-only journal is the only state : balances and supply by replay, every record in canon form, signatures fail closed, witness-signed heads, torn writes recovered without removing a record. `bin/nrt` + 17 checks [ zero sum, tamper, replay, clock ].
+- **N7FS Sealed Replicas** [ live 2026-11-15 ] : encrypted, content-addressed replicas on blind remote holders -- holders store and prove sealed nodes they cannot read. placement streams in bounded memory, writes receipts and resumes where it stopped ; categories decide the copy count per tree.
 - **Clean Bare-Host Install** [ 2026-10-28 ] : for the first time a fresh Debian host goes from nothing to a running, boot-enabled service with one command [ `bin/p7-install` ], and its zenki install what they miss on their own while staying operational in the meantime -- wanted for 25 years, now clean through the whole chain [ base packages, profile, auto-install, service ].
+- **Authentication Wire v2** [ 2026-10-07 ] : challenge nonces, labelled signatures, sessions bound to their link transcript, a server proof of its key and client-side pins ; a root-held host key signs the cube.
 - **Autonomous Coding Zenka**: A fully operational LLM orchestration agent that can read, edit, and improve its own Protocol-7 source code. Runs local inference servers asynchronously (non-blocking spawn with < 100ms init), maintains a tool-calling loop (50+ task templates, XML tool-call parsing, context compaction), and coordinates with external frontier models (Claude, Kimi) for complex multi-session tasks.
 - **Self-Modifying Infrastructure**: The coding zenka completed numerous autonomous extraction and refactoring tasks — inline sub extraction across 30+ modules, style enforcement, cross-namespace wiring — all applied via direct file write tools without human intervention.
-- **Multi-Model Consensus**: Local voting infrastructure exists (`llm.service.consensus_vote`, cubic-topology harmonic certainty aggregation, mock-response fallback if llama-cli isn't installed), but its model list is a stale hardcoded placeholder (Qwen2.5-7B, Mathstral-7B, Aya-23-8B) that predates the current model registry and isn't wired to it — see [`AUTONOMOUS-MODEL-MANAGEMENT.md`](./data/md/design/AUTONOMOUS-MODEL-MANAGEMENT.md) for the autonomous discovery/benchmarking/consensus system meant to replace it. Separately, a dedicated kimi zenka dispatches to external frontier models (Claude, Kimi) for tasks exceeding local model capability — that's task delegation to a single stronger model, not (yet) folded into the voting mechanism itself.
-- **Async HTTP Server**: Full non-blocking HTTP/HTTPS implementation with Range request support, TLS via ACME/Let's Encrypt, SNI-based vhost routing, and event-driven file transfer. Live at `space.v7.ax` and `srv-U`.
+- **Multi-Model Consensus**: Local voting infrastructure exists [ `llm.service.consensus_vote`, harmonic certainty aggregation ] ; wiring it to the current model registry is open work [ see [`AUTONOMOUS-MODEL-MANAGEMENT.md`](./data/md/design/AUTONOMOUS-MODEL-MANAGEMENT.md) ].
+- **Async HTTP Server**: Full non-blocking HTTP/HTTPS implementation with Range request support, TLS via ACME/Let's Encrypt, SNI-based vhost routing, and event-driven file transfer. Live at `space.v7.ax`.
 - **Stream Transport Layer (STRM)**: Binary streaming protocol for large files, audio relay, and unbounded streams. Includes cancel propagation, gap-fill pacing, and a working internet radio relay zenka with MPV playback and offline resilience.
 - **Web Template Pipeline**: Server-side template rendering with plugin commands, content-type negotiation, and inline CSS/JS for offline-viewable pages.
 - **Graphics Matrix**: Spatial node visualization with cursor tracking, glow gradients, channel routing, and a live hyperspace field demo at [visual.v7.ax](https://visual.v7.ax/).
@@ -520,8 +527,8 @@ The full vision document explores Protocol-7's unique approach to distributed co
 
 ```
 
-#,,,.,...,,,,,,.,,,..,,,,,,,.,,..,,,,,,..,.,,,..,,...,..,,..,,.,.,..,,,,.,,,,,
-#ESSPUOBGVAZIEPWIRNQTYX5K3I3VXZ3BVSJSXTDEML5QU3URISQWBS4TMXDF5A6Q6K2OEYJ6LYVA4
-#\\\|ZP3HGUC2L4ZEJ5SNM5PHRAUUEKNBC6KIOCS6PLGHSN2DGRDXBRF \ / AMOS7 \ YOURUM ::
-#\[7]JATKG7RR74I62EM64VY24XZBRHBTUHXX5YQFNSXJPHNHLAJYJWDI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,...,,,,,,,.,,..,,,.,,.,,.,,,..,,...,...,...,,.,,..,,...,,,,,
+#BLZSQD4BA3VJQSQIXTUO7HEY2KGHTGEAUYQMMJ6NWOSV3AF5OEWZAZFC4ZOWPJXJITXHDMHLHX2R6
+#\\\|QMBHL6S7SYIMQHNDB4LOUFSAO47ORO7NXQWMEWD7BUTFSGJLAVJ \ / AMOS7 \ YOURUM ::
+#\[7]RKUFO2YOHTNORZPLEUTVDOXM5VZWMANHB5FNIBKZRCAR6MZXGODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
