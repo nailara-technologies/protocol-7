@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.F76Z2WI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.CWG2D4Q |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -1813,6 +1813,7 @@ sub seal_nodes {
         %pack = ( qw| bytes | => "P7SP\x01", qw| entries | => [] );
         fault(qw| seal:after-pack |);
     };
+    my $visited = 0;
     foreach my $address ( @{$addresses} ) {
         ## a node already mapped from another disk gains this disk's id ##
         if ( exists $map->{'nodes'}{$address} ) {
@@ -1932,6 +1933,10 @@ sub seal_nodes {
             unlink for @pending_files;
             @pending_files = ();
         }
+    } continue {
+        $visited++;
+        $opt{'progress'}->( $visited, scalar @{$addresses}, FALSE )
+            if ref $opt{'progress'};
     }
     $flush->();
     $tree_changes += _tree_inventory( $map, $trees );
@@ -3616,8 +3621,8 @@ sub shred_node {
 
 1;
 
-#,,..,,.,,,,,,,,,,,,,,,,.,...,,..,..,,.,,,,..,..,,...,...,.,.,..,,...,..,,,..,
-#A56P4O2YLUIRIL6A4LGKUUNI57OA4GNEOHLEIN3RDEJ5NWA5W2WY5V3O4HQ5NFL4KAQRMOGBBD5QA
-#\\\|74G4RLQLCJI2W64JZDKJXK4ZV444G5WHMXT2632J5EFFNEDW7PC \ / AMOS7 \ YOURUM ::
-#\[7]HQ3VAHPI4JGDLVQLTEXGAEGUHTLXUS3TLG4QYOTGXWCZTBGLRMAI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,...,...,,,,,,.,,,.,,,,.,.,.,..,,...,...,,..,.,.,.,.,.,.,,..,
+#QNLH726BMMKRINNV7BB2DAVIJVEXEHCJJSKI3BXHGGNH6LRDBW4F6JFAYN7KRZ2HXAQ7V6XS6ZKHC
+#\\\|X7JAUFSWLH57ZDCTAG4BI7VDADEVABMVYYSJHVBIKSFU63ERDX5 \ / AMOS7 \ YOURUM ::
+#\[7]AJEVRAP4MAHVY5PPK5TJ2533M4XZTD3MSZX4RC2EK4XA675PXAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

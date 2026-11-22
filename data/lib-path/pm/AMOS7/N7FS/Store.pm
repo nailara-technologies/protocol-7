@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.TIAJVYY |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.EA6EIDA |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -1244,6 +1244,7 @@ sub assimilate {
         qw| dry_run | => $opt{'dry_run'} ? TRUE : FALSE,
     );
 
+    my $visited = 0;
     foreach my $item (@items) {
         my %entry = ( qw| source | => $item->{'path'} );
         my $tmp;
@@ -1266,9 +1267,14 @@ sub assimilate {
             $report{'failed'}++;
         }
         push $report{'entries'}->@*, \%entry;
+        $visited++;
+        $opt{'progress'}->( $visited, scalar @items, FALSE )
+            if ref $opt{'progress'};
         $state = state_read( $id->{'path'}, $id->{'store_pub'} )
             if not $opt{'dry_run'};
     }
+    $opt{'progress'}->( scalar @items, scalar @items, TRUE )
+        if ref $opt{'progress'};
 
     if ( $state->{'store_format'} == 3 and not $opt{'dry_run'} ) {
         my $add  = _empty_set();
@@ -1755,8 +1761,8 @@ sub _remove_source {
 
 1;
 
-#,,,.,,,.,,.,,,.,,.,,,,,,,,,.,.,,,..,,,,.,,..,..,,...,...,..,,,,,,..,,..,,,..,
-#2UT2IRZIBKUGFYTOIQL7436FK2A66OEGIUG36E6K2APRIBYRDPKT7NF2ZNYHPCS63HVKR6ZTS4VIU
-#\\\|YXMG3HCXNPYMD7CMRGTB22ZYCTZNWL747CQ3LVVGPO3TBFFP43E \ / AMOS7 \ YOURUM ::
-#\[7]FLIWX6AJRGNLE275F3DGQBF3FA4PDK6CR6HCYCL6C7XJL4JWF6AQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,.,,..,,,,,.,,,.,,,...,,.,,,..,..,,...,...,.,.,,,,,.,.,.,,,.,,,
+#XVWXGQDAM4LJLBON4MPXB4XRYIZ3LL34WWZQ4KU3SERYQMS5YO23HBNBCPR546QJURLE5Z272LKKS
+#\\\|ORBQYNMN5T2IQ3TUF3LM3HG2XTR246YTVTLDWUYY36ZQXSDT5D3 \ / AMOS7 \ YOURUM ::
+#\[7]NA6OHHNXWLFAP6MMZCIEU3HXYBI4MAHU7PQKC27ZKTWU6IYBMSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,6 +39,7 @@ BEGIN {
 
 use AMOS7::Protocol::P7Syntax qw| p7_syntax__translate p7_syntax__perl_c
     p7_syntax__swap_pairs p7_syntax__swapped_calls |;
+use AMOS7::Console::Progress qw| console_progress_bar |;
 ## Perl::Tidy required conditionally below [ not -n mode ] : its in-memory ##
 ## API [ source/destination scalar refs ] replaces the old perltidy CLI    ##
 ## subprocess entirely -- no temp files, no Term::ReadKey/ioctl dance      ##
@@ -3418,22 +3419,18 @@ sub sig_stop {
 }
 
 sub show_progress {
-    my $filename    = shift;
-    my $file_num    = shift;
-    my $files_total = shift;
-    my $chars_max   = 13;
-    my $character   = qw| : |;
-    my $char_count  = int( $chars_max * $file_num / $files_total );
-    my $perc_chars  = $character x $char_count;
-    printf( "\r${blacklight}:::[$nailara_bg$TRUE_color%-${chars_max}s"
-            . "$reset$blacklight]:"
-            . "::[$nailara_bg$TRUE_color %-${file_maxlen}s"
-            . " $reset$blacklight]:.$reset\r",
-        $perc_chars, $filename );
+    my ( $filename, $file_num, $files_total ) = @ARG;
+    print console_progress_bar(
+        filename    => $filename,
+        current     => $file_num,
+        total       => $files_total,
+        file_maxlen => $file_maxlen,
+        color       => TRUE,
+    );
 }
 
-#,,,,,,.,,...,...,.,.,.,.,...,...,,,,,,,,,..,,..,,...,...,,..,,,.,...,.,,,.,,,
-#WZ3DEJFBIULUEXI44Y3IGENG2EWKQUBOXAL36WQH4RTYBCESYMZC7N3OHMNHZT2YWL3FXIX5TGIE6
-#\\\|B3YQPS5EBMPW6POTNZUOBWXIMCXBGJUIJ2SX23PWTWOO5Z3BNCB \ / AMOS7 \ YOURUM ::
-#\[7]KXT624PQPGW4YXIO622PYYM4DHZL7N5VBCB3ZGFZ24BZ5LK6SQAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,.,.,,,.,..,,,,.,,.,,,,.,.,.,..,,...,...,...,,,.,.,.,..,,...,
+#4UJ4U2EYG672K6XRBTDZZ72UYJN72WYTE547UZSVGQVLSV63KF7H4O2Z3A2DDGVQP6RZ26MQAHWXG
+#\\\|G3UXILWQPVHNZN7UPPX5HMKUA6UNNU4BUX7ICQQCBSHJYGEGGXY \ / AMOS7 \ YOURUM ::
+#\[7]F32VDKED6KCISCSJESJCX4A3WES4N7BAG5NGXINMZGASAJXTC4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

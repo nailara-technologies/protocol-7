@@ -14,7 +14,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.BD5I6LI |;
+our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.CFYBEGA |;
 
 @EXPORT_OK = qw| root_init root_open root_convert root_passphrase
     vault_note_load vault_note_save |;
@@ -39,6 +39,8 @@ sub root_passphrase {
         return $pass;
     }
     require Term::ReadKey;
+    require POSIX;
+    POSIX::tcflush( fileno(STDIN), POSIX::TCIFLUSH() ) if -t STDIN;
     print {*STDERR} ( $opt{'prompt'} // 'root passphrase' ), ' : ';
     Term::ReadKey::ReadMode(qw| noecho |);
     my $pass = <STDIN> // '';
@@ -319,8 +321,8 @@ sub root_convert {
 
 1;
 
-#,,,,,,.,,...,...,..,,,,,,,.,,...,.,.,..,,,..,..,,...,...,..,,.,.,,,.,,,.,,..,
-#L4WP4JLM2EMHVZ2N2UNBIVGDRYHFCFNWHCXWX3SLQONDLR433YRR3M53SAJCZXFMRO7TCZLY2RL5C
-#\\\|I6BUYGBFTNDNGVFXNJGHF3URJ6W3OARC7S42TAXS4RAQO77CD4Y \ / AMOS7 \ YOURUM ::
-#\[7]Q3SPLE4NICHV7IPH5WUKATQBID2US44US2PNFSFTOX6FMJ7TEMCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,..,,,..,...,,,.,.,.,,..,..,,.,,,..,,...,..,,...,,.,,..,,,..,.,,,
+#4BUXEPNEWSW6LPWOCVAS4O6SXHXGO2UEIJND3XXV2NB3ZGV6N6KZBPAVQQFZJ53BB2FTSVCBGEAOI
+#\\\|ALNOKOA2NUZZH3DK443ZCNMQBB37XIBBBL4RCTP6ZCGOOU5B5IJ \ / AMOS7 \ YOURUM ::
+#\[7]OBEPY5UYME4UBULM66HNHTSTKH7GTTTHLXXVZIJS4SAF4AAOG4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

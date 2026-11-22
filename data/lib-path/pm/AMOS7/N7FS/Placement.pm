@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.WHYQNBA |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.4NN63ZQ |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -936,6 +936,9 @@ sub place_missing {
         push @unplaced, $address if $need > 0;
     }
     my ( %done, %results );
+    my $total = 0;
+    $total += scalar $plan{$ARG}->@* for keys %plan;
+    my $visited = 0;
     if ( not $opt{'dry_run'} ) {
         require AMOS7::N7FS::Seal;
         foreach my $name ( sort keys %plan ) {
@@ -945,6 +948,11 @@ sub place_missing {
                     %opt,
                     qw| holder |    => $holders->{$name}{'spec'},
                     qw| addresses | => $plan{$name},
+                    qw| progress  | => sub {
+                        $visited++;
+                        $opt{'progress'}->( $visited, $total, FALSE )
+                            if ref $opt{'progress'};
+                    },
                     ## only the planned files ; the tree supplies a ##
                     ## manifest                                     ##
                     qw| tree_manifests | => [
@@ -967,6 +975,8 @@ sub place_missing {
             };
         }
     }
+    $opt{'progress'}->( $visited, $total, TRUE )
+        if ref $opt{'progress'} and not $opt{'dry_run'};
     ## every attempted holder is checked : a seal can fail after a commit, and
     ## one bad holder must not leave another holder's new copies pending
     my %checks;
@@ -1259,8 +1269,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,..,,,,.,,,.,..,,,.,,,.,,..,,.,.,..,,...,..,,...,...,.,.,,,,,,,,,..,,,,.,
-#YRFK3XFNKFN5OXO53YPYM2LK7IKJF425UVX65F4J4OJY7T6HVSQ6WWB57SFC4RZWNZCD5DY66PDLW
-#\\\|7QODETHJ3WEWFPGBXTQX67PFT2E36ONRWN7ROWVAD6I5WUOIUVP \ / AMOS7 \ YOURUM ::
-#\[7]SMBJ7CE7V3MONXVJQPDLLMEB2SXYOL5726UIQEYDYDKTGGW5RYBI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,,,.,,,,,,,.,.,,,,,,,...,...,..,,...,...,.,,,.,.,,..,.,.,...,
+#DI52G4US6XQIJBPFGSM3DP6LQDYTEFB7MQJTPLMIQXJXLN7VBBL6IZGVDRZNQRG2AZQRYUI3MINIE
+#\\\|QBRBLORH3ISVTBO2OM4LYV3SBAPBKOPI27O76RBPLMBKSOKZLMU \ / AMOS7 \ YOURUM ::
+#\[7]4EKBKXUPBKE2464HP5ZXNV2YFIZBQFA2BJSVP6XDRUMT7M5NO2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

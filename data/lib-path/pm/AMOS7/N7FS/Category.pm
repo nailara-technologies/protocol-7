@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Category-VERSION.7VDVQMY |;
+our $VERSION = qw| AMOS7::N7FS::Category-VERSION.OJAIR5Y |;
 
 @EXPORT_OK
     = qw| category_default category_definitions category_set category_list
@@ -360,6 +360,10 @@ sub category_set_reference {
         my $now   = Time::HiRes::time();
         return if not $final and $now - $last_progress < 5;
         $last_progress = $now;
+        if ( ref $opt{'progress'} ) {
+            $opt{'progress'}->( $visited, $total, $final, scalar @refs );
+            return;
+        }
         printf STDERR ": n7fs : set-category : %d/%d "
             . "references visited, %d assignments\n",
             $visited, $total, scalar @refs;
@@ -505,8 +509,8 @@ sub category_report {
 
 1;
 
-#,,.,,.,,,,..,..,,.,,,,,,,..,,.,,,,..,.,,,.,.,..,,...,...,,.,,,,,,,.,,,.,,.,.,
-#UCW6BD7KSX57V3R7MRQYPYYDAR3JK25VYYM4AZDJAVFJRNK6NDCLX7VO2H3WUDMLDHE4TPXNLGQ5W
-#\\\|77K5TXDD3CVIDTOE7SZDTE46GQ5VP5VGYPA3EQOODGCO4CYJ7SP \ / AMOS7 \ YOURUM ::
-#\[7]3UI4PIDZ3ZO5T5HAE4LFNSYJYWXI4HNLE7A735SWZTD4WWD3CCDY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,,,...,,.,,,,,,,..,,,,,,..,...,..,,...,..,,,,.,,,.,,,.,,.,,,.,,
+#4BLY5UDY45DLLQ7VEBPHP3ICDH7557QQWINODTFHWEDBBRK4IA7VCKWIF5OPPVKRVEEH65NQ3CLFC
+#\\\|NKTILHZCIDAE63DTXUKNW5OIFFT6T75NK3EDARGIJRAK636P23B \ / AMOS7 \ YOURUM ::
+#\[7]EWHW4XD3S6QDDSRKLUQE7IEKQPNSNTFIHNL5BPVRF2YN4JRPI4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

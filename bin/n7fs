@@ -217,7 +217,8 @@ use warnings;
 ## sealing : -pass-fd <n> reads the passphrase from that descriptor -argon-m
 ## <KiB> -argon-t <n> -argon-p <n> override root init
 ##
-## common : -root <dir>        [ N7FS_ROOT, default /N7FS -- never created ]
+## common : -nc | -no-color     plain console output, also on a terminal
+##          -root <dir>        [ N7FS_ROOT, default /N7FS -- never created ]
 ##          -host-dir <dir>    [ N7FS_HOST_DIR, default ~/.n/n7fs ]
 ##          -host-key <file>   [ default <host-dir>/host.key ]
 ##          -parent-key <file> [ default <host-dir>/parent.key ]
@@ -261,6 +262,8 @@ use AMOS7::N7FS::Category
     category_report |;
 use AMOS7::N7FS::Incoming qw| incoming_refs incoming_summary incoming_groups
     incoming_tag |;
+use AMOS7::N7FS::Console qw| console_configure console_say console_error
+    console_progress |;
 
 $AMOS7::N7FS::FAULT = sub {
     my $point = shift;
@@ -295,9 +298,14 @@ GetOptionsFromArray(
         via=s access=s holders import-holders all-holders state-dir=s
         method=s snapshot-cmd=s staging=s keep-staging=i shrink-limit=f
         hold=s no-hold for=s at=s status no-destructive accept-shrink
-        offline max-bytes=s commit-bytes=s commit-age=s |
+        offline max-bytes=s commit-bytes=s commit-age=s nc no-color |
 ) or usage(2);
 usage(0) if $o{'help'};
+console_configure(
+    color   => not( $o{'nc'} or $o{'no-color'} ),
+    out_tty => -t STDOUT,
+    err_tty => -t STDERR,
+);
 
 my $command = shift @args // usage(2);
 $o{'tree'} = $o{'tree'}[-1]
@@ -422,7 +430,7 @@ if ( $holder_writer{$command} and not $o{'dry-run'} ) {
 my $code = eval { $run{$command}->(@args) };
 if ( not defined $code ) {
     my $err = $EVAL_ERROR || "n7fs : failed\n";
-    print STDERR $err;
+    console_error($err);
     exit 1;
 }
 exit $code;
@@ -446,12 +454,12 @@ sub usage {
 
 sub fail { die "n7fs : $ARG[0]\n" }
 
-sub say_line { say ': ', @ARG }
+sub say_line { console_say(@ARG) }
 
 sub warn_unsigned_names {
     my ( $disk, $state ) = @ARG;
-    print STDERR ": n7fs : warning : disk $disk uses store "
-        . "format 1 ; meta names are unsigned\n"
+    console_error( ": n7fs : warning : disk $disk uses store "
+            . "format 1 ; meta names are unsigned\n" )
         if $state->{'store_format'} == 1;
     return;
 }
@@ -926,12 +934,13 @@ sub cmd_release {
         qw| force |   => $o{'force'} ? TRUE : FALSE,
         qw| reason |  => $o{'reason'} // 'explicit release',
     );
-    warn ": n7fs : warning : release breaks live reference $_\n"
+    console_error(": n7fs : warning : release breaks live reference $_\n")
         for $r->{'live'}->@*;
-    warn ": n7fs : warning : release drops live tree $_\n"
+    console_error(": n7fs : warning : release drops live tree $_\n")
         for ( $r->{'trees'} // [] )->@*;
-    warn ": n7fs : warning : the previous form still holds these "
-        . "bytes at $_ [ n7fs release-epoch $disk <epoch> -now ]\n"
+    console_error( ": n7fs : warning : the previous form still holds these "
+            . "bytes at $_ [ n7fs release-epoch $disk <epoch> "
+            . "-now ]\n" )
         for $r->{'copies'}->@*;
     say_line( 'released ', $address, ' [ journal ', $r->{'seq'}, ' ]' );
     say_line( 'release does not prove the bytes unrecoverable ; copies, '
@@ -1372,12 +1381,13 @@ sub cmd_restore {
     fail('restore : unexpected arguments') if @ARG;
     my $r = tree_restore(
         %common,
-        qw| disk |    => $disk,
-        qw| name |    => $name,
-        qw| target |  => $target,
-        qw| owners |  => $o{'owners'}  ? TRUE : FALSE,
-        qw| dry_run | => $o{'dry-run'} ? TRUE : FALSE,
-        qw| at |      => $o{'at'},
+        qw| disk |     => $disk,
+        qw| name |     => $name,
+        qw| target |   => $target,
+        qw| owners |   => $o{'owners'}  ? TRUE : FALSE,
+        qw| dry_run |  => $o{'dry-run'} ? TRUE : FALSE,
+        qw| at |       => $o{'at'},
+        qw| progress | => console_progress( 'restore', 'entries/s' ),
     );
     say_line(
         $r->{'dry_run'} ? 'would restore ' : 'restored ',
@@ -1516,6 +1526,7 @@ sub cmd_set_category {
         qw| host |     => host_signer(),
         qw| target |   => $target,
         qw| category | => $name,
+        qw| progress | => console_progress( 'set-category', 'references/s' ),
     );
     say_line(
         'assigned ', $name, ' to ',
@@ -1616,8 +1627,8 @@ sub cmd_sync {
     fail('sync : unexpected arguments') if @ARG;
     fail('sync : -hold and -no-hold exclude each other')
         if defined $o{'hold'} and $o{'no-hold'};
-    warn ": n7fs : warning : -no-hold leaves "
-        . "sync drops without a restore hold\n"
+    console_error( ": n7fs : warning : -no-hold leaves "
+            . "sync drops without a restore hold\n" )
         if $o{'no-hold'};
     my $r = eval {
         store_sync(
@@ -1636,8 +1647,8 @@ sub cmd_sync {
     };
     if ( not defined $r ) {
         my $err = $EVAL_ERROR // "sync failed\n";
-        print STDERR ": n7fs : run n7fs repair $to "
-            . "before retrying the sync\n";
+        console_error(
+            ": n7fs : run n7fs repair $to before retrying the sync\n");
         die $err;
     }
     say_line($ARG) for $r->{'messages'}->@*;
@@ -1707,6 +1718,7 @@ sub _assimilate_options {
         qw| tree |           => $tree,
         qw| category |       => $category,
         qw| category_rules | => $o{'category-rule'} // [],
+        qw| progress |       => console_progress( 'assimilate', 'files/s' ),
     );
 }
 
@@ -1826,7 +1838,7 @@ sub cmd_assimilate {
             my $tree;
             my @st = CORE::lstat $path;
             if ( not @st ) {
-                print STDERR ": n7fs : $path : $OS_ERROR\n";
+                console_error(": n7fs : $path : $OS_ERROR\n");
                 $failed = 1;
                 next;
             }
@@ -1847,7 +1859,7 @@ sub cmd_assimilate {
             };
             if ( not $r ) {
                 my $err = $EVAL_ERROR;
-                print STDERR $err;
+                console_error($err);
                 $failed = 1;
                 next;
             }
@@ -3037,6 +3049,7 @@ sub cmd_place {
         qw| no_check |       => $o{'no-check'} ? TRUE : FALSE,
         qw| samples |        => $o{'samples'},
         qw| check_coverage | => $o{'check-full'} ? qw| full | : qw| sampled |,
+        qw| progress |       => console_progress( 'place', 'nodes/s' ),
         qw| unreachable_grace | => defined $o{'unreachable-grace'}
         ? AMOS7::N7FS::Placement::parse_age( $o{'unreachable-grace'} )
         : AMOS7::N7FS::Placement::parse_age('1Y2'),
@@ -3106,7 +3119,7 @@ sub cmd_cycle {
         qw| accept_shrink |  => $o{'accept-shrink'}  ? TRUE : FALSE,
         defined $o{'host-key'} ? ( qw| host_key | => $o{'host-key'} ) : (),
         );
-    print STDERR $r->{'error'} if defined $r->{'error'};
+    console_error( $r->{'error'} ) if defined $r->{'error'};
     say_line( 'cycle ', $name, ' : ', $r->{'state'}{'last.result'} )
         if ref $r->{'state'} eq qw| HASH | and not $o{'status'};
     return $r->{'exit'};
@@ -3136,8 +3149,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,,,,,,,,,,,,,..,,..,,,,,,..,..,,...,,,,,..,,...,...,..,,.,,,.,,,,,.,.,,,
-#MQQ6TGGNFMOFRV6GYR4ZWP4RKRVRB3SFBYCSKHWIKR4RTP7CAKPP5MWXQ2F4YMYYUDX7AORSCFEAM
-#\\\|KFXE24DR5VB6P3DXBEK7EGJNBHL7OMLCK2YIWFQ67OMSRDS4WLS \ / AMOS7 \ YOURUM ::
-#\[7]VSGUGJGPADP4TC7ZNZUL25HC26AS6NB66BN7HUUJMCDACV6D5GBQ 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,,,,,.,.,.,...,.,,,,.,,,,,,.,,,..,,...,...,.,,,...,,.,,,..,,..,
+#FPASQ5XU2R3FZTELT5COWW57EZ62NDIRMY2TES2JRJH7S2MSZV6RJ3HZPAKIYJLHESJRHOUI6M2XM
+#\\\|C6S4PVMSJ2GZ2Q5NMWW6LP6WE3LYM5GN5VMHAOREZ4YLWWNSCLZ \ / AMOS7 \ YOURUM ::
+#\[7]SPUQJJRTPNUXGQ22HYBIO7HJ6MKTMSTX73ZCMVH6VSONQCWCHAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

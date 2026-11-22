@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.BJDVAIA |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.NFSKLGI |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -735,17 +735,19 @@ sub _assert_real_parents {
 sub _manifest_preflight {
     my ( $id, $state, $tree ) = @ARG;
     my ( %paths, %symlinks );
+    my $entries = 0;
     _each_manifest(
         $id, $state, $tree,
         sub {
             my $entry = shift;
             my $path  = _path($entry);
+            $entries++;
             refuse('manifest has a duplicate path') if $paths{$path}++;
             $symlinks{$path} = TRUE
                 if ( $entry->{'t'} // '' ) eq qw| symlink |;
         }
     );
-    return \%symlinks;
+    return ( \%symlinks, $entries );
 }
 
 sub tree_restore {
@@ -783,7 +785,9 @@ sub tree_restore {
         : 'restore : no live tree [ %s ]',
         $name
     ) if not defined $tree;
-    my $manifest_symlinks = _manifest_preflight( $id, $state, $tree );
+    my ( $manifest_symlinks, $manifest_entries )
+        = _manifest_preflight( $id, $state, $tree );
+    my $visited = 0;
 
     if ( -e $target or -l $target ) {
         refuse( 'restore : target %s is not a directory', $target )
@@ -823,7 +827,10 @@ sub tree_restore {
         _each_manifest(
             $id, $state, $tree,
             sub {
-                my $entry    = shift;
+                my $entry = shift;
+                $visited++;
+                $opt{'progress'}->( $visited, $manifest_entries, FALSE )
+                    if ref $opt{'progress'};
                 my $relative = _path($entry);
                 _check_symlink_prefix( $relative, $manifest_symlinks );
                 my $type = $entry->{'t'} // '';
@@ -895,6 +902,8 @@ sub tree_restore {
                 }
             }
         );
+        $opt{'progress'}->( $visited, $manifest_entries, TRUE )
+            if ref $opt{'progress'};
         if ( not $opt{'dry_run'} ) {
             foreach my $item (@symlinks) {
                 my ( $relative, $entry ) = @{$item};
@@ -956,8 +965,8 @@ sub tree_restore {
 
 1;
 
-#,,..,.,,,.,.,...,,.,,,.,,.,.,,..,,.,,,..,,..,..,,...,...,.,,,..,,,..,.,.,.,,,
-#MA46XFICVE4OQX7TUYKTCSNWCRYAVBCDFCWR3EBERZ7OTT3EME3ZNVMM354GJV5VP5FP36LGJWXDG
-#\\\|VE2ZIYKDMBAKOVPVC45TXVK6WE3ONWBUJ2PT44C7FY4AIDKN37X \ / AMOS7 \ YOURUM ::
-#\[7]Q4NTWR7ZC2WQ574NDTHGU4YLC4DNDHELMUAQD62D6GWHW42HAECQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,..,,,.,,.,,.,.,.,.,,..,,,,,,,,,..,,...,...,.,,,,,,,,..,.,.,,..,
+#M62F53AVC6TNKPOKSG7XZZUSRJUMPR7RQ7L2F332RYDZVUXDFLR6WP5DVDG73LESBH4WYLCYY7SSW
+#\\\|BPTKNG3FXPMQJBYZF3KB642I2ZLONRVSXNDMFJAOX2RVW7HW32U \ / AMOS7 \ YOURUM ::
+#\[7]AGC3HQD3QW72SHW2TTGTUA5PSEYU6WIWFPTJ4SU5ZZWOAGTOWSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
