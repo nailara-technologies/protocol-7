@@ -91,6 +91,95 @@ not a risk
   admission by context, work-and-private-contexts.md ]. booting the old system by
   habit then simply leads nowhere
 
+## the stick as a key : tamper check after leaving a device alone [ owner 2026-11-22 ]
+
+- before leaving a device [ a hotel room, the restaurant without it ], the stick records
+  a manifest of as much of it as possible : every system file, the partition table,
+  the bootloader and efi partition, disk firmware versions, the firmware image where
+  readable -- checksums, packed and encrypted [ or only encrypted ], and signed
+- on return the device boots FROM THE STICK, never from its own disk first ; the stick
+  reads the disk read-only and compares it with the manifest. a manipulated system
+  cannot hide anything, because none of its code runs
+- the result is either 'unchanged since you left' or the exact list of changes, and
+  then the paranoid rebuild follows directly
+- fast : content addressing narrows the check to what changed [ minutes, not hours ].
+  the full record is made once, before the trip starts ; leaving the room only
+  refreshes it -- the changes the user made since the last check [ known, signed into
+  the manifest as intended ] -- so each leave and each return costs seconds to
+  minutes
+- the device recognises its own key stick [ a signed identity on the stick, checked
+  cryptographically -- not a usb serial or a label, both easy to fake ] and plugging it
+  in locks the screen by itself and starts the refresh ; any other stick is treated as
+  an unknown device [ offered, never auto-mounted ]
+- the same refresh also copies what has not reached the network yet [ the unsynced
+  changes since the last sync, if they fit ] onto the stick, encrypted with the
+  context key -- the key on the key chain then carries the latest work too, and a
+  device lost while away loses nothing that was not already safe
+- the gesture : plug the stick in [ the screen locks itself ] -- the refresh runs, the lock
+  screen shows its progress [ house style ] and confirms when the manifest is current ;
+  pulling the stick then powers the device off at once. the disk keys are wiped from
+  memory before power-off [ no suspend : a powered-off device with an encrypted disk is
+  the best state to leave behind, and wiped keys defeat cold-boot reads ]
+- the same for a desktop that stays reachable : after power-off it can be woken over
+  wake-on-lan ; its encrypted disk is then unlocked over the network by the home ring
+  -- only after the boot chain's integrity is confirmed [ tpm measured boot ; network-
+  bound disk encryption in the way of clevis \ tang ]. a manipulated boot chain gets no
+  key : the desktop stays locked and the owner is notified
+- a desktop's power policy follows the gesture's intent :
+  - lock screen only [ a short absence ] : the session runs on, keys stay in memory,
+    the manifest refreshes in the background
+  - the suspend button [ a longer absence ] : refresh, then hibernate to an ENCRYPTED
+    image instead of suspend to ram -- the session state is cached, the keys leave
+    memory ; resume after unlock exactly where the user was
+  - the power button [ leaving ] : refresh, wipe keys, power off ; reachable again only
+    through wake-on-lan and the network unlock above
+- conditions : the stick travels with the user like a key, never stays with the device ;
+  the device's disk is encrypted, so tampering leaves traces rather than readable data
+
+## travel mode : cross with a clean device [ owner 2026-11-22 ]
+
+- before a border crossing or any check : everything is offloaded to the network and
+  the device is reduced to a clean system -- no personal data, no keys on its disk
+- the device then carries nothing worth finding ; the user's work is at home
+- after the crossing : the tamper check against the manifest, then the routine rebuild
+  or an amnesic session restores the user's desktop and data from the network
+- option : the clean system is an ordinary everyday one [ e.g. a plain windows without a
+  password, some harmless trip data ] -- the device looks like any laptop because that
+  is genuinely all it holds ; the user's own system is not hidden on it, it returns from
+  the network afterwards. a genuinely clean disk has nothing to find, unlike a hidden
+  volume, which draws suspicion when found
+- compact mode switch [ owner 2026-11-22 ] :
+  - packed : the linux installation is compressed and encrypted into one area that is
+    payload only -- every bit is encrypted data, no padding ; its size IS the packed
+    size, and the everyday system's partition fills the rest of the disk exactly.
+    the area lies outside every windows partition [ windows trims free blocks inside
+    its partitions, not unallocated space ]
+  - unpacked : linux takes the whole disk again in its normal, unencrypted layout as
+    today ; sensitive data stays protected inside it at file level [ the n7fs disks,
+    the vault ]. the packed area simply becomes part of the linux disk again
+  - the everyday system is the user's choice : a plain windows, or a clean, ordinary
+    linux where that is what fits the user [ e.g. someone known to work on free
+    software ] -- the mechanism is the same, only the everyday system differs. it may
+    look like a light development system, but it is never the one used : after the
+    trip the stick boots, the tamper check runs, the real system unpacks over it and the
+    everyday system is overwritten WITHOUT being run again -- an implant placed in it
+    during a check never executes
+  - used for real, not staged : during the trip the everyday system does the public
+    part of the work that would happen anyway [ public repositories, documentation,
+    reviews, issues, releases ] -- genuine history, useful work, synced normally
+    afterwards ; the private work waits safely at home
+  - the system computes the packed size before switching and refuses when it does not
+    fit ; data already in the network stays out of the image, so it is mostly the
+    system and the delta
+- the key sticks are a convenience and a test case, not the plan : with the real
+  copies in the network, losing every carried copy costs nothing
+
+- the user decides the balance : how clean the device looks versus how clean it is --
+  from the real system kept as it is, through the packed mode, to all-clean [ nothing
+  of the user on the device ; the desktop comes from the network as a forwarded or
+  amnesic session ]. with network cheap in most countries, all-clean is a practical
+  everyday option, not only an extreme one
+
 ## standard module : firmware check [ owner 2026-11-22 ]
 
 below every os partition lies firmware the rebuild cannot replace ; a standard module
@@ -150,8 +239,8 @@ checks it in every run [ routine, after a trip, paranoid ] :
 - p7 config style, no json ; BMW \ AMOS checksums, no sha ; perl floor 5.32
 - no host names or personal data in repo files
 
-#,,..,,,,,,..,.,,,,.,,.,.,.,.,,,.,,..,...,...,..,,...,...,.,,,,..,,,,,,..,,,.,
-#PM26HZWYY5SMRNJLGA6XGPIQEYHK5QK7YQNUHEDBAWCGIB44Z7MLYZKF7PIYMCXEYFMZQHTCFDUNI
-#\\\|CGYXY22YJLS34GARLRAVXOGFVLTUOWXX5YYGOMQJFEZY3VQMTDQ \ / AMOS7 \ YOURUM ::
-#\[7]BK4GEODA2OFXT244QGX6EWXFHC32Q5IUQQ7JPQ5MQMBXWRPXNSAA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,,,,,,,,,,..,,..,.,.,,,,,.,.,..,,...,.,.,,,.,...,,.,,,.,,.,,,
+#IE522AXBRXXEOVRAWH6CK7CZTX2RK6HQWL4B5ORYOVEYYXZQ46Y2C7TQAF7BKK3T43ZUUA24SCPZ6
+#\\\|NF42BJB2LKZYZNYIH3I2AOBI3WEAIQOIS5MR6HRF7QEYCFSPG6L \ / AMOS7 \ YOURUM ::
+#\[7]3GYUH3INYUI2JCWBXAYYYUG5WOFVILRSKXDSM5P75F5C6HEPKSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
