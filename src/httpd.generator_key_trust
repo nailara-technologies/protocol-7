@@ -6,6 +6,9 @@
 # return = accepted trust record, undef [ list context : undef, reason ]
 
 my $param = shift;
+my $lookup_only;
+$lookup_only = $param->{'lookup_only'} // FALSE if ref $param eq qw| HASH |;
+$lookup_only //= FALSE;
 
 my $refuse = sub {
     my $reason = shift;
@@ -103,8 +106,8 @@ if ( defined $chain ) {
                 qw| name       | => $verified->{'name'},
                 qw| not_after  | => $verified->{'not_after'},
             };
-            $delegations->{$prefix} = $current;
-            delete $pins->{$prefix};
+            $delegations->{$prefix} = $current if not $lookup_only;
+            delete $pins->{$prefix}            if not $lookup_only;
             $current_kind = qw| delegations |;
         }
     }
@@ -127,6 +130,7 @@ if ( defined $current and defined $chain ) {
         }
     );
     if ( ref $rotated eq qw| HASH | ) {
+        $current                 = { $current->%* } if $lookup_only;
         $current->{'public_key'} = $pub;
         $current->{'key_id'}     = $key_id;
         return $current;
@@ -135,6 +139,7 @@ if ( defined $current and defined $chain ) {
 }
 
 return $refuse->('untrusted-key') if defined $current or length $field;
+return $refuse->('unpinned-key')  if $lookup_only;
 
 my $record = {
     qw| prefix     | => $prefix[0],
@@ -144,8 +149,8 @@ my $record = {
 $pins->{ $prefix[0] } = $record;
 return $record;
 
-#,,..,,.,,.,.,,.,,.,,,,,,,..,,.,,,,.,,,..,,,.,..,,...,...,.,.,,,.,,,,,,,,,,..,
-#FGSEITENCLSN74DC32AYGB7EKHL54KMNCEA5K5U5N6SNLKOT6WK4G3QZZDF5MYTC7HPHT3J24IGW2
-#\\\|WOJNZUGKU3BNIFHCF5UPAYUABIGEB64XTY3LTPKIYP7BKKRZYNZ \ / AMOS7 \ YOURUM ::
-#\[7]QE7WUFM2YBMZK7X2PC3BUN4MNSIXZDRCRSTCGHPLWDE7KRMMSCDQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,...,,.,,.,,,,,,,...,.,,,..,,..,,...,...,,..,...,.,.,,.,,,..,
+#RMKMWV6AZGMI5AEEKVBGALHN5X632BGXIKR2A5LZYMGULPCATYFNGSSVBLNBNVZTM44P4DYNLACVY
+#\\\|S5OIRM3OJLKE575AWWL6KFHKEZ67ZCZVM2XESNGQ27ULHDT5JUF \ / AMOS7 \ YOURUM ::
+#\[7]LNPZRVWCKXAMJGZNSR3UY4UTROAHN276GSOM7DQMQ2NU6QRDIWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

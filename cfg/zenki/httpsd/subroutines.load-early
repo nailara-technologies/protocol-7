@@ -294,6 +294,7 @@ io.ip.tcp.output.open
 io.ip.tcp.input.close
 httpd.vhost.init_code
 httpd.system.get_load
+httpd.signature_watch
 httpd.send_error_page
 httpd.route.init_code
 httpd.request_handler
@@ -336,6 +337,7 @@ io.ip.tcp.output.close
 httpsd.request_handler
 httpsd.register_socket
 httpd.system.cpu_usage
+httpd.signature_policy
 httpd.route_dispatcher
 httpd.process_template
 httpd.cmd.vhost-status
@@ -414,6 +416,7 @@ httpd.system.memory_free
 httpd.parse_range_header
 httpd.generate_theme_css
 httpd.event.remove_timer
+httpd.cmd.signature-mode
 httpd.cmd.install-vhosts
 httpd.classify.cmd.stats
 crypt.C25519.verify_sign
@@ -441,6 +444,7 @@ base.check_cfg_cmd_alias
 base.buffer.erase_secure
 ui.render.tree.invalidate
 source.load_signature_key
+source.generated_envelope
 route.bmw384.visual.wheel
 route.bmw384.index.lookup
 plugin.web.auth.init_code
@@ -448,6 +452,7 @@ plugin.web.auth.admit.cfg
 jobqueue.priorities_table
 io.unix.socket.input.open
 httpd.system.memory_stats
+httpd.signature_cache_key
 httpd.handler.drain_check
 httpd.generator_key_trust
 httpd.base.size.normalize
@@ -463,6 +468,7 @@ base.log.send-buffer.init
 base.load_runtime_modules
 base.is_defined_recursive
 base.handler.link-upgrade
+base.handler.inotify_poll
 base.erase_buffer_content
 base.devmod.unload_unsafe
 base.devmod.safe_commands
@@ -480,6 +486,8 @@ io.unix.socket.input.close
 httpsd.reload_certificates
 httpsd.load-cipher-profile
 httpd.vhost.read_manifests
+httpd.signature_persistent
+httpd.signature_cache_init
 httpd.handler.acme_request
 httpd.generator_delegation
 httpd.classify.cmd.history
@@ -561,6 +569,7 @@ io.unix.socket.input.connect
 httpsd.request_capture.write
 httpd.vhost.request_tls_cert
 httpd.signature_verify_start
+httpd.signature_memory_store
 httpd.route.handler.iris-svg
 httpd.handler.web-relay.auth
 httpd.handler.template_reply
@@ -591,6 +600,7 @@ httpsd.route_template_request
 httpsd.callback.reset-capture
 httpd.vhost_template_resolver
 httpd.vhost.dns_matches_local
+httpd.signature_trust_context
 httpd.route.handler.web-relay
 httpd.route.handler.web-login
 httpd.handler.web-relay.login
@@ -670,6 +680,7 @@ plugin.web.auth.ui_session.info
 plugin.web.auth.destroy_session
 httpsd.cmd.list-cipher-profiles
 httpsd.callback.ssl_cert_select
+httpd.signature_memory_pressure
 httpd.route.handler.iris-ledger
 httpd.path.create_default_index
 httpd.handler.download_transfer
@@ -683,6 +694,7 @@ crypt.C25519.cmd.get-public-key
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.inotify.install_io_watcher
 base.handler.link-upgrade.input
 base.chk-sum.bmw384.arc-segment
 route.bmw384.visual.wheel.vortex
@@ -721,6 +733,7 @@ route.bmw384.visual.wheel.heatmap
 route.bmw384.visual.wheel.density
 protocol.amos-chksum.ext-cmd.exit
 httpsd.handler.cert_request_reply
+httpd.signature_memory_invalidate
 httpd.handler.web-relay.strm_open
 base.zenki.pause_ondemand_timeout
 base.sourcecode.in-mem.sub-source
@@ -845,8 +858,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,..,,,..,,,,,,,,,.,.,..,,...,,..,..,,,,,,..,,...,...,...,...,,,.,...,,,,,
-#D23WV7JVM5E5MODXD5MUJLYT56E4ZHCQQRPXCPRETMKKZKPUAHE2R6OWBD7U2KUH337BWRELOUXI6
-#\\\|NKCMVQ6JGNNTDZOFBVKMKU6FFGJXP3CLHHUUHNVSOLRCUJV6NHL \ / AMOS7 \ YOURUM ::
-#\[7]DQZVPTN6QVLGE4BQ2NRPPSTV2CYKLYHEPUYETX5RWHA2DI7VBIAA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,,,,,.,,...,...,...,,.,,..,,..,,...,...,,,.,.,.,..,,,,,,,,.,
+#IZBUXGMJJ6444WCMDDU2F5VPISCPJY7NBBLUKPB77UTTCGRFO4EWPG73KYC4PFCSC6I3QYWNBZRFK
+#\\\|HHHEQDHZHDSUQRV5ZD6DVINSC4SQHAYYURWAXGQIY66KUVHJST4 \ / AMOS7 \ YOURUM ::
+#\[7]XRYR6FFQQVBLGD3SEJNC6RLAEQQ5XDVSSHPCZY6PWG34HOFNDQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

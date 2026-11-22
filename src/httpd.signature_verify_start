@@ -66,11 +66,76 @@ if ( $pid == 0 ) {
     my $payload_bytes = -1;
     my $result;
     my $verification;
+    my $origin = qw| full |;
+    my @cache_warnings;
+
     if ( not defined <[file.slurp]>->( $file_path, \$payload, qw| :raw | ) ) {
         $result = "invalid file-read\n";
     } else {
         $payload_bytes = length $payload;
-        $verification = <[source.verify_and_strip]>->( \$payload, $key_name );
+        my $cache_context;
+        if ( not <httpd.signature.persistent_disabled> ) {
+            ( $cache_context, my $context_error )
+                = <[httpd.signature_trust_context]>->(
+                {   qw| payload  | => \$payload,
+                    qw| key_name | => $key_name,
+                    qw| vhost    | => $session->{'http_host'} // '',
+                    qw| path     | => $handler_args->{'path'} // '/',
+                }
+                );
+        }
+        my ($cached);
+        if ( defined $cache_context ) {
+            my ( $entry, $cache_error ) = <[httpd.signature_persistent]>->(
+                qw| lookup |,
+                { qw| checksum | => $cache_context->{'checksum'} }
+            );
+            $cached = $entry;
+            push @cache_warnings, "lookup:$cache_error"
+                if defined $cache_error;
+        }
+        $cached = undef
+            if defined $cached
+            and ( ( $cached->{'key_name'} // '' ) ne $key_name
+            or ( $cached->{'trust_fingerprint'} // '' ) ne
+            $cache_context->{'trust_fingerprint'}
+            or ( $cached->{'public_b32'} // '' ) ne
+            $cache_context->{'public_b32'}
+            or ( $cached->{'chain'} // '' ) ne $cache_context->{'chain'} );
+        if ( defined $cached ) {
+            $origin = qw| persistent |;
+            if ( $cached->{'status'} eq qw| valid | ) {
+                $verification = <[source.verify_and_strip]>->(
+                    \$payload, $key_name, undef, TRUE
+                );
+            } else {
+                $verification = {
+                    qw| status | => $cached->{'status'},
+                    qw| error  | => $cached->{'error'},
+                    qw| body   | => \$payload,
+                };
+            }
+        } else {
+            $verification
+                = <[source.verify_and_strip]>->( \$payload, $key_name );
+            if ( defined $cache_context ) {
+                my ( $stored, $store_error )
+                    = <[httpd.signature_persistent]>->(
+                    qw| store |,
+                    {   qw| checksum | => $cache_context->{'checksum'},
+                        qw| status   | => $verification->{'status'},
+                        qw| error    | => $verification->{'error'} // '',
+                        qw| key_name | => $key_name,
+                        qw| trust_fingerprint | =>
+                            $cache_context->{'trust_fingerprint'},
+                        qw| public_b32 | => $cache_context->{'public_b32'},
+                        qw| chain      | => $cache_context->{'chain'},
+                    }
+                    );
+                push @cache_warnings, "store:$store_error"
+                    if defined $store_error;
+            }
+        }
         if ( $verification->{'status'} eq qw| valid | ) {
             if ( open( my $output_fh, '>', $body_path ) ) {
                 binmode $output_fh;
@@ -93,6 +158,11 @@ if ( $pid == 0 ) {
             $error =~ s|[\r\n]| |g;
             $result = "invalid $error\n";
         }
+    }
+    $result = "origin $origin\n" . $result;
+    foreach my $warning (@cache_warnings) {
+        $warning =~ s|[\r\n;]| |g;
+        $result = "cache-warning $warning\n" . $result;
     }
     if ($debug) {
         my $report
@@ -174,8 +244,8 @@ $session->{'watcher'}->{'signature_handler'} = <[event.add_io]>->(
 
 return 0;
 
-#,,.,,.,,,..,,,,,,.,.,..,,.,.,,.,,,,.,,,,,..,,..,,...,...,,.,,,..,,,,,,.,,,..,
-#3QDSA2BOE7T5JVJXUOKGJTDMNISQ5ARDTCOYBVB5YMIOG3IPQ5GYFQR2K27J3C3KQYDDVGXOYNYQ6
-#\\\|XA7PNV7I7APQQ2LUS3U5GV232N4OAM3OJTWB4AUBR3N76USM2QV \ / AMOS7 \ YOURUM ::
-#\[7]REQ64PMDJEVGD3FHR7JZGQBWAUYJS4FTGZP2I7W4BITRGDT2B6AY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,,..,,,,,.,.,.,,,,,.,,..,,..,..,,...,...,,..,,,,,.,.,,.,,.,.,
+#35EQHZ7PP5WBMC3QOQNZVUEH65C2WTRPFS4UEJRNITK3R46RZBTQIFHCLAK7BANQPFIZLXX2YMETI
+#\\\|LV2KHY5XHAPW6BSKYZA6W53W66K5WN4A7XZDYANBVJ7C3DSIZS5 \ / AMOS7 \ YOURUM ::
+#\[7]BAHUTTCJNDKOCTQR7IXNMXTFPEPYBJ65WPA2EZJG3SNNET2LREBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

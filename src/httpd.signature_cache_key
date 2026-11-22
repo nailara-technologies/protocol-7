@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = httpd.signature_cache_key
+# descr = bind a persistent result to content and current trust
+# args  = { payload, key_name, trusted_public_key, generator, chain }
+
+my $param = shift // {};
+return ( undef, 'parameters' ) if ref $param ne qw| HASH |;
+my $payload = $param->{'payload'};
+return ( undef, 'payload-reference' ) if ref $payload ne qw| SCALAR |;
+my $key_name  = $param->{'key_name'} // '';
+my $trusted   = $param->{'trusted_public_key'};
+my $generator = $param->{'generator_public_key'} // '';
+my $chain     = $param->{'chain'}                // '';
+return ( undef, 'trusted-public-key' )
+    if not defined $trusted
+    or length($trusted) != 32;
+return ( undef, 'generator-public-key' )
+    if length($generator)
+    and length($generator) != 32;
+my $fingerprint = <[chk-sum.bmw.strsum]>->( \$trusted, 384 );
+my $input       = join( '',
+    pack( 'N', length $payload->$* ), $payload->$*,
+    pack( 'N', length $key_name ),    $key_name,
+    $fingerprint,                     pack( 'N', length $generator ),
+    $generator,                       pack( 'N', length $chain ),
+    $chain, );
+utf8::downgrade( $input, 1 );    ## [ content checksum uses file bytes ] ##
+return {
+    qw| checksum          | => <[chk-sum.bmw.strsum]>->( \$input, 384 ),
+    qw| trust_fingerprint | => $fingerprint,
+};
+
+#,,.,,,..,,..,.,,,,,.,.,,,..,,,,.,,,,,,.,,,..,..,,...,...,.,.,.,.,,,.,,,,,...,
+#ZFRXCVP4RF4RSTLFF5LJLWYCUNET77ZX54UHD26SMXTURZT7WE6VOOMFFXNBAP34SHMH7MOVSU7VE
+#\\\|BFROV4D6HBAGGSV37LCL2ROVK23YK2S42UNMQOHCUYGPN2FEBYD \ / AMOS7 \ YOURUM ::
+#\[7]XL3RV5D3OUODKKTCUUYRKNY2HIQF3CHBWNBUYHF4PWBY7E4GAYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

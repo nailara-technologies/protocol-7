@@ -50,6 +50,8 @@ unless ( defined $base_dir ) {
 }
 
 my $file_path = join( '', $base_dir, $path );
+$file_path = $handler_args->{'template_path'}
+    if defined $handler_args->{'template_path'};
 <[base.logs]>->( 2, "[%s] : file_path='%s'", $session_id, $file_path );
 $file_path =~ s{/+$}{};
 <[base.logs]>->(
@@ -76,13 +78,11 @@ if ( opendir( my $check_fh, $parent_dir ) ) {
 }
 
 if ( !$has_file and $has_tmpl ) {
+    $file_path .= qw| .tmpl |;
     <[base.logs]>->(
-        2, "[%s] : found template %s, redirecting to template processor",
-        $session_id, $file_path . ".tmpl"
+        2, "[%s] : found template %s, checking signature before processing",
+        $session_id, $file_path
     );
-
-    ## this shouldn't happen if routing is correct, but handle gracefully
-    return <[httpd.process_template]>->( $session_id, $file_path . ".tmpl" );
 }
 
 # Check if it's a directory - try index files first Use opendir/readdir
@@ -122,12 +122,10 @@ if ($found_index_html) {
         $session_id, $file_path
     );
 } elsif ($found_index_tmpl) {
+    $file_path = catfile( $file_path, qw| index.tmpl | );
     <[base.logs]>->(
-        2, "[%s] found index.tmpl, redirecting to template processor",
+        2, "[%s] found index.tmpl, checking signature before processing",
         $session_id
-    );
-    return <[httpd.process_template]>->(
-        $session_id, catfile( $file_path, qw| index.tmpl | )
     );
 } elsif ($is_directory) {
     ## directory exists but no index files
@@ -173,15 +171,6 @@ if ( not $file_exists ) {
     return $result;
 }
 
-## route .tmpl files to template processor [ not just index.tmpl ] ##
-if ( $file_path =~ m{\.tmpl$} ) {
-    <[base.logs]>->(
-        2,           "[%s] routing .tmpl file to template processor : '%s'",
-        $session_id, $file_path
-    );
-    return <[httpd.process_template]>->( $session_id, $file_path );
-}
-
 ## Note: Skip -r check as it may fail in SSL socket context File permissions
 ## will be checked when we attempt to open the file [line 182+] If file is not
 ## readable, open() will fail and we'll return 500 error
@@ -199,8 +188,7 @@ if ( not defined $file_stat ) {
 my $content_inode = $file_stat->ino;
 my $content_size  = $file_stat->size;
 my $content_date  = time2str( $file_stat->mtime );
-my $content_type  = mimetype($real_file_path)
-    // qw| application/octet-stream |;
+my $content_type  = <[httpd.get_mime_type]>->($real_file_path);
 
 # add utf-8 charset for text-based content types
 if ( $content_type =~ m{^(?:text|application/(?:json|xml|javascript|xhtml))} )
@@ -209,20 +197,17 @@ if ( $content_type =~ m{^(?:text|application/(?:json|xml|javascript|xhtml))} )
         unless $content_type =~ m{charset};    #FIX
 }
 
-my $signed_type
-    = $content_type
-    =~ m{^(?:text/html|text/css|(?:application|text)/(?:x-)?javascript)(?:;|$)};
-my $require_html = <httpd.cfg.require_signature_html>->{$http_host} // FALSE;
-if ( $signed_type or $content_type =~ m{^text/html(?:;|$)} and $require_html )
-{
+my $policy = <[httpd.signature_policy]>
+    ->( $http_host, $content_type, $real_file_path );
+my $memory_body;
+if ( $policy->{'selected'} and $policy->{'mode'} ne qw| off | ) {
     my $identity = join( ':',
         $file_stat->dev,  $file_stat->ino,
         $file_stat->size, $file_stat->mtime );
     <httpd.signature.cache> //= {};
     my $cached = <httpd.signature.cache>->{$real_file_path};
     if ( defined $cached and $cached->{'identity'} ne $identity ) {
-        unlink $cached->{'body_path'} if defined $cached->{'body_path'};
-        delete <httpd.signature.cache>->{$real_file_path};
+        <[httpd.signature_memory_invalidate]>->($real_file_path);
         $cached = undef;
     }
     if ( not defined $cached ) {
@@ -232,7 +217,7 @@ if ( $signed_type or $content_type =~ m{^text/html(?:;|$)} and $require_html )
     }
 
     if (   $cached->{'status'} eq qw| invalid |
-        or $cached->{'status'} eq qw| unsigned | and $require_html ) {
+        or $cached->{'status'} eq qw| unsigned | and $policy->{'require'} ) {
         my $reason
             = $cached->{'status'} eq qw| unsigned |
             ? qw| required-signature-absent |
@@ -245,15 +230,29 @@ if ( $signed_type or $content_type =~ m{^text/html(?:;|$)} and $require_html )
     }
 
     $cached->{'hits'}++;
+    $cached->{'lru'} = ++<httpd.signature.lru_sequence>;
     <httpd.signature.cache_hits>++;
+    <[httpd.signature_memory_pressure]>;
     <[base.logs]>->(
         1, '[%d] signed-file cache hit : %s : %s : %d',
         $session_id, $path, $cached->{'status'}, $cached->{'hits'}
     );
     if ( $cached->{'status'} eq qw| valid | ) {
-        $file_path    = $cached->{'body_path'};
+        $file_path    = $cached->{'body_path'} // $real_file_path;
         $content_size = $cached->{'body_size'};
+        $memory_body  = $cached->{'body_ref'};
     }
+}
+
+## templates consume only bodies which passed the selected signature policy ##
+if ( $real_file_path =~ m{\.tmpl$} ) {
+    <[base.logs]>->(
+        2,           "[%s] routing verified template to processor : '%s'",
+        $session_id, $file_path
+    );
+    return <[httpd.process_template]>->(
+        $session_id, $file_path, $real_file_path
+    );
 }
 
 if ( exists $request->{'headers'}->{'range'}
@@ -324,8 +323,8 @@ if ( $content_size <= 16 * 1024 and not exists $request->{'range'} ) {
     my $is_text
         = $content_type
         =~ m{^(?:text|application/(?:json|xml|javascript|xhtml))};
-    my $file_content_ref
-        = <[file.slurp]>->( $file_path, undef, $is_text ? '' : ':raw' );
+    my $file_content_ref = $memory_body
+        // <[file.slurp]>->( $file_path, undef, $is_text ? '' : ':raw' );
     unless ( ref $file_content_ref eq qw| SCALAR | ) {
         <[base.logs]>->(
             0, "[%s] failed to read '%s' [%s]",
@@ -360,8 +359,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,,.,..,,,,.,,.,,.,.,...,.,,,,..,,..,,..,,,,,..,,...,...,.,,,.,,,,,,,.,.,.,.,
-#IPCDOAXZVR5AWHSOXABQVK3VC43R3CBOYGSODUR6VGHTRTM7VTQO76Y34V3ILIV55EC7Z7JKDWUFM
-#\\\|VK7ONWVUXO5TCZAW6NQB3YNBMVD65JWRF7XCINHJ33OEPKAVVCY \ / AMOS7 \ YOURUM ::
-#\[7]TDMOCERBORLGXCDUOLUHEZGTC4UDBTGCUDBNEFDH4QM3TAATQMCI 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,,.,,,,,,,..,,..,.,.,,,,,...,..,,...,...,,.,,.,.,,,.,,,,,.,,,
+#IQXQTGRRAF4YH7FYZJM6H5CIKFDXSD5VQWYSIVOJDNKOREJXKS6X6BRDCMO6MQY7H2C2D5RFP7XGA
+#\\\|O6BIEATW5DZ7X3CFPWQOV6ULRJJMU6WWXNUZWYWEJ7XEYBGMNKT \ / AMOS7 \ YOURUM ::
+#\[7]SNWURHM7DOZD65GM2AMJA4QFTHMEX3HB4AIHAOWWEYKKOK5I3SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

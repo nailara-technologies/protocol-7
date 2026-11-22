@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = httpd.signature_memory_invalidate
+# descr = invalidate cached verification results and bodies
+# args  = <path>, [ <directory-prefix> ]
+
+my $path   = shift // '';
+my $prefix = shift // FALSE;
+my $cache  = <httpd.signature.cache> //= {};
+my @paths
+    = length($path)
+    ? grep { $prefix ? index( $ARG, "$path/" ) == 0 : $ARG eq $path }
+    keys $cache->%*
+    : keys $cache->%*;
+my $removed = 0;
+foreach my $cached_path (@paths) {
+    my $entry = delete $cache->{$cached_path} // next;
+    if ( defined $entry->{'body_ref'} ) {
+        <httpd.signature.memory_bytes> -= $entry->{'body_size'} // 0;
+        <httpd.signature.memory_bytes> = 0
+            if <httpd.signature.memory_bytes> < 0;
+    }
+    unlink $entry->{'body_path'} if defined $entry->{'body_path'};
+    $removed++;
+}
+return $removed;
+
+#,,.,,,..,.,.,,..,.,,,,,,,...,,,.,.,,,,,,,.,,,..,,...,..,,...,,,.,.,.,.,,,...,
+#E2QWNHZZZIZV57PBSO22ANWQLUJRAJ5DYLWOB3MLSBJXLJ27B3QEQTHU6IPBVKM26UCEHC7VNVPGO
+#\\\|E53ARFXOEG4F3UAQWQUGUVP5RLT5NENZXQENEWA7BXGE5C7N7N7 \ / AMOS7 \ YOURUM ::
+#\[7]LJ4FPFPLS4PQ7YP6SEZT5BQ72ZPYL56MZ37VQF6M764QP72OKKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

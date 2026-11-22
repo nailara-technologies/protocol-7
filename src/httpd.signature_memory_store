@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = httpd.signature_memory_store
+# descr = store a result in the bounded verified-body LRU
+# args  = <path>, <entry>
+
+my $path  = shift // return FALSE;
+my $entry = shift // return FALSE;
+<[httpd.signature_memory_pressure]>;
+<[httpd.signature_memory_invalidate]>->($path);
+
+my $limit    = <httpd.cfg.signature_memory_bytes>    // 8 * 1024 * 1024;
+my $file_max = <httpd.cfg.signature_memory_file_max> // 256 * 1024;
+my $cacheable
+    = $entry->{'status'} eq qw| valid |
+    && ref $entry->{'body_ref'} eq qw| SCALAR |
+    && $entry->{'body_size'} <= $file_max
+    && $entry->{'body_size'} <= $limit;
+delete $entry->{'body_ref'} if not $cacheable;
+$entry->{'lru'} = ++<httpd.signature.lru_sequence>;
+
+if ($cacheable) {
+    my $cache = <httpd.signature.cache> // {};
+    while ( ( <httpd.signature.memory_bytes> // 0 ) + $entry->{'body_size'}
+        > $limit ) {
+        my ($oldest) = sort {
+            ( $cache->{$a}{'lru'} // 0 ) <=> ( $cache->{$b}{'lru'} // 0 )
+        } keys $cache->%*;
+        last if not defined $oldest;
+        <[httpd.signature_memory_invalidate]>->($oldest);
+    }
+    <httpd.signature.memory_bytes> += $entry->{'body_size'};
+}
+<httpd.signature.cache>->{$path} = $entry;
+return $entry;
+
+#,,,,,.,,,,..,...,..,,,,.,.,,,.,,,.,.,,..,.,,,..,,...,...,,,,,..,,.,,,,.,,,..,
+#KYGPEHO2R64S46AYLMXZSBB6RYIN54FTFK2VDJDAXPPOK5V475LOQMG5AKOLBRUGQ64TYRFGNIFNM
+#\\\|YTM5SP46NLJONFICWKOATJU2SF2SNZJXXWSBKHC7DPXL5PQTIJR \ / AMOS7 \ YOURUM ::
+#\[7]JMXG5PYFRY2KF5R3WHMOQ4ZRTLZK7BMP7DCBFP5RPDATGX3VLUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

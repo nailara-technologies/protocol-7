@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = httpd.signature_memory_pressure
+# descr = shrink verified bodies first under memory pressure
+# args  = [ <force-check> ]
+
+my $force = shift // FALSE;
+my $now   = time;
+return FALSE
+    if not $force and $now < ( <httpd.signature.pressure_next_check> // 0 );
+<httpd.signature.pressure_next_check> = $now + 13;
+
+my $pressure = FALSE;
+if ( open my $fh, '<', qw| /proc/pressure/memory | ) {
+    my $line = join( '', <$fh> );
+    close $fh;
+    $pressure = TRUE if $line =~ m{^full .*avg10=([0-9.]+)}m and $1 >= 5;
+}
+if ( not $pressure and open my $fh, '<', qw| /proc/meminfo | ) {
+    my $available_kb;
+    while ( my $line = <$fh> ) {
+        if ( $line =~ m{^MemAvailable:\s+([0-9]+)} ) {
+            $available_kb = $1;
+            last;
+        }
+    }
+    close $fh;
+    my $minimum = <httpd.cfg.signature_pressure_avail_mb> // 128;
+    $pressure = TRUE
+        if defined $available_kb and $available_kb < $minimum * 1024;
+}
+return FALSE if not $pressure;
+
+my $cache = <httpd.signature.cache> // {};
+my @oldest
+    = sort { ( $cache->{$a}{'lru'} // 0 ) <=> ( $cache->{$b}{'lru'} // 0 ) }
+    keys $cache->%*;
+return TRUE if not @oldest;
+my $remove = int( @oldest / 2 ) + 1;
+foreach my $path ( @oldest[ 0 .. $remove - 1 ] ) {
+    <[httpd.signature_memory_invalidate]>->($path);
+}
+<httpd.signature.pressure_evictions> += $remove;
+return TRUE;
+
+#,,..,,.,,,..,...,.,,,.,,,,.,,...,,,.,..,,..,,..,,...,...,.,,,,..,...,.,,,,.,,
+#V3H7V5J7VLEAOCOEPRHDYBYDWLLCKQTSJSAGZ6YNYTR4OQQFNEKV4GUP66K3HKOO6BTKF4JCOZBUA
+#\\\|H5SNB6CKIR5EQI4YHQQBCDZLJYSZWU6EPVPBNWJPZKLYLJS4BOX \ / AMOS7 \ YOURUM ::
+#\[7]K456Q5DS634GW5BSGE5M4ZWRFBOLK3S5J6KZZ5ZYGAQG3KK4LOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

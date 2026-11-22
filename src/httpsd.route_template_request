@@ -145,8 +145,9 @@ if ( defined $vhost ) {
         my $route = {
             type         => qw| template |,
             path         => $path,
-            handler      => qw| httpd.process_template |,
+            handler      => qw| httpd.serve_static |,
             handler_args => {
+                path          => $path,
                 template_path => $template_path,
                 vhost         => $vhost,
                 session_id    => $session_id,
@@ -182,8 +183,8 @@ my $route = {
 <httpsd.route_cache>->{$cache_key} = $route;
 return { %$route, cached => 0 };
 
-#,,..,.,.,,.,,.,.,..,,.,.,...,,,,,.,.,..,,,.,,..,,...,...,.,,,...,.,.,...,.,,,
-#YTPR6DMTJVEX366NVGAQBCEUSJK7QIU2MD5LCWIXT7LCYED5XTF7BZDLRUCMXBU4S4DZWE4FOYW54
-#\\\|4QHI4SPW6EO2DV3ENPKODLPAWTP5FHNCHNARHLVGRB4UTLEOCSQ \ / AMOS7 \ YOURUM ::
-#\[7]KWBEYVNE3NIULCXMF7AK36YJUV6LI4PPEJOYZR65GGC2QHCP2YDI 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,..,...,,..,,,,,,,,,,.,,..,,..,,..,,...,..,,...,..,,,,,,..,,,.,,
+#Q2KYCMDQVMAHPP6GHI3I2E6X4MY6TBHJH42HCKOJNXY6Q62HMOXX7ZPE4NWI2N52EP2G5NMLX3GXU
+#\\\|GRVJ2B3CRAW77FRULCPBP6U53H75VQSXF62SU73NRFKLTLTIXHD \ / AMOS7 \ YOURUM ::
+#\[7]6DMMZIMQITTXH27SNWESBTTKEFKHATOENYHWLSHDYS4PSM4KG4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -128,10 +128,16 @@ if (<httpd.cfg.uploads_enabled>) {
     }
 }
 
+my $signature_modes = <httpd.cfg.signature_mode> // qw| verify |;
+my @signature_vhosts
+    = ref $signature_modes eq qw| HASH | ? keys $signature_modes->%* : '';
+<[httpd.signature_policy]>->( $ARG, 'text/html' ) foreach @signature_vhosts;
+<[httpd.signature_cache_init]>;
+
 0;
 
-#,,.,,,..,..,,.,,,,,,,..,,.,,,,,.,.,.,,,.,.,,,..,,...,...,,.,,,..,,.,,..,,,,,,
-#OYN645DOISQQZOQF5QPKJXFFILA472OMWJE76UNSHQS24UPIRRX56C7L4RH7ATFKXUJECRH3QZSNG
-#\\\|WJK7PWASO44OU66MQUVTPODJLG64SSW233QHRYE3SYEEK63CE4G \ / AMOS7 \ YOURUM ::
-#\[7]FYPGNRR2DDBKSXOLI5JQNHK3PNMVDCYAG54GNJJYJKIUQM4NFGCQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,...,,..,..,,,.,,.,.,.,,,..,,..,,...,...,..,,,.,,,..,.,.,,,.,
+#4SSOTONF33B4MBI47LTOCB5DK4IER4AQ3OXDONUAJZYYOM5AILV22V32SGRA37YSIZAVWRIPSQU2Q
+#\\\|EYLSQKMSHPCLVR7PCNULSZYGBBIBAET64PTLAYYJMQY4TVAGEBZ \ / AMOS7 \ YOURUM ::
+#\[7]DTGEEODUAMR6PUJ4NFCGDREH76R2R2PRQCRIYUZVVBV7YJ63JACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

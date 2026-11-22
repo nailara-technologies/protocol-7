@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = httpd.signature_watch
+# descr = invalidate a cached file through nonblocking inotify
+# args  = <file-path>
+
+my $file_path = shift // return FALSE;
+my $state     = <httpd.signature.watch_state> //= { qw| watches | => {} };
+if ( not exists $state->{'available'} ) {
+    $state->{'available'} = FALSE;
+    if ( <[base.perlmod.autoload]>->('Linux::Inotify2') ) {
+        <[base.inotify.install_io_watcher]>;
+        $state->{'available'} = TRUE if defined <base.obj.inotify>;
+    }
+}
+return FALSE if not $state->{'available'};
+my $inotify = <base.obj.inotify> // return FALSE;
+( my $parent = $file_path ) =~ s{/+[^/]+/*$}{};
+$parent = '/' if not length $parent;
+my $cache = <httpd.signature.cache> // {};
+$cache->{$file_path}{'watched'} = TRUE if exists $cache->{$file_path};
+return TRUE if exists $state->{'watches'}{$parent};
+
+my $mask
+    = Linux::Inotify2::IN_CREATE() | Linux::Inotify2::IN_DELETE()
+    | Linux::Inotify2::IN_MOVED_FROM() | Linux::Inotify2::IN_MOVED_TO()
+    | Linux::Inotify2::IN_CLOSE_WRITE() | Linux::Inotify2::IN_ATTRIB()
+    | Linux::Inotify2::IN_DELETE_SELF() | Linux::Inotify2::IN_MOVE_SELF()
+    | Linux::Inotify2::IN_ONLYDIR();
+my $watch = $inotify->watch(
+    $parent, $mask,
+    sub {
+        my $event = shift;
+        if (   $event->IN_DELETE_SELF
+            or $event->IN_MOVE_SELF
+            or $event->IN_IGNORED ) {
+            <[httpd.signature_memory_invalidate]>->( $parent, TRUE );
+            delete $state->{'watches'}{$parent};
+            $event->w->cancel if not $event->IN_IGNORED;
+            return;
+        }
+        my $name = $event->name // '';
+        return if not length $name;
+        my $path = $parent eq '/' ? "/$name" : "$parent/$name";
+        <[httpd.signature_memory_invalidate]>->($path);
+    }
+);
+return FALSE if not defined $watch;
+$state->{'watches'}{$parent} = $watch;
+return TRUE;
+
+#,,..,..,,,,,,,,,,..,,.,,,..,,,,,,.,.,,,,,..,,..,,...,...,...,,,,,...,,..,,.,,
+#GUA2CQVPFXYLTD2YX4MQJKQBHMU6727Z7WMKAMINK53VXZNRAKB3T7PTL5TYOVE7IGELQFIQXIBDK
+#\\\|NJRB2YGYR7YONPJCRU2XUEX5NJJDCHPTFSB6GDMIUM7HJQ5XL2U \ / AMOS7 \ YOURUM ::
+#\[7]ZBWGKRTUTBM4VTLXX6EDD335UBSWIXH7TS3M66WZOTVPIEZ7DODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

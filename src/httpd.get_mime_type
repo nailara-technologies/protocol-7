@@ -12,6 +12,7 @@ my %mime_types = (
     'html' => 'text/html; charset=UTF-8',
     'htm'  => 'text/html; charset=UTF-8',
     'txt'  => 'text/plain; charset=UTF-8',
+    'asc'  => 'text/plain; charset=UTF-8',
     'css'  => 'text/css; charset=UTF-8',
     'js'   => 'text/javascript; charset=UTF-8',
     'json' => 'application/json; charset=UTF-8',
@@ -80,17 +81,22 @@ my %mime_types = (
     'apk'  => 'application/vnd.android.package-archive'
 );
 
-# Extract extension (lowercase)
-my $ext = '';
-if ( $path =~ m|\.([^.]+)$| ) {
+## extract a lowercase extension from the basename ##
+my $ext      = '';
+my $basename = $path =~ m|([^/]+)$| ? $1 : $path;
+if ( $basename =~ m|^[^.].*\.([^.]+)$| ) {
     $ext = lc($1);
 }
+return $mime_types{'asc'} if not length $ext;
+## the table first, then the system mime database [ as static serving did ]
+return $mime_types{$ext} // (
+    defined &File::MimeInfo::Magic::mimetype
+    ? scalar File::MimeInfo::Magic::globs($basename)
+    : undef
+) // 'application/octet-stream';
 
-# Return MIME type or default
-return $mime_types{$ext} // 'application/octet-stream';
-
-#,,,.,,..,,,,,,..,,..,,,,,..,,,,.,.,,,,..,...,..,,...,...,.,.,..,,..,,.,.,.,.,
-#WUCHQ6HOYPSX5LFWVB6IXDD2EI555XI24OQ5PYUMQACI7FQTGZH4XHAVFF3T5HRPXZSXJ3RPU76I6
-#\\\|MA3YOUGK3B23GWHH7QV4EIVC5FSVLVWIVDH74WWB7QRDQ5BRHSL \ / AMOS7 \ YOURUM ::
-#\[7]ETEF4HM4AZU37O7WU77OP2TAJ4NKXJ7B7HXVAJPVNBMAKFGJNOBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,...,,,,,,,.,,..,,,,,...,,,.,,,,,..,,...,...,..,,,,.,,.,,.,.,,,.,
+#2R7MQ3EXWHJ3G2K5CCAH36JPXOXQ7VUTZ4UEOKCR3ZLTCANKLS5DAQDLTJTADNQGQXXMD5VPKVS3O
+#\\\|LGMV6TYHZAKRQZ2V2ZURHTLNSHD53AUJKR7JJLTKXAHXJVQ73P3 \ / AMOS7 \ YOURUM ::
+#\[7]CR25BGIAU36M3644Q2KCYUBUW4B73SKXPAHPMJ4V7VZ5CY4D5YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

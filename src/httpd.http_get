@@ -66,9 +66,7 @@ unless ( ref($handler_ref) eq qw| CODE | ) {
 }
 
 # Call the handler with appropriate arguments based on handler type
-if ( $handler_name eq qw| httpd.process_template | ) {
-    return $handler_ref->( $id, $handler_args->{'template_path'} );
-} elsif ( $handler_name eq qw| httpd.serve_static | ) {
+if ( $handler_name eq qw| httpd.serve_static | ) {
     return $handler_ref->( $id, $handler_args );
 } elsif ( $handler_name eq qw| httpd.handler.acme_request | ) {
     return $handler_ref->( $id, $handler_args->{'token'} );
@@ -95,8 +93,8 @@ if ( $handler_name eq qw| httpd.process_template | ) {
 <[base.logs]>->( 0, "[%d] http_get : unexpected fallthrough", $id );
 return <[httpd.send_error_page]>->( $id, 500 );
 
-#,,,,,,..,,..,,,,,,.,,..,,,,,,,,,,,,.,,.,,.,.,..,,...,...,.,.,,,,,...,..,,.,.,
-#AP3PQ7GJ6C5YQBVTQELUARD3CKWOTYPBBV5QTILXXSRN55FU43F7K67UMNIOONUWTRGEXPRFENOD2
-#\\\|SI2LFQJXL2DF3GMTLXCHZLL3SKWQKQDPCEDOZZVF5J24HHZ76LJ \ / AMOS7 \ YOURUM ::
-#\[7]L3KJO4IUMM2C2ERHHR3HYPJKIJ2VMZUH6PTG7VRWUOLORNYJGUDI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,..,.,,,,,,,,..,.,,,..,,,..,,,.,..,,...,...,.,.,..,,,,.,.,.,,.,,
+#EBY3N2ZGGZZDNMCVYOD4JPEBU7IS7QKLTWODVKIA26BMLMQTTH5X7BBB2HTUJGPRE5YZ62JDTKS7I
+#\\\|GI7PHRW4EOHOBOHXBO4BYL7EL5WTC2KXFKMJ5AIZ2Y2OYSIWTEN \ / AMOS7 \ YOURUM ::
+#\[7]4UFQOAEOJNV3OD45XIEV3ZBSTWW5NFI5CDRHTC3UIZFHUQYQAMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

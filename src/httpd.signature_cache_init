@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = httpd.signature_cache_init
+# descr = initialize persistence without disabling verification
+
+my ( $state, $error ) = <[httpd.signature_persistent]>->(qw| init |);
+if ( not defined $state ) {
+    <httpd.signature.persistent_disabled> = TRUE;
+    <[base.logs]>->(
+        0,
+        'signed-file persistent cache disabled : %s [ full verification ]',
+        $error // 'unknown'
+    );
+    return FALSE;
+}
+<httpd.signature.persistent_disabled> = FALSE;
+return TRUE;
+
+#,,,,,,,,,,.,,...,,..,,,,,,,.,...,,,.,,,,,.,,,..,,...,...,,..,...,,..,,.,,.,,,
+#ERD7MG5FCYUFPA2TMECBCOU4OGH7Z7QZRM64YRF452V6V6AGBXCZRLJO3KR5FFH7OANVSSESWTDWG
+#\\\|VAIDB2GJIHUEFDCPM6FVKBH3YDINJFV7BSV4YGEP33LBD72Q3EW \ / AMOS7 \ YOURUM ::
+#\[7]USHET3A57ECQCYJAHYNZGB2WBSXW4AS5ZYVJ5JGFB66SEFYXBWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

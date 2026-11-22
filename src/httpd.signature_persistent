@@ -1,0 +1,250 @@
+## [:< ##
+
+# name  = httpd.signature_persistent
+# descr = authenticated BMW-keyed persistent verification cache
+# args  = <init|lookup|store>, [ <parameters> ]
+
+my $operation = shift // '';
+my $params    = shift // {};
+die 'invalid signature cache operation'
+    if not grep { $operation eq $ARG } qw| init lookup store |;
+
+my $state        = <httpd.signature.persistent_state> //= {};
+my $expected_uid = $EUID;
+my $expected_gid;
+if ( not $EUID ) {
+    my $user = <httpsd.system.user> // <httpd.system.user> // qw| httpd |;
+    $expected_uid = CORE::getpwnam($user);
+    return ( undef, "user:$user" ) if not defined $expected_uid;
+}
+if ( not exists $state->{'secret'} ) {
+    my $dir = <httpd.signature.cache_dir> //= File::Spec->catdir(
+        qw| /var/protocol-7 |,
+        <system.zenka.name>,
+        qw| signature-cache |
+    );
+    if ( not -d $dir ) {
+        mkdir( $dir, 0700 )
+            or return ( undef, "directory:$OS_ERROR" )
+            if $operation eq qw| init |;
+        return ( undef, 'directory-unavailable' ) if not -d $dir;
+    }
+    if ( not $EUID ) {
+        my $group = <httpsd.system.group> // <httpd.system.group>
+            // qw| httpd |;
+        $expected_gid = CORE::getgrnam($group);
+        return ( undef, "group:$group" ) if not defined $expected_gid;
+        chown $expected_uid, $expected_gid, $dir;
+        chmod 0700, $dir;
+    }
+    my @dir_lstat = lstat($dir);
+    return ( undef, 'directory-type' )
+        if not @dir_lstat
+        or not -d _
+        or -l _;
+    my $dir_stat = File::stat::stat($dir);
+    return ( undef, 'directory-stat' ) if not defined $dir_stat;
+    return ( undef, sprintf 'directory-owner:%d:%d',
+        $dir_stat->uid, $expected_uid )
+        if $dir_stat->uid != $expected_uid;
+    return ( undef, 'directory-permissions' ) if $dir_stat->mode & 077;
+
+    my $key_path = $state->{'key_path'}
+        = File::Spec->catfile( $dir, qw| verification.key | );
+    my $secret;
+    if ( -e $key_path ) {
+        my @key_lstat = lstat($key_path);
+        return ( undef, 'key-type' )
+            if not @key_lstat
+            or not -f _
+            or -l _;
+        my $key_stat = File::stat::stat($key_path);
+        return ( undef, 'key-stat' )  if not defined $key_stat;
+        return ( undef, 'key-links' ) if $key_stat->nlink != 1;
+        return ( undef, 'key-owner' )
+            if $EUID and $key_stat->uid != $expected_uid;
+        return ( undef, 'key-permissions' ) if $key_stat->mode & 077;
+        sysopen( my $key_fh, $key_path, Fcntl::O_RDONLY() )
+            or return ( undef, "key-open:$OS_ERROR" );
+        binmode $key_fh;
+        $secret = join( '', <$key_fh> );
+        close $key_fh;
+    } else {
+        sysopen( my $key_fh, $key_path,
+            Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL(), 0600 )
+            or return ( undef, "key-create:$OS_ERROR" );
+        binmode $key_fh;
+        open my $random_fh, '<', qw| /dev/urandom |
+            or return ( undef, "random:$OS_ERROR" );
+        binmode $random_fh;
+        my $random = '';
+        while ( length($random) < 48 ) {
+            my $read = sysread( $random_fh, my $chunk, 48 - length $random );
+            return ( undef, "random-read:$OS_ERROR" ) if not defined $read;
+            last                                      if $read == 0;
+            $random .= $chunk;
+        }
+        close $random_fh;
+        return ( undef, 'random-short' ) if length($random) != 48;
+        my $written = syswrite( $key_fh, $random );
+        close $key_fh;
+        return ( undef, 'key-write' ) if ( $written // 0 ) != 48;
+        $secret = $random;
+    }
+    if ( not $EUID ) {
+        chown $expected_uid, $expected_gid, $key_path;
+        chmod 0600, $key_path;
+        my $key_stat = File::stat::stat($key_path);
+        return ( undef, 'key-owner' )
+            if not defined $key_stat
+            or $key_stat->uid != $expected_uid;
+    }
+    return ( undef, 'key-length' ) if length($secret) != 48;
+    $state->{'secret'} = $secret;
+    $state->{'cache_path'}
+        = File::Spec->catfile( $dir, qw| verification.cache | );
+    $state->{'lock_path'}
+        = File::Spec->catfile( $dir, qw| verification.lock | );
+}
+return $state if $operation eq qw| init |;
+
+my $authenticate = sub {
+    my $authenticated = shift;
+    my $input
+        = $state->{'secret'}
+        . pack( 'N', length $authenticated )
+        . $authenticated
+        . $state->{'secret'};
+    utf8::downgrade( $input, 1 );    ## [ same bytes for store and lookup ] ##
+    return <[chk-sum.bmw.strsum]>->( \$input, 384 );
+};
+my $read_entries = sub {
+    my $path = $state->{'cache_path'};
+    return ( {}, undef ) if not -e $path;
+    my @cache_lstat = lstat($path);
+    return ( undef, 'cache-type' )
+        if not @cache_lstat
+        or not -f _
+        or -l _;
+    my $cache_stat = File::stat::stat($path);
+    return ( undef, 'cache-stat' )  if not defined $cache_stat;
+    return ( undef, 'cache-links' ) if $cache_stat->nlink != 1;
+    return ( undef, 'cache-owner' ) if $cache_stat->uid != $expected_uid;
+    return ( undef, 'cache-permissions' ) if $cache_stat->mode & 077;
+    sysopen( my $cache_fh, $path, Fcntl::O_RDONLY() | Fcntl::O_NOFOLLOW() )
+        or return ( undef, "cache-open:$OS_ERROR" );
+    binmode $cache_fh;
+    my $content = join( '', <$cache_fh> );
+    close $cache_fh;
+    return ( undef, 'cache-authentication' )
+        if $content !~ s|MAC ([A-Z2-7]{77})\n\z||;
+    my $expected = $1;
+    return ( undef, 'cache-authentication' )
+        if $authenticate->($content) ne $expected;
+    return ( undef, 'cache-version' )
+        if $content !~ s{\AP7-SIGNATURE-CACHE 2\n}{};
+    my $entries = {};
+
+    foreach my $line ( split m|\n|, $content ) {
+        next if not length $line;
+        my ( $checksum, $status, $error, $key_name, $fingerprint,
+            $public, $chain, $time )
+            = split( ' ', $line, 8 );
+        return ( undef, 'cache-entry' )
+            if ( $checksum // '' ) !~ m|^[A-Z2-7]{77}$|
+            or ( $fingerprint // '' ) !~ m|^[A-Z2-7]{77}$|
+            or not grep { ( $status // '' ) eq $ARG }
+            qw| valid invalid unsigned |
+            or ( $time // '' ) !~ m{^[0-9]+$};
+        for ( $error, $key_name, $public, $chain ) {
+            $_ = '' if defined $_ and $_ eq '-';
+        }
+        $entries->{$checksum} = {
+            qw| checksum          | => $checksum,
+            qw| status            | => $status,
+            qw| error             | => $error,
+            qw| key_name          | => $key_name,
+            qw| trust_fingerprint | => $fingerprint,
+            qw| public_b32        | => $public,
+            qw| chain             | => $chain,
+            qw| time              | => $time,
+        };
+    }
+    return ( $entries, undef );
+};
+
+if ( $operation eq qw| lookup | ) {
+    my ( $entries, $error ) = $read_entries->();
+    return ( undef, $error ) if not defined $entries;
+    return ( $entries->{ $params->{'checksum'} // '' }, undef );
+}
+
+sysopen( my $lock_fh, $state->{'lock_path'},
+    Fcntl::O_RDWR() | Fcntl::O_CREAT() | Fcntl::O_NOFOLLOW(), 0600 )
+    or return ( undef, "lock-open:$OS_ERROR" );
+flock( $lock_fh, Fcntl::LOCK_EX() )
+    or return ( undef, "lock:$OS_ERROR" );
+my ( $entries, $read_error ) = $read_entries->();
+$entries //= {};
+my $checksum    = $params->{'checksum'}          // '';
+my $fingerprint = $params->{'trust_fingerprint'} // '';
+return ( undef, 'checksum' ) if $checksum !~ m|^[A-Z2-7]{77}$|;
+return ( undef, 'trust-fingerprint' )
+    if $fingerprint !~ m|^[A-Z2-7]{77}$|;
+$entries->{$checksum} = {
+    qw| checksum          | => $checksum,
+    qw| status            | => $params->{'status'}   // qw| invalid |,
+    qw| error             | => $params->{'error'}    // '',
+    qw| key_name          | => $params->{'key_name'} // '',
+    qw| trust_fingerprint | => $fingerprint,
+    qw| public_b32        | => $params->{'public_b32'} // '',
+    qw| chain             | => $params->{'chain'}      // '',
+    qw| time              | => time,
+};
+my $maximum = <httpd.cfg.signature_persistent_entries> // 4096;
+
+if ( keys( $entries->%* ) > $maximum ) {
+    my @oldest = sort { $entries->{$a}{'time'} <=> $entries->{$b}{'time'} }
+        keys $entries->%*;
+    delete $entries->{ $oldest[0] } while keys( $entries->%* ) > $maximum;
+}
+my $authenticated = "P7-SIGNATURE-CACHE 2\n";
+foreach my $entry ( sort { $a->{'checksum'} cmp $b->{'checksum'} }
+    values $entries->%* ) {
+    my @values = (
+        @{$entry}{
+            qw| checksum status error key_name trust_fingerprint public_b32 chain |
+        },
+        $entry->{'time'}
+    );
+    foreach my $value (@values) {
+        $value = '-' if not length $value;
+        $value =~ s|\s+|_|g;
+    }
+    $authenticated .= join( ' ', @values ) . "\n";
+}
+my $content
+    = $authenticated . 'MAC ' . $authenticate->($authenticated) . "\n";
+my $temporary = $state->{'cache_path'} . ".tmp.$$";
+sysopen(
+    my $cache_fh,
+    $temporary,
+    Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+        | Fcntl::O_NOFOLLOW(),
+    0600
+) or return ( undef, "cache-create:$OS_ERROR" );
+binmode $cache_fh;
+my $written = syswrite( $cache_fh, $content );
+close $cache_fh;
+return ( undef, 'cache-write' ) if ( $written // 0 ) != length $content;
+chmod 0600, $temporary;
+rename( $temporary, $state->{'cache_path'} )
+    or return ( undef, "cache-rename:$OS_ERROR" );
+close $lock_fh;
+return { qw| stored | => TRUE, qw| recovered | => $read_error // '' };
+
+#,,,.,,.,,,,.,,.,,,,.,,.,,,.,,,.,,,,.,.,.,.,.,..,,...,..,,..,,...,.,.,,.,,,..,
+#SHTBVRH6IEWQ7BNIPAMJBX3CX2YB64YSESGV2QIGVYGWZ2GYQUSHWDEU5IOCNDB5W5SIAOJDTT3CM
+#\\\|MG3ACPTDCXQZY2GZIIZIDMAY4CIXDINNLSS4OCVSSKHM77CXS4H \ / AMOS7 \ YOURUM ::
+#\[7]BDOTQULHNKDW6U3WLF3IFRFZMZ43O4A5YFRYERRVPOZXX7VBI4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = httpd.signature_trust_context
+# descr = derive a persistent cache key from current trust
+# args  = { payload, key_name, vhost, path }
+
+my $param = shift // {};
+return ( undef, 'parameters' ) if ref $param ne qw| HASH |;
+my $payload  = $param->{'payload'};
+my $key_name = $param->{'key_name'} // '';
+return ( undef, 'trusted-public-key' )
+    if not exists $keys{'C25519'}{$key_name}{'public'};
+my ( $generated, $parse_error ) = <[source.generated_envelope]>->($payload);
+return ( undef, $parse_error ) if defined $parse_error;
+my $trusted = $keys{'C25519'}{$key_name}{'public'};
+my ( $generator, $chain, $public_b32 ) = ( '', '', '' );
+
+if ( defined $generated ) {
+    $generator  = $generated->{'public_key'};
+    $chain      = $generated->{'chain'};
+    $public_b32 = $generated->{'public_b32'};
+    my ( $record, $trust_error ) = <[httpd.generator_key_trust]>->(
+        {   qw| vhost       | => $param->{'vhost'} // '',
+            qw| path        | => $param->{'path'}  // '/',
+            qw| public_key  | => $generator,
+            qw| chain       | => $chain,
+            qw| lookup_only | => TRUE,
+        }
+    );
+    return ( undef, 'generator-' . ( $trust_error // 'untrusted' ) )
+        if ref $record ne qw| HASH |;
+    $trusted = $record->{'public_key'};
+}
+my ( $cache_key, $key_error ) = <[httpd.signature_cache_key]>->(
+    {   qw| payload             |  => $payload,
+        qw| key_name            |  => $key_name,
+        qw| trusted_public_key  |  => $trusted,
+        qw| generator_public_key | => $generator,
+        qw| chain               |  => $chain,
+    }
+);
+return ( undef, $key_error ) if not defined $cache_key;
+$cache_key->{'public_b32'} = $public_b32;
+$cache_key->{'chain'}      = $chain;
+return $cache_key;
+
+#,,,.,,..,,..,..,,.,,,.,.,..,,.,,,,,,,,,,,...,..,,...,..,,..,,,,.,,.,,,..,,,.,
+#K7L6KYGYTJB5EUNVZ5MHN77ZKHI5TLJZWUK3TBMIG7XNY4LJN6GO24VUXZUPNI5BVRY3GPND2WP4M
+#\\\|JG3FRIHJDAOPKEEBH3ENQZIHA7ZVDIRRUGU6QB45OD45N22XP4D \ / AMOS7 \ YOURUM ::
+#\[7]GW4Y63X37YYM3JG6P3CHIUCXXFVVB77TMXOUYYCM6WENJLEE7MBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

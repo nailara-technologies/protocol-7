@@ -160,9 +160,12 @@ if ( defined $vhost ) {
         );
 
         my $route = {
-            handler      => qw| httpd.process_template |,
-            handler_args => { template_path => $template_path },
-            cache_ttl    => 1800,    # Cache template results for 30 minutes
+            handler      => qw| httpd.serve_static |,
+            handler_args => {
+                path          => $path,
+                template_path => $template_path
+            },
+            cache_ttl => 1800,    # Cache template results for 30 minutes
         };
 
         $data{'route_cache'}->{$cache_key} = $route;
@@ -182,8 +185,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,,.,..,,...,,,.,..,,.,.,,,.,.,.,..,,..,,,,.,..,,...,...,,,,,,,,,.,.,,.,,,,,,
-#BMQZLN4C4ZXUGMPVKQSC3XKJEDY7NFB5M55NB2W4YVFCN7LSELNXIBKE4WWFOOUKL4WI434NEVRQG
-#\\\|2CXS5UX6C5H7CPOYMAUK32LCYGGQ2YZNEVX3KBP7YLCWVVBPOBD \ / AMOS7 \ YOURUM ::
-#\[7]QGK7JPXN6PJXSFZU5J7CHSV5B3LTFNEP46SHR4GGVXJ34BVS2MCI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,.,,.,,,.,.,...,,,.,,,,,,..,...,..,,...,...,..,,,..,,,.,...,,,,,
+#YBWP27PUWBII7X76M4NT2ZWWZAFOXPWWMGUHIG2NQYOLG5C5XXHLRP2LPJHFKDEDJXL2UXMWZZ4SU
+#\\\|UHTB6OQJD3RNHMJSXLXPQQM7WAMZFX6DZPUZ2JOQKWHUWGG4WJP \ / AMOS7 \ YOURUM ::
+#\[7]3K2JQHAXPSP4RUIYONUIJM6JBL7IPYUR2WYPDSSEGSLWC4O5IQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

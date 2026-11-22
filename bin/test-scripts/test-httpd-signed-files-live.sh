@@ -18,11 +18,18 @@ SIGNED_NAME=$PREFIX-signed.html
 UNSIGNED_NAME=$PREFIX-unsigned.html
 TAMPERED_NAME=$PREFIX-tampered.html
 LARGE_NAME=$PREFIX-large.html
+UNSIGNED_TEMPLATE_NAME=$PREFIX-unsigned.tmpl
+INVALID_TEMPLATE_NAME=$PREFIX-invalid.tmpl
 TMP_DIR=$(mktemp -d /tmp/p7-httpd-signed-live.XXXXXXXX)
+MODE_CHANGED=0
 
 cleanup() {
+    if [[ $MODE_CHANGED -eq 1 ]]; then
+        p7c "$HTTP_ZENKA".signature-mode "$HTTP_HOST verify" >/dev/null || true
+    fi
     rm -f -- "$SITE_DIR/$SIGNED_NAME" "$SITE_DIR/$UNSIGNED_NAME" \
-        "$SITE_DIR/$TAMPERED_NAME" "$SITE_DIR/$LARGE_NAME"
+        "$SITE_DIR/$TAMPERED_NAME" "$SITE_DIR/$LARGE_NAME" \
+        "$SITE_DIR/$UNSIGNED_TEMPLATE_NAME" "$SITE_DIR/$INVALID_TEMPLATE_NAME"
     rm -rf -- "$TMP_DIR"
 }
 trap cleanup EXIT
@@ -44,9 +51,12 @@ request() {
     shift
     HEADER_FILE=$TMP_DIR/$name.headers
     BODY_FILE=$TMP_DIR/$name.body
-    HTTP_CODE=$(curl --max-time 20 -sS -D "$HEADER_FILE" -o "$BODY_FILE" \
-        -w '%{http_code}' -H "Host: $HTTP_HOST" \
+    local curl_result
+    curl_result=$(curl --max-time 20 -sS -D "$HEADER_FILE" -o "$BODY_FILE" \
+        -w '%{http_code} %{time_total}' -H "Host: $HTTP_HOST" \
         "${CURL_INSECURE[@]}" "$@" "$BASE_URL/${REQUEST_PATH#/}")
+    HTTP_CODE=${curl_result%% *}
+    REQUEST_TIME=${curl_result##* }
     printf '\n%s\n' "$REQUEST_PATH"
     perl -ne 'print if m{^HTTP/} or m{^(?:Content-Length|Content-Range|Content-Type|Connection):}i' \
         "$HEADER_FILE"
@@ -55,6 +65,20 @@ request() {
 
 content_length() {
     perl -ne 'print "$1\n" if m{^Content-Length:\s*(\d+)}i' "$HEADER_FILE"
+}
+
+warm_timing() {
+    local count=20 i
+    : > "$TMP_DIR/warm.times"
+    for ((i = 0; i < count; i++)); do
+        curl --max-time 20 -sS -o /dev/null -w '%{time_total}\n' \
+            -H "Host: $HTTP_HOST" "${CURL_INSECURE[@]}" \
+            "$BASE_URL/$SIGNED_NAME" >> "$TMP_DIR/warm.times"
+    done
+    perl -ne '$sum += $_; $count++; END {
+        printf "timing : warm average %.3f ms over %d requests\n",
+            1000 * $sum / $count, $count
+    }' "$TMP_DIR/warm.times"
 }
 
 strip_fixture() {
@@ -69,11 +93,15 @@ p7c "$HTTP_ZENKA".heart >/dev/null
 cp -- "$SMALL_FIXTURE" "$SITE_DIR/$SIGNED_NAME"
 cp -- "$SMALL_FIXTURE" "$SITE_DIR/$TAMPERED_NAME"
 cp -- "$LARGE_FIXTURE" "$SITE_DIR/$LARGE_NAME"
+cp -- "$LARGE_FIXTURE" "$SITE_DIR/$INVALID_TEMPLATE_NAME"
 printf '<html><body>unsigned live fixture</body></html>\n' \
     > "$SITE_DIR/$UNSIGNED_NAME"
+cp -- "$SITE_DIR/$UNSIGNED_NAME" "$SITE_DIR/$UNSIGNED_TEMPLATE_NAME"
 printf '<!-- tampered -->\n' >> "$SITE_DIR/$TAMPERED_NAME"
+printf '<!-- tampered template -->\n' >> "$SITE_DIR/$INVALID_TEMPLATE_NAME"
 chmod 0644 "$SITE_DIR/$SIGNED_NAME" "$SITE_DIR/$UNSIGNED_NAME" \
-    "$SITE_DIR/$TAMPERED_NAME" "$SITE_DIR/$LARGE_NAME"
+    "$SITE_DIR/$TAMPERED_NAME" "$SITE_DIR/$LARGE_NAME" \
+    "$SITE_DIR/$UNSIGNED_TEMPLATE_NAME" "$SITE_DIR/$INVALID_TEMPLATE_NAME"
 
 strip_fixture "$SMALL_FIXTURE" > "$TMP_DIR/small.expected"
 strip_fixture "$LARGE_FIXTURE" > "$TMP_DIR/large.expected"
@@ -89,6 +117,8 @@ cmp -s "$TMP_DIR/small.expected" "$BODY_FILE" \
     || fail 'signed body differs from stripped fixture'
 ! grep -q 'DATA SIGNATURE' "$BODY_FILE" || fail 'signed body retained its footer'
 printf 'ok   : signed body is stripped and exact\n'
+perl -e 'printf "timing : cold request %.3f ms\n", 1000 * $ARGV[0]' \
+    "$REQUEST_TIME"
 
 REQUEST_PATH=/$SIGNED_NAME
 request cached
@@ -98,6 +128,17 @@ CACHE_LOG=$(p7c "$HTTP_ZENKA".show-buffer zenka 100)
 [[ $CACHE_LOG == *"signed-file cache hit : /$SIGNED_NAME : valid : 2"* ]] \
     || fail 'second request was not logged as the second cache hit'
 printf 'ok   : second request used the verification cache\n'
+warm_timing
+
+printf '<!-- cached-file modification -->\n' >> "$SITE_DIR/$SIGNED_NAME"
+REQUEST_PATH=/$SIGNED_NAME
+request invalidated
+assert_equal 403 "$HTTP_CODE" 'modified cached file is invalidated and refused'
+cp -- "$SMALL_FIXTURE" "$SITE_DIR/$SIGNED_NAME"
+REQUEST_PATH=/$SIGNED_NAME
+request restored
+assert_equal 200 "$HTTP_CODE" 'restored cached file verifies again'
+cmp -s "$TMP_DIR/small.expected" "$BODY_FILE" || fail 'restored body changed'
 
 REQUEST_PATH=/$SIGNED_NAME
 request ranged -H 'Range: bytes=0-4'
@@ -116,6 +157,24 @@ assert_equal 200 "$HTTP_CODE" 'unsigned file status'
 assert_equal "$UNSIGNED_SIZE" "$(content_length)" 'unsigned Content-Length'
 cmp -s "$SITE_DIR/$UNSIGNED_NAME" "$BODY_FILE" || fail 'unsigned body changed'
 printf 'ok   : unsigned file is unchanged\n'
+
+REQUEST_PATH=/$INVALID_TEMPLATE_NAME
+request invalid-template
+assert_equal 403 "$HTTP_CODE" 'invalid template is refused before processing'
+
+p7c "$HTTP_ZENKA".signature-mode "$HTTP_HOST require" >/dev/null
+MODE_CHANGED=1
+REQUEST_PATH=/$UNSIGNED_NAME
+request require-unsigned
+assert_equal 403 "$HTTP_CODE" 'require mode refuses unsigned file'
+REQUEST_PATH=/$UNSIGNED_TEMPLATE_NAME
+request require-template
+assert_equal 403 "$HTTP_CODE" 'require mode refuses unsigned template'
+p7c "$HTTP_ZENKA".signature-mode "$HTTP_HOST verify" >/dev/null
+MODE_CHANGED=0
+REQUEST_PATH=/$UNSIGNED_NAME
+request restored-verify
+assert_equal 200 "$HTTP_CODE" 'verify mode is restored'
 
 REQUEST_PATH=/$TAMPERED_NAME
 request tampered
@@ -154,8 +213,8 @@ printf 'ok   : server remains healthy after client disconnect\n'
 
 printf '\n: all live %s signed-file tests passed\n' "$HTTP_ZENKA"
 
-#,,,,,,,.,..,,...,,,,,...,,,,,,..,.,.,.,,,,.,,..,,...,...,.,,,.,.,,,,,..,,,,,,
-#MI2FWSIDRB4HJW6SWGW4WBC24UH5BBI5ASXNHIOHOK4X2LZB2PSVBCHFFX36DGEE3FFKNT7RJFD5K
-#\\\|YASXPW5PXM7NNFIOVPM27R4TRESFHCY2266JENZWZI2MNVPBUQQ \ / AMOS7 \ YOURUM ::
-#\[7]UI4EFFA6MT3CSB3S3KOVAZ7SYIQBGJJSYBZWLPOO5UO63MB3REBI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,,,,,,,,,..,,...,,..,.,,,.,.,..,,...,..,,,..,,,,,,..,,,.,..,,
+#4WNXJAX4XMOIEK54VDFJEQWJM7DD3YFPEUKTOZJRZHDCOSZRCX7PMQHEODAN5ZHEKWREUCJB2DHKI
+#\\\|GQOOWUWJDPJQSLI7ZJCK6DPKVITHSVPMXIOUAJUXUMPH2JQAZUC \ / AMOS7 \ YOURUM ::
+#\[7]NCOLWHJZXPAWPYDVTPZJEW6F7ZDJ5W4RPBJCYMIBH4STTCEVRSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

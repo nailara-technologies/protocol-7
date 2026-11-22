@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = httpd.signature_policy
+# descr = resolve signed-file mode and types for a vhost
+# args  = <vhost>, <content_type>, [ <path> ]
+
+my $vhost        = shift                      // '';
+my $content_type = shift                      // '';
+my $file_path    = shift                      // '';
+my $modes        = <httpd.cfg.signature_mode> // qw| verify |;
+my $has_override = ref $modes eq qw| HASH | and exists $modes->{$vhost};
+my $mode
+    = $has_override            ? $modes->{$vhost}
+    : ref $modes eq qw| HASH | ? $modes->{'default'} // qw| verify |
+    :                            $modes;
+$mode = lc( $mode // qw| verify | );
+die "invalid httpd signature mode '$mode'"
+    if not grep { $mode eq $ARG } qw| off verify require |;
+
+my $types = <httpd.cfg.signature_types> // 'html css js tmpl';
+$types = join( ' ', keys $types->%* ) if ref $types eq qw| HASH |;
+die 'httpd signature types must be a string' if ref $types;
+my %type = map { $ARG => TRUE } split( m|\s+|, lc $types );
+delete $type{''};
+my %valid_type = map { $ARG => TRUE } qw| html css js tmpl |;
+die 'invalid httpd signature type'
+    if grep { not $valid_type{$ARG} } keys %type;
+
+my $require_html = <httpd.cfg.require_signature_html>->{$vhost} // FALSE;
+my $kind
+    = $file_path    =~ m{\.tmpl$}           ? qw| tmpl |
+    : $content_type =~ m{^text/html(?:;|$)} ? qw| html |
+    : $content_type =~ m{^text/css(?:;|$)}  ? qw| css |
+    : $content_type =~ m{^(?:application|text)/(?:x-)?javascript(?:;|$)}
+    ? qw| js |
+    : '';
+my $selected = length($kind) && $type{$kind};
+$selected = TRUE
+    if $require_html
+    and not $has_override
+    and $kind eq qw| html |;
+$mode = qw| require |
+    if $require_html
+    and not $has_override
+    and $kind eq qw| html |;
+
+return {
+    qw| mode     | => $mode,
+    qw| selected | => $selected              ? TRUE : FALSE,
+    qw| require  | => $mode eq qw| require | ? TRUE : FALSE,
+    qw| type     | => $kind,
+};
+
+#,,,.,,,.,.,.,.,.,..,,,,.,.,.,,,,,..,,,,.,..,,..,,...,...,...,,..,,..,..,,..,,
+#BUVUDNVR3E5SJUTPDS7ICWIVMFZCKBGEARO5DKXORSHQSSO3OA3CANCOMUFVWKQ4NAAYOAIMQT7CA
+#\\\|F3KPWX7MBKTOU4MAZ6DAG4YAMILDR4HCZEJ6YFHSVF7XXO4SBHO \ / AMOS7 \ YOURUM ::
+#\[7]AHDIW2GHENQVKNS7TVCJZCEIU6TUAVOJNPQ3Q622HIXAUZ43JIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

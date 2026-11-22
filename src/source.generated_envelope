@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = source.generated_envelope
+# descr = parse a generated signature envelope without verifying it
+# args  = <payload_sref>
+# return = envelope fields, undef [ list context : undef, error ]
+
+my $payload_sref = shift;
+return ( undef, 'payload-reference' )
+    if ref $payload_sref ne qw| SCALAR |
+    or not defined $payload_sref->$*;
+return if $payload_sref->$* !~ m{
+        \A(.*)
+        ((?:/\*|<!--)[\t ]*P7-GENERATED[\t ]+([A-Z2-7]{52})
+            (?:[\t ]+([A-Z2-7.]+))?[\t ]*\n\n?)
+        (\#[\.,]{70,}\n(?:\#[^\n]+\n)+)
+        (\*/|-->)[\t ]*\n?\z
+    }sx;
+my ( $unsigned, $opening, $public_b32, $chain, $standard_footer, $close )
+    = ( $1, $2, $3, $4 // '', $5, $6 );
+my $pair_valid
+    = $opening =~ m{\A/\*} ? $close eq qw| */ | : $close eq qw| --> |;
+return if not $pair_valid;
+my $public_key = eval { decode_b32r($public_b32) };
+return ( undef, 'generator-public-key' )
+    if not defined $public_key
+    or length($public_key) != 32;
+return {
+    qw| unsigned_body   | => $unsigned,
+    qw| opening         | => $opening,
+    qw| public_b32      | => $public_b32,
+    qw| public_key      | => $public_key,
+    qw| chain           | => $chain,
+    qw| standard_footer | => $standard_footer,
+    qw| close           | => $close,
+};
+
+#,,..,.,,,.,,,,,.,,..,,..,,,,,.,.,,..,,,,,.,.,..,,...,...,..,,...,,,,,,.,,,,,,
+#TXKFYKJBAO3UHL6337ENYPUXFLV3JQWS3SUCXMYZI4YHXOPMHO6E7P6GZNTS3WZLO4XTSV7MWQSI2
+#\\\|WH5PI7NMEA4FEBMHI32KAATUQCHPL7HC65JOMTRB4R4IXT64GJP \ / AMOS7 \ YOURUM ::
+#\[7]JPI5QMYOXJZ2ZTXU35T7NEX666HUQFX6VWLRSOBBCKFEXEG3Q2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

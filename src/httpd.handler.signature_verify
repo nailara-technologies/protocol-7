@@ -39,6 +39,16 @@ if (<httpd.cfg.signature_debug>) {
     }
 }
 $result =~ s{^debug [^\n]*\n}{}mg;
+foreach my $warning ( $result =~ m{^cache-warning ([^\n]*)\n}mg ) {
+    <[base.logs]>->(
+        1,   '[%d] signed-file persistent cache : %s',
+        $id, $warning
+    );
+}
+$result =~ s{^cache-warning [^\n]*\n}{}mg;
+my ($origin) = $result =~ m{^origin (full|persistent)\n};
+$origin //= qw| full |;
+$result =~ s{^origin (?:full|persistent)\n}{};
 my ( $status, $error ) = $result =~ m{^(valid|unsigned|invalid) ?([^\n]*)};
 $status //= qw| invalid |;
 $error = 'child-result' if not length $error and $status eq qw| invalid |;
@@ -72,6 +82,11 @@ my $cache_entry = {
 if ( $status eq qw| valid | and -f $pending->{'body_path'} ) {
     $cache_entry->{'body_path'} = $pending->{'body_path'};
     $cache_entry->{'body_size'} = -s $pending->{'body_path'};
+    my $file_max = <httpd.cfg.signature_memory_file_max> // 256 * 1024;
+    if ( $cache_entry->{'body_size'} <= $file_max ) {
+        $cache_entry->{'body_ref'}
+            = <[file.slurp]>->( $pending->{'body_path'}, undef, qw| :raw | );
+    }
 } else {
     unlink $pending->{'body_path'};
     $status = $cache_entry->{'status'} = qw| invalid |
@@ -80,14 +95,19 @@ if ( $status eq qw| valid | and -f $pending->{'body_path'} ) {
         if $cache_entry->{'status'} eq qw| invalid | and not length $error;
 }
 
-<httpd.signature.cache> //= {};
-<httpd.signature.cache>->{ $pending->{'file_path'} } = $cache_entry;
-<httpd.signature.verify_count>++;
+$cache_entry->{'origin'} = $origin;
+<[httpd.signature_memory_store]>->( $pending->{'file_path'}, $cache_entry );
+<[httpd.signature_watch]>->( $pending->{'file_path'} );
+if ( $origin eq qw| persistent | ) {
+    <httpd.signature.persistent_hits>++;
+} else {
+    <httpd.signature.verify_count>++;
+}
 
 return <[httpd.serve_static]>->( $id, $pending->{'handler_args'} );
 
-#,,..,,,,,,.,,...,,,,,.,,,,.,,...,,..,..,,,..,..,,...,...,,,.,.,,,...,...,,,.,
-#YGAI23A3G4EF6RRSCJY6TM3MSEXKEN4WOSMLL36R4ANH3SX6GXQ4EPHKWJBDQIFZHKF7NZQFCNGR6
-#\\\|YRIHHT6AP3ZT5VLWAAMB2A57TPGXDMP7KXDXCRW6MIYIWZKT6QI \ / AMOS7 \ YOURUM ::
-#\[7]FYFI65MBZ4S5RCKXG2NIBQWRGFMQYNWZND5QRAVDUB7WQFCAPGAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,.,,,.,,..,,,.,,,.,.,.,,..,,.,,..,,...,..,,.,.,..,,.,.,.,,,,..,
+#ISCLFVRICE4C2HFUVTFI66AYNR46MQACS5EKAKIGMJEWE4L5ABFVJIQ5BMJ2QOXHTQFYY7EGJLYEQ
+#\\\|BHPWPEOZVD7RD2IYNZ72X3JBTWYPJ6T3XH35M5RLILI3T557XFH \ / AMOS7 \ YOURUM ::
+#\[7]MSZVRGZRGO3MYJXG324T2C25AAZRRITUGFFHMBYOC3EN3UFVEAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

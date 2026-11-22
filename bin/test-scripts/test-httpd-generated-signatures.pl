@@ -6,7 +6,10 @@ use English;
 
 use Cwd qw| abs_path |;
 use File::Spec;
-use FindBin qw| $RealBin |;
+use File::stat qw| stat |;
+use File::Temp qw| tempdir |;
+use FindBin    qw| $RealBin |;
+use Fcntl;
 use Test::More;
 
 BEGIN {
@@ -79,6 +82,7 @@ sub compile_module {
 
 compile_module($_) foreach qw|
     source.extract_sig_body
+    source.generated_envelope
     source.signature_valid
     source.verify_and_strip
     source.restore_payload_endline_state
@@ -98,6 +102,9 @@ compile_module($_) foreach qw|
     trust.verify
     httpd.generator_delegation
     httpd.generator_key_trust
+    httpd.signature_cache_key
+    httpd.signature_trust_context
+    httpd.signature_persistent
     httpd.generate_theme_css
     sourcecode.signature_excluded
     sourcecode.console.update-signatures
@@ -301,10 +308,87 @@ eval { $code{'sourcecode.console.update-signatures'}->($excluded_path) };
 is( $signer_called, 0, 'update-signatures never signs an excluded path' );
 is( $exit_status,   '0110', 'excluded explicit path leaves nothing to sign' );
 
+my $delegated_payload = $payload{'html'};
+my $delegated_signed  = $code{'source.sign_generated'}
+    ->( \$delegated_payload, 'generator-old', 'html' );
+my $delegated_input = $delegated_signed->$*;
+$data{'httpd'}{'system'}{'user'}  = getpwuid($EUID);
+$data{'httpd'}{'system'}{'group'} = getgrgid($GID);
+$data{'httpd'}{'signature'}{'cache_dir'}
+    = File::Spec->catdir( tempdir( CLEANUP => 1 ), 'persistent' );
+my $cache_state = $code{'httpd.signature_persistent'}->('init');
+ok( ref $cache_state eq 'HASH',
+    'delegation cache test initializes persistence' );
+my ($delegated_context) = $code{'httpd.signature_trust_context'}->(
+    {   payload  => \$delegated_input,
+        key_name => 'generator-old',
+        vhost    => 'delegated-vhost',
+        path     => '/assets/theme.html',
+    }
+);
+ok( ref $delegated_context eq 'HASH',
+    'trusted delegation produces a bound cache context' );
+my $delegated_stored = $code{'httpd.signature_persistent'}->(
+    'store',
+    {   checksum          => $delegated_context->{'checksum'},
+        status            => 'valid',
+        key_name          => 'generator-old',
+        trust_fingerprint => $delegated_context->{'trust_fingerprint'},
+        public_b32        => $delegated_context->{'public_b32'},
+        chain             => $delegated_context->{'chain'},
+    }
+);
+my ( $delegated_hit, $delegated_lookup_error )
+    = $code{'httpd.signature_persistent'}
+    ->( 'lookup', { checksum => $delegated_context->{'checksum'} } );
+ok( ( $delegated_hit->{'status'} // '' ) eq 'valid',
+    'trusted delegation has a valid persistent entry before revocation [ '
+        . ( ref $delegated_stored ? 'stored' : $delegated_stored // 'undef' )
+        . ' : '
+        . ( $delegated_lookup_error // 'no-error' ) . ' ]'
+);
+$data{'httpd'}{'generator'}{'delegations'}{'delegated-vhost'}{'/assets/'}
+    {'not_after'} = time - 1;
+my ( $revoked_context, $revoked_error )
+    = $code{'httpd.signature_trust_context'}->(
+    {   payload  => \$delegated_input,
+        key_name => 'generator-old',
+        vhost    => 'delegated-vhost',
+        path     => '/assets/theme.html',
+    }
+    );
+ok( !defined $revoked_context
+        && $revoked_error eq 'generator-delegation-expired',
+    'revoked delegation misses instead of using the old valid entry'
+);
+my ( $unpinned, $unpinned_error ) = $code{'httpd.generator_key_trust'}->(
+    {   vhost       => 'lookup-only-vhost',
+        path        => '/theme.css',
+        public_key  => $old_pair[0],
+        lookup_only => TRUE,
+    }
+);
+ok( !defined $unpinned
+        && !
+        keys %{ $data{'httpd'}{'generator'}{'pins'}{'lookup-only-vhost'}
+            // {} },
+    'cache trust lookup never creates a first-use pin'
+);
+$record = $code{'httpd.generator_key_trust'}->(
+    {   vhost      => 'lookup-reuse-vhost',
+        path       => '/theme.css',
+        public_key => $old_pair[0],
+    }
+);
+ok( ref $record eq 'HASH'
+        && $data{'httpd'}{'generator'}{'pins'}{'lookup-reuse-vhost'}{'/'},
+    'lookup-only flag does not leak into the next call'
+);
+
 done_testing;
 
-#,,,,,,..,,,.,,,,,...,,..,,,.,,,,,,,.,.,,,..,,..,,...,...,...,.,.,,,.,,..,,..,
-#3W3GWQKMEF2RZX6JFOGB6VGT2NHAR3PBLV6UG2L45LERWYBSIDWTC5WQ6NR3RINXO5KVZOCM2NQBA
-#\\\|USNLP72EXGN6H3YSJ4LGWJLMM4T4ARKRFMK3SFGJ5TBOVWZBYTI \ / AMOS7 \ YOURUM ::
-#\[7]JWBN76JYM4TNAMVDRN2YCLTZD7HXXDPTBLB7DJAZDLMDQREX62DY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,..,,,.,,,.,,,,.,,..,.,,,,.,,,,,,..,,...,..,,...,,.,,...,.,,,..,,
+#FFBDFNJ2CSBJLL77O5MEFO7OP5WNZ3TXDNBMMADCG5ZEA5TVGRJA3G5VE476BRAKSWSDDHGEIUFEM
+#\\\|EVTAE3D6PCC3DF77DIIB54TI3EBVTP4WEUKCCJDZHTAJSUIHZMP \ / AMOS7 \ YOURUM ::
+#\[7]ACAHRLHL7OGB45B4UZLRJTFHC4FVBXJK6F267WBJBG3FKZNTP4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,12 +2,13 @@
 
 # name  = source.verify_and_strip
 # descr = verify a data signature and restore the unsigned payload
-# args  = <payload_sref>, [ <signature_key_name> ], [ <extracted_footer> ]
+# args  = <payload>, [ <key> ], [ <footer> ], [ <cached> ]
 # return = { status, body, footer, report, error }
 
 my $payload_sref = shift;
 my $key_name     = shift // <source.C25519.signature_key_name>;
 my $footer       = shift;
+my $cached_valid = shift // FALSE;
 
 return {
     qw| status | => qw| invalid |,
@@ -16,46 +17,27 @@ return {
     if ref $payload_sref ne qw| SCALAR |
     or not defined $payload_sref->$*;
 
-## generated envelope : the opening line                                    ##
-## [ including key and optional chain ] stays in the signed payload ; only  ##
-## the language comment closer is removed before the shared AMOS7 parser    ##
-## runs. the unsigned capture is restored only after every normal checksum, ##
-## truth and signature check has succeeded.                                 ##
-my $generated;
-if ($payload_sref->$* =~ m{
-        \A(.*)
-        ((?:/\*|<!--)[\t ]*P7-GENERATED[\t ]+([A-Z2-7]{52})
-            (?:[\t ]+([A-Z2-7.]+))?[\t ]*\n\n?)
-        (\#[\.,]{70,}\n(?:\#[^\n]+\n)+)
-        (\*/|-->)[\t ]*\n?\z
-    }sx
-) {
-    my ( $unsigned, $opening, $public_b32, $chain, $standard_footer, $close )
-        = ( $1, $2, $3, $4 // '', $5, $6 );
-    my $pair_valid
-        = $opening =~ m{\A/\*}
-        ? $close eq qw| */ |
-        : $close eq qw| --> |;
-    if ($pair_valid) {
-        my $public_key = eval { decode_b32r($public_b32) };
-        return {
-            qw| status | => qw| invalid |,
-            qw| body   | => $payload_sref,
-            qw| error  | => qw| generator-public-key |
-            }
-            if not defined $public_key
-            or length($public_key) != 32;
-        $generated = {
-            qw| original_ref  | => $payload_sref,
-            qw| unsigned_body | => $unsigned,
-            qw| public_key    | => $public_key,
-            qw| chain         | => $chain,
-        };
-        my $signed = $unsigned . $opening . $standard_footer;
-        $payload_sref                        = \$signed;
-        $key_name                            = qw| generated.verify |;
-        $keys{'C25519'}{$key_name}{'public'} = $public_key;
+## generated envelope : the opening line stays in the signed payload ; only ##
+## the comment closer is removed before the shared AMOS7 parser runs. the   ##
+## unsigned capture is restored after all checks succeed.                   ##
+my ( $generated, $generated_error )
+    = <[source.generated_envelope]>->($payload_sref);
+return {
+    qw| status | => qw| invalid |,
+    qw| body   | => $payload_sref,
+    qw| error  | => $generated_error
     }
+    if defined $generated_error;
+
+if ( defined $generated ) {
+    $generated->{'original_ref'} = $payload_sref;
+    my $signed
+        = $generated->{'unsigned_body'}
+        . $generated->{'opening'}
+        . $generated->{'standard_footer'};
+    $payload_sref                        = \$signed;
+    $key_name                            = qw| generated.verify |;
+    $keys{'C25519'}{$key_name}{'public'} = $generated->{'public_key'};
 }
 
 $footer //= <[source.extract_sig_body]>
@@ -88,7 +70,9 @@ return {
     if defined $error;
 
 my ( $valid, $report )
-    = <[source.signature_valid]>->( $payload_sref, $footer, {}, $key_name );
+    = $cached_valid
+    ? ( TRUE, { qw| persistent-cache | => TRUE } )
+    : <[source.signature_valid]>->( $payload_sref, $footer, {}, $key_name );
 
 if ( not $valid ) {
     $report //= {};
@@ -129,8 +113,8 @@ return {
     )
 };
 
-#,,,,,.,.,.,,,.,,,..,,.,.,.,,,,.,,,,.,,.,,,,.,..,,...,..,,.,,,,,.,,.,,..,,,,,,
-#T2FIVEYGB2WKNNW4LOL5W2KV5BOXWI73NVEMJO7E4BMT7JI3LFXGVWTAYWUM2XZPLTMC7C2X5X4ZS
-#\\\|BS5BMHXRLOYGGC54DNUSCC3BTSIUIEVVYARMHAQXDQZNP7KRWBK \ / AMOS7 \ YOURUM ::
-#\[7]6ECIFHYN3P5SSSK6RMCRLWC6ZZ7NZKGZSVM3STZW33IIUJEB7WDA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,.,,.,.,...,.,.,.,,,..,,.,,,.,,,..,,...,...,.,.,...,,,.,,,.,.,.,
+#S6AEPYVPNG5YLDJBL4OVC7VYFQJ7VTAQAS45BRXBJTP3U5TNWIXUDIQ7YQVQ2VNB6SLIK42YNZJMU
+#\\\|DBQRWPI7HMCF2DNP2E5TVUZ7MNICXZ7WUGWKZOEFQUHQIU53OKP \ / AMOS7 \ YOURUM ::
+#\[7]54T3SOAJU25XFSQONGZOKJVJEXW5O2IY43Z5P36YBVW3KCN7PGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

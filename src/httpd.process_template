@@ -5,14 +5,20 @@
 
 my $session_id    = shift // '';
 my $template_path = shift // '';
+my $original_path = shift // $template_path;
 die "expected valid session id" if not defined $data{'session'}{$session_id};
 my $session = $data{'session'}{$session_id};
 die "expected template file path argument" if !length($template_path);
 die "template file not found"              if !-f $template_path;
 my $response_params = $session->{'response'}->{'params'};
 my $content_date    = time2str( int( $session->{'start_time'} ) );
-my $content_type    = qw| text/plain |;
-$content_type = qw| text/html | if $template_path =~ m{\.(html|tmpl)$};
+my $output_path     = $original_path;
+$output_path =~ s{\.tmpl$}{};
+my $output_basename = $output_path =~ m{([^/]+)$} ? $1 : $output_path;
+my $content_type
+    = $output_basename !~ m{\.}
+    ? 'text/html; charset=UTF-8'
+    : <[httpd.get_mime_type]>->($output_path);
 my $site_dir = <httpd.site_dir>;
 ( my $template_path_rel = $template_path ) =~ s{$site_dir/*}{};
 
@@ -104,8 +110,8 @@ my $template_args
 
 return 1;    ## Keep connection alive, waiting for web zenka reply ##
 
-#,,,.,...,,..,..,,.,.,.,,,.,.,,.,,.,,,.,,,..,,..,,...,...,.,,,.,,,,,.,.,.,,..,
-#2P4PJJSAPCUGD3M5IX27XBE3HEF5LMMTOH6ULRXLCRRHAXVKKMZL7TLMH7TRICE7MIJ7KDMTOL5LE
-#\\\|VKUEAZ7EB6EG2H3I7VGU6QT5US7BDR6W6IZVOCP4ZHQLJWPS4ZN \ / AMOS7 \ YOURUM ::
-#\[7]2PLY2ZMKP3HXY6PGNIJGMHFTEWJ36PZOLGIXXDK3XROUQX6DJ6DI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,.,.,..,,,,.,...,.,.,,,.,,,,,..,,...,..,,.,,,.,.,...,..,,,,,,
+#E7SYR5RGGKFEFMSUURBNNG7ORWQCXKE4WZYNV77JUJR7J2NRJ4G35B6ZEKYZR4JYFDQTFNPFQ3K22
+#\\\|5NR7XBMM7PLQDUZRZBC3MHQN6ZDQTCLMAOVCFQJEY4N7MNE3CYL \ / AMOS7 \ YOURUM ::
+#\[7]WCDC7HEIOOP6UJ3Q5UWOZ5LVHBAUFQYERSZG7UKGV5ERPR5MJECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

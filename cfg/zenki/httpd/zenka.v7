@@ -33,9 +33,14 @@ httpd.cfg.uploads_enabled   = 1 # files need to be explicitly announced to zenka
 
 httpd.cfg.allow_range_overlap = 1 # allow overlapping range request? [same data]
 
-## optional per-vhost requirement [ default off ] :
-## httpd.cfg.require_signature_html.example.org = 1
+httpd.cfg.signature_mode  = verify
+httpd.cfg.signature_types = html css js tmpl
+## per-vhost override : httpd.cfg.signature_mode.example.org = require
+## legacy alias : httpd.cfg.require_signature_html.example.org = 1
 httpd.cfg.signature_key_name = proto-7.sourcecode
+httpd.cfg.signature_memory_bytes    = 8388608
+httpd.cfg.signature_memory_file_max = 262144
+httpd.cfg.signature_pressure_avail_mb = 128
 ## verification inputs and individual check results [ default off ] :
 # httpd.cfg.signature_debug = 1
 httpd.cfg.generator_key_name = httpd
@@ -87,8 +92,8 @@ httpd.sock = [base.open:'ip.tcp','input',<net.http.addr>,<net.http.port>]
 
 [zenka.loop]
 
-#,,,,,..,,.,,,,.,,,.,,..,,..,,...,..,,,..,...,..,,...,...,,.,,,,,,...,,.,,,..,
-#O4TDUNZRV6BYAX5JPFWA6QTG24D4R46A42HDTERDFVVEV5HCPOCXJXAUMYDUEVEW3DK57AT6FWUSS
-#\\\|TZDTMXIBNLD6AZQ7PI73E4GQBZE2DWKTN5EK3NQH5XU5GMAYWM3 \ / AMOS7 \ YOURUM ::
-#\[7]PXOHE6I25AM2F5QI3FGLZRYG7G6IXUR5QLVZI5MWPTKBCQVY3ODI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,,,,..,,..,,..,,.,,,,.,.,,,..,,..,,...,...,..,,.,,,..,,,,.,,.,,
+#QEEQILRV73GCYMFFBXLZZ4GMWTZNXPGRPLW5KKJY2DKCX3W6JIJUZO54JJEC26BFGJ7KOXAIQY2LY
+#\\\|EPZYOOOERJS6PQOD4N2BMLITBJH2CBTMAALKKX6NUCWSVOF3YXI \ / AMOS7 \ YOURUM ::
+#\[7]SZ3FJQ35RHX532VZVIOPNWLAJPOOY5MURUNZMMV7MLVASNHIEIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = httpd.cmd.signature-mode
+# param = <vhost> <off|verify|require>
+# descr = set per-vhost signed-file mode
+
+my ( $vhost, $mode ) = split( m|\s+|, $call->{'args'} // '', 2 );
+$mode //= '';
+return { qw| mode | => qw| false |, qw| data | => 'expected vhost and mode' }
+    if not length( $vhost // '' )
+    or not grep { $mode eq $ARG } qw| off verify require |;
+return { qw| mode | => qw| false |, qw| data | => 'unknown vhost' }
+    if not exists <httpd.cfg.hostnames>->{$vhost};
+my $modes = <httpd.cfg.signature_mode> // qw| verify |;
+<httpd.cfg.signature_mode> = { qw| default | => $modes }
+    if ref $modes ne qw| HASH |;
+<httpd.cfg.signature_mode>->{$vhost} = $mode;
+return { qw| mode | => qw| true |, qw| data | => $mode };
+
+#,,,,,...,...,.,.,.,.,,..,...,.,,,,..,.,.,.,,,..,,...,...,..,,..,,,,.,.,.,.,.,
+#PS7YB7CD63QC3TVUX7ZQB5MJKHOK542ACWCNAW3IAWRILMFID6DQ7DRXEWE3Z2MYQFVBMWR5G6VB6
+#\\\|LTIV7Q6N5G5VP5MCCGYLND6OLITNGQ23C4LYVM2XJ4QTUHNHEMN \ / AMOS7 \ YOURUM ::
+#\[7]VP6QKXAIDEDDJGKIPZOPGUR2QWO5LBOFBODEKKBFM2C3AFS7IWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

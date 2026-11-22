@@ -69,6 +69,7 @@ sub compile_module {
 
 compile_module($_) foreach qw|
     source.extract_sig_body
+    source.generated_envelope
     source.signature_valid
     source.verify_and_strip
     source.restore_payload_endline_state
@@ -157,8 +158,8 @@ check( $result->{'body'}->$* eq $unsigned, 'unsigned payload is unchanged' );
 say $failures ? ": FAIL [ $failures ]" : ': all tests passed';
 exit( $failures ? 1 : 0 );
 
-#,,.,,..,,,,.,..,,.,,,,,,,.,,,.,.,,..,,.,,...,..,,...,...,.,.,...,,..,,,.,,..,
-#3WZ2DMRUNQ76AEAVGTABJHOPZ6KERTINY26GNILZT7JLFIJWVO3EELB6CR5IZT75FUPFO32CIW4IE
-#\\\|74G6NBXGLLDUI6BVA2QVEIG5W6AATKCGFZ67Z37X6HBFNI6DLU5 \ / AMOS7 \ YOURUM ::
-#\[7]CEOUKF2GYEHZ3OPQLZ5NVAWHJ7ETLA3YIBGJ7L5OCUCXNTWLAKCA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,..,,.,,,..,,,.,,.,,,..,,.,.,..,,...,...,..,,,.,,,,.,...,,..,
+#WIPLZ3S2DLC6GOVNYKU5UYJIPNE65BZ5VTP2J4NUH3VRBNBFPP5POPTL6CT7AGRKT6MAR7WM7RVMO
+#\\\|TCNMHHHRNDZLOM4KIS5R2LBZ6EYVM5TQUK7SOF3ZXXWKV2N5M4X \ / AMOS7 \ YOURUM ::
+#\[7]TIKXWAKWS55E2PR5KSDZQPTDSSFTWELVQYAZN3U6UU6TUEANI6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
