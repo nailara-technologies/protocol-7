@@ -171,6 +171,45 @@ files : bin/p7-host-build, cfg/host-build/layout.template, bin/test-scripts/test
   part now runs the two-system layout [ exp on ext4 : mkfs.xfs refuses 32M ] and reads the
   menu \ host names off the real lvs -- not run yet [ needs root ]
 
+## implementation notes [ 2026-11-23, network \ timezone \ locale \ password -- not signed, not committed ]
+
+- network [ owner 2026-11-23, data/tasks/net-zenka.md ] : `net.backend = ifupdown | networkd |
+  none`, default ifupdown ; `net.wired` [ an interface match, default en* ], `net.wlan`
+  [ optional ]. systemd-resolved is never installed
+  - ifupdown : ifupdown + dhcpcd-base in the chroot when their dpkg .list is missing [ trixie
+    archive metadata : dhcpcd-base = binaries + hooks, Provides dhcp-client, priority
+    important like ifupdown ; dhcpcd = the init \ systemd unit, not wanted beside ifupdown ].
+    isc-dhcp-client is purged if present. /etc/network/interfaces : lo, `allow-hotplug
+    /<net.wired>/=p7-wired` + `iface p7-wired inet dhcp` [ ifupdown pattern syntax, its
+    examples/pattern-matching ], with net.wlan a commented wpa_supplicant stanza [ wpa-conf ]
+  - networkd : as before [ 20-p7-wired.network, the enable link, the .disabled wlan stub ]
+  - none : no network file, no package
+  - resolv.conf : no static file. the copy debootstrap took from the building host is removed
+    [ nothing written in its place : dhcpcd writes it from the first lease ] -- only when it
+    equals the building host's current file, so a lease-written one on a rebuilt disk stays ;
+    a symlink is left alone. every backend
+- system.timezone [ default Etc/UTC, a zoneinfo name : UTC or Area/Place ] : /etc/timezone
+  and the /etc/localtime link to /usr/share/zoneinfo/<zone>. links are managed like the
+  files : looked at by readlink, replaced only when they differ, planned as 'link'
+- per system : `system.<name>.timezone | locale | net.backend` [ default : the main system's ] ;
+  net.wired \ net.wlan are one setting for every system
+- password : `-password-fd <n>` reads one line once at the start [ not 1 \ 2 ; not open or
+  empty : refused before anything is read ] ; else asked once on a terminal [ AMOS7::TERM,
+  twice, masked ] ; the same password for the user in every system of the run, wiped after
+  the steps. only ever chpasswd stdin. without either the user is created locked and the
+  report says 'locked -- no password given'. the plan names the source [ fd n \ terminal \
+  locked ]. an existing user is never touched
+- open : with networkd there is no resolv.conf writer [ no resolved ] -- a manual step
+- tests : chain [ default ifupdown ] checks interfaces [ lo, the en* hotplug dhcp stanza, no
+  wlan ], ifupdown + dhcpcd-base installed, no isc-dhcp-client call, no networkd files, the
+  host's resolv.conf removed, timezone file + link, locked + report line. the multi block
+  [ main networkd + wlan stub, Europe/Berlin de_DE.UTF-8 ; rescue ifupdown, UTC, commented
+  wlan stanza, isc-dhcp-client purged ; exp none, C.UTF-8 ] with the password on fd 3 : dry
+  run names the fd and writes nothing, chpasswd stdin once per system, never argv, no
+  resolved, resolv.conf gone in every system, second run no write \ state unchanged ; fd not
+  open refused ; parser refusals timezone \ net.backend. the root loop part reads
+  /etc/network/interfaces and the timezone off each real lv -- not run yet [ needs root ]
+
 #,,.,,...,.,,,,,.,,..,.,.,,..,.,.,,,,,,,,,,,,,..,,...,...,...,,..,.,,,,.,,,..,
 #UVKDEV4UN65PUTAQYGESO2XVBA642MGAVW2WWXS3XDH2ONI6UBFTGKQEPZB45YOZ7Q55AV2J3BQJK
 #\\\|7PDNLVFAJBXLZTM2SUCUSMFTHQPC3RJUJ7FJVWEM5LE3OW2EYZL \ / AMOS7 \ YOURUM ::
@@ -211,8 +250,8 @@ files : bin/p7-host-build, cfg/host-build/layout.template, bin/test-scripts/test
   mac for the power zenka ]. the target side : WakeOnLan=magic in a systemd .link file for the
   wired interface, and wol enabled in the firmware [ the report reminds of it ]
 
-#,,..,.,.,,..,.,.,,,,,.,.,,..,..,,,,.,.,,,..,,..,,...,...,,.,,.,.,..,,.,.,,,.,
-#M2NO2D4FKKNQ3NHLOYDN4HJ45PGBF7W2BT7FXRCZ3KT33JRHJKF2W2UDGCWPVASSQUE3E6XQFHOA2
-#\\\|P6VE3W5EOEHNPUWVKA4EDYXZW2DAXYST4NSOHRLF5WL4SJOMMJH \ / AMOS7 \ YOURUM ::
-#\[7]DF2LI4CR5BON7M4ZUR5XBLKHFAVZS6M5APDWWSKJLSWPWA563KCA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,.,,,.,,,,,.,..,,...,,..,.,.,..,,...,...,...,,,.,,,,,,.,,,..,
+#MD5RPFYHN2E2ANFD7JBZPPAK3MSAM222S2IDYH3YPWA7ULNKXJYOKV3CZQD6ASPVDLOTHDYZAWGPA
+#\\\|GIKBU2A6HFFMHD6X67DVPGAJ3QVFE3CVJ2XO4KEDSSP5IQWZ7MN \ / AMOS7 \ YOURUM ::
+#\[7]U5TFJTZTYNUYC5MNWOQPTKYK25XEJYNF4IKM4I6LISOMIFBNRYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

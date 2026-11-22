@@ -131,15 +131,30 @@ my @P7_INSTALL_MODULES = qw|
 ## a redrawn progress line waits for its newline ##
 my $progress_drawn = FALSE;
 
+## systemd-networkd files in the new system ##
+my $NETWORK_DIR = qw| etc/systemd/network |;
+
+## the network backends : ifupdown + dhcpcd [ the default ], networkd ##
+## [ without resolved ], none                                         ##
+my $NET_RE = qr{\A(ifupdown|networkd|none)\z};
+
+## ifupdown : its packages in the new system                              ##
+## [ trixie : both priority important ] ; isc-dhcp-client [ end of life ] ##
+## is purged if present                                                   ##
+my @IFUPDOWN_PACKAGES = qw| ifupdown dhcpcd-base |;
+
+## a zone name below /usr/share/zoneinfo [ Etc/UTC, Europe/Berlin ] ##
+my $TZ_RE = qr{\A(?:UTC|[A-Z][\w+\-]*(?:/[A-Za-z0-9][\w+\-]*){1,2})\z};
+
 ##[ options ]#################################################################
 
 my %opt;
 
 Getopt::Long::Configure(qw| no_ignore_case |);
 Getopt::Long::GetOptions(
-    \%opt,           'layout=s', 'wipe=s', 'target=s',
-    'dry-run',       'yes',      'nc',     'no-p7',
-    'install-tools', 'help|h|options'
+    \%opt,           'layout=s',       'wipe=s', 'target=s',
+    'dry-run',       'yes',            'nc',     'no-p7',
+    'install-tools', 'help|h|options', 'password-fd=i'
 ) or frame_error_exit( $TOOL, 'unknown option [ -options lists them ]' );
 
 $AMOS7::TERM::Frame::color_override = FALSE if $opt{'nc'};
@@ -156,7 +171,28 @@ frame_error_exit( $TOOL, sprintf 'unexpected argument [ %s ]', $ARGV[0] )
 frame_error_exit( $TOOL, 'no layout given [ -layout <file|host> ]' )
     if not defined $opt{'layout'};
 
-my $DRY_RUN   = $opt{'dry-run'} ? TRUE : FALSE;
+my $DRY_RUN = $opt{'dry-run'} ? TRUE : FALSE;
+
+## the first user's password from a file descriptor                        ##
+## [ one line, like n7fs pass_fd ] : read once here, never argv, never the ##
+## layout                                                                  ##
+my $PASSWORD;
+if ( defined $opt{'password-fd'} ) {
+    my $fd = $opt{'password-fd'};
+    frame_error_exit( $TOOL, "-password-fd $fd : not stdout \\ stderr" )
+        if $fd == 1
+        or $fd == 2
+        or $fd < 0;
+    open( my $pfh, '<&=', $fd )
+        or frame_error_exit( $TOOL, "-password-fd $fd : not open" );
+    my $line = readline($pfh);
+    close($pfh);
+    $line = '' if not defined $line;
+    $line =~ s|\r?\n\z||;
+    frame_error_exit( $TOOL, "-password-fd $fd : no password read" )
+        if not length $line;
+    $PASSWORD = $line;
+}
 my $TEST_ROOT = $ENV{'P7_HOST_BUILD_ROOT'} // '';
 $TEST_ROOT =~ s|/+\z||;
 
@@ -309,6 +345,8 @@ foreach my $step (@STEPS) {
     }
 }
 
+wipe_string( \$PASSWORD ) if defined $PASSWORD;
+
 say frame_section_header('unmount');
 step_unmount();
 say frame_column_line();
@@ -369,6 +407,10 @@ sub parse_layout {
         qw| arch |    => qw| amd64 |,
         qw| mirror |  => 'http://deb.debian.org/debian',
         qw| locale |  => qw| C.UTF-8 |,
+        qw| tz |      => qw| Etc/UTC |,
+        qw| net |     => qw| ifupdown |,
+        qw| wired |   => qw| en* |,
+        qw| wlan |    => undef,
         qw| boot |    => qw| grub-efi |,
         qw| enable |  => qw| no |,
         qw| systems | => [],
@@ -445,6 +487,20 @@ sub parse_layout {
             return $err->("locale not valid [ $value ]")
                 if $value !~ m|\A[\w.\-\@]+\z|;
             $l{'locale'} = $value;
+        } elsif ( $key eq qw| system.timezone | ) {
+            return $err->("timezone not valid [ $value ]")
+                if $value !~ $TZ_RE;
+            $l{'tz'} = $value;
+        } elsif ( $key eq qw| net.backend | ) {
+            return $err->(
+                "net.backend is ifupdown, networkd or none [ $value ]")
+                if $value !~ $NET_RE;
+            $l{'net'} = $value;
+        } elsif ( $key =~ m{\Anet\.(wired|wlan)\z} ) {
+            my $field = $1;
+            return $err->("$key : an interface match [ $value ]")
+                if $value !~ m|\A[\w*?\-]{1,15}\z|;
+            $l{$field} = $value;
         } elsif ( $key eq qw| system.bootloader | ) {
             return $err->("bootloader is grub-efi or none [ $value ]")
                 if $value !~ m{\A(grub-efi|none)\z};
@@ -454,16 +510,19 @@ sub parse_layout {
                 if $value !~ m{\A(enable|no)\z};
             $l{'enable'} = $value eq qw| enable | ? qw| yes | : qw| no |;
         } elsif ( $key
-            =~ m{\Asystem\.([a-z][a-z0-9_]{0,15})\.(lv|suite|profile|hostname)\z}
+            =~ m{\Asystem\.([a-z][a-z0-9_]{0,15})\.(lv|suite|profile|hostname|timezone|locale|net\.backend)\z}
         ) {
             my ( $name, $field ) = ( $1, $2 );
             return $err->("system.main lives on '/' [ $key ]")
                 if $name eq qw| main |;
             my %check = (
-                qw| lv |       => qr|\Alv\.[a-z][a-z0-9_]{0,31}\z|,
-                qw| suite |    => qr|\A[a-z][a-z0-9\-]*\z|,
-                qw| profile |  => qr|\A[\w][\w\-]*\z|,
-                qw| hostname | => qr|\A[a-z0-9][a-z0-9\-]{0,62}\z|,
+                qw| lv |          => qr|\Alv\.[a-z][a-z0-9_]{0,31}\z|,
+                qw| suite |       => qr|\A[a-z][a-z0-9\-]*\z|,
+                qw| profile |     => qr|\A[\w][\w\-]*\z|,
+                qw| hostname |    => qr|\A[a-z0-9][a-z0-9\-]{0,62}\z|,
+                qw| timezone |    => $TZ_RE,
+                qw| locale |      => qr|\A[\w.\-\@]+\z|,
+                qw| net.backend | => $NET_RE,
             );
             return $err->("$field not valid [ $value ]")
                 if $value !~ $check{$field};
@@ -548,6 +607,9 @@ sub parse_layout {
             qw| suite |    => $s->{'suite'}   // $l{'suite'},
             qw| profile |  => $s->{'profile'} // $l{'profile'},
             qw| hostname | => $host,
+            qw| tz |       => $s->{'timezone'}    // $l{'tz'},
+            qw| locale |   => $s->{'locale'}      // $l{'locale'},
+            qw| net |      => $s->{'net.backend'} // $l{'net'},
             };
     }
     return $err->('further systems need system.bootloader = grub-efi')
@@ -1592,15 +1654,143 @@ sub wanted_files {
         = "127.0.0.1  localhost\n127.0.1.1  $HOST\n::1 "
         . " localhost ip6-localhost ip6-loopback\n";
     $f{'etc/default/locale'} = "LANG=$L->{'locale'}\n";
+    $f{'etc/timezone'}       = "$L->{'tz'}\n";
+
+    ## dhcp on the wired match ; the wlan part is an inactive stub networkd ##
+    ## does not read [ no .network suffix ] until it is configured          ##
+    if ( $L->{'net'} eq qw| ifupdown | ) {
+        my @if = (
+            '## written by p7-host-build [ net.backend = ifupdown ]',
+            '## dhcpcd writes /etc/resolv.conf from the lease',
+            '',
+            'source /etc/network/interfaces.d/*',
+            '',
+            'auto lo',
+            'iface lo inet loopback',
+            '',
+            '## wired [ net.wired ] : every matching interface',
+            "allow-hotplug /$L->{'wired'}/=p7-wired",
+            'iface p7-wired inet dhcp',
+        );
+        CORE::push @if, '',
+            '## wlan [ net.wlan ] -- inactive : write the wpa_supplicant',
+            '## config, then remove the leading #',
+            "# allow-hotplug /$L->{'wlan'}/=p7-wlan",
+            '# iface p7-wlan inet dhcp',
+            '#     wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf'
+            if defined $L->{'wlan'};
+        $f{'etc/network/interfaces'} = network_file(@if);
+    }
+    if ( $L->{'net'} eq qw| networkd | ) {
+        $f{"$NETWORK_DIR/20-p7-wired.network"}
+            = network_file( '## written by p7-host-build [ net.wired ]',
+            '[Match]',   "Name=$L->{'wired'}", 'Type=ether', '',
+            '[Network]', 'DHCP=yes' );
+        $f{"$NETWORK_DIR/25-p7-wlan.network.disabled"} = network_file(
+            '## written by p7-host-build [ net.wlan ] -- disabled : set up',
+            '## wpa_supplicant for the interface, then rename this file',
+            '## to 25-p7-wlan.network',
+            '[Match]',
+            "Name=$L->{'wlan'}",
+            'Type=wlan',
+            '',
+            '[Network]',
+            'DHCP=yes'
+        ) if defined $L->{'wlan'};
+    }
     return ( \%f, undef );
+}
+
+sub network_file { return join( "\n", @ARG ) . "\n" }
+
+## the managed symlinks : relative path -> link target ##
+sub wanted_links {
+    my %l = ( qw| etc/localtime | => "/usr/share/zoneinfo/$L->{'tz'}" );
+    $l{       qw| etc/systemd/system/multi-user.target.wants/|
+            . qw| systemd-networkd.service | }
+        = qw| /lib/systemd/system/systemd-networkd.service |
+        if $L->{'net'} eq qw| networkd |;
+    return \%l;
+}
+
+sub pkg_present { return -e "$TARGET/var/lib/dpkg/info/$ARG[0].list" }
+
+## the building host's resolv.conf, as debootstrap copied it ##
+sub host_resolv {
+    return length $TEST_ROOT
+        ? $ENV{'P7_HOST_BUILD_TEST_HOST_RESOLV'}
+        : slurp('/etc/resolv.conf');
+}
+
+## a resolv.conf that is the building host's copy [ debootstrap ] ; one ##
+## dhcpcd wrote from a lease differs and stays                          ##
+sub host_resolv_left {
+    return FALSE if -l "$TARGET/etc/resolv.conf";
+    my $here = slurp("$TARGET/etc/resolv.conf") // return FALSE;
+    my $host = host_resolv()                    // return FALSE;
+    return $here eq $host ? TRUE : FALSE;
+}
+
+## what the network set-up still needs : [ label, action ] ##
+sub net_todo {
+    my @todo;
+    if ( $L->{'net'} eq qw| ifupdown | ) {
+        my @missing = grep { not pkg_present($ARG) } @IFUPDOWN_PACKAGES;
+        CORE::push @todo, [ 'network packages', "install [ @missing ]" ]
+            if @missing;
+        CORE::push @todo, [ 'isc-dhcp-client', 'purge [ end of life ]' ]
+            if pkg_present(qw| isc-dhcp-client |);
+    }
+    CORE::push @todo, [ '/etc/resolv.conf', "remove [ the host's copy ]" ]
+        if host_resolv_left();
+    return @todo;
+}
+
+## ifupdown : dhcpcd-base as its dhcp client, never isc-dhcp-client ##
+sub step_network_packages {
+    return TRUE if $L->{'net'} ne qw| ifupdown |;
+    my @missing = grep { not pkg_present($ARG) } @IFUPDOWN_PACKAGES;
+    if (@missing) {
+        return FALSE if not chroot_apt(@missing);
+    } else {
+        row( 'network packages', 'ok', "@IFUPDOWN_PACKAGES" );
+    }
+    if ( pkg_present(qw| isc-dhcp-client |) ) {
+        return FALSE
+            if not act( 'isc-dhcp-client',
+            chroot_cmd(qw| apt-get -q -y purge isc-dhcp-client |) );
+        done( 'isc-dhcp-client', 'purged', 'end of life' );
+    }
+    return TRUE;
+}
+
+## no static resolv.conf : the dhcp client writes it from the lease ; the ##
+## building host's copy is removed, nothing written in its place          ##
+sub step_resolv_conf {
+    return TRUE if not host_resolv_left();
+    return fail( '/etc/resolv.conf', "cannot remove [ $OS_ERROR ]" )
+        if not CORE::unlink("$TARGET/etc/resolv.conf");
+    done( '/etc/resolv.conf', 'removed',
+        "the host's copy -- dhcp writes it" );
+    return TRUE;
+}
+
+sub link_ok {
+    my ( $rel, $to ) = @ARG;
+    my $now = readlink("$TARGET/$rel");
+    return ( defined $now and $now eq $to ) ? TRUE : FALSE;
 }
 
 sub step_configuration {
     my ( $mode, $step ) = @ARG;
     if ( $mode eq qw| plan | ) {
         if ( not plan_tree_visible() or not base_present() ) {
-            plan( $step, 'system files',      'if differing', FALSE );
-            plan( $step, "user $L->{'user'}", 'if missing',   FALSE )
+            plan( $step, 'system files', 'if differing', FALSE );
+            plan( $step, 'network', 'if missing', FALSE,
+                "$L->{'net'} [ packages, no host resolv.conf ]" )
+                if $L->{'net'} eq qw| ifupdown |;
+            plan( $step, "user $L->{'user'}",
+                'if missing', FALSE, password_source() )
                 if defined $L->{'user'};
             return TRUE;
         }
@@ -1609,11 +1799,18 @@ sub step_configuration {
             plan( $step, "/$rel", 'write', FALSE )
                 if ( slurp("$TARGET/$rel") // '' ) ne $files->{$rel};
         }
-        plan( $step, "user $L->{'user'}", 'create', FALSE )
+        my $links = wanted_links();
+        foreach my $rel ( sort keys %{$links} ) {
+            plan( $step, "/$rel", 'link', FALSE, $links->{$rel} )
+                if not link_ok( $rel, $links->{$rel} );
+        }
+        plan( $step, $ARG->[0], $ARG->[1], FALSE ) foreach net_todo();
+        plan( $step, "user $L->{'user'}", 'create', FALSE, password_source() )
             if defined $L->{'user'} and not user_present( $L->{'user'} );
         return TRUE;
     }
 
+    return FALSE if not step_network_packages();
     my ( $files, $why ) = wanted_files();
     return fail( 'system files', $why ) if not defined $files;
     foreach my $rel ( sort keys %{$files} ) {
@@ -1628,6 +1825,24 @@ sub step_configuration {
             if not spew( $path, $files->{$rel} );
         done( "/$rel", 'written' );
     }
+    my $links = wanted_links();
+    foreach my $rel ( sort keys %{$links} ) {
+        my ( $path, $to ) = ( "$TARGET/$rel", $links->{$rel} );
+        if ( link_ok( $rel, $to ) ) {
+            row( "/$rel", 'ok' );
+            next;
+        }
+        return fail( "/$rel", 'a directory is in the way' )
+            if -d $path and not -l $path;
+        my ( undef, $dir ) = File::Spec->splitpath($path);
+        make_path($dir)     if not -d $dir;
+        CORE::unlink($path) if -l $path or -e $path;
+        return fail( "/$rel", "cannot link [ $OS_ERROR ]" )
+            if not CORE::symlink( $to, $path );
+        done( "/$rel", 'linked', $to );
+    }
+
+    return FALSE if not step_resolv_conf();
 
     if ( $L->{'locale'} ne qw| C.UTF-8 | ) {
         my $gen = slurp("$TARGET/etc/locale.gen") // '';
@@ -1651,6 +1866,26 @@ sub user_present {
     return $passwd =~ m|^\Q$name\E:|m ? TRUE : FALSE;
 }
 
+## where the first user's password comes from [ the plan says it ] ##
+sub password_source {
+    return "password from fd $opt{'password-fd'}" if defined $PASSWORD;
+    return 'password asked on the terminal'
+        if not length $TEST_ROOT and -t STDIN;
+    return 'locked, no password given';
+}
+
+## the password : -password-fd, else asked once on a terminal ##
+## [ twice, masked ] ; the same for every system of the run   ##
+sub user_password {
+    my ($name) = @ARG;
+    state $asked = FALSE;
+    return $PASSWORD if defined $PASSWORD or $asked;
+    $asked = TRUE;
+    return undef if length $TEST_ROOT or not -t STDIN;
+    $PASSWORD = passphrase( "password for $name", TRUE );
+    return $PASSWORD;
+}
+
 ## the first user : created once ; its password goes to chpasswd on stdin ##
 ## [ never argv ]. no terminal \ a test root : the account stays locked   ##
 sub step_first_user {
@@ -1669,12 +1904,14 @@ sub step_first_user {
         if not act( "user $name",
         chroot_cmd( qw| useradd -m -s /bin/bash |, @groups, $name ) );
 
-    my $pass
-        = ( length $TEST_ROOT or not -t STDIN )
-        ? undef
-        : passphrase( "password for $name", TRUE );
+    my $pass = user_password($name);
     if ( not defined $pass ) {
-        done( "user $name", 'created', 'locked -- set it with passwd' );
+        done(
+            "user $name",
+            'created',
+            'locked -- no password given [ -password-fd '
+                . 'or a terminal ], set it with passwd'
+        );
         return TRUE;
     }
     my $ok = act(
@@ -1682,7 +1919,6 @@ sub step_first_user {
         { qw| input | => "$name:$pass\n" },
         chroot_cmd(qw| chpasswd |)
     );
-    wipe_string( \$pass );
     return FALSE if not $ok;
     done( "user $name", 'created', 'password set' );
     return TRUE;
@@ -1799,6 +2035,9 @@ sub system_layout {
         qw| host |    => $sys->{'hostname'},
         qw| suite |   => $sys->{'suite'},
         qw| profile | => $sys->{'profile'},
+        qw| tz |      => $sys->{'tz'},
+        qw| locale |  => $sys->{'locale'},
+        qw| net |     => $sys->{'net'},
         qw| parts |   => [
             map {
                 { %{$ARG}, qw| mount | => undef }
@@ -2339,6 +2578,9 @@ sub print_help {
      -target <dir> .......  mount point of the new tree
                             [ default : /mnt/p7-host-build/<host> ]
      -no-p7 ..............  skip p7-install inside the new system
+     -password-fd <n> ....  the first user's password, one line read
+                            from file descriptor n [ never argv ;
+                            without it and a terminal : locked ]
      -install-tools ......  missing host tools through the debian zenka
      -nc .................  no colours [ also with NO_COLOR, or no terminal ]
      -options ............  this option list [ -h resolves here ]
@@ -2359,8 +2601,8 @@ EOL
     return TRUE;
 }
 
-#,,,.,..,,..,,,..,..,,,.,,,,.,,,.,,.,,,.,,.,,,..,,...,...,,.,,.,.,,,,,.,.,,,,,
-#OTKGMJAH2DPFSZSW2PENXRIPZHWSWOHHANS6HQITEY25W2GHILQWZ2JAFXZVOEB4EG3C4JTYJRGQW
-#\\\|SIDXIP6W4SMUWTX3WUU4VPITPJN4UJVAB62CO5C3HSO4NQ7IZCN \ / AMOS7 \ YOURUM ::
-#\[7]4EH5UEXXANWD3UPAIQ3P7E2VC5CTF2LIPBI2YRN6LY3CQNDWHGCI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,.,.,,,.,,,,,,,,,.,.,...,..,,..,,...,...,,..,.,,,.,,,.,.,...,
+#QHORYN7N25JIDAP4KUALWK3WIUT4VZH4KECYBJCSMAVR7JL22SX3J4S54LCMFPZXDJE7YLUHLHW6A
+#\\\|76VEU6AFNSIUAJ2GSSJS2FO3ISU7TLOS6DVGAEXSRSVKRDSPMZG \ / AMOS7 \ YOURUM ::
+#\[7]6YESZE3MP5QENXAFNIJYYBOON6GPZVMUP63A3CL5UX4QEZHJI2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

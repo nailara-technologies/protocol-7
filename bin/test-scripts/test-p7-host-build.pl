@@ -25,6 +25,7 @@ use FindBin    qw| $RealBin |;
 use File::Temp qw| tempdir |;
 use File::Path qw| make_path remove_tree |;
 use File::Find qw| find |;
+use POSIX      ();
 
 use constant TRUE  => 5;
 use constant FALSE => 0;
@@ -86,6 +87,28 @@ sub run_tool {
     return ( $CHILD_ERROR >> 8, $out );
 }
 
+## the tool with the first user's password on fd 3 [ a pipe ] ##
+sub run_tool_pw {
+    my ( $env, $pw, @args ) = @ARG;
+    my $pid = open( my $pipe, '-|' ) // die "fork : $OS_ERROR";
+    if ( $pid == 0 ) {
+        %ENV = ( %ENV, %{$env} );
+        open( STDERR, '>&', \*STDOUT );
+        open( STDIN,  '<',  File::Spec->devnull );
+        $SYSTEM_FD_MAX = 255;    ## fd 3 stays open across exec ##
+        pipe( my $r, my $wr ) or CORE::exit 126;
+        print {$wr} "$pw\n";
+        close($wr);
+        POSIX::dup2( fileno($r), 3 ) // CORE::exit 126;
+        CORE::exec {$EXECUTABLE_NAME} $EXECUTABLE_NAME, $tool, @args;
+        CORE::exit 127;
+    }
+    my $out = do { local $INPUT_RECORD_SEPARATOR = undef; <$pipe> }
+        // '';
+    close($pipe);
+    return ( $CHILD_ERROR >> 8, $out );
+}
+
 ## every file below a dir with its content [ the 'nothing changed' view ] ##
 sub tree_snapshot {
     my ($dir) = @ARG;
@@ -94,6 +117,11 @@ sub tree_snapshot {
     find(
         {   qw| no_chdir | => 1,
             qw| wanted |   => sub {
+                if ( -l $File::Find::name ) {
+                    $snap{$File::Find::name}
+                        = 'link:' . readlink($File::Find::name);
+                    return;
+                }
                 return if not -f $File::Find::name;
                 $snap{$File::Find::name} = slurp($File::Find::name);
             }
@@ -348,6 +376,8 @@ if ( $name eq 'debootstrap' ) {
     touch( "$target/etc/passwd", "root:x:0:0:root:/root:/bin/bash\n" );
     touch( "$target/etc/group", "root:x:0:\nsudo:x:27:\n" );
     make_path("$target/usr/bin", "$target/root");
+    touch( "$target/etc/resolv.conf", $ENV{'P7_HOST_BUILD_TEST_HOST_RESOLV'} ) if defined $ENV{'P7_HOST_BUILD_TEST_HOST_RESOLV'};
+    touch( "$target/var/lib/dpkg/info/isc-dhcp-client.list", '' ) if $ENV{'FAKE_ISC'};
     exit 0;
 }
 if ( $name eq 'chroot' ) {
@@ -356,7 +386,7 @@ if ( $name eq 'chroot' ) {
     my $cmd = shift @ARGV // exit 1;
     my $real = do { open( my $f, '<', '/proc/self/mounts' ); local $/; <$f> } // '';
     exit 3 if not grep { $_->[0] eq "$t/dev" } mounts() and index( $real, " $t/dev " ) < 0;
-    if ( $cmd eq 'apt-get' ) { touch( "$t/boot/vmlinuz-6.12-fake", '' ) if grep {m|^linux-image|} @ARGV; exit 0 }
+    if ( $cmd eq 'apt-get' ) { touch( "$t/boot/vmlinuz-6.12-fake", '' ) if grep {m|^linux-image|} @ARGV; my $purge = grep { $_ eq 'purge' } @ARGV; foreach my $p ( grep { !m/^-|^(install|purge|update)$/ } @ARGV ) { $purge ? unlink("$t/var/lib/dpkg/info/$p.list") : touch( "$t/var/lib/dpkg/info/$p.list", '' ) } exit 0 }
     if ( $cmd eq 'grub-install' ) {
         exit 5 if grep {m|nvram|} @ARGV and not grep { $_ eq '--no-nvram' } @ARGV;
         touch( "$t/boot/efi/EFI/BOOT/BOOTX64.EFI", 'efi' ) if grep {m|x86_64-efi|} @ARGV;
@@ -364,7 +394,7 @@ if ( $name eq 'chroot' ) {
     }
     if ( $cmd eq 'update-grub' ) { touch( "$t/boot/grub/grub.cfg", 'menu' ); exit 0 }
     if ( $cmd eq 'useradd' ) { touch( "$t/etc/passwd", "$ARGV[-1]:x:1000:1000::/home/$ARGV[-1]:/bin/bash\n" ); exit 0 }
-    if ( $cmd eq 'chpasswd' ) { my $in = do { local $/; <STDIN> }; ap( 'secrets', length $in ); exit 0 }
+    if ( $cmd eq 'chpasswd' ) { my $in = do { local $/; <STDIN> }; ap( 'secrets', length $in ); open( my $f, '>>', "$S/chpasswd.in" ) or die; print {$f} $in; close $f; exit 0 }
     if ( $cmd eq 'locale-gen' ) { exit 0 }
     if ( $cmd eq '/usr/bin/perl' ) {
         exit 6 if not -f "$t$ARGV[0]" or not -f "$t/root/p7-host-build/AMOS7/TERM/Frame.pm";
@@ -435,11 +465,12 @@ sub stub_world {
         spew( "$w{'state'}/$f", $o{'state'}{$f} );
     }
     $w{'env'} = {
-        qw| PATH |                          => $w{'fake'},
-        qw| FAKE_STATE |                    => $w{'state'},
-        qw| P7_HOST_BUILD_ROOT |            => $w{'root'},
-        qw| P7_HOST_BUILD_TEST_PASSPHRASE | => 'not-on-argv-passphrase',
-        qw| NO_COLOR |                      => '',
+        qw| PATH |                           => $w{'fake'},
+        qw| FAKE_STATE |                     => $w{'state'},
+        qw| P7_HOST_BUILD_ROOT |             => $w{'root'},
+        qw| P7_HOST_BUILD_TEST_PASSPHRASE |  => 'not-on-argv-passphrase',
+        qw| NO_COLOR |                       => '',
+        qw| P7_HOST_BUILD_TEST_HOST_RESOLV | => "nameserver 192.0.2.53\n",
     };
     $w{'target'} = "$w{'root'}/mnt/p7-host-build/testhost";
     return \%w;
@@ -498,6 +529,14 @@ say ':';
             qr|crypt\.efi : not on vfat|
         ],
         [ 'bad size', "lv.x = 12Q ext4\n", qr|size not valid| ],
+        [   'bad timezone',
+            "system.timezone = ../etc\n",
+            qr|timezone not valid|
+        ],
+        [   'bad net.backend',
+            "net.backend = dhcp\n",
+            qr|net\.backend is ifupdown|
+        ],
         [   'bad mount point',
             "lv.x = 1G ext4 /a/../b\n",
             qr|mount point not valid|
@@ -677,6 +716,37 @@ my $chain_world;
     check( 'chain : locale',
         ( slurp("$t/etc/default/locale") // '' ) eq "LANG=C.UTF-8\n" );
     check(
+        'chain : timezone Etc/UTC [ file and link ]',
+        ( slurp("$t/etc/timezone") // '' ) eq "Etc/UTC\n"
+            && ( readlink("$t/etc/localtime") // '' ) eq
+            '/usr/share/zoneinfo/Etc/UTC'
+    );
+    check(
+        'chain : ifupdown default, dhcp on en*, lo, no wlan, no networkd',
+        ( slurp("$t/etc/network/interfaces") // '' )
+            =~ m|^auto lo\niface lo inet loopback\n.*^allow-hotplug /en\*/=p7-wired\niface p7-wired inet dhcp$|ms
+            && ( slurp("$t/etc/network/interfaces") // '' ) !~ m|wlan|
+            && !-e "$t/etc/systemd/network"
+            && !-e "$t/etc/systemd/system/multi-user.target.wants"
+    ) or print slurp("$t/etc/network/interfaces") // '';
+    check(
+        'chain : ifupdown + dhcpcd-base installed, no isc-dhcp-client',
+        -e "$t/var/lib/dpkg/info/ifupdown.list"
+            && -e "$t/var/lib/dpkg/info/dhcpcd-base.list"
+            && ( grep {m|apt-get -q -y install ifupdown dhcpcd-base|}
+            calls($w) )
+            && !grep {m|isc-dhcp-client|} calls($w)
+    );
+    check(
+        "chain : the host's resolv.conf removed, none written",
+        !-e "$t/etc/resolv.conf" && !-l "$t/etc/resolv.conf"
+    );
+    check(
+        'chain : no password -> locked, in the report',
+        !length( slurp("$w->{'state'}/secrets") // '' )
+            && $out =~ m|report.*user builder \.+ created.*locked|s
+    ) or print $out;
+    check(
         'chain : user created [ locked in a test root ]',
         ( slurp("$t/etc/passwd") // '' ) =~ m|^builder:|m
     );
@@ -827,6 +897,126 @@ sub multi_checks {
         same_snapshot( $before_tree, tree_snapshot( $w->{'root'} ) ) );
     check( 'multi second run : report says none',
         $out =~ m|changes \.+ none| )
+        or print $out;
+}
+
+## network \ timezone \ locale per system, the password from -password-fd ##
+{
+    my $layout = $MULTI_LAYOUT . <<'EOL';
+system.timezone        = Europe/Berlin
+system.locale          = de_DE.UTF-8
+net.backend            = networkd
+net.wlan               = wl*
+system.rescue.timezone = UTC
+system.rescue.net.backend = ifupdown
+system.exp.net.backend = none
+system.exp.locale      = C.UTF-8
+EOL
+    my $w = stub_world( qw| layout | => $layout );
+    $w->{'env'}{'FAKE_ISC'} = 1;
+    my $pw = 'fd-pass:word with spaces';
+    my ( $exit, $out ) = run_tool_pw(
+        $w->{'env'}, $pw,
+        qw| -dry-run -password-fd 3 |,
+        qw| -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'}
+    );
+    check(
+        'config dry run : exit 0, plan names fd, nothing written',
+        $exit == 0 && $out =~ m|password from fd 3| && !writes($w)
+    ) or print $out;
+    ( $exit, $out ) = run_tool_pw(
+        $w->{'env'}, $pw,
+        qw| -password-fd 3 -yes |,
+        qw| -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'}
+    );
+    check( 'config chain : exit 0', $exit == 0 ) or print $out;
+    my $st = sub {"$w->{'state'}/store/_dev_mapper_test--vg-$ARG[0]"};
+    check(
+        'config chain : password on chpasswd stdin, once per system',
+        ( slurp("$w->{'state'}/chpasswd.in") // '' ) eq "builder:$pw\n" x 3
+    );
+    check(
+        'config chain : password never on argv',
+        !grep { index( $ARG, 'fd-pass' ) >= 0 } calls($w)
+    );
+    check(
+        'config chain : timezone per system, main as default',
+        ( slurp( $st->('root') . '/etc/timezone' ) // '' ) eq
+            "Europe/Berlin\n"
+            && ( slurp( $st->('rescue') . '/etc/timezone' ) // '' ) eq "UTC\n"
+            && ( readlink( $st->('exp') . '/etc/localtime' ) // '' ) eq
+            '/usr/share/zoneinfo/Europe/Berlin'
+    );
+    check(
+        'config chain : locale per system, generated where needed',
+        ( slurp( $st->('rescue') . '/etc/default/locale' ) // '' ) eq
+            "LANG=de_DE.UTF-8\n"
+            && ( slurp( $st->('exp') . '/etc/default/locale' ) // '' ) eq
+            "LANG=C.UTF-8\n"
+            && ( slurp( $st->('root') . '/etc/locale.gen' ) // '' )
+            =~ m|^de_DE\.UTF-8 UTF-8$|m
+    );
+    my $wlan = $st->('root') . '/etc/systemd/network/25-p7-wlan.network';
+    my $nd   = "etc/systemd/system/multi-user.target.wants/"
+        . 'systemd-networkd.service';
+    check(
+        'config chain : networkd main [ wired, enabled, wlan stub off ]',
+        (   slurp(
+                $st->('root') . '/etc/systemd/network/20-p7-wired.network'
+            ) // ''
+            ) =~ m|^Name=en\*\n.*^DHCP=yes$|ms
+            && ( readlink( $st->('root') . "/$nd" ) // '' ) =~ m|networkd|
+            && !-e $wlan
+            && ( slurp("$wlan.disabled") // '' ) =~ m|^Name=wl\*$|m
+            && !-e $st->('root') . '/etc/network/interfaces'
+            && !grep {m|resolved|} calls($w)
+    );
+    my $rif = slurp( $st->('rescue') . '/etc/network/interfaces' ) // '';
+    check(
+        'config chain : ifupdown rescue, wlan stanza commented, isc purged',
+        $rif        =~ m|^allow-hotplug /en\*/=p7-wired$|m
+            && $rif =~ m|^# allow-hotplug /wl\*/=p7-wlan$|m
+            && $rif =~ m|^#     wpa-conf |m
+            && $rif !~ m|^[^#\n]*wlan|m
+            && !-e $st->('rescue')
+            . '/etc/systemd/network'
+            && !-e $st->('rescue')
+            . '/var/lib/dpkg/info/isc-dhcp-client.list'
+            && -e $st->('rescue')
+            . '/var/lib/dpkg/info/dhcpcd-base.list'
+    ) or print $rif;
+    check(
+        'config chain : none for exp [ no network files, no packages ]',
+        !-e $st->('exp') . '/etc/network/interfaces'
+            && !-e $st->('exp') . '/etc/systemd/network'
+            && !-e $st->('exp') . "/$nd"
+            && !-e $st->('exp') . '/var/lib/dpkg/info/dhcpcd-base.list'
+    );
+    check(
+        "config chain : the host's resolv.conf removed in every system",
+        3 == grep { !-e $st->($ARG) . '/etc/resolv.conf' }
+            qw| root rescue exp |
+    );
+    my $before_state = state_snap($w);
+    my $before_tree  = tree_snapshot( $w->{'root'} );
+    reset_calls($w);
+    ( $exit, $out ) = run_tool( $w->{'env'}, '-layout', $w->{'layout'} );
+    check(
+        'config second run : exit 0, no write, changes none',
+        $exit == 0 && !writes($w) && $out =~ m|changes \.+ none|
+    ) or print $out;
+    check(
+        'config second run : state unchanged',
+        same_snapshot( $before_state, state_snap($w) )
+    );
+
+    ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -password-fd 7 -layout |,
+        $w->{'layout'} );
+    check( 'password-fd not open : refused',
+        $exit != 0 && $out =~ m|-password-fd 7 : not open| )
         or print $out;
 }
 
@@ -1131,8 +1321,10 @@ sub root_loop_chain {
                 CORE::system( qw| mount -o ro |, "/dev/p7hb$PID/$lv", $look )
                 != 0;
             $menu_of{$lv} = {
-                qw| menu | => slurp("$look/etc/grub.d/41_p7-systems") // '',
-                qw| hostname | => slurp("$look/etc/hostname")         // '',
+                qw| menu | => slurp("$look/etc/grub.d/41_p7-systems")   // '',
+                qw| hostname | => slurp("$look/etc/hostname")           // '',
+                qw| network |  => slurp("$look/etc/network/interfaces") // '',
+                qw| timezone | => slurp("$look/etc/timezone")           // '',
             };
             CORE::system( qw| umount |, $look );
         }
@@ -1153,6 +1345,14 @@ sub root_loop_chain {
             'loop : each system its own tree and host name',
             ( $menu_of{'rescue'}{'hostname'} // '' ) eq "testhost-rescue\n"
                 && ( $menu_of{'exp'}{'hostname'} // '' ) eq "testhost-lab\n"
+        );
+        check(
+            'loop : ifupdown dhcp and timezone in every system',
+            3 == grep {
+                ( $menu_of{$ARG}{'network'} // '' )
+                    =~ m|^iface p7-wired inet dhcp$|m
+                    && ( $menu_of{$ARG}{'timezone'} // '' ) eq "Etc/UTC\n"
+            } qw| root rescue exp |
         );
 
         my $sig = qx| sgdisk -p $loop |;
@@ -1199,8 +1399,8 @@ sub root_loop_chain {
     return TRUE;
 }
 
-#,,,.,,.,,,,.,.,,,,.,,,,.,...,.,,,..,,..,,,,.,..,,...,...,..,,,,,,.,,,,..,..,,
-#UVSYWTFT6A6BTE7UO2QR7CD3RUST2E2LEDYE2THFOFUTFONJUXLROYCQYTMBPCP2ITUDUW6BTH3MM
-#\\\|WBCN3YNYPUCHQFHSBKFXDSS4I6OBULVX2S5Z7EIZZ7PBYJZRM6Z \ / AMOS7 \ YOURUM ::
-#\[7]ZTGVAIY75DXOSV3H5MIQFASXBSA4A4SGDI2P6X6TUICX6LPTMQAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,...,...,,,.,.,.,.,.,.,.,,,,,...,..,,...,...,,.,,,,,,,..,,.,,..,,
+#2L3ZWDFVGLKZRABAIZB3LTNJVHTV76NDQ6FO36DJ6NP75GYBDTIQXRFMD2XBSNCF2TC27QSLEHIRA
+#\\\|MD5SYGOK76NVKI7VJBCO6ABJWETKVR5K2VW52QVVVCEDEWVTRFS \ / AMOS7 \ YOURUM ::
+#\[7]ICBTJ4CVPUXISHZU7BVLTK3MGTYU3PY3NMTSRE6FYAIYEY2Z5UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

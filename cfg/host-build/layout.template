@@ -38,6 +38,15 @@ system.suite     = trixie
 system.arch      = amd64
 system.mirror    = http://deb.debian.org/debian
 system.locale    = C.UTF-8
+# system.timezone = Etc/UTC                [ the default ; a zoneinfo name ]
+
+## network : ifupdown + dhcpcd [ the default : /etc/network/interfaces,    ##
+## dhcpcd writes resolv.conf from the lease ], networkd [ no resolved ] or ##
+## none. net.wired is an interface match, not a machine's name ; net.wlan  ##
+## adds an inactive wpa_supplicant stanza \ networkd stub                  ##
+# net.backend    = ifupdown                [ ifupdown | networkd | none ]
+# net.wired      = en*                     [ the default ]
+# net.wlan       = wl*                     [ optional, disabled stub ]
 
 ## grub-efi [ removable path, no nvram write ] or none ##
 system.bootloader = grub-efi
@@ -57,17 +66,20 @@ system.service   = no
 # system.rescue.suite    = trixie
 # system.rescue.profile  = minimal
 # system.rescue.hostname = example-host-rescue
+# system.rescue.timezone = Etc/UTC       [ timezone \ locale \ net : the ]
+# system.rescue.locale   = C.UTF-8       [ main system's by default      ]
+# system.rescue.net.backend = ifupdown
 #
 # lv.lab                 = 16G ext4         [ before lv.data : 'rest' stays last ]
 # system.lab.lv          = lv.lab
 # system.lab.suite       = unstable         [ experiment slot ]
 
-## a first user [ the password is asked on the terminal, never argv ; ##
-## without a terminal the account stays locked ]                      ##
+## a first user [ the password : -password-fd <n>, else asked twice on the ##
+## terminal ; never argv, never here. without either : locked ]            ##
 # user.name      = <name>
 
-#,,..,,,,,.,.,..,,..,,,.,,...,,.,,,,.,,,.,...,..,,...,..,,...,..,,,.,,.,.,,,.,
-#DLUC7NEZM4MLYGZR7REKLUQZHZO3PU5PL2A2LSHQBM2ADVRYU3KXM4WDADV45H5ZVGLWG5QBRES6S
-#\\\|RTMWYOJ23XAUKAOVXMDCIUDFKMPQYXTJBGT7X7IXBZ25W6ZQUX7 \ / AMOS7 \ YOURUM ::
-#\[7]GHBMO2NYJLQ743WJU663LQFT7KKTKLP3DU7LNWSOFGCKXC4AFQBI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,...,...,.,,,,.,,,..,,.,,,,.,..,,...,...,..,,,,,,...,,,,,..,,
+#OPUG4I754PL6TITIUW6U4MAJGIVBZKGM7RZX52VVDZQXK6X7LKHHJ726RMCTCM7QV7QUAMOQX45BW
+#\\\|J7Y3Y3NZGP5UVLCHGXBZGC7BUQO3CSKDNMKU7Z26SOGJUQ7R2FW \ / AMOS7 \ YOURUM ::
+#\[7]3UJL2T3DWOVBGIGZV4XZ3VXHILUJ77RUSQ5S2JMLD63T4GNHEEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
