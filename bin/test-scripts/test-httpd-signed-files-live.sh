@@ -85,7 +85,16 @@ strip_fixture() {
     perl -0777 -pe 's/\n?#[\.,]{70,}\n(?:#[^\n]+\n)+\z//s' "$1"
 }
 
-p7c "$HTTP_ZENKA".heart >/dev/null
+## wait for the zenka [ a fresh restart takes a few seconds ] ; fail loudly
+heart_ok=0
+for heart_wait in 1 2 3 5 8 13; do
+    if p7c "$HTTP_ZENKA".heart >/dev/null 2>&1; then
+        heart_ok=1
+        break
+    fi
+    sleep "$heart_wait"
+done
+[[ $heart_ok -eq 1 ]] || fail "$HTTP_ZENKA does not answer its heartbeat"
 [[ -r $SMALL_FIXTURE ]] || fail "missing signed fixture : $SMALL_FIXTURE"
 [[ -r $LARGE_FIXTURE ]] || fail "missing large signed fixture : $LARGE_FIXTURE"
 [[ -w $SITE_DIR ]] || fail "site directory is not writable : $SITE_DIR"
@@ -191,17 +200,19 @@ printf 'ok   : large real transfer is stripped and exact\n'
 REQUEST_PATH=/$LARGE_NAME
 printf '\n%s [ client disconnect ]\n' "$REQUEST_PATH"
 set +e
-DISCONNECT_CODE=$(curl --limit-rate 8192 --max-time 1 -sS \
-    -D "$TMP_DIR/disconnect.headers" -o "$TMP_DIR/disconnect.body" \
-    -w '%{http_code}' -H "Host: $HTTP_HOST" \
-    "${CURL_INSECURE[@]}" "$BASE_URL/$LARGE_NAME")
-DISCONNECT_RC=$?
+## the client closes after 4096 body bytes : deterministic, unlike a rate
+## limit which socket buffers and the ram cache can outrun
+curl -sS -N -D "$TMP_DIR/disconnect.headers" -H "Host: $HTTP_HOST" \
+    "${CURL_INSECURE[@]}" "$BASE_URL/$LARGE_NAME" 2>/dev/null \
+    | head -c 4096 > "$TMP_DIR/disconnect.body"
+DISCONNECT_RC=${PIPESTATUS[0]}
+DISCONNECT_CODE=$(perl -ne 'print $1 if m{^HTTP/\S+ (\d+)}' "$TMP_DIR/disconnect.headers")
 set -e
 DISCONNECT_SIZE=$(wc -c < "$TMP_DIR/disconnect.body")
 perl -ne 'print if m{^HTTP/} or m{^Content-Length:}i' "$TMP_DIR/disconnect.headers"
 printf 'curl_rc=%s http_code=%s partial_bytes=%s\n' \
     "$DISCONNECT_RC" "$DISCONNECT_CODE" "$DISCONNECT_SIZE"
-[[ $DISCONNECT_RC -ne 0 ]] || fail 'disconnect fixture completed before timeout'
+[[ $DISCONNECT_RC -ne 0 ]] || fail 'client closed but curl reports a complete transfer'
 [[ $DISCONNECT_SIZE -gt 0 && $DISCONNECT_SIZE -lt $LARGE_SIZE ]] \
     || fail 'client did not disconnect mid-transfer'
 
@@ -213,8 +224,8 @@ printf 'ok   : server remains healthy after client disconnect\n'
 
 printf '\n: all live %s signed-file tests passed\n' "$HTTP_ZENKA"
 
-#,,.,,,,.,,.,,,.,,,,,,,,,,..,,...,,..,.,,,.,.,..,,...,..,,,..,,,,,,..,,,.,..,,
-#4WNXJAX4XMOIEK54VDFJEQWJM7DD3YFPEUKTOZJRZHDCOSZRCX7PMQHEODAN5ZHEKWREUCJB2DHKI
-#\\\|GQOOWUWJDPJQSLI7ZJCK6DPKVITHSVPMXIOUAJUXUMPH2JQAZUC \ / AMOS7 \ YOURUM ::
-#\[7]NCOLWHJZXPAWPYDVTPZJEW6F7ZDJ5W4RPBJCYMIBH4STTCEVRSCA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,,,...,..,,..,,..,,.,.,,,,,,,,,..,,...,...,...,,,.,,,,,...,,,.,
+#5NKTBTP6SURWNGRZVUEKHX3YXEC27EGXI4GBSIFBK5TA3NCXZA36PNHLRSMHJC6MXJDTMSNE7YTWM
+#\\\|EVIPEGHF7LO75T2MEDFJDKNPEMQLIONJPP6PU6M46FMJBRKQEMU \ / AMOS7 \ YOURUM ::
+#\[7]JLTG2WOOXOQFETDSZMQ3Y6PCF7GY7CK7JK7BV7TKT5ZZRJVIQUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
