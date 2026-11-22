@@ -65,8 +65,16 @@ povray icon set, xpra forwarding, generator signing, n7fs set-category \ place s
   verify templates BEFORE httpd.process_template [ owner : .tmpl is a default type ].
 - place of tier A still running on the home server [ owner's tmux ].
 
-#,,.,,,..,...,.,.,..,,,..,..,,.,.,,.,,..,,.,.,..,,...,...,.,,,,..,,.,,...,,..,
-#66HXZ67JUWAA23BYGKSOV4YCW3Z55F745PDENPYRVY7AEIZWL3JV6RMELH4ZLOOMZSN3U5BWL5FC6
-#\\\|KA2M3KISFGZM35HK6XLMF7CRNS23L4MGA5V2QI6RY6ABG4IYMYI \ / AMOS7 \ YOURUM ::
-#\[7]RBI2E5JFFCACPHTBT2OQHHQLVYKJUSDNPDGIAPTQKXPNMCKEZ6CA 7  DATA SIGNATURE ::
+**place blocked by memory [ found end of 2026-11-22 ]** : the system zenka's watchdog
+[ mem.max_used = 98 % ] killed `n7fs place` three times on the 16 GB home server, place
+itself at ~50 % rss [ the 'background upload failed' was the same kill ]. root cause :
+place materialises the whole placement plan [ ~270,000 nodes ] in memory, plus upload
+children. NEXT : kimi task -- stream the plan [ per tree \ chunk ], bounded memory ;
+pass a background upload child's error text to the parent [ only its exit status
+arrives today ]. stopgap if needed : temporary swap or N7FS_UPLOAD_JOBS=1.
+
+#,,.,,,,,,.,,,,..,,..,,,,,,,.,,..,,..,..,,.,.,..,,...,...,,,.,,,,,.,.,...,,.,,
+#P5ABZIRO73D5L6ODBXIEAM7G7LDNRVP5QNMBMWMROY2QVIJRMRBJVRJGZR47D2DKI6U6IBP4AN7PI
+#\\\|N4XPQT7F4MP7BCG2PROPAIQZUVWYXG74QL3DNKMPBFG4VYCIGJO \ / AMOS7 \ YOURUM ::
+#\[7]S6RJR3G743OXYWETY7YEKMGIBHEDEIHCRD632TUJXDNYQZWI3CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
