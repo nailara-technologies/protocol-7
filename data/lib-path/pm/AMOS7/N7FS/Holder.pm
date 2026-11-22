@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.2F3QGXY |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.LEMYJJQ |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -362,24 +362,36 @@ sub _result {
 }
 
 ## signed changes are not blindly retried : a lost reply must not turn the
-## same counter into a replay. a rerun reserves a fresh counter instead
+## same counter into a replay. a rerun reserves a fresh counter instead. an
+## explicit replay reply permits one resynchronized request with a new nonce
 sub _signed {
     my ( $h, $op, $args, $input ) = @_;
     my ( $root, $target ) = _root($h);
-    my $token = request_token( $root, $target, $op, $args );
-    my $command;
-    if ( $op eq 'put-head' or $op eq 'put-list' ) {
-        $command = join ' ', $op, @{$args}{qw| path size |}, $token;
-    } elsif ( $op eq 'move' ) {
-        $command = join ' ', $op, @{$args}{qw| from to |}, $token;
-    } elsif ( $op eq 'migrate' ) {
-        $command = join ' ', $op, @{$args}{qw| name tag |}, $token;
-    } elsif ( $op eq 'purge-day' or $op eq 'delete' ) {
-        $command = join ' ', $op, $args->{'path'}, $token;
-    } else {
+    my $make_command = sub {
+        my $floor = shift;
+        my $token = request_token( $root, $target, $op, $args, $floor );
+        if ( $op eq 'put-head' or $op eq 'put-list' ) {
+            return join ' ', $op, @{$args}{qw| path size |}, $token;
+        } elsif ( $op eq 'move' ) {
+            return join ' ', $op, @{$args}{qw| from to |}, $token;
+        } elsif ( $op eq 'migrate' ) {
+            return join ' ', $op, @{$args}{qw| name tag |}, $token;
+        } elsif ( $op eq 'purge-day' or $op eq 'delete' ) {
+            return join ' ', $op, $args->{'path'}, $token;
+        }
         refuse( 'unknown signed holder operation : %s', $op );
-    }
+    };
+    my $command = $make_command->();
     my ( $status, undef, $err ) = _ssh( $h, $command, $input );
+    if (    $status == 8
+        and $err =~ m|\An7fs-receive : replayed holder request ([0-9]+)\n\z| )
+    {
+        defined sysseek( $input, 0, 0 )
+            or refuse('cannot rewind the signed holder upload')
+            if ref $input;
+        $command = $make_command->($1);
+        ( $status, undef, $err ) = _ssh( $h, $command, $input );
+    }
     return $status                                      if $status == 44;
     refuse( 'signed holder %s failed : %s', $op, $err ) if $status;
     return 0;
@@ -1287,9 +1299,9 @@ sub holder_put_batch {
     return;
 }
 
-## receiver blobs on the session : sizes, the missing ones put, then every one
-## read back and compared, each step pipelined. heads and lists stay signed
-## single requests ; what the session cannot take is returned
+## receiver blobs on the session : sizes, the missing ones put, then readback
+## and comparison, each step pipelined. packs and content use sampled ranges
+## instead of a second full transfer ; heads and lists stay signed singles
 sub _session_put_batch {
     my ( $h, $items ) = @_;
     my @blobs = grep { $ARG->[2] ne qw| head | and $ARG->[2] ne qw| list | }
@@ -1322,12 +1334,59 @@ sub _session_put_batch {
         refuse( 'receiver upload failed : %s', $ARG->[0] )
             for grep { $ARG->[0] } @{$done};
     }
-    my $back = _session_call( $h, [ map {"get $ARG"} @remote ] )
-        or refuse( 'holder session readback failed : %s', $h->{'alias'} );
+    my @read;
     foreach my $i ( 0 .. $#blobs ) {
-        refuse( 'holder readback checksum mismatch for %s', $blobs[$i][1] )
+        my ( $name, $kind ) = @{ $blobs[$i] }[ 1, 2 ];
+        my $data = $bytes{$name};
+        if ( $kind eq qw| pack | ) {
+            for ( 1 .. 2 ) {
+                my $len = length($data) < 65536 ? length($data) : 65536;
+                my $offset
+                    = unpack( 'N', random_bytes(4) )
+                    % ( length($data) - $len + 1 );
+                push @read,
+                    [
+                    "get-range $remote[$i] $offset $len",
+                    substr( $data, $offset, $len ),
+                    $name
+                    ];
+            }
+        } elsif ( $kind eq qw| content | ) {
+            refuse('uploaded content header is truncated')
+                if length $data < 26;
+            my $chunks = unpack qw| Q> |, substr( $data, 18, 8 );
+            my @offsets;
+            my $pos = 26;
+            for my $index ( 0 .. $chunks - 1 ) {
+                refuse('uploaded content chunk table is truncated')
+                    if $pos + 4 > length $data;
+                my $len = unpack qw| N |, substr( $data, $pos, 4 );
+                refuse('uploaded content chunk is truncated')
+                    if $pos + 4 + $len > length $data;
+                push @offsets, [ $pos, 4 + $len ];
+                $pos += 4 + $len;
+            }
+            my $pick
+                = $chunks > 1 ? unpack( 'N', random_bytes(4) ) % $chunks : 0;
+            for my $index ( 0, $pick ) {
+                my ( $offset, $len ) = $offsets[$index]->@*;
+                push @read,
+                    [
+                    "get-range $remote[$i] $offset $len",
+                    substr( $data, $offset, $len ),
+                    $name
+                    ];
+            }
+        } else {
+            push @read, [ "get $remote[$i]", $data, $name ];
+        }
+    }
+    my $back = _session_call( $h, [ map { $ARG->[0] } @read ] )
+        or refuse( 'holder session readback failed : %s', $h->{'alias'} );
+    foreach my $i ( 0 .. $#read ) {
+        refuse( 'holder readback checksum mismatch for %s', $read[$i][2] )
             if $back->[$i][0]
-            or $back->[$i][1] ne $bytes{ $blobs[$i][1] };
+            or $back->[$i][1] ne $read[$i][1];
     }
     return @rest;
 }
@@ -1443,8 +1502,8 @@ sub holder_put {
 
 1;
 
-#,,.,,..,,.,,,..,,..,,,..,,.,,..,,,,.,.,.,.,.,..,,...,..,,.,,,,..,...,,..,,,.,
-#T5VCVHWZC5UKAVBQ5O4YDGFTFZHSPY7VYCR777XCFAKFFWZVXP4DCBBKIRGLYGIJZHPKG6PSONHXG
-#\\\|OOTZ3CZBBFJVNDFSZRZM5D6MDYLULYKROPWT2THG54ZUQZQJQ46 \ / AMOS7 \ YOURUM ::
-#\[7]5LZCGIPFWLYFI7YUHJTPWHUWMELCEPN32IPYCPRLAJBI264BQMDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,..,,...,..,,,..,,,,,..,,,.,,..,,...,...,,..,,,,,..,,.,.,,.,,
+#AYYLJWPXJCKJGIPJOUEY7VOBSI3OHGWFTABP5SWUX6XOAK7KXFWRI5RUNNHKMYFWJTEJFPUM7SDPG
+#\\\|OP6NVNRCC342GTDGVEZDJ4TUJMQ6LXZZBHK4H3XAPMPUJSHRRJM \ / AMOS7 \ YOURUM ::
+#\[7]EIPVZ7TK4E6AMP2236KP567PLJ4LF24UPLLXKUZA7IER3Z5C6CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ use AMOS7::N7FS      qw| make_dirs read_file b32 |;
 use AMOS7::N7FS::Sum qw| bmw384_bytes bmw_b32 |;
 use AMOS7::N7FS::Keys;
 use AMOS7::N7FS::Seal;
-use AMOS7::N7FS::Receiver qw| holder_id request_sign |;
+use AMOS7::N7FS::Receiver qw| holder_id request_sign request_parse |;
 use AMOS7::N7FS::Sign     qw| seed_signer new_seed |;
 use AMOS7::N7FS::Holder;
 
@@ -144,6 +144,14 @@ ok( $rc == 0
     'the cli prints the complete restricted authorized_keys prefix'
 ) or say $out;
 
+{
+    local $ENV{'N7FS_TEST_FAULT'} = 'seal:after-pack';
+    delete local $ENV{'N7FS_TEST_PACK_LIMIT'};
+    ( $rc, $out ) = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main' );
+    ok( $out =~ m|place FAILED on local .*seal:after-pack|,
+        'an interrupted place stops after its first pack'
+    ) or say $out;
+}
 ( $rc, $out ) = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main' );
 ok( $rc == 0 && $out =~ m|placed [1-9]\d* nodes on rx| && $out =~ m|on local|,
     'place seals through the receiver and to a local holder'
@@ -273,6 +281,49 @@ ok( $rc == 0 && $out =~ m|switched legacy to ssh-receiver:fake:/holder|,
     'the registry switches an existing holder to receiver mode'
 ) or say $out;
 
+## the same root key from a second client state starts behind the receiver ##
+my $counter_path = "$remote/.n7fs-receive/$main_root->{'root_id'}.counter";
+my $last_before  = read_file($counter_path);
+chomp $last_before;
+my $advanced    = $last_before + 1;
+my $second_root = { %{$main_root}, qw| path | => "$base/second-machine" };
+my $list_name   = 'relay-list.' . ( 'S' x 13 );
+my $list_bytes  = "second client relay list\n";
+write_file( "$base/second-list", $list_bytes );
+my @second_tokens;
+{
+    no warnings qw| redefine |;
+    my $original = \&AMOS7::N7FS::Holder::request_token;
+    local *AMOS7::N7FS::Holder::request_token = sub {
+        my $token = $original->(@ARG);
+        push @second_tokens, $token;
+        return $token;
+    };
+    AMOS7::N7FS::Holder::holder_authorize( $spec, $second_root );
+    AMOS7::N7FS::Holder::holder_put( $spec, "$base/second-list",
+        $list_name, 'list', 1 );
+}
+my @second_payload
+    = map { request_parse($ARG)->{'payload'} } @second_tokens;
+ok( @second_payload == 2
+        && $second_payload[0]->{'counter'} == 1
+        && $second_payload[1]->{'counter'} == $advanced
+        && read_file($counter_path) eq "$advanced\n"
+        && read_file("$remote/$list_name") eq $list_bytes,
+    'a second client state is refused once, advances and retries successfully'
+) or say join "\n", map { $ARG->{'counter'} } @second_payload;
+ok( @second_payload == 2
+        && $second_payload[0]->{'nonce'} ne $second_payload[1]->{'nonce'},
+    'counter recovery signs a fresh request nonce'
+);
+my $old_request = request_sign( $main_root, $spec, 'delete',
+    { qw| path | => "$tag/$name" }, 1 );
+( $rc, $out )
+    = receive( "delete $tag/$name $old_request", undef, @receiver_args );
+ok( $rc == 8 && $out eq "n7fs-receive : replayed holder request $advanced\n",
+    'an old counter stays refused after the second client advances'
+) or say $out;
+
 ## direct refusal checks come last : their high counters must not block the ##
 ## ordinary workflow above                                                  ##
 make_dirs("$remote/$tag/.trash/2020-01-01");
@@ -306,8 +357,8 @@ ok( $rc == 0 && !-d "$remote/$purge_path",
 ) or say $out;
 ( $rc, $out )
     = receive( "purge-day $purge_path $valid", undef, @receiver_args );
-ok( $rc == 8 && $out =~ m|replayed holder request|,
-    'the identical purge record is refused as a replay'
+ok( $rc == 8 && $out eq "n7fs-receive : replayed holder request 1000\n",
+    'the identical purge record is refused with only its last counter'
 ) or say $out;
 
 ## a signed request cannot make a corrupted outer head signature valid ##
@@ -336,8 +387,8 @@ ok( $rc == 3 && $out =~ m|outer signature|,
 
 done();
 
-#,,,,,,..,.,.,...,,,.,,,.,,..,..,,.,.,,..,.,.,..,,...,...,.,,,.,.,.,,,.,,,,,,,
-#VW5W7PV6ZPBBTO3EVZN7XXEL7FAWDPX7NCXYLAUKAEJEE5LOVMWZVNPWXB4A5TLRWQZAA7K5Z4NKO
-#\\\|FIWXIM2HSNXVKJ5AKSZFO3EZW5JM4PUVD3HUW33JNJOAUIS5HXI \ / AMOS7 \ YOURUM ::
-#\[7]DXMZXCGLGF2JN37DFAYWU7FGCALTS4XL4OZUHFWDGEFYNENJPYBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,,,,..,.,,,.,.,..,,,,.,...,...,..,,...,...,.,,,..,,,,,,..,,,..,
+#5CGSBZAMP2LLD22WAAZMBPQKUPHUTL2MKEDGKLK2GK7LNI3HO2R7WNA5URLE2AOUYFD4QDBGYSVFS
+#\\\|RYVST2A4FA3IBFNQNNJLJ4IE7E3PHZEUWEGSCXHMJVAJUKP5X2R \ / AMOS7 \ YOURUM ::
+#\[7]2JEHD33PSO5MVMMQSX6N3DSCC4AEGEGNVAQNHCUFKHIPLBZOH6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

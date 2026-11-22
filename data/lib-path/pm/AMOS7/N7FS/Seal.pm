@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.BTKPIJY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.F76Z2WI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -320,21 +320,27 @@ sub _head_locate {
     return ( _head_open( $root, $base, FALSE ), $base );
 }
 
-## one upload in flight while the next pack seals : a pack sealed with the
-## line idle, then uploaded with the cpu idle [ 2026-11-14 ]. the worker puts,
-## verifies and removes the spool ; a commit waits for it before any map blob
-## or head. N7FS_UPLOAD_ASYNC=0 uploads in line
+## a bounded upload pipeline runs beside sealing : workers put, verify and
+## remove their spools ; a commit waits for all of them before any map blob or
+## head. N7FS_UPLOAD_ASYNC=0 uploads in line, N7FS_UPLOAD_JOBS sets the bound
 my %UPLOAD;
 
 sub _upload_wait {
+    my $leave = shift // 0;
     my $failed;
-    foreach my $pid ( keys %UPLOAD ) {
+    while ( keys %UPLOAD > $leave ) {
+        my $pid  = ( keys %UPLOAD )[0];
         my $got  = waitpid( $pid, 0 );
         my $name = delete $UPLOAD{$pid};
         $failed //= $name if $got > 0 and $CHILD_ERROR;
     }
-    refuse( 'background upload of blob %s failed', $failed )
-        if defined $failed;
+    if ( defined $failed ) {
+        foreach my $pid ( keys %UPLOAD ) {
+            waitpid( $pid, 0 );
+            delete $UPLOAD{$pid};
+        }
+        refuse( 'background upload of blob %s failed', $failed );
+    }
     return;
 }
 
@@ -347,7 +353,9 @@ sub _upload {
         unlink $path or refuse('cannot remove confirmed spool');
         return;
     }
-    _upload_wait();
+    my $jobs = $ENV{'N7FS_UPLOAD_JOBS'} // 2;
+    $jobs = 2 if $jobs !~ m|\A[1-9]\d?\z|;
+    _upload_wait( $jobs - 1 );
     ## the parent warns : a worker's once-only mark would die with it ##
     if ( not $h->{'receiver'} ) {
         AMOS7::N7FS::Holder::_legacy_write( $h, $ARG ) for qw| put delete |;
@@ -742,19 +750,32 @@ sub _load {
     return $self->{'cache'}{$shard} if exists $self->{'cache'}{$shard};
     my $desc = $self->{'shards'}{$shard} // return $self->{'cache'}{$shard}
         = {};
-    ## the first shard read fetches every shard blob in one pipelined go ##
-    if ( not $self->{'prefetched'}++ ) {
-        AMOS7::N7FS::Seal::_prefetch( $self->{'base'},
-            [ map { $ARG->{'blob'} } values %{ $self->{'shards'} } ] );
+    ## remote shards arrive in bounded windows ; decoded shards release ##
+    ## both the ciphertext and plaintext copies                         ##
+    if ( AMOS7::N7FS::Holder::holder_parse( $self->{'base'} )->{'type'} eq
+        'ssh'
+        and not exists $AMOS7::N7FS::Seal::PREFETCHED{ $self->{'base'} }
+        { $desc->{'blob'} } ) {
+        my @shards  = sort keys %{ $self->{'shards'} };
+        my ($start) = grep { $shards[$ARG] eq $shard } 0 .. $#shards;
+        my $end     = $start + 63 < $#shards ? $start + 63 : $#shards;
+        AMOS7::N7FS::Seal::_prefetch(
+            $self->{'base'},
+            [   map { $self->{'shards'}{$ARG}{'blob'} }
+                    @shards[ $start .. $end ]
+            ]
+        );
     }
     my $key = join "\0", $shard, @{$desc}{qw| blob writer version |};
     $self->{'plain'}{$key}
         //= AMOS7::N7FS::Seal::_map_plain( @{$self}{qw| root base alt |},
         $desc, qq|map-shard-$shard| );
-    my $plain = $self->{'plain'}{$key};
+    my $plain = delete $self->{'plain'}{$key};
     my $nodes = eval { $JSON->decode($plain) };
     AMOS7::N7FS::refuse('sealed map shard is invalid')
         if ref $nodes ne qw| HASH |;
+    delete $AMOS7::N7FS::Seal::PREFETCHED{ $self->{'base'} }
+        { $desc->{'blob'} };
     return $self->{'cache'}{$shard} = $nodes;
 }
 
@@ -1229,10 +1250,34 @@ sub _node_keys {
     return unwrap_bytes( $cat_key, unb32($wrap), 'node:' . $entry->{'id'} );
 }
 
+sub _packed_length {
+    my $size   = shift;
+    my $chunks = $size ? int( ( $size + CHUNK_SIZE - 1 ) / CHUNK_SIZE ) : 1;
+    return $size + 26 + 20 * $chunks;
+}
+
 sub _node_blob {
     my ( $content, $keys, $dir, $expected_bmw, $root, $packing ) = @_;
     my $size   = -s $content;
     my $chunks = $size ? int( ( $size + CHUNK_SIZE - 1 ) / CHUNK_SIZE ) : 1;
+    my $packed_length = _packed_length($size);
+    if ( $packing and $chunks == 1 and $packed_length <= _pack_limit() ) {
+        ## pack members never need a synced temporary : only the pack is ##
+        ## kept                                                          ##
+        my $plain = read_file($content)
+            // refuse( 'cannot read node %s', $content );
+        refuse('plaintext does not match its local address')
+            if bmw_b32( bmw384_bytes($plain) ) ne $expected_bmw;
+        my $sealed
+            = seal_bytes( $keys, $plain, qw| content |, '', 0, 0, TRUE );
+        my $bytes
+            = "P7SB\x01"
+            . pack( 'C Q> N Q>', 0, CHUNK_SIZE, 0, 1 )
+            . pack( qw| N/a* |, $sealed );
+        refuse('sealed pack member length differs')
+            if length($bytes) != $packed_length;
+        return ( bmw_b32( bmw384_bytes($bytes) ), 1, $bytes );
+    }
     my $remote = holder_parse($dir)->{'type'} eq qw| ssh |;
     my $spool  = $remote ? _state_dir($root) . '/spool' : $dir;
     make_dirs( $spool, 0700 );
@@ -1280,7 +1325,7 @@ sub _node_blob {
     my $name = bmw_b32( $ctx->digest );
     ## the sealed length is known here : no size probe on the holder ##
     my $length = -s $tmp;
-    if ( $packing and -s $tmp <= _pack_limit() ) {
+    if ( $packing and $length <= _pack_limit() ) {
         my $bytes = read_file($tmp);
         unlink $tmp;
         return ( $name, $chunks, $bytes );
@@ -1784,12 +1829,16 @@ sub seal_nodes {
         my $path = _content_path( $id, $address );
         refuse( 'local node is missing : %s', $address ) if not -f $path;
         my @categories = sort keys $node_categories->{$address}->%*;
-        my $pending;
+        my ( $pending, $pending_dir );
         my ( $node_id, $keys );
         if ( holder_parse($dir)->{'type'} eq qw| ssh | ) {
-            my $pending_dir = _state_dir($root) . '/pending';
-            make_dirs( $pending_dir, 0700 );
+            $pending_dir = _state_dir($root) . '/pending';
             $pending = "$pending_dir/" . bmw_b32( bmw384_bytes($address) );
+        }
+        if ( defined $pending
+            and ( -f $pending or _packed_length( -s $path ) > _pack_limit() )
+        ) {
+            make_dirs( $pending_dir, 0700 );
             if ( -f $pending ) {
                 my $saved = $JSON->decode( read_file($pending) );
                 $node_id = unb32( $saved->{'node_id'} );
@@ -3567,8 +3616,8 @@ sub shred_node {
 
 1;
 
-#,,,,,..,,,,.,.,.,.,.,..,,.,.,.,,,,,.,,.,,,,.,..,,...,...,,,,,,,,,,..,,,.,...,
-#JJDIJUJPLB2DUMICPN5R2UKVWQSRJUDUQ36HSGEFYSTGNZWAXKTJABIG7YAZPE2MHL46SE6MYH7OO
-#\\\|24PXXWBKC4ND2YRC3SDFDPU6NKAA7CEDQ65MSPNCIF25I6XGEBW \ / AMOS7 \ YOURUM ::
-#\[7]CEITAIPG4PJFVFEY4G2X4LYFTQFZIPFA6FCBXMKGR5LFZADJ4CCQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,,,,,,,.,...,,..,..,,.,,,,..,..,,...,...,.,.,..,,...,..,,,..,
+#A56P4O2YLUIRIL6A4LGKUUNI57OA4GNEOHLEIN3RDEJ5NWA5W2WY5V3O4HQ5NFL4KAQRMOGBBD5QA
+#\\\|74G4RLQLCJI2W64JZDKJXK4ZV444G5WHMXT2632J5EFFNEDW7PC \ / AMOS7 \ YOURUM ::
+#\[7]HQ3VAHPI4JGDLVQLTEXGAEGUHTLXUS3TLG4QYOTGXWCZTBGLRMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.WJSHA2I |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.YKY2H2Y |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -27,6 +27,7 @@ our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.WJSHA2I |;
     holder_prune holder_rename holder_room holder_accepts journal_replay_cached |;
 
 use JSON::PP;
+use Digest::BMW;
 use AMOS7::NTIME qw| parse_y_age |;
 use AMOS7::N7FS  qw| b32 unb32 random_bytes read_file write_new_file make_dirs
     sync_dir refuse fault ntime_now |;
@@ -444,14 +445,23 @@ sub receipt_covered {
 ## or lost an entry
 sub receipt_digest {
     my ( $map, $version ) = @_;
-    my @lines;
+    my $digest = Digest::BMW->new(384);
+    my $first  = TRUE;
     foreach my $address ( receipt_covered( $map, $version ) ) {
         my $e = $map->{'nodes'}{$address};
-        push @lines, join "\0", $address, $e->{'blob'} // '',
-            $e->{'offset'} // 0, $e->{'length'} // 0,
-            $e->{'chunks'} // 0, $e->{'node'}   // '';
+        $digest->add("\n") if not $first;
+        $digest->add(
+            join "\0",
+            $address,
+            $e->{'blob'}   // '',
+            $e->{'offset'} // 0,
+            $e->{'length'} // 0,
+            $e->{'chunks'} // 0,
+            $e->{'node'}   // ''
+        );
+        $first = FALSE;
     }
-    return bmw_b32( bmw384_bytes( join "\n", @lines ) );
+    return bmw_b32( $digest->digest );
 }
 
 ## the covered-address cache beside a receipt : an unreachable holder cannot
@@ -1249,8 +1259,8 @@ sub holder_prune {
 
 1;
 
-#,,..,.,,,,,.,,.,,.,,,..,,.,.,..,,..,,.,,,..,,..,,...,..,,.,.,.,,,,..,.,,,.,,,
-#VBTRDS3DQPK4YPDEOJ5X545Q3EOILI4N2TVZ47DKUJ64KJWAQKNGEE4T2UBQPY2OJ43TO6ARSQ2SE
-#\\\|F6R2CUMTLP4SLEC7K5RBUW2QDCKSDMJZOP5PLUYGZOXJRSEQ5PQ \ / AMOS7 \ YOURUM ::
-#\[7]GTKCHJ6WEYXEHGALZ4R7LOR2U462P24A42KLUIPMIIHXP6CWL2AI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,.,.,.,.,...,.,.,.,.,..,,...,..,,...,...,.,.,..,,,.,,.,,,,..,
+#Q4NHRNGGZFAB7KVWMC2OUZSQH4K4C6YSBS7ATXWASGDUCKNPPQZEQBCUUKFSRBQ3Z5NB2RTC2CEAU
+#\\\|PGDUKTLUFH2CWMCV7VOC6IU5L5IYY7T77CAZII3YCSHZXIGP66N \ / AMOS7 \ YOURUM ::
+#\[7]F6C73GMEW5HB6RXX5ATGZWXML2WQN3ZHZC7CN5NQ4VKQHCIQZ4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

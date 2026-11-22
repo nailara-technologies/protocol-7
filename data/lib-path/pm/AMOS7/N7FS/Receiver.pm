@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Receiver-VERSION.3Z3763Y |;
+our $VERSION = qw| AMOS7::N7FS::Receiver-VERSION.YA6S2XI |;
 
 @EXPORT_OK
     = qw| holder_id root_id_for_public root_tag_for_public request_token
@@ -81,9 +81,12 @@ sub request_sign {
 }
 
 ## reserve before sending : a failed command never lets a later request reuse
-## its counter. the per-holder lock also covers independent n7fs processes
+## its counter. the per-holder lock also covers independent n7fs processes.  a
+## receiver-reported floor advances a second machine without moving back
 sub request_token {
-    my ( $root, $spec, $op, $args ) = @ARG;
+    my ( $root, $spec, $op, $args, $floor ) = @ARG;
+    refuse('holder request counter floor is invalid')
+        if defined $floor and $floor !~ m|\A\d+\z|;
     my $id  = holder_id($spec);
     my $dir = "$root->{'path'}.state/receiver";
     make_dirs( $dir, 0700 );
@@ -98,7 +101,8 @@ sub request_token {
         if ref $data ne qw| HASH |
         or ( $data->{'counter'} // 0 ) !~ m|\A\d+\z|;
     my $counter = ( $data->{'counter'} // 0 ) + 1;
-    my $tmp     = "$path.tmp";
+    $counter = $floor + 1 if defined $floor and $floor >= $counter;
+    my $tmp = "$path.tmp";
     unlink $tmp if -e $tmp or -l $tmp;
     write_new_file( $tmp, $JSON->encode( { qw| counter | => $counter } ) );
     rename $tmp, $path or refuse('cannot reserve the holder request counter');
@@ -151,8 +155,8 @@ sub request_verify {
 
 1;
 
-#,,,.,.,,,.,,,,.,,.,,,.,.,..,,.,.,.,.,...,,,,,..,,...,..,,,,.,,.,,,.,,...,.,.,
-#WRRH5OAAQTZ67ZI4BSB5YAYHRIYYXFYJI4QESBQ5R67W4UJKN5I4FXJDGI63EZHJPHMIL5GWMYBRM
-#\\\|XMW7JCEY576ZXJDB6PKQF47OERRFA5ITKFIPNGMJIVPRJVHQ6V5 \ / AMOS7 \ YOURUM ::
-#\[7]N3E77AQ4CCSCW2QEEZOSUQE4SUTIGGU73XE5OPAUAMLGRWQ76ADY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,.,,.,.,.,.,,,,,.,.,,..,..,,,.,,..,,...,...,,..,,,.,..,,...,...,
+#GMHYUJ2KTT5ISTQP4QQV5VISNQBQZZWUZQIDGNEBCON7CBU644RERVNZHL6KTU2LW6MPCCQ7P3ESO
+#\\\|ZCFPSP62JQLQXJBPLEJ5I4MYAUOISUGZL4K2IMGLQ23WGZQFPVF \ / AMOS7 \ YOURUM ::
+#\[7]YEPTTXARGJ36BIEH6WJKOFLFJJ7TPZQHJZ4FHAIMM6MYGTXRDGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

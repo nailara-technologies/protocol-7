@@ -179,6 +179,16 @@ not a risk
   of the user on the device ; the desktop comes from the network as a forwarded or
   amnesic session ]. with network cheap in most countries, all-clean is a practical
   everyday option, not only an extreme one
+- sync on the road through untrusted transport : public wlan [ cafés, chains found
+  almost everywhere ] with the own device, or an internet café pc with the stick as
+  carrier. the foreign network or pc only moves bytes : the payload is encrypted and
+  signed BEFORE it leaves the user's hands, no passphrase is typed and nothing is
+  decrypted there, and the home ring verifies the signatures on arrival [ tampering by
+  the transport is detected ]. rhythm : one sync after arrival, one before departure.
+  a foreign pc needs no protocol-7 software at all : it sees only an upload interface
+  [ e.g. a plain web page with a file field ] that reveals nothing -- no listing, no
+  structure, no presence -- and accepts signed, encrypted payloads into the
+  quarantined intake [ work-and-private-contexts.md ] ; anything else is dropped silently
 
 ## standard module : firmware check [ owner 2026-11-22 ]
 
@@ -239,8 +249,8 @@ checks it in every run [ routine, after a trip, paranoid ] :
 - p7 config style, no json ; BMW \ AMOS checksums, no sha ; perl floor 5.32
 - no host names or personal data in repo files
 
-#,,..,...,,,,,,,,,,,,,,,,,,..,,..,.,.,,,,,.,.,..,,...,.,.,,,.,...,,.,,,.,,.,,,
-#IE522AXBRXXEOVRAWH6CK7CZTX2RK6HQWL4B5ORYOVEYYXZQ46Y2C7TQAF7BKK3T43ZUUA24SCPZ6
-#\\\|NF42BJB2LKZYZNYIH3I2AOBI3WEAIQOIS5MR6HRF7QEYCFSPG6L \ / AMOS7 \ YOURUM ::
-#\[7]3GYUH3INYUI2JCWBXAYYYUG5WOFVILRSKXDSM5P75F5C6HEPKSCQ 7  DATA SIGNATURE ::
+#,,,.,...,..,,...,,..,,,.,,.,,.,,,,.,,,,,,,.,,..,,...,...,..,,.,.,...,..,,.,,,
+#OS4BNZ2ARMRZ6GVBSYYIMFZNBRAUUH3PNVOSEVYENSLMK6KIHMVOLA7X64ON2HDSZVDFCUTBHXUFO
+#\\\|DI52FQXRJG3G6YZFO47LLLICZFVR4WESFTPTJMAWZCQDGKXHQ2G \ / AMOS7 \ YOURUM ::
+#\[7]ESCLG2HDONXUBQ352UKWG6VBZMGE5AJ2CH35FUNBBHA3IV4KG4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

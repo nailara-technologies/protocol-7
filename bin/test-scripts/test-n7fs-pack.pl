@@ -150,6 +150,44 @@ ok( $rc == 0
     '-only-root' );
 ok( $out =~ m|would remove 0 |, 'nothing left to collect' ) or say $out;
 
+## pack members seal in memory : no per-node temp, and the byte form is ##
+## exact                                                                ##
+{
+    require AMOS7::N7FS::Seal;
+    require AMOS7::N7FS::Sum;
+    my $writes = 0;
+    no warnings qw| redefine once |;
+    local *AMOS7::N7FS::Seal::write_new_file_stream = sub {
+        $writes++;
+        die "pack member used a synced temporary\n";
+    };
+    local *AMOS7::N7FS::Seal::sync_dir = sub { $writes++; return 1 };
+    my $plain = slurp("$tree/f1");
+    my $keys  = AMOS7::N7FS::Seal::new_keypair();
+    my $bmw
+        = AMOS7::N7FS::Sum::bmw_b32( AMOS7::N7FS::Sum::bmw384_bytes($plain) );
+    my ( $name, $chunks, $packed )
+        = AMOS7::N7FS::Seal::_node_blob( "$tree/f1", $keys, $hsub, $bmw, {},
+        1 );
+    ok( $writes == 0, 'a pack member writes and syncs no temporary file' );
+    my $expected
+        = "P7SB\x01"
+        . pack( 'C Q> N Q>', 0, 16 * 1024 * 1024, 0, 1 )
+        . pack(
+        'N/a*',
+        AMOS7::N7FS::Seal::seal_bytes(
+            $keys, $plain, 'content', '', 0, 0, 1
+        )
+        );
+    ok( $chunks == 1
+            && $packed eq $expected
+            && $name eq AMOS7::N7FS::Sum::bmw_b32(
+            AMOS7::N7FS::Sum::bmw384_bytes($expected)
+            ),
+        'in-memory sealing keeps the existing blob bytes and address'
+    );
+}
+
 ## damage one byte inside a pack : the node in that range fails alone ##
 my $pack  = $packs[0];
 my $bytes = slurp("$hsub/$pack");
@@ -169,8 +207,8 @@ ok( $rc != 0, 'holder check finds the damaged packed node' );
 
 done();
 
-#,,..,,.,,,,.,,..,,.,,.,,,,,.,.,.,,,.,,..,,,.,..,,...,...,.,.,,,.,,.,,,,,,..,,
-#ROG4JLQDAKIK3B45QW7CLS5V5HPOYHWQIAF7FKCHTMVL6XOFJXUK5KLIT6TZUX3P7KO2FQDBM63GW
-#\\\|VO7VHNWIDNEV47E35GZFXWEECYNGK5SU2US3F2QUTXLW3B5AFE3 \ / AMOS7 \ YOURUM ::
-#\[7]FVJEJJDHQ54H4WX4XHUF5NXEK5HWPKSHJWU45JUWTFRRJGMUCKCY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,,,..,,..,,.,,,,,.,,,,,,,,,.,.,..,,...,...,...,,,.,.,,,,.,,...,
+#HPYVKFQCT72IUHRRO57GVJDHTLRQ3TAX6IABZBQWGLZTZHNPE3AMPDBIHHVUDBD47NVUR3ENANCUU
+#\\\|C62UJCXBDD7FRPTUFMTVT6ZAXKPVK4GJAC776ZJUW5P7AQG3WIY \ / AMOS7 \ YOURUM ::
+#\[7]WL7I6P3K7N2GOR22Z5YMHCDFIXYDQZ43TCWRDSRPFENMJCBTCKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
