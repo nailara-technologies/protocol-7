@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.EAAADOQ |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.Z4DQZEA |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -645,7 +645,8 @@ sub _disk_nodes {
     my ( $id, $replay, $definitions, $cats, $manifests, $tree_nodes )
         = _disk_context(%opt);
     my %nodes;
-    foreach my $address ( keys $replay->{'nodes'}->%* ) {
+    keys $replay->{'nodes'}->%*;
+    while ( my ($address) = each $replay->{'nodes'}->%* ) {
         next if $manifests->{$address};
         my @c = sort keys %{ $cats->{$address} // {} };
         next if not @c and not $tree_nodes->{$address};
@@ -971,8 +972,13 @@ sub place_missing {
             $unplaced++ if $need > 0;
         }
         $plan{$ARG} += scalar $chunk_plan{$ARG}->@* for keys %chunk_plan;
-        $total += scalar $chunk_plan{$ARG}->@* for keys %chunk_plan;
         return if $opt{'dry_run'};
+        ## progress counts walked addresses : the total is known up front, and
+        ## a chunk's seals share its addresses [ a node may go to several ]
+        my $chunk_base  = $visited;
+        my $chunk_seals = 0;
+        $chunk_seals += scalar $chunk_plan{$ARG}->@* for keys %chunk_plan;
+        my $step = $chunk_seals ? @{$addresses} / $chunk_seals : 0;
         foreach my $name ( sort keys %chunk_plan ) {
             $results{$name} //= { qw| ok | => TRUE, qw| sealed | => 0 };
             my $r = eval {
@@ -981,7 +987,7 @@ sub place_missing {
                     qw| holder |    => $holders->{$name}{'spec'},
                     qw| addresses | => $chunk_plan{$name},
                     qw| progress  | => sub {
-                        $visited++;
+                        $visited += $step;
                         $opt{'progress'}->( $visited, $total, FALSE )
                             if ref $opt{'progress'};
                     },
@@ -1003,8 +1009,16 @@ sub place_missing {
             $results{$name}{'sealed'} += $r->{'sealed'};
             $results{$name}{'version'} = $r->{'version'};
         }
+        $visited = $chunk_base + @{$addresses};
+        $opt{'progress'}->( $visited, $total, FALSE ) if ref $opt{'progress'};
         return;
     };
+    ## the total : every address the walk below hands to a chunk
+    foreach my $address ( keys $replay->{'nodes'}->%* ) {
+        next if $manifests->{$address};
+        next if not $cats->{$address} and not defined $tree_of->{$address};
+        $total++;
+    }
     my @chunk;
     keys $replay->{'nodes'}->%*;
     while ( my ($address) = each $replay->{'nodes'}->%* ) {
@@ -1310,8 +1324,8 @@ sub holder_prune {
 
 1;
 
-#,,..,.,.,,..,,.,,,,,,,,,,..,,,,.,,..,,..,...,..,,...,...,,..,,,,,..,,,..,,,.,
-#KVQ453SVZCXYQS5B37VBPOYSA7JM7ZHDDSK7NNHEM55BL2VHM6X4G7RM7BCPOXM6BHYBM7SG3I2Y2
-#\\\|CVOUKNW7WTZESCDIHMET2YYIFIO6OO4RAGGTHPULBLJXCNB55DW \ / AMOS7 \ YOURUM ::
-#\[7]DWF4XGYUVZL4H2XXZC5KF6EKHVV3ZYGL5MCU5Y2R2WSN5V2LEKBY 7  DATA SIGNATURE ::
+#,,,.,,.,,...,.,.,.,,,..,,,.,,,.,,.,,,,,,,,..,..,,...,...,.,,,,.,,,..,.,,,...,
+#XYQ3RDIL3EWQ4WNC5GMFGDD3N24TBB43Q7PL77WK7XHMMB23D6A3TMQPMC43SB46CLUD6YH4IW63A
+#\\\|GMFRILSQMKQZMGRPIVQARF3QCJAPOQS47VDWDIYIAMZMMBSVGTG \ / AMOS7 \ YOURUM ::
+#\[7]JYJK3P2EZKLXUO3M5GG3RTLR6MZN4LBI2PWSNHUAP2KDHDF2EQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

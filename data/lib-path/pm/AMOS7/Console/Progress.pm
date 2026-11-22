@@ -16,7 +16,7 @@ use vars qw| @EXPORT_OK $VERSION |;
 use constant TRUE  => 5;
 use constant FALSE => 0;
 
-our $VERSION = qw| AMOS7::Console::Progress-VERSION.TVQIMUY |;
+our $VERSION = qw| AMOS7::Console::Progress-VERSION.5Q5JZEA |;
 
 @EXPORT_OK = qw| console_progress_bar |;
 
@@ -67,10 +67,17 @@ sub console_progress_bar {
     $elapsed = 0 if $elapsed < 0;
     my $rate = $elapsed > 0 ? $current / $elapsed           : 0;
     my $eta  = $rate > 0    ? ( $total - $current ) / $rate : undef;
-    $line .= sprintf ':[%s%s %6.2f%% %s%.1f%s eta %s %s%s%s]:.%s%s',
-        $background, $foreground, $fraction * 100, $reset . $frame,
-        $rate, ' ' . ( $opt{'unit'} // 'items/s' ), _eta($eta),
-        length($label) ? ' ' : '', $label, $reset . $frame, $reset, "\r";
+    ## one highlighted field per bracket, fixed widths, then erase the rest of
+    ## the line [ a shorter redraw leaves no left-overs ]
+    my $field = sub {
+        return ":[${background}${foreground} " . shift
+            . " ${reset}${frame}]:";
+    };
+    $line .= $field->( sprintf '%6.2f%%',  $fraction * 100 );
+    $line .= $field->( sprintf '%7.1f %s', $rate, $opt{'unit'} // 'items/s' );
+    $line .= $field->( sprintf 'eta %7s',  _eta($eta) );
+    $line .= $field->($label) if length $label;
+    $line .= ".${reset}\e[K\r";
     return $line;
 }
 
@@ -78,8 +85,8 @@ sub console_progress_bar {
 
 #,,,,,,.,,,.,.,,,.,,,.,,,,.,,,.,,,.,,,.,,,,.,,,,..,,.,,,.,,,.,,,.,,,,.,,,
 
-#,,.,,..,,.,,,...,,..,,.,,,,,,,,.,,,,,.,,,,,.,..,,...,...,...,.,,,,..,,..,..,,
-#WQS45PQP6IXCZFSGYAYCAWAHD74NOAI6CZFBECW4PES2MEIBI3ETMRTDBMVXBDCHG23IBLSJEKNBW
-#\\\|6OYEPWTLFOTZHOBPRPFOMM3VL5HZTS4M3PXPLXIALOFSB6VKHHB \ / AMOS7 \ YOURUM ::
-#\[7]3CTLGNISCTEJLSNFBW62UMZAZ7PZRRT2NNJPAZRCMYS3RNZIEUAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,..,,,..,..,,,,,,.,.,...,.,.,,,.,..,,...,...,...,,,.,..,,...,..,,
+#7OFRJNBQ26RU4F5MDCXBZW37FGTKCM425KCO7IZSITPXZ6MZHK6FPRAM7LYQKRTFBROAW463MQ5EI
+#\\\|KPZP5LE3EPNH3NNOTBS3I43TJ3LPXG2HZWMC5WFGUR7M4SXOTYE \ / AMOS7 \ YOURUM ::
+#\[7]DRKYM3K3IYSL7C7KH3QENWE6SZRFH4G2IJVGMNWPHFK7Q5FF4ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
