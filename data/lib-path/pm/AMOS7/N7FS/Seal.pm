@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.CWG2D4Q |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.GRQNK6A |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -323,23 +323,141 @@ sub _head_locate {
 ## a bounded upload pipeline runs beside sealing : workers put, verify and
 ## remove their spools ; a commit waits for all of them before any map blob or
 ## head. N7FS_UPLOAD_ASYNC=0 uploads in line, N7FS_UPLOAD_JOBS sets the bound
+my @UPLOAD_WORKERS;
 my %UPLOAD;
 
-sub _upload_wait {
+sub _upload_jobs {
+    my $jobs = $ENV{'N7FS_UPLOAD_JOBS'} // 2;
+    return $jobs =~ m|\A[1-9]\d?\z| ? $jobs + 0 : 2;
+}
+
+sub _pipe_write {
+    my ( $fh, $bytes ) = @_;
+    my $offset = 0;
+    while ( $offset < length $bytes ) {
+        my $put = syswrite( $fh, $bytes, length($bytes) - $offset, $offset );
+        return FALSE if not defined $put;
+        $offset += $put;
+    }
+    return TRUE;
+}
+
+sub _pipe_read {
+    my ( $fh, $length ) = @_;
+    my $bytes = '';
+    while ( length($bytes) < $length ) {
+        my $got = sysread( $fh, my $part, $length - length($bytes) );
+        return undef if not defined $got or not $got;
+        $bytes .= $part;
+    }
+    return $bytes;
+}
+
+sub _upload_worker {
+    my ( $ask, $answer ) = @_;
+    while (1) {
+        my $head   = _pipe_read( $ask, 4 ) // last;
+        my $length = unpack qw| N |, $head;
+        last if not $length;
+        my $command = _pipe_read( $ask, $length ) // last;
+        my ( $dir, $path, $name, $kind ) = split "\0", $command, 4;
+        my $ok = eval {
+            holder_put( $dir, $path, $name, $kind, FALSE );
+            unlink $path or die "cannot remove confirmed spool\n";
+            1;
+        };
+        my $error = $ok ? '' : $EVAL_ERROR // "upload worker failed\n";
+        $error = substr( $error, 0, 32768 ) . "\n[ error text truncated ]\n"
+            if length $error > 32768;
+        _pipe_write( $answer, pack( 'N', length $error ) . $error )
+            or last;
+    }
+    require POSIX;
+    POSIX::_exit(0);
+}
+
+sub _upload_stop {
+    _upload_wait();
+    foreach my $worker (@UPLOAD_WORKERS) {
+        _pipe_write( $worker->{'ask'}, pack( 'N', 0 ) );
+        close $worker->{'ask'};
+        close $worker->{'answer'};
+        waitpid( $worker->{'pid'}, 0 );
+    }
+    @UPLOAD_WORKERS = ();
+    %UPLOAD         = ();
+    return;
+}
+
+END { _upload_stop() }
+
+sub upload_start {
+    my @specs = @_;
+    return if @UPLOAD_WORKERS or ( $ENV{'N7FS_UPLOAD_ASYNC'} // 1 ) eq '0';
+    my %remote;
+    foreach my $spec (@specs) {
+        my $h = holder_parse($spec);
+        next if $h->{'type'} ne qw| ssh |;
+        $remote{ $h->{'spec'} } = $h;
+    }
+    return if not %remote;
+    require POSIX;
+    foreach my $h ( values %remote ) {
+        next if $h->{'receiver'};
+        AMOS7::N7FS::Holder::_legacy_write( $h, $ARG ) for qw| put delete |;
+    }
+    foreach my $job ( 1 .. _upload_jobs() ) {
+        pipe( my $ask_r, my $ask_w )
+            or refuse('cannot make upload pipe');
+        pipe( my $answer_r, my $answer_w )
+            or refuse('cannot make upload pipe');
+        my $pid = fork // refuse('cannot fork an upload worker');
+        if ( $pid == 0 ) {
+            close $ask_w;
+            close $answer_r;
+            close $ARG->{'ask'}    for @UPLOAD_WORKERS;
+            close $ARG->{'answer'} for @UPLOAD_WORKERS;
+            _upload_worker( $ask_r, $answer_w );
+        }
+        close $ask_r;
+        close $answer_w;
+        push @UPLOAD_WORKERS,
+            {
+            qw| pid |    => $pid,
+            qw| ask |    => $ask_w,
+            qw| answer | => $answer_r,
+            };
+    }
+    return;
+}
+
+sub _upload_collect {
     my $leave = shift // 0;
     my $failed;
     while ( keys %UPLOAD > $leave ) {
-        my $pid  = ( keys %UPLOAD )[0];
-        my $got  = waitpid( $pid, 0 );
-        my $name = delete $UPLOAD{$pid};
-        $failed //= $name if $got > 0 and $CHILD_ERROR;
+        my ($pid) = keys %UPLOAD;
+        my $job   = delete $UPLOAD{$pid};
+        my $head  = _pipe_read( $job->{'answer'}, 4 );
+        my $error = defined $head
+            ? do {
+            my $length = unpack qw| N |, $head;
+            $length ? _pipe_read( $job->{'answer'}, $length ) : '';
+            }
+            : undef;
+        $error  //= "upload worker closed its answer pipe\n";
+        $failed //= [ $job->{'name'}, $error ] if length $error;
     }
+    return $failed;
+}
+
+sub _upload_wait {
+    my $leave  = shift // 0;
+    my $failed = _upload_collect($leave);
     if ( defined $failed ) {
-        foreach my $pid ( keys %UPLOAD ) {
-            waitpid( $pid, 0 );
-            delete $UPLOAD{$pid};
-        }
-        refuse( 'background upload of blob %s failed', $failed );
+        _upload_collect(0);
+        my ( $name, $error ) = @{$failed};
+        chomp $error;
+        refuse( 'background upload of blob %s failed : %s', $name, $error );
     }
     return;
 }
@@ -353,25 +471,17 @@ sub _upload {
         unlink $path or refuse('cannot remove confirmed spool');
         return;
     }
-    my $jobs = $ENV{'N7FS_UPLOAD_JOBS'} // 2;
-    $jobs = 2 if $jobs !~ m|\A[1-9]\d?\z|;
-    _upload_wait( $jobs - 1 );
-    ## the parent warns : a worker's once-only mark would die with it ##
-    if ( not $h->{'receiver'} ) {
-        AMOS7::N7FS::Holder::_legacy_write( $h, $ARG ) for qw| put delete |;
-    }
-    require POSIX;
-    my $pid = fork // refuse('cannot fork an upload worker');
-    if ( $pid == 0 ) {
-        my $ok = eval {
-            holder_put( $dir, $path, $name, $kind, FALSE );
-            unlink $path or die "cannot remove confirmed spool\n";
-            1;
-        };
-        print STDERR $EVAL_ERROR if not $ok;
-        POSIX::_exit( $ok ? 0 : 1 );
-    }
-    $UPLOAD{$pid} = $name;
+    upload_start($dir);
+    _upload_wait( _upload_jobs() - 1 );
+    my ($worker) = grep { not $UPLOAD{ $ARG->{'pid'} } } @UPLOAD_WORKERS;
+    refuse('no upload worker is available') if not defined $worker;
+    my $command = join "\0", $dir, $path, $name, $kind;
+    _pipe_write( $worker->{'ask'}, pack( 'N', length $command ) . $command )
+        or refuse('cannot send work to an upload worker');
+    $UPLOAD{ $worker->{'pid'} } = {
+        qw| name |   => $name,
+        qw| answer | => $worker->{'answer'},
+    };
     return;
 }
 
@@ -3621,8 +3731,8 @@ sub shred_node {
 
 1;
 
-#,,,.,,,,,,,.,,,,,...,...,,,,,,.,,,.,,,,.,.,.,..,,...,...,,..,.,.,.,.,.,.,,..,
-#QNLH726BMMKRINNV7BB2DAVIJVEXEHCJJSKI3BXHGGNH6LRDBW4F6JFAYN7KRZ2HXAQ7V6XS6ZKHC
-#\\\|X7JAUFSWLH57ZDCTAG4BI7VDADEVABMVYYSJHVBIKSFU63ERDX5 \ / AMOS7 \ YOURUM ::
-#\[7]AJEVRAP4MAHVY5PPK5TJ2533M4XZTD3MSZX4RC2EK4XA675PXAAY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,.,,,,,,,,,..,,.,.,,,.,,..,...,..,,...,.,.,,.,,,.,,.,.,,.,,,..,
+#5E3RNRVLJYTOTF26R5DT4NDJ2IWBE3ANKPJHLW4S4GVZSVDDFVZONRUIKFSV5L5ACSLG6HVPHKV5C
+#\\\|5ZWBQFH4YITWKQCXRPFP2LE57UMZFZFUE22QEGPUQDAHEZ5MPMP \ / AMOS7 \ YOURUM ::
+#\[7]7T3EONV6WRIKKDEUEB5LOAUFKORJK7UFQZS4XV2YPFLIYRHAJWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

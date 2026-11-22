@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.4NN63ZQ |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.EAAADOQ |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -609,8 +609,8 @@ sub journal_replay_cached {
     return $REPLAY{"$disk\0$position"} = $replay_fn->($id);
 }
 
-## every live node of the disk with its categories and size
-sub _disk_nodes {
+## the live-node indexes shared by placement reports and bounded placing
+sub _disk_context {
     my %opt = @_;
     my $id  = disk_read_id(
         %opt,
@@ -630,16 +630,25 @@ sub _disk_nodes {
         keys $replay->{'trees'}->%*;
     require AMOS7::N7FS::Seal;
     my %tree_nodes;
-    foreach my $tree ( values $replay->{'trees'}->%* ) {
-        $tree_nodes{$ARG} = TRUE
+    foreach my $name ( keys $replay->{'trees'}->%* ) {
+        my $tree = $replay->{'trees'}{$name};
+        $tree_nodes{$ARG} = $name
             for AMOS7::N7FS::Seal::_manifest_files( $id,
             $tree->{'manifest'} );
     }
+    return ( $id, $replay, $definitions, \%cats, \%manifests, \%tree_nodes );
+}
+
+## every live node of the disk with its categories and size
+sub _disk_nodes {
+    my %opt = @_;
+    my ( $id, $replay, $definitions, $cats, $manifests, $tree_nodes )
+        = _disk_context(%opt);
     my %nodes;
     foreach my $address ( keys $replay->{'nodes'}->%* ) {
-        next if $manifests{$address};
-        my @c = sort keys %{ $cats{$address} // {} };
-        next if not @c and not $tree_nodes{$address};
+        next if $manifests->{$address};
+        my @c = sort keys %{ $cats->{$address} // {} };
+        next if not @c and not $tree_nodes->{$address};
         @c = (qw| default |) if not @c;
         my $target = 0;
         foreach my $c (@c) {
@@ -663,7 +672,7 @@ sub _disk_nodes {
 ## entries its version covers, as long as the covered part is unchanged
 sub _copies {
     my %opt     = @_;
-    my $holders = holders_load(%opt);
+    my $holders = $opt{'_holders'} // holders_load(%opt);
     my $now     = n7fs_now( $opt{'host_dir'}, $opt{'root'}{'root_id'} );
     my %copies;
     my %proven;
@@ -767,20 +776,26 @@ sub _copies {
         if ( $state eq 'unreachable, counted' ) {
             ## the map cannot be read : the cache lists what the receipt ##
             ## covers, counting for place planning only, never for drain ##
-            $covered_count                  = scalar keys %{$covered};
-            $copies{$ARG}{ $h->{'domain'} } = TRUE for sort keys %{$covered};
-            $status{$name}{'nodes'}         = {};
+            $covered_count = scalar keys %{$covered};
+            if ( not $opt{'_stream'} ) {
+                $copies{$ARG}{ $h->{'domain'} } = TRUE
+                    for sort keys %{$covered};
+            }
+            $status{$name}{'nodes'} = {};
         } elsif ( defined $map ) {
+            $status{$name}{'nodes'} = $map->{'nodes'} if $opt{'_stream'};
             foreach my $address ( keys %{ $map->{'nodes'} // {} } ) {
                 $used += $map->{'nodes'}{$address}{'length'} // 0;
                 if ( $covered and $covered->{$address} ) {
                     $covered_count++;
-                    $copies{$address}{ $h->{'domain'} } = TRUE;
-                    $proven{$address}{ $h->{'domain'} } = TRUE if $full;
+                    $copies{$address}{ $h->{'domain'} } = TRUE
+                        if not $opt{'_stream'};
+                    $proven{$address}{ $h->{'domain'} } = TRUE
+                        if $full and not $opt{'_stream'};
                 }
                 ## the entry itself : drain reads its disk ids ##
-                $status{$name}{'nodes'}{$address}
-                    = $map->{'nodes'}{$address};
+                $status{$name}{'nodes'}{$address} = $map->{'nodes'}{$address}
+                    if not $opt{'_stream'};
             }
         }
         $status{$name}{'covered_set'} = $covered;
@@ -867,19 +882,19 @@ sub holder_room {
 ## seal each under-replicated node to holders in domains not yet holding it :
 ## owned first, then most quota left. nothing is taken from another node.
 sub place_missing {
-    my %opt = @_;
-    my ( $id, $nodes, $replay, $definitions ) = _disk_nodes(%opt);
-    my ( $holders, $copies, $status, undef ) = _copies(%opt);
+    my %opt     = @_;
+    my $holders = holders_load(%opt);
+    require AMOS7::N7FS::Seal;
+    AMOS7::N7FS::Seal::upload_start(
+        map { $holders->{$ARG}{'spec'} }
+            keys %{$holders}
+    ) if not $opt{'dry_run'};
+    my ( $id, $replay, $definitions, $cats, $manifests, $tree_of )
+        = _disk_context(%opt);
+    my ( undef, undef, $status, undef )
+        = _copies( %opt, qw| _stream | => TRUE, qw| _holders | => $holders );
     ## a holder that gets any file of a tree also gets its manifest ; the tree
     ## inventory says partial until every file is there
-    require AMOS7::N7FS::Seal;
-    my %tree_of;
-    foreach my $name ( keys $replay->{'trees'}->%* ) {
-        my $t = $replay->{'trees'}{$name};
-        $tree_of{$ARG} = $name
-            for AMOS7::N7FS::Seal::_manifest_files( $id, $t->{'manifest'} );
-    }
-    my %plan;
     my %left;
     foreach my $name ( keys %{$holders} ) {
         next if $holders->{$name}{'role'} ne qw| durable |;
@@ -891,90 +906,116 @@ sub place_missing {
         $left{$name}
             = holder_room( $holders->{$name}, $status->{$name}{'used'} );
     }
-    my @unplaced;
-    foreach my $address ( sort keys %{$nodes} ) {
-        my $n    = $nodes->{$address};
-        my %have = %{ $copies->{$address} // {} };
-        ## a durable holder that maps the node without a receipt covering ##
-        ## it is pending, not missing : place waits for its check instead ##
-        ## of sending the node to another domain                          ##
-        ## [ drain still counts only checked copies ]                     ##
-        foreach my $name ( keys %{$holders} ) {
-            next if $holders->{$name}{'role'} ne qw| durable |;
-            next if $status->{$name}{'state'} =~ m|\Aunreachable|;
-            next if $status->{$name}{'state'} eq 'excluded';
-            next if $status->{$name}{'state'} eq 'rolled back';
-            next
-                if $status->{$name}{'covered_set'}
-                and $status->{$name}{'covered_set'}{$address};
-            $have{ $holders->{$name}{'domain'} } = TRUE
-                if $status->{$name}{'nodes'}{$address};
+    my ( %plan, %done, %results );
+    my ( $total, $visited, $unplaced ) = ( 0, 0, 0 );
+    my $chunk_size = $ENV{'N7FS_TEST_PLACE_CHUNK'} // 2048;
+    refuse('place chunk size must be positive')
+        if $chunk_size !~ m|\A[1-9]\d*\z|;
+    my $execute = sub {
+        my $addresses = shift;
+        my %chunk_plan;
+        foreach my $address ( sort @{$addresses} ) {
+            my @c = sort keys %{ $cats->{$address} // {} };
+            @c = (qw| default |) if not @c;
+            my $target = 0;
+            foreach my $c (@c) {
+                my $copies = $definitions->{$c}{'copies'} // 1;
+                $target = $copies if $copies > $target;
+            }
+            my $size = -s AMOS7::N7FS::Seal::_content_path( $id, $address )
+                // 0;
+            my %have;
+            ## a durable holder that maps the node without a receipt covering
+            ## it is pending, not missing : place waits for its check instead
+            ## of sending the node to another domain
+            ## [ drain still counts only checked copies ]
+            foreach my $name ( keys %{$holders} ) {
+                next if $holders->{$name}{'role'} ne qw| durable |;
+                my $covered = $status->{$name}{'covered_set'}
+                    && $status->{$name}{'covered_set'}{$address};
+                next
+                    if $status->{$name}{'state'} =~ m|\Aunreachable|
+                    and
+                    not($status->{$name}{'state'} eq 'unreachable, counted'
+                    and $covered );
+                next if $status->{$name}{'state'} eq 'excluded';
+                next if $status->{$name}{'state'} eq 'rolled back';
+                $have{ $holders->{$name}{'domain'} } = TRUE if $covered;
+                next                                        if $covered;
+                $have{ $holders->{$name}{'domain'} } = TRUE
+                    if $status->{$name}{'nodes'}{$address};
+            }
+            my $need = $target - scalar keys %have;
+            next if $need <= 0;
+            foreach my $name (
+                sort {
+                    ( $holders->{$b}{'owned'} ? 1 : 0 )
+                        <=> ( $holders->{$a}{'owned'} ? 1 : 0 )
+                        or $left{$b} <=> $left{$a}
+                        or $a cmp $b
+                } keys %left
+            ) {
+                last if $need <= 0;
+                my $domain = $holders->{$name}{'domain'};
+                next if $have{$domain};
+                next if $status->{$name}{'nodes'}{$address};
+                next if $left{$name} < $size;
+                next
+                    if not holder_accepts( $holders->{$name}, \@c,
+                    $definitions );
+                push $chunk_plan{$name}->@*, $address;
+                $left{$name} -= $size;
+                $have{$domain} = TRUE;
+                $need--;
+            }
+            $unplaced++ if $need > 0;
         }
-        my $need = $n->{'target'} - scalar keys %have;
-        next if $need <= 0;
-        foreach my $name (
-            sort {
-                ( $holders->{$b}{'owned'} ? 1 : 0 )
-                    <=> ( $holders->{$a}{'owned'} ? 1 : 0 )
-                    or $left{$b} <=> $left{$a}
-                    or $a cmp $b
-            } keys %left
-        ) {
-            last if $need <= 0;
-            my $domain = $holders->{$name}{'domain'};
-            next if $have{$domain};
-            next if $status->{$name}{'nodes'}{$address};
-            next if $left{$name} < $n->{'size'};
-            next
-                if not holder_accepts( $holders->{$name}, $n->{'categories'},
-                $definitions );
-            push $plan{$name}->@*, $address;
-            $left{$name} -= $n->{'size'};
-            $have{$domain} = TRUE;
-            $need--;
-        }
-        push @unplaced, $address if $need > 0;
-    }
-    my ( %done, %results );
-    my $total = 0;
-    $total += scalar $plan{$ARG}->@* for keys %plan;
-    my $visited = 0;
-    if ( not $opt{'dry_run'} ) {
-        require AMOS7::N7FS::Seal;
-        foreach my $name ( sort keys %plan ) {
-            $results{$name} = { qw| ok | => FALSE, qw| sealed | => 0 };
+        $plan{$ARG} += scalar $chunk_plan{$ARG}->@* for keys %chunk_plan;
+        $total += scalar $chunk_plan{$ARG}->@* for keys %chunk_plan;
+        return if $opt{'dry_run'};
+        foreach my $name ( sort keys %chunk_plan ) {
+            $results{$name} //= { qw| ok | => TRUE, qw| sealed | => 0 };
             my $r = eval {
                 AMOS7::N7FS::Seal::seal_nodes(
                     %opt,
                     qw| holder |    => $holders->{$name}{'spec'},
-                    qw| addresses | => $plan{$name},
+                    qw| addresses | => $chunk_plan{$name},
                     qw| progress  | => sub {
                         $visited++;
                         $opt{'progress'}->( $visited, $total, FALSE )
                             if ref $opt{'progress'};
                     },
-                    ## only the planned files ; the tree supplies a ##
-                    ## manifest                                     ##
+                    ## only the planned files ; their trees supply ##
+                    ## manifests                                   ##
                     qw| tree_manifests | => [
                         sort grep {defined}
-                        map       { $tree_of{$ARG} } $plan{$name}->@*
+                        map       { $tree_of->{$ARG} } $chunk_plan{$name}->@*
                     ],
                 );
             };
             if ( not defined $r ) {
                 my $err = $EVAL_ERROR // 'seal failed';
                 chomp $err;
-                $results{$name}{'error'} = $err;
+                @{ $results{$name} }{qw| ok error |} = ( FALSE, $err );
                 next;
             }
-            $done{$name}    = $r->{'sealed'};
-            $results{$name} = {
-                qw| ok |      => TRUE,
-                qw| sealed |  => $r->{'sealed'},
-                qw| version | => $r->{'version'},
-            };
+            $done{$name} += $r->{'sealed'};
+            $results{$name}{'sealed'} += $r->{'sealed'};
+            $results{$name}{'version'} = $r->{'version'};
         }
+        return;
+    };
+    my @chunk;
+    keys $replay->{'nodes'}->%*;
+    while ( my ($address) = each $replay->{'nodes'}->%* ) {
+        next if $manifests->{$address};
+        next if not $cats->{$address} and not defined $tree_of->{$address};
+        push @chunk, $address;
+        next if @chunk < $chunk_size;
+        $execute->( \@chunk );
+        @chunk = ();
     }
+    $execute->( \@chunk ) if @chunk;
     $opt{'progress'}->( $visited, $total, TRUE )
         if ref $opt{'progress'} and not $opt{'dry_run'};
     ## every attempted holder is checked : a seal can fail after a commit, and
@@ -1016,10 +1057,10 @@ sub place_missing {
         }
     }
     return {
-        qw| plan |   => { map { $ARG => scalar $plan{$ARG}->@* } keys %plan },
-        qw| sealed | => \%done,
+        qw| plan |     => \%plan,
+        qw| sealed |   => \%done,
         qw| results |  => \%results,
-        qw| unplaced | => scalar @unplaced,
+        qw| unplaced | => $unplaced,
         qw| checks |   => \%checks,
     };
 }
@@ -1269,8 +1310,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,..,.,,,,,,,,,.,,,,,,,.,.,,,,,,,...,...,..,,...,...,.,,,.,.,,..,.,.,...,
-#DI52G4US6XQIJBPFGSM3DP6LQDYTEFB7MQJTPLMIQXJXLN7VBBL6IZGVDRZNQRG2AZQRYUI3MINIE
-#\\\|QBRBLORH3ISVTBO2OM4LYV3SBAPBKOPI27O76RBPLMBKSOKZLMU \ / AMOS7 \ YOURUM ::
-#\[7]4EKBKXUPBKE2464HP5ZXNV2YFIZBQFA2BJSVP6XDRUMT7M5NO2DA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,,,,,,,,,..,,,,.,,..,,..,...,..,,...,...,,..,,,,,..,,,..,,,.,
+#KVQ453SVZCXYQS5B37VBPOYSA7JM7ZHDDSK7NNHEM55BL2VHM6X4G7RM7BCPOXM6BHYBM7SG3I2Y2
+#\\\|CVOUKNW7WTZESCDIHMET2YYIFIO6OO4RAGGTHPULBLJXCNB55DW \ / AMOS7 \ YOURUM ::
+#\[7]DWF4XGYUVZL4H2XXZC5KF6EKHVV3ZYGL5MCU5Y2R2WSN5V2LEKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
