@@ -17,7 +17,7 @@ my @ids = ( $recover->{'interrupted'} // [] )->@*;
 
 if ( $recover->{'kind'} eq qw| gpu | and defined $dbh ) {
     my $since = POSIX::strftime( '%Y-%m-%d %H:%M:%S',
-        gmtime( $recover->{'time'} - 900 ) );
+        CORE::gmtime( $recover->{'time'} - 900 ) );
     push @ids,
         (
         $dbh->selectcol_arrayref(
@@ -52,8 +52,8 @@ if ( not @ids ) {
     { 'count' => scalar @ids, 'ids' => [@ids] }
 );
 
-#,,,.,,..,...,,,.,,,.,,..,,..,,,.,,,.,.,.,.,,,..,,...,...,.,,,,,,,...,,,,,,,,,
-#DG2QZVR4MVQPQKWJUJFEVNCM7F4V5OI4NGKWABKVTKUDDMHQ4HEVNREBA4ZYTFPHRX3AAIGPJSHS2
-#\\\|QOB5LVCE6DTAUZGCPM7Z6BKQHJCDNHNRS4NDF3VT4II73LLU2TX \ / AMOS7 \ YOURUM ::
-#\[7]DTIRLBVFOUDWKLM45A6VYCXIUIJTNF2Z7PBN47NV7R35D36DUUDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,.,.,.,.,..,,.,.,.,.,,..,.,.,..,,...,...,.,,,.,,,,,,,..,,,,,,
+#ABWAI76SXJ6OI4LEUJK7LK4ML56HOX5MXROHSGT7SG3XULUJN3ZZWCOF2HKX732CWABU5YIIBFNFQ
+#\\\|6L6AIW7Y5VIDFZZMQ4QPSZZET4EXMEX7DCBXQJ6EVHGG3O2Z3AJ \ / AMOS7 \ YOURUM ::
+#\[7]HKJWTUOEHKM5XCASCXEYZ2ORQGPJUDEGF4KYSZX4MAEXBPGRKEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

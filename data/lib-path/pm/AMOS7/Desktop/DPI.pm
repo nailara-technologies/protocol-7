@@ -1,5 +1,5 @@
 package AMOS7::Desktop::DPI;
-our $VERSION = qw| AMOS7::Desktop::DPI-VERSION.DKSD6QQ |;
+our $VERSION = qw| AMOS7::Desktop::DPI-VERSION.I46RTLQ |;
 
 use v5.32;
 use strict;
@@ -49,7 +49,7 @@ sub atomic_write {
 sub consumer_write {
     my ( $path, $text ) = @ARG;
     my $original_path = "$path.p7-dpi-original";
-    my @target_stat   = stat $path;
+    my @target_stat   = CORE::stat $path;
     my $target_mode   = @target_stat ? $target_stat[2] & 07777 : 0644;
 
     if ( not -e $original_path ) {
@@ -67,7 +67,7 @@ sub restore_consumer {
     return 'ok' if not -f $original_path;
     my $original = read_bytes($original_path);
     return 'failed' if not defined $original;
-    my @stat = stat $original_path;
+    my @stat = CORE::stat $original_path;
     my $mode = @stat ? $stat[2] & 07777 : 0644;
     return atomic_write( $path, $$original, $mode ) ? 'changed' : 'failed';
 }
@@ -256,8 +256,8 @@ sub pending { return $_[0]->{'pending'} }
 
 1;
 
-#,,..,..,,...,,.,,,.,,.,,,,,,,.,.,,..,,..,...,..,,...,..,,..,,,,,,.,,,,,.,,.,,
-#F55WDJH2VNBSFZRNH6ISSDFSQXCWMGIDDJQKBPM4M4EYMU5YMX4CWVX4X6YYIHUS6Q6NGZLJSDO24
-#\\\|LCMEWAFJXFLJNQDLS36HDPQUVD2R75TB2TFZHWXUKRMX2SCIBTN \ / AMOS7 \ YOURUM ::
-#\[7]PCAA66DPYHKHSGYYW6KD4PIC6RKQEZG5FHIJLZQIBZSAMO3UDCAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,..,,..,.,,,,,.,..,,..,,.,,,..,,..,,...,...,..,,.,,,,,,,.,,,,.,,
+#JUT2KZXHPNAV6ZR7XA7PM5TGEVZCP7WMMH5ABWA7FLPZLR63YHJSHPWUTXAXLEC7W5VUIRZAYTTVW
+#\\\|U6T4IYRQQ6DLZN4MMDOLLH6C2VEB5Z65X3PJ633NARY7RFYNSGE \ / AMOS7 \ YOURUM ::
+#\[7]V64WBXAAU2ESKKVK5E2QTPXMXSNTNHEODDSG3RYMUCMAQ2YWB6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

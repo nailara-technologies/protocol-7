@@ -4,7 +4,7 @@
 
 my $time  = shift // time;
 my $float = shift // 4;
-my @time  = gmtime($time);
+my @time  = CORE::gmtime($time);
 my $year  = 1900 + $time[5];
 my $days
     = <[base.time.is_leap_year]>->($year) ? 366 : 365;    # + 1 [fractional] #
@@ -12,8 +12,8 @@ my $yday = $time[7] + $time % 86400 / 86400;
 
 return sprintf( "%.0${float}f", $year % 100 + $yday / ( $days + 1 ) );
 
-#,,,,,..,,,,.,,,.,..,,..,,..,,,,,,,,.,,.,,...,..,,...,...,..,,,..,.,,,,,,,,.,,
-#YCNCGJWCMFXGLUELI2SMP6CLF6HW4QMIAZEZJL34XIQ2MJLUIJ7GV5W4WTMLVLN5RHRISGIJLH2UK
-#\\\|NOX4NJUBC5SWV6S3J5T4F3QJWHLE2DINEL2C5MO4ZUE72PRB3BD \ / AMOS7 \ YOURUM ::
-#\[7]42VRVYYNODFFXDDUJMAIDKLS2GPRXVVIPESTV7Q7F2BATMT4L4AA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,,,.,.,,,...,..,,..,,...,...,..,,...,..,,..,,.,,,.,,,,..,,.,,
+#AKE7RPMBT2HSRIEDWR6WHKTOW37TLQUBEYDUHKX6CEFD3F4ZMX24MOQ6L7R7TC3YS55DQHOMC6P3Y
+#\\\|CQZQM3PINTKCK4UXXOYKT5YF7HLYIK5WD7TBWLW2FMUUN67ZEQ4 \ / AMOS7 \ YOURUM ::
+#\[7]ESBFB7JO4YAC5AGNZQQAN3FYW3GZ2TVWCXAMTZWLWTB5XAMBVUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

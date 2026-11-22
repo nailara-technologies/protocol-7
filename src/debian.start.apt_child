@@ -21,7 +21,9 @@ my $lib_root
     = Cwd::abs_path( sprintf( '%s/data/lib-path/pm', <system.root_path> ) );
 my $zenka_user = <system.amos-zenka-user>;
 my $deny_uid
-    = defined $zenka_user ? scalar( ( getpwnam($zenka_user) )[2] ) : undef;
+    = defined $zenka_user
+    ? scalar( ( CORE::getpwnam($zenka_user) )[2] )
+    : undef;
 
 if ( not defined $lib_root or not defined $deny_uid ) {
     <[base.logs]>->(
@@ -92,8 +94,8 @@ if ( not defined $status or $status !~ m|^\+ ready | ) {
     <debian.apt_child.pid>, $status =~ s|^\+ ready ||r
 );
 
-#,,,.,..,,..,,.,.,,,.,..,,,..,..,,,..,,,.,,,.,..,,...,...,,..,,,.,...,,,.,,..,
-#7SG3QXJGCKPVIMHABG6BIXTHVXR2GOJJEGHBNF3S27PJMUR2EFBZMGAD6YARGJ3Q6I7RIASLR2GPY
-#\\\|E57MVAIJJN7GZJSMIAHQX7MJECREB6RJRTCJP7BBTQ7PZJRUNBI \ / AMOS7 \ YOURUM ::
-#\[7]4Q35JIQQKARPJAXWQRHLI3PFAJDMA6DJ4LZ5EJ5LDBZBBLTZXEDI 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,,,.,,.,,.,.,.,,,,..,,,.,,.,,..,,...,...,.,,,..,,,..,...,,.,,
+#BW74CDLPMDDNEYESA62ZUY553K52MTR2BP52GMDHJ2VLNYWTCRF4FUCYFR5AFDTMVCD3YMAKCF3Q4
+#\\\|IHIZ22QVTQB6T4WMVHWSJQJW47ULD5HVWEJP4WR7O6MYJGMNYKH \ / AMOS7 \ YOURUM ::
+#\[7]FDY5M6AM4F3LH453HZFZ7FJMBZUS63XTYHHVI4MMX3CGBYL7KYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,7 +35,7 @@ my $rearm_fallback = sub {
     return TRUE;
 };
 
-my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+my $home_dir = ( CORE::getpwuid($UID) )[7] // $ENV{'HOME'} // '';
 return $rearm_fallback->() if not length $home_dir;
 
 my $cred_file = catfile( $home_dir, $provider->{'cred_rel'} );
@@ -87,8 +87,8 @@ if ( $remaining <= $margin ) {
 );
 return TRUE;
 
-#,,.,,,,.,,,.,.,,,,,,,..,,.,.,.,,,.,,,.,.,,.,,..,,...,...,,.,,..,,,,.,,.,,..,,
-#EVQ4URUYZ6FSWSLQDU3AUU6WAVW5AUSVLD7ZFOVCJWQSOGHNQZCKUL7WZBOFT5G3R57VYY32X7XFY
-#\\\|CXZCFDCI5QTRNGSY4556LQSARKJGH3SHUSNL2JMDUZ36QBO7YTO \ / AMOS7 \ YOURUM ::
-#\[7]U6OL3SB2YLLGVWIGCO6UZLXMDJLMXZM3M53WVZ5DXLPM3JUJ26DA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,,,.,,,,,.,,..,.,.,,,.,.,.,.,.,..,,...,...,..,,,..,.,.,,..,,,.,
+#5A57HEV5BOJ4JEX3WXWZ7AWUNDR53IKXWBBVL6FXRVTAICKE6JZFH5KBOETOW4ZGH4OS5CWARTLTE
+#\\\|AMMKIOWH65PUKOSBWG6JAZDJIJAP47F7MKOWQVDIWFMQQXRYGIA \ / AMOS7 \ YOURUM ::
+#\[7]6VM5XDIEFLCJM22PG4DZRSO4JFDWKUPKW5UP4PBKKNEBBTJXU2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

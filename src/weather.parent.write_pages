@@ -40,7 +40,7 @@ my $current_temp = sprintf( '%.1f', $current_ref->{'temp'} );
 my %sun;
 foreach my $mode ( 'rise', 'set' ) {
     $sun{$mode} = strftime "%H:%M Uhr",
-        localtime $data_ref->{'daytime'}->{"sun$mode"};
+        CORE::localtime $data_ref->{'daytime'}->{"sun$mode"};
 }
 
 # weather id codes
@@ -305,8 +305,8 @@ foreach my $page_name (@page_list) {
     <[weather.parent.html_put]>->( $html_dir, $page_name, \$html_str );
 }
 
-#,,..,,..,,.,,,.,,,..,,,,,.,.,,.,,,,.,,,,,,,,,..,,...,...,..,,.,.,..,,,,.,,,,,
-#RF4Q4GYEG53AU2KN2JXWDVFYAHB5I5KW7GG5AYMSLQWFUFM4L5XEFASAIBC76LNHL2734OIJBGWGE
-#\\\|4NYOQXXXQGBK3C26NTHCY3M3ZCSU5E2QPIAWQAHCDHG7B7VQEJU \ / AMOS7 \ YOURUM ::
-#\[7]JCMHR7CPLI5Z73JPDWMGLANJZHRYGTHBAFKKD22J7KLDGYGFCMBI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,.,.,.,,..,.,.,...,,..,.,.,,,.,..,,...,.,.,.,,,.,,,.,,,...,...,
+#ET6WLPD6FWONTJIVWKNMEHXBNI5QRI3V2AKB3DJA3SAMSM5SVMOMGXGME7ACSJVNK3FWHOOKWKLE2
+#\\\|YOEB7AI5RU7PR7LZMASPW4R6GJXVO5NOW5XFVNB6CTTXLBIR3Q2 \ / AMOS7 \ YOURUM ::
+#\[7]XAQGHGHRQ4FVYRI2LKQQYVISODBFMVMP5J7RASWIHHS5RO7CYECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

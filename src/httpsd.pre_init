@@ -16,12 +16,20 @@
 <httpsd.cfg.key_path>         //= '/etc/protocol-7/certs/default.key';
 <httpsd.cfg.tls_version>      //= 'TLSv1_2';
 
+## the zenka's own write dir                                             ##
+## [ /var/protocol-7/httpsd : signed-file bodies ] created here, as root ##
+## before drop_privs, with the zenka's owner -- the same routine other   ##
+## zenki use, never a fallback at use time                               ##
+<system.zenka-user.current>  //= qw| httpsd |;
+<system.zenka-group.current> //= qw| httpd |;
+<[base.path-set-up.check-zenka-paths]>->( TRUE, 0750 );
+
 <[base.log]>->( 2, 'httpsd pre-init complete' );
 
 0;
 
-#,,..,.,,,,,,,.,,,..,,,,.,,.,,,.,,,,,,.,.,..,,..,,...,...,,,.,...,,,.,...,,,.,
-#WUE6UB7XSX7KNDH2DWM54SGSRQQQ6GMK453TQOUDXPYIVUBLQWNHOOR2CSI6JOYSW3H3JKXC7Z2DK
-#\\\|5LUV4IHS6Y53F27XJBSVZZWD6YCAFPQC72CJC7FF2U7SGE63ULW \ / AMOS7 \ YOURUM ::
-#\[7]4WTU6MZEBWQPFNN7DEMNTIFAHWMCOUJODU4CGEEAY4WQCHV5P4AA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,,,,,.,.,...,,.,,,,.,.,.,.,.,..,,...,...,,,.,.,.,,,,,,,,,...,
+#BIWNLKXOIG2HVIOE5DFZ6HC7IFIGF7LG4U3SR7H2XWBUQBJ7GJMJ4PGIZ5AZKALN2WVAP7YJJBMDE
+#\\\|4ARI554YAKDO44F32BGQWR7IDYHHBIOYX5LHWR2XN74SIZZ24YS \ / AMOS7 \ YOURUM ::
+#\[7]2RXBO7IOZ2AEF5OZPAUPH6AZA2QJLOCT73MPHL2OAC44STQQCSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

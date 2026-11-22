@@ -20,7 +20,7 @@ my $reply_id = $dl->{'reply_id'} // '';
 ## downstream must be able to accidentally load it. naming follows the  ##
 ## manual convention from the 2026-09-10 shard-4 incident               ##
 ## [ $dest.CORRUPT-<timestamp> ]                                        ##
-my $timestamp  = POSIX::strftime( '%Y%m%d-%H%M%S', gmtime );
+my $timestamp  = POSIX::strftime( '%Y%m%d-%H%M%S', CORE::gmtime );
 my $quarantine = "$dest.CORRUPT-$timestamp";
 my $suffix     = 0;
 $quarantine = "$dest.CORRUPT-$timestamp-" . ( ++$suffix )
@@ -57,8 +57,8 @@ if ( length $reply_id ) {
 
 return 0;
 
-#,,,.,.,,,,..,,,.,..,,,,,,..,,.,,,.,.,..,,.,,,..,,...,..,,...,..,,,.,,,..,,..,
-#4764CVSYJEMREFPSMKKIL5OTSNZGXEV4KVVGXIFRPYAAGEB2DIYD3FY45YSBZDICID5IL3WSFD25S
-#\\\|PQOCF5Y5HYFLGQLEU77SO4JNKB7FQZOBESARU5EUIHKLYTCQODR \ / AMOS7 \ YOURUM ::
-#\[7]N377IRJUM7D4LKBH6T2GG4Y4T5J6YL4K7LCXAMTMOETOIGIUUWAI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,..,,,,.,,,,,..,,...,...,...,..,,...,...,.,.,,.,,,.,,...,,,,,
+#2WPLSU2AB7JT4OXE3XPLN2DSGA6ZU7IFBKTYXP5NKZZAYN3YJDH6J4B76UPF4SNVGFDJC7UKA4NQQ
+#\\\|LLCHPMZX5KT5YX5XZJIHF5YYK7D7CT2TX4UMNSGD5PLNJBH3IK6 \ / AMOS7 \ YOURUM ::
+#\[7]Z3IFZHBRVCNGWJPVNMFG2MHBTSJEBPGYWPJUB6VJPMHS5XF7GCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

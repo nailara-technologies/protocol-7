@@ -16,7 +16,7 @@ return FALSE
     or $start_min > 59
     or $end_min > 59;
 
-my ( $minute, $hour ) = ( localtime($epoch) )[ 1, 2 ];
+my ( $minute, $hour ) = ( CORE::localtime($epoch) )[ 1, 2 ];
 my $time  = $hour * 60 + $minute;
 my $start = $start_hour * 60 + $start_min;
 my $end   = $end_hour * 60 + $end_min;
@@ -27,8 +27,8 @@ return TRUE
     : ( $time >= $start or $time < $end );
 return FALSE;
 
-#,,,,,,.,,,..,.,,,..,,,..,,,,,,..,.,.,,..,.,.,..,,...,...,,,.,...,,.,,..,,.,,,
-#6RY3Q6OQQUYQRKU547B3X7TOFIXDOHFZX5TC5SACLYNLKXRTMF2M44KLKCLKJPT26PR3Q5QQ5VILS
-#\\\|PILBNTABS5HS46OX26UKB3QTSWYQKC7L535NSDWS3V24B4VC4SS \ / AMOS7 \ YOURUM ::
-#\[7]3UJQNA5CYP2ZO6I36MFOT66XL3JQAWOK2NVKTHWNZGTQ6M4ZHUCQ 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,,,.,.,.,.,,..,,.,,.,.,,,,,.,,,..,,...,...,..,,..,,.,.,,,,,,.,,
+#WZHRKHEWL4DFIZL57VDLFT2JHRSFURTVSKTSGLIF3S2LKFYV7Y2NUQZZXTIO4O5HZBQC6NKBKLGE4
+#\\\|SGFDEUUSOPAFMJ5NBFTYIVQAGEPXXHOYLEYZYUGJBYBAM5UVFIX \ / AMOS7 \ YOURUM ::
+#\[7]XTR4KALGMJJ6MQNGHBYMBSTQTGCFNSY2VQZ4TZQTRQVWY2TIUYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

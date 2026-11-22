@@ -62,8 +62,8 @@ $code{'v7-zenki.login-session.zenki'}
 $data{'v7-zenki'}{'cfg'}{'login_session_zenki'}
     = 'compton protocol-7-menu bad;name';
 
-my @pw = getpwuid($UID);
-@pw = getpwnam('nobody') if not @pw or $pw[2] < 1000;
+my @pw = CORE::getpwuid($UID);
+@pw = CORE::getpwnam('nobody') if not @pw or $pw[2] < 1000;
 die 'no unprivileged fixture account' if not @pw;
 my $session_user = $pw[0];
 
@@ -309,8 +309,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,,,..,,.,,,.,,,.,.,.,,,.,,,...,.,.,...,.,,,..,,...,...,.,.,,,,,.,.,,,,,...,
-#GE6DGZPJ7I7T7NIFACGG76Z32THOGOLPT3MB2GLC53ITZYOYIX3UAWL7UE7JOMULZEZXNOGLOOEUC
-#\\\|GO527PBDZCIWOBTTJLRIF7YOEOYXXDP547YNMXNNVNNPR4QNSGK \ / AMOS7 \ YOURUM ::
-#\[7]VCDRAUELJ2AIVN36AQGLG55JYTFIUCDIVM5Z756MOYY26H3JHABA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,...,.,,,,,,,..,,,.,,,,,,,,,,..,,...,...,.,.,,,.,,,.,.,,,,.,,
+#TZRBXRMP2TRAYJAZVISFZ4NKWGC6MJHHC5PGUSH64BYYS6BKC53JFXBJ62YBTVFFLINUVBPCC6LA2
+#\\\|7ZDVE6RA6KWFS3PCXSTYKF73MGDYYC5IHE6Q2FE77TEVS2UH5PG \ / AMOS7 \ YOURUM ::
+#\[7]HH2MDAUIHGRP6M4BEYZP7LUP7RUFZN34RR43QFHZVT7XYY3J5ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -162,7 +162,7 @@ ok( -e "$src/link" && -l "$src/link", 'the symlink is untouched' );
     ok( $p->{'name'} eq 'b.png'
             && $p->{'format'} eq 'png'
             && $p->{'size'} == length $content{'b.png'}
-            && $p->{'mtime'} == ( stat "$src/b.png" )[9]
+            && $p->{'mtime'} == ( CORE::stat "$src/b.png" )[9]
             && $p->{'import_ntime'} =~ m|\A\d{14}\z|
             && $p->{'epoch'} eq epoch_b32($epoch)
             && $p->{'disk'} eq $disk
@@ -226,7 +226,7 @@ say ':: dedup and unchanged';
     );
     ok( $meta_count->() == 3, 'repeat of duplicates adds zero meta records' );
 
-    my $mtime = ( stat "$src/a.txt" )[9];
+    my $mtime = ( CORE::stat "$src/a.txt" )[9];
     utime $mtime + 1, $mtime + 1, "$src/a.txt" or die "utime : $OS_ERROR";
     my $rt = assimilate( %run, qw| paths | => ["$src/a.txt"] );
     ok( entry_for( $rt, "$src/a.txt" )->{'status'} eq 'dedup'
@@ -635,8 +635,8 @@ ok( $cli_rc != 0 && $cli_out eq '' && $cli_err =~ m|invalid -name regex|,
 
 done();
 
-#,,..,,..,.,.,.,,,...,,,.,,,,,...,,..,.,.,.,,,..,,...,...,.,,,...,,,.,.,.,.,,,
-#Y3AUJO5CDYVIO3BBV2G47XGUBAQGUXGWEUGRSNFRYEDVAVR6DHVXKEJIIN6DFCZ2HMWLP3RWU2DXA
-#\\\|LGK4P4MEN6W5NXJWJV24A7MUD7DFDTBRTWOEQY5PRX2YUM4RZ4I \ / AMOS7 \ YOURUM ::
-#\[7]4GKFKTIBYFSZXHQODJ5WMKSF7J36T76VGVJBS3YTCIMULGBEMUDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,,.,,,.,,,,,,.,,,,,,,,,.,...,..,,...,..,,...,,,.,.,.,,..,...,
+#A7KL2FRNUNYFBBTBZ4P4YMQWBIAYDJGENGFVKPIPF5RJDTJKYPM2X3ZVMVRBLNC7E5PZWPU237W5C
+#\\\|7GWQRB62DUXRTYIS2EU2JJQNY62ECOSWNUHI5GZVJVDICM7QXI7 \ / AMOS7 \ YOURUM ::
+#\[7]NGHTQJ5R3SAEBPTJ2NOINSVVC5QQA5R6QLQYX7GXXR4WOTWHSMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

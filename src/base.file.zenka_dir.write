@@ -98,14 +98,14 @@ if ( -d $file_abs_path ) {
     return undef;
 }
 
-my ( undef, undef, $uid, $gid ) = getpwnam $current_zenka_username;
+my ( undef, undef, $uid, $gid ) = CORE::getpwnam $current_zenka_username;
 
 ## override gid when zenka has a configured group     ##
 ## [ e.g. drop_privs to <user>:protocol-7 ] - mirrors ##
 ## base.path-set-up.check-zenka-paths                 ##
 if ( defined <system.zenka-group.current> ) {
     my ( undef, undef, $override_gid )
-        = getgrnam <system.zenka-group.current>;
+        = CORE::getgrnam <system.zenka-group.current>;
     $gid = $override_gid if defined $override_gid;
 }
 
@@ -215,8 +215,8 @@ if ( not close($fh) ) {
 ##  returning ammount of characters written  ##
 return length $content_sref->$*;
 
-#,,,.,.,,,...,,,.,.,.,,,,,,,,,,..,.,,,,,.,,,.,..,,...,...,,.,,,.,,,..,,,,,,.,,
-#5JBVTN4E7YAOOTIMPET45QU7LVBVAWJ2O4TOMQ6724Z54BRWBAZMSBSFZIAM6DC2ES4435TKLY7HC
-#\\\|7Z5G2NUVLUJXP4F274I6BEYKAUMTSNRSA3ZVNF5SHJLAYD4XH7K \ / AMOS7 \ YOURUM ::
-#\[7]DWXAAC7TVYOIPE2UPSXDR7PDTCAX5C5R7KQEZ5ORHDZGXDYRC2CQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,,,.,...,,..,,.,,,,,,,,,,.,.,..,,...,.,.,.,,,.,.,,..,,,,,,.,,
+#Q4WXHIOD7URYQLTOTZ7WZYLZ44S26TTQ6EEZMECYVADZPFIIZCQNGZ4OEISIVS35HACQEG75S22K2
+#\\\|VTAZACCQXXFIWTCNUYBBKJLEGYNMTS46MJ7ZW6UM7RXYEYDHO24 \ / AMOS7 \ YOURUM ::
+#\[7]GKACSJ4L7YDES5YGSOFCAZMSQDCQORJB57G4WNDC6HKW5LHSCYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

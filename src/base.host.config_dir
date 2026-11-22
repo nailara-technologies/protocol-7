@@ -19,8 +19,8 @@ my $cfg_dir = "$etc_dir/host-config";
 
 return $cfg_dir if $EFFECTIVE_USER_ID != 0;
 
-my $user = <system.amos-zenka-user> // qw| protocol-7 |;
-my $gid  = ( getpwnam $user )[3]    // 0;
+my $user = <system.amos-zenka-user>    // qw| protocol-7 |;
+my $gid  = ( CORE::getpwnam $user )[3] // 0;
 
 my @fix = ( [ $etc_dir, 0, $gid, 0755 ], [ $cfg_dir, 0, 0, 0755 ] );
 foreach my $entry (@fix) {
@@ -45,8 +45,8 @@ foreach my $entry (@fix) {
 
 return $cfg_dir;
 
-#,,,.,,.,,..,,,,.,,.,,...,,..,,,.,...,,..,...,..,,...,...,,.,,,,,,,.,,.,.,,.,,
-#CHBPRGOFK5UYD7ULGQG2QVMXVNQD7YACJ6VCXNJ3WC7JT2U4MEBREAERBQOXPKW2XWQLNZF2IABHC
-#\\\|W7HN5ETHLVTA7BIRBWJRJDDHYK42MB5CLV3EJKUZHUZ2IZ7E6KW \ / AMOS7 \ YOURUM ::
-#\[7]M3LUQUWC5EIYTMVK2SVSJHG42UF6NHJ4T3QE63VXBNERDGW3RGBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,,,,.,,..,,,,,,,,,,,,,,...,..,,..,,...,...,.,.,,,,,,,,,,,,,,.,,
+#GCEEESOVUHCLZDFZIVXSXHQ4I2OYWBDOTQSHOW5C7KPLH3I3A6FOXBGOJLZKQTGXYU55ST7NNE4TK
+#\\\|HDMD7B5ZBJGF24UHNUGCBYMIOJ6BL5SNIHM5BOUVOWW27R24ADF \ / AMOS7 \ YOURUM ::
+#\[7]YSCYDBK3PBK7GTCZQ2K4RST3H7KJ3KBLG5OJZIQBRSNCG7FJP2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

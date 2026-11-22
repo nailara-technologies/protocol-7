@@ -76,7 +76,7 @@ my $strm_max_bytes    = $ENV{'PROTOCOL_7_MCP_STRM_MAX_BYTES'}    // 1048576;
 
 ## extend PATH with known per-user tool install dirs not present in mcp env ##
 do {
-    my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
+    my $home = $ENV{'HOME'} // ( CORE::getpwuid($<) )[7] // '';
     for my $d ( "$home/.kimi-code/bin", "$home/.local/bin",
         "$home/.cargo/bin", ) {
         $ENV{'PATH'} = "$d:$ENV{PATH}" if -d $d and $ENV{'PATH'} !~ m{\Q$d\E};
@@ -1785,7 +1785,7 @@ sub check_chat_pending {
         for my $name (@ch) {
             my $hpath = File::Spec->catfile( $chat_dir, $name, 'history' );
             next if not -f $hpath;
-            my $mtime = ( stat($hpath) )[9] // 0;
+            my $mtime = ( CORE::stat($hpath) )[9] // 0;
             $newest_mtime = $mtime if $mtime > $newest_mtime;
         }
     }
@@ -3119,7 +3119,7 @@ sub tool_p7_memory_update {
                 my $header = sprintf ":. %s session %s .[ %s ]:.\n",
                     $agent, $s->{'uuid'},
                     POSIX::strftime( '%Y-%m-%d %H:%M',
-                    localtime( $s->{'mtime'} ) );
+                    CORE::localtime( $s->{'mtime'} ) );
                 push @session_summaries,
                     $header . ( $sum // '[summarization failed]' );
             }
@@ -3533,7 +3533,7 @@ sub _list_claude_sessions {
     my @files = glob("$dir/*.jsonl");
     my @sessions;
     for my $file (@files) {
-        my $mtime = ( stat($file) )[9] // 0;
+        my $mtime = ( CORE::stat($file) )[9] // 0;
         my $uuid  = $file;
         $uuid             =~ s{.*/}{};
         $uuid             =~ s{\.jsonl$}{};
@@ -3566,7 +3566,7 @@ sub _list_kimi_sessions {
             my $uuid = $inner_dir;
             $uuid =~ s{.*/}{};
 
-            my $file_mtime = ( stat($state_file) )[9] // 0;
+            my $file_mtime = ( CORE::stat($state_file) )[9] // 0;
             my ( $title, $mtime ) = ( '', $file_mtime );
             eval {
                 open( my $fh, '<:raw', $state_file ) or die;
@@ -3605,7 +3605,7 @@ sub _find_session_by_id {
         my $dir  = _claude_session_dir();
         my $file = "$dir/$session_id.jsonl";
         if ( -f $file ) {
-            my $mtime = ( stat($file) )[9] // 0;
+            my $mtime = ( CORE::stat($file) )[9] // 0;
             return {
                 mtime  => $mtime,
                 uuid   => $session_id,
@@ -3620,7 +3620,7 @@ sub _find_session_by_id {
                 my $uuid = $found;
                 $uuid =~ s{.*/}{};
                 $uuid =~ s{\.jsonl$}{};
-                my $mtime = ( stat($found) )[9] // 0;
+                my $mtime = ( CORE::stat($found) )[9] // 0;
                 return {
                     mtime  => $mtime,
                     uuid   => $uuid,
@@ -3646,7 +3646,8 @@ sub _find_session_by_id {
             my $uuid = $state_file;
             $uuid =~ s{.*/}{};
             $uuid =~ s{/state\.json$}{};
-            my ( $title, $mtime ) = ( '', ( stat($state_file) )[9] // 0 );
+            my ( $title, $mtime )
+                = ( '', ( CORE::stat($state_file) )[9] // 0 );
             eval {
                 open( my $fh, '<:raw', $state_file ) or die;
                 my $raw = do { local $/; <$fh> };
@@ -3774,7 +3775,7 @@ sub tool_session_catchup {
                 }
                 my $ts
                     = POSIX::strftime( '%m-%d %H:%M',
-                    localtime( $entry->{'mtime'} ) );
+                    CORE::localtime( $entry->{'mtime'} ) );
                 push @out, sprintf "  %-5s  %s  :. %s",
                     $entry->{'client'}, $entry->{'uuid'}, $entry->{'title'};
                 $out[-1] =~ s|$| [ $ts ]|;
@@ -3906,7 +3907,7 @@ sub tool_session_catchup {
     $result //= 'summarization failed';
     my $header = sprintf ":. %s .[ %s ]:. %s\n\n",
         $s->{'client'}, $session_id,
-        POSIX::strftime( '%Y-%m-%d %H:%M', localtime( $s->{'mtime'} ) );
+        POSIX::strftime( '%Y-%m-%d %H:%M', CORE::localtime( $s->{'mtime'} ) );
     return send_tool_result( $id,
         $header . $sub_note . $truncated_note . $result, 0 );
 }
@@ -3992,7 +3993,7 @@ sub _list_subagent_transcripts {
                 descr => $descr,
                 model => $model,
                 file  => $file,
-                mtime => ( stat($file) )[9] // 0,
+                mtime => ( CORE::stat($file) )[9] // 0,
                 };
         }
     } elsif ( $s->{'client'} eq 'kimi' ) {
@@ -4007,7 +4008,7 @@ sub _list_subagent_transcripts {
             my $id = $adir;
             $id =~ s{.*/}{};
             my ( $type, $descr ) = ( 'agent', '' );
-            my $mtime     = ( stat($file) )[9] // 0;
+            my $mtime     = ( CORE::stat($file) )[9] // 0;
             my $meta_file = "$adir/meta.json";
             if ( -f $meta_file ) {
                 eval {
@@ -4067,7 +4068,7 @@ sub _claude_scratchpad_dir {
 sub _chmod_dir_if_mine {
     my ( $path, $mode ) = @ARG;
     return unless -d $path;
-    my ( $uid, $cur ) = ( stat($path) )[ 4, 2 ];
+    my ( $uid, $cur ) = ( CORE::stat($path) )[ 4, 2 ];
     return unless defined $uid and $uid == $REAL_USER_ID;
     $cur &= 07777;
     chmod( $cur | $mode, $path ) if ( $cur & $mode ) != $mode;
@@ -4102,7 +4103,7 @@ sub _extract_claude_scratchpad_text {
     my $file_cap  = 24576;     ## per-file content cap ##
     my $total_cap = 122880;    ## overall scratchpad text cap ##
 
-    my @files = sort { ( stat($a) )[9] <=> ( stat($b) )[9] }
+    my @files = sort { ( CORE::stat($a) )[9] <=> ( CORE::stat($b) )[9] }
         grep {-f} glob("$dir/*");
     my ( $text, $count, $skipped ) = ( '', 0, 0 );
     ## record the volatile source path in-band so summaries keep it ##
@@ -4110,7 +4111,7 @@ sub _extract_claude_scratchpad_text {
     for my $file (@files) {
         my $name = $file;
         $name =~ s{.*/}{};
-        my $size = ( stat($file) )[7] // 0;
+        my $size = ( CORE::stat($file) )[7] // 0;
         if ( not -T $file ) {    ## binary : list name+size only ##
             $text .= sprintf "\n.:[ scratchpad .[ %s ]:. binary, %d bytes "
                 . "— content skipped ]:.\n", $name, $size;
@@ -4163,7 +4164,7 @@ sub tool_scratchpad_import {
         "no scratchpad dir for $s->{'uuid'} [ $src_dir ]", 1 )
         unless -d $src_dir;
 
-    my @files = sort { ( stat($a) )[9] <=> ( stat($b) )[9] }
+    my @files = sort { ( CORE::stat($a) )[9] <=> ( CORE::stat($b) )[9] }
         grep {-f} glob("$src_dir/*");
     return send_tool_result( $id,
         "scratchpad is empty for $s->{'uuid'} [ $src_dir ]", 1 )
@@ -4175,7 +4176,7 @@ sub tool_scratchpad_import {
         return send_tool_result( $id,
             "scratchpad file not found: $only_file [ $src_dir ]", 1 )
             unless defined $match;
-        my $size    = ( stat($match) )[7] // 0;
+        my $size    = ( CORE::stat($match) )[7] // 0;
         my $content = '';
         eval {
             open( my $fh, '<:raw', $match ) or die;
@@ -4222,10 +4223,11 @@ sub tool_scratchpad_import {
         my $name = $file;
         $name =~ s{.*/}{};
         if ( copy( $file, "$dest_dir/$name" ) ) {
-            my $mtime = ( stat($file) )[9];
+            my $mtime = ( CORE::stat($file) )[9];
             utime( time, $mtime, "$dest_dir/$name" ) if defined $mtime;
             $copied++;
-            push @out, sprintf "  %8d  %s", ( stat($file) )[7] // 0, $name;
+            push @out, sprintf "  %8d  %s", ( CORE::stat($file) )[7] // 0,
+                $name;
         } else {
             push @out, "  FAILED   $name : $OS_ERROR";
         }
@@ -4240,7 +4242,8 @@ sub tool_scratchpad_import {
             "session_uuid  : $s->{'uuid'}\n",
             "bmw_l13       : $bmw\n",
             "imported_at   : "
-                . POSIX::strftime( '%Y-%m-%d %H:%M:%S %z', localtime ) . "\n",
+                . POSIX::strftime( '%Y-%m-%d %H:%M:%S %z', CORE::localtime )
+                . "\n",
             "files         : $copied\n" );
         close $fh;
     };
@@ -4270,7 +4273,7 @@ sub _scratchpad_list {
             $rows{$bmw}->{'uuid'}      = $uuid;
             $rows{$bmw}->{'tmp_files'} = scalar @f;
             $rows{$bmw}->{'tmp_mtime'}
-                = max( map { ( stat($_) )[9] // 0 } @f );
+                = max( map { ( CORE::stat($_) )[9] // 0 } @f );
         }
     }
 
@@ -4297,7 +4300,7 @@ sub _scratchpad_list {
             }
             $rows{$bmw}->{'repo_files'}
                 //= scalar grep {-f} glob("$dir/*");
-            $rows{$bmw}->{'repo_mtime'} = ( stat($dir) )[9] // 0;
+            $rows{$bmw}->{'repo_mtime'} = ( CORE::stat($dir) )[9] // 0;
         }
     }
 
@@ -4325,7 +4328,7 @@ sub _scratchpad_list {
             = $r->{'imported'}
             ? "imported $r->{'imported'}"
             : POSIX::strftime( '%Y-%m-%d %H:%M',
-            localtime( $r->{'tmp_mtime'} // 0 ) );
+            CORE::localtime( $r->{'tmp_mtime'} // 0 ) );
         $ts =~ s{\s+\S+$}{} if $r->{'imported'};    ## drop tz suffix ##
         my $files
             = ( $r->{'repo_files'} and $r->{'tmp_files'} )
@@ -5815,7 +5818,7 @@ sub tool_claude_cloud_result {
 ## [ best-effort : undef when unreadable or the key is absent ] — used to ##
 ## report WHICH level a dispatch ran at when the caller did not set one   ##
 sub _kimi_config_thinking {
-    my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
+    my $home = $ENV{'HOME'} // ( CORE::getpwuid($<) )[7] // '';
     my $path = "$home/.kimi-code/config.toml";
     return undef if not -f $path;
     open my $fh, '<', $path or return undef;
@@ -5869,7 +5872,7 @@ sub _kimi_fork_run {
     ## — long before its first output line and well inside the bounded     ##
     ## window below, so the new session's uuid is recoverable by diffing   ##
     ## against this snapshot instead of grepping logs afterwards           ##
-    my $home       = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
+    my $home       = $ENV{'HOME'} // ( CORE::getpwuid($<) )[7] // '';
     my @sess_globs = (
         "$home/.kimi-code/sessions/*/session_????????-????-????-????"
             . '-????????????',
@@ -6298,7 +6301,7 @@ sub tool_kimi_check_status {
     $max_lines = 200 if $max_lines > 200;
     $max_lines = 1   if $max_lines < 1;
 
-    my $home = $ENV{'HOME'} // ( getpwuid($<) )[7] // '';
+    my $home = $ENV{'HOME'} // ( CORE::getpwuid($<) )[7] // '';
 
     ## both cli generations are supported : the current kimi-code cli keeps ##
     ## sessions at ~/.kimi-code/sessions/wd_<cwd>/<session_uuid>/           ##
@@ -6374,7 +6377,7 @@ sub tool_kimi_check_status {
     my $wire_fresh = 0;
     my $turn_ended = 0;
     if ( defined $wire_file and -f $wire_file ) {
-        $wire_age   = time - ( stat($wire_file) )[9];
+        $wire_age   = time - ( CORE::stat($wire_file) )[9];
         $wire_fresh = $wire_age < 180 ? 1 : 0;
         my $tail_cmd    = sprintf 'tail -n 5 %s', quotemeta($wire_file);
         my $last_events = qx( $tail_cmd 2>/dev/null );
@@ -6499,8 +6502,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,..,,...,..,,..,,,,,,,,.,,,.,..,,,,.,.,.,..,,...,...,...,.,,,...,.,.,..,,
-#GSXCU372KQFHGYU2ALCBQKTDE5Z5IZ6JWPD5MN7BK3DRDGG4RVFAHKXL62BODL53IRVXXQMZOS242
-#\\\|FKMYE4FKS5VQFYYDMGXV3BIMHS3KH2NVMPMZU3HOTLIY2S4DHTQ \ / AMOS7 \ YOURUM ::
-#\[7]NNBHWMB34GHQFWM6HRUFXDSEKMZBAWIA5HBXSD5VME2QU5YFC6BQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,,,,,,,,,,,,.,,.,,,..,,.,.,,..,..,,...,...,..,,,,.,.,.,,,,,,,,,
+#GSKB6QZJQ36QRAMXGR33CMHKPD3JBLLISY2TV6RPT3I35HDVSKJGJVOGAJV42XKL7RWCGMZGXE6K2
+#\\\|PPGLDEYV7NNHKAHJXBET33D7IZ7LUEFE5JWC7RNLLPCEE4JWVYI \ / AMOS7 \ YOURUM ::
+#\[7]V2LZOOYD4QOW4KSRQB6VNVSNE4KGI2MMIUO2BR3XIPATVUT3FMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

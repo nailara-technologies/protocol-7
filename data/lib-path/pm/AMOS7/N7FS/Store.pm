@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.2A7YECQ |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.TIAJVYY |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -102,7 +102,7 @@ sub _open_regular {
     sysopen( my $fh, $path, O_RDONLY | O_NOFOLLOW )
         or refuse( 'cannot open %s : %s', $path, $OS_ERROR );
     binmode $fh;
-    my @st = stat $fh;
+    my @st = CORE::stat $fh;
     refuse( '%s is not a regular file', $path ) if not -f _;
     return ( $fh, \@st );
 }
@@ -117,7 +117,7 @@ sub _list_dir {
 }
 
 our $LINK   = sub { return link( $ARG[0], $ARG[1] ) };
-our $DEVICE = sub { return ( stat $ARG[0] )[0] };
+our $DEVICE = sub { return ( CORE::stat $ARG[0] )[0] };
 
 ## conversion may ask for a hard link ; every other writer copies into a new
 ## temporary node. no path opens existing content for writing
@@ -127,7 +127,7 @@ sub _write_content {
     my $target = "$dir/content";
     my $addr   = $node->{'addr'};
     if ( $node->{'link_content'} ) {
-        my @src_st  = lstat $source;
+        my @src_st  = CORE::lstat $source;
         my $regular = @src_st && -f _ && not -l _;
         my $dst_dev = $DEVICE->($dir);
         if (    $regular
@@ -1074,7 +1074,7 @@ sub index_sources {
 ## files and directories [ recursive, symlinks never followed ] -> items
 sub _walk {
     my ( $path, $items, $skipped ) = @ARG;
-    my @st = lstat $path;
+    my @st = CORE::lstat $path;
     if ( not @st ) {
         push @{$skipped}, { qw| source | => $path, qw| why | => "$OS_ERROR" };
     } elsif ( -l _ ) {
@@ -1171,7 +1171,7 @@ sub assimilate {
             if $opt{'tree'} !~ m|\A[^\x00/]+\z|;
         refuse( 'tree : duplicate live tree [ %s ]', $opt{'tree'} )
             if $replay->{'trees'}{ $opt{'tree'} };
-        my @root = lstat $opt{'paths'}[0];
+        my @root = CORE::lstat $opt{'paths'}[0];
         refuse( 'tree root %s is not a directory', $opt{'paths'}[0] )
             if not @root
             or -l _
@@ -1208,7 +1208,7 @@ sub assimilate {
     if ( $opt{'prune'} ) {
         foreach my $path ( ( $opt{'paths'} // [] )->@*, $index_base ) {
             next if not defined $path;
-            my @st = lstat $path;
+            my @st = CORE::lstat $path;
             next if not @st or -l _ or not -d _;
             push @prune_roots, abs_path($path) // $path;
         }
@@ -1463,7 +1463,7 @@ sub _prune_roots {
         sort { ( $b =~ tr|/|| ) <=> ( $a =~ tr|/|| ) or $a cmp $b }
         keys %candidate
     ) {
-        my @st = lstat $path;
+        my @st = CORE::lstat $path;
         next if not @st or -l _ or not -d _;
         if ($dry_run) {
             opendir( my $dh, $path )
@@ -1528,7 +1528,7 @@ sub _assimilate_one {
     my $path = $item->{'path'};
 
     ## pass 1 : identity + content hash of the source ##
-    my @lst = lstat $path or refuse( '%s : %s', $path, $OS_ERROR );
+    my @lst = CORE::lstat $path or refuse( '%s : %s', $path, $OS_ERROR );
     refuse( '%s : symlink', $path ) if -l _;
     my ( $fh, $st ) = _open_regular($path);
     refuse( '%s : replaced while opening', $path )
@@ -1740,7 +1740,8 @@ sub _remove_source {
     my $path  = $entry->{'source'};
     my $st    = $entry->{'_remove_stat'};
     fault(qw| assimilate:before-remove |);
-    my @last = lstat $path or refuse( '%s : vanished before removal', $path );
+    my @last = CORE::lstat $path
+        or refuse( '%s : vanished before removal', $path );
     refuse( '%s : replaced before removal', $path )
         if -l _
         or $last[0] != $st->[0]
@@ -1754,8 +1755,8 @@ sub _remove_source {
 
 1;
 
-#,,,.,,..,,..,,,.,.,,,..,,..,,,.,,.,.,,,,,.,.,..,,...,...,...,,..,.,,,,.,,,.,,
-#2FESODP2KDF3LXNQPJF5MCKPH3YVUW6GN5URDTEUNH2VNHV5GFDUIALQ7JB4WCO6FKHT6CCADE4PE
-#\\\|FTDPMJT5L5IBXOIFHF45IK5RFKCFV2D3XAGXFXZKU4N4ROUEFIB \ / AMOS7 \ YOURUM ::
-#\[7]DIESG7L3EWJE7OX4BR2PWLE5Z3SCJJSTCZLFDACGJZDWF3WFHAAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,.,,.,,,,,,,,,.,.,,,..,,,,.,,..,..,,...,...,..,,,,,,..,,..,,,..,
+#2UT2IRZIBKUGFYTOIQL7436FK2A66OEGIUG36E6K2APRIBYRDPKT7NF2ZNYHPCS63HVKR6ZTS4VIU
+#\\\|YXMG3HCXNPYMD7CMRGTB22ZYCTZNWL747CQ3LVVGPO3TBFFP43E \ / AMOS7 \ YOURUM ::
+#\[7]FLIWX6AJRGNLE275F3DGQBF3FA4PDK6CR6HCYCL6C7XJL4JWF6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

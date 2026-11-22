@@ -20,7 +20,7 @@ my $cache_dir = <image2html.cache_dir>;
 my $perms = <image2html.cache_perm> // '0750';
 if ( !-d $cache_dir ) {
     <[base.log]>->( 1, "creating cache directory '$cache_dir'.. [$perms]" );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $cache_dir,
         { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
@@ -55,8 +55,8 @@ chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
 
 0;
 
-#,,..,,,.,,.,,.,,,,,.,,.,,.,,,.,,,,..,...,.,,,..,,...,..,,,,.,,.,,,.,,..,,,,.,
-#HKYKRWW2YGO5CGRGHEHEDK6JLLRTSVFDUNP3RTP54EKFN4AZ7ZGRSWXRIQECMEACA4C3RPI2QAYDW
-#\\\|PN6SFMHWRYI6FSQZ56326RCT56HUJIJTNGAQKACSAEB43ZGCCFJ \ / AMOS7 \ YOURUM ::
-#\[7]ZLDVWBT3GRDLLBYRSBLQRVV4XJH736FUXKECEZL3DCUAT42O2UCA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,.,,.,,.,.,,..,,..,,..,,..,,..,..,,...,...,...,..,,...,,,.,.,,,
+#3JSZCKUZXISGELOMAS5PMYXYNJ2BHLJ54NUBBNUPSWH7BUF4ARAECCQLOJMBFT65R4LUTJVVXSO7I
+#\\\|C3QM2XNXA2FXHDG37X5Z5INS4NQEV55SHUSHOLCTBLUPLFWGYUJ \ / AMOS7 \ YOURUM ::
+#\[7]JBTKDOD6J5YRYYFMIRQLCXKJ43SO7B6WY7ZALPBE67XH3VDORYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

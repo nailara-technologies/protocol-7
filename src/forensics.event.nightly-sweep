@@ -44,7 +44,7 @@ my $window_seconds = <forensics.cfg.sweep_window_seconds> // 86400;
 
 return TRUE if defined <forensics.sweep.state>;
 
-my @gm = gmtime;
+my @gm = CORE::gmtime;
 my $sweep_date = sprintf qw| %04d-%02d-%02d |, $gm[5] + 1900, $gm[4] + 1,
     $gm[3];
 my $generated_str
@@ -94,8 +94,8 @@ my @files = grep {
 
 return TRUE;
 
-#,,,.,,,,,,,.,.,,,,,.,.,,,...,,..,...,,..,,..,..,,...,..,,...,,..,...,.,,,,..,
-#YK6IOXYQ7HIHGXR5DERAPONH6V64MCF4CRIV2FBYOQLTHVDAL3XDSMELJZNEEJJ4BB2HPGB5MULSI
-#\\\|X2X6SHTJBSWEZOH56BK45JOLMVUPU5DINWA6RIX6G2X3HEH5X4X \ / AMOS7 \ YOURUM ::
-#\[7]IJXLYALTODWWVL7KG2DHZA5G32HIROPLNE2JG64PCAKHU5XPQADA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,..,,...,.,,,...,,,.,,,.,...,.,.,..,,...,...,.,,,...,,.,,..,,,.,,
+#KGMBLTHF66UQD42U3UWTOCT32AHI2SH2MBUS5QVDZKTJ7GVZRRVWGTZHENAGBBBSPC22ZDIVQ7GB4
+#\\\|2ZG3QSJEU2GSLVZFLFZRDLWJJSHUBHTFRNTP24H5DQ3FU5CUQKE \ / AMOS7 \ YOURUM ::
+#\[7]LYTCAPO6IX624PXKMFGA62OEPTNDIQT2KMBGEYOQCUUYTNTDYQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

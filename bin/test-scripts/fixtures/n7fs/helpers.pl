@@ -100,7 +100,7 @@ sub snapshot {
     my $walk;
     $walk = sub {
         my $path = shift;
-        my @st   = lstat $path or return;
+        my @st   = CORE::lstat $path or return;
         my $mode = sprintf '%04o', $st[2] & 07777;
         if ( -l _ ) {
             $snap{$path} = 'l ' . readlink($path);
@@ -141,7 +141,7 @@ sub write_file {
 ## copies a tree [ perl only, list-form, keeps modes ]
 sub copy_tree {
     my ( $from, $to ) = @ARG;
-    my @st = lstat $from or die "lstat $from : $OS_ERROR";
+    my @st = CORE::lstat $from or die "lstat $from : $OS_ERROR";
     if ( -d _ ) {
         mkdir $to, $st[2] & 07777 or die "mkdir $to : $OS_ERROR";
         opendir( my $dh, $from ) or die "opendir $from : $OS_ERROR";
@@ -183,8 +183,8 @@ sub holder_blobs {
 
 1;
 
-#,,,,,.,.,.,,,...,.,,,..,,,,.,,,.,..,,...,.,.,..,,...,...,.,.,...,,.,,..,,.,.,
-#VEXHWHNNPHPD7DUNTNOUNCVMPRKVPNNS5MTKSLBH7LWOY2KILQHWRRQORHDPMZJ6LIEFNEY6YYTAE
-#\\\|WK3QCPUZCQS75IOXUPEMUV5YPXQFOC2VERXFDNMW7OQW4MRCPFC \ / AMOS7 \ YOURUM ::
-#\[7]IFREAITID3VMKWRTBCSO2NMZHGKFQTD4OZISRSJAL5SBR2SVGUDA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,..,,,,.,,.,,,,.,,..,..,,...,...,..,,...,...,...,,.,,.,.,,,,,..,,
+#C3ZKFV2PRJOF3MH2LZXZNK2HFU2SKATZ53UZTFAV2BSNMMDFQZSPXXN53MXTL2UY46SEX3TFIATDM
+#\\\|6JFNIXZ7SOOV3OFKK3FZZM2XHX2A3GRVPEXX4SLQY2GE3UQI4A6 \ / AMOS7 \ YOURUM ::
+#\[7]CYPLPDDNM5GG7SWXIJ3OIPKMX5LHCUSML2EK65H32OYAE46STWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

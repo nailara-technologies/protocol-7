@@ -129,7 +129,7 @@ while ( my $line = <$input_fh> ) {
     ##  replace stamp with local time string  ##
     my $output;
     if ( defined $unix_time ) {
-        my @lt       = localtime($unix_time);
+        my @lt       = CORE::localtime($unix_time);
         my $time_str = sprintf(
             '%04d-%02d-%02d %02d:%02d:%02d',
             $lt[5] + 1900,
@@ -218,8 +218,8 @@ sub param_to_unix {
     }
 }
 
-#,,..,...,.,,,,..,..,,...,,.,,,.,,.,.,,,.,,,.,.,.,...,...,..,,,.,,,..,,,,,.,.,
-#XYVDUM6LYKUM2IDGZBEQKZZBZSXS6ABTRLFB6OKC7UXRRPTBZGJX46E2Q6OTNASRNZJU27JRPJTAC
-#\\\|CE5VS6T5M6UE72EZXYRNLTVDXZIG7QHHAV2DXNK737FOC676SJY \ / AMOS7 \ YOURUM ::
-#\[7]TKAHZEATB6KFGBMAPE3MQWGIM2HS6LRRZ2VQQZ66ECDX6XZ6H2BA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,.,,.,,,..,,..,...,,..,.,.,.,,,.,.,...,...,,..,.,.,,,.,...,..,,
+#HTCPSFYSQ566SNEGP4KFTJMV22BS6EULOFTUTICOK22XERC3QKOI7OLYKOHMHP5RLDTA3LTGXR7N2
+#\\\|6NT4SWCU72ET7ENYU2LDTJYAD76DRIH6XGGHJQCS4B6ZXGSQPLK \ / AMOS7 \ YOURUM ::
+#\[7]6WM7UWWKXWH7UWUT5GB5VTYIKI4CH5PG6EQI3RKAXGQH7NMN6WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -608,7 +608,7 @@ say ':: a valid store-signed but unlisted injected node';
         name         => 'injected.txt',
         format       => 'txt',
         size         => length($body),
-        mtime        => ( stat $file )[9],
+        mtime        => ( CORE::stat $file )[9],
         import_ntime => ntime14( clock_now() ),
         epoch        => epoch_b32($epoch),
         source       => $file,
@@ -755,8 +755,8 @@ ok( store_verify( %base, disk => $disk ), 'and the journal has no fork' );
 
 done();
 
-#,,.,,.,,,,,,,.,.,.,.,,,.,...,.,.,,,.,,..,..,,.,.,...,..,,,..,..,,.,,,...,..,,
-#H3XNE4TJPCOEVHFHEQX2W4MSVF6EMH5PFJBWKUJ7VN3ANZ6PJVJ6ZSLLG2YAXZCPHUUDA4SIWHS76
-#\\\|73WCIKZVGUNVIDUMJS4W5I7G63OTV4BXNMWUDKW25HAN5EPVMPO \ / AMOS7 \ YOURUM ::
-#\[7]4TAID5XQOI2BOEQHQSFAEP6BJ37FVI6EDKNTAJPXTKCMPQHKTYCI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,,,.,,..,,..,,,,,...,...,..,,.,.,...,..,,..,,...,.,.,..,,...,
+#EHIH2CLD3TAAAPPRA2JMZ7WRR5UKPB7NVF7XOOOIYGL3LF47MR3NY5MMAIDBCZ4Y3YEW3SSFMJSWC
+#\\\|SHA4UZRM6RG5FTBL6Z3EIINRXHAR77GO6WYKTEHAK4ABLHT4LJQ \ / AMOS7 \ YOURUM ::
+#\[7]NN4UGZHBWNZDKRU4I3LMQ6X54MIU5WNODKTONLAPRAX4KVDG22CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -273,8 +273,9 @@ package main;
     );
     if ( defined $session->{'http'}{'shm_path'} ) {
         my $mode
-            = ( stat("$test_dir/shm/$session->{'http'}{'shm_path'}") )[2]
-            & 07777;
+            = (
+            CORE::stat( "$test_dir/shm/" . "$session->{'http'}{'shm_path'}" )
+            )[2] & 07777;
         ok( 'final file chmod 440', $mode == 0440 );
     } else {
         ok( 'final file chmod 440', 0 );
@@ -317,7 +318,7 @@ package main;
     ## declared count must be SMALLER than the actual body so the overflow ##
     ## gate [ actual byte_count > declared decl_bytes ] actually trips     ##
     my $req = build_request(
-        body        => 'this body is longer than ' . 'declared',
+        body        => 'this body is longer than declared',
         wrong_bytes => 3
     );
     my ( $id, $init_rc, $stream_rc ) = run_request($req);
@@ -340,7 +341,7 @@ package main;
     opendir( my $dh, "$test_dir/shm" ) or die $!;
     my @leftover = grep { !m|^\.\.?$| } readdir($dh);
     closedir($dh);
-    ok( 'no leftover temp file ' . 'after BMW384 rejection',
+    ok( 'no leftover temp file after BMW384 rejection',
         scalar(@leftover) == 0 );
 }
 
@@ -384,7 +385,7 @@ package main;
     ok( 'base.shm.write returns a content-addressed name', defined $name );
     ok( 'base.shm.write file is chmod 440',
         defined $name
-            && ( ( stat("$test_dir/shm/$name") )[2] & 07777 ) == 0440
+            && ( ( CORE::stat("$test_dir/shm/$name") )[2] & 07777 ) == 0440
     );
     my $read_ref = $code{'base.shm.read'}->( { path => $name } );
     ok( 'base.shm.read round-trips base.shm.write output [ unencrypted ]',
@@ -410,8 +411,8 @@ say "passed : $pass   failed : $fail";
 remove_tree($test_dir) if -d $test_dir;
 exit( $fail ? 1 : 0 );
 
-#,,..,,,.,,.,,,.,,,,,,,.,,,,.,,,,,,.,,,,,,.,.,..,,...,...,..,,,,,,,,,,.,,,,..,
-#KSQUZMBMWCQY2SG5VHPIT6TCFJBR5OWSHXMN33BUD723XPWTRHNILQYII6SPXRYTEK5BH35M5N6AK
-#\\\|SMGPCODIHWNVKPBWIIXAJU2MHEZG7NWFT3JSF2I5RCEFMBIVXLX \ / AMOS7 \ YOURUM ::
-#\[7]52IUAJKDSNUALLSB2TRM7QEC6AYYFDI733467OM6NPITK6PMD6CI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,.,.,.,,,.,,.,,..,,,,,,,.,,...,..,,...,...,.,.,,,,,,..,.,,,.,,,
+#UON4NOGWW3RFHC6YNEUNTNQPRI4M4TAEA3EMX4KVY7CY2GI3HOTEHDIPH65UTAKYOABL7A4UYEHB6
+#\\\|MFPZONSCDSAWOS2ZYJ2SPHWYTIPO5QI5TUN27EZAL56TGFVIIZ3 \ / AMOS7 \ YOURUM ::
+#\[7]V5UP4U3CWEBFJDRJZYNCV5V3KNBTJLMXT72ZEHXO7OFNNTAHK6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

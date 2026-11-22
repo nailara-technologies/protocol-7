@@ -65,9 +65,9 @@ if ( defined <v7-zenki.watchers.stdout_log_rotate> ) {
 my $admin_user = <system.admin-user> // '';
 my ( $admin_group, $admin_gid );
 if ( length $admin_user ) {
-    ( undef, undef, undef, $admin_gid ) = getpwnam($admin_user);
+    ( undef, undef, undef, $admin_gid ) = CORE::getpwnam($admin_user);
     if ( defined $admin_gid ) {
-        $admin_group = ( getgrgid($admin_gid) )[0];
+        $admin_group = ( CORE::getgrgid($admin_gid) )[0];
     }
 }
 
@@ -143,7 +143,7 @@ sysopen( my $log_fh, $shm_log_path, O_WRONLY | O_CREAT | O_APPEND,
 
 ## ensure file ownership and permissions for admin group read access ##
 if ( defined $admin_group and $EUID == 0 ) {
-    my $zenka_uid = ( getpwnam(<system.amos-zenka-user>) )[2];
+    my $zenka_uid = ( CORE::getpwnam(<system.amos-zenka-user>) )[2];
     if ( defined $zenka_uid ) {
         chown( $zenka_uid, $admin_gid, $shm_log_path )
             or <[base.s_warn]>->(
@@ -198,8 +198,8 @@ push <callbacks.end_code>->@*, qw| v7-zenki.stdout_log.close |;
 
 return TRUE;
 
-#,,..,,..,,,.,,,,,,,,,,.,,,.,,,,,,,,.,.,.,...,..,,...,...,..,,,..,...,,,,,...,
-#BKLSCYP3ALGCDW7J7HIAOAT3REEKDHXAVQ7JYWUH4KFWUBNECNO64CMIVZDAJOOPIGH5UKEEWFT7Y
-#\\\|KTTSZUG6EZQ4T7FTDGBXWXD7PDRDZHYO7XAN5TFCBJ7KDXN476G \ / AMOS7 \ YOURUM ::
-#\[7]63JV7O72WFAX2YW7YYS32C4B2BGXOXJKFHSAAZIGVLQUX2LRIADQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,..,,.,,..,,.,,,,,.,.,.,,,.,.,.,..,,...,...,,..,,..,..,,,..,..,,
+#HIMI5WWJDPZ5C3CLIE44LXPAJGPSVYMP5MHVOEXSWL5M57HXOEU5HH6HGYLRZAYP37MCXEPM3EDKW
+#\\\|P74KSUHOF2D4OPLLI2MT6UCTQSOX72F57H2PVFWQ362G77PYJCU \ / AMOS7 \ YOURUM ::
+#\[7]KWXCHCBUWAJM3B6HDYX7WQ37IKG6SZVKXH3I37GRFZNOGOSW5KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

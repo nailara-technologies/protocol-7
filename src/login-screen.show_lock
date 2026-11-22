@@ -112,7 +112,7 @@ if ( not <[login-screen.watch_root]> ) {
 my $update_time = sub {
     return FALSE if <login-screen.state> ne qw| locked |;
     <login-screen.widget.time>
-        ->set_text( POSIX::strftime( '%H:%M', localtime ) );
+        ->set_text( POSIX::strftime( '%H:%M', CORE::localtime ) );
     return TRUE;
 };
 $update_time->();
@@ -195,8 +195,8 @@ my $fade_target = defined $session_image_pixbuf ? 1             : 0.995;
     if <[login-screen.handler.lock_grab]>;
 TRUE;
 
-#,,..,,,.,,,,,.,,,,.,,,..,,,,,...,..,,,.,,.,,,..,,...,.,.,,,.,.,.,,.,,,,,,...,
-#NXQYB7LNP2MK7TSIYONAJPFZAX4VIKNPA3IWIPKFKYCO26XK7LVA34YDBLWPTJOQB6GTVPMTRXZTI
-#\\\|PDUZ2WYD76MPZPM6ZIZUSILIDU27KDQFJXUSDPHOKEI7OUBGR72 \ / AMOS7 \ YOURUM ::
-#\[7]HV2JWC5CDWSEHP6EUT2GYYQCDYKOXOGHLAUK5QJ76FT3FYOSCMCQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,,..,,.,,,..,,.,,.,,,..,,.,,,..,,...,...,.,,,...,,,.,,.,,,..,
+#WA2E7GSOLKRHZZSVG5FWHXZZC7422AHGSS4275BDA4ONMBPIXDUDTV3GJDVLCKFFYC32U4BSKJQAS
+#\\\|HF3NDUXVH7WXEWXJUXZIYRNE45FB2GPNOWPKDEFWUAQQKQZIEQE \ / AMOS7 \ YOURUM ::
+#\[7]7CWHI6EZ5U2GFGQGVORPUW4ZEDY56QVB2MT6NCXMWSNCJLIU4GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

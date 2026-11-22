@@ -123,7 +123,7 @@ my $INPUT_SECONDS
     : 13;
 
 my $dir = $ENV{'P7_VAULT_DIR'} // sprintf qw| %s/.n/vault |,
-    $ENV{'HOME'} // ( getpwuid($EUID) )[7];
+    $ENV{'HOME'} // ( CORE::getpwuid($EUID) )[7];
 
 ## colors : on by default, off with -nc [ bin/Protocol-7, ssh.hash-hostkey ]
 ## or a non-empty NO_COLOR [ no-color.org ], and when STDOUT is not a
@@ -1690,7 +1690,7 @@ sub _import_collect {
 sub _import_one {
     my ( $v, $file, $host, $title_opt, $update ) = @ARG;
 
-    my @st = stat $file or die "cannot stat $file : $OS_ERROR\n";
+    my @st = CORE::stat $file or die "cannot stat $file : $OS_ERROR\n";
     my ( $name, $size ) = blob_import( $v, $file );
 
     my $abs = File::Spec->rel2abs($file);
@@ -1901,7 +1901,7 @@ sub _import_archive {
             . 'the archive holds the older bytes ]' )
         if $tar_exit == 1;
 
-    my @st     = stat $dir or die "cannot stat $dir : $OS_ERROR\n";
+    my @st     = CORE::stat $dir or die "cannot stat $dir : $OS_ERROR\n";
     my %record = (
         type    => qw| file |,
         title   => defined $title_opt ? $title_opt : $base,
@@ -2137,7 +2137,7 @@ sub _export_write_file {
     if ( $EUID == 0 and defined $want_uid ) {
         chown $want_uid, ( $want_gid // -1 ), $dest;
     } elsif ( defined $want_uid and defined $want_gid ) {
-        my @st = stat $dest;
+        my @st = CORE::stat $dest;
         say STDERR msg( 'info', 'owner %s:%s not restored [ not root ]',
             $want_uid, $want_gid )
             if @st and ( $st[4] != $want_uid or $st[5] != $want_gid );
@@ -2541,7 +2541,7 @@ sub size_str {
 
 ## date of a unix time, for the right side of the lists
 sub ymd_date {
-    my @time = localtime( shift // 0 );
+    my @time = CORE::localtime( shift // 0 );
     return sprintf '%04d-%02d-%02d', $time[5] + 1900, $time[4] + 1, $time[3];
 }
 
@@ -2727,7 +2727,7 @@ sub sync_targets_write {
         return FALSE;
     }
     if ( $EUID == 0 ) {
-        my ( $uid, $gid ) = ( stat $dir )[ 4, 5 ];
+        my ( $uid, $gid ) = ( CORE::stat $dir )[ 4, 5 ];
         chown $uid, $gid, $temp if defined $uid;
     }
     if ( not rename $temp, $path ) {
@@ -2804,7 +2804,7 @@ sub cmd_sync {
     my $local = $target =~ m{\A(?:/|\.{1,2}/|~(?:/|\z))} ? TRUE : FALSE;
     if ($local) {
         ( $remote = $target )
-            =~ s{\A~(?=/|\z)}{$ENV{'HOME'} // ( getpwuid $EUID )[7]}e;
+            =~ s{\A~(?=/|\z)}{$ENV{'HOME'} // ( CORE::getpwuid $EUID )[7]}e;
         $remote = File::Spec->rel2abs($remote);
         $remote =~ s|(?<=.)/+\z||;
         $host = qw| local |;
@@ -3665,8 +3665,8 @@ sub clipboard_clear_later {
     exit 0;
 }
 
-#,,.,,...,.,,,...,,,.,,..,,,.,,,,,...,,,.,,,.,..,,...,...,...,,,.,...,.,.,,.,,
-#GPKE4B2UMOXJ3CQNE4UXWQGX5WYGPC4WQ33MDFQUI4DNOMRM3PRCLA54MPEY5GPVFZYGB5K77PCMK
-#\\\|BX2FQWDTJGF3BFF247SRKS3EMKHBMHLL5ENFYB2U4NE7MHTLO3B \ / AMOS7 \ YOURUM ::
-#\[7]UWRFHVUQFU7KVPDF5BOXXIKKJNJOJU6CCSF7MKLDOBETOL5UWMAQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,..,,...,,.,,,..,...,...,..,,,..,..,,...,..,,...,.,,,,,.,.,,,,.,,
+#2WJGGEDMGFQIL3TBP3P4HN2SBRLM5OW5BI63RAIAWDMOIRHVAAGKLKTDIFYJL5FMSVSEMLELQNW7E
+#\\\|YVBOEIMW6VGWRO25ZJMN54Q7EYZPL7AIKLOB3QDKZJZTQXTK5KZ \ / AMOS7 \ YOURUM ::
+#\[7]EWIB77UBDZYCJXJZN4S2IHWWDG4XXIDNIBV6BYTJSL5OOYG7HQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

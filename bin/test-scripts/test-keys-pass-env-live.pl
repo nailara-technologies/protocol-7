@@ -117,7 +117,8 @@ my $issuer_pub = defined $bytes      ? substr( $bytes, 17, 32 ) : undef;
 my $issuer     = defined $issuer_pub ? encode_b32r($issuer_pub) : '';
 ok( defined $pub && $issuer eq $pub,
     '  :.. the statement is signed by exactly that virtual key' );
-ok( ( ( ( stat $file )[2] // 0 ) & 07777 ) == 0644, '  :.. public, 0644' )
+ok( ( ( ( CORE::stat $file )[2] // 0 ) & 07777 ) == 0644,
+    '  :.. public, 0644' )
     if -e $file;
 
 ( $out, $rc ) = p7(
@@ -134,8 +135,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,..,.,.,,,.,,,,,...,.,.,.,,,,..,.,.,,,,,..,,...,...,..,,...,.,,,,,,,,..,
-#BKZJ5PKIBOEQY67FLZUHLIKMNEKSQIU2V477VB4PKUQHVF5ZK5M2JIG5IADMVACYTPCI2SFJXBRYC
-#\\\|MBDO6M7IDVYLY75UXEAYSCTT4SYG4XSV4QSSSR22ZK5JS7OTT6G \ / AMOS7 \ YOURUM ::
-#\[7]M3AADBDKLFBHUBPJEL7ALXDTHW2QME6TCEJEPGZYVJVV6EJF7CAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,,..,,,,,..,,..,,..,,,..,...,..,,...,...,...,.,,,,,,,.,,,.,,,
+#2IASM6GN2CRZW7APUCZ3PK5T4GY7WU6US7UHHD34AZ2I63P4LPKORQMUBENYCE7DOCVJ4POVGSVKK
+#\\\|WP7IMWHGYHRANA4V3OGFOVX6BHIX55PLKAM6RVB4UU6Y7X7ACAT \ / AMOS7 \ YOURUM ::
+#\[7]PZ2WQN3LYSLTN7OICNR2UCPCLMVFBAOQ5OR4I3LXRY2QFFI452DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

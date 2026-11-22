@@ -41,7 +41,7 @@ if ( -f $query ) {
 ## try constructing path from message-id hash ##
 my $hash      = <[smtpd.internal.message_id_hash]>->($query);
 my $store_dir = <smtpd.cfg.store_dir> // '/var/protocol-7/mail/';
-my ( $sec, $min, $hour, $mday, $mon, $year ) = gmtime(time);
+my ( $sec, $min, $hour, $mday, $mon, $year ) = CORE::gmtime(time);
 my $ymd        = sprintf '%04d/%02d/%02d', $year + 1900, $mon + 1, $mday;
 my $guess_path = join qw| / |, $store_dir, $ymd, "$hash.yaml";
 
@@ -55,8 +55,8 @@ if ( -f $guess_path ) {
 
 return { 'mode' => qw| false |, 'data' => 'message not found' };
 
-#,,,,,,,,,..,,...,..,,,,,,,,.,.,.,,.,,,,.,,,,,.,.,...,..,,,,,,,,.,,.,,.,,,,,,,
-#OUCCRLMNCLNRGDOX2VYVMGJM7POCPBTDKB4BVQJII3PHZY57ALU7NRAZEYT3XG3E7II4EFFQOUWIK
-#\\\|KXSRXN4VABAX36MKGZZCKXLFV2EDETP7RLZL7W2VYIT4SRTCYNU \ / AMOS7 \ YOURUM ::
-#\[7]4NPFWOVVWVIQCZUFBYSHQEV5P55DLAN72TALHDYAXM3LNZIOQWAI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,..,,..,,,,.,.,,,.,,,,,.,.,.,.,.,.,.,...,...,,.,,.,.,,,.,,.,,..,,
+#UC5LVLRTV7CDMCPT53ULZR2WHOIK2OTMDHDRTCO3KU3XODCG7DFRGDFRQVOTMCFOOJCFFP22UFD64
+#\\\|R7ZBX3QJGA663X6JVD3YT47SCJWCYQ4CDBP4IMWRZD5EJ5PYZRU \ / AMOS7 \ YOURUM ::
+#\[7]VVGO76U2LO6XAP2V45R46DOCM766JEAUNG7GERPOSCZMK4A7QADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

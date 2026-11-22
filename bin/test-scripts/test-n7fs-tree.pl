@@ -167,15 +167,15 @@ ok( read_file("$target/one") eq "one\n"
         && read_file("$target/$raw_name") eq "raw bytes\n",
     'restored file content and raw names match by bytes'
 );
-ok( ( ( stat "$target/one" )[2] & 07777 ) == 0751
-        && ( stat "$target/one" )[9] == $mtime,
+ok( ( ( CORE::stat "$target/one" )[2] & 07777 ) == 0751
+        && ( CORE::stat "$target/one" )[9] == $mtime,
     'restore applies file mode and mtime'
 );
-ok( ( ( stat "$target/empty" )[2] & 07777 ) == 0700
-        && ( stat "$target/empty" )[9] == $mtime,
+ok( ( ( CORE::stat "$target/empty" )[2] & 07777 ) == 0700
+        && ( CORE::stat "$target/empty" )[9] == $mtime,
     'restore applies directory mode and mtime after its contents'
 );
-ok( ( stat "$target/one" )[1] == ( stat "$target/hard" )[1],
+ok( ( CORE::stat "$target/one" )[1] == ( CORE::stat "$target/hard" )[1],
     'restore recreates hardlinks' );
 ok( readlink("$target/sym") eq 'one', 'restore recreates the symlink last' );
 my @file_time = Time::HiRes::lstat("$target/one");
@@ -206,7 +206,7 @@ if ( $EFFECTIVE_USER_ID != 0 ) {
     );
     ok( $owner_restore->{'omitted'}{'owners'} > 0
             && $owner_restore->{'omitted'}{'privileged_modes'} > 0
-            && ( ( stat "$owner_target/one" )[2] & 06000 ) == 0,
+            && ( ( CORE::stat "$owner_target/one" )[2] & 06000 ) == 0,
         'unprivileged -owners counts omitted owners and strips setuid'
     );
 } else {
@@ -850,8 +850,8 @@ ok( $cli_rc == 0 && $cli_out =~ m|repair|,
 
 done();
 
-#,,.,,.,.,,,.,,.,,,.,,...,,.,,,.,,...,...,,..,..,,...,...,...,,.,,,,.,,,.,..,,
-#OOWESGZR3JFE2353MWIOQ4TQNCLINQUUSWE6CQGPDCKDYNP6U57OOGUUIBUAQZGC4MELCDINZXVYE
-#\\\|PX2BPYASJDRGX3VSOVYGCPTIER36QDHHNG3ZHUIJU74ETSBYDL3 \ / AMOS7 \ YOURUM ::
-#\[7]FAWURK4BIQ2J4RBFKOAYZ2LMDRKOH676PHEPDSXES2HQ7P5364BY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,,,...,,,.,,,.,,,,,.,,,.,,,..,,..,,...,...,.,.,...,.,,,,..,.,,,
+#QR5MVLEKQ2LSNKAUJMGAMZGLB4GUB6SA3XN4WIHWBBXC5RGPBTWLVZFZTQDNPG4UE4RKZD2LMZKJK
+#\\\|AUQHQHNB6JNATDEIDKJU75N5P7JBOC5NHPG47LNU56P4ANN26P4 \ / AMOS7 \ YOURUM ::
+#\[7]BHFLKART73E7SZVHBBUUNRKAZPJN3V43W76IP4ZANRKE5HRO6UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

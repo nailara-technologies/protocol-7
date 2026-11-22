@@ -48,7 +48,7 @@ if ( not -d $log_path ) {
     my ( $ok, $err_msg )    # LLL: use File::Path::make_path() ?
         = <[file.make_path]>->( $log_path, <log.protocol_7.dir_mask> );
     return ( 0, $err_msg ) if !$ok;
-    my ( undef, undef, $uid, $gid ) = getpwnam(<log.protocol_7.user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<log.protocol_7.user>)
         or return ( 0, "user '<log.protocol_7.user>' not in passwd file" );
     <log.protocol_7.path> =~ s|/+$||;
     chown( $uid, $gid, <log.protocol_7.path> )
@@ -105,8 +105,8 @@ print {$log_fh} $$log_msg_ref;
 
 return TRUE;
 
-#,,.,,,,.,,.,,...,..,,,.,,,..,..,,,,.,.,,,,,,,..,,...,...,.,,,...,...,,..,,,,,
-#JINFDS4K5NNNYIDNJMJ3W42DMEJIOU35MXKZ6BHBD6ZOASD3PAIAERDZZQZP3XF7PGT4SUFTQAZEC
-#\\\|OFSERBBOENK6TLLK6Y3XZXMVK2YWT5HQUIQYPNGIMFA2ZVE4OHG \ / AMOS7 \ YOURUM ::
-#\[7]WNW44EKVMZNVXMJUDCIIM2TLLNIZC3IGWS3LIQSSBSFLMVBJDYBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,...,,,,,.,,,,.,,.,,,,,.,,,.,.,.,..,,...,...,,.,,,,,,,,,,.,.,,.,,
+#JTKQF2H5OAYNR6CG2KMPZ2N3MYITVL2VRPY6USQBL3XHMROQPBVTZQDLJPXCFOHDHC3J6I2AYTGMC
+#\\\|A46GI72GKNKBESBYP26MWXRKE4X2T5UATIMXWW5LU5YNFFMS7MZ \ / AMOS7 \ YOURUM ::
+#\[7]XNYGGDQM7BIWDM5PUBZDRMCMCDWTYBI7TBLRBDYTRZEGH336WQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

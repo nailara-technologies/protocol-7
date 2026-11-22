@@ -445,7 +445,7 @@ sub v {
     ok( $mismatch, 'second issuer != first subject' );
     my $scalar = v( [ dlg( bad_sig => 1 ) ] );
     ok( !defined $scalar,
-        'scalar context refusal : ' . 'undef [ never a reason ]' );
+        'scalar context refusal : undef [ never a reason ]' );
     ok( !defined v( [] ), 'empty chain' );
     ok( !defined v( [ dlg() ], anchors => [] ),     'no anchors' );
     ok( !defined v( [ dlg() ], now     => 'soon' ), 'now not a number' );
@@ -721,11 +721,11 @@ refused_with(
 {
     chmod 0600, "$root_dir/host-root.public";
     ok( ref $key_path->('host-root') eq 'HASH',
-        'public mode ' . '0600 : accepted'
+        'public mode 0600 : accepted'
     );
     chmod 0644, "$root_dir/host-root.public";
     ok( ref $key_path->('host-root') eq 'HASH',
-        'public mode ' . '0644 : accepted'
+        'public mode 0644 : accepted'
     );
     my $saved = $root_dir;
     rename $root_dir, "$root_dir.gone" or die;
@@ -819,17 +819,15 @@ put( "$user_dir/$me.base.public", 0640 );
     delete $data{'crypt'}{'C25519'}{'root_dir_held'};
 
     my $ke = $code{'crypt.C25519.key_exists'};
-    ok( $ke->('host-root') == TRUE, 'key_exists( ' . 'host-root ) : TRUE' );
-    ok( $ke->('host-root.secret') == TRUE,
-        'key_exists( ' . 'host-root.secret )'
-    );
+    ok( $ke->('host-root') == TRUE,        'key_exists( host-root ) : TRUE' );
+    ok( $ke->('host-root.secret') == TRUE, 'key_exists( host-root.secret )' );
     ok( $ke->('host-root:seed-phrase') == FALSE,
         'key_exists( host-root:seed-phrase ) : FALSE'
     );
     ok( $ke->('alpha') == TRUE, 'key_exists( alpha ) : TRUE' );
     ok( $ke->('alpha.secret') == FALSE,
-        'key_exists( ' . 'alpha.secret ) : FALSE' );
-    ok( $ke->('nothing') == FALSE, 'key_exists( ' . 'nothing ) : FALSE' );
+        'key_exists( alpha.secret ) : FALSE' );
+    ok( $ke->('nothing') == FALSE, 'key_exists( nothing ) : FALSE' );
     put( "$user_dir/virt:seed-phrase", 0600 );
     ok( $ke->('virt') == 4, 'key_exists( virtual ) : 4' );
 
@@ -939,7 +937,7 @@ sub run_post_init {
     ok( @gen == 1 && $gen[0][0] eq 'host-root', '  :.. host-root generated' );
     my @dst = CORE::lstat($root_dir);
     ok( @dst && -d _ && ( $dst[2] & 07777 ) == 0700,
-        '  :.. root/ ' . 'created 0700' );
+        '  :.. root/ created 0700' );
     ok( -f "$root_dir/host-root.secret" && -f "$root_dir/host-root.public",
         '  :.. host-root written to root/' );
 
@@ -1390,7 +1388,7 @@ my $client_home = tempdir( 'p7-hrc-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
         );
     };
     ok( $pin->( 'h.example', 7, $s_pub, $d->($s_pub) ),
-        'first contact ' . ': accepted' );
+        'first contact : accepted' );
     open( my $pfh, '<', $pin_file ) or die "pin : $OS_ERROR";
     my $content = join '', readline($pfh);
     close $pfh;
@@ -1470,7 +1468,7 @@ my $client_home = tempdir( 'p7-hrc-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
     ok( !$pin->( 'o.example', 7, $s_pub, $field->( $o2h, $d->($s_pub) ) ),
         'rotate BACK to the old host-root [ same since ] : refused'
     );
-    ok( ( ( stat $o_pin )[2] & 07777 ) == 0600, '  :.. mode 0600' );
+    ok( ( ( CORE::stat $o_pin )[2] & 07777 ) == 0600, '  :.. mode 0600' );
 
     ## owner-certified first contact : host pin written, never the owner ##
     my $n_pin = "$keys_dir/servers/n.example_7.public";
@@ -1569,7 +1567,7 @@ compile_module( 'v7-zenki.cmd.owner-statement', $cmd_header );
     ok( $r->{'mode'} eq 'true' && $slurp->($target) eq "$good\n",
         'install : host-root.dlg holds the owner statement'
     );
-    ok( ( ( stat $target )[2] & 07777 ) == 0644, '  :.. mode 0644' );
+    ok( ( ( CORE::stat $target )[2] & 07777 ) == 0644, '  :.. mode 0644' );
     ok( $slurp->($dlg_file) eq "$leaf\n$good\n",
         '  :.. re-issued at once : the .dlg is leaf + owner' );
     ok( $fake_euid == 0, '  :.. root regained' );
@@ -1614,7 +1612,7 @@ compile_module( 'v7-zenki.cmd.owner-statement', $cmd_header );
 
     $r = $cmd->( { args => 'bogus' } );
     ok( $r->{'mode'} eq 'false' && $r->{'data'} =~ m|usage|,
-        'bad action : ' . 'usage' );
+        'bad action : usage' );
 
     local $fake_euid = 1000;
     $r = $cmd->( { args => "install $good" } );
@@ -1691,8 +1689,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,..,.,,,.,.,,.,,,.,,,,,,,..,,,,,..,,...,..,,...,...,,,,,..,,,,.,.,,,.,,,
-#O3HXEEXOX5T6P6TK2QJEVV6XYSOLNT7ZRMR7PATZBFPPT3QOEKMSUX3S5QWB3R5AUPVFKKUVASCIK
-#\\\|POHYGMKN6JFZKEC2CD2PAYGXGTFXQRTSMV5VSCRIJTR4WPJSVFM \ / AMOS7 \ YOURUM ::
-#\[7]UR47XZ73LMZWEGLNWRHXFQ3J6QO3QDM63RVN2KT53Z76LUPVUSDI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,,,,..,,.,.,..,,,.,,.,.,,,,,..,,...,...,,.,,...,.,,,,,,,,,.,
+#IXXMZAQZSGLIV3CRKJC4M2SHI636I5SLAYBRP6CYZYJWMXAM4I4T667UF3VFLBAESJD6I66UCGYKW
+#\\\|CHMDNGDWXKT5BZ34XPNTUKHRKBY4W7TBAM7UAVW3AQC2SDIF4R4 \ / AMOS7 \ YOURUM ::
+#\[7]733S4UKDJU5VYDJMZFPXMBX43JYEPVXRDOTLPICBZGS62VYFFEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

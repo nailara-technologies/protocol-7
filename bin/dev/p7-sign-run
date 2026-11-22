@@ -143,7 +143,8 @@ my $run_base
         and -d $ENV{'XDG_RUNTIME_DIR'}
         and -w _ )
     ? $ENV{'XDG_RUNTIME_DIR'} =~ s|/+$||r
-    : sprintf( qw| %s/.n/run |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+    : sprintf( qw| %s/.n/run |,
+    $ENV{'HOME'} // ( CORE::getpwuid($EUID) )[7] );
 ## the agent's own dir [ older agents : the run dir itself ] ##
 my $runs_log
     = -e "$run_base/p7-sign-agent/runs.log" || !-e "$run_base/runs.log"
@@ -462,8 +463,8 @@ finish(
     qw| report | => $report
 );
 
-#,,,,,..,,...,.,.,,..,,..,,,,,...,,.,,.,.,,,,,..,,...,...,,..,,.,,...,,,.,..,,
-#PB4PDNRTF36K3CNSEFEMVTMGKB6O6YGAJVHXZ2POGUWMU4V6K3CQVC7JYFMFRF7ZFY4KTXMM3P5B6
-#\\\|UUNIEWURLEC3OVVVHZTSBI7GVRN2GHRDH77MA2WKXDY7SOJWZUZ \ / AMOS7 \ YOURUM ::
-#\[7]4OPLL5S4MBZQXCT4JAMBEEPAJK7TLCBX74DABMS3FKHFMUOAIWBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,,..,,,.,.,,,...,..,,...,...,..,,...,...,,.,,...,,,.,...,...,
+#MIQXK2RDARJE6TLEZYPWLMNASIVGULLWFW22AMNH2UDPTIGN72IKQXRIZVPCIH7ZE5ZZ4H3DVYPS4
+#\\\|F7J46CICUVR4WO4BCV2SCXFIRHI5PETAN6UNAS2WBQO7VYWP7LS \ / AMOS7 \ YOURUM ::
+#\[7]URHV3NPHRTQYKA7GAYL34NU2GPNSPGBGGIGRC52MT2SXLNFNQUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

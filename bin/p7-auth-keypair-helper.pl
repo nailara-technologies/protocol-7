@@ -383,11 +383,8 @@ sub pin_decide {
     my $leaf = eval { parse_delegation( $chain->[-1] ) };
     if ( not defined $leaf ) {
         ( my $why = $@ || 'unparsable' ) =~ s{\s+\z}{};
-        return (
-            undef,
-            sprintf 'statement ' . '%d : %s',
-            scalar $chain->@*, $why
-        );
+        return ( undef, sprintf 'statement %d : %s',
+            scalar $chain->@*, $why );
     }
     my $leaf_fp = key_id( $leaf->{'issuer_pub'} );
 
@@ -520,9 +517,10 @@ sub legacy_reason {
     return $reason;
 }
 
-## the chain field [ select reply 4th field : b32 statements, '.' between,
-## LEAF FIRST ] -> RAW wires, anchor-most first ; dies with a reason -- the
-## twin of src/trust.chain 'split' [ same limits, same order flip ]
+## the chain field
+## [ select reply 4th field : b32 statements, '.' between, LEAF FIRST ] -> RAW
+## wires, anchor-most first ; dies with a reason -- the twin of
+## src/trust.chain 'split' [ same limits, same order flip ]
 sub chain_split {
     my ($field) = @_;
     die "chain missing\n" unless defined $field and length $field;
@@ -770,11 +768,11 @@ sub load_client_key {
 
     # Load user's Ed25519 secret key
     my $ed25519_secret_file = "$key_dir/$username.base.secret";
-    die "Ed25519 secret not " . "found: $ed25519_secret_file\n"
+    die "Ed25519 secret not found: $ed25519_secret_file\n"
         unless -f $ed25519_secret_file;
 
     open my $fh, '<', $ed25519_secret_file
-        or die "Cannot read " . "secret key: $!\n";
+        or die "Cannot read secret key: $!\n";
     my $ed25519_secret_b32 = <$fh>;
     close $fh;
     die "Empty secret key file\n" unless defined $ed25519_secret_b32;
@@ -789,7 +787,7 @@ sub load_client_key {
 
     # Strip the 2-byte format prefix
     substr( $ed25519_secret_bin, 0, 2, '' );
-    die "Failed to strip " . "format prefix\n"
+    die "Failed to strip format prefix\n"
         unless length($ed25519_secret_bin) == 32;
 
    # Generate Ed25519 keypair from secret (same as load_keys_from_secret does)
@@ -797,9 +795,9 @@ sub load_client_key {
         = Crypt::Ed25519::generate_keypair($ed25519_secret_bin);
     die "Failed to generate Ed25519 keypair from secret\n"
         unless defined $ed25519_pubkey_bin && defined $ed25519_private_bin;
-    die "Invalid public " . "key length\n"
+    die "Invalid public key length\n"
         unless length($ed25519_pubkey_bin) == 32;
-    die "Invalid private " . "key length\n"
+    die "Invalid private key length\n"
         unless length($ed25519_private_bin) == 64;
 
     # Lock Ed25519 secret and private key in memory to prevent swapping
@@ -864,7 +862,7 @@ sub op_check_pin {
         print 'PIN_ERROR '
             . (
               $@ =~ m{holds a server key} ? 'old server key pin'
-            : $@ =~ m{distrust} ? 'distrust file ' . 'unreadable or invalid'
+            : $@ =~ m{distrust} ? 'distrust file unreadable or invalid'
             :                     'pin file unreadable or invalid'
             ) . "\n";
         exit 8;
@@ -902,8 +900,8 @@ sub op_check_pin {
         exit 8;
     }
 
-    ## PIN_NEW from an owner pin is reported as PIN_OWNER [ the C client says
-    ## so ] -- both are a new host pin
+    ## PIN_NEW from an owner pin is reported as PIN_OWNER
+    ## [ the C client says so ] -- both are a new host pin
     $verdict = 'PIN_OWNER' if $verdict eq 'PIN_NEW' and $decided->{'owner'};
     print "$verdict $fp $name\n";
     exit(
@@ -1079,7 +1077,7 @@ sub op_self_test {
         return eval { $code->(); 1 } ? 0 : 1;
     };
     $check->(
-        'refuse nonce_sid ' . '0',
+        'refuse nonce_sid 0',
         $refused->( sub { arg_nonce_sid('0') } ), 1
     );
     $check->(
@@ -1110,8 +1108,8 @@ sub op_self_test {
     exit 0;
 }
 
-## host-root delegation : the fixed vector, every refusal, the pin store [
-## temp dir ] and the real check-pin verb as a subprocess
+## host-root delegation : the fixed vector, every refusal, the pin store
+## [ temp dir ] and the real check-pin verb as a subprocess
 sub delegation_self_test {
     my ( $check, $refused, $s_pub ) = @_;
 
@@ -1230,8 +1228,8 @@ sub delegation_self_test {
         'bad signature'
     );
 
-    ## structure refusals [ each correctly signed, so only the parser \ field
-    ## rule can refuse ]
+    ## structure refusals
+    ## [ each correctly signed, so only the parser \ field rule can refuse ]
     my $signed = sub {
         my ( $st, $ipub, $ipriv ) = @_;
         return $st . Crypt::Ed25519::sign( $st, $ipub, $ipriv );
@@ -1414,7 +1412,7 @@ sub delegation_self_test {
     pin_store( $pin_dir, $pin_file, $fp, 'test-host.cube', 0, 'new' );
     $check->(
         'pin file mode 0600',
-        sprintf( '%04o', ( stat($pin_file) )[2] & 07777 ), '0600'
+        sprintf( '%04o', ( CORE::stat($pin_file) )[2] & 07777 ), '0600'
     );
     $check->(
         'pin read back',
@@ -1618,9 +1616,9 @@ sub delegation_self_test {
         $verb->( 11, $s_pub, [ $h2s, $o2h ] ),
         'PIN_MISMATCH exit 6'
     );
-    ## the owner does not cover a leaf outside its scope : no owner trust [
-    ## strict : unpinned ] -- under a host pin the statements above the pinned
-    ## host-root are ignored [ trust.verify ], so this needs a new port
+    ## the owner does not cover a leaf outside its scope : no owner trust
+    ## [ strict : unpinned ] -- under a host pin the statements above the
+    ## pinned host-root are ignored [ trust.verify ], so this needs a new port
     $check->(
         'check-pin leaf outside the owner scope, strict',
         $verb->( 12, $s_pub, [ $n2b, $o2n ], 'strict' ),
@@ -1661,8 +1659,8 @@ sub erase_buffer_secure {
     return $len;
 }
 
-#,,..,,..,,,.,.,,,,..,,.,,,,.,,,,,,..,,,.,,.,,..,,...,...,..,,..,,.,.,.,,,..,,
-#673LTFGOQ6EGD5D2EKUXBI4KXYIWG6KLSIZQ4Z2C5ANZPJWSBSV3PYMUEYEDGVCS7DOU3HCIZH3IE
-#\\\|D3OIILQWZX57LSOAZV76RKLUPWFFITEFOF6Y3GAPA4XIHL4EP2W \ / AMOS7 \ YOURUM ::
-#\[7]JRTQGDM5XND4PSMPJYP77LGQTRZLZIC7OLJA6DRVTTFIH3C72ACY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,.,,,.,.,,,,,.,.,.,,,.,.,,.,,..,,...,...,...,.,,,,,,,,,,,,..,
+#FSAA4LHVXXLQ6IOWCVQWNYJCHERFCYKTPUP76DDCE6ZU7NRI6DEA3RETIMLWGDATOGA3UYF42SZ3U
+#\\\|METYO5EEVJ5JRUOR4JXVVPMVJ5HHSP4IUSAW2LSRWGY26P3R3EG \ / AMOS7 \ YOURUM ::
+#\[7]ZP4AEL6QD22GEVM274LJ6YVVIMPYBSFPNINL3F33ZSRG7ZA4OAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

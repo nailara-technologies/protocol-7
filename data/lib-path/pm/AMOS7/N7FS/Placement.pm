@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.YKY2H2Y |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.WHYQNBA |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -590,8 +590,8 @@ sub _journal_position {
     opendir( my $dh, $dir ) or refuse('cannot read the disk journal');
     my @names = sort grep {m|\A\d{14}[.]journal\z|} readdir $dh;
     closedir $dh;
-    my @dir_stat  = stat $dir;
-    my @last_stat = @names ? stat "$dir/$names[-1]" : ();
+    my @dir_stat  = CORE::stat $dir;
+    my @last_stat = @names ? CORE::stat "$dir/$names[-1]" : ();
     return join ':', @dir_stat[ 0, 1, 7, 9, 10 ], scalar @names,
         @names ? ( $names[0], $names[-1], @last_stat[ 0, 1, 7, 9, 10 ] ) : ();
 }
@@ -1259,8 +1259,8 @@ sub holder_prune {
 
 1;
 
-#,,,,,,,.,,..,,.,,.,.,.,.,...,.,.,.,.,..,,...,..,,...,...,.,.,..,,,.,,.,,,,..,
-#Q4NHRNGGZFAB7KVWMC2OUZSQH4K4C6YSBS7ATXWASGDUCKNPPQZEQBCUUKFSRBQ3Z5NB2RTC2CEAU
-#\\\|PGDUKTLUFH2CWMCV7VOC6IU5L5IYY7T77CAZII3YCSHZXIGP66N \ / AMOS7 \ YOURUM ::
-#\[7]F6C73GMEW5HB6RXX5ATGZWXML2WQN3ZHZC7CN5NQ4VKQHCIQZ4AY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,..,,,.,,,.,,..,,.,.,..,,...,..,,...,...,.,.,,,,,,,,,..,,,,.,
+#YRFK3XFNKFN5OXO53YPYM2LK7IKJF425UVX65F4J4OJY7T6HVSQ6WWB57SFC4RZWNZCD5DY66PDLW
+#\\\|7QODETHJ3WEWFPGBXTQX67PFT2E36ONRWN7ROWVAD6I5WUOIUVP \ / AMOS7 \ YOURUM ::
+#\[7]SMBJ7CE7V3MONXVJQPDLLMEB2SXYOL5726UIQEYDYDKTGGW5RYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

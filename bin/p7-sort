@@ -78,7 +78,7 @@ while (@ARGV) {
     elsif ( $arg eq '-undo' )             { $undo = shift @ARGV }
     elsif ( $arg =~ m{\A-(h|options)\z} ) { print $option_list; exit 0 }
     elsif ( $arg =~ m{\A-} ) {
-        sort_exit( "unknown " . "option '$arg'" );
+        sort_exit("unknown option '$arg'");
     } else {
         push @sources, $arg;
     }
@@ -172,7 +172,7 @@ exit 0 if not @plan;
 File::Path::make_path( $target_abs, { mode => 0700 } ) if not -d $target_abs;
 ## one journal per run, never replacing another [ two runs in one second ]
 my $journal_path = sprintf '%s/.p7-sort-journal.%s.%d.tsv', $target_abs,
-    strftime( '%Y%m%d-%H%M%S', localtime ), $PID;
+    strftime( '%Y%m%d-%H%M%S', CORE::localtime ), $PID;
 sysopen( my $journal, $journal_path, O_WRONLY | O_CREAT | O_EXCL, 0600 )
     or sort_exit("cannot create journal $journal_path : $OS_ERROR");
 $journal->autoflush(1);
@@ -237,7 +237,7 @@ sub copy_file {
     my ( $from, $to, $sum ) = @ARG;
     my $tmp = "$to.p7-sort.$PID";
     File::Copy::copy( $from, $tmp ) or return undef;
-    my @st = stat $from;
+    my @st = CORE::stat $from;
     chmod $st[2] & 07777, $tmp;
     utime $st[8], $st[9], $tmp;
     if ( ( sha($tmp) // '' ) ne $sum or not rename $tmp, $to ) {
@@ -398,8 +398,8 @@ sub sort_exit {
     exit 2;
 }
 
-#,,,,,,..,,,.,,.,,,..,,..,,..,..,,,.,,..,,,,,,..,,...,...,...,..,,,,.,...,,,,,
-#2X335Y4AA7Q45EMEDPN56MZRSE4KXTOMR2WYVIAWSHHGEH7B7RUC4OLDZ523YBKRYRDF2O22JLRN6
-#\\\|CQH7PJVQZMQYLQODIOWFNVJMZOPPMKCJVG6TGCD2GL2VSZQDDJH \ / AMOS7 \ YOURUM ::
-#\[7]LYQ2424DTIDLYD4FXAVFQBURMIKQ365ZSFXFSH5DKGFYXOMLN2AY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,..,,,,,,.,.,..,,.,.,...,,..,..,,...,...,.,.,...,,..,.,.,...,
+#GJSZLCEBQF72YGPJCPFXVQGTACHG4FKWUTQ37V2ZQ6JD3OWLERKHBHEYZKQLINZTYWOZKUKDILOPC
+#\\\|5VITJ6HCNG7T5VFAGN2YBYN7EIMQQFMRO66EOOFOK5WDW5XDUVO \ / AMOS7 \ YOURUM ::
+#\[7]ANY4RLH3NCKNR2OFNAFKYAWUHHVYVBUHQZMM4ZJVQZDGAG2P32DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

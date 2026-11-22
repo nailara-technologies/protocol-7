@@ -182,7 +182,7 @@ for my $id ( keys %active_id ) {
             my $fetched_at = $js_job->{'fetched_at'} // '';
             if ( length $fetched_at and $fetched_at =~ m{^\d+$} ) {
                 my ( $d, $m, $y )
-                    = ( localtime($fetched_at) )[ 3, 4, 5 ];
+                    = ( CORE::localtime($fetched_at) )[ 3, 4, 5 ];
                 $date_added
                     = sprintf( '%04d-%02d-%02d', $y + 1900, $m + 1, $d );
             }
@@ -239,8 +239,8 @@ for my $dep_dir ( "$cache_dir/assessed", glob("$cache_dir/trash*") ) {
 
 0;
 
-#,,,,,,,,,,..,,..,.,,,.,.,,,.,,..,.,,,...,,..,..,,...,..,,,.,,,.,,.,.,.,,,.,,,
-#WLFGOC5VOZR2E2W6CR6QZKF2UULBKFUT6AL73LJN5HRXHUX6N5ESNXMPSVMITKXI35NQFXEB4JKBQ
-#\\\|QLH5NYI3Z7O3CVVZIBUQUKH3SV5WUWIGF624ISYB6DONN2SCRJK \ / AMOS7 \ YOURUM ::
-#\[7]ZA3H5Y4GJRMGRHQ3KQCT2ONUIPCKD72QY4UBFDI7HCEDPRWDNGCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,...,,,,,,..,,,.,.,,,...,,..,,.,,..,,...,...,...,,.,,..,,,,,,,.,,
+#FRSLC2ZQKPAZFNZ2HI2FGSDRL4AQG6P4AEMIIEZQH42IABIC4JGIBQ5KEP22BQI52JGTY4VZFCLTU
+#\\\|BLHQ6WARSM4FPFS7BQOTCBLZOQY34J6I2AEKT7FHGWAURNRQ46H \ / AMOS7 \ YOURUM ::
+#\[7]7JMDGIY7T7W3KZ5XMCRBIKSQRG2KWGXTYB2QEBQ6GXHXLPQKWOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

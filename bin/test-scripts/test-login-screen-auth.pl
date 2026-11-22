@@ -141,7 +141,8 @@ ok( defined $ticket && -f File::Spec->catfile( $grants, $ticket ),
     'success writes a root-grant ticket file' );
 if ( defined $ticket ) {
     my $path = File::Spec->catfile( $grants, $ticket );
-    ok( ( ( stat($path) )[2] & 0777 ) == 0600, 'grant file mode is 0600' );
+    ok( ( ( CORE::stat($path) )[2] & 0777 ) == 0600,
+        'grant file mode is 0600' );
 }
 my @grants_before_verify = glob( File::Spec->catfile( $grants, '*' ) );
 ok( request( $io, 'testuser', $secret, 1 ) eq "OK\n",
@@ -285,8 +286,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,.,,...,,.,,,,.,.,,,,..,.,,,.,,,.,,,..,,.,.,..,,...,...,.,,,...,.,,,,,.,,,.,
-#KNZTADSK2CW7BREDKWZUVVUGZ33VCSHM6MGNT6AXSR62XICHYJZ6YLHMOQDIS4KBWIBJ7SDYFROUG
-#\\\|KIH2GDIJ4N4SX6VHXJZWF3MCPRNAW7KU5RK7FMKU7O3L4Q5YSTP \ / AMOS7 \ YOURUM ::
-#\[7]LSJOYUUYM5K4ZRPTQOZ3YLUJNCXJ5XD7KUYV3XNLRSJHGANCUADA 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,.,,.,.,,.,,,,,,.,,,..,,...,,..,..,,...,..,,...,..,,,,,,,.,,,.,,
+#X2AALRBYBVMXAWLVVBUQRC3GG5WL4RSDYA46M6FCQXWXBWLSNKICCOEWEHYX2BINW7YWKT6UM46KK
+#\\\|GPN75DR7ZWJMU557RNGZLEQ5B56TGZK22EEJZNQLNTE6SMQOLUJ \ / AMOS7 \ YOURUM ::
+#\[7]KGP7MDMGCTQ5BSNIT7U7ER4IQV3DY2NKKUUMMXRSIVXOLKSXQ6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

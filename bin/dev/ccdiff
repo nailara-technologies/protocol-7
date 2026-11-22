@@ -408,7 +408,7 @@ sub ccdiff {
                 ? {
                 tag   => "",
                 name  => $_,
-                stamp => scalar localtime( ( stat $_ )[9] ),
+                stamp => scalar localtime( ( CORE::stat $_ )[9] ),
                 }
                 : {
                 tag   => "",
@@ -618,7 +618,7 @@ sub read_rc {
     foreach my $rcf ( "$home/ccdiff.rc", "$home/.ccdiffrc",
         "$home/.config/ccdiff", ) {
         -s $rcf or next;
-        ( stat $rcf )[2] & 022 and next;
+        ( CORE::stat $rcf )[2] & 022 and next;
         open my $fh, "<", $rcf or next;
         while (<$fh>) {
             my ( $k, $v ) = (m|^\s*([-\w]+)\s*[:=]\s*(.*\S)|) or next;
@@ -1323,8 +1323,8 @@ the same terms as The Artistic License 2.0.
 
 =cut
 
-#,,..,,..,,..,...,...,,,,,...,,,.,.,.,,,.,..,,..,,...,..,,,,.,,.,,.,.,,.,,..,,
-#H2WZNS3P2IMTHAWND2YXWH4F3H5BJMBZR4MU3YZCDP63YPEJVBQGN5N6HGMIPZELAPQW33KVQSRGM
-#\\\|EIT6Q3UKFWNRQ4VPW7HIME6QQCZ2DRXGILIUZANAIXDBD4NS6PW \ / AMOS7 \ YOURUM ::
-#\[7]UM756PG3JCD2ETFMKTSC7PYGTK2QYDYDR3GZQSZLYIFOHNQUT6CQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,..,..,,,,,,,.,,,,.,..,,..,,..,,..,,...,...,.,.,,..,,..,.,,,...,
+#IFKPD66AWMKZCOCF4XQHBT3UY3FPRH2WK5NPA2NTBPGCZJHZDD3D6HA336KBQEFKLTV5JQTC5J4QO
+#\\\|VU4GMY54TIIT5GYGFSHXYQMDQR3RQJ2ITR7NK4X22BNLO4OBC3G \ / AMOS7 \ YOURUM ::
+#\[7]D2OKJVE7MGVMFCKYP3LTLIZV3VLNH2GMM5NKGP4ESLGDLTST2UCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

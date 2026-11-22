@@ -6,14 +6,14 @@ my $temp_dir = <impressive.path.impressive_tmp>;
 
 if ( !-d $temp_dir ) {
     <[base.log]>->( 1, "creating tmp directory '$temp_dir'.." );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $temp_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
         or die "make_path : \l$OS_ERROR";
 }
 
-#,,,.,,,.,,.,,..,,..,,..,,,,,,,,.,.,,,.,.,,,,,..,,...,...,.,.,,,.,,.,,...,..,,
-#5YOOTXUTTHZXSWMLNTVOJ3IFS225AKXNZGMTMBHP5CKT7NF7JFKGEJ6RS6CA2KCJNSI4URJY6ACTA
-#\\\|V5EG465V7JS7OTHLQB7XOYQGOALHOMISXKKEH5FCSPST4YJACXT \ / AMOS7 \ YOURUM ::
-#\[7]V63AQ2IGM7WA2VKZWJAELJ6USFJZUMSLINPTVSF7EP6U2FGB4WDQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,..,,,,,,..,,.,.,...,,,.,,.,,..,,...,...,..,,...,,.,,.,,,.,.,
+#2VDJBBJB474UYSXSQMWJFF5IAH4RJTY7YUMSDIZRYMQYNEPISTJKHWTLJDFW4XFK6WW7FE3EGQ5LI
+#\\\|XOJ322IC25GPS6TPC6XW7SPDFB6UEUKENZJBT7NF2LVPCVE5BZW \ / AMOS7 \ YOURUM ::
+#\[7]PJKEQ5CFPVFRZHTP7OWHSFKPWGO5JX4M3ARABOUYXODG5KWKMEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

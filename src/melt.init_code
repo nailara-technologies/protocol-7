@@ -30,7 +30,7 @@ if ( not -x <melt.bin_path> ) {
 
 if ( not -d $out_path ) {
     <[base.logs]>->( 1, ": : creating '%s'.,", $out_path );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $out_path, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
         or die " make_path : \l$OS_ERROR ";
@@ -42,8 +42,8 @@ if ( not -d $out_path ) {
 
 0;
 
-#,,..,,,,,.,.,,.,,.,.,.,.,,,.,,,,,..,,.,.,,..,..,,...,...,...,,,.,,.,,...,,,,,
-#MHDRZTJ7ISHYFE7OMPQRZDKLJ552MSVUG7UTRGV6WXOKH64DMLKJDVVWRN5ZMMURFCFJRVDS5UJQI
-#\\\|BGXCWMOXN7K2CNUGEGO7YMNWD4R2DVYP6J5KM5PFU5DZSNWUUIG \ / AMOS7 \ YOURUM ::
-#\[7]FICWVFJMM5H7XQOXP5T6BXFTJH4ZCIZBZ5NLWZIAITIXYT5YWGDA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,.,,..,,,.,,.,.,,..,..,,,.,,.,,,..,,...,..,,...,...,,,,,,.,,,..,
+#ZJCJSLWTISLM3P6Z2IUER6YDGEIEWUKCTE25M3BHH27QRJUA3B6VC3CVLIHICOORMDIGFN46G2H4W
+#\\\|2HQC6NHFH6XATOAKJ5MDXUQGBKXND5SHDXSLEYB5UCLGI5BDM7X \ / AMOS7 \ YOURUM ::
+#\[7]GOC6SXEJERUQTPPRFBBFJXWOHHHHJ5PK7MCGOUWZEXUZ53NV3KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

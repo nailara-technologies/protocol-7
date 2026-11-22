@@ -736,10 +736,10 @@ my @mutations = (
         file => 'N7FS/Store.pm',
         test => 'test-n7fs-link.pl',
         edit => [
-            [   "        my \@st = lstat \$path;\n      "
-                    . "  next if not \@st or -l _ or not -d _;",
-                "        my \@st = stat \$path;\n      "
-                    . "  next if not \@st or -l _ or not -d _;"
+            [   "        my \@st = CORE::lstat \$path;\n   "
+                    . "     next if not \@st or -l _ or not -d _;",
+                "        my \@st = CORE::stat \$path;\n   "
+                    . "     next if not \@st or -l _ or not -d _;"
             ]
         ],
     },
@@ -1016,8 +1016,8 @@ foreach my $m (@mutations) {
 say "\n  $caught caught, $survived survived";
 exit( $survived ? 1 : 0 );
 
-#,,,,,..,,,,.,,,.,.,,,..,,..,,,,.,,,.,,..,.,.,..,,...,...,.,,,...,..,,,..,.,.,
-#DAB4LWSJGMHWDLVEXJBL5FWYWQOTIE5QK5P3V7W4ZPRZE5XSIHMC2FVKWTSYVJFUTFH7R6KYD2352
-#\\\|GKO7UX366VDUIKEKJQJJYD4FBPRMSSVZPBDXOPJSIFEWVO5QB72 \ / AMOS7 \ YOURUM ::
-#\[7]ZJYHRXL3RDUPQKKPKL4D5LOOA6QY5NJEIKBCEHUUE2V5JAUK2SAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,,,...,,.,,,..,,.,,...,,..,,,,,..,,...,...,..,,.,,,,..,,.,,,,,,
+#6SFQK4PQ54P3TCUNLQXMFBY2Y43MODHV6G3FIIYEKWKHQ23Y4HV6LO4BUH2JWQPWN75G44PVW4D2C
+#\\\|NCEGM2BMQUKVU6KTB7EFMONNWNFXVA55XZRBAUVDT557NA3B2XA \ / AMOS7 \ YOURUM ::
+#\[7]M2NVWDDVYTCODVGOOX3XHXWX4ASX2NWQQ2HNQMB6GYSEORZCSGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

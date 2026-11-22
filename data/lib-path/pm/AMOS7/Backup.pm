@@ -31,7 +31,7 @@ use vars qw| @EXPORT $VERSION |;
     $VERSION
     |;
 
-our $VERSION = qw| AMOS7::Backup-VERSION.J3FMEKQ |;
+our $VERSION = qw| AMOS7::Backup-VERSION.6M3UI2I |;
 
 ##[ DEPENDENCIES ]############################################################
 
@@ -47,7 +47,7 @@ our $color   //= {};      ## color scheme (user must set) ##
 ##[ TIMESTAMP STRING ]########################################################
 
 sub timestamp_string {
-    my @t  = localtime( time() );
+    my @t  = CORE::localtime( time() );
     my $_Y = 1900 + $t[5];
     my $_M = sprintf( qw| %02d |, ( $t[4] + 1 ) );
     my $_D = sprintf( qw| %02d |, $t[3] );
@@ -554,8 +554,8 @@ sub _add_path {
 
 1;
 
-#,,,.,.,.,.,,,,.,,,..,.,.,.,,,...,,,,,,,.,,,,,..,,...,...,...,,..,...,,,.,.,,,
-#H47BTHCXOHH5EWWKQ3ZPYUTBRIUL5XUDXD7VIKZCUKQOQC5OHOIU5B4L5BNPOMFUNJOC6HA23SXRW
-#\\\|VA2JC2VJLULRCG4CFYISKM5XDJSEFCVBXUTDHXIT4C6VF4Y6NPI \ / AMOS7 \ YOURUM ::
-#\[7]SQSF53CXDA33A4S3UCEX3KTPJID6EQ3I7XDZJ6UXXAQMTDX4Z4CA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,,,.,..,,..,,,.,,,,,,.,,,,,.,..,,...,...,,.,,,,.,,,,,,.,,.,,,
+#MWJKS22Q2VQFOTR4XMPQT74TA5FWJO42XXSYBPRZGEBLAG2N2OCUXHOPAEH47QQLD3HPZZDUINXPG
+#\\\|TZO3UVFWHJNYLD36BCUI7SBIKZEN73QR26P5IKYUULG6P44YQDJ \ / AMOS7 \ YOURUM ::
+#\[7]FQPYFHIO5MEU4FLPAXAAZAXQ6CDORZRIJEW5XYVNXAQBQ3MUM6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -124,7 +124,7 @@ my %want_own;     ## path -> [ uid, gid ] ##
 
 sub remember {
     my $path = shift;
-    my @st   = lstat($path);
+    my @st   = CORE::lstat($path);
     return if not @st;
     $entry{$path} = {
         mode => $st[2] & 07777,
@@ -240,7 +240,7 @@ my $not_mine = sub {
     return ( $EUID != 0 and $uid != $EUID ) ? TRUE : FALSE;
 };
 foreach my $key ( sort keys %want_mode ) {
-    my @st = stat($key);
+    my @st = CORE::stat($key);
     next if not @st;
     my $mode = $st[2] & 07777;
     next if $mode == $want_mode{$key};
@@ -262,7 +262,7 @@ foreach my $key ( sort keys %want_mode ) {
 }
 foreach my $path ( sort keys %want_own ) {
     my ( $uid, $gid ) = @{ $want_own{$path} };
-    my @st = lstat($path);
+    my @st = CORE::lstat($path);
     next if not @st or ( $st[4] == $uid and $st[5] == $gid );
     if ( $EUID != 0 ) {    ## chown needs root ##
         $skipped{$path}++;
@@ -364,7 +364,7 @@ sub generate_rules {
     );
     foreach my $rel (@paths) {
         next if not selected($rel);
-        my @st = lstat($rel);
+        my @st = CORE::lstat($rel);
         next if not @st;
         if ( -l _ ) {
             my $target = readlink($rel);
@@ -463,8 +463,8 @@ sub read_user_names {
 
 }
 
-#,,,,,.,.,,,,,.,.,,,,,..,,.,.,...,..,,,,,,,,.,..,,...,...,.,.,,.,,,,,,.,,,,,,,
-#K74LHFUMANFKFJGM7WFWQYRZ67Y2ZRJBIWY3ASU3QGKWNJGBCRGK2GVOGY4VI4OFVVSJCJNTN4P54
-#\\\|YN5O2J6BNNYO2FMKHMIR4NEVQLDIAGW6XMBKXQX3AYK22RB4Z7W \ / AMOS7 \ YOURUM ::
-#\[7]NOIQOVL75YTFO2IFWR55ATHKUU7DJHJCKMNPKJAS4VVEGDO632CQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,.,,.,.,.,.,.,,,.,.,,.,,..,,..,,..,,...,...,.,.,.,,,,,.,..,,.,.,
+#EVDLDURLYGLCWPHRIYRXZ3SB23JYSDCI3NVEX4AZREEQBZ75JGVCRTW6EIZ6UU7UQTU6JHVZVPOI4
+#\\\|TIDE24Q4GLI7L4DQWSSK2FC4MU53ICCNLYDUBCIZ4LNO7PQSYPB \ / AMOS7 \ YOURUM ::
+#\[7]A4WCMCCDDNFJLWBLU4HNLLOIGNWX5XVDNY7SMHE4KXISOQYS2WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

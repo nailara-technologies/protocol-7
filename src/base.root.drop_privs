@@ -40,12 +40,12 @@ if ( not length( $user // '' ) ) {
 
     my ($name,    $pwd,  $uid,         $gid, $quota,
         $comment, $gcos, $h_directory, $shell
-    ) = getpwnam($user);
+    ) = CORE::getpwnam($user);
 
     ## handle primary group override if user:group syntax used
     if ( defined $override_primary_group ) {
         my ( $_gname, $_pw, $_override_gid )
-            = getgrnam($override_primary_group);
+            = CORE::getgrnam($override_primary_group);
         if ( defined $_override_gid ) {
             $gid = $_override_gid;
             <[base.logs]>->(
@@ -74,7 +74,7 @@ if ( not length( $user // '' ) ) {
             ## handle colon-separated groups within single parameter
             my @gnames = split m{:}, $gname;
             for my $gname (@gnames) {
-                my ( $_gname, $_pw, $_gid ) = getgrnam($gname);
+                my ( $_gname, $_pw, $_gid ) = CORE::getgrnam($gname);
                 if ( defined $_gid ) {
                     push( @secondary_gids, $_gid );
                     <[base.logs]>->(
@@ -91,7 +91,7 @@ if ( not length( $user // '' ) ) {
     } elsif ( !defined $override_primary_group ) {
         ## auto-detect secondary groups from group membership
         ## [ only when no primary group override ]
-        while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
+        while ( my ( $_name, $_pw, $_gid, $_members ) = CORE::getgrent ) {
             push( @secondary_gids, $_gid )
                 if ( grep( $ARG eq $user, split( m|\s+|, $_members ) ) );
         }
@@ -273,8 +273,8 @@ if ( not length( $user // '' ) ) {
     }
 }
 
-#,,.,,,,,,,,.,,,.,.,.,...,..,,.,,,,,.,,..,,,,,..,,...,...,.,.,.,.,.,.,,,,,,,,,
-#JLVUHVDYMAZ4UCADDBX2WXYOPOPE2OKKBRBHBFVO6UX2GVS72EHRNWFZGFQYLRJJUW3HDIZNBLWFW
-#\\\|FFXWO6G7K3YMKWHHGOHT5I2FDEGRWHRWAFNNIGBVXQLXEQAV7G2 \ / AMOS7 \ YOURUM ::
-#\[7]BWMKAGWX3XRBZBU2SMRQU2P6NSPM5WEYRI3H4JWE4KNXMI4AKCBY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,,,..,,,,,,...,,..,.,.,,,.,,,.,..,,...,...,,..,..,,,,,,..,,...,
+#O7NIXMOG56MNLF3POAJTHLIBG7GWILU7IZZYX4CKXYXHEK5LM3JK2XVLVUCPGFXTUYZVNIYG7G3FO
+#\\\|54ZVA6QCWSOG4KRJPKGHQFU56BTHIHIOFNYDIAUTRWZEPDUVYFD \ / AMOS7 \ YOURUM ::
+#\[7]PPG5LIY3KFF5AY4WNSM53ZNOJWBBFQAD4GCALIF2MOBTNTK4GOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,8 @@ my @download_urls = (
     'http://sourceforge.net/projects/impressive/files/'
         . "Impressive/$impressive_version/"
         . "Impressive-$impressive_version.tar.gz/download",
-    "http://mirror.nailara.net/impressive/Impressive-$impressive_version.tar.gz"
+    "http://mirror.nailara.net/impressive/"
+        . "Impressive-$impressive_version.tar.gz"
 );
 
 my $paths = {
@@ -36,11 +37,11 @@ my $sha1_checksums = {
 my $target_path = $paths->{'install_dir'} . '/bin/impressive';
 
 if ( -f $target_path ) {
-    if ( [ stat($target_path) ]->[7] == $file_sizes->{'impressive.py'}
+    if ( [ CORE::stat($target_path) ]->[7] == $file_sizes->{'impressive.py'}
         and Digest::SHA->new(1)->addfile($target_path)->hexdigest eq
         $sha1_checksums->{'impressive.py'} ) {
-        print " : impressive v$impressive_version is already installed!"
-            . " [checksum OK]\n :\n\n";
+        print " : impressive v$impressive_version is "
+            . "already installed! [checksum OK]\n :\n\n";
         if ( -f $paths->{'archive_tmp'} ) {
             unlink( $paths->{'archive_tmp'} )
                 or warn " [!] failed to remove "
@@ -58,7 +59,8 @@ if ( -f $target_path ) {
 my $delete_archive = 0;
 if ( -f $paths->{'archive_tmp'} ) {
     if (&size_OK) {
-        if ( Digest::SHA->new(1)->addfile( $paths->{'archive_tmp'} )
+        if ( Digest::SHA->new(1)
+            ->addfile( $paths->{'archive_tmp'} )
             ->hexdigest eq $sha1_checksums->{'archive'} ) {
             print " : archive already exists ( checksum OK )\n";
         } else {
@@ -87,7 +89,8 @@ if ( !-f $paths->{'archive_tmp'} ) {
             $failed  = 1;
         }
         if ( !$failed and &size_OK ) {
-            if ( Digest::SHA->new(1)->addfile( $paths->{'archive_tmp'} )
+            if ( Digest::SHA->new(1)
+                ->addfile( $paths->{'archive_tmp'} )
                 ->hexdigest eq $sha1_checksums->{'archive'} ) {
                 print " : download succeeded ( archive checksum OK )\n";
             } else {
@@ -117,7 +120,8 @@ if ( !-f $paths->{'archive_tmp'} ) {
     my $extract_file = "Impressive-$impressive_version/impressive.py";
     $tar->read( $paths->{'archive_tmp'} )
         or installation_failed("failed to open archive file [$!]");
-    if ( Digest::SHA->new(1)->add( $tar->get_content($extract_file) )
+    if ( Digest::SHA->new(1)
+        ->add( $tar->get_content($extract_file) )
         ->hexdigest ne $sha1_checksums->{'impressive.py'} ) {
         installation_failed("CHECKSUM MISMATCH ['impressive.py']");
     }
@@ -145,7 +149,7 @@ if ( !-f $paths->{'archive_tmp'} ) {
         { 'uid' => 0, 'group' => 0, 'mode' => 0755 } );
     $tar->extract_file( $extract_file, $target_path )
         or installation_failed("failed to extract 'impressive.py' [$!]");
-    if ( [ stat($target_path) ]->[7] == $file_sizes->{'impressive.py'}
+    if ( [ CORE::stat($target_path) ]->[7] == $file_sizes->{'impressive.py'}
         and Digest::SHA->new(1)->addfile($target_path)->hexdigest eq
         $sha1_checksums->{'impressive.py'} ) {
         qx(touch $target_path);    # timestamp
@@ -178,12 +182,12 @@ sub installation_failed {
 }
 
 sub size_OK {
-    return [ stat( $paths->{'archive_tmp'} ) ]->[7]
+    return [ CORE::stat( $paths->{'archive_tmp'} ) ]->[7]
         == $file_sizes->{'archive'};
 }
 
-#,,,.,,,,,,.,,.,.,,,.,..,,..,,...,...,,..,,,.,..,,...,...,,,.,...,...,..,,...,
-#B6BOIYCU3EXLJE4VDVXZJBLDCCW2GLQKWEQMV5JIOXIYEDWM6BA6SZIJVDV7PSJRJHZKMP3TZIFF4
-#\\\|ABZKFIH3DQXH4TAZL35CHW5LOYIFIDEMYEN524ZAEM35S2V774W \ / AMOS7 \ YOURUM ::
-#\[7]CV7NVCIHACVVPKTRZXXO6TV6HRHEFNOUGIPTBCPFSIKWZWS4T2CA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,,,,.,,,..,.,.,...,,,,,,..,,,.,..,,...,...,,..,..,,...,.,,,,,.,
+#ARDD3KU3Y7E6M3GKPI4N6KPK72MPMNP4RBUUQYFDUMQCX3C7MT2UWYO76XHBPFB75WSYDPINQQIV2
+#\\\|5SX2Q4I2MUBOMWP5FLJL3AWLUHLLWTW4N53TZKWYEDK34UEBUPG \ / AMOS7 \ YOURUM ::
+#\[7]LQFUVZ2F56AHASWCZZJMGLGFIGFUGEGPZNLCDCQ7NKCGQIJOOADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

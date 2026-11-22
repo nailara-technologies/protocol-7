@@ -64,18 +64,18 @@ if ($create_zenka_etc) {    ## create permanent zenka config dir ##
 ##
 my $uname = $proto_7_user;    ## <-- protocol-7 user ##
 ##
-my ( undef, undef, $p7_uid, $p7_gid ) = getpwnam $proto_7_user;
+my ( undef, undef, $p7_uid, $p7_gid ) = CORE::getpwnam $proto_7_user;
 
 ##  current zenka user  [ zenka subdirs ]  ##
 ##
 my ( undef, undef, $zenka_uid, $zenka_gid )
-    = getpwnam $current_zenka_username;
+    = CORE::getpwnam $current_zenka_username;
 
 ## override gid when zenka has a configured group ##
 ## [ e.g. httpsd runs as httpsd:httpd ]           ##
 if ( defined <system.zenka-group.current> ) {
     my ( undef, undef, $override_gid )
-        = getgrnam <system.zenka-group.current>;
+        = CORE::getgrnam <system.zenka-group.current>;
     $zenka_gid = $override_gid if defined $override_gid;
 }
 
@@ -245,8 +245,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,.,,,..,,..,,,,,..,,...,,.,,..,,,,.,,..,,,,,..,,...,...,...,..,,,,.,...,,,,,
-#ZS3Y2G74I4FTHSYLBTPUIDGGK5NRLYB473X2HGEUUYXHM2ZVTHPJBR4TSSK6T72S6RMHJOETO6CMO
-#\\\|4AWDUCYL6H3JKJM3HJMOUZNQOMIPAZ2JKL4JUGKEOPESAEX6OAP \ / AMOS7 \ YOURUM ::
-#\[7]6BRTMTHHQMNCAFUSYASLSLET4QCGAHLAAQ4MSS6PWT634777JKDY 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,..,,,,,.,,,..,,,.,,,,.,..,,..,,..,,...,...,,..,,..,,.,,...,.,,,
+#OLM5FVUNDYBHA5XQPT3PSAZ25MXEGTP3RIF6TZPELXF6EQFIY7GA2YW54UM36T74UAM3U7IM4V4E6
+#\\\|SPKARUEIOUSWP2OIPJSXOJJGL632PV2RLSBXT4NXTVVBAYW73Y2 \ / AMOS7 \ YOURUM ::
+#\[7]6S2UFRFHFDDCSZBDERHPF7AFLQ6B6YUSZWWMEZTLFHN3RIZQXABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

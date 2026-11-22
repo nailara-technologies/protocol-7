@@ -278,7 +278,7 @@ sub log_line {
 }
 
 sub iso_time {
-    my @t = localtime;
+    my @t = CORE::localtime;
     return sprintf '%04d-%02d-%02dT%02d:%02d:%02d',
         $t[5] + 1900, $t[4] + 1, @t[ 3, 2, 1, 0 ];
 }
@@ -290,8 +290,8 @@ sub first_line {
     return substr( $line // '', 0, 120 );
 }
 
-#,,.,,.,,,.,.,.,,,..,,.,,,.,,,...,,,.,.,.,.,.,.,.,...,...,.,,,,,,,.,,,,,.,,,.,
-#XRNMA2NDIF4IT53HEIDD4F6NFDAG3HIZXBRIAMG3GWFL3UA7HVYADT4PXYQCEAOEBKNAYE7HQGJCC
-#\\\|IEJMBB4XTZRKHMAT4QNZQHINRKDMX2WKLPYDT7XTERTG56L3AZS \ / AMOS7 \ YOURUM ::
-#\[7]OKWD3FBB5OI43QX7QYTX2MJBOY5C5Z3A2RQJ7RZG7QIPZR54HWDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,..,,..,...,,,.,,..,,,.,.,.,.,.,.,.,...,...,..,,,,.,,,.,.,.,,..,
+#HYYAGGZJEHBNVPGCJNRWIJ23CTZ42WAA4CKHHXIO6D3L5B4WQE3T45J6BJBPQMH3UJBLYSBE25KZQ
+#\\\|6RN4RWMXSVXWHDGENH3O4THETSTB45SKQW7QUDPUH7CWMY434IR \ / AMOS7 \ YOURUM ::
+#\[7]GVHJR3HJIAHIQNBQVKPP4LFM6VD2NCV4XT3D7MRK3BEB3KW4DMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

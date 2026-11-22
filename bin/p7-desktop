@@ -37,7 +37,7 @@ my $force = grep { $ARG eq '-force' } @args;
 
 my $home = ( @args and -d $args[0] ) ? shift @args : $ENV{'HOME'};
 $home = rel2abs($home);
-my $user = ( getpwuid( ( stat $home )[4] ) )[0] // $ENV{'USER'};
+my $user = ( CORE::getpwuid( ( CORE::stat $home )[4] ) )[0] // $ENV{'USER'};
 
 die "<< no desktop base at $base >>\n" if not -d $base;
 
@@ -145,7 +145,7 @@ if ( $command eq qw| install | ) {
         open( my $fh, '>:raw', $target ) or die "$target : $OS_ERROR\n";
         print {$fh} rendered( $map{$rel} );
         close($fh);
-        chmod( ( stat $map{$rel}{'src'} )[2] & 07777, $target );
+        chmod( ( CORE::stat $map{$rel}{'src'} )[2] & 07777, $target );
         say ": written  $rel";
         $written++;
     }
@@ -177,8 +177,8 @@ if ( $command eq qw| pull | ) {
 die "usage : p7-desktop status | diff | "
     . "install [ -force ] | pull <path ..>\n";
 
-#,,..,...,,,.,,,.,...,,,.,.,.,..,,..,,...,.,.,..,,...,...,,.,,.,.,...,,.,,...,
-#OIURID2N2FJ3TW6SZUTPWAWUKJ4XRRNWNHUKMXPLZ7FZF2WJU45F7KH2CJJQXHM2F2LJR2UR7I77O
-#\\\|7NWZWZBA2A33YOCWC755OK2VYTVZ4TDFKE7V2CBMNHIIOAYBRQS \ / AMOS7 \ YOURUM ::
-#\[7]T6ML45L6HZAO6TSKTUXJ5MOGP7LBD6DUTIJJYSNODP6MIU7AIUBQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,..,,.,,,.,,,,.,,.,,..,,,.,,.,.,..,,...,...,,..,,..,..,,..,,..,,
+#GY5CGXEOKZ6SMZU2IZ2UDHYCMKG7BGZLBCUTJCAQRYMQI3NOU7JECTRDWMIHHTFSD2TR6TC3W5JHA
+#\\\|2BGJHMSACOC6CPGW5RYVJVEJRQGZ6T3PSYAWQ7ZPLVV2P7WKE4P \ / AMOS7 \ YOURUM ::
+#\[7]FWKIQ7TDT6DKTP7OFDMLNKYR45GYYNPLPM3DJ7H7462XWAXG46DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

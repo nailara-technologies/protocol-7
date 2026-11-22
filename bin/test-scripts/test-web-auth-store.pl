@@ -106,8 +106,8 @@ $code{'file.make_path'} = sub {
     File::Path::make_path($path);
     chmod oct( sprintf '%o', $mode ), $path if defined $mode;
     if ( defined $owner ) {
-        my ( $uid, $gid ) = ( getpwnam $owner )[ 2, 3 ];
-        $gid = ( getgrnam $group )[2] if defined $group;
+        my ( $uid, $gid ) = ( CORE::getpwnam $owner )[ 2, 3 ];
+        $gid = ( CORE::getgrnam $group )[2] if defined $group;
         chown $uid, $gid, $path if defined $uid;
     }
     return -d $path ? TRUE : FALSE;
@@ -115,8 +115,9 @@ $code{'file.make_path'} = sub {
 
 my $tmp = tempdir( 'p7-web-auth-store-XXXXXXXX', TMPDIR => 1, CLEANUP => 1 );
 
-my ( $my_name, $my_uid, $my_gid ) = ( getpwuid $REAL_USER_ID )[ 0, 2, 3 ];
-my $my_group = ( getgrgid $my_gid )[0];
+my ( $my_name, $my_uid, $my_gid )
+    = ( CORE::getpwuid $REAL_USER_ID )[ 0, 2, 3 ];
+my $my_group = ( CORE::getgrgid $my_gid )[0];
 
 $data{'system'}{'path'}{'zenka-dirs'} = { 'var_P7' => $tmp };
 $data{'system'}{'zenka'}{'name'}      = qw| httpd |;
@@ -139,7 +140,8 @@ sub logged_clear { @logged = (); return }
 sub logged_grep {
     my $re = shift;
     return grep {
-        join( ' ', map { $_ // '' } $ARG->@* ) =~ $re
+        join( ' ', map { $_ // '' } $ARG->@* )
+            =~ $re
     } @logged;
 }
 
@@ -300,8 +302,8 @@ say 'note   : store CREATION with foreign owner [ protocol-7:httpd '
     . '] needs root -- exercised here up to the plan assertions above';
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,...,.,,,.,,,...,...,.,.,,.,,.,.,,,.,.,,,..,,...,...,,.,,.,.,.,.,...,,..,
-#34GRE36JDEBXHFT6SYKFVC3EJXFSQ37USLR2KZ7Y72DOAACBEBLDZESLPNACAJ333OXC4OHBFR77S
-#\\\|GGCQ6PU5LY4YEJOWZSXAKJBLTQWWSE3G32KMW4TNOBT6LGEG75T \ / AMOS7 \ YOURUM ::
-#\[7]B5BY3EGICRHJI3LWIDRAJY6AMQK6OYLM6NEHPC5SQA22Z5CAQWAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,...,,,,,..,,,,,,,,,,.,,,,,,,..,,...,...,..,,..,,.,.,...,,,.,
+#55RPO5VJMEDQF4J5QD772DLIMNC4ML5VTZS3F3EEU3HFHQTAIS3UJPKIR5HW7E2ZGOXNYM3XSN3UC
+#\\\|LDJQHZJSRREYWS6I7N47FOJL4CHKI7T6TLYV3LGUYIL63UO2B4H \ / AMOS7 \ YOURUM ::
+#\[7]QTV6BE25N6Q2TGBLGM5AJQ5I4LT3JOSG5UJHT3VFSFLCZVPO3YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

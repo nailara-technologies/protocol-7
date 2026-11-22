@@ -133,10 +133,10 @@ my $corpus_lines = count_lines( $opt{corpus} );
 my ( $drift, $promoted ) = ( undef, 0 );
 
 if ( $opt{rolling} ) {
-    ## .vec is the existence marker, not .bin : nothing in this script or   ##
-    ## its consumers ever reads .bin content again after training [ see the ##
-    ## unlink below ] -- .bin's only past role here was as a same- named    ##
-    ## stand-in for "does a current model exist"                            ##
+    ## .vec is the existence marker, not .bin : nothing in this script or ##
+    ## its consumers ever reads .bin content again after training         ##
+    ## [ see the unlink below ] -- .bin's only past role here was as a    ##
+    ## same- named stand-in for "does a current model exist"              ##
     my $current_vec = "$basename.vec";
 
     if ( -f $current_vec ) {
@@ -219,7 +219,7 @@ sub write_file {
 }
 
 sub iso_timestamp {
-    my ( $sec, $min, $hour, $mday, $mon, $year ) = localtime(time);
+    my ( $sec, $min, $hour, $mday, $mon, $year ) = CORE::localtime(time);
     return sprintf '%04d-%02d-%02dT%02d:%02d:%02d',
         $year + 1900, $mon + 1, $mday, $hour, $min, $sec;
 }
@@ -314,8 +314,8 @@ sub cosine_similarity {
 #  signature debt :: written during an afk session; cannot be signed here.
 #  run bin/Protocol-7 sourcecode update-signatures before the next verified commit.
 
-#,,.,,,.,,...,...,,.,,,,,,..,,...,,,.,,..,.,.,...,...,..,,..,,,,,,,.,,,,,,.,,,
-#UADZBLIIZCI7LH2PUUISWY6KZWZ3T2JQIIS6CILVR3KVMQNLM6LQEVMBDZGURL5RKK6WHJL3ZSAXE
-#\\\|7LTRGUFW7VOCEDKYI2FVZZNVWLQID3ODOAYH7IDBHFIJVMM36F2 \ / AMOS7 \ YOURUM ::
-#\[7]SAFHJJYUZMKPBM2GWR2I4B3PXNTS4NJQQLYJVATZBCY2JLG7REAA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,..,...,...,.,,,.,.,,,.,,,,,...,...,...,...,,,,,,..,...,,..,,.,,
+#EBRP7FVLC6QK7AKN45LKG3L6MGYHWI6CINMWNNXUJFPBGMZQXDPDVZG75QBZ3OVW72YPFMSTYSZ6C
+#\\\|QFJPEK42N3N53HEORPV3YRSUXXJEXAIKOPJMK4BPPEXBZ7Z5C3D \ / AMOS7 \ YOURUM ::
+#\[7]G2MQJBP74ZOXFCRPD7VGOZG5TKFPSRZC7MRXYG45BG22F3LQSODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ my $config_dir = <power.config_dir>;
 
 if ( !-d $config_dir ) {
     <[base.log]>->( 1, "creating config directory '$config_dir'.." );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $config_dir, { mode => 0750, 'uid' => $uid, 'group' => $gid } )
         or die "make_path : \l$OS_ERROR";
@@ -47,8 +47,8 @@ if ( !-d $config_dir ) {
 
 0;
 
-#,,.,,...,,.,,,..,...,,..,,,,,..,,,,,,.,.,.,,,..,,...,...,.,.,.,.,...,.,,,.,.,
-#RQS6F2VIEICRNXSAMJXPVPOQ2OAXPKCHCSAIDIX6ABZ4IKBLB5OIACF3H2R5VXKQX7YXV72B3GWGW
-#\\\|OW4LRCPXUHUVFKOIK4FNAKSVMB3TJVDZP2F2KTK7BHXBIASW2NS \ / AMOS7 \ YOURUM ::
-#\[7]QGLKYCDHRQTBSTVFIBZTTY7J5HO7UXROEYO6R3SALEAISJYRAIBY 7  DATA SIGNATURE ::
+#,,..,...,,,.,,.,,..,,..,,,.,,.,,,.,,,..,,,..,..,,...,..,,...,..,,,,,,.,.,.,.,
+#LSDXX6A5CZOSFF26TPVQB3NJXPE2BKSXSBV2KDTSTHAJCHI2XBQZWNZPY4IAYT46KUWGBXOXBQFGC
+#\\\|Q5WMDNPMJVCFLT3B3VM5ANCNN5SEWATO5J34A6FYNAXHOWNK4XZ \ / AMOS7 \ YOURUM ::
+#\[7]OZNOO6VI675NNIZ2V7VKDIACI3VF45DAW4QTWU7YAJNSJO4HSKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

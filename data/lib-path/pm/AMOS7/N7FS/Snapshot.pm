@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION   = qw| AMOS7::N7FS::Snapshot-VERSION.SGXCLOQ |;
+our $VERSION   = qw| AMOS7::N7FS::Snapshot-VERSION.JT3EVSA |;
 our $UNSTABLE  = 0;
 our $COPY_HOOK = undef;
 
@@ -209,7 +209,7 @@ sub _stats {
     my $walk;
     $walk = sub {
         my $path = shift;
-        my @st   = lstat $path
+        my @st   = CORE::lstat $path
             or refuse( 'staging entry vanished [ %s ]', $path );
         if ( -d _ and not -l _ ) {
             opendir( my $dh, $path )
@@ -311,7 +311,7 @@ sub _copy_file {
 
 sub _copy_verify {
     my ( $source, $target ) = @ARG;
-    my @st = lstat $source
+    my @st = CORE::lstat $source
         or refuse( 'snapshot source vanished [ %s ]', $source );
     if ( -l _ ) {
         my $link = readlink $source;
@@ -626,8 +626,8 @@ sub snapshot_run {
 
 1;
 
-#,,,,,,,,,,..,,,.,.,.,,,,,,..,,..,.,,,,,,,...,..,,...,...,...,,,.,,.,,,.,,,,,,
-#DR3EN4PGBVDTFYVXTE4NJKBZBRFMWDFC2SGTMMSCAHN4ZTPISHRAT6QHKDR4QDBIL3ZUM7AU3E7PO
-#\\\|4ZZD6DWGSYFY25A6YSJ5PLK6AXEFD4EIQ4GXISF5K47UKK5KPR6 \ / AMOS7 \ YOURUM ::
-#\[7]QHDGYXFRNGR5Z3GJNUJUT4JHAYIRSZDY4AKV4LSLHLJWGODERCCY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,,..,...,.,.,,..,,,.,,,,,.,,,..,,...,..,,...,,..,.,.,.,,,,,,,
+#EKGIDVGT2B5FFRMYQKN6UVY6A3ILEDJ37QOAGXLFL6MOZ5DMRSQVAKVHDAD4FLQJPXHH6ZKP2WFHU
+#\\\|YFUOFQFAA3IKUILW4NDYQNYNLFR2KXFDXXFZEDG5SNFN5ORP5AS \ / AMOS7 \ YOURUM ::
+#\[7]QTYDFSJCD22X4LFNQVON7QOWXESVENLMTBQUJ75APP6FNSPSXYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

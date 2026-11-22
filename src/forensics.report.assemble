@@ -38,7 +38,7 @@ return { 'mode' => qw| false |, 'data' => 'expected param hashref' }
 
 ## --- period resolution ------------------------------------------------- ##
 
-my @gm    = gmtime;
+my @gm    = CORE::gmtime;
 my $today = sprintf qw| %04d-%02d-%02d |, $gm[5] + 1900, $gm[4] + 1, $gm[3];
 
 my $from = $param->{'from'} // $param->{'date'} // $today;
@@ -299,8 +299,8 @@ return {
     'count'       => scalar @entries,
 };
 
-#,,..,,,,,,..,.,,,.,.,.,.,..,,,..,,.,,,,,,..,,..,,...,...,.,.,,,.,,..,..,,..,,
-#CXYGCT6VQZGVCOSVTONDHYVSSWF6CLDGCVJGNJFHZQOQ5UKFTQ42YG6IGU2CZNQWWXCVPCN27EGKK
-#\\\|4SGWVX2C3X64H436AMKK2BYXY52CUBUB7WEXZKDLFCBEF636LLN \ / AMOS7 \ YOURUM ::
-#\[7]WEQSLJJVZLVUKCSCCTYTDM2FH7FBRSEUPKFGNGFM3WF2J32K7YBI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,.,.,.,,,..,,.,.,.,.,..,,.,,,,,,,..,,...,...,...,.,.,,,,,...,,.,,
+#KM63P3QZYFJDA2Q7RFPT5YHBY5Y3MD7RVSJ5MMUIEL3BSTWSGFZVMLZAYSYS3BMVPYXHGJIZNXF4S
+#\\\|BDZARGY54A4BNWULBQQXR2XVDKPVDK5NGXWOKZOH2SNEAYEGFI5 \ / AMOS7 \ YOURUM ::
+#\[7]6E2UOHPU7VYTUXS4HCE5TQITGNI7D6TUPRG7EUDQEMLK7YFL5ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

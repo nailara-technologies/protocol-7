@@ -4,6 +4,12 @@ set -euo pipefail
 ROOT_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 BASE_URL=${P7_HTTP_URL:-http://127.0.0.1}
 HTTP_HOST=${P7_HTTP_HOST:-default.v7.ax}
+HTTP_ZENKA=httpd
+CURL_INSECURE=()
+if [[ $BASE_URL == https://* ]]; then
+    HTTP_ZENKA=httpsd
+    CURL_INSECURE=(-k)
+fi
 SITE_DIR=${P7_HTTP_ROOT:-$ROOT_PATH/data/web-root/vhosts/default}
 SMALL_FIXTURE=$ROOT_PATH/src/httpd.parse_range_header
 LARGE_FIXTURE=${P7_LARGE_SIGNED_FIXTURE:-$ROOT_PATH/data/web-root/vhosts/jobsite.vhost/index.html}
@@ -39,8 +45,8 @@ request() {
     HEADER_FILE=$TMP_DIR/$name.headers
     BODY_FILE=$TMP_DIR/$name.body
     HTTP_CODE=$(curl --max-time 20 -sS -D "$HEADER_FILE" -o "$BODY_FILE" \
-        -w '%{http_code}' -H "Host: $HTTP_HOST" "$@" \
-        "$BASE_URL/${REQUEST_PATH#/}")
+        -w '%{http_code}' -H "Host: $HTTP_HOST" \
+        "${CURL_INSECURE[@]}" "$@" "$BASE_URL/${REQUEST_PATH#/}")
     printf '\n%s\n' "$REQUEST_PATH"
     perl -ne 'print if m{^HTTP/} or m{^(?:Content-Length|Content-Range|Content-Type|Connection):}i' \
         "$HEADER_FILE"
@@ -55,7 +61,7 @@ strip_fixture() {
     perl -0777 -pe 's/\n?#[\.,]{70,}\n(?:#[^\n]+\n)+\z//s' "$1"
 }
 
-p7c httpd.heart >/dev/null
+p7c "$HTTP_ZENKA".heart >/dev/null
 [[ -r $SMALL_FIXTURE ]] || fail "missing signed fixture : $SMALL_FIXTURE"
 [[ -r $LARGE_FIXTURE ]] || fail "missing large signed fixture : $LARGE_FIXTURE"
 [[ -w $SITE_DIR ]] || fail "site directory is not writable : $SITE_DIR"
@@ -88,7 +94,7 @@ REQUEST_PATH=/$SIGNED_NAME
 request cached
 assert_equal 200 "$HTTP_CODE" 'cached signed file status'
 cmp -s "$TMP_DIR/small.expected" "$BODY_FILE" || fail 'cached body changed'
-CACHE_LOG=$(p7c httpd.show-buffer zenka 100)
+CACHE_LOG=$(p7c "$HTTP_ZENKA".show-buffer zenka 100)
 [[ $CACHE_LOG == *"signed-file cache hit : /$SIGNED_NAME : valid : 2"* ]] \
     || fail 'second request was not logged as the second cache hit'
 printf 'ok   : second request used the verification cache\n'
@@ -128,7 +134,8 @@ printf '\n%s [ client disconnect ]\n' "$REQUEST_PATH"
 set +e
 DISCONNECT_CODE=$(curl --limit-rate 8192 --max-time 1 -sS \
     -D "$TMP_DIR/disconnect.headers" -o "$TMP_DIR/disconnect.body" \
-    -w '%{http_code}' -H "Host: $HTTP_HOST" "$BASE_URL/$LARGE_NAME")
+    -w '%{http_code}' -H "Host: $HTTP_HOST" \
+    "${CURL_INSECURE[@]}" "$BASE_URL/$LARGE_NAME")
 DISCONNECT_RC=$?
 set -e
 DISCONNECT_SIZE=$(wc -c < "$TMP_DIR/disconnect.body")
@@ -145,10 +152,10 @@ assert_equal 200 "$HTTP_CODE" 'server answers after client disconnect'
 cmp -s "$SITE_DIR/$UNSIGNED_NAME" "$BODY_FILE" || fail 'post-disconnect body changed'
 printf 'ok   : server remains healthy after client disconnect\n'
 
-printf '\n: all live httpd signed-file tests passed\n'
+printf '\n: all live %s signed-file tests passed\n' "$HTTP_ZENKA"
 
-#,,.,,..,,,.,,,,,,,,,,,,.,..,,...,.,.,.,,,.,,,..,,...,...,..,,,..,.,,,,..,...,
-#5E65ZTC43I5HVWA4TTOARB3SJL7ZYCXQUVMFBORBTEY4HAIS6BDVK4H32OFIPUKEBB3OYGFUASSC6
-#\\\|QKRS3PDA22ZF2IA3D7VPLCTYD6SDE6XBA5CI4DLEA45UQKVKMKP \ / AMOS7 \ YOURUM ::
-#\[7]4WOB5VNOG3WGFIYO5AXSTZSDNFUI5NXDHOWTKSDNVLU4RNEGJKAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,...,,,,,...,,,,,,..,.,.,.,,,,.,,..,,...,...,.,,,.,.,,,,,..,,,,,,
+#MI2FWSIDRB4HJW6SWGW4WBC24UH5BBI5ASXNHIOHOK4X2LZB2PSVBCHFFX36DGEE3FFKNT7RJFD5K
+#\\\|YASXPW5PXM7NNFIOVPM27R4TRESFHCY2266JENZWZI2MNVPBUQQ \ / AMOS7 \ YOURUM ::
+#\[7]UI4EFFA6MT3CSB3S3KOVAZ7SYIQBGJJSYBZWLPOO5UO63MB3REBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

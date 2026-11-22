@@ -79,7 +79,7 @@ if ( $cmd eq 'list' ) {
     die "Usage: bug add <description>\n" unless @args;
 
     my $desc      = join( ' ', @args );
-    my $timestamp = POSIX::strftime( "%Y-%m-%d %H:%M:%S", localtime() );
+    my $timestamp = POSIX::strftime( "%Y-%m-%d %H:%M:%S", CORE::localtime() );
 
     # Read existing bugs to get next ID
     my $next_id = 1;
@@ -143,8 +143,10 @@ if ( $cmd eq 'list' ) {
                 if ( $lines[$j] =~ m|Status: Open| ) {
                     $lines[$j] =~ s|Status: Open|Status: Fixed|;
                     $lines[$j] =~ s|\n$||;
-                    $lines[$j] .= " ("
-                        . POSIX::strftime( "%Y-%m-%d", localtime() ) . ")\n";
+                    $lines[$j]
+                        .= " ("
+                        . POSIX::strftime( "%Y-%m-%d", CORE::localtime() )
+                        . ")\n";
                     last;
                 }
                 last if $lines[$j] =~ m|^- \[|;    # Next bug
@@ -191,8 +193,8 @@ if ( $cmd eq 'list' ) {
     say "";
 }
 
-#,,.,,..,,.,.,,,.,,,.,.,.,..,,,..,,,,,.,,,..,,..,,...,...,,,.,.,,,,,.,,..,,..,
-#QHAUXNTBXTV7HJMENAHDXXSX7DZ5Z4TBP2OWMNR2OC6LSHOZSDVP5KC5YJD5OPEDR2D36TRSM4FKK
-#\\\|MIT7SMMKYOFE45WNUDWYJ6X2G3D5BU7FYRZRGZMLZKTAAZ7NHKG \ / AMOS7 \ YOURUM ::
-#\[7]F4ISSZOVJIEESJCN37BDOZCBEJWGB3M5LEF5IXKLZUPWZJVAFIDA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,..,,..,...,,,,,.,.,,..,,,.,,.,,..,,...,...,.,,,..,,...,...,..,,
+#2KY4TUPJO6KAPP3DK5HESFECHNN6Z3PNWRWPK4CGV246IT3ULBXNNKFFED32QXOT43O5JUQBWMNNI
+#\\\|PQZENJ5EB6QSTNXDZXRFFOJQ3MRFX565SNW7BDYL3TCORSCI4SN \ / AMOS7 \ YOURUM ::
+#\[7]HTHMLSWNZ7KI3KXLJOT5SOIY2KLCT657EZHKEWHP6NSN2HC3J6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

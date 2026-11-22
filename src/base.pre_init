@@ -5,7 +5,7 @@
 if ( defined $ENV{'USER'} or defined $ENV{'LOGNAME'} ) {
     my $user = $ENV{'USER'} // $ENV{'LOGNAME'} // '';
     if ( length $user ) {    ##  checking if USER exists  ##
-        my @pwnam = getpwnam($user);
+        my @pwnam = CORE::getpwnam($user);
         if ( @pwnam == 0 ) {
             my $var_name = defined $ENV{'USER'} ? qw| USER | : qw| LOGNAME |;
             <[base.logs]>->(
@@ -27,8 +27,8 @@ if ( not <[base.is_defined_recursive]>->(qw|base.cache.perl.refaddr_prefix|) )
 
 return FALSE;
 
-#,,..,.,,,.,,,,,.,,.,,,,.,..,,,..,,..,...,..,,..,,...,..,,,..,,.,,,,.,.,.,,,,,
-#6XCQ73EPNGUR2DRFHW27B7T3U36ZQANRFRT7CXZDJEWQX7FKWTXBVFROZXUSOWSOWS4T6EUS5BT76
-#\\\|HXETNWANZ6EQZRPL7LHTJ5TZCABNOD3IDVWAVCKFGCD4QVVZWRN \ / AMOS7 \ YOURUM ::
-#\[7]7BBYONO5CRDMAW3BH6EBQG44WQXYMUFFBLQRITI63KF2GF2ZEQBI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,...,,,,,.,.,.,.,...,,.,,,.,,..,,...,..,,.,,,.,,,.,,,..,,..,,
+#PTCEETP5IXOTAQV6BQ4WOTDIKV6V27HOMRT7WA7Z2JYO3HNH4Q7ZR5B63QK7X4H3ZJBRZ6JUFRBSS
+#\\\|SZLOUTJCYIIQVUN44SXFMLFCLMLWSIT5V4PKU3GLORKDURZLMFC \ / AMOS7 \ YOURUM ::
+#\[7]V7UAT3YPGM54HFB6JXGY2VO5NB6GEF7OZ4FLIMCIRKJYC3W6PYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

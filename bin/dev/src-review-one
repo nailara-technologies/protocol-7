@@ -20,8 +20,8 @@ use JSON::PP;
 ##      validate_module via the coding zenka, recorded verbatim ]          ##
 ##      2. one local LLM inference call [ ik_llama.cpp llama-server ]      ##
 ##      for the narrative review                                           ##
-##      3. atomic write to data/src-review/<module>.md [ tmp + rename      ##
-##      ]                                                                  ##
+##      3. atomic write to data/src-review/<module>.md                     ##
+##      [ tmp + rename ]                                                   ##
 ##                                                                         ##
 ##      the stored record is explicitly marked LLM-generated + NOT         ##
 ##      hand- verified, with timestamp / model-id / source hash. exit      ##
@@ -46,16 +46,18 @@ my $src_path = File::Spec->catfile( $root_path, qw| src |, $module );
 die ":: module not found: $src_path\n" if !-f $src_path;
 
 ## directory-per-module layout : data/src-review/<module>/review.md -- room ##
-## for future sibling artifacts [ disentangled history, usage examples, ..  ##
-## ] next to the review, rather than one flat file each                     ##
+## for future sibling artifacts                                             ##
+## [ disentangled history, usage examples, .. ] next to the review, rather  ##
+## than one flat file each                                                  ##
 my $review_root = File::Spec->catdir( $root_path,   qw| data src-review | );
 my $out_dir     = File::Spec->catdir( $review_root, $module );
 my $out_path    = File::Spec->catfile( $out_dir, qw| review.md | );
 make_path($out_dir) if !-d $out_dir;
 
-## clean stale inference-request bodies from killed prior runs [ iterator ##
-## runs items sequentially -> no race with a live pid ] -- now nested one ##
-## level down, per module, since $out_dir moved from $review_root itself  ##
+## clean stale inference-request bodies from killed prior runs            ##
+## [ iterator runs items sequentially -> no race with a live pid ] -- now ##
+## nested one level down, per module, since $out_dir moved from           ##
+## $review_root itself                                                    ##
 for my $stale (
     glob File::Spec->catfile( $review_root, qw| * |, qw| .req.*.json | ) ) {
     unlink $stale if -M $stale > 0.001;    ##  not our own, just-created  ##
@@ -326,13 +328,13 @@ sub write_atomic {
 }
 
 sub iso_time {
-    my @t = localtime;
+    my @t = CORE::localtime;
     return sprintf '%04d-%02d-%02dT%02d:%02d:%02d',
         $t[5] + 1900, $t[4] + 1, @t[ 3, 2, 1, 0 ];
 }
 
-#,,,,,,..,...,..,,,.,,...,,,,,.,,,...,.,,,...,.,.,...,...,.,,,...,,,,,.,.,,..,
-#RHNVHCMNDS2B7KMK3VR2NMMR73EJ4D7MPW534ZOP73IIBSBSZ5ITO3CYCTMGDXLGKF7IJICHF5QBM
-#\\\|WJDSZKUFTNZDXTR4I72476H5WDOBQX23IPOHWG3ARHI64YCIZ6G \ / AMOS7 \ YOURUM ::
-#\[7]SA6CQ6LSBWDKNSY2UVVNRV57QA5A5CZUYJPAMIZXLFEAVP6YQ6CI 7  DATA SIGNATURE ::
+#,,,,,,..,...,...,,.,,..,,...,,,,,,..,,,,,,,.,.,.,...,...,,,.,,,.,,.,,,..,,,,,
+#TJHQLUVMRS4YBI47USRUR5WZPL5ZAIH2QBTLR6KJFEINBGFDUQ7VAQONHUSGBHF7UF2VCIQSM2QHQ
+#\\\|4HWXHPAUKMD5R5XS62D4MLLQRUZVJCWMU4QADQSZIS6TDZQO4KB \ / AMOS7 \ YOURUM ::
+#\[7]ZCLTFJNT74TOLT2ITU4PM5LMMT2R7QJG3CYIDI5ZJCCRWUU4E6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

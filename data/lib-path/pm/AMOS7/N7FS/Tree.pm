@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.LZTY54Y |;
+our $VERSION = qw| AMOS7::N7FS::Tree-VERSION.BJDVAIA |;
 
 @EXPORT_OK = qw| tree_create tree_records_verify tree_list tree_live_addresses
     tree_drop tree_restore manifest_open manifest_entry_read |;
@@ -289,7 +289,7 @@ sub tree_create {
         if not defined $name or $name !~ m|\A[^\x00/]+\z|;
     refuse( 'tree : duplicate live tree [ %s ]', $name )
         if $replay->{'trees'}{$name};
-    my @root_st = lstat $root;
+    my @root_st = CORE::lstat $root;
     refuse( 'tree root %s is not a directory', $root )
         if not @root_st
         or -l _
@@ -366,7 +366,7 @@ sub tree_create {
             qw| name |         => "tree:$name.jsonl",
             qw| format |       => qw| jsonl |,
             qw| size |         => -s $tmp,
-            qw| mtime |        => ( stat $tmp )[9],
+            qw| mtime |        => ( CORE::stat $tmp )[9],
             qw| import_ntime | => $created,
             qw| epoch_num |    => epoch_num( ntime_now() ),
             qw| epoch |        => epoch_b32( $addr->{'epoch'} ),
@@ -723,7 +723,7 @@ sub _assert_real_parents {
     my ( $tmp, $relative ) = @ARG;
     my $prefix = $relative;
     while ( $prefix =~ s|/[^/]+\z|| ) {
-        my @st = lstat "$tmp/$prefix";
+        my @st = CORE::lstat "$tmp/$prefix";
         refuse( 'restore parent is not a real directory [ %s ]', $prefix )
             if not @st
             or -l _
@@ -956,8 +956,8 @@ sub tree_restore {
 
 1;
 
-#,,,.,..,,..,,.,.,.,,,,.,,,,.,,,.,.,,,,,.,..,,..,,...,...,..,,,,,,.,,,..,,,,.,
-#C3BXGADLZQ5AFIY6OL6TIXMSJTP3F3LU66LISCS6C3IMX6P3U5BKU2GWRTD3XD7RTLCF65W2TJG5C
-#\\\|QOFHADGLBE7CEUJ3X2ZXSO4CW5ETIROOOO2QLYWCGRX3LIJCMHW \ / AMOS7 \ YOURUM ::
-#\[7]O6YTKDXPWAF72URBGHY7X4GDZX2WIRWEGW2ZETETLT5MVA5DTIBQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,,.,,,.,,.,.,,..,,.,,,..,,..,..,,...,...,.,,,..,,,..,.,.,.,,,
+#MA46XFICVE4OQX7TUYKTCSNWCRYAVBCDFCWR3EBERZ7OTT3EME3ZNVMM354GJV5VP5FP36LGJWXDG
+#\\\|VE2ZIYKDMBAKOVPVC45TXVK6WE3ONWBUJ2PT44C7FY4AIDKN37X \ / AMOS7 \ YOURUM ::
+#\[7]Q4NTWR7ZC2WQ574NDTHGU4YLC4DNDHELMUAQD62D6GWHW42HAECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

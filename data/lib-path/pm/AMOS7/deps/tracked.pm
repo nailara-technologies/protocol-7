@@ -1,5 +1,5 @@
 package AMOS7::deps::tracked;
-our $VERSION = qw| AMOS7::deps::tracked-VERSION.DYLAKQA |;
+our $VERSION = qw| AMOS7::deps::tracked-VERSION.O2VN4FA |;
 
 use strict;
 use warnings;
@@ -172,7 +172,7 @@ sub chown_to_user {
     return unless -f $path;
 
     my $dir = File::Spec->catdir( $p7_root, qw| var sys-deps | );
-    my ( $uid, $gid ) = ( getpwnam($user) )[ 2, 3 ];
+    my ( $uid, $gid ) = ( CORE::getpwnam($user) )[ 2, 3 ];
     return unless defined $uid;
 
     chown( $uid, $gid, $dir, $path );
@@ -286,7 +286,7 @@ sub _family {
 }
 
 sub _timestamp {
-    my @gm = gmtime();
+    my @gm = CORE::gmtime();
     return sprintf(
         '%04d-%02d-%02dT%02d:%02d:%02dZ',
         $gm[5] + 1900,
@@ -337,8 +337,8 @@ sub _save {
 
 1;
 
-#,,..,,,.,...,.,.,.,,,,,,,,,.,,.,,,.,,,,,,,.,,..,,...,...,.,.,,..,..,,,,.,,,.,
-#447Z22Y6H5G72GEIP6Y7VWYV2U464LDFDO4H7GOUMK3KLLYIEKJOT3YS5DMV7EB2RGKT3VOPLKTPS
-#\\\|OYQVFHPLFI6QXOV6AZH3YE7JLNTMWCH7L54GR7B5XCHFKGCEIO3 \ / AMOS7 \ YOURUM ::
-#\[7]A54NGCDOD3FEANQEKMDV53S4CYDWOZ3WW23YUZGV4F5KJHBCJIDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,.,,,,,,,,..,...,...,.,.,,.,,..,,...,...,...,.,.,.,,,,,,,..,,
+#H7G3XDJZ2LRFWDEEVBVBNTVZWXXB7Q5CZYMUKTDA7YKQHFDT27G7H2SWFV5QYZ3OYSYESVZBW4PUK
+#\\\|GOHTWEWHVY37IDWEVDTL4INFFBXZIJZ243NSMPZ55K2ULGXUIYC \ / AMOS7 \ YOURUM ::
+#\[7]ZJOZS67VJBUKT6MTRUVY4G7YKYYNA5VN332SV453FVBQPENHQQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,13 +23,14 @@ my $path = <[invoke-web.output.path]> // return;
 
 ## start marker in the buffer [ calc session pattern ] ##
 if ( defined $marker ) {
-    my $stamp = POSIX::strftime( '%H:%M:%S  \\\\  %Y-%m-%d', localtime );
+    my $stamp
+        = POSIX::strftime( '%H:%M:%S  \\\\  %Y-%m-%d', CORE::localtime );
     <[base.buffer.add_line]>->(
         qw| invokeai |, join( ' ', <[base.ntime]>, 1, $ARG )
         )
         for '.            \\\\',
         sprintf(
-        '..  %s  \\\\  %s ' . 'invoke.ai [ pid %d ]',
+        '..  %s  \\\\  %s invoke.ai [ pid %d ]',
         $stamp, $marker, $pid
         ),
         '...                                      \\\\';
@@ -56,8 +57,8 @@ if ( defined $marker ) {
 <[invoke-web.output.read]>;
 return TRUE;
 
-#,,..,,.,,,.,,..,,,..,.,.,,,,,.,.,.,.,...,.,.,..,,...,...,,,,,,..,..,,..,,.,,,
-#KQRKEII4IXCZTJWH2W7XPDI7BXM2I32B27AT4B6PRD4TZCAIMZDQWRKNSFIPJDBILRBSJL5JOXJ3K
-#\\\|77I32FZ73A7BFBUUY7ONSY43NWN4ZU2CXQ2WB7AD764ALC5U7R3 \ / AMOS7 \ YOURUM ::
-#\[7]GWLSZ4AEI6QLAQORVOP347G5RRGFMFJTDYHLM6CQVLLIHZL2YWCI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,...,.,,,,.,,..,,...,.,.,...,,,,,..,,...,...,..,,,..,...,...,,,,,
+#DXNLGPNEVWX4JNFFJXWGVSOA4TOCXCNYMM6VC577TK4VKTOTTWXQXE6UYOBP5SGZ3GJUIM72QHY7A
+#\\\|JSCWUD7B4WIPAI7CUJRML5GI4IWWSZ3QOA6MKUPSDGLYZBTDZZG \ / AMOS7 \ YOURUM ::
+#\[7]75FUSQPFPDZHI4WYKPF3CDHCXJC5AQR6KJXIMRL4MNLM4KETBUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

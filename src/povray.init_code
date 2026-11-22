@@ -51,7 +51,7 @@ if ( not -x <povray.path.povray_bin> ) {
 ## data/tasks/povray-zenka-implementation.md ]                           ##
 my $povray_user = <system.amos-zenka-user> // getpwuid($EFFECTIVE_USER_ID);
 my ( $p_uid, $p_gid, $p_home )
-    = ( getpwnam($povray_user) )[ 2, 3, 7 ];
+    = ( CORE::getpwnam($povray_user) )[ 2, 3, 7 ];
 
 if ( not defined $p_home or not length $p_home ) {
     <[base.logs]>->(
@@ -97,8 +97,8 @@ if ( not defined $p_home or not length $p_home ) {
 
 0;
 
-#,,..,,..,,,,,,.,,..,,.,,,,,.,,.,,,,,,,.,,...,..,,...,..,,,,,,..,,..,,,.,,,..,
-#4VBSDKF2N6PRRW4LY2RZZ6Y6AVOKP5SMWKIDZIP63GTCTQ6ZLTGCY26ZYPKPW5NG7GCJXTOVQ2V5S
-#\\\|GLDYQNOR25PHHDYMTIEXWJAPP663Z4XNS6QSU7TWLKTKT4DKP3F \ / AMOS7 \ YOURUM ::
-#\[7]EE5PBPW6QLNV3AOH2I7NRJPNIH3IYWQT3Q2KSEOK6OSLSHH7T6DA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,...,,,,,.,.,,,,,,.,,,,.,.,.,..,,...,...,.,,,,.,,.,.,,.,,.,.,
+#OQ7LR6LRDQFD76QQWAXRVNQ4KMMQL3JYO2Y5T6T6W5MFBF4E67RC7WVMSQ2AODF2YZBKEJH34LWFU
+#\\\|67JJY3UNSJM5TDYZ7X4ADSXEX5CLUUFNQ6MYELVF6456HJJWPOQ \ / AMOS7 \ YOURUM ::
+#\[7]7UFID2J3JNKVKDPZRRYKL3WFSM22IRJJMCL574FAZTWAUNOK6WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

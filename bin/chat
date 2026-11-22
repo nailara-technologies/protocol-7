@@ -422,7 +422,7 @@ sub parse_keywords {
 }
 
 sub timestamp {
-    return strftime( '%Y-%m-%dT%H:%M:%S', localtime() );
+    return strftime( '%Y-%m-%dT%H:%M:%S', CORE::localtime() );
 }
 
 sub format_entry {
@@ -472,7 +472,7 @@ sub auto_rotate {
     my $archive_ch = File::Spec->catdir( $ARCHIVE_DIR, $channel );
     make_path($archive_ch) unless -d $archive_ch;
 
-    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', gmtime() );
+    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', CORE::gmtime() );
     my $azPath = File::Spec->catfile( $archive_ch, "$ts.xz" );
 
     my $older_str = encode_utf8( join( '', @older ) );
@@ -496,7 +496,7 @@ sub clear_channel {
     my $archive_ch = File::Spec->catdir( $ARCHIVE_DIR, $channel );
     make_path($archive_ch) unless -d $archive_ch;
 
-    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', gmtime() );
+    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', CORE::gmtime() );
     my $azPath = File::Spec->catfile( $archive_ch, "$ts.xz" );
 
     xz( $path, $azPath, 'Preset' => 6 )
@@ -562,7 +562,7 @@ sub trim_history {
     my $archive_ch = File::Spec->catdir( $ARCHIVE_DIR, $channel );
     make_path($archive_ch) unless -d $archive_ch;
 
-    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', gmtime() );
+    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', CORE::gmtime() );
     my $azPath = File::Spec->catfile( $archive_ch, "$ts.xz" );
 
     my $arch_str = encode_utf8( join( '', @archive ) );
@@ -699,10 +699,10 @@ sub list_channels {
     say colored(".: channels :.");
     for my $name ( sort @ch ) {
         my $hpath = history_path($name);
-        my $mtime = -f $hpath ? ( stat($hpath) )[9] : 0;
+        my $mtime = -f $hpath ? ( CORE::stat($hpath) )[9] : 0;
         my $ts
             = $mtime
-            ? strftime( '%Y-%m-%d %H:%M', localtime($mtime) )
+            ? strftime( '%Y-%m-%d %H:%M', CORE::localtime($mtime) )
             : 'never';
         my $size = -f $hpath ? -s $hpath : 0;
         say sprintf(
@@ -894,7 +894,7 @@ sub rotate_with_summary {
     my $archive_ch = File::Spec->catdir( $ARCHIVE_DIR, $channel );
     make_path($archive_ch) unless -d $archive_ch;
 
-    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', gmtime() );
+    my $ts     = strftime( '%Y-%m-%dT%H:%M:%S', CORE::gmtime() );
     my $azPath = File::Spec->catfile( $archive_ch, "$ts-memory.xz" );
 
     my $older_str = encode_utf8( join( '', @older ) );
@@ -975,8 +975,8 @@ sub get_summary {
 
     my $fresh = 0;
     if ( -f $spath and -f $hpath ) {
-        my $s_mtime = ( stat($spath) )[9] // 0;
-        my $h_mtime = ( stat($hpath) )[9] // 0;
+        my $s_mtime = ( CORE::stat($spath) )[9] // 0;
+        my $h_mtime = ( CORE::stat($hpath) )[9] // 0;
         $fresh = 1 if $s_mtime >= $h_mtime;
     } elsif ( -f $spath and not -f $hpath ) {
         $fresh = 1;
@@ -1203,10 +1203,10 @@ sub show_timeline {
     for my $name ( sort @ch ) {
         my $hpath = history_path($name);
         my $spath = summary_path($name);
-        my $mtime = -f $hpath ? ( stat($hpath) )[9] : 0;
+        my $mtime = -f $hpath ? ( CORE::stat($hpath) )[9] : 0;
         my $ts
             = $mtime
-            ? strftime( '%Y-%m-%d %H:%M', localtime($mtime) )
+            ? strftime( '%Y-%m-%d %H:%M', CORE::localtime($mtime) )
             : 'never';
 
         my $summary_snip = '(no summary yet)';
@@ -1330,8 +1330,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
-#,,,.,,.,,,,,,..,,.,.,,,.,,,.,,..,.,,,,,,,,,,,..,,...,...,...,,,,,.,.,,.,,...,
-#FLL4RP3MJSH5SWB3MBFOFI3FMEGOJG6ETQS4HE4UEC6EC4JURUJ4XGJ22UASIZRFA6DZLZIFAFILW
-#\\\|KAP2ZNZBTEMQAQZQRS346PYK3E2T6M72VPFAC4LRJU5YNSZHS37 \ / AMOS7 \ YOURUM ::
-#\[7]NO3NDAURF2YHSWCOS2ZCLFJHGBR4CUUCGF6LODRSPHVXFPLRBUCA 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,,.,...,...,,,,,,..,,,,,,,.,,,.,..,,...,...,..,,,..,,..,...,..,,
+#C2RWAM3ZX2I3JFG3MCYVL36HQ7MX7G3TDPXDAJ5XDR6WASNGWBDEL6TZJMJ66UY5HGHCSY3GQVTUO
+#\\\|QZRYQSIIKVZH24MZYPJZHXV3U24R43ME4WLUOADXRHFTU5NXZDZ \ / AMOS7 \ YOURUM ::
+#\[7]RTHRLQOC7WOSAMFSQBQTINYYNF5FVIRAZVBZ5EYASP46XH4T6KBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

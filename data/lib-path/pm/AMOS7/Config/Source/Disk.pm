@@ -1,5 +1,5 @@
 package AMOS7::Config::Source::Disk;
-our $VERSION = qw| AMOS7::Config::Source::Disk-VERSION.HD5N6VQ |;
+our $VERSION = qw| AMOS7::Config::Source::Disk-VERSION.IP3LPLI |;
 
 use v5.32;
 use strict;
@@ -33,10 +33,11 @@ sub new {
         if not length $root or not -d $root;
 
     my %owner_ok = ( 0 => 1 );
-    my @tree     = stat $root;
+    my @tree     = CORE::stat $root;
     if (@tree) {
         my $zenka_uid
-            = ( getpwnam( $opts{'zenka_user'} // 'protocol-7' ) )[2] // -1;
+            = ( CORE::getpwnam( $opts{'zenka_user'} // 'protocol-7' ) )[2]
+            // -1;
         $owner_ok{ $tree[4] } = 1 if $tree[4] != $zenka_uid;
     }
 
@@ -109,7 +110,7 @@ sub trust {
     push @check, '/';
 
     foreach my $entry (@check) {
-        my @stat = lstat $entry;
+        my @stat = CORE::lstat $entry;
         return $refuse->("$entry : cannot stat") if not @stat;
         return $refuse->("$entry : symlink")     if -l $entry;
         return $refuse->( sprintf '%s : owner uid %d', $entry, $stat[4] )
@@ -125,8 +126,8 @@ sub trust {
 
 1;    ##  AMOS7::Config::Source::Disk  ##
 
-#,,.,,,,.,,.,,,,,,...,,,,,,..,,,,,.,,,,.,,,..,..,,...,..,,,..,...,,..,,.,,,..,
-#PZYNS34G6PODIE6UFYUBVIFG6EFQL3FW7GNQ7CRY7SVLGDUWVBWFW5YY7X4CWCF4N3AH2SQ26SPA4
-#\\\|QWDV5FVOTFEAZCTKS3VIIURN767RATNB6TLU4WEUEZIQI54FDSG \ / AMOS7 \ YOURUM ::
-#\[7]WQBYY4WHUUM6PPTOSP6LJ4KHNQXHMG6NDSRQPJ3UX3OVS7PTA6CI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,,..,,,,,.,.,.,.,,..,..,,..,,..,,...,...,...,.,.,,,.,,.,,..,,
+#IDTJZNWZVDMUSSMHGHBBJPZTT265Y5MN44HBIGGBNSJKEK2FLP7F3WRVSFDYVVZOHTTS7A7ALBXU6
+#\\\|E5YHJ2AVYH465XMFYGUQSOZHXQPCHIVFPBF5CP2S5VOO6C6LDOS \ / AMOS7 \ YOURUM ::
+#\[7]O6FS6SFITQOVEFAQILHNLXGHK6PUF77SGJCIZJ56EZW2LTGGNWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,7 +27,8 @@ return { mode => qw| size |, data => "no renders recorded yet\n" }
 
 my $when = sub {
     my $time = shift // return '?';
-    my ( $min, $hour, $day, $mon, $year ) = ( localtime $time )[ 1 .. 5 ];
+    my ( $min, $hour, $day, $mon, $year )
+        = ( CORE::localtime $time )[ 1 .. 5 ];
     return sprintf '%04d-%02d-%02d %02d:%02d', $year + 1900, $mon + 1, $day,
         $hour, $min;
 };
@@ -72,8 +73,8 @@ foreach my $row ( reverse @$rows ) {
 
 return { mode => qw| size |, data => $out };
 
-#,,,.,.,.,..,,,,,,..,,,,,,..,,...,,..,,,,,,..,..,,...,...,.,,,,..,,.,,.,,,,,,,
-#264VOKUJSQNG7QBZ3RPOCVVQAO2GENZ6GOKAKB4KYGHT7D57VY5QR77GXFWM2372K2IRQWAM54D5W
-#\\\|XXM2X3HCYP6K6HDP2KXOMETFXL6F4XX6JVZDMN7HIBF6A44G7UL \ / AMOS7 \ YOURUM ::
-#\[7]3Y57X7RPCPGZI4G3CAPSTFKS6GGKN3BPU76OJ6JW3TZPZY5BAIBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,...,,.,,.,,,..,,,,.,,..,.,.,,..,..,,...,...,...,..,,,..,,,.,,.,,
+#EPO4K4CJHP6G3IEYK5E2NJHHHC6IPDV3T4HHWPRMAEFN76RM2IZHTHRCGCC6GKSFZV76QJGOKBMVS
+#\\\|VLBYGDS2XUFRZBHUERZMQIA3J6UVW5CK3KYRSFDOZOBAMOQ5XC6 \ / AMOS7 \ YOURUM ::
+#\[7]H7R2TZFSRAEOZ7LJO6EJUHCQVAB7V5ZAORB4ZNX7NZ2Q3Q66BGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

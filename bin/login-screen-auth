@@ -90,7 +90,7 @@ sub safe_policy_file {
     my ( $path, $fixture ) = @ARG;
     return FALSE if not defined $path or -l $path or not -f $path;
     return TRUE  if $fixture;
-    my @stat = stat($path);
+    my @stat = CORE::stat($path);
     return FALSE if not @stat or $stat[4] != 0 or ( $stat[2] & 022 );
     return TRUE;
 }
@@ -234,7 +234,7 @@ sub write_grant {
     my ( $username, $uid ) = @ARG;
     my $grant_dir = $opt{'grant_dir'};
     return undef if -l $grant_dir or not -d $grant_dir;
-    my @dir_stat = stat($grant_dir);
+    my @dir_stat = CORE::stat($grant_dir);
     if ( not $test_mode ) {
         return undef
             if @dir_stat < 5
@@ -354,8 +354,8 @@ while (TRUE) {
 close($io);
 exit 0;
 
-#,,,.,...,,,.,..,,,.,,...,.,,,.,.,..,,...,...,..,,...,...,..,,,,,,,,.,..,,...,
-#Z7U2EOWHSDBKXNNU4JHWNB36PCIGIQT7WLR6GU2IWWUKO5CDW4TZ2PZSF6MYRRC6DY3IT2R7DU6FM
-#\\\|B5EQ75E3D27CXUV7VZYV2MRB3Z3K4XMJU3W76PVWPPT4MEZUJDC \ / AMOS7 \ YOURUM ::
-#\[7]CQODBFS6UZSPMIRF66OBWB3Q6D5PEKSXKBDAKGIUW3EOGWTSVYDY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,,..,,,.,,,.,,.,,,..,.,.,,..,..,,...,...,,.,,,..,...,,,,,,,,,
+#3WKEV2TDGIKF4JZHTNUM6FMLAP355VTGGLCACT2QAEG5TTAHIEZCGM3E5UWXUXNJLOVCLPAIEML3M
+#\\\|XSK3GBVIEVYYQJLZ4TKRUU5BN2W2D6VNLRDNBS4IBQVPUHAXAXX \ / AMOS7 \ YOURUM ::
+#\[7]EZD2J6SGR334KW3R3PDLD4F7QMPTXOWMKPWJKHJFVLRTUC4T56AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

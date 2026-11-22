@@ -1,5 +1,5 @@
 package AMOS7::deps::service;
-our $VERSION = qw| AMOS7::deps::service-VERSION.RNIYSEY |;
+our $VERSION = qw| AMOS7::deps::service-VERSION.N4LNMWI |;
 
 use strict;
 use warnings;
@@ -304,7 +304,7 @@ sub check {
             qw| show Protocol-7 -p ActiveEnterTimestamp --value
                 --timestamp=unix |
         );
-        my $unit_mtime = ( stat( $P->{'unit_path'} ) )[9];
+        my $unit_mtime = ( CORE::stat( $P->{'unit_path'} ) )[9];
         if ( defined $started and $started =~ m|^@(\d+)$| ) {
             my $started_at = $1;
             push(
@@ -418,8 +418,8 @@ sub _write_file {
 
 1;
 
-#,,,,,..,,,,.,,,.,,,.,,..,.,.,...,,.,,,.,,...,..,,...,..,,.,,,,,,,,.,,..,,,,.,
-#IJORE2EMHCAKJHPPO73BSHWMLGLMBIALW3YWPW7GWCLQHPD4CY7OZQ5WKD2UE3FBJGIPYOEB44HIM
-#\\\|Z6ZB4ZTMVYESBOI2MNPBQ6YW7NH727LSRZIYWJF6AGCAWNNV5LG \ / AMOS7 \ YOURUM ::
-#\[7]CT6VKOC6WU6WC7XNJFTDNGJTHRMI7AHRGRN3U6X6M6DCFMUTR2DY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,.,,,.,.,.,,,,..,..,,..,,,,,,.,,,..,,...,...,.,.,.,,,...,,,,,,,.,
+#WL2UTPESR5JF5NHCOU2UO3KNT5H5MFW64P3H4MDIZPN7EUJ5PZ24KXQR2OHU5T3H5N6APFSWWTFA2
+#\\\|JY74ONIKZEJIKSNW2AHVGIDKDL3HEZKWYWDZVOD32KUP4FNUZGI \ / AMOS7 \ YOURUM ::
+#\[7]VC7I22K43WLLYDUTKVENZVRVOIK4EA67ZJ3FG6DM6IOAQEM62IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,7 @@ foreach my $user (@whitelisted_users) {
         return undef;
     }
 
-    ( my $usr_uid, my $gid ) = [ getpwnam($user) ]->@[ 2, 3 ];
+    ( my $usr_uid, my $gid ) = [ CORE::getpwnam($user) ]->@[ 2, 3 ];
 
     if ( not defined $usr_uid ) {
         <[base.s_warn]>->( 'no uid for unix user %s', $user );
@@ -154,8 +154,8 @@ foreach my $remove_path_link (@unlink_path_symlink) {
 
 return $number_files_cleaned;
 
-#,,,.,,.,,,.,,.,.,,.,,,.,,,..,..,,.,.,,,.,..,,..,,...,.,.,.,.,.,,,...,...,,,.,
-#LHZT2OL2HRBTTUCJJ76KPNAHHB5LLDE4GUAXNKWMFZZFO4JFUDKK5AD2HQQF2OC3EY7F5WWCGYFPO
-#\\\|5KOBFSIUQENQ762MGO7CIS4URTVPL7E6GZXVWYOWVK5YHTMTMDO \ / AMOS7 \ YOURUM ::
-#\[7]NXQMXL2FLQQBPWURT6LEN7E4MUO7GHY3XEBXDXGCVDDCVRYWPQCQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,.,.,.,.,,,...,,.,,..,,...,,.,,..,,...,...,.,.,,,,,...,,,.,,..,
+#5SWWVVEEVFTHGOTE67JBKN3TDA5H33UPYISXO5LDI2BAEGHQ6JZ5OGEQUEV43C6S5CBBBWL2WELCE
+#\\\|MCOV7LKQ7CPOIG5Y33ITYWQUDOS6QZC6OMMIHQ6F77N5JSTGWK2 \ / AMOS7 \ YOURUM ::
+#\[7]F2KMJDO4SBY4OIU2TNBLEOXTLT6ZQSYFHAI6F2XK5OT7XAATY6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

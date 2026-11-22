@@ -101,8 +101,8 @@ my $svc  = open_root( 'svc.key',  'svc-pass' );
 ok( $main->{'root_id'} ne $svc->{'root_id'},
     'the two roots are fully independent'
 );
-ok( ( ( stat "$base/main.key" )[2] & 0777 ) == 0600
-        and ( ( stat "$base/svc.key" )[2] & 0777 ) == 0600,
+ok( ( ( CORE::stat "$base/main.key" )[2] & 0777 ) == 0600
+        and ( ( CORE::stat "$base/svc.key" )[2] & 0777 ) == 0600,
     'root key files are 0600'
 );
 
@@ -312,7 +312,7 @@ my ($svc_address) = sort keys $svc_map->{'nodes'}->%*;
 my $svc_blob = $svc_map->{'nodes'}{$svc_address}{'blob'};
 
 my $day = do {
-    my @t = gmtime;
+    my @t = CORE::gmtime;
     sprintf '%04d-%02d-%02d', $t[5] + 1900, $t[4] + 1, $t[3];
 };
 my $move = request_sign(
@@ -361,8 +361,8 @@ ok( !-e "$remote/$main_tag/$svc_blob",
 
 done();
 
-#,,,.,..,,,..,..,,..,,,.,,,,,,,.,,.,,,,,.,.,.,..,,...,..,,.,,,,,.,...,,,,,.,,,
-#P6WH5MQTFPO5ZBGT7ZJCZTNUF57TZH6EEJTOBJINCIPNNKTZT3UB2TQWW67JZFX66GULMTWQKQCZS
-#\\\|FKHCULRCU7PDNQVAL4XTPZO6PMO4LPNXNROA3D4SL6XROU5LSAM \ / AMOS7 \ YOURUM ::
-#\[7]SLQRMOQSITPJOY3DFYOVGTZWYW5LN2ENLWSTLPVW5HOFUHJKFQBQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,..,...,..,,,,.,..,,,..,..,,,.,,..,,...,...,..,,,.,,.,,,,..,,,.,
+#3MJMFWTT4TVINZQNTHVRNQU2XLUPLY33ZRPQOUEPKSUO2OSUDC5DYLVD55623NFGFO7ZT3DO764NQ
+#\\\|7JV7XC3PCVPIM3OBYP6MNDAAXZSTZCIB2GQRMZD23GPDWHEF5NM \ / AMOS7 \ YOURUM ::
+#\[7]LARKECR2HVXCKBIG47GWAWC6DK7W2NEAFJ5PNTFXTXKWKIFCQMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

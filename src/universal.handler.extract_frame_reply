@@ -25,7 +25,7 @@ my $frame_target_path = "$vid_frame_dir/$path_chk_sum.png";
 
 if ( !-d $output_path ) {
     <[base.log]>->( 1, ": : creating '$output_path'.." );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
 
     make_path( $output_path,
@@ -58,8 +58,8 @@ if ( !keys <universal.frames_to_go>->%* ) {    # frames complete
     );
 }
 
-#,,..,.,,,...,,..,...,...,.,.,..,,,,.,,..,,,,,..,,...,...,..,,,,,,,..,.,.,,.,,
-#3E5ZJ5YD74OBSR4HD7FGQFEAH3VLPBCG4PD5SHNJBTSQ6X7K5QPYZPLRPTHYGH4FVUPDYWFEFKDNW
-#\\\|TEPTTOGF4EOUDRTEPDSR6W4SDTUGVWYZIU3E43IWDRPV7UTYYUU \ / AMOS7 \ YOURUM ::
-#\[7]WO4NVHKQBXEIW3WEOGHWFZ4SSR3GAACZOMCYLRUSIYUVNGUTIGDY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,.,,,.,,,,..,,,.,.,,,.,.,.,.,..,,...,...,.,.,,,,,...,...,,..,
+#I4JBBAL74Z7ZEHARECFDQJVQHUAECJ35GOAJ2FU42XBSASBPYQ2ESSODOKNC47A7PUGWSFP2GXEEY
+#\\\|RGJW3EMQKY4QVE7NPZ6AUJG2GRD6NKX3U4OXPNP2PELJVBI2ZSX \ / AMOS7 \ YOURUM ::
+#\[7]VVVUYGF7GNWCAPLNOI5K2EXN5GQ2DSJII5VXNVE6FCQWSUZE34AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

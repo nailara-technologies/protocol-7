@@ -8,16 +8,18 @@ use warnings;
 ## bytes pragma transitively ; keep it so compiled modules resolve it.     ##
 use bytes;
 
-## auth-keypair + link-upgrade mutual binding [ 2026-10-06, data/md/design/ ##
-## AUTH-LINK-BINDING.md ] compiles the real modules and drives them with    ##
-## stubs : the spec test vector [ auth.binding.message ], the server plugin ##
-## [ v2 only ], base.handler.auth [ pending, not registered ], the state 1  ##
-## gate [ base.handler.command ], base.handler.link-upgrade [ client \      ##
-## server bind sigs ], send.local \ cfg_bool visibility and the client pin  ##
-## + select-reply order [ auth.client.auth-keypair.authenticate ]. keys are ##
-## throwaway fixed-seed pairs, the pin store a File::Temp dir behind a      ##
-## stubbed base.get_homedir. no zenka started, restarted or reloaded, no    ##
-## network, no real key dirs touched.                                       ##
+## auth-keypair + link-upgrade mutual binding                               ##
+## [ 2026-10-06, data/md/design/ AUTH-LINK-BINDING.md ] compiles the real   ##
+## modules and drives them with stubs : the spec test vector                ##
+## [ auth.binding.message ], the server plugin [ v2 only ],                 ##
+## base.handler.auth [ pending, not registered ], the state 1 gate          ##
+## [ base.handler.command ], base.handler.link-upgrade                      ##
+## [ client \ server bind sigs ], send.local \ cfg_bool visibility and the  ##
+## client pin + select-reply order                                          ##
+## [ auth.client.auth-keypair.authenticate ]. keys are throwaway fixed-seed ##
+## pairs, the pin store a File::Temp dir behind a stubbed base.get_homedir. ##
+## no zenka started, restarted or reloaded, no network, no real key dirs    ##
+## touched.                                                                 ##
 
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -614,8 +616,7 @@ sub client_sig {
     ok( exists $data{'user'}{'test-user'}{'session'}{$id},
         'registered for the user' );
     ok( !exists $s->{'auth'}{'server_nonce'},
-        'nonce deleted ' . '[ single-use ]'
-    );
+        'nonce deleted [ single-use ]' );
     ok( !defined $s->{'watcher'}{'input_handler'}{'timeout'},
         'auth timeout disarmed once bound' );
     ok( $s->{'link_nonce_session_id'} == 4242, 'nonce sid stored' );
@@ -633,8 +634,7 @@ my @refusals = (
     ],
     [   'client_bind_sig over another nonce_sid',
         sub {
-            sprintf "link-complete " . "4243 %s\n",
-                ( client_sig( @_, 4242 ) )[0];
+            sprintf "link-complete 4243 %s\n", ( client_sig( @_, 4242 ) )[0];
         }
     ],
     [   'nonce_sid 0',
@@ -664,7 +664,7 @@ for my $case (@refusals) {
     ok( !@init_states,                        "$label : no state 3" );
     ok( !exists $s->{'auth'}{'server_nonce'}, "$label : nonce deleted" );
     ok( $s->{'authenticated'} eq 'pending',
-        "$label : still " . "not authenticated"
+        "$label : still not authenticated"
     );
 }
 
@@ -822,9 +822,9 @@ sub run_client {
     return ( $result, @sent );
 }
 
-## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md ] : the    ##
-## spec vector's host-root [ seed \x03 ] delegates S ; a foreign one [ seed ##
-## \x04 ] too                                                               ##
+## host-root delegation [ data/md/design/HOST-ROOT-DELEGATION.md ] : the ##
+## spec vector's host-root [ seed \x03 ] delegates S ; a foreign one     ##
+## [ seed \x04 ] too                                                     ##
 my ( $hr_pub, $hr_priv ) = Crypt::Ed25519::generate_keypair( "\x03" x 32 );
 my ( $fr_pub, $fr_priv ) = Crypt::Ed25519::generate_keypair( "\x04" x 32 );
 my $hr_fp = $code{'trust.key_id'}->($hr_pub);
@@ -865,9 +865,10 @@ sub read_pin {    ## the whole pin file : key id + leaf name ##
     my ( $ctx, @sent ) = run_client($good_reply);
     ok( ref $ctx eq 'HASH', 'first contact : binding context returned' );
     ok( -f $pin_path,       'first contact : pin file written' );
-    ok( ( ( stat $pin_path )[2] & 07777 ) == 0600, 'pin file mode 0600' );
+    ok( ( ( CORE::stat $pin_path )[2] & 07777 ) == 0600,
+        'pin file mode 0600' );
     ok( read_pin() eq "$hr_fp\npeer.cube\n0\n",
-        'pin file holds the ' . 'host-root key id'
+        'pin file holds the host-root key id'
     );
     ok( length($hr_fp) == 77, '  :.. 77 chars' );
     my $fp_half = int( ( length($hr_fp) + 1 ) / 2 );
@@ -927,7 +928,7 @@ sub read_pin {    ## the whole pin file : key id + leaf name ##
         'foreign host-root : nothing signed, no auth line sent'
     );
     ok( read_pin() eq "$hr_fp\npeer.cube\n0\n",
-        'foreign host-root ' . ': pin NOT replaced'
+        'foreign host-root : pin NOT replaced'
     );
 
     ## S not the delegated subject ##
@@ -1112,8 +1113,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,.,,,,,.,,,...,.,.,.,.,,,,,.,,,..,,.,.,..,,...,...,.,.,...,..,,.,.,.,,,
-#U5IXI6UPZ6526DVRKNTGS6S5LKHACLZM3KC5ABAHKEAYWYEH7AH26NM3P3LDSMTSO7M6BZK564LUM
-#\\\|YIDFCFCCUFTIR5X7XZYZF2PIOV7DTVYAG4CHQZPIAITD4MVO7AN \ / AMOS7 \ YOURUM ::
-#\[7]PQRXM2ZWCHZXMQGKQ4WQYJGTT2HY3JO3AH657KEPQLOBNQENY6BQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,.,,..,...,..,,,,,,...,..,,...,..,,...,...,,..,.,.,,,,,..,,,,.,
+#SZDJ5ORWTE4IKCWHFXCZ2WKSXLRJNWH5C5QR6X3QDHFUCHYQKRBTLK5LUL5RRJWJG4YEWMUE7SHFK
+#\\\|EHMP2DXJWKCARB45WJKKDKEUUMX7ITPKXSC26NRSRE6V7H7AUBN \ / AMOS7 \ YOURUM ::
+#\[7]FAF53YAUVKS3FY2J6SE2I3RU2PRDDMZD7BIAYJMHRRX3DGXPSODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

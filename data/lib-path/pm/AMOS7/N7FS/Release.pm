@@ -19,7 +19,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Release-VERSION.RA4HF5I |;
+our $VERSION = qw| AMOS7::N7FS::Release-VERSION.K3GDUYA |;
 
 @EXPORT_OK = qw| release_node store_reclaim release_repair tombstone_read
     tombstone_latest tombstone_verify |;
@@ -350,7 +350,7 @@ sub store_reclaim {
         next
             if defined $opt{'older'}
             and $newest > ntime_now() - $opt{'older'};
-        my $size = ( stat "$node->{'path'}/content" )[7];
+        my $size = ( CORE::stat "$node->{'path'}/content" )[7];
         push @garbage,
             {
             qw| node |    => $node,
@@ -403,8 +403,8 @@ sub release_repair {
 
 1;
 
-#,,..,...,,,,,.,.,,,,,,..,.,,,,..,,..,.,,,,,.,..,,...,...,,,.,,.,,,..,...,.,.,
-#E3ARH6YVPPSKQP7LT4ZJITBJVF45NYSZFM6JZFWHRJKK76TP4OY7JUL3JS7QIYPEVTQTRNPAFCY5W
-#\\\|EOIU2H5ORZ3AL5SGFU6ZTVKJSAWKVUAXGMGKRLG47VYFOJE23B7 \ / AMOS7 \ YOURUM ::
-#\[7]IAA6YP345IYF6VINLR5ISIDD25KJKRK4ZINCJGRUR4QPHMVXU2DY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,,..,.,.,...,...,,,.,,.,,..,,..,,...,...,,.,,.,.,...,.,.,,,,,
+#S5FZW5KNB6CP5TMUQGVUUA7K4NY5UUJQLETEHO5KDCOXDMDDZ76OFJIYBSBXTNMTLQ37HY6RG44UG
+#\\\|UUKNVUPSMHXKLUA6U5VZ5IIRPDCIGMIEWG667Z5F5DSRKAPCFE3 \ / AMOS7 \ YOURUM ::
+#\[7]6UKTHJ75KGORX6ST2H2MT7MJYAQAOT5XPELDPUJ22WXVBAUZWMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

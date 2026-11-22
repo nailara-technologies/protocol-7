@@ -55,7 +55,7 @@ ok( recovery_code_normalize( lc $recovery ) eq
 
 my $v = vault_init( $dir, "pässphrase one", $recovery, %kdf );
 ok( defined $v->{'key'} && length $v->{'key'} == 32, 'init gives a key' );
-ok( ( ( stat $dir )[2] & 0777 ) == 0700,             'vault dir is 0700' );
+ok( ( ( CORE::stat $dir )[2] & 0777 ) == 0700,       'vault dir is 0700' );
 ok( !eval { vault_init( $dir, 'x', undef, %kdf ); 1 },
     'init refuses an existing vault' );
 
@@ -72,7 +72,7 @@ my $id = entry_save(
 ok( $id =~ m|^[A-Z2-7]{16}$|, 'entry id shape' );
 
 my ($file) = glob "$dir/entries/$id.*.vlt.B32";
-ok( ( ( stat $file )[2] & 0777 ) == 0600, 'entry file is 0600' );
+ok( ( ( CORE::stat $file )[2] & 0777 ) == 0600, 'entry file is 0600' );
 my $raw = do { local ( @ARGV, $RS ) = $file; <> };
 
 sub framed {    ## the inline subroutine frame, one entry per file ##
@@ -482,8 +482,8 @@ say '';
 say "  $pass passed, $fail failed  [ perl $^V ]";
 exit( $fail ? 1 : 0 );
 
-#,,.,,.,,,.,,,,..,,,,,,.,,...,...,,.,,,,,,.,.,..,,...,..,,..,,.,.,,,,,,,.,,,,,
-#INYPR5X7TGRMURLJRD73LO7FOTCWSTLP5EOG5HYDF3SUNZ7A4XCJFMOVRLKN2CYKGIPV6MKUQTQVQ
-#\\\|WAEV2I7UWPTKQY7ACN7PG52LXOXE3RIGJDTE6Y5BW5AUT6B5EC3 \ / AMOS7 \ YOURUM ::
-#\[7]DHOKOQQ2CKRXECKCMYD4EEDTBET4CK7CMX3MZG2XPMANKX3YOUDQ 7  DATA SIGNATURE ::
+#,,,.,...,...,,..,,,,,.,,,.,,,,..,.,,,,..,,..,..,,...,..,,,,,,,,.,,,.,.,.,.,.,
+#26EETPUF75267XZATCT36AYGGGXPWJAUBIF3TQCU6VQK6HCXO33BEIPLUAG44EMOQDBBZW2OS6KMU
+#\\\|TQXZES3ARYAKCX3TMHVCVTCGMRG5S6C43W7ZNJSRQ3AFM4YZLRW \ / AMOS7 \ YOURUM ::
+#\[7]QNVW3UNQQE3OTTOZPP4FQCX4ABHEMALCGZ323KLZUA6TFDMF5WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

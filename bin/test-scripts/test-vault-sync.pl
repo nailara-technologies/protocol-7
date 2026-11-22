@@ -305,7 +305,7 @@ ok( $rc == 0
     ( $out, $rc ) = $run->( '-a', $drive, "fakehost:$tmp/multi-c", $drive );
     ok( $rc == 0 && $out =~ m|saved : \Q$drive\E fakehost:| && -e $list,
         'saved targets : -a saves, a repeat once' );
-    ok( ( ( stat $list )[2] & 07777 ) == 0600,
+    ok( ( ( CORE::stat $list )[2] & 07777 ) == 0600,
         'saved targets : the list is 0600'
     );
     ( $out, $rc ) = $run->( '-a', q{'bad;host'} );    ## quoted for qx ##
@@ -356,8 +356,8 @@ ok( $rc == 0
             && "@{[ blobs($fresh) ]}" eq "@{[ blobs($drive) ]}",
         'sync into no vault : the key file fetched, everything pulled'
     ) or print $out;
-    ok( ( ( stat "$fresh/vault.key.B32" )[2] & 07777 ) == 0600
-            && ( ( stat $fresh )[2] & 07777 ) == 0700,
+    ok( ( ( CORE::stat "$fresh/vault.key.B32" )[2] & 07777 ) == 0600
+            && ( ( CORE::stat $fresh )[2] & 07777 ) == 0700,
         'sync into no vault : key file 0600, directory 0700'
     );
     my ($opened) = vault_open($fresh);
@@ -368,8 +368,8 @@ ok( $rc == 0
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,,,..,,,..,..,,,,,,.,.,,,,,.,,,.,.,,,,,,,,,..,,...,...,..,,.,.,.,,,.,.,.,.,
-#2A5VE5KHXVOVW2RGPS4NWBESAEXWOR3YKNRY5Q7WNU4FQ5PEURZ3LV335YBNGSMGQKOUD6JOYHGRE
-#\\\|B6FGCD67GZZPQ3MJEDTUG6GNBWDUO4OTESANBJ4SVDZUNGCJ4DQ \ / AMOS7 \ YOURUM ::
-#\[7]H4AVWYVEXCBGGKU2MHKCN57TLL57ZNDSLTVRITC5LN7PFGWBCECI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,..,.,,,,..,,..,,.,,.,.,,,,,..,,..,,...,...,,,,,,..,..,,,,.,.,,,
+#VYXMSXPX6YQSEMCQZDVU2DZEMPCI4JTHQAC4HOZVIYUEZIQR6XHHFZRV7U7N7ZSSL7ZXN24YVFUWE
+#\\\|CZXJDCAW2YMAFRMM4RFMJDC4C7MCC7ZULMHX63IIQL2AJI4UC6I \ / AMOS7 \ YOURUM ::
+#\[7]XK23QR6UGIAPBYDUSOPLGH6IPZY7XVHZVIDGBZ5PRVH55R6PI6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -69,7 +69,8 @@ my $assume_admin
     = <[base.cfg_bool]>->( <coding.cfg.assume_admin_group> // FALSE );
 <coding.cfg.drop_privs_user> = <system.amos-zenka-user>;
 ## default: zenka's own group [ no-op in drop_privs ] ##
-my ( undef, undef, undef, $zenka_gid ) = getpwnam(<system.amos-zenka-user>);
+my ( undef, undef, undef, $zenka_gid )
+    = CORE::getpwnam(<system.amos-zenka-user>);
 <coding.cfg.drop_privs_admin_group> = getgrgid($zenka_gid) // '';
 
 if ($assume_admin) {
@@ -155,7 +156,7 @@ if ( length $catalog_corpus_dir and $EFFECTIVE_USER_ID == 0 ) {
     }
     my $zenka_user = <system.amos-zenka-user> // '';
     if ( length $zenka_user and -d $catalog_corpus_dir ) {
-        my ( $uid, $gid ) = ( getpwnam($zenka_user) )[ 2, 3 ];
+        my ( $uid, $gid ) = ( CORE::getpwnam($zenka_user) )[ 2, 3 ];
         ## parent [ <root>/data ] is deliberately NOT chowned : unlike the ##
         ## /var/protocol-7/<zenka> parents in ext-pkg.init_code it is a    ##
         ## repo dir owned by the login user -- the corpus dir alone needs  ##
@@ -784,8 +785,8 @@ eval { <coding.timer.thermal_tick>->cancel }
 
 return 0;
 
-#,,,,,...,...,,,.,...,.,.,.,,,..,,.,,,...,,.,,.,.,...,...,...,,,.,..,,.,.,.,.,
-#LQEQYHFLYLHOMM44XMGKDFIAHLSYZVGWM2GQOK4CU7T3LEK5LOZ4X5LORH7QLMH3OLEDKQHQU5N32
-#\\\|UIQN3KGJT2HTLPQPJQJX64MXDH4EEPA35RCLDXQ4QULTS52FRVU \ / AMOS7 \ YOURUM ::
-#\[7]QV4USJZEVB2OBJ3LNSW7UM25NTMF5WHR55OEGZIGGPKTWUGF2EBY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,..,,,,.,,..,,,,,,.,,.,.,,,.,.,.,...,..,,.,.,..,,..,,..,,,,.,
+#LCTHH4Q5G4LKPOR4CGRPDOFPVPCYFSSOZAEYZNMUNQMKW6HJO7J3AZ72ZRBBR4MLHCWMXKTIFDHCY
+#\\\|YBZSCHW4AOQL3RLUPLVJ5PQMRHNAKBYHQ4EM6OSV3WQ5ZB3DWRT \ / AMOS7 \ YOURUM ::
+#\[7]HH5E4ETSGTX3WVABGXEFQUJY4PIJEHTZUM3WBYJ2XUJN5ZLYZ2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

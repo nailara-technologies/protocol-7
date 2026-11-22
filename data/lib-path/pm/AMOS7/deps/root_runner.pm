@@ -1,5 +1,5 @@
 package AMOS7::deps::root_runner;
-our $VERSION = qw| AMOS7::deps::root_runner-VERSION.B5O7BRA |;
+our $VERSION = qw| AMOS7::deps::root_runner-VERSION.EOIRR5Q |;
 
 use strict;
 use warnings;
@@ -22,7 +22,7 @@ use English;
 ##                                                                         ##
 ## wire format [ child -> parent ] :                                       ##
 ##   start   '+ ready family=<f> install=yes'                              ##
-##           '+ ready family=<f> install=no : <reason>'                     ##
+##           '+ ready family=<f> install=no : <reason>'                    ##
 ##           '- refused : <reason>' [ then the child exits ]               ##
 ##   install '> <output line>' .. , '= ok=<a,b> failed=<c> manual=<d>',    ##
 ##           '< N' [ 0 : every package ok, 1 : anything else ]             ##
@@ -98,7 +98,7 @@ sub check_path {
     return ( qw| unsafe |, sprintf( "invalid file name '%s'", $rel // '' ) )
         if not defined $rel or $rel !~ $REL_FILE_RE;
 
-    my @root_st = lstat $lib_root;
+    my @root_st = CORE::lstat $lib_root;
     return ( qw| unsafe |, "lib root '$lib_root' not found" )
         if not @root_st;
     return ( qw| unsafe |, "lib root '$lib_root' is not a real directory" )
@@ -113,7 +113,7 @@ sub check_path {
     while ( length $above ) {
         $above =~ s|/[^/]*\z||;
         $above = '/' if not length $above;
-        my @st = lstat $above;
+        my @st = CORE::lstat $above;
         return ( qw| unsafe |, "'$above' not found" )    if not @st;
         return ( qw| unsafe |, "'$above' is a symlink" ) if -l _;
         $why = _unsafe_reason( $above, \@st, $tree_uid, $deny_uid, 1 );
@@ -127,7 +127,7 @@ sub check_path {
 
     foreach my $dir (@parts) {
         $path .= "/$dir";
-        my @st = lstat $path;
+        my @st = CORE::lstat $path;
         return ( qw| absent |, "'$path' not found" )          if not @st;
         return ( qw| unsafe |, "'$path' is a symlink" )       if -l _;
         return ( qw| absent |, "'$path' is not a directory" ) if not -d _;
@@ -136,7 +136,7 @@ sub check_path {
     }
 
     $path .= "/$last";
-    my @st = lstat $path;
+    my @st = CORE::lstat $path;
     return ( qw| absent |, "'$path' not found" )           if not @st;
     return ( qw| unsafe |, "'$path' is a symlink" )        if -l _;
     return ( qw| unsafe |, "'$path' is not a plain file" ) if not -f _;
@@ -160,8 +160,8 @@ sub _unsafe_reason {
         and not $mode & 002
         and _private_group( $gid, $tree_uid );
 
-    return sprintf( "'%s' is owned by the " . "zenka user [ uid %d ]",
-        $path, $uid )
+    return
+        sprintf( "'%s' is owned by the zenka user [ uid %d ]", $path, $uid )
         if defined $deny_uid and $uid == $deny_uid;
     return
         sprintf( "'%s' is owned by uid %d [ expected "
@@ -186,18 +186,18 @@ sub _private_group {
         and $UID != 0
         and $EUID != 0;
 
-    my @group = getgrgid $gid;
+    my @group = CORE::getgrgid $gid;
     return 0 if not @group;
 
     foreach my $name ( split m|\s+|, $group[3] // '' ) {
         next if not length $name;
-        my $uid = ( getpwnam $name )[2];
+        my $uid = ( CORE::getpwnam $name )[2];
         return 0 if not defined $uid or $uid != 0 and $uid != $tree_uid;
     }
 
     my $private = 1;
     setpwent();
-    while ( my @user = getpwent() ) {
+    while ( my @user = CORE::getpwent() ) {
         next if $user[3] != $gid or $user[2] == 0 or $user[2] == $tree_uid;
         $private = 0;
         last;
@@ -227,7 +227,7 @@ sub inc_hook {
 
         open( my $fh, '<', $what )
             or die "refused : cannot read '$what' : $OS_ERROR\n";
-        my @fh_st = stat $fh;
+        my @fh_st = CORE::stat $fh;
         die "refused : '$what' changed while loading\n"
             if not @fh_st
             or $fh_st[0] != $st->[0]
@@ -368,7 +368,7 @@ sub main {
         } elsif ( not eval { require $rel; 1 } ) {
             ## an unsafe file among the backend's own loads lands here too ##
             return $refuse->( $EVAL_ERROR
-                    || "cannot load " . "backend '$family'" );
+                    || "cannot load backend '$family'" );
         } else {
             my $mod        = "AMOS7::deps::backend::$family";
             my $needs_root = $mod->can('needs_root');
@@ -457,8 +457,8 @@ sub _serve {
                 $install->( $out_line, @pkgs );
             };
             if ( not defined $result ) {
-                $out_line->( 'backend error ' . ': '
-                        . ( $EVAL_ERROR || 'no result' ) );
+                $out_line->(
+                    'backend error : ' . ( $EVAL_ERROR || 'no result' ) );
                 $result = { ok => [], failed => [@pkgs] };
             } elsif ( ref $result ne 'HASH' ) {
                 $out_line->('backend error : result is not a hash');
@@ -507,8 +507,8 @@ sub _serve {
 
 1;
 
-#,,..,,,,,,..,.,,,..,,,.,,..,,,.,,...,.,,,,,,,..,,...,...,,..,.,.,,..,,..,.,.,
-#E7Q575CLWQZ35QW555527BDYTMT5BBFLUK7Y4QMO55TMOBWD6VK5BV6ZRN55WRJCLSIA6TGSQG6Q2
-#\\\|DJZLSZZI4NHOQB567L3KOTGFSPINUF2EUGYXH2V3XWJY55WFNGF \ / AMOS7 \ YOURUM ::
-#\[7]T76GMTUPMQOLA3Q3YN5DW7P23EHKBKFXXJAJ653OU4T6V6HA5CBY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,..,,..,,,.,,,,.,,..,,,.,,,,,.,.,..,,...,..,,,.,,,,.,,,,,.,,,,,.,
+#B3SOHT7PGZWLXQCKT5DHDXNQAXNGJIU3TR2OLFEA6QPTRMCYMUJHLRP5TWJC5OB726UUFOIACDPEK
+#\\\|7XNY6KOEQLWU6KRQK6XHKRSLNXEX2ITM3S43PBKEHAVVM7TMBXV \ / AMOS7 \ YOURUM ::
+#\[7]BPJKU7HHQTSBTF4SIN4M4ASDW6B3XUYMWJDWGNQSRVRYJIMG2UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -47,7 +47,7 @@ while ( my $arg = shift @ARGV ) {
 
 ## the account whose cache is built ##
 my $account = defined $target_user ? $target_user : scalar getpwuid($UID);
-my @passwd  = getpwnam( $account // '' );
+my @passwd  = CORE::getpwnam( $account // '' );
 die "no such user : '" . ( $account // '' ) . "'\n" if not @passwd;
 my ( $uid, $gid, $home ) = @passwd[ 2, 3, 7 ];
 die "user '$account' has no home directory '$home'\n" if not -d $home;
@@ -93,8 +93,8 @@ say "inline-prebuild : $summary" if not $quiet;
 exit 0                           if defined $result->{'unavailable'};
 exit( $result->{'failed'} ? 1 : 0 );
 
-#,,..,,.,,.,.,.,.,,.,,,,,,,,.,.,,,.,,,,,,,,.,,..,,...,...,..,,,,.,.,.,.,.,,,,,
-#OQKQCCTB67VBLDS2TO2QSOD6ZSPNF6NJH5WQZPCFWVAOOUUSAWRZ5Y2XOBLCYM3YCZSFTR6L6XWAU
-#\\\|SYVTT4GGFOXTLAITWHFJI3DIJMU6VCKTAZKX225JDCE42OUMFMH \ / AMOS7 \ YOURUM ::
-#\[7]FNTW5DVZXVI7SOMPZ7ZKKA752FKR22SCBONHOK4LCR3EAQ62PSCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,,,,,,,,,,,,,.,.,,..,,,,,.,.,..,,...,...,,,.,,..,,,.,..,,.,.,
+#CPREIB3PIHEKOOLOLSQ5BJKOEAHCQZNOF55FMAFAQPLEMCQNLUWCQ7O4Q4W7JVF22QWIWAQCCWESQ
+#\\\|CWORVSKUNXGTTLHNA7SDLOJI6YLX5UBQK4CHCBQVZAXLJDBVVZQ \ / AMOS7 \ YOURUM ::
+#\[7]PIOA7IWKYJSHGRI7HBA2J7HAKVNAF3S3OMNMC74PQOD3B3XKLKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

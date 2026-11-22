@@ -462,7 +462,7 @@ sub iso8601_to_epoch {
 
 sub epoch_to_str {
     my $epoch = shift;
-    my ( $sec, $min, $hour, $day, $mon, $year ) = gmtime($epoch);
+    my ( $sec, $min, $hour, $day, $mon, $year ) = CORE::gmtime($epoch);
     return sprintf '%04d-%02d-%02d %02d:%02d UTC',
         $year + 1900, $mon + 1, $day, $hour, $min;
 }
@@ -481,8 +481,8 @@ sub seconds_to_dhms {
     return "$sign$out";
 }
 
-#,,,,,,,.,.,,,..,,,,.,,..,,.,,,,.,,,,,...,,,,,.,.,...,...,.,,,,.,,.,,,,.,,.,.,
-#PZKPFLWJAN4HG745NKC6PMZLMZQUL365OL4Y53AWFDW6RR3KOYCXKFOS22K4XPPAYD3JYAEDG5YCQ
-#\\\|ECNM5CQ4SP2FFO4ANSMNFIKZKF635EEM7QU3E7PHTCSZVX3BM2A \ / AMOS7 \ YOURUM ::
-#\[7]24POB2ZUGS2IGITQVMXVYEWDQQSL43TNE2VP53G7PRIS6QOUVCBQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,.,.,.,.,,,,,,,.,.,.,.,,,...,.,.,...,...,...,..,,.,.,.,,,.,.,
+#2KLWPT4ZL77P4ENMCEXK3K6OJXJI5D25L4JELTNSZP42UZZLRHUC6FVSSWWJU5VF4K54LWGYLHUNI
+#\\\|27E6EEK3GL4WDGHHJF7GJIQQLKGYMKF6B4VMZDH67SU6IBLB6XT \ / AMOS7 \ YOURUM ::
+#\[7]72TLR3QRXLDFZVVRB25BA6UHEDI2CVQJVRL453TYDUVRANBGPMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

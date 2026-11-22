@@ -128,7 +128,7 @@ ok( $rc == 0, 'via, access and quota are registered' ) or say $out;
 
 my $registry_path = "$base/a.key.state/registry";
 my $registry_text = read_file($registry_path) // '';
-ok( ( ( stat $registry_path )[2] & 0777 ) == 0600,
+ok( ( ( CORE::stat $registry_path )[2] & 0777 ) == 0600,
     'the file-root registry is 0600' );
 ok( $registry_text !~ m|[{}]|
         && $registry_text =~ m|^holder\.two\.spec\s+: |m,
@@ -328,8 +328,8 @@ ok( exists $reg_vault->{'vault-one'} && !-e "$v->{'path'}.state/registry",
 
 done();
 
-#,,.,,..,,...,,,,,,,,,.,.,,..,.,.,...,,.,,.,.,..,,...,...,,,,,,..,,,,,..,,.,,,
-#FXHPJNJTMVC2DJZYL7JPXUQR76GS4OJRYNSEYRWXB7BLAFVM22RN6NXAJOITG6H2P2BT663A5SRYI
-#\\\|KQUJ6JQ5T7BGZMS5S6LTPXLYCSGCAMMCWBKJCUOXSUA34VJMLHY \ / AMOS7 \ YOURUM ::
-#\[7]JKKCGPHPYTYUCVBIEP7SDWQKFDGZ5CXLDR5PVJXOT5H3CU2666CY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,,,..,,,.,,..,,..,,.,.,,,.,...,..,,...,...,..,,,.,,,,.,.,,,,..,
+#3HVZMAS6PAPSOBZCHRHT3PELOC5X4CXJBC66LZCIOU5PZNN7DSGCGYSUEQKXPAACTXH2Y43A2O76G
+#\\\|ZOALQKIXVMTO2Z6BY3IJHSSVQNTCVRQ6KETGFHQRMYWNH2VSKA6 \ / AMOS7 \ YOURUM ::
+#\[7]WR3PJXHUF7AMR7Q26HSSKBVOTWECYL37JDYIRCG6GJE2BBQTYOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -127,7 +127,7 @@ sub iso_str {
     my $time = shift;
     my $frac = sprintf q{%.4f}, $time - int $time;
     $frac =~ s|^0||;
-    my @t = localtime( int $time );
+    my @t = CORE::localtime( int $time );
     return sprintf q{%04d-%02d-%02d %02d:%02d:%02d%s}, 1900 + $t[5],
         1 + $t[4], @t[ 3, 2, 1, 0 ], $frac;
 }
@@ -140,8 +140,8 @@ sub error_exit {
     exit(110);
 }
 
-#,,..,,..,,.,,..,,.,,,,.,,,,,,,,.,,,,,...,,.,,..,,...,...,,.,,,,,,...,..,,,..,
-#TTLPSJB7MYWWKCDL7GHFIQONTJJA2EIY5EXAPWLBODQ3GMUO5HQ4CQ5E7E2KDBGQ52EQHUYGSJI36
-#\\\|OG736353JO2YKJIT43ES33JJI4H27G2HTTDLHUROHV4HQQZTYMI \ / AMOS7 \ YOURUM ::
-#\[7]OAEOLR5ZBNHTZBZ4355KMNXNW66QGVFEAUSCUPRC6PVF3REETOCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,,,.,.,,,,..,,,,,,.,,,..,.,,,..,,...,...,..,,..,,,,.,,,.,.,.,
+#UY3U2WZ4V2BTVV6JR4FYIMNJ4YEBABOCEVL7AGDR4KRR7YRZIBSGS3NPZUYSC6ETSCNMH73BMTKNU
+#\\\|ZZN7YIRP5TB7ZPZQABR7DJD5UAQOE32G34RCOYXH3XP6B3G626N \ / AMOS7 \ YOURUM ::
+#\[7]H3HFN2ORYIXCMCH3GMLKS6LMANESX43R32VQTKAYPIJQNFYVMEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

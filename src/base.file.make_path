@@ -51,7 +51,7 @@ if ( defined $param_owner ) {
         );
         return undef;
     }
-    ( undef, undef, $uid, $gid ) = getpwnam($param_owner);
+    ( undef, undef, $uid, $gid ) = CORE::getpwnam($param_owner);
     if ( not defined $uid ) {
         <[base.s_warn]>->(
             'owner %s not in passwd file <{C1}>', $param_owner
@@ -242,8 +242,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,,,,,,,,,,,,,.,,,,.,,,,,,..,,,,,,.,,,..,...,..,,...,...,...,.,,,,..,...,,.,,
-#RH7VHBYDLYNWAKNJLT4WQJW6ZLR46SHFSFWETOCR5AH3NNLATFPSJEYNI4L4PJHPSMPY7ANB5KA2I
-#\\\|AYDSDB6ODOGY6UJ2GUXGT7CS5BRM4BYQHKCRED3TVYCXRYQ4PNJ \ / AMOS7 \ YOURUM ::
-#\[7]IAQNHUYV6E7ATYGGMQJCQFAYMOGT6TCYXE7FKEFYS777UU3SYUAY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,,,,,,,.,,,,,,.,,.,.,,.,,,..,..,,...,.,.,,..,.,,,,.,,,,.,.,,,
+#JEMOWIEVWCKZZ6Z52RUW2DM4657Q2JPMOQNRKXTFUFQ24UFHDZSR5B3GB5RSCKEXP2TGZRWBTEC6W
+#\\\|TZRCVBU72I4FQCN53NJIEJ47D5ZI6KTZZ6MMKE6HPHWD5NS2XMW \ / AMOS7 \ YOURUM ::
+#\[7]KB4VE7USTZNFNRVNMBJMZ7PMOTX2YIS7H2IXP2G3U6EYFYDYOWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

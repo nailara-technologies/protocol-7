@@ -21,8 +21,8 @@ use AMOS7::Vault qw| vault_open vault_unlock vault_lock entries_latest
 
     ;
 
-my $dir = $ARGV[0] // $ENV{'P7_VAULT_DIR'}
-    // sprintf( qw| %s/.n/vault |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+my $dir = $ARGV[0] // $ENV{'P7_VAULT_DIR'} // sprintf( qw| %s/.n/vault |,
+    $ENV{'HOME'} // ( CORE::getpwuid($EUID) )[7] );
 
 die "no vault at $dir\n" if not AMOS7::Vault::vault_exists($dir);
 
@@ -98,8 +98,8 @@ say $seen
     : 'no control characters in any note version';
 exit(0);
 
-#,,,.,,,.,...,.,,,,..,,,,,.,,,.,.,.,.,...,,,,,..,,...,...,.,.,.,.,.,.,,,,,...,
-#ZSL5EXZJUZVVHTJQPGVW5Z72D6UMMSZ3C6DAJT2GPPIRY4G5GTHDZVMGTNKCOF62NBGCLQ6AFQ6R2
-#\\\|WFIY4XPXOYDEFCZKBMZLZGGLNGAY6YH3VXUA6KYGFDZEBLYX2RY \ / AMOS7 \ YOURUM ::
-#\[7]TNEKQWGSTVNYNP3SOXMF6MKFL4AQYJ6UJZN74IQW3LVCKBOSA4AQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,,..,,,,,..,,,..,..,,.,,,,.,,,..,..,,...,...,...,.,,,..,,.,.,,,,,
+#BGJE5YMOR5UZSB3CDBSTMNPAVQQOMWLBE26WCHZWGZGLOFKOABQBYKAFKOHVHWNINVQ362PU4DASM
+#\\\|SJOCWAE7BSA2YKVONCNG4JDEWYQID4SE46OA52JANSXJD72GT5N \ / AMOS7 \ YOURUM ::
+#\[7]H4B7CSWRFWKRJZ3QL6G2H7XIJ5R2KMUQCTAAQLLYPULZRB33IMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

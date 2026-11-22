@@ -29,7 +29,7 @@ if ( defined $url
 <[base.log]>->( 1, ".: $url" );
 
 if ( !-d $target_dir ) {
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     <[base.log]>->( 2, "creating target directory '$target_dir'.." );
     make_path( $target_dir,
@@ -69,8 +69,8 @@ my $bytes_downloaded = File::stat::stat($target_path)->size;
 
 return { 'mode' => qw| true |, 'data' => $target_path };
 
-#,,,.,.,,,,.,,.,.,,..,,.,,,,,,,..,,..,.,,,,.,,..,,...,...,...,,,,,...,.,,,,.,,
-#V26N34AZ2HO2JS46HXPA5PSJOCF37D2FRO27VFABYV3Q7UQ4QV5DZM7JV6IAFHD64GMKI672M3ASY
-#\\\|4FWSJVRLN6EWV7YSFXF6FMSQXMA6VRVNLORTTKR3CQEHSQU3BA4 \ / AMOS7 \ YOURUM ::
-#\[7]BGAKARISK4MU6TPMMXRUMXKKT3I4DA7N7K6R2BDKKAPX4HTVHAAY 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,.,,,..,,.,.,,,.,.,.,,,,,.,,,..,,...,...,...,,.,,...,..,,...,
+#KPCKHDEDPIR6GKGWLZEZJYW5UOL2OZ4Z675FWX5OBR5VSVLJZXFM34UIVWPHAXPJC5JBBDLNEQAKK
+#\\\|TUHROR3AQZKGKMRYJZBRDQZBPIWLOXXSDLXOWNVW4YBE3KKF5F3 \ / AMOS7 \ YOURUM ::
+#\[7]ROVNUQYOCSIF6N45B44LENCTNXKCT6734VT7E2JY26CHVR4WYQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

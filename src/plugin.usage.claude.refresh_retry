@@ -28,7 +28,7 @@ my $params = shift // {};
 ## attempt 2 always goes on to the retry
 my $attempt  = $params->{'attempt'} // 1;
 my $provider = <usage.provider.claude>;
-my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+my $home_dir = ( CORE::getpwuid($UID) )[7] // $ENV{'HOME'} // '';
 my $mtime
     = length $home_dir
     ? ( CORE::stat( catfile( $home_dir, $provider->{'cred_rel'} ) ) )[9]
@@ -65,8 +65,8 @@ if ( !$rewritten and $attempt < 2 ) {
 
 return TRUE;
 
-#,,.,,..,,,,,,,,.,.,,,.,,,,,.,...,,.,,,.,,,..,..,,...,...,,.,,,.,,,..,,,.,,.,,
-#TZEMLIECOZ336F7ZEZ2N73KDMQ343NGRCYVV6CQW2N6JTGEPITH5QZIKUACANT3U2EVVG34EI2CLY
-#\\\|K2V2WWTW5DPZ7TMNHIRZ4BW6KAPL4NNGXUSBXLYQLBS67V4W33S \ / AMOS7 \ YOURUM ::
-#\[7]PLTMFIH4G35U63J57XPVU6MEDBVUV2P4X7XVXLJ2ZCL2ECKSSOBI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,..,,,..,,,.,,..,.,,,..,,,..,,,.,..,,...,..,,...,...,,..,,..,,..,
+#7IXL7TXVTNPWSDBPI4MMMIJXGYXNLRPVKVVKX3X64LXJCZYSVIJWRGL5MGNXEV2EV4KIYZZT6YHOS
+#\\\|QXD3XYWGHLWBXEWKVKVCLD3D672TG6CKZ7FMHX77C243IKKVBYG \ / AMOS7 \ YOURUM ::
+#\[7]4E4N4OUGYMWNDPPSRRSFE5LHRV3K3DB7HE4VJXCR4O72OAAKE2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

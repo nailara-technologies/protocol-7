@@ -19,7 +19,7 @@ my $param = shift // {};
 return { 'mode' => qw| false |, 'data' => 'expected param hashref' }
     if ref $param ne qw| HASH |;
 
-my @gm    = gmtime;
+my @gm    = CORE::gmtime;
 my $today = sprintf qw| %04d-%02d-%02d |, $gm[5] + 1900, $gm[4] + 1, $gm[3];
 
 my $from = $param->{'from'} // '';
@@ -102,7 +102,7 @@ for my $csv_path ( sort glob("$csv_dir/*.csv") ) {
     ## snapshot date : trailing YYYY-MM-DD in filename, else file mtime ##
     my ($snapshot_date) = $csv_path =~ m|(\d{4}-\d{2}-\d{2})|;
     if ( not defined $snapshot_date ) {
-        my @mt = gmtime( ( CORE::stat($csv_path) )[9] // time );
+        my @mt = CORE::gmtime( ( CORE::stat($csv_path) )[9] // time );
         $snapshot_date = sprintf qw| %04d-%02d-%02d |, $mt[5] + 1900,
             $mt[4] + 1, $mt[3];
     }
@@ -248,8 +248,8 @@ return {
     'count'       => scalar @entries,
 };
 
-#,,,,,,..,,,.,,,,,,,,,,..,,,.,,,,,.,,,,.,,.,.,.,.,...,...,..,,..,,..,,.,.,..,,
-#B44ZE5YJ2MUSO3INQ345VOPTU5K3KZLLKVHQJXXWBNU75LKHGRWVKSA7MXO2DW3ZLIERDRBGVBFYY
-#\\\|CBVWDQEB5SABAYS45ITRGLVHCRXEE4PV7F2F7MY727JDVGYWUKD \ / AMOS7 \ YOURUM ::
-#\[7]Z2M7ENJGHBO7AW3ZWCAPK6SRMB4O22KCA3JZHPACQR4JUSGL4QBA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,...,.,,,,,,,,,.,,,,,.,.,.,,,,..,.,.,...,...,...,.,.,,,,,,.,,,..,
+#FYTDIX4JQQV5TCGE3WG2FWVE4V63NJ6K2C6USER65AAHFTN6QDCLHFXTJKYQ3PJQFY4BPR2TXAUUO
+#\\\|53ZWWQM4W5WXV6TZ3WYZ2E43ENFM2VSETBWMGYLLGJAXQ4MJPVC \ / AMOS7 \ YOURUM ::
+#\[7]IGEAOGN74XRSEHTA3XY45CM6GOZ4MLGKQMNEW2DCFXKYVJE62OBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

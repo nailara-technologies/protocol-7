@@ -82,16 +82,16 @@ getopts( 'p:r:f:k:mhqsK', \%opt ) or usage(EXIT_ERROR);
 usage(EXIT_CLEAN) if $opt{'h'};
 
 my $pattern_file = $opt{'p'} // $ENV{'P7_PII_PATTERNS'} // DEFAULT_PATTERNS;
-my @rev_args = defined $opt{'r'} ? split( m{\s+}, $opt{'r'} ) : qw| --all |;
-my $msg_only = $opt{'m'} ? TRUE : FALSE;    ## messages + paths, no blobs ##
-my $quiet    = $opt{'q'} ? TRUE : FALSE;    ## summary only               ##
-my $staged   = $opt{'s'} ? TRUE : FALSE;    ## pre-commit : staged diff   ##
-my $msg_file = $opt{'f'};                   ## commit-msg : message file ##
+my @rev_args   = defined $opt{'r'} ? split( m{\s+}, $opt{'r'} ) : qw| --all |;
+my $msg_only   = $opt{'m'} ? TRUE : FALSE;    ## messages + paths, no blobs ##
+my $quiet      = $opt{'q'} ? TRUE : FALSE;    ## summary only               ##
+my $staged     = $opt{'s'} ? TRUE : FALSE;    ## pre-commit : staged diff   ##
+my $msg_file   = $opt{'f'};                   ## commit-msg : message file ##
 my $known_file = $opt{'k'} // $ENV{'P7_PII_KNOWN'} // DEFAULT_KNOWN;
 my $write_known = $opt{'K'} ? TRUE : FALSE;    ## accept current findings ##
 $known_file = File::Spec->rel2abs($known_file);
-$msg_file = File::Spec->rel2abs($msg_file) if defined $msg_file;
-$quiet    = TRUE                           if $staged or defined $msg_file;
+$msg_file   = File::Spec->rel2abs($msg_file) if defined $msg_file;
+$quiet      = TRUE                           if $staged or defined $msg_file;
 
 my $root = $ENV{'P7_ROOT'};
 chdir $root or fail("\l$OS_ERROR : $root");
@@ -201,8 +201,8 @@ if ( $staged or defined $msg_file ) {
 
 ##[ walk history ]############################################################
 
-my %findings;    ## category -> commit -> { where -> 1 } ##
-my %hit_count;   ## category -> commit -> matches       ##
+my %findings;     ## category -> commit -> { where -> 1 } ##
+my %hit_count;    ## category -> commit -> matches       ##
 my %cat_count;
 my $commit_count = 0;
 
@@ -308,7 +308,7 @@ if ($write_known) {    ## accept every current finding as known history ##
         my $category = $ARG;
         map {"$ARG $category\n"} sort keys $findings{$category}->%*
     } sort keys %findings;
-    my $tmp = "$known_file.tmp.$PID";
+    my $tmp       = "$known_file.tmp.$PID";
     my $old_umask = umask 0077;
     open( my $out_fh, qw| > |, $tmp ) or fail("\l$OS_ERROR : $tmp");
     print {$out_fh} @lines;
@@ -341,9 +341,14 @@ if ( -f $known_file ) {
 
 if ( not %findings ) {
     say_msg(
-        sprintf( 'clean : %d commits, %d tags%s', $commit_count, $tag_count,
-            $known_count ? ", $known_count known" : '' ),
-        'no findings', $NEON_green_yellow );
+        sprintf(
+            'clean : %d commits, %d tags%s',
+            $commit_count, $tag_count,
+            $known_count ? ", $known_count known" : ''
+        ),
+        'no findings',
+        $NEON_green_yellow
+    );
     say "$blacklight:$reset";
     exit EXIT_CLEAN;
 }
@@ -418,7 +423,7 @@ sub mask_text {
 sub load_patterns {
     my $path = shift;
 
-    my @stat = stat $path or fail( "\l$OS_ERROR", $path );
+    my @stat = CORE::stat $path or fail( "\l$OS_ERROR", $path );
     say_msg( 'readable by others, chmod o-r advised', $path, $NEON_orange )
         if $stat[2] & S_IROTH;
 
@@ -504,14 +509,14 @@ sub usage {
         . "commit message file [ commit-msg, report only ]\n:   "
         . "$NEON_green_yellow-k$TRUE_color <file>  $blacklight: known "
         . "findings [ \$P7_PII_KNOWN, ${\ DEFAULT_KNOWN } ]\n:   "
-        . "$NEON_green_yellow-K$TRUE_color         $blacklight: write the "
-        . "current findings as known [ reviewed history ]\n:\n: exit "
-        . ": 0 clean \\ skipped , 1 findings , 2 error\n:$reset\n";
+        . "$NEON_green_yellow-K$TRUE_color         $blacklight: write "
+        . "the current findings as known [ reviewed history ]\n:\n: "
+        . "exit : 0 clean \\ skipped , 1 findings , 2 error\n:$reset\n";
     exit $code;
 }
 
-#,,,,,,..,..,,..,,,..,,..,.,,,,,,,,..,..,,,,,,..,,...,..,,...,,,,,,..,.,,,,.,,
-#IOW3CASJCNV6FDKAO2EKUFKC5ODO5HB4XMKNDRBWNZKZHVRSL45OIYAGHMGURLOBZFPDSF7LOPCVC
-#\\\|OEQ4K4N3Y6Y6SGYSOGXZHPZVDNJ6NTJAHQBD57YFBPAY4UWIQJG \ / AMOS7 \ YOURUM ::
-#\[7]V6VIS4FENK6VFPHT7SBRXPALHJW2EN3W7MXYYZBZ5RMQDBJOJQDA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,,,.,..,,..,,,,,,,,.,,..,,,.,..,,...,...,...,.,.,.,.,,,,,.,,,
+#62YP2MJCUK7YKV6RLVC6SIVPSBW2LSPDBUNQPZFVVVQ3WZ6VJQKZOVSP4E4E7UCDDSUL64FVKTNIE
+#\\\|Z7WC5EK37GWGIZE4REM5D6I3GNDX4Q7GNPDEXLYA26A25H3ZUNR \ / AMOS7 \ YOURUM ::
+#\[7]QBZP5KJFH5CVK7NUWG4J6LC5SOZJIUSQ3ITOHO5UP4JR3XBQ52DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

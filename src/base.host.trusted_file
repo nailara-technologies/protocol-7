@@ -22,7 +22,8 @@ my $root_path = <system.root_path> // '';
 my $tree_stat = length $root_path ? File::stat::stat($root_path) : undef;
 if ( defined $tree_stat ) {
     my $zenka_uid
-        = ( getpwnam( <system.amos-zenka-user> // 'protocol-7' ) )[2] // -1;
+        = ( CORE::getpwnam( <system.amos-zenka-user> // 'protocol-7' ) )[2]
+        // -1;
     $owner_ok{ $tree_stat->uid } = TRUE if $tree_stat->uid != $zenka_uid;
 }
 
@@ -52,8 +53,8 @@ foreach my $entry (@check) {
 
 return TRUE;
 
-#,,..,.,,,..,,,..,,,.,..,,.,.,.,,,.,,,...,,,.,..,,...,...,...,,,,,,.,,,..,,,,,
-#6POC2CTVXJHO5YBIQO2ENQRT4KLVROM22BNL7IPYFRW2FPID5CITR7DAHXWQEKZKHMBQVDMWAWV5U
-#\\\|ONG2KHQ3RCP63CL4JRJY36N3QTOLCOMFH5Y6DOPUYIYLTV2OBTM \ / AMOS7 \ YOURUM ::
-#\[7]XKHRRQ7NATYFSCTNWWV7MI46GAG3GXILXP64YOSWKBV2DH4AH6AQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,.,,,.,...,.,.,...,..,,,,.,.,.,..,,...,...,,,.,,..,,.,,...,,,,,
+#CRMXFW23233DOJTCNQ5YOYQQCRMYD3HXRCOC3IMDSXHI2HIBIVAXE66TY4L3OUIWWYP7HLT5QEVYC
+#\\\|LEDIM3S3XSRZEOMM7EEQUGPLGTXHKPO7OWJ56VPYGKI3VEEQN2Z \ / AMOS7 \ YOURUM ::
+#\[7]KV3W2NNYJP7CSHQYGIBYRIIZ3FETEA2H3WM2D24AWSLG2ZBVIIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

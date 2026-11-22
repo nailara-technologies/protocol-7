@@ -194,7 +194,7 @@ ok( ( $files[0] // '' ) eq 'B32TEST-12345.json',
     'record name is <ntime b32>-<job id>.json'
 );
 
-my $dir_mode = ( stat "$tmpdir/outbox" )[2] & 0777;
+my $dir_mode = ( CORE::stat "$tmpdir/outbox" )[2] & 0777;
 ok( $dir_mode == 0750, 'outbox dir created mode 0750' );
 
 my $content = do {
@@ -374,8 +374,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,,,,,.,,.,,,..,,,,,,,.,,,.,,,,,,,,,.,.,.,.,...,...,..,,..,,,..,,,,,,,,,
-#ZJNE2UFVGTBC7UMI6V5QSEGVDBCJOIUC6SDKOXNHXU7MBDHF7JHUFM5VJRZQ77UZUQ3N2ZWGGBZ4E
-#\\\|M72BQRFRKUA5OOCAKQFPOJAPUM7G4UAASM6MAKSMMCJ27A4L6VW \ / AMOS7 \ YOURUM ::
-#\[7]7NTSONPQFHJWZ7A5H2JMTCBTJSO3ECAYO63W33XSVFNFHXW5X4BA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,.,.,,,,,.,,..,.,.,,.,,.,,,..,,.,.,...,...,.,.,.,.,.,.,.,,,...,
+#LGC5ET3GPB5PJ2TGC24CFG2JYRBCS3IFAJA7P7C7YH6IE3OLASPJ3PHSCAXLC2BGTZ3KNDPPHRWJA
+#\\\|UNHPHJUMS5WF24YPUWXS5CNFUA7VQ5UXFOICSEHU57HHFSNJZOB \ / AMOS7 \ YOURUM ::
+#\[7]OQQT52D7MB5DNXH3KHDYNJODC3NTGFVVNKWE7UMQ4LZEOXOC7MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

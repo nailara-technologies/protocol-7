@@ -34,7 +34,7 @@ my $etc_dir = ( <system.path.zenka-dirs> // {} )->{'etc_P7'}
 if ( !-d "$etc_dir/$zenka_name" and $EFFECTIVE_USER_ID == 0 ) {
     if ( mkdir "$etc_dir/$zenka_name", 0750 ) {
         my $user = <system.amos-zenka-user> // qw| protocol-7 |;
-        my ( $uid, $gid ) = ( getpwnam $user )[ 2, 3 ];
+        my ( $uid, $gid ) = ( CORE::getpwnam $user )[ 2, 3 ];
         chown $uid, $gid, "$etc_dir/$zenka_name" if defined $uid;
         <[base.logs]>->(
             1, ': zenka etc dir created : %s',
@@ -85,8 +85,8 @@ if ( not -r $host_cfg and <system.host_config.applied> ) {
 
 return <[base.load_config_file]>->($host_cfg);
 
-#,,..,.,.,.,.,.,,,.,.,.,,,,,.,...,,..,.,.,...,..,,...,...,,,,,,,,,,.,,,..,..,,
-#7VYDOCQK4M7VCJ43CJPSYQ3PN6FULPARKNUAZGKQGBXZUHY2NIEZBZKAIU3MHWRCQLCU44FWJSKPY
-#\\\|POKP3FAP6IKMSOIIIRMA34J6AH24LFJQAVJXOTXALVZNULISGG6 \ / AMOS7 \ YOURUM ::
-#\[7]RUTPARIDSAC3N6Z76IA2VYVVEGWKFNCS44YBACCPRA7EJPNKZOBY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,.,,,..,.,.,,.,,.,.,,.,,...,,,.,..,,...,...,...,,.,,.,,,...,,..,
+#EVQYHA6OYELSO6J6LVQJXULPSC3LXQI7NWX4WQA2TH2VN6424IX42OAYQMDULUK3TTMYVU52CLMKA
+#\\\|NN5CU5H2LKQDDUI25UQGOVZCQSHZLU5ICYUMMDMLXLARI27OSZF \ / AMOS7 \ YOURUM ::
+#\[7]D3MOZZJH2IQKYPMEH7VPTO54J4IIOXFE5WV57JBSCEKPZACSWCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

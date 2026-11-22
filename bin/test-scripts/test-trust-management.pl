@@ -8,12 +8,13 @@ use warnings;
 ## bytes pragma transitively. mirror that here, as the precedent tests do. ##
 use bytes;
 
-## trust chain step 2 management tools [ data/md/design/TRUST-CHAIN-        ##
-## STEP2.md ] : keys.console.certify-host \ accept-owner \ owner-pin \      ##
-## owner-unpin \ owner-pins \ distrust \ undistrust + their helpers. the    ##
-## REAL modules are compiled [ runtime pragmas ] ; key files, homedir and   ##
-## load_keypair are stubbed onto File::Temp directories. the flow end to    ##
-## end : certify -> accept -> owner-pin -> trust.pin_decide [ owner path ]. ##
+## trust chain step 2 management tools                                     ##
+## [ data/md/design/TRUST-CHAIN- STEP2.md ] : keys.console.certify-host \  ##
+## accept-owner \ owner-pin \ owner-unpin \ owner-pins \ distrust \        ##
+## undistrust + their helpers. the REAL modules are compiled               ##
+## [ runtime pragmas ] ; key files, homedir and load_keypair are stubbed   ##
+## onto File::Temp directories. the flow end to end : certify -> accept -> ##
+## owner-pin -> trust.pin_decide [ owner path ].                           ##
 
 use File::Spec;
 use File::Spec::Functions qw| catfile |;
@@ -209,10 +210,10 @@ say ': keys.console.owner-pin \ owner-pins \ owner-unpin';
     my $pin = "$keys_dir/owners/acme.public";
     ok( !$r->{'err'} && slurp($pin) eq $fp->('06') . "\n",
         'owner pinned : one key id line' );
-    ok( ( ( stat $pin )[2] & 07777 ) == 0600, '  :.. mode 0600' );
+    ok( ( ( CORE::stat $pin )[2] & 07777 ) == 0600, '  :.. mode 0600' );
     ok( index( $r->{'out'}, "store $keys_dir/owners [ user " ) != -1,
         '  :.. names the store + user it wrote' );
-    ok( ( ( stat "$keys_dir/owners" )[2] & 07777 ) == 0700,
+    ok( ( ( CORE::stat "$keys_dir/owners" )[2] & 07777 ) == 0700,
         '  :.. owners/ 0700' );
     ok( $code{'auth.client.owner_pins'}->($keys_dir)->[0] eq $fp->('06'),
         '  :.. the client reader sees it' );
@@ -234,7 +235,7 @@ say ': keys.console.owner-pin \ owner-pins \ owner-unpin';
     my ($trashed) = glob("$keys_dir/trash/owner-pin/acme.*.mxz.B32");
     ok( !$r->{'err'} && !-e $pin && defined $trashed,
         'owner-unpin : into the trash [ owner-pin/acme.<epoch>.mxz.B32 ]' );
-    ok( defined $trashed && ( ( stat $trashed )[2] & 07777 ) == 0600,
+    ok( defined $trashed && ( ( CORE::stat $trashed )[2] & 07777 ) == 0600,
         '  :.. trash entry 0600' );
     ok( index( $r->{'out'}, 'undo-remove owner-pin:acme' ) != -1,
         '  :.. says how to undo' );
@@ -255,7 +256,7 @@ say ': keys.console.distrust \ undistrust';
     );
     ok( slurp("$keys_dir/distrust") eq $fp->('07') . "  # beta lost\n",
         '  :.. comment kept on the line' );
-    ok( ( ( stat "$keys_dir/distrust" )[2] & 07777 ) == 0600,
+    ok( ( ( CORE::stat "$keys_dir/distrust" )[2] & 07777 ) == 0600,
         '  :.. mode 0600' );
     $r = run( 'keys.console.distrust', encode_b32r( $kp{'07'}[0] ) );
     ok( $r->{'exit'} eq '0010', 'same key as a public key : already' );
@@ -296,7 +297,7 @@ say ': undo-remove \ removed \ purge';
     ok( !$r->{'err'} && slurp($pin) eq $fp->('06') . "\n",
         'undo-remove acme : the owner pin is back, byte-exact'
     );
-    ok( ( ( stat $pin )[2] & 07777 ) == 0600, '  :.. mode 0600' );
+    ok( ( ( CORE::stat $pin )[2] & 07777 ) == 0600, '  :.. mode 0600' );
     ok( !glob("$keys_dir/trash/owner-pin/acme.*"),
         '  :.. the trash entry is consumed'
     );
@@ -311,8 +312,7 @@ say ': undo-remove \ removed \ purge';
     ok( @live_stash == 1, '  :.. the replaced live pin is in the trash' );
     $r = run( 'keys.console.undo-remove', 'acme' );
     ok( slurp($pin) eq $fp->('07') . "\n",
-        '  :.. and that ' . 'undo is undoable'
-    );
+        '  :.. and that undo is undoable' );
     run( 'keys.console.owner-unpin', 'acme' );
     run( 'keys.console.undo-remove', 'acme' );    ## back to 07 ##
 
@@ -392,7 +392,7 @@ my $owner_file = "$work_dir/atom.host-root.dlg";    ## printed absolute ##
     ok( !$r->{'err'} && -f $owner_file,
         'certified : ./<host>.host-root.dlg written [ host lowercased ]' );
     ok( !!( $r->{'out'} =~ m|UNENCRYPTED| ),
-        '  :.. plain ' . 'owner key : warned'
+        '  :.. plain owner key : warned'
     );
     ok( index( $r->{'out'}, "written   $owner_file" ) != -1,
         '  :.. the ABSOLUTE output path is printed'
@@ -431,7 +431,7 @@ my $owner_file = "$work_dir/atom.host-root.dlg";    ## printed absolute ##
     put( "$work_dir/beta.dlg", $leaf_for->( '07', 'beta.cube' ) . "\n" );
     $owner_form = 'encrypted';
     $r          = run( 'keys.console.certify-host',
-        "owner beta " . "$work_dir/beta.dlg 30" );
+        "owner beta $work_dir/beta.dlg 30" );
     my $bst = $statement->(
         'parse_wire',
         ( slurp("$work_dir/beta.host-root.dlg") // '' ) =~ s|\n\z||r
@@ -540,7 +540,7 @@ say ': keys.passphrase_from_env [ :pass-env: ]';
         'no tag : params unchanged, the environment NOT touched'
     );
     ( $rest, $v )
-        = $f->( 'owner :pass-env: ' . 'host', { vars => ['P7_TEST_PW'] } );
+        = $f->( 'owner :pass-env: host', { vars => ['P7_TEST_PW'] } );
     ok( $rest eq 'owner host' && $v->{'P7_TEST_PW'} eq 'a-long-enough-phrase',
         ':pass-env: : the tag removed, the value read'
     );
@@ -569,9 +569,8 @@ say ': keys.console.accept-owner';
     ok( !$r->{'err'} && slurp($target) eq slurp($owner_file),
         'accepted : host-root.dlg holds the owner statement'
     );
-    ok( ( ( stat $target )[2] & 07777 ) == 0644,
-        '  :.. mode ' . '0644 [ public ]'
-    );
+    ok( ( ( CORE::stat $target )[2] & 07777 ) == 0644,
+        '  :.. mode 0644 [ public ]' );
     $r = run( 'keys.console.accept-owner', $owner_file );
     ok( $r->{'exit'} eq '0010' && $r->{'out'} =~ m|already installed|,
         'same statement again : already installed' );
@@ -606,9 +605,8 @@ say ': keys.console.accept-owner';
     $r = run( 'keys.console.undo-remove', 'owner-statement:host-root' );
     ok( !$r->{'err'} && slurp($target) eq $first,
         'undo-remove owner-statement:host-root : the first one back' );
-    ok( ( ( stat $target )[2] & 07777 ) == 0644,
-        '  :.. mode ' . '0644 [ public ]'
-    );
+    ok( ( ( CORE::stat $target )[2] & 07777 ) == 0644,
+        '  :.. mode 0644 [ public ]' );
     ok( index( $r->{'out'}, 'v7-zenki.delegation-issue' ) != -1,
         '  :.. says how to make it act now' );
     ok( scalar( () = glob("$keys_dir/trash/owner-statement/host-root.*") )
@@ -632,20 +630,23 @@ say ': keys.console.accept-owner';
         my $old_umask = umask 027;
         run('keys.console.drop-owner');
         run( 'keys.console.undo-remove', 'owner-statement:host-root' );
-        ok( ( ( stat $target )[2] & 07777 ) == 0644,
-            'umask 027 : a restored owner statement is still 0644' );
+        ok( ( ( CORE::stat $target )[2] & 07777 ) == 0644,
+            'umask 027 : a restored owner statement is still 0644'
+        );
         chdir $work_dir or die;
         unlink "$work_dir/umask.host-root.dlg";
         run( 'keys.console.certify-host',
             'owner umask ' . encode_b32r( $kp{'03'}[0] ) );
-        ok( ( ( stat "$work_dir/umask.host-root.dlg" )[2] & 07777 ) == 0644,
-            'umask 027 : certify-host output is 0644' );
+        ok( ( ( CORE::stat "$work_dir/umask.host-root.dlg" )[2] & 07777 )
+                == 0644,
+            'umask 027 : certify-host output is 0644'
+        );
         chdir $cwd or die;
         umask $old_umask;
     }
 
-    ## end to end : the client pins the owner, then decides via the owner [ ##
-    ## its own owner name : the undo tests left 'acme' on another key ]     ##
+    ## end to end : the client pins the owner, then decides via the owner ##
+    ## [ its own owner name : the undo tests left 'acme' on another key ] ##
     run( 'keys.console.owner-pin', 'acme-e2e ' . $fp->('06') );
     my $owner_wire = slurp($target) =~ s|\n\z||r;
     my $d          = $code{'trust.pin_decide'}->(
@@ -681,8 +682,8 @@ say '';
 say "passed : " . ( $test_count - $fail_count ) . "  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,.,,,,.,,..,,.,,.,.,,,,,.,,,..,,...,.,,,,..,..,,...,...,.,,,.,.,...,.,,,...,
-#TFBNXQYTV64ML66RWERD7S3XTJNQOQ3ZQ77GX3JC76DF5CCVL2PSCOTTZ2SKR457X2TV6YULLMYHM
-#\\\|2HMJBNGW7VIUBQJZTU25CQOOUIPYQSH5D62MDD3VGMFJGN774XG \ / AMOS7 \ YOURUM ::
-#\[7]SG3VJOSKOSCXTW3VXI6LZYNM7CJFIRMDIXIVORKT3TPCDOCZKODQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,.,.,,,,,,,,,.,,.,,,,,,,.,,..,,..,,...,..,,..,,.,,,,..,,,,,,,,,
+#LNRLTO77ZYCPKMDPPEYGD3RNEPKDYY6NK7GMQW3V3GLIMYE5CZCXCQ3OA4COG4ZUIL33WL2MVBZNG
+#\\\|RZQJEIAG3SHYPNKNMVSYKAIB7OIVSEHNE5ALPO4L4KNKPE7YY65 \ / AMOS7 \ YOURUM ::
+#\[7]3KDGZJ3XAJGH5BKHQPALI7XDM5YMNMMX23FUL6P4GO2HE5FO56DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

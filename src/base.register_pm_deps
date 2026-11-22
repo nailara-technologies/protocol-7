@@ -34,7 +34,7 @@ my @not_registered;
 
 ## ensure runtime-owned directory path [ 0775, protocol-7 group writable ] ##
 my $zenka_user = <system.amos-zenka-user> // qw| protocol-7 |;
-my ( $zenka_uid, $zenka_gid ) = ( getpwnam($zenka_user) )[ 2, 3 ];
+my ( $zenka_uid, $zenka_gid ) = ( CORE::getpwnam($zenka_user) )[ 2, 3 ];
 $zenka_gid = getgrnam($zenka_user) if not defined $zenka_gid;
 
 if ( not -d $mod_dir ) {
@@ -122,8 +122,8 @@ if (    @not_registered
         @not_registered;
 }
 
-#,,,,,,.,,..,,...,...,,,.,,,.,,..,.,,,,..,.,,,..,,...,...,.,,,..,,.,,,...,,.,,
-#2H5HN3HRFF52LCZIJ5PT6UABZNCKPS7NZ2RWMT3IC5Q6TSACB53XRTB56HJ2PD4ZXNHCN5ANBRDMC
-#\\\|UART7ZLYQU6OMOWE523T54HRID3GGMPVPHIRU7RHY3SDQPXGHGP \ / AMOS7 \ YOURUM ::
-#\[7]O4RBYYMUGWUNE3AQNSNBZDARE2X2B3JIXE34GN6BOGZOT4UNRCDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,,.,,..,,..,,,,,,..,,,.,,.,.,..,,...,...,.,.,,.,,.,.,,,.,...,
+#6C5UF6O6YX7C7HCDYVEDGNW6A4DKI4TWOCESRRLQ4253AHYFPH5HOZQMO6TR73BAODQHFSZ42Y454
+#\\\|I6GIS3MMGJCL2JC737G7J7TFAOIS3G53M5I5QS27QBUQTL6FDBJ \ / AMOS7 \ YOURUM ::
+#\[7]X26D5PHUOIKWKFJORK42MS5OK7MGWYQMNS33EPCRESG7RMPCNIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -246,7 +246,8 @@ like ${ $code{'file.slurp'}->($gtk_path) }, qr|gtk-xft-dpi = 122880|,
     'gtk value scales from original';
 like ${ $code{'file.slurp'}->($gtk_path) }, qr|gtk-theme-name = tuned|,
     'other gtk settings stay untouched';
-is( ( stat $tint_path )[2] & 07777, 0640, 'atomic write keeps file mode' );
+is( ( CORE::stat $tint_path )[2] & 07777,
+    0640, 'atomic write keeps file mode' );
 
 $code{'screen.setup.dpi.apply'}
     ->( { 'value' => 144, 'settings' => $consumer_settings } );
@@ -280,8 +281,8 @@ ok -f "$tint_path.p7-dpi-original", 'restore keeps original copy';
 
 done_testing;
 
-#,,,,,...,...,,..,..,,,,.,.,.,,..,...,,.,,,..,..,,...,...,...,,,.,..,,,.,,,..,
-#EWPJWCOHTOHTQYUUNDW7ZDCJO2MWWLMOJBXLJFTFBKKTGUKQ5VBWNSLMLJTD4XBGD4GSJ3SZASSXC
-#\\\|OCP47DZC5FXIJ4GB7W3VEMPJLL2QVDTPI7LGDKLAOXUI7SSRPNR \ / AMOS7 \ YOURUM ::
-#\[7]PP37K32GB3GFE73GKWY3EREA56AUE4XBBCOFA5BXXHLQU73X66CI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,,,,.,,.,.,,.,,.,,,.,,,,..,.,,,..,,...,...,,..,.,.,...,,.,,,,.,
+#GMRU7WIKDMIYPBY7HJD5LK2OEIRZGA5ZLYD7BPTJ4M46ADD4XTZNPXVAVOYV2F7MMQYM4WNCR3M6Y
+#\\\|IPN5KOF5IBJVDWVYGI5TF7EX2KFFF5J36RQPMOAVF5KRWHKCJJ2 \ / AMOS7 \ YOURUM ::
+#\[7]V7NGNCEZIHXAMDIOPNFQ2Z7KHIFYUSQTOORQIQC4OMB574GF62BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

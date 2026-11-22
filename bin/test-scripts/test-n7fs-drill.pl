@@ -167,7 +167,7 @@ ok( @{$records} == 1
     'the passing drill record verifies and carries its required counts'
 );
 my $drill_path = "$box->{'host'}/receipts/$root->{'root_id'}/drills.json";
-ok( -f $drill_path && ( ( stat $drill_path )[2] & 0777 ) == 0600,
+ok( -f $drill_path && ( ( CORE::stat $drill_path )[2] & 0777 ) == 0600,
     'the drill record is stored with the root receipts at mode 0600'
 );
 ok( drill_latest( $box->{'host'}, $root, $holder )->{'tree'} eq 'tree-new',
@@ -364,8 +364,8 @@ ok( snap_equal( $before, snapshot($clean) ),
 chmod 0700, $clean or die $OS_ERROR;
 done();
 
-#,,,,,,,.,..,,.,.,...,.,.,..,,,,,,...,.,,,..,,..,,...,...,.,.,,..,...,.,.,.,,,
-#FANKDKM7EM3RX6RT24V65E674XHNLVWHM2E5KVCX2PX4ANAJRG3G22DJ6AYVZDXJPMZLQVILHWG7G
-#\\\|2LC7VSHZHTHUS263P3PJ3246JSHSQJ2RLETY3PUE5WVO6KPHYJA \ / AMOS7 \ YOURUM ::
-#\[7]DJNA3WLPOKX4AODVBQKINMWBXBC3P35PCUGHJ5WFB2BB53FOJ4AI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,..,...,.,.,,..,..,,.,,,,,.,..,,..,,...,...,.,.,,.,,..,,,,.,..,,
+#QRXDZKZDVY3W4ENGOLQZ4N4BLCYAMXDAAMUC7XZULQJY53IZAQU56SHUFOX5JWYS36YWT3JKHXJYA
+#\\\|BGF2RFEBNMGNYULV7RALPDLESSNA44ZICQHTAYXIXWH3KQJBPCR \ / AMOS7 \ YOURUM ::
+#\[7]PGBD7XOJVJ4R67F3WDGKCJNBCTJQPRRJQLXQJPXKJBGUCL7GK6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Drill-VERSION.HMGS3SQ |;
+our $VERSION = qw| AMOS7::N7FS::Drill-VERSION.K2NAPCI |;
 
 @EXPORT_OK = qw| drill_run drill_write drill_records drill_latest drill_status
     key_copy_moved |;
@@ -200,7 +200,7 @@ sub _metadata_verify {
     foreach my $relative ( sort keys %source ) {
         my $entry = $source{$relative};
         my $path  = length $relative ? "$target/$relative" : $target;
-        my @st    = lstat $path;
+        my @st    = CORE::lstat $path;
         refuse( 'drill cannot stat restored path [ %s ]', $relative )
             if not @st;
         my $type = $entry->{'t'};
@@ -565,8 +565,8 @@ sub drill_status_say {
 
 1;
 
-#,,.,,,..,,,.,..,,...,.,,,,..,.,.,,,,,..,,,.,,..,,...,...,..,,..,,,,.,.,.,.,.,
-#WTLG53LNE5XIG6AH2XQ4S5HDEW6UOBYHCEEPB5ZL5VU7IWKJ2KGZXPIP7CWQ3O34BKN36X6QU6PBO
-#\\\|GSN5DTXV6H7MMAIFAAS7EXPIM5GIDJG2BRGJMECMRO4JRFDK4W5 \ / AMOS7 \ YOURUM ::
-#\[7]BCRJZU3QMBG4UCYYT3Q4HBZZQWLORSX7G4BW25NYY4RP2HFOG4BY 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,.,.,,,,,.,,,,,,,.,...,.,.,...,..,,...,...,...,...,.,.,,,.,,.,,
+#QAGEHTFA37R23PYV4BK3XLPWFC2VWQXOBPJ2LAHWT46JL6RF6XBYWW22VXS223EHUSPOGNXYZ2DYO
+#\\\|NZXTFDLHAF5FVPG7PWEWRG6C3QTMWB7Q7HBVEOCACJ56U7UHRRJ \ / AMOS7 \ YOURUM ::
+#\[7]NOWJAM6H2DLOXZJ32RSNR3OR7VCZL3726O3ECLUMF4GK6MJE5KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

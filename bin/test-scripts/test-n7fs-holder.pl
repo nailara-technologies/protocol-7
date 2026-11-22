@@ -134,8 +134,8 @@ cli( 0, 'clean named-tree recovery',
     '-from',     $spec, '-tree', 'holder-tree', 'seal-recover', $target );
 ok( read_file("$target/plain-name.txt") eq read_file($source),
     'remote tree bytes match' );
-my @a = stat $source;
-my @b = stat "$target/plain-name.txt";
+my @a = CORE::stat $source;
+my @b = CORE::stat "$target/plain-name.txt";
 ok( ( $a[2] & 07777 ) == ( $b[2] & 07777 ) and $a[9] == $b[9],
     'remote tree metadata matches' );
 ok( readlink("$target/link") eq 'plain-name.txt', 'remote symlink matches' );
@@ -353,8 +353,8 @@ refused(
 
 done();
 
-#,,,,,,,,,,.,,,.,,...,,,.,..,,,,.,.,,,,..,,,,,..,,...,..,,.,,,.,,,...,.,,,,,,,
-#J35D2XI6AZJPAUQB7NYAOYWF7WDFEYDMRODLTGTO5ATCKXLGYPDZ5PA72XBVFFVAWNIE3SIM46RYE
-#\\\|FPU5QIS4CQXNN24EYIXAWMRMUU2DGC2XVTU7PYZ5K34UTVBKQZD \ / AMOS7 \ YOURUM ::
-#\[7]IPJJ6GK77AVUAQBPOTI4N7M4YNFRCPL37RFLKSLPPWLA3J7QIOCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,,,,,,,.,.,,.,,,,.,.,.,,..,,..,..,,...,..,,..,,,,.,...,,.,,,.,,
+#TK4WGLYBRWSZGUPXJOWIVQ2SNENYXARCKKECU6VXGS2WAFGHXTBUKPOAZX4IBN42NLCBNR5OVISNU
+#\\\|YJLLTCTLEC4HOUBWUHXJD7D6G6ULXKFUYV4FM6OAD3HOMQ5PMR4 \ / AMOS7 \ YOURUM ::
+#\[7]2QM6CZWPZ2QZDUCNCUCRAAOZSNXX3NLME74NPDW2PKAQFGQDAMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

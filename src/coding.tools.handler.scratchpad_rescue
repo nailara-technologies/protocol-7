@@ -98,7 +98,7 @@ my $info = join '',
     "session_uuid  : $session\n",
     "bmw_l13       : $bmw\n",
     "imported_at   : "
-    . POSIX::strftime( '%Y-%m-%d %H:%M:%S %z', localtime ) . "\n",
+    . POSIX::strftime( '%Y-%m-%d %H:%M:%S %z', CORE::localtime ) . "\n",
     "imported_by   : coding-zenka\n",
     "files         : $copied\n",
     map {"mtime         : $_\n"} @mtimes;
@@ -126,8 +126,8 @@ if ( open( my $fh, '>:raw', $info_file ) ) {
 
 return join( "\n", @out );
 
-#,,.,,,.,,.,,,.,,,.,,,..,,.,.,,,.,.,.,,,,,.,,,..,,...,...,...,..,,.,,,,..,,,.,
-#MO5OMI4VFJNJNZ73GEXQBJVYW4NQXU5FWJAPBL3YMWAJRVNIFL5RCK5CXARYFCHE5VJE3AYDERBJW
-#\\\|HXXYHJ2O37EX7TIEQMZVDR32KIKXEB4JU7UJQE65NLST57HK4ZX \ / AMOS7 \ YOURUM ::
-#\[7]6G7DUAMVXVGKLBVMBBIANYMLTDA6Q3C46OW342FUBCXNDSCYKABI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,...,,,.,,.,,.,.,...,.,,,,..,..,,...,...,.,.,,,.,,.,,.,,,,..,
+#JPHHQNXQ4WL6L4DNHZFVFCLY2TBLKE7JQYPCD5DQVG4EOLFNXQU4YJDZBRM25KYPKXUKXD7ZC5S4C
+#\\\|ZDCTQRMOZ6TF4OMHA4XXYFKPIQNRDJ2XHMQWRDWTUXZGZYCF7WJ \ / AMOS7 \ YOURUM ::
+#\[7]EBP4XJB4ZO52YMK3HDSVJU5UBQVDUEXYVUVB22ACXQBXOOHHTCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

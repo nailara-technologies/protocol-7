@@ -105,7 +105,7 @@ my $git = Git::Wrapper->new($root_path);
         next
             if not defined $index_mode
             or $index_mode !~ m|\A100(?:644\|755)\z|;
-        my $want = ( ( stat $path )[2] & 0100 ) ? '100755' : '100644';
+        my $want = ( ( CORE::stat $path )[2] & 0100 ) ? '100755' : '100644';
         next if $want eq $index_mode;
         eval {
             $git->update_index(
@@ -492,8 +492,8 @@ sub shell_quote {
     return "'$str'";
 }
 
-#,,,,,.,.,,..,...,,,.,,,.,.,.,.,,,.,,,,,,,.,.,..,,...,...,.,.,,,.,.,.,,.,,,..,
-#JG7MKR3POWPFYLXT6NSOYDHR25D7H2NHRVAI4UZO5HBD5R55WHPD4JBNR4MOGUYFQC4TOVJINO5Y4
-#\\\|YTBMFA7OPLD7C5RD4LDBVDTUJNRBMDHG6GP43KIJZ6RCOBIUKJZ \ / AMOS7 \ YOURUM ::
-#\[7]HG2GEZ2ZMPU2WBPFJSLNSABKKUKQYLNHEJ5SFH56KGJXMB365ACQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,,,,..,.,,,..,,...,..,,,.,,,.,,..,,...,..,,.,.,.,,,..,,.,.,.,.,
+#WOEJ4J5IFZFOUABSZOZSMRESNNNUDU47PKCZWHGH2SA27LTLORKH5QUK6UX6TUI67JHU5DKKFBBSW
+#\\\|R6DTN6EFK2JR7ABIH2OUKAOIF2EY3VPBKPNLHD2KU5EOVTGZA7P \ / AMOS7 \ YOURUM ::
+#\[7]GQAKPGEBAZMHYD7FE5QDQI6ALHENYWFZZI3QR6HEAW45P4IDVUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

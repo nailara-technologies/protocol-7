@@ -16,14 +16,15 @@ return if not $allow_chmod or not $assume_admin;
 my $admin_group = <coding.cfg.drop_privs_admin_group> // '';
 return if not length $admin_group;
 
-my $admin_gid = ( getgrnam($admin_group) )[2];
+my $admin_gid = ( CORE::getgrnam($admin_group) )[2];
 return if not defined $admin_gid;
 
 ## resolve admin user for privilege drop ##
 my $admin_user = <system.admin-user> // '';
 return if not length $admin_user;
 
-my ( undef, undef, $admin_uid, $admin_user_gid ) = getpwnam($admin_user);
+my ( undef, undef, $admin_uid, $admin_user_gid )
+    = CORE::getpwnam($admin_user);
 return if not defined $admin_uid;
 
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
@@ -49,18 +50,18 @@ while ( my \$line = <STDIN> ) {
     if ( \$line =~ m|^gw (.+)\$| ) {
         my \$path = \$1;
         do { print "skip\n"; next } if not -f \$path;
-        my \$gid = ( stat \$path )[5];
+        my \$gid = ( CORE::stat \$path )[5];
         do { print "skip\n"; next } if not defined \$gid or \$gid != \$admin_gid;
-        my \$cur = ( stat \$path )[2] & 07777;
+        my \$cur = ( CORE::stat \$path )[2] & 07777;
         chmod( \$cur | 0020, \$path );    ## group-write : coding zenka holds admin group as supplementary gid ##
         print "ok\n";
     } elsif ( \$line =~ m|^gwd (.+)\$| ) {
         ## grant group-write on directory ##
         my \$path = \$1;
         do { print "skip\n"; next } if not -d \$path;
-        my \$gid = ( stat \$path )[5];
+        my \$gid = ( CORE::stat \$path )[5];
         do { print "skip\n"; next } if not defined \$gid or \$gid != \$admin_gid;
-        my \$cur = ( stat \$path )[2] & 07777;
+        my \$cur = ( CORE::stat \$path )[2] & 07777;
         chmod( \$cur | 0020, \$path );
         print "ok\n";
     } elsif ( \$line =~ m|^create (.+)\$| ) {
@@ -69,7 +70,7 @@ while ( my \$line = <STDIN> ) {
         ## verify parent dir is owned by admin group ##
         ( my \$dir = \$path ) =~ s|/[^/]+\$||;
         do { print "skip\n"; next } if not -d \$dir;
-        my \$dir_gid = ( stat \$dir )[5];
+        my \$dir_gid = ( CORE::stat \$dir )[5];
         do { print "skip\n"; next }
             if not defined \$dir_gid or \$dir_gid != \$admin_gid;
         ## create empty file as admin user [ 0664 for group write ] ##
@@ -95,7 +96,7 @@ while ( my \$line = <STDIN> ) {
         \$check =~ s|/[^/]+\$|| while \$check and not -d \$check;
         do { print "skip\n"; next } unless \$check and -d \$check;
         ## verify ancestor is owned by admin group ##
-        my \$anc_gid = ( stat \$check )[5];
+        my \$anc_gid = ( CORE::stat \$check )[5];
         do { print "skip\n"; next }
             if not defined \$anc_gid or \$anc_gid != \$admin_gid;
         ## create full path with group-writable permissions ##
@@ -131,8 +132,8 @@ EOT
     <coding.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,,,,.,,,..,,,..,,,,,,..,...,..,,,,,,..,,.,.,.,.,...,...,,..,,.,,..,,,,,,,,,,
-#33ZMJUFHTRCSVOZWJUH5LL3EA3GYNNGTMGHJKYWP2PNBOM5OWDGQQIUB2CEXXQA4QLKJFLYNM7USY
-#\\\|SWQTPPOCVLGMQ27JSVGKPIRJI2HDKBMI5LNM4ZQQJZ67STTUSV5 \ / AMOS7 \ YOURUM ::
-#\[7]LFJJOGSY55RLS7UEEPRL4J6HEBKTBNFSZO6Z6CRM3JAZAIBDFWAI 7  DATA SIGNATURE ::
+#,,..,...,..,,...,,..,,..,,,.,,.,,..,,...,,,,,.,.,...,...,.,.,.,.,,,.,,.,,,,,,
+#PNH4LD2WUONPOT5OT5H7WVMTACBCP57J6P56AYDYD47LIIKKCTMDY6JMXUJIUK7DZ6Y27QPAUVBXQ
+#\\\|RBJO5LBRGALA7GZ33AODLJDRL7T6J6MPASLMQX2APJSRMX7NWZC \ / AMOS7 \ YOURUM ::
+#\[7]AD6U5V4IQKISH4UI3YMAHOZ5NXWUM7MSY32FMB7JVS22YK6KVQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

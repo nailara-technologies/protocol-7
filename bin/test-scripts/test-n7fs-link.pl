@@ -85,8 +85,8 @@ sub linked_pair {
         state_read("$root/$disk")->{'epochs'}->@* );
     my ( $old_content, $new_content )
         = ( "$old->{'path'}/content", "$new->{'path'}/content" );
-    my @os = stat $old_content;
-    my @ns = stat $new_content;
+    my @os = CORE::stat $old_content;
+    my @ns = CORE::stat $new_content;
     return ( $new, $old_content, $new_content, \@os, \@ns );
 }
 
@@ -157,7 +157,7 @@ my $release = release_node(
 ok( scalar( $release->{'copies'}->@* ) == 1,
     'active release still names the previous form holding the linked bytes' );
 ok( !-e $new_content
-        && ( stat $old_content )[3] == 1
+        && ( CORE::stat $old_content )[3] == 1
         && read_file($old_content) eq $body,
     'active release drops only one name and the old inode remains readable'
 );
@@ -187,11 +187,11 @@ ok( $cos->[1] != $cns->[1]
 confirm(%copy_run);
 my $copy_state     = state_read("$root/$copy_disk");
 my $copy_new_epoch = $copy_state->{'epochs'}[0];
-my $copy_old_nlink = ( stat $copy_old_content )[3];
+my $copy_old_nlink = ( CORE::stat $copy_old_content )[3];
 release_epoch( %copy_run, epoch => $copy_old->{'epoch'}, now => TRUE );
 ok( !-e $copy_old_content
         && -e $copy_new_content
-        && ( stat $copy_new_content )[3] == 1,
+        && ( CORE::stat $copy_new_content )[3] == 1,
     'release-epoch removes only previous directory entries on copy fallback'
 );
 ok( store_verify(%copy_run)->{'nodes'} == 1,
@@ -220,12 +220,12 @@ upgrade( %epoch_run, target => 3 );
 confirm(%epoch_run);
 my ( $epoch_new, $epoch_old_content, $epoch_new_content )
     = linked_pair( \%epoch_run, $epoch_old );
-ok( ( stat $epoch_new_content )[3] == 2,
+ok( ( CORE::stat $epoch_new_content )[3] == 2,
     'epoch release fixture starts with two links'
 );
 release_epoch( %epoch_run, epoch => $epoch_old->{'epoch'}, now => TRUE );
 ok( !-e $epoch_old_content
-        && ( stat $epoch_new_content )[3] == 1
+        && ( CORE::stat $epoch_new_content )[3] == 1
         && read_file($epoch_new_content) eq $epoch_body,
     'release-epoch drops the old link while active bytes stay readable'
 );
@@ -249,7 +249,7 @@ foreach my $point (
         upgrade( %crun, target => 3 );
     };
     refused( $inject, qr|conversion crash|, "fault injected at $point" );
-    ok( ( stat $old_content )[3] == 1
+    ok( ( CORE::stat $old_content )[3] == 1
             && !-e "$root/$cdisk/" . epoch_b32( $cold->{'epoch'} + 1 ),
         "$point cleans the partial epoch and drops any new link"
     );
@@ -278,7 +278,7 @@ my ( undef, $repair_old )
 store_repair(%repair_run);
 my ( undef, $repair_old_content, $repair_new_content )
     = linked_pair( \%repair_run, $repair_old );
-ok( ( stat $repair_new_content )[3] == 2
+ok( ( CORE::stat $repair_new_content )[3] == 2
         && store_verify(%repair_run)->{'nodes'} == 1,
     'repair adopts and verifies linked content without rewriting it'
 );
@@ -470,8 +470,8 @@ ok( $rc == 0 && $out =~ m|\[ 1 linked, 0 copied \]| && $err eq '',
 
 done();
 
-#,,.,,...,.,.,,..,,,.,,,.,.,,,..,,.,,,...,.,,,.,.,...,...,,.,,,,,,...,..,,,.,,
-#CIS7AJ7IOLVIBY7H56T7TD45XGFKEYFCGHR7IH5FYZ6T2ZQE5I4IEGIR7O6XHUEDLSYPYBV37HVG6
-#\\\|VHWBSH2JEKEMKYYQBEPMOQBAC2W3FCFEKYJEACTZQGX6H3TXQDX \ / AMOS7 \ YOURUM ::
-#\[7]MLAVRRWMXNOSOMJOAKUDKDKDJ5AI22SC735TUAGJ5QL6KQL2XCDA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,.,.,,,.,..,,.,,,...,,.,,...,.,.,...,...,,..,.,,,,,,,,.,,,,,,
+#4IYYMMYSVZY2QOL3277HSBFDMWUFBRI4NCBDAEP3O6DOYOTPH4TOUIYEIC2DH7ME6NGRFJU4BIAQW
+#\\\|2ZO3USE4PMDNZF47XNF4ABEWRJXWO4RSTHTHFX2HVOZEOWTCPB2 \ / AMOS7 \ YOURUM ::
+#\[7]55JBRSKDU7UKSOQSZNVRJCGNUXDBIMD724EZEI6VDKRA2LH3DEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

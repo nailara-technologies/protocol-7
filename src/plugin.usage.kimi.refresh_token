@@ -167,7 +167,7 @@ my $kimi_bin = <[file.which]>->(qw| kimi |);
 
 ## needed regardless of how kimi_bin was found : see the chdir before exec
 ## below
-my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+my $home_dir = ( CORE::getpwuid($UID) )[7] // $ENV{'HOME'} // '';
 
 if ( not length $kimi_bin ) {
     if ( length $home_dir and length $provider->{'cli_rel_path'} ) {
@@ -308,8 +308,8 @@ $provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,..,.,.,,,.,,..,,,,,,,.,,..,,..,,..,.,,,,.,,.,.,...,...,...,.,,,,.,,..,,,,.,
-#VHIMYQTML7W2LSV4CGT4EMWDDIPNW42SRBTCUDP2CT54BRGFPPGDD37ZZOVOLEI5AT2QLWY32E5A2
-#\\\|H3XORBUBGT2CHOUWARSQMSERU7PNICWOD6WOJPOMYB7G23TWFGQ \ / AMOS7 \ YOURUM ::
-#\[7]5VHAVJNU3P5LR4C34SRUWVVARXRTYF3MVQZUUXE2RA4JGDGXY2AQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,.,,,.,,..,,,,,,,,,,,..,.,,,...,.,.,...,...,...,.,.,,..,,.,,,.,,
+#Q4VFCKMURO322I7VQDF2GES3746W2LLJGG7RKYDJ5WDK5RIRQWBZ2QHYYNPJPFEQDJBTGCPNP4BI6
+#\\\|H4NW5YE7NE7G226U3VP7JW3T472OXBAVF5D45267XFO4ZBSLMIU \ / AMOS7 \ YOURUM ::
+#\[7]LVPAHCB47JZVIPKBRF5COKULYPSJHLIVGTTKHHVYDREGW3KOROCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@
 if ( !-d <mpv.rescale_path> ) {
     my $resc_path = <mpv.rescale_path>;    # LLL: check path on demand ..,
     <[base.log]>->( 1, "creating video rescale directory '$resc_path'.." );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     my $err;
     make_path(
@@ -35,8 +35,8 @@ if ( !-d <mpv.rescale_path> ) {
 
 # LLL: restart if it needs to recreate directory instead [files disappeared] ..,
 
-#,,.,,,,,,...,...,...,..,,..,,,,,,,..,..,,.,,,..,,...,...,.,,,,,,,,.,,,..,,,.,
-#SUIUO5JVQOKC7FSQ3K2EJ4CM4HUEPPCEY3D6GOQVQJADVB4KLY5LOOZVP3EYFIA2JNZMVRXQDAY3E
-#\\\|FSJHECWQZDSWPPM7OGIMAE24WUOA74UDRMKVFA5PSE6AURUL22M \ / AMOS7 \ YOURUM ::
-#\[7]D735KR3MJNLV4LDAQF337HYQRMVEOTUFTJJONRDI6WOHTOSPB4AA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,.,,,..,,,.,.,,,..,,,,,,,.,,,..,..,,...,...,...,,,.,,,.,..,,.,,,
+#KE3VM7JQNBFBDDGVUGPDW6MEYNQEFNGODTYWK65JAPIOCVC5HLG25ESCD3WLZGAKSCAZUVYOIVILY
+#\\\|EQ775WOIZUCALFE4IGZA4T6OWQEUESOH56DGVWAJ3TUTLWQ7UY7 \ / AMOS7 \ YOURUM ::
+#\[7]7FKUBRAHMSQ3I6YFMCUVVZBZLHFBU4OEAET7NO2535ABA6BIB2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

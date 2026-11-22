@@ -7,7 +7,7 @@ return if defined <login-screen.auth_helper.fh>;
 
 die 'login-screen helper requires root at startup' if $EUID != 0;
 my $greeter_user = <login-screen.greeter_user> // die 'no greeter user';
-my @pw           = getpwnam($greeter_user);
+my @pw           = CORE::getpwnam($greeter_user);
 die 'login-screen greeter user not found' if not @pw;
 
 my $root = <login-screen.runtime_root>;
@@ -91,8 +91,8 @@ $greeter_fh->autoflush(TRUE);
 
 TRUE;
 
-#,,..,,,.,...,.,.,,.,,...,,..,...,..,,,,,,.,.,..,,...,...,,,.,.,.,..,,,..,..,,
-#SGZWJVAQSXYYNCVJMXHL6Y4XHPFCLGL2KWCHZJYZPYJ5ZSEATQNSR53RZM3UKBX5V6MNXHEBBHEZO
-#\\\|5NE43ZSYXOJD5GYYOZE2WBCQCGOLDX4TVLK6CNXNPG3WHZS5UYW \ / AMOS7 \ YOURUM ::
-#\[7]2LW6ZVME5O7BJC7UU4U5FUZKMCOYG56IIT7YBXN6YM5OYBHVPACA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,.,,.,,,,..,...,.,.,,..,.,,,,,,,..,,...,...,,.,,.,,,.,,,,.,,...,
+#AJ3B5LKXADXCSSJZP5QDQDUNTVICMLIJVO4YIDJ365GAOFP54FBLWFU7AI4NIK3KLVT4RKNN5F7E4
+#\\\|RYXBYEWED6TKR4ZZYTNBZS4CDBBGLY7FSEKILLNK7PCVEINIREI \ / AMOS7 \ YOURUM ::
+#\[7]ESYCRVPFXW5C2LR3T5P3SLLESKS7LY4F2PRP67L5C3QPY5UJJGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

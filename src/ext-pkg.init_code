@@ -19,7 +19,7 @@ my $zenka_user = <system.amos-zenka-user> // '';
 if (    length $zenka_user
     and $EFFECTIVE_USER_ID == 0
     and -d $status_dir ) {
-    my ( $uid, $gid ) = ( getpwnam($zenka_user) )[ 2, 3 ];
+    my ( $uid, $gid ) = ( CORE::getpwnam($zenka_user) )[ 2, 3 ];
     if ( defined $uid ) {
         chown $uid, $gid, $status_dir;
         ( my $parent_dir = $status_dir ) =~ s{|/[^/]+$}{};
@@ -31,8 +31,8 @@ if (    length $zenka_user
 
 return TRUE;
 
-#,,,.,,..,,,,,.,,,.,,,.,,,,.,,..,,.,,,,,.,,.,,..,,...,..,,...,,,.,,,,,.,.,,,,,
-#EUQO35L3OKETD63V34VHHO3PTMAB4QO7PDWDT63IDKKQLF6W5E46ZTFBAVWTZVUCRR3UJNBSGKAG2
-#\\\|L3PERIFDKU7HQTKDMGHDIPPAVJT3OY2FP3RZWXGGJTT4VPIGLBF \ / AMOS7 \ YOURUM ::
-#\[7]H3VGJC2ATYYSG7UAV2NKMZZW6JNPCTRL255Y6GLKTDCIZ6I2SMCI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,..,.,.,..,,..,,,,,,,.,,..,,..,,..,,...,...,...,.,.,,,,,,,,,...,
+#6GL6OSZKUF65AYPUCEZORPCJLJAZD3SLUMKWL3QXVEYH7BLHEDH3HCABKCBEFC6TIGV2CZHZDXOEC
+#\\\|UL6CFALK4OWHN4DKD2YFSKUBJDPKMZQCNB6O4MFI426KJRARYJJ \ / AMOS7 \ YOURUM ::
+#\[7]2TJDTREFWSLLVWNKYJ6YJWO2ZJH2M6NN6CNWBMXWFLUFBYTEMYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

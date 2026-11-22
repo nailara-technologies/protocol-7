@@ -6,7 +6,7 @@
 <[base.perlmod.autoload]>->(qw| POSIX |);
 
 my $message = shift || sprintf( "Checkpoint: %s",
-    POSIX::strftime( "%Y-%m-%d %H:%M:%S", localtime() ) );
+    POSIX::strftime( "%Y-%m-%d %H:%M:%S", CORE::localtime() ) );
 
 my $ws_dir = <[workspace-transfer.util.chdir_workspace]>;
 <[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
@@ -55,8 +55,8 @@ if ( $commit_result == 0 ) {
 
 say "=" x 70;
 
-#,,..,...,...,.,,,,.,,.,,,..,,,,.,...,,,,,,..,..,,...,...,,,.,,,,,,.,,...,..,,
-#BGSVTSXJPFSQQWXPTT5I4N4HFIKZVMCD4QPMZTSWUE2WTEUK4ZY5RX3GRT2ZMT7LCCTZMG5AC3QDE
-#\\\|RBITZG7GIATX4QBHMY4CLSLZODB2SO3FDZ2UEYBUNM7YJZDV2JA \ / AMOS7 \ YOURUM ::
-#\[7]VWCNUKTQQXFI7BJGPOPDY6E4ZPDDKTCZK2V42UALQZ4OZLHGUECA 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,..,,.,.,..,,.,.,.,,,.,,,,,.,..,,...,...,.,.,,..,.,,,..,,,.,,
+#4QSQIQEFTHQ2Q2HQXNILKZKA6NO36GMXNOHCMQCMS3JEB6BK6GNURAKQH5O6NO45MMTK6QVDXJR46
+#\\\|OWZHMCXLHT2XPCUWN5F5AXBY2NVM7DQOUG3NOZNWLUEX3D7U76S \ / AMOS7 \ YOURUM ::
+#\[7]FDXIE5CEKMLZCAQKJDV7HXSAH4Z5CHQOHTKZBADWN4HOVT433OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

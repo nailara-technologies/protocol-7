@@ -8,10 +8,11 @@ use warnings;
 ## bytes pragma transitively. mirror that here, as the precedent tests do. ##
 use bytes;
 
-## host-root delegation, lane 2 [ HOST-ROOT-DELEGATION.md, "root-held keys" ##
-## + "resolver API" ] : the REAL keys.console.* \ keys.backup.* \           ##
-## p7-log.anon.key modules are compiled against a STUB of the resolver      ##
-## crypt.C25519.key_path [ API as in the spec ]. checks :                   ##
+## host-root delegation, lane 2                                             ##
+## [ HOST-ROOT-DELEGATION.md, "root-held keys" + "resolver API" ] : the     ##
+## REAL keys.console.* \ keys.backup.* \ p7-log.anon.key modules are        ##
+## compiled against a STUB of the resolver crypt.C25519.key_path            ##
+## [ API as in the spec ]. checks :                                         ##
 ## - `list` groups root-held keys, names + files as root, only a note as    ##
 ## non-root [ and never opens the root dir then ]                           ##
 ## - every operation on a root-held key refuses as non-root, BEFORE any     ##
@@ -150,7 +151,8 @@ sub snapshot {    ## every file under the tree : name => mode:content ##
             local $/;
             my $content = <$fh>;
             close($fh);
-            $snap{$path} = sprintf '%04o:%s', ( stat($path) )[2] & 07777,
+            $snap{$path} = sprintf '%04o:%s',
+                ( CORE::stat($path) )[2] & 07777,
                 $content;
         }
         closedir($dh);
@@ -338,8 +340,8 @@ foreach my $op (@ops) {
     $stop_at_key_vars = 0;
     my ( $ret, $err, $out ) = run_module( $mod, @$args );
     ok( scalar( $err =~ m{^EXIT:00?20\n} ),
-        "$label : non-root " . "refused [ exit 0020 ]" )
-        or say "       err=[$err] out=[$out]";
+        "$label : non-root refused [ exit 0020 ]"
+    ) or say "       err=[$err] out=[$out]";
     ok( scalar( $out =~ m{root-held : refused} ), "$label : clear message" );
     ok( !%reached && !$prompted, "$label : nothing reached before refusal" );
 
@@ -373,10 +375,10 @@ foreach my $op (@ops) {
 }
 $fake_euid = 1000;
 ok( same( snapshot(), $before ),
-    'key tree unchanged by ' . 'all refused operations' );
+    'key tree unchanged by all refused operations' );
 
-## sign-key : the signer position is guarded too is covered above [ both ##
-## argument orders ]                                                     ##
+## sign-key : the signer position is guarded too is covered above ##
+## [ both argument orders ]                                       ##
 
 ## duplicate : a root-held SOURCE is refused for everyone ##
 say '';
@@ -411,7 +413,7 @@ $exists{'other'}  = 0;
     my ( $ret, $err, $out )
         = run_module( 'keys.console.duplicate', 'tester.base other' );
     ok( scalar( $err =~ m{^PASSED_GUARD} ),
-        'duplicate of a ' . 'user key not refused'
+        'duplicate of a user key not refused'
     ) or say "       err=[$err] out=[$out]";
 }
 $stop_at_key_vars = 0;
@@ -424,7 +426,7 @@ $stop_at_key_vars = 0;
     my ( $ret, $err, $out )
         = run_module( 'keys.console.remove', 'known:host-root' );
     ok( scalar( $err =~ m{^PASSED_GUARD} ),
-        'remove known:<name> ' . 'is not refused'
+        'remove known:<name> is not refused'
     ) or say "       err=[$err] out=[$out]";
     $stop_at_key_vars = 0;
 }
@@ -470,7 +472,7 @@ say ':: decrypt-archive';
     my ( $ret, $err, $out )
         = run_module( 'keys.console.decrypt-archive', $archive );
     ok( scalar( $err =~ m{^PASSED_GUARD} ),
-        'archive of user ' . 'keys passes the rule'
+        'archive of user keys passes the rule'
     ) or say "       err=[$err] out=[$out]";
     $stop_at_key_vars = 0;
 }
@@ -589,10 +591,10 @@ say ':: backups';
             && $restored eq catfile( $root_dir, 'host-root.secret' ),
         'root : restore puts the file back in root/'
     );
-    ok( ( stat($restored) )[2] % 01000 == 0600,
+    ok( ( CORE::stat($restored) )[2] % 01000 == 0600,
         '  restore keeps the 0600 mode [ rename ]'
     );
-    ok( ( stat($restored) )[4] == $UID, '  restore keeps the owner' );
+    ok( ( CORE::stat($restored) )[4] == $UID, '  restore keeps the owner' );
 
     ## cross-directory restore refused : a user-dir backup of a name that ##
     ## is root-held                                                       ##
@@ -601,7 +603,7 @@ say ':: backups';
     $restored = $code{'keys.backup.restore'}
         ->( 'host-root', 'secret', 'AAAD.host-root.secret' );
     ok( !defined $restored,
-        'restore refused when the ' . 'backup is in another directory' );
+        'restore refused when the backup is in another directory' );
     ok( same( snapshot(), $b ), '  nothing moved' );
     ## the same with a list that DOES offer the foreign-directory entry ##
     {
@@ -638,7 +640,7 @@ say ':: p7-log.anon.key';
     @key_path_calls = ();
     my $key = $code{'p7-log.anon.key'}->();
     ok( defined $key && length($key) == 32,
-        'secret read from ' . 'the resolved path'
+        'secret read from the resolved path'
     );
     ok( ( grep { $ARG eq 'logger.base' } @key_path_calls ) == 1,
         '  the resolver was asked for the key name'
@@ -649,7 +651,7 @@ say ':: p7-log.anon.key';
     delete $data{'p7-log'}{'anon'}{'key32'};
     my $none = $code{'p7-log.anon.key'}->();
     ok( !defined $none,
-        'a root-held key name resolves ' . 'into root/ : no key used' );
+        'a root-held key name resolves into root/ : no key used' );
     delete $holder_of{'logger.base'};
 }
 
@@ -657,8 +659,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,,.,...,.,.,.,,,,,.,.,.,,..,,..,.,,,,,.,..,,...,...,,..,..,,..,,.,.,,,,,
-#XA73U3LGSOZDXETOYU6F5NMUTWTX5M5DGPLBM4XGJX7XRB4FXMYESGY2D45S4CEHMKSTSNG6KOA6O
-#\\\|J7CIPF4WXAIZT4DV33SVRNNRG4BXE7VVLOXHEUI3ABMGVPRIM3D \ / AMOS7 \ YOURUM ::
-#\[7]OXAK2HNKHPKV2UF5XKM6DLBDI5OAPUO3IQLQ5SALN7EAWK5ZSIDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,,.,,...,,.,,,,.,...,.,.,..,,..,,...,...,,,.,..,,.,,,,.,,.,,,
+#47UPR2CRY37MDWCFJGVTKKOEFTSI76LPANWNDZ4PRPIA4LJVPQJEGOF522ZBLYCHAPQA2DGIFE4RU
+#\\\|P3TFJ4SXF4OXRHTGANC3BEH7VVPNVLY4NH56PS5PZUM6UDS4X5Y \ / AMOS7 \ YOURUM ::
+#\[7]QP3TVALXOFZX4BCYJXBPBDN54X22EII3MY3NFQMISGYR2DYGL4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

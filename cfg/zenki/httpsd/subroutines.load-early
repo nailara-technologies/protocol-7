@@ -97,6 +97,7 @@ httpd.http_post
 httpd.http_head
 httpd.cmd.drain
 devmod.pre_init
+crypt.init_code
 base.zenka.push
 base.zenka.loop
 base.str.os_err
@@ -115,8 +116,11 @@ base.curve.eval
 base.cmd.whoami
 base.cmd.reload
 base.calc_gauss
+amos7.init_code
 ui.estimate.cost
 trust.pin_decide
+source.sign_data
+source.init_code
 plugin.auth.unix
 jobqueue.add_job
 httpsd.post_init
@@ -208,6 +212,7 @@ base.clean_unicode
 base.clean_hashref
 base.base32.encode
 ascii.frame.render
+source.cmd.get-code
 plugin.auth.twofish
 io.ip.tcp.init_code
 httpsd.self_restart
@@ -279,6 +284,8 @@ base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
+source.valid_src_name
+source.sign_generated
 plugin.web.auth.admit
 jobqueue.get_next_job
 jobqueue.get_job_data
@@ -295,7 +302,10 @@ httpd.classify.record
 httpd.classify.expire
 format.yaml.load_file
 format.json.init_code
+crypt.C25519.pre_init
+crypt.C25519.keyfiles
 crypt.C25519.key_vars
+crypt.C25519.key_type
 crypt.C25519.key_path
 crypt.C25519.gen_keys
 base.session.shutdown
@@ -321,6 +331,7 @@ base.cmd.dependencies
 base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
+source.signature_valid
 io.ip.tcp.output.close
 httpsd.request_handler
 httpsd.register_socket
@@ -330,7 +341,10 @@ httpd.process_template
 httpd.cmd.vhost-status
 httpd.benchmark.report
 format.yaml.write_file
+crypt.C25519.sign_keys
 crypt.C25519.sign_data
+crypt.C25519.post_init
+crypt.C25519.init_code
 base.strm.local.cancel
 base.session.init_code
 base.required_bin_path
@@ -347,6 +361,9 @@ base.comp-int.is_valid
 base.cmd.cancel-stream
 base.cfg.profile.apply
 auth.client.owner_pins
+source.verify_and_strip
+source.target_namespace
+source.extract_sig_body
 route.bmw384.index.init
 protocol.sftp.init_code
 jobqueue.queue_template
@@ -361,6 +378,7 @@ httpd.diagnostic.report
 httpd.cmd.update-vhosts
 crypt.C25519.write_keys
 crypt.C25519.unload_key
+crypt.C25519.sig_fnames
 crypt.C25519.key_exists
 base.templates.pre_init
 base.strip_chksum_lines
@@ -382,9 +400,11 @@ base.cmd.set-name-width
 base.cmd.ondemand-zenka
 base.cmd.loaded-configs
 base.chk-sum.elf.inline
+base.chk-sum.bmw.strsum
 base.callback.cmd_reply
 base.auth.set_zenka_key
 ui.caller.security-level
+source.acquire_checksums
 protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
@@ -392,11 +412,14 @@ httpsd.create_ssl_socket
 httpsd.cmd.socket-status
 httpd.system.memory_free
 httpd.parse_range_header
+httpd.generate_theme_css
 httpd.event.remove_timer
 httpd.cmd.install-vhosts
 httpd.classify.cmd.stats
+crypt.C25519.verify_sign
 crypt.C25519.single_file
 crypt.C25519.load_single
+crypt.C25519.get_keyname
 crypt.C25519.chk_key_dir
 base.zenka.push.pre_init
 base.zenka.is_v7_started
@@ -408,12 +431,16 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.ntime.delta_seconds
 base.file.zulum_tmp_file
+base.file.strip_path_str
 base.curve.eval.position
 base.cmd.verify-instance
+base.chk-sum.from_substr
+base.chk-sum.bmw.filesum
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 base.buffer.erase_secure
 ui.render.tree.invalidate
+source.load_signature_key
 route.bmw384.visual.wheel
 route.bmw384.index.lookup
 plugin.web.auth.init_code
@@ -422,6 +449,7 @@ jobqueue.priorities_table
 io.unix.socket.input.open
 httpd.system.memory_stats
 httpd.handler.drain_check
+httpd.generator_key_trust
 httpd.base.size.normalize
 crypt.C25519.root_key_dir
 crypt.C25519.load_keypair
@@ -443,6 +471,8 @@ base.chk-sum.bmw384.color
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 auth.client.distrust_list
+amos7.encode_octal_header
+source.cmd.get-code-signed
 protocol.sftp.read_ssh_env
 plugin.web.auth.admit.gate
 io.unix.socket.output.open
@@ -451,8 +481,13 @@ httpsd.reload_certificates
 httpsd.load-cipher-profile
 httpd.vhost.read_manifests
 httpd.handler.acme_request
+httpd.generator_delegation
 httpd.classify.cmd.history
+crypt.C25519.key_checksums
 crypt.C25519.encrypted_key
+crypt.C25519.clear_chksums
+crypt.C25519.cached_chksum
+crypt.C25519.all_key_names
 base.warnings.from_bitmask
 base.session.split_subname
 base.session.check.flushed
@@ -469,6 +504,8 @@ base.file.path.chksum.AMOS
 base.event.io_idle_restart
 base.devmod.process_signal
 base.check_dependency_dirs
+source.fill_source_template
+source.cmd.update-src-links
 route.bmw384.route.as-curve
 plugin.web.auth.store.group
 plugin.web.auth.session.cfg
@@ -486,6 +523,9 @@ httpd.benchmark.end_request
 httpd.base.file.nonblocking
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
+crypt.C25519.get_remote_key
+crypt.C25519.gen_keys_typed
+crypt.C25519.compute_shared
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -501,6 +541,7 @@ base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 auth.client.zenka.init_code
+source.cmd.update-to-current
 route.bmw384.index.from-path
 route.bmw384.index.from-file
 protocol.protocol-7.pre_init
@@ -508,8 +549,7 @@ protocol.amos_term.init_code
 plugin.web.auth.store.set-up
 plugin.web.auth.session.read
 plugin.web.auth.session.path
-plugin.web.auth.rotate_session
-plugin.web.auth.admit.activity
+plugin.web.auth.lease_caller
 plugin.web.auth.admit.status
 plugin.web.auth.admit.source
 plugin.web.auth.admit.select
@@ -520,11 +560,13 @@ plugin.web.auth.admin_caller
 io.unix.socket.input.connect
 httpsd.request_capture.write
 httpd.vhost.request_tls_cert
+httpd.signature_verify_start
 httpd.route.handler.iris-svg
 httpd.handler.web-relay.auth
 httpd.handler.template_reply
 httpd.handler.iris-svg.relay
 httpd.handler.acme_challenge
+crypt.C25519.keystr_is_valid
 crypt.C25519.delegation_file
 crypt.C25519.compare_keypair
 base.validate.composite_name
@@ -538,13 +580,13 @@ base.chk-sum.bmw384.pre_init
 base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 auth.client.server_pin.check
+source.create_harmonic_footer
 route.bmw384.ledger.increment
 route.bmw384.ledger.decrement
 protocol.protocol-7.init_code
 plugin.web.auth.session.write
 plugin.web.auth.session.prune
 plugin.web.auth.handler.login
-plugin.web.auth.ui_session.info
 httpsd.route_template_request
 httpsd.callback.reset-capture
 httpd.vhost_template_resolver
@@ -554,8 +596,14 @@ httpd.route.handler.web-login
 httpd.handler.web-relay.login
 httpd.benchmark.start_request
 format.yaml.load_keyword_path
+crypt.C25519.validate_keyname
+crypt.C25519.store_remote_key
+crypt.C25519.signature_exists
+crypt.C25519.load_from_string
 crypt.C25519.key_name_to_skey
+crypt.C25519.host_root.create
 crypt.C25519.get_usr_keys_dir
+crypt.C25519.cmd.host-root-id
 crypt.C25519.chksum_cache.add
 base.validate.data_key_syntax
 base.source.collect_file_list
@@ -575,29 +623,35 @@ base.chk-sum.bmw.B-32-56.TRUE
 base.callback.run_initialized
 auth.client.unix.authenticate
 ascii.frame.parse.border_line
+amos7.decode_octal_bit_header
 route.bmw384.visual.wheel-mode
 route.bmw384.visual.ring-label
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 plugin.web.auth.verify_session
+plugin.web.auth.rotate_session
 plugin.web.auth.handler.status
 plugin.web.auth.handler.logout
 plugin.web.auth.create_session
-plugin.web.auth.ui_session.begin
 plugin.web.auth.admit.schedule
+plugin.web.auth.admit.activity
 httpsd.request_capture.collect
 httpsd.cmd.reload-certificates
 httpsd.calculate_restart_delay
 httpd.vhost.handler.cert_reply
 httpd.route.handler.web-status
 httpd.route.handler.web-logout
-httpd.route.handler.web-session-command
 httpd.route.handler.iris-route
 httpd.route.handler.iris-pulse
+httpd.handler.signature_verify
 httpd.handler.shm_replay_sweep
 httpd.diagnostic.end_operation
 httpd.cmd.setup-acme-challenge
+httpd.cmd.generator-delegation
+crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
+crypt.C25519.key_bin_checksums
+crypt.C25519.cmd.host-root-dlg
 crypt.C25519.chksum_cache.retr
 base.zenki.ondemand_registered
 base.session.send_init_reports
@@ -606,11 +660,13 @@ base.log.send-buffer.add-queue
 base.chk-sum.bmw384.coordinate
 base.chk-sum.bmw384.angle-bits
 base.chk-sum.bmw.harmonize_L13
+base.chk-sum.bmw.encode_digest
 base.cache.refaddr-prefix.init
 auth.client.zenka.authenticate
 ascii.frame.render.border_line
 route.bmw384.visual.wheel.gauss
 route.bmw384.ledger.warning_map
+plugin.web.auth.ui_session.info
 plugin.web.auth.destroy_session
 httpsd.cmd.list-cipher-profiles
 httpsd.callback.ssl_cert_select
@@ -619,7 +675,11 @@ httpd.path.create_default_index
 httpd.handler.download_transfer
 httpd.cmd.remove-acme-challenge
 httpd.benchmark.collect_metrics
+crypt.C25519.private_key_loaded
+crypt.C25519.keys.annotate_type
 crypt.C25519.decrypt_secret_key
+crypt.C25519.cmd.set-client-key
+crypt.C25519.cmd.get-public-key
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
@@ -628,6 +688,7 @@ base.chk-sum.bmw384.arc-segment
 route.bmw384.visual.wheel.vortex
 route.bmw384.visual.wheel.metric
 route.bmw384.visual.wheel.ledger
+plugin.web.auth.ui_session.begin
 plugin.web.auth.secure_transport
 plugin.web.auth.refuse_plaintext
 plugin.web.auth.admit.wait_until
@@ -640,6 +701,10 @@ httpd.cmd.cleanup-acme-challenge
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
 crypt.C25519.decrypt_priv_keystr
+crypt.C25519.decode_request_file
+crypt.C25519.cmd.get-session-sig
+crypt.C25519.cmd.get-session-key
+crypt.C25519.cmd.clear-zenka-key
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
 base.parser.harmonized_reference
@@ -663,6 +728,7 @@ base.session.cancel_source_routes
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
 base.callback.expire_code_version
+source.harmonize_payload_line_feed
 route.bmw384.visual.wheel.vertical
 route.bmw384.visual.wheel.temporal
 route.bmw384.visual.wheel.boundary
@@ -686,6 +752,7 @@ crypt.C25519.get_type_from_key_str
 base.zenki.resume_ondemand_timeout
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
+base.path-set-up.check-zenka-paths
 base.handler.link-upgrade.response
 base.handler.command.process_reply
 base.format.inline-nested.pre_init
@@ -708,6 +775,7 @@ base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
 base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
+source.restore_payload_endline_state
 route.bmw384.visual.route-commitment
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
@@ -715,6 +783,7 @@ plugin.httpd.radio.handler.strm_open
 httpsd.startup.validate_certificates
 httpd.handler.download_transfer.test
 graphics-3d.calc.cursor-translucency
+crypt.C25519.cmd.register-master-key
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
 base.perlmod.manual_reload_blacklist
@@ -728,6 +797,9 @@ protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
 protocol.amos-chksum.ext-cmd.commands
 protocol.amos-chksum.connect_callback
+crypt.C25519.list_key_signature_names
+crypt.C25519.generate_session_keypair
+crypt.C25519.create_signature_request
 base.zenka.push.reply-handler.offline
 base.perlmod.unregister_loaded_module
 base.handler.ondemand_idle_term_reply
@@ -745,7 +817,9 @@ httpd.benchmark.get_event_loop_metrics
 base.log.send-buffer.idle-callback-set
 route.bmw384.visual.wheel.alpha-density
 route.bmw384.visual.negotiation-overlay
+httpd.route.handler.web-session-command
 base.perlmods.blacklist_collision_index
+base.parser.chk-sum.embedded-code-style
 base.log.send-buffer.send-idle-callback
 base.init_zenka.install_signal_handlers
 base.handler.strm_size_absolute_timeout
@@ -754,6 +828,7 @@ protocol.sftp.handler.read_server_output
 httpsd.request_certificate_from_letsencr
 protocol.protocol-7.auth.select-size-mode
 plugin.httpd.radio.handler.stream_request
+crypt.C25519.validate_remote_key_checksum
 base.zenki.ondemand.handler.startup_reply
 base.agent_code.handler.sig_warn.end_proc
 protocol.protocol-7.link-upgrade.handshake
@@ -765,12 +840,13 @@ base.referenced_subroutines.clear_from_disk
 base.log.send-buffer.reply-handler.send-reply
 base.zenki.ondemand.handler.reconcile_starting
 plugin.auth.auth-keypair.validate-incoming-tofu
+source.signature.util.verify_signature_with_data
 protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,..,,,..,,,.,...,,..,,..,.,,,,..,,,.,,,.,..,,...,...,.,.,,,.,,,,,.,,,,,.,
-#ERTIV2ZOJGWKCBQ63ANONLUFUAJUGED5DS4CUMS67BRZVG2RYRL6WKBEGA2HDKUZVOEHTZQPTYZKW
-#\\\|MILC7HMOCT52FDWJFFJV2KUFHK25PPCIXDOG2DZQWIKUDNEJBXC \ / AMOS7 \ YOURUM ::
-#\[7]UK63IEK3JSSKXHM5GKP2PXK5EYRLZOHOXO6UJHSHH2LBNDXJQWBA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,,,,,,,,.,.,..,,...,,..,..,,,,,,..,,...,...,...,...,,,.,...,,,,,
+#D23WV7JVM5E5MODXD5MUJLYT56E4ZHCQQRPXCPRETMKKZKPUAHE2R6OWBD7U2KUH337BWRELOUXI6
+#\\\|NKCMVQ6JGNNTDZOFBVKMKU6FFGJXP3CLHHUUHNVSOLRCUJV6NHL \ / AMOS7 \ YOURUM ::
+#\[7]DQZVPTN6QVLGE4BQ2NRPPSTV2CYKLYHEPUYETX5RWHA2DI7VBIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

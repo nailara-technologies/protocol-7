@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.QKHI5IA |;
+our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.KWJAPMI |;
 
 @EXPORT_OK = qw| config_read state_read cycle_gate cycle_run cycle_status |;
 
@@ -54,7 +54,7 @@ sub _state_path {
 
 sub _private_file {
     my ( $path, $label ) = @_;
-    my @st = lstat $path;
+    my @st = CORE::lstat $path;
     refuse( '%s is missing [ %s ]',            $label, $path ) if not @st;
     refuse( '%s is not a regular file [ %s ]', $label, $path )
         if not -f _ or -l $path;
@@ -341,7 +341,7 @@ sub _relay_pending_age {
     return $now - ( $data->{'time'} // 0 )
         if ref $data eq qw| HASH |
         and defined $data->{'time'};
-    my @st = stat $path;
+    my @st = CORE::stat $path;
     return undef if not @st;
     require AMOS7::NTIME;
     return $now - AMOS7::NTIME::unix_to_ntime( $st[9], 0 );
@@ -1999,8 +1999,8 @@ sub cycle_status {
 
 1;
 
-#,,.,,,,,,,.,,.,,,,..,...,,,.,,,,,.,.,,,.,..,,..,,...,...,...,,,,,.,,,.,,,,,.,
-#X7GU7B6T4WUFEJQ7VZOYEDNS557FKQKQFWGH4D3K3RTDLGVUPYAL4GUYO5JLPRQ2XFKLJZU5MOYFO
-#\\\|FMP534RIF2MN2GWBZCZYSFEXJASBPFS6TZUFWJXMSYER74LXPD7 \ / AMOS7 \ YOURUM ::
-#\[7]7EKJK5DAV4DKE433IKYP3RFPJBTE5GTTGEXTFAL5QEMRMFMPREAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,,,,,,,.,,,,.,,,..,.,.,..,,..,,..,,...,...,.,.,.,,,,,,,...,,.,,
+#G5LZQLZSWTBTUHKTBJQAGUVI6IQSK325AWAHGMODLI5VSU23VQLH6IH2RNEKYEBB52HICUANQAON4
+#\\\|GEFWZNORMUPU4RYCAIZ3ZMXYKSEOYL6HZNEGHHS7BYRLNEEPYY6 \ / AMOS7 \ YOURUM ::
+#\[7]M65G6HRZHN6FTIEJ6ODH5QY5EOZN63TD4CO752OHFTC4DANKY4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

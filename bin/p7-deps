@@ -1468,7 +1468,7 @@ sub cmd_auto_install {
         { 'detail' => $shown_path } );
     my ( $trusted, $why )
         = AMOS7::deps::autoinstall::trusted_chain( $path,
-        ( stat $P7_ROOT )[4] );
+        ( CORE::stat $P7_ROOT )[4] );
     if ($trusted) {
         say frame_status_row( 'trust chain', qw| ok | );
     } else {
@@ -1719,8 +1719,8 @@ sub show_help {
 EOL
 }
 
-#,,.,,,..,,,,,.,,,..,,,.,,..,,,,,,.,.,,.,,.,,,..,,...,..,,,,,,..,,,.,,..,,,,,,
-#CPWQ6XAGF5HVLRT2B6D53XECNHZQ7MPVDHCPXTMJNOCE3DTU7AJVVVF3TF22Q4R3PUBMNNEMWOTLM
-#\\\|IMOVNYMDJ2OOWDTYVCUQ2773NYEAI4T5G3V4GU5O3H577VAU5GZ \ / AMOS7 \ YOURUM ::
-#\[7]HOOHGLIYPECSJJJOCJWPNPAS6QOVZV3RBK5DU7BTDEWN5ISNVMDA 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,,,,,,..,.,.,...,.,,,...,,.,,..,,...,...,,,.,...,,,.,.,,,..,,
+#CJUL2JN7I6N4EUG7OOTY5REQTLHRPZINTJCBHYEC75KS7TL63NJC4SKA7LM2ZYZBN6WRAPDV4SQXE
+#\\\|RPJO6UPW5GITHCTLOLTMLICDCU6JIQEO3CBHNOT35H5AW3CZUTF \ / AMOS7 \ YOURUM ::
+#\[7]DFCZB7BM6V2MV3SU7FWFX26VDL7BS6RRKQFDG5I4ZZL4TPH4XOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

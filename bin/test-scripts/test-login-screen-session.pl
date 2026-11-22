@@ -35,7 +35,7 @@ sub write_file {
 my ( $username, undef, $uid, $gid, undef, undef, undef, $home );
 if ( $EUID == 0 ) {
     setpwent();
-    while ( my @pw = getpwent() ) {
+    while ( my @pw = CORE::getpwent() ) {
         next if $pw[2] < 1000 or $pw[0] !~ m|^[a-z_][a-z0-9_-]{0,31}$|;
         next if not -d $pw[7];
         ( $username, $uid, $gid, $home ) = @pw[ 0, 2, 3, 7 ];
@@ -43,7 +43,7 @@ if ( $EUID == 0 ) {
     }
     endpwent();
 } else {
-    my @pw = getpwuid($EUID);
+    my @pw = CORE::getpwuid($EUID);
     ( $username, $uid, $gid, $home ) = @pw[ 0, 2, 3, 7 ];
 }
 ok( defined $username && $uid >= 1000,
@@ -177,8 +177,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,.,,.,,.,.,,,,,.,.,.,,,..,,..,,.,,,.,,,..,,..,,...,...,,,,,...,.,,,,,,,,,.,
-#XX7GP5ZRH3FP27WMGGQMEIQLMFMZJVAKTTYSRAP6G745L2A3SCHT2DVPAB2FMNSUKIRWYKXFFO7I6
-#\\\|2PVCVXFR2I6XXF4BMDWKPN4BAAA4ZGDA2POZEJNEJPWPNRHNQ3R \ / AMOS7 \ YOURUM ::
-#\[7]JZ5QITVE5PRJ4S57J27TGYIRXSYC6EUUXFIJ3M4VWFMMER4MMEDY 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,,,,,..,,..,,.,,,,,.,,.,,,,.,..,,...,...,..,,,,.,..,,.,.,.,,,
+#2V27TESEYA7OWTQN5K4AKJNCIBPAUUHACF5DUMS7ADUZXPOYCM5FGZVRLIFWO2MLO6JSO2QA3FAGY
+#\\\|BLAGEQODCZ3XMH5VCTTB42CQUI5VKRS7UF3MK4BE3SER3PVHWTD \ / AMOS7 \ YOURUM ::
+#\[7]FZVPVWJTDXX6QMV7Z6LNTOC65C46YG2KXDGHY23JW4GR52UEBCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

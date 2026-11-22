@@ -12,7 +12,7 @@ my ($display_number) = $display =~ m|^:(\d+)$|;
 return FALSE if not defined $display_number;
 
 my $x11_user = <system.zenka-user.current> // return FALSE;
-my @pw       = getpwnam($x11_user);
+my @pw       = CORE::getpwnam($x11_user);
 return FALSE if not @pw;
 
 my $runtime_dir = sprintf( qw| %s/%s |,
@@ -65,8 +65,8 @@ $server->{'xauth'} = {
 };
 TRUE;
 
-#,,..,,..,.,.,,..,,,,,,..,..,,,..,,,.,,,.,,,,,.,.,...,...,.,.,..,,..,,.,,,..,,
-#L2DM3FFQLBEFEPOKV6VKMESO25A64232ZANN2TAPAU4FCAQCUDIO6NSZGKV42S7IJQHSQUHEVBDJU
-#\\\|6ZYBCKGAGCAJJZXZ3FTJBJBJWAUFIXQICPMVXO5JLLVVHYJUZA7 \ / AMOS7 \ YOURUM ::
-#\[7]F2H3C6HYQQ4QVF3L3EDIO3PX7DEZTEXVAWTBUKFCESNPRJOM2ODA 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,,,..,,.,.,.,,,.,,,,,,,..,,.,.,.,.,...,...,..,,,,,,..,,...,.,,,
+#LKMMZXL7CDVURI3DKXZWYN5GDFCTX2XGDFNBQJXV2FH7XKEK7DIZQTEBM4SKXNLSJCOWUUVH6ISKM
+#\\\|3TYT3H77UB7WUOF7M3SL5FXLZT3EN4DQFFUZREZM4A2LDRABVGV \ / AMOS7 \ YOURUM ::
+#\[7]H6BABJMHUQZU336UJNUTZYSRFAFA7SJOTJPZZ2YMV54LR7TWUUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

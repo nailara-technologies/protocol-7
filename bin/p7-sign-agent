@@ -120,12 +120,12 @@ my $run_base
         and -d $ENV{'XDG_RUNTIME_DIR'}
         and -w _ )
     ? $ENV{'XDG_RUNTIME_DIR'} =~ s|/+$||r
-    : sprintf( qw| %s/.n/run |, $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+    : sprintf( qw| %s/.n/run |,
+    $ENV{'HOME'} // ( CORE::getpwuid($EUID) )[7] );
 my $socket_path = $ENV{'P7_SIGN_AGENT_SOCKET'};    ## default below ##
 ## the C25519 keypair store [ crypt.C25519.get_usr_keys_dir ] ##
-my $key_dir
-    = sprintf( qw| %s/.n/user-keys |,
-    $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+my $key_dir = sprintf( qw| %s/.n/user-keys |,
+    $ENV{'HOME'} // ( CORE::getpwuid($EUID) )[7] );
 
 my $test_stdin_approval;    ## tests only : --test-stdin-approval ##
 ## or P7_SIGN_AGENT_TEST_STDIN=1      ##
@@ -164,7 +164,7 @@ my $events_log_path
     = defined $run_dir_option
     ? sprintf( qw| %s/events.log |, $agent_dir )
     : sprintf( qw| %s/.7/p7-sign-agent/events.log |,
-    $ENV{'HOME'} // ( getpwuid($EUID) )[7] );
+    $ENV{'HOME'} // ( CORE::getpwuid($EUID) )[7] );
 my %durable_event = map { $ARG => 1 } qw| crash denied agent-restart |;
 
 ## unlocked key material [ wiped on every exit path ] ##
@@ -544,7 +544,7 @@ sub run_file_body {
     my $rel = shift;
     my $full_path
         = File::Spec->catfile( $run->{'work_tree'}, split m|/|, $rel );
-    my @st = lstat $full_path;
+    my @st = CORE::lstat $full_path;
     return undef if not @st or not S_ISREG( $st[2] );
     my $raw = slurp_file($full_path);
     return undef if not defined $raw;
@@ -570,7 +570,7 @@ sub run_log_open {
 ## the agent dir : created 0700, never a link, owned by us -- fail closed ##
 sub agent_dir_ready {
     make_path( $agent_dir, { qw| mode | => 0700 } ) if not -e $agent_dir;
-    my @st = lstat $agent_dir;
+    my @st = CORE::lstat $agent_dir;
     die "p7-sign-agent : $agent_dir is not a directory owned by uid $EUID\n"
         if not @st
         or -l _
@@ -766,8 +766,8 @@ sub approve_run {
 
 sub socket_set_up {
     if ( -e $socket_path ) {
-        my ( undef, undef, undef, undef, $uid ) = lstat $socket_path;
-        my $mode = ( lstat $socket_path )[2];
+        my ( undef, undef, undef, undef, $uid ) = CORE::lstat $socket_path;
+        my $mode = ( CORE::lstat $socket_path )[2];
         die "p7-sign-agent : $socket_path exists and is not a socket\n"
             if not defined $mode
             or not S_ISSOCK($mode);
@@ -1475,8 +1475,8 @@ while (TRUE) {
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,,,,..,..,,...,,,.,.,.,,,,,.,,,,.,,,..,.,,,..,,...,...,..,,...,.,,,,,.,,..,
-#5QNYSWAUUSUGNP33Q2R236KSQDWFM6V6DY3ZGP4NBXR5H7E2JDBPVU2L3CFP4XZRUC23TASLYPWF6
-#\\\|TE3NMRFVCLJLRQXJEL5IGJYXCG22HV3G67LDE365MUOT7MNG4GV \ / AMOS7 \ YOURUM ::
-#\[7]WNFDLTMXAUZAS53BIM5HJKTU7RUJJJHTCUZLML4X3L3PZE75XKBA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,.,,,..,,,,,,,..,...,.,.,...,..,,...,...,...,..,,,.,,...,,,,,
+#QNK5O3A5N36DCN7SBI2SAEVARIWI6D6WX7J5WPYSEABL6DQQWRWLQEW3ND3PECMKGCAL2STK5CCOG
+#\\\|PXNEERQN4UIXZ54PO2HJX2377RW5BBCKJDV2F6QHUQ7RCQCVZX3 \ / AMOS7 \ YOURUM ::
+#\[7]JEZLW464TKQAZZCRJGBSVEJZV75ULJA3FACRR6JESTEYQPVP7CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

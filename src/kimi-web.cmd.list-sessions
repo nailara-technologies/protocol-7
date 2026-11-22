@@ -85,7 +85,7 @@ if ( $args =~ m|^recent:(\d+)$| ) {
 ## format output ##
 my @lines;
 for my $s (@sessions) {
-    my @tm = localtime( $s->{'mtime'} );
+    my @tm = CORE::localtime( $s->{'mtime'} );
     my $ts = sprintf(
         '%04d-%02d-%02d %02d:%02d',
         $tm[5] + 1900,
@@ -106,8 +106,8 @@ return {
     'data' => $output
 };
 
-#,,,,,...,..,,...,.,,,,..,...,,,.,,,,,,.,,,,,,.,.,...,...,...,...,,.,,,..,,.,,
-#JRLXRYGFPIPB6GFWDTKEYID46U5W5EWDYQCOQWX67DPLBKXRRXXI2FBBL65MWBAKICF57QSLCKGOG
-#\\\|UX6ZETAT2QAXXQCQNL6NPVZCDCALGLT77GUSFDTVEHIHUJ5OLZB \ / AMOS7 \ YOURUM ::
-#\[7]SJPB2LDIDDQXF2LOEF6HYVCXEGSVRL2VYZ3F3LODMF46KPVEH2BY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,...,..,,,..,,,,,,,.,,,,,..,,.,.,...,...,...,...,,.,,.,,,,..,
+#BZUX26LQZHZNQ3RTA2MRARJ2QKQTCP36YLSFWYUS3MSKEE76KVTDJFTMUCUYUQ6AI4EUFBTSAN6JU
+#\\\|ZTPW7BBJS7LKFL2AX5B3UMBINNTWARHRGOGAGPOP2RXOU6GJWPQ \ / AMOS7 \ YOURUM ::
+#\[7]GUGQHXH2EQID45LUITIOWD7CAQLGYFA2Z7GAEJALA5TMHSKRVYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

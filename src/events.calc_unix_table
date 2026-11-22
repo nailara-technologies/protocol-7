@@ -35,7 +35,7 @@ foreach my $ev_id ( keys( <events.timetable>->%* ) ) {
     } ( 'start', 'end', 'at' );
 
     ## special syntax 'HH' == current hour ##
-    my $current_hour = strftime( "%H", localtime(time) );
+    my $current_hour = strftime( "%H", CORE::localtime(time) );
     map { $time_str{$ARG} =~ s|HH|$current_hour| } keys %time_str;
 
     my $time_now = <[base.time]>->(5);
@@ -141,8 +141,8 @@ foreach my $ev_id ( keys( <events.timetable>->%* ) ) {
 }
 <[base.log]>->( 2, ": nothing to do.." ) if !$new_events;
 
-#,,..,,,.,..,,,.,,...,..,,..,,..,,,.,,,,.,..,,..,,...,...,,,.,,.,,...,,,.,...,
-#22CHMIWXNDHPOW6JAA55MHZTWVHVS4ETIELEFN2MO4BDM5QWISOLNMG6MOEXADVCB5YJP2NZFWHM4
-#\\\|MKCAKB7BEOQHK6A7AJ5ERIBWCSCPY4GYHANTGMMYBVNVC4KAKWP \ / AMOS7 \ YOURUM ::
-#\[7]ELKZDHUURRD5PXACRSW233UKMYJVFHY6BHS5THM3O7GJOQHF7UCI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,.,,,,.,,.,,,...,...,,.,,,,.,,,,,..,,...,...,...,..,,.,.,,..,,,,,
+#P73GIXNGG2BPUZ4BDPYAEVLSGXTUU3IJFRBWXXQGXIHC4P3FRLJGHFYA47SNW3WFA3BVTTRX6AHTY
+#\\\|P6LYJVP4WXNCOOO3Q5ATN36WV3CWQCMLYU3QR3TQBVWPZWOSP4P \ / AMOS7 \ YOURUM ::
+#\[7]VN3UXLC3FCGDYQP7ASYK54TBXS55O3CM4FOWSIZQCJUSKU576YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

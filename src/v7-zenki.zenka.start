@@ -189,7 +189,7 @@ if ( exists $init_result_data->{'start_mode'}
     ## explicit per-instance user : only root-owned start configs may opt ##
     ## in                                                                 ##
     if ( $init_result_data->{'exec_usr_from_subname'} ) {
-        my @session_pw = getpwnam( $zenka_subname // '' );
+        my @session_pw = CORE::getpwnam( $zenka_subname // '' );
         if (   not defined $zenka_subname
             or $zenka_subname !~ m|^[a-z_][a-z0-9_-]{0,31}$|
             or not @session_pw
@@ -565,8 +565,8 @@ close($in_fh);    ## <-- no further use for zenka stdin handle [ for now ] ##
 
 <[base.logs]>->( '%s zenka started [ pid : %d ]', $zenka_sn_str, $pid );
 
-#,,,,,.,,,,.,,,,,,,,.,,,.,,,.,...,.,,,,,.,.,,,..,,...,...,,.,,,..,,,,,..,,...,
-#YQV47TDMWHX4EMCKUHNLBLAPA7MSRAQO7FHYE5ABD43CK4IBTBTSJ7JEAFWVIZHFEJBY4EEBKJCLU
-#\\\|2ED2D3A7L4D3BBDS4KVJY2Y33NNKTW7AZHKX3QEYJROR47Z2U7V \ / AMOS7 \ YOURUM ::
-#\[7]UDC3B6TMISJDCELZGEOWX5FU3PGSBWYBTINMGH3SYXPY3YTP2ACI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,.,,,,,.,...,.,.,,..,,..,,..,..,,..,,...,...,...,,.,,.,,,.,.,,.,,
+#255QURH4ZAU6FNHLTLATNRYBFENZLGMAPHGEXKSKRBPZMW2E2H5YCUMI6BOGT6KLHUZ4T2KKQIDL6
+#\\\|5GEX7WRBETI46SBMUVEFADWBD5VNJBKDGND2GKWTGH6CRR54QXJ \ / AMOS7 \ YOURUM ::
+#\[7]K4QLVBAZSYGYN7QC3VGZ3C2SIYKDGSY3S7PIB65ZNQBIXX5GSIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

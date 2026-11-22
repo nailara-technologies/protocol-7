@@ -33,7 +33,7 @@ my $LMSTUDIO_DIR = $ENV{'LMSTUDIO_DIR'} // "$ENV{HOME}/.lmstudio";
 my $MODELS_DIR   = $ENV{'LMSTUDIO_MODELS_DIR'}
     // '/mnt/ext-xfs-data/models-lmstudio';
 my $OUTPUT_DIR = $opt_output // "/data/backup/lmstudio/lmstudio-backup-"
-    . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
+    . strftime( "%Y%m%d-%H%M%S", CORE::localtime ) . ".yaml";
 
 print "Exporting LM Studio configuration...\n";
 print "Source: $LMSTUDIO_DIR\n";
@@ -78,7 +78,7 @@ print "  Presets: " . scalar( @{ $export->{presets} } ) . "\n";
 ## Also copy to external if available
 if ( -d '/mnt/ext-xfs-data/backup/lmstudio' ) {
     my $ext_output = "/mnt/ext-xfs-data/backup/lmstudio/lmstudio-backup-"
-        . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
+        . strftime( "%Y%m%d-%H%M%S", CORE::localtime ) . ".yaml";
     copy( $OUTPUT_DIR, $ext_output );
     print "  Also saved to: $ext_output\n";
 }
@@ -307,8 +307,8 @@ USAGE
     exit(0);
 }
 
-#,,.,,,.,,.,.,.,,,,..,,.,,.,.,..,,.,,,..,,...,.,.,...,...,.,.,,,,,,..,,,.,,,.,
-#J63ANM2PXYZHNQUIEQHBCBC5II57YWJA6SN7HVHLN2NH3P33YWVJDQI6GIR7ON5UPFXGY2EJMZNA6
-#\\\|GYEQNY3XNJZRAC745HKDCMBUYHZD2UUDVX7WZHC5O5PWZPSIRXX \ / AMOS7 \ YOURUM ::
-#\[7]2GRDXBUS3I7GO77Z42LBUGHKAZL3O6NUURAJKI7VVMO4BVPBR6AI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,,,,,,,,,.,.,.,,,.,,..,,,,,..,,.,.,...,..,,..,,..,,,,.,,.,,.,,,
+#3ZW46N2LRLUCQ5ABPCH2DLCLYGBBH6MUXICSJVZK3Z7QSOOIYJI5ODUVWQRCDEHE6RDLD25HDVZCM
+#\\\|MV2UCFVQ462RTASOFLXEQMNTGVBEKCOVBO72OB3KHHUUJIXUKM6 \ / AMOS7 \ YOURUM ::
+#\[7]MQSTMSMCBNZDVTW5OQAJZTVEDD7RZM3VTDQTY4TB73RGQO5JEKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,7 +32,7 @@ return { 'mode' => qw| true |, 'data' => 'X-11 user access kept' }
     if $operation eq qw| Delete |
     and ( $username eq $x11_user or $username eq qw| root | );
 
-my @pw = getpwnam($username);
+my @pw = CORE::getpwnam($username);
 return { 'mode' => qw| false |, 'data' => 'invalid session account' }
     if not @pw
     or $pw[2] < 1000;
@@ -64,8 +64,8 @@ return {
     : 'session user revoked'
 };
 
-#,,,,,,,.,..,,,..,,,,,,.,,,..,.,,,,,,,...,,,.,.,.,...,...,,,.,..,,,,,,,.,,.,.,
-#WQO74QM76AKNKYLQ6YEPYVMR5QQSCTJVMDOEQ3N3NI7U7ACFKF5HMJTH2IDFULIHQF55ZSF6ZQ6FY
-#\\\|GWCFLA2E6R5SUUYFHUCF7WSVM7ICFTQE22B3DSR6YR6PLL5BRBY \ / AMOS7 \ YOURUM ::
-#\[7]P3QQYBIBU3A4CRVL56IMI5D3Z7MCCTE73MLGE2G2UFRZ3GUKHIDY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,.,,,,,,,,,.,..,,..,,.,.,.,,,.,.,...,...,.,,,,,,,,,,,,,.,,,,,
+#GGACBGQYOOVD2O2JUZ7V7UDPMR4VAWQSIJLIJ45HYFCOH6LH33SK6MYU4B7RVV4YU47RA6IQCKNLO
+#\\\|KT7AXADPNOZRZFM2OGDEESVM4K3QR3DFYRVG2Q3BJ3LNOTG3RXO \ / AMOS7 \ YOURUM ::
+#\[7]Q7ECWWDRW7HZR2AFOJTAWCNTIFCIZERSKE5RZQ7QL26T465MZ6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

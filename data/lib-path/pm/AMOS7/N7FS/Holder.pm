@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.LEMYJJQ |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.IPEKAGI |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -695,7 +695,7 @@ sub holder_stats {
         opendir( my $dh, $h->{'dir'} ) or return {};
         foreach my $name ( readdir $dh ) {
             next if $name !~ m|\A[A-Z2-7]{77}\z|;
-            my @st = stat "$h->{'dir'}/$name";
+            my @st = CORE::stat "$h->{'dir'}/$name";
             next if not @st;
             $stat{$name} = {
                 qw| size |  => $st[7],
@@ -811,7 +811,7 @@ sub holder_trash_days {
         opendir( my $dh, "$h->{'dir'}/.trash" ) or return {};
         foreach my $d ( readdir $dh ) {
             next if $d !~ m|\A(?:[0-9]{14}\|\d{4}-\d{2}-\d{2})\z|;
-            my @st = stat "$h->{'dir'}/.trash/$d";
+            my @st = CORE::stat "$h->{'dir'}/.trash/$d";
             $day{$d} = unix_to_ntime( $st[9] ) if @st;
         }
         closedir $dh;
@@ -1502,8 +1502,8 @@ sub holder_put {
 
 1;
 
-#,,,.,.,.,,,.,,..,..,,...,..,,,..,,,,,..,,,.,,..,,...,...,,..,,,,,..,,.,.,,.,,
-#AYYLJWPXJCKJGIPJOUEY7VOBSI3OHGWFTABP5SWUX6XOAK7KXFWRI5RUNNHKMYFWJTEJFPUM7SDPG
-#\\\|OP6NVNRCC342GTDGVEZDJ4TUJMQ6LXZZBHK4H3XAPMPUJSHRRJM \ / AMOS7 \ YOURUM ::
-#\[7]EIPVZ7TK4E6AMP2236KP567PLJ4LF24UPLLXKUZA7IER3Z5C6CBY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,,,...,.,.,,,.,...,,..,,,,,,,,,..,,...,..,,..,,.,,,,,.,,.,,.,.,
+#634X75LZIW75SWU5OP42HYNYTDI525TMWXHGL7ZUUNAGH2FARN3TU2BDZUPPUN7UMVFPOW36LIWOS
+#\\\|TFPYGAURZ3ZKFH3THBMAZTBVJFUSRIVMW5P65STKYM6WUE25GQM \ / AMOS7 \ YOURUM ::
+#\[7]2JR73AWA7ZI5HCLCADM43JVOY7SQ73GFNAKVBZSYYR3VGMOQ5QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

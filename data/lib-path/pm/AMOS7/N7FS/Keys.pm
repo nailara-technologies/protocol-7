@@ -14,7 +14,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.NY76BDA |;
+our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.BD5I6LI |;
 
 @EXPORT_OK = qw| root_init root_open root_convert root_passphrase
     vault_note_load vault_note_save |;
@@ -217,7 +217,7 @@ sub _file_store {
 sub _file_load {
     my ( $path, %opt ) = @_;
     require AMOS7::N7FS::Seal;
-    my @st = stat $path or refuse( 'no root key file %s', $path );
+    my @st = CORE::stat $path or refuse( 'no root key file %s', $path );
     refuse('root key file is readable by others [ chmod 600 ]')
         if $st[2] & 0077;
     my $bytes = read_file($path);
@@ -319,8 +319,8 @@ sub root_convert {
 
 1;
 
-#,,,,,..,,,,,,..,,,,,,.,.,...,..,,,.,,,..,,,,,..,,...,..,,.,,,.,.,.,,,,.,,.,.,
-#L7IBEGXSOGKQBLTXW6ICKN6WWYV7NOJXAH3JQVUQH6FJ45COY7AVRZY3BVP5LDACZ5ECJDOFNBAA2
-#\\\|EEA6SUMXMPBYP3XQ2GTPBAZ76AHXGQTHOJJTIXWW7ETQNEU5JNW \ / AMOS7 \ YOURUM ::
-#\[7]UBD3MGY6GRSN5W2UMYMB7GYCZY27LODK4NWOW3BMEQV3AS477WAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,..,,,,,,,.,,...,.,.,..,,,..,..,,...,...,..,,.,.,,,.,,,.,,..,
+#L4WP4JLM2EMHVZ2N2UNBIVGDRYHFCFNWHCXWX3SLQONDLR433YRR3M53SAJCZXFMRO7TCZLY2RL5C
+#\\\|I6BUYGBFTNDNGVFXNJGHF3URJ6W3OARC7S42TAXS4RAQO77CD4Y \ / AMOS7 \ YOURUM ::
+#\[7]Q3SPLE4NICHV7IPH5WUKATQBID2US44US2PNFSFTOX6FMJ7TEMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

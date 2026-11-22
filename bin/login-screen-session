@@ -49,7 +49,7 @@ sub executable {
 
 ## the account is the euid v7 started us as : USER \ HOME are not set for ##
 ## the session user by the start, they are derived here                   ##
-my @pw = getpwuid($EUID);
+my @pw = CORE::getpwuid($EUID);
 fail('session user does not match euid')
     if not @pw
     or $EUID < 1000
@@ -86,7 +86,7 @@ my $runtime_dir = "/run/user/$EUID";
 $ENV{'XDG_RUNTIME_DIR'} = $runtime_dir
     if -d $runtime_dir
     and not -l $runtime_dir
-    and ( ( stat $runtime_dir )[4] // -1 ) == $EUID;
+    and ( ( CORE::stat $runtime_dir )[4] // -1 ) == $EUID;
 chdir($home) or fail('cannot enter home');
 
 my $root_path = File::Spec->rel2abs(
@@ -111,7 +111,7 @@ my $xauth_path
     "$username.Xauthority" );
 fail('xauthority missing or unsafe')
     if -l $xauth_path or not -f $xauth_path;
-my @xauth_stat = stat($xauth_path);
+my @xauth_stat = CORE::stat($xauth_path);
 fail('xauthority ownership or mode refused')
     if not @xauth_stat
     or $xauth_stat[4] != $EUID
@@ -170,8 +170,8 @@ kill 'KILL', keys %children if keys %children;
 waitpid( $ARG, WNOHANG ) for keys %children;
 exit $exit_code;
 
-#,,..,,..,.,.,,.,,.,,,,,.,,..,.,,,,,,,,,,,.,,,..,,...,...,..,,,,.,,.,,...,.,.,
-#YPCW7JJQBJRMAOOUKP6IY36J4WMIZHZ3RWOTZVLZACLIXLJ4YOYSCRYRK4BVTYJQ3X6EKA5KOLPPC
-#\\\|MAF4NENS5RYLXNR6SKZNZUN5ZNSZXWI6YW3FR6C4BKMT7EA2KCS \ / AMOS7 \ YOURUM ::
-#\[7]ED6NPH7UQ7D4BOVBF37TDTUXUC4YPVTJ7VGWNHU5KG4Z6LTEXIBY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,,..,,,,,..,,...,...,...,,..,..,,...,...,.,,,,,,,..,,,,.,.,.,
+#EZLABSF57PTKEICZCZAGZFDR3PYCUM6GZ7NCOS35NVMME2WRTEI2IEZHFKXYFUX3PAVKGV3CUP2FE
+#\\\|FQSNRANFOKAJSAGJD2KVBZLUXVXBR2D6TJ6KROJLIN4XQ6L6L6H \ / AMOS7 \ YOURUM ::
+#\[7]2LD6YKDAETO4YFIRTDRZRKYCSYP3N6QEX7MEYB7JZXYWLURTK4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

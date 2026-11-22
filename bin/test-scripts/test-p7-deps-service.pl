@@ -249,7 +249,7 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
     ## [ 5b ] what the running service uses : unit mtime vs its start ##
     my $show_start = File::Spec->catfile( $svc_sandbox,
         'show-ActiveEnterTimestamp.out' );
-    my $unit_mtime = ( stat($unit_path) )[9];
+    my $unit_mtime = ( CORE::stat($unit_path) )[9];
     write_file( $show_start, sprintf( "@%d\n", $unit_mtime - 60 ) );
     ( $exit, $out ) = p7_deps(qw| check-service |);
     check 'started before the unit changed : reported',
@@ -399,7 +399,7 @@ make_stub( $stub_dir, 'systemctl', $systemctl_stub );
     my $unit = File::Spec->catfile( $server_root,
         qw| usr lib systemd system Protocol-7.service | );
     check 'server : unit written with mode 0644',
-        -f $unit && ( ( stat $unit )[2] & 07777 ) == 0644;
+        -f $unit && ( ( CORE::stat $unit )[2] & 07777 ) == 0644;
     check 'server : no temporary unit file left',
         !glob( $unit . '.p7-deps.*' );
     my $nr = File::Spec->catfile( $server_root,
@@ -726,8 +726,8 @@ check 'missing unit logs exactly one level 0 line', level0_count(qr|^|) == 1;
 printf "\n: %d checks passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,.,,,,..,,,.,,..,...,,..,...,,.,,,,.,.,,,..,,...,..,,..,,.,.,.,,,..,,..,,
-#XWD44ABJQ3YZ7VE3UVHIAZNVZQCO67VWBFXFV664XTK6KWYFXLTHZMHUIYLS4CKQGBNXNQDAPVIY6
-#\\\|QDBOV6DZ7BC5RKEZ42LXJPR67PJ5O77Z4VAURUTPLRQGE7RZ4DL \ / AMOS7 \ YOURUM ::
-#\[7]MEF5WUXBEEXJS25UEUHL5AI4TIVZKYILS6KEET54JQFAOZJTH6DI 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,.,.,,,..,,.,,,..,,,..,.,,,..,,..,,...,...,...,...,.,.,...,.,,,
+#H5VQRRIEWFPKTGZWBZFBORMGSAKAA44WR7MOLOWYASKFZVAWVJA7KSI42GZNGCDFHVKUUIYGJH6IE
+#\\\|SEG4R3S46F46BTDEC4K7H62DW3DF7D3CITKPB2NG7AJQNG2OEYX \ / AMOS7 \ YOURUM ::
+#\[7]U2Z6ONDS3ZBHJ4TU3VYS7NI337VO56C6N33ANEVVDE3FZMYHUSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

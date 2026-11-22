@@ -123,7 +123,7 @@ if ( ref $provider->{'refresh_state'} eq qw| HASH | ) {
     return TRUE;
 }
 
-my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+my $home_dir = ( CORE::getpwuid($UID) )[7] // $ENV{'HOME'} // '';
 
 ## the home-relative known-good install is tried FIRST here -- reversed order
 ## from plugin.usage.kimi.refresh_token's identical-looking resolution on
@@ -257,8 +257,8 @@ $provider->{'refresh_state'}->{'timer_w'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,.,,.,.,,.,,...,..,,...,,,,,,,.,,..,.,,,,.,,..,,...,...,,.,,,.,,...,,,,,,.,,
-#KO6OCGUYYVYASYM7TGIROXUW7QW74W63M4EDQLY2VBJ5CD22SVGFKIHASRJAQYI74LY5BE6TXPTYC
-#\\\|CCGJ5KFGH66YW6D3L56MBIZ2ZEAJJZXXQGION63J5KJEAISZWKX \ / AMOS7 \ YOURUM ::
-#\[7]KLFH6FVJIEQNCYOW72WJDT4HQQXFAJ3YBELIMHABB4GKRUM2NQCY 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,,,,,,.,,,.,,.,,..,,...,,,,,..,,...,...,.,.,.,.,,.,,..,,,.,,
+#L4GYQYSXN4LML3TWQHTPGOHZJUPDMZOGVLSVIDWGU2HK7YQI2KWNQ7GZK7IB4GIB4LNVVIE4APE4Y
+#\\\|JAWJWQGDNO7KUEZJBJRYZASFJIT43KVXESMPWIPSKE6GBCZ2FMW \ / AMOS7 \ YOURUM ::
+#\[7]3KY5TP3FJLQ7AK3CUFAW65GLYZICQDK2GPEAA3KF4RJBZTBDZOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

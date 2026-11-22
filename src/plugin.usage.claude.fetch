@@ -33,7 +33,7 @@ return $report_failure->('claude usage provider is disabled')
     if not $provider->{'enabled'};
 
 ##  home directory of the unix user this zenka runs as [ never hardcoded ]  ##
-my $home_dir = ( getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+my $home_dir = ( CORE::getpwuid($UID) )[7] // $ENV{'HOME'} // '';
 
 return $report_failure->('cannot resolve home directory')
     if not length $home_dir;
@@ -123,8 +123,8 @@ if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
 
 return $req_id;
 
-#,,,,,...,...,,,,,.,.,.,,,,..,,.,,.,.,..,,,..,..,,...,...,.,,,,..,,,.,.,,,.,.,
-#DCIDO66OTE3PWKAQOUS4T4CNAWZVGJTFSOXZZFEXNJ257AQKJ2FB6PY6COU4Y56BU4A6UKYZLQMCO
-#\\\|VVLACVFFNEER7I2DRS42VVWKTTGYICYRWGRLZ4UZVNMBFZT7NT2 \ / AMOS7 \ YOURUM ::
-#\[7]RQQUI6ZZMGLXA3BJDBLHYOHKCNIYEX2JCPXYSMUMLIBF4VGHBCCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,.,,,,,,,.,.,,,..,,...,,.,,,,.,..,,...,...,,,.,,,.,...,.,.,,,.,
+#KIXPDZKKNP5P6XB2ZUV6CVV5WA3UU4IJ3AW4NMEDBU7GVDOVSUA445F7UP2DLMDJ77TVAOIXCKZLO
+#\\\|BOHJTU4GZH7XV4BHZAGE5TBEG5QAGO7LX4ALTLXEAXKYCYF4WUF \ / AMOS7 \ YOURUM ::
+#\[7]EQMXS4PCBHJWM2NNLRPDL4NFYI3ELPVG42KXQHRM6XG3CWDQ7WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -80,7 +80,7 @@ my $is_in_audiogrp  = FALSE;
 
 if ($uname_exists) {
     foreach my $grp (qw| tty input video audio |) {
-        my @entries = getgrnam($grp);
+        my @entries = CORE::getgrnam($grp);
         if ( not @entries ) {
             <[base.s_warn]>->( "cannot find unix group '%s'", $grp );
             return undef;
@@ -325,8 +325,8 @@ if ( not $ttys_req_perms ) {
 
 return TRUE;
 
-#,,..,.,.,,,.,.,.,..,,.,.,,,.,..,,,..,,,.,,..,..,,...,..,,.,,,,,.,.,.,,,,,,.,,
-#Q4XHCNUGUDHM5KGSI2NTXTY7RNEVPR6HTVZAI55Z4VOKZ2BZ4DHOYMAIO3Z3TFEDGGAN4OXFR76B4
-#\\\|FNDDQJT5INHNRYKSDT2KTBVZX2BEUH2ZRT4HHOIWYPNCOVE43NU \ / AMOS7 \ YOURUM ::
-#\[7]FVQSQ42YLHBQ6ZPEYIZJPNT2RHN3DIP6DXT5LYOXPJMSHDCASIDA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,.,,,.,,..,..,,,.,,..,,,,,,,,.,..,,...,..,,.,,,...,,.,,..,,.,.,
+#Q23XDOGF5B7E3JKKUD4TJM365RF3PW3RC2LNAYMA23JHKQRKG4QDYFWSFGVURT46RSLZFSTW2MDAE
+#\\\|5HBYWZCHABAJBSWWKKJRRIP5NJ5VXZCOKREK4VBQZEQ7CW6J4J5 \ / AMOS7 \ YOURUM ::
+#\[7]7WM43GRZ4N6VVA5XAIGN25ZYZW33YBZ2JWYXMPXSXDFNPJKYKIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -254,11 +254,11 @@ if ( $verb eq 'list' ) {
     foreach my $name (@entries) {
         my $full = "$path/$name";
         if ( $name =~ m|$NAME| and _safe_file($full) ) {
-            my @st = stat $full or next;
+            my @st = CORE::stat $full or next;
             say "f $name $st[7] $st[9]";
         } elsif ( _safe_dir($full)
             and ( $name =~ m|\A$TAG\z| or $name =~ m|\A$DAY\z| ) ) {
-            my @st = stat $full or next;
+            my @st = CORE::stat $full or next;
             say "d $name $st[9]";
         }
     }
@@ -767,8 +767,8 @@ if ( $verb eq 'delete' ) {
 
 out('unknown request');
 
-#,,..,.,,,,..,.,.,,.,,,.,,.,,,.,,,.,.,.,.,.,.,..,,...,...,,.,,.,.,.,,,..,,,.,,
-#ULJGPRB2GNGGI2UPYKPGMUGPMGMFQMSTK5O3FQIKFWJZQLFI6B6XG7YJLJZHUKWLDDSD6X344CN4S
-#\\\|5MRZUEPQGFJBGWGBOYONMWB7BSIMCNDKVDT67JOUZVNERGEV2VN \ / AMOS7 \ YOURUM ::
-#\[7]GL3RCKWM2SGZJF54AXZ4ZJRQHRPYQ6U6H6IOUHF6FAVIK5TOUKDY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,,.,,..,,.,.,,,.,,,,,,,,,.,.,..,,...,...,...,...,,,,,,.,,,,.,
+#IYYCSE33XASDOYO3QTXG72JM5H35K7HMKWB7KIP646RVUWERUB5IY5IU5ASD5KNU7AGONZY63AWV6
+#\\\|J4HGRLDLWTX4NYLYKCIPRS5EQAORGIKQOMGY3CIRBOKHZ6XU45F \ / AMOS7 \ YOURUM ::
+#\[7]PDZ3UVU6XIJUS5SM7T42V67GJPLSW5FRTYDCNDKQFBTYBOXNXQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

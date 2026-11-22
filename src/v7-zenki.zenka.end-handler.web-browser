@@ -35,7 +35,7 @@ chmod( 0644, $file_name )
     or warn
     join( qq| : |, $file_name, scalar <[base.format_error]>->($OS_ERROR) );
 
-my @pwn = getpwnam($web_browser_uname);
+my @pwn = CORE::getpwnam($web_browser_uname);
 
 chown( $pwn[2], $pwn[3], $file_name )
     or warn
@@ -43,8 +43,8 @@ chown( $pwn[2], $pwn[3], $file_name )
 
 return TRUE;
 
-#,,,,,,..,.,,,.,,,.,.,,..,,,.,,,,,,..,.,.,.,.,..,,...,..,,,..,,,.,,.,,,.,,,.,,
-#WVHCR6WZY4R2JVBIOPCMYIX7A33NQBMRZLNSJRF4WW5VINOZOMDXESGVWQXXXCYYDCHVAGX47YAYK
-#\\\|KM3JGTXJ67XJCKLPZGXCMW5AGZVHOXAKVOJFAAUCDFBOCEPKTSH \ / AMOS7 \ YOURUM ::
-#\[7]6M3ZAI5A7G5ZIIAQUVJW72ZAD3JAVN4HDWBWXCIC5PSMQGSAMCAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,..,,,,.,...,,,,,..,,...,...,..,,...,..,,.,.,..,,..,,.,,,,,.,
+#AI5VFZ3EX7I6FNHZNLW65AKLFATPT5T5DDMZX4H3KED2MEM5UYATZLVZ2LAHTEO2CVMCI6JZKHACU
+#\\\|RZ7EUBE5OEMUMZIXZJYMLAB2VFA22YB2OY2YLIDTDLFNIDVRK3B \ / AMOS7 \ YOURUM ::
+#\[7]PO4RCUQ7SRPZPII3MK7YBS4X5LOI2Y5VOAP5NI4BKMZOXQOQS2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

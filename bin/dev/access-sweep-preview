@@ -160,7 +160,8 @@ sub command_universe {
     my @raw;
     if (    -r $cache
         and -r "cfg/zenki/$name/zenka.v7"
-        and ( stat $cache )[9] > ( stat "cfg/zenki/$name/zenka.v7" )[9] ) {
+        and ( CORE::stat $cache )[9]
+        > ( CORE::stat "cfg/zenki/$name/zenka.v7" )[9] ) {
         open( my $cfh, '<', $cache ) or die "$cache : $!";
         chomp( @raw = <$cfh> );
         close $cfh;
@@ -194,7 +195,7 @@ my @devmod_cmd_names
     = sort map { my $f = $_; $f =~ s|^.*/devmod\.cmd\.||; $f }
     glob 'src/devmod.cmd.*';
 
-die "no src/devmod.cmd.* files " . "found -- wrong cwd ?\n"
+die "no src/devmod.cmd.* files found -- wrong cwd ?\n"
     unless @devmod_cmd_names;
 
 ## faithful port of src/base.parser.access_conf token compilation [         ##
@@ -245,7 +246,7 @@ sub compile_token {
     return ( undef, 'empty-after-processing' ) unless length $cmd;
     my $completed_re = sprintf '^%s$', $cmd;
     my $compiled     = eval {qr{$completed_re}};
-    return ( undef, "regex-compile-error " . "[$completed_re] : $@" )
+    return ( undef, "regex-compile-error [$completed_re] : $@" )
         unless $compiled;
     return ( $compiled, undef );
 }
@@ -316,7 +317,7 @@ sub show_universe {
     my $universe = shift;
     say "== universe : $zenka [ modules.load-aware via p7-sourcecode ] ==";
     say '  ', scalar keys $universe->%*,
-        ' network commands [ ' . 'bare name <- source key ]';
+        ' network commands [ bare name <- source key ]';
     foreach my $bare ( sort keys $universe->%* ) {
         say sprintf( '  %-24s <- %s', $bare, $universe->{$bare} );
     }
@@ -327,10 +328,10 @@ sub show_universe {
         @devmod_cmd_names;
 }
 
-## commands base.init_code disables on every non-cube zenka [ the 'remove   ##
-## some commands for non-cube type zenki' block + whoami + present [        ##
-## present survives only on weather ] -- absent from the runtime <base.cmd> ##
-## dispatch table, so absent from live `commands` output ]                  ##
+## commands base.init_code disables on every non-cube zenka [ the 'remove ##
+## some commands for non-cube type zenki' block + whoami + present        ##
+## [ present survives only on weather ] -- absent from the runtime        ##
+## <base.cmd> dispatch table, so absent from live `commands` output ]     ##
 my %RUNTIME_DISABLED = map { $_ => 1 } qw(
     time exit ntime clear bmw-L13 term-all last-sid epoch_v7 timestamp
     ntime-dec localtime epoch-num session-key amos-chksum when-present
@@ -366,8 +367,9 @@ sub read_zenka_conf {
     while ( my $line = <$fh> ) {
         chomp $line;
         ## strip trailing comment BEFORE continuation handling so that '... ##
-        ## \ ## comment' continues [ real files use this shape, e.g.        ##
-        ## letsencr ] ; '#' mid-token [ '#000013' ] is not a comment        ##
+        ## \ ## comment' continues                                          ##
+        ## [ real files use this shape, e.g. letsencr ] ; '#' mid-token     ##
+        ## [ '#000013' ] is not a comment                                   ##
         $line         =~ s|\s+#.*$||;
         $line         =~ s|\s+$||;
         next if $line =~ m|^#|;
@@ -393,8 +395,8 @@ sub read_zenka_conf {
         $cfg{$key} = exists $cfg{$key} ? "$cfg{$key} $value" : $value;
     }
 
-    ## expand <template.vars> against same-file keys [ e.g. p7-log's ##
-    ## <devmod.subs> ], a few passes for nesting                     ##
+    ## expand <template.vars> against same-file keys             ##
+    ## [ e.g. p7-log's <devmod.subs> ], a few passes for nesting ##
     foreach my $key ( keys %cfg ) {
         for ( 1 .. 4 ) {
             last unless $cfg{$key} =~ s|<([^<>\s]+)>| $cfg{$1} // "<$1>" |ge;
@@ -548,8 +550,8 @@ if ( $opt{check} ) {
 
 exit 0;
 
-#,,,.,..,,,,.,,..,,,.,,,,,.,.,,,,,...,,,.,.,,,..,,...,...,..,,,.,,,,,,...,..,,
-#IMJR54OE4OB2TGD5JQRT7TTQAO6JMFREA3PR3WV6TFCRC4DKBAMFASBZXC2M44WSLPMJCD4VZPT5K
-#\\\|2GL37M35MSK3B4H6C6A36P3I4FW2UIZKRXJATSSDWQOXEZ4ODZG \ / AMOS7 \ YOURUM ::
-#\[7]VTW62P2I64VMJNXCBLZRATEWEHAST5I6DU3TVHQZFPWIDSMJ6IBY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,,,.,,,.,,,.,...,..,,,,,,...,..,,...,...,,.,,,,,,,,.,,,,,,.,,
+#O3MSLDX3RJA5XLPENN57M6MBOMVBYHAJ4V4EBHQUKNIHBHIECKPDD5BVONMQWZE7CLDL3AE4ARR2U
+#\\\|E4AMPR2VKEBYGYRB4GENDKKSFOK7SBM23ZF6WEHTAK4CE5YXPQP \ / AMOS7 \ YOURUM ::
+#\[7]QT3BZCEBNLRLQQGSPTLK5Y7WP3ZGKA7Y2I7JUBDPVJXMWPQEVWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

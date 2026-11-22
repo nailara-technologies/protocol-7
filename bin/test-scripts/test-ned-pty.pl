@@ -74,7 +74,7 @@ sub read_bytes {
 }
 
 sub file_mode {
-    return ( stat(shift) )[2] & 07777;
+    return ( CORE::stat(shift) )[2] & 07777;
 }
 
 ## the ned child on a pty : the real bin/ned, hermetic clipboard ##
@@ -276,7 +276,7 @@ unlink $rescue_files[0] if @rescue_files;
 
 my $forged = "$tmp_dir/forged.txt";
 { open my $fh, '>', $forged or die; print $fh "aaa\n"; }
-my @orig_stat = stat($forged);
+my @orig_stat = CORE::stat($forged);
 
 ( $status, $output ) = run_ned(
     qw| forged |,
@@ -434,8 +434,8 @@ check( 'no temp files left behind in the target directory', @leftovers == 0 );
 say sprintf '=== %d/%d ned pty tests passed ===', $tests_passed, $tests_run;
 exit( $tests_passed == $tests_run ? 0 : 1 );
 
-#,,..,.,.,,.,,.,,,..,,,,.,,,,,,..,.,,,,.,,,..,..,,...,...,.,.,,,,,,..,,..,.,.,
-#OQLNLU5KVIMEDAL4YZA2ZQDFCC6SDVZHGUJWJHYM7KJXLOGL75E2ENQFTFAFS7QJAFK5GY7G5NXFY
-#\\\|RXSJIRVA646Z45YQSWNHUXLQYP2SVTQSMGOCEAMH7RDKXNMWGA2 \ / AMOS7 \ YOURUM ::
-#\[7]2SU4OD6QKYPKU232CGVAZGFCY33RD3PRQ6L3WOHUXHPKSIEW76DQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,..,,,.,..,,.,.,.,,,..,,..,,,,,,..,,...,...,...,.,.,.,,,.,.,.,,,
+#6SIW4XDEZU4244KVCAWAMYEQCHGYHE4GYRMGU3FA45WE6Y3TV7HBDHPKEF66MAOPEJ7J4UOZPKRJ4
+#\\\|GQATWJSVAWGDNVVZ6SLEKML3VCE3GSMTNKZYHRHENY7FE3QF3DB \ / AMOS7 \ YOURUM ::
+#\[7]PSLGGA6DOFEGS2R7NSNC7HDQ2JFWZ3RVMA5DJRH5W37A3HFW4MBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

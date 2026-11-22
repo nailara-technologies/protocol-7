@@ -49,7 +49,7 @@ my $chats = parse_chats( $content, $opt_format );
 ## Generate output filename
 my $output = $opt_output
     // "/data/backup/external-ai/external-chats-$opt_format-"
-    . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
+    . strftime( "%Y%m%d-%H%M%S", CORE::localtime ) . ".yaml";
 
 ## Ensure directory exists
 system(   "mkdir -p /data/backup/external-ai "
@@ -76,7 +76,7 @@ print "\n✓ Exported " . scalar(@$chats) . " chats to: $output\n";
 ## Also save to external
 my $ext_output
     = "/mnt/ext-xfs-data/backup/external-ai/external-chats-$opt_format-"
-    . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
+    . strftime( "%Y%m%d-%H%M%S", CORE::localtime ) . ".yaml";
 copy( $output, $ext_output ) if -d '/mnt/ext-xfs-data/backup/external-ai';
 
 ##===========================================================================##
@@ -202,8 +202,8 @@ USAGE
     exit(0);
 }
 
-#,,..,.,.,,,,,,,,,.,.,.,,,,.,,,,,,.,.,.,,,,,,,.,.,...,...,.,,,.,.,.,.,,,.,,.,,
-#WTX7SZORNYKUF3AKDS3KJMSLYJUO7ZVOC7S75EHLATMIZAZ5P7YEKRQ2NOO2JBLEW36O3ZX7WRDBG
-#\\\|SHQQ43ARY5Q7PBJUMXYKD67BSMJCVGDEPEMX76E6OUZSLGOM47G \ / AMOS7 \ YOURUM ::
-#\[7]OFXHWE6KOLAM5PWZJG6SNNUHTNFK7XJ6V3UNCC2NRSTOZHAORKCA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,..,,,.,,,,,,..,,,,,,.,,,..,,.,.,...,..,,.,,,.,,,.,,,.,.,,,.,
+#KO4MIXBYMLOCSMK5I6WFQEWAYQ5GC4BMCVVXJPTOJJJQZAY5DGFA7UOE2NM7F5K7L3NDHTK63GGYK
+#\\\|GYOEN5M5DISJADTXAWP5RS243JB7NN65YJM2IIS4IOJDKFZS7UH \ / AMOS7 \ YOURUM ::
+#\[7]VHICYJR4SKDRWTIH555INXTIASRAKBWGSHWCYJ7LKZ6NJGOKW4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

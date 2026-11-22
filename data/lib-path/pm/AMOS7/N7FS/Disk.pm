@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Disk-VERSION.GTRT4FA |;
+our $VERSION = qw| AMOS7::N7FS::Disk-VERSION.NBH53MY |;
 
 @EXPORT_OK = qw|
     disk_init
@@ -235,7 +235,7 @@ sub store_key_signer {
 ## -- informational
 sub _device_info {
     my $path = shift;
-    my %info = ( qw| st_dev | => ( stat $path )[0] );
+    my %info = ( qw| st_dev | => ( CORE::stat $path )[0] );
     if ( open( my $fh, '<', qw| /proc/self/mountinfo | ) ) {
         my $best = '';
         while ( my $line = <$fh> ) {
@@ -794,8 +794,8 @@ sub disk_status {
 
 1;
 
-#,,,,,.,,,.,.,...,...,...,..,,..,,.,,,..,,,,,,..,,...,...,..,,,,,,,.,,..,,,,.,
-#YDXGSFKUSSQOQQXXYLXBPEFHTMLJAASC6A25N4UKFKJYYFVU63AZKCCBHLFJVBGQIBXFM7UE3BV5O
-#\\\|HSMDSQ2HW6ECZJWWUDVZXFDUHATLMTFIFTDBXZ5NXWOZP665RYM \ / AMOS7 \ YOURUM ::
-#\[7]ZNHKZ4DUV7EEZTRO2KUVH2DGXZC3G2ZIIW445COAAOJZ6JNK2QCA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,,,.,,,,..,,.,,.,.,.,.,,..,,,,,..,,...,...,,,.,...,...,,.,,,,.,
+#MYS4EMKGS5LVD42MY4QIZSHQYD3YPE44MGM34SDROJKZJE5JIHKLU7RSALPTUTYBHTEZQE4NNU3CA
+#\\\|UCD2CWV5Z5H5M26R736QHFAZIPYU57RH6QK5VYITKBQHH3XXBRZ \ / AMOS7 \ YOURUM ::
+#\[7]JRGAHVEBD6N6GGNTXPGILZ3LMEOBYHZ5OSQJ6JYDBCL63BLWMMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

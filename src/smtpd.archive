@@ -13,7 +13,7 @@ my $msg_id    = $parsed->{'message_id'} // '';
 my $hash      = <[smtpd.internal.message_id_hash]>->($msg_id);
 
 ## date-based subdirectory ##
-my ( $sec, $min, $hour, $mday, $mon, $year ) = gmtime(time);
+my ( $sec, $min, $hour, $mday, $mon, $year ) = CORE::gmtime(time);
 my $ymd     = sprintf '%04d/%02d/%02d', $year + 1900, $mon + 1, $mday;
 my $day_dir = join qw| / |, $store_dir, $ymd;
 
@@ -102,8 +102,8 @@ if ( scalar( <smtpd.mail_index>->@* ) > $max_index ) {
 
 return $parsed;
 
-#,,,.,,,,,.,.,,,.,,,,,,,.,.,,,,,,,,,,,,,,,,,,,.,.,...,.,.,..,,.,,,,.,,.,,,,,.,
-#ZFVMWGXYSP2P2TGVEID4LR6BA6JQ6XD3DJ7O3455W2ILOBO4REO3DRXFA4VC4KSNQN7AK2CZYGRX6
-#\\\|QC4YWGQ2CKFIZW5C5DZQCEAJ7IHZYFMTM7JKN5NHSJETYEZB2PK \ / AMOS7 \ YOURUM ::
-#\[7]JSLPOEGQB5FHXI4YHZKXYVQ3HYZGKYBB54WFGUYEBEIY7OONX4AA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,..,,..,,..,,,,.,...,.,,,,.,,.,.,...,...,.,,,,,,,,.,,,.,,.,.,
+#7CGZPZTVHPMTNUVOGRFNFEHW5H4GVY6TRBWNWQLWDQHJQPH3LZBSDBJFTEJMCSCCIGNPKPTIGOUSO
+#\\\|2FQKCPVQ6DVYNFIJB3XEF6MQKH5O42RXFHHI2AXMCCVZLRZJ4FB \ / AMOS7 \ YOURUM ::
+#\[7]B73YJBX5W66F2IHVEE7SDG3VWRXHCEA2DPGBUV5E2WFAOX6RFAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

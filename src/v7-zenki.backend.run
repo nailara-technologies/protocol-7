@@ -20,7 +20,7 @@ my $backend_user = <system.amos-zenka-user>;
 return ( undef, 'no backend user [ system.amos-zenka-user ]' )
     if not defined $backend_user
     or not length $backend_user;
-my ( $backend_uid, $backend_gid ) = ( getpwnam($backend_user) )[ 2, 3 ];
+my ( $backend_uid, $backend_gid ) = ( CORE::getpwnam($backend_user) )[ 2, 3 ];
 return ( undef, "backend user '$backend_user' not known" )
     if not defined $backend_uid;
 
@@ -42,8 +42,8 @@ if ( $EUID != 0 ) {    ## [ untested : needs a real root run ] ##
 }
 return @result;
 
-#,,,.,,.,,,.,,.,,,,..,,.,,,,.,.,,,.,.,,,.,..,,..,,...,..,,,,.,..,,,,,,,..,,.,,
-#ETYP47FPXNNOOTS7KFSZRP7PYRBURJK4PHSWEPXUIKS3KUV7S3VDKMFXHX4KPFW22LXJVSQFQFV32
-#\\\|2O4HVKF5INOTIDZ37EW56GAWS4EAKQONEH2JJHOJXCI3ESH4KPR \ / AMOS7 \ YOURUM ::
-#\[7]BUZYYR7QKQGJQJLQPDGUPWC3YCKZJYN3N3EQFQ2LN5CI4FTO7KBY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,,.,,,.,,,..,,..,..,,.,,,..,,..,,...,...,.,.,,,,,.,,,,,.,,..,
+#5OZNLCAYBFFXXFXMXB32FCH5LJKZ4MUYRAHXOXVD76QZHEPCXLNIZEFHJLQS6EZJICRS7XKFGGECO
+#\\\|IVUC4MJO3Q7HDBZZ24FNHAJWFMPQVA6WEVUNX3WOWCHAK7BZ55B \ / AMOS7 \ YOURUM ::
+#\[7]TKCIJR5R53HDOGZKMR7OFGMB7YKCMSZWRFRHOSSH2ZYP4QYNRCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

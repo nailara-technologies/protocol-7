@@ -39,7 +39,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Sign-VERSION.TUDE3II |;
+our $VERSION = qw| AMOS7::N7FS::Sign-VERSION.W5MXALI |;
 
 @EXPORT_OK = qw|
     seed_signer
@@ -115,7 +115,7 @@ sub key_file_write {
 ## refuses a key file readable by group \ others
 sub key_file_signer {
     my $path = shift // refuse('no key file');
-    my @st   = stat $path or refuse( 'no key file %s', $path );
+    my @st   = CORE::stat $path or refuse( 'no key file %s', $path );
     refuse( 'key file %s is readable by others [ chmod 600 ]', $path )
         if $st[2] & 0077;
     my $text = read_file($path) // refuse( 'cannot read key file %s', $path );
@@ -202,8 +202,8 @@ sub _run {
 
 1;
 
-#,,..,,..,,.,,,,.,.,,,,,,,,..,...,..,,,,,,,..,..,,...,...,..,,,,,,.,.,,..,.,.,
-#BW2LVWOHD6W3W4VJDCMRNZPU27LB4JARJBWKSAXNQWWCDVLLBB6EYUIHWBLN4LYOLZVUVTKX5WTRS
-#\\\|VZWVW4YYAPC62RUPO7FKUMEED4J7O5ITQLQLKFWSGAUVCKMORHB \ / AMOS7 \ YOURUM ::
-#\[7]COI6Y5AEEL5H3HJ2BGUUN4DNNFOMHOMOEVNZQVM7TQIC2BNE6GAA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,,.,,,..,,.,,,..,.,.,...,,.,,..,,...,..,,,.,,,,.,..,,..,,,,.,
+#OZRNCALRMDC56Q5DMKXVYQFAEOY665WTUOFJL5HAB5WGIGKGQ3BMUUOZQMP6COWHVMDCEE3U6IQFQ
+#\\\|EGRL6XEY4PXLVK43TVKUZL4SXE5Q5RYAMMIJCOE3GQCC4IEJMKU \ / AMOS7 \ YOURUM ::
+#\[7]T5OHZW5JAYQP2RX5IRZBVLXJFSVGXDJX5FGY7BMFAQSB3HD4GECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

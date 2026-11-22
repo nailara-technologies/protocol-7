@@ -4,10 +4,10 @@
 # descr = returns unixtime of next midnight
 
 my $unix = time();
-my $yday = [ localtime($unix) ]->[7];
+my $yday = [ CORE::localtime($unix) ]->[7];
 
 my $incr = 1;
-while ( [ localtime($unix) ]->[7] == $yday ) {
+while ( [ CORE::localtime($unix) ]->[7] == $yday ) {
     $incr = 10  if $incr == 1   and $unix =~ m|0$|;
     $incr = 100 if $incr != 100 and $unix =~ m|00$|;
     $unix += $incr;
@@ -15,8 +15,8 @@ while ( [ localtime($unix) ]->[7] == $yday ) {
 
 return $unix;
 
-#,,..,,.,,...,,.,,,,.,...,,.,,,..,,.,,.,.,,,.,..,,...,...,...,,..,,..,..,,.,,,
-#L57P5FW67ENJHCUUXGINHTADFBHC2XC24FNTK2G23KTJG6VNRFLPVX2FMTLIFQGRWGVSGNVYJWKJ4
-#\\\|OZ3RJNKYXEA6J6IIOQAAMLZMBATOOOY7J65MIIPMASYXAWA45KO \ / AMOS7 \ YOURUM ::
-#\[7]JQ4WJEIKMEXLMZ4N7B3XQPY6UGLTOIOXGL56SGGBGWD4V2SSSQAI 7  DATA SIGNATURE ::
+#,,..,,,.,...,..,,...,.,,,,.,,.,.,.,,,..,,...,..,,...,...,,..,,,,,,.,,,,.,,,,,
+#WV47PGWLW5KBLYEMHUFKD3IUKPVPGHK4S3NGIC7KMUTWAXAH6PE4IKKGR3GPZDLDKW7N4KSVZRWQ6
+#\\\|XGU3LIQZZD2MUHVFC7IJWURVUM3WQVG5MGKAG3LSOM4ICDV2MAR \ / AMOS7 \ YOURUM ::
+#\[7]LAEIUK5RV2GPFJ6QOEUD654I2XR7YHNQATAQDOIHS5DN3ATJW4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

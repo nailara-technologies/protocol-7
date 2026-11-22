@@ -52,7 +52,7 @@ my $args   = {
     'gid'        => $GID,
 };
 ok( $compiled->($args), 'writer creates an xauthority file' );
-ok( -f $xauth && ( ( stat($xauth) )[2] & 0777 ) == 0600,
+ok( -f $xauth && ( ( CORE::stat($xauth) )[2] & 0777 ) == 0600,
     'xauthority mode is 0600' );
 
 open( my $read, '<:raw', $xauth ) or die;
@@ -108,8 +108,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $checks, $failed;
 exit( $failed ? 1 : 0 );
 
-#,,,,,...,,,.,.,,,..,,.,.,..,,..,,,,.,,..,.,.,..,,...,...,,,.,,..,.,,,,.,,.,.,
-#TRX5J3OIGOOX4YQUKQHZGU6K5M5A7RR4M4PGVN5BN2Y7CWM3BITOVWTRULXSIUPRKETSIUFMYOMDS
-#\\\|KIRAD4JRUFOE4QZM4O3AN7UITWRZJZXKDUVBNHEJPPE3YLT6642 \ / AMOS7 \ YOURUM ::
-#\[7]VZI2ET6YIBGDXLQUGT746YCRQRCV524TBY5VGGLES635RZB7HCBA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,.,,,,,,,.,.,.,..,,..,,.,,,,,.,..,,...,...,,..,,.,,...,,.,,,.,,
+#7USKRK37JI3L3MSCR5UONYWAIMN6AC77MXFEZJGZX3ZDPMY7PTJTRZIEFBIMNFK7I6EMJ6XOIGZ54
+#\\\|G6MOJ3EOS3BFLJNGVCVNEOAM4ROFPWYUWD6SIUXZQAHQAW7JWKP \ / AMOS7 \ YOURUM ::
+#\[7]U7L5TIAYW2JFCKNY5INWINU5WGZDM5FFN2ZYWFNBGLCYO2ARA6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

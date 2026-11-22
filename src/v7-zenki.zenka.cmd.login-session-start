@@ -26,7 +26,7 @@ foreach my $iid (<[v7-zenki.instance_ids]>) {
     };
 }
 
-my @pw = getpwnam($username);
+my @pw = CORE::getpwnam($username);
 return { 'mode' => qw| false |, 'data' => 'invalid login account' }
     if not @pw
     or $pw[2] < 1000
@@ -84,8 +84,8 @@ if ( not $sent ) {
 }
 return { 'mode' => qw| deferred | };
 
-#,,,,,,.,,.,.,.,,,,,,,,,.,,.,,,.,,,,,,...,,,,,..,,...,..,,.,.,,.,,,..,,.,,...,
-#3BAH46JHUWI6OSURPJZDWL7XSNOFADEJYTT5Q4RYO5MLTSFYG6OFKX34JQJX7ZJWB7SGBR76XFSDU
-#\\\|YWXCT3MWWFUQIN3GSMIDUB26POFAFV2N5R7LLIGPIYLL4FAI4WJ \ / AMOS7 \ YOURUM ::
-#\[7]DO2N5PPBW53DXZFY7M5SGMOR5MCGKS6GC2YGVZYNLNOHJQXSEWBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,.,.,..,,..,,,,,,,..,.,.,,,.,..,,...,...,...,...,,.,,,..,,.,,
+#TXK4SPHB4GDHYOM4C6MDKDDQC5KG3PTL2HJQNOQJOY2AWFQPKHHLRQN347NO64C5TGSU6XU5AXQYA
+#\\\|YR5E7UOXCGA6LLQB2PO7E7TCLWIR7AJ2S3FKGQ377GZ6MPVRVUL \ / AMOS7 \ YOURUM ::
+#\[7]HAKNQ3ZWVK6KOELRFBMJT3GLHPLZJ2O7KUL3UAMJV7C3TJLOPWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

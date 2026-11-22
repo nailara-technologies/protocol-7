@@ -139,7 +139,7 @@ $r = repair($german);
 is_str( $r->{'state'}, 'clean', 'correct german is clean' );
 is_str( $r->{'text'},  $german, 'text untouched' );
 
-for my $plain ( 'Straße', 'Müller GmbH', 'café « ' . 'crème » ¿qué?',
+for my $plain ( 'Straße', 'Müller GmbH', 'café « crème » ¿qué?',
     'ASCII only' ) {
     is_str( repair($plain)->{'state'}, 'clean', "clean : $plain" );
 }
@@ -184,13 +184,13 @@ my $wide      = mojibake('Büro') . ' 10 €';
 my $wide_copy = $wide;
 $r = repair($wide);
 is_str( $r->{'state'}, 'irreversible',
-    'char above 0xFF mixed ' . 'in : irreversible' );
+    'char above 0xFF mixed in : irreversible' );
 is_str( $wide, $wide_copy, 'input string not clobbered [ encode failure ]' );
 
 ## a lone continuation pair that does not form valid utf-8 ##
 $r = repair("Ã\x{85}\x{85}");
 is_str( $r->{'state'}, 'irreversible',
-    'invalid utf-8 ' . 'sequence : irreversible' );
+    'invalid utf-8 sequence : irreversible' );
 
 ## a real 'ß' before nbsp is valid utf-8 as bytes [ U+07E0 ] : the  ##
 ## signature does not take it for a lead, nor the result for german ##
@@ -200,7 +200,7 @@ is_str( repair( mojibake($nbsp_text) )->{'text'},
     $nbsp_text, 'ß + nbsp mojibake : restored exactly' );
 $r = repair( mojibake( $nbsp_text, 2 ) );
 is_str( $r->{'text'}, $nbsp_text,
-    'ß + nbsp double ' . 'encoded : no over-repair' );
+    'ß + nbsp double encoded : no over-repair' );
 is_str( $r->{'passes'}, 2, 'ß + nbsp double encoded : two passes' );
 is_str( repair( mojibake('Büro') . " Groß\x{A0}GmbH" )->{'state'},
     'irreversible', 'mojibake mixed with a real ß + nbsp : irreversible' );
@@ -240,7 +240,7 @@ is_str(
     'industry restored'
 );
 ok( !exists $check->{'fixed'}{'notes'},
-    'non text field [ ' . 'notes ] left alone'
+    'non text field [ notes ] left alone'
 );
 ok( !exists $check->{'fixed'}{'city'}, 'clean city not in the fix list' );
 ok( !grep( { $job->{$ARG} ne $before{$ARG} } keys %before ),
@@ -425,7 +425,7 @@ $text = Encode::decode( 'UTF-8', $report->{'data'} // '' );
 is_str( $write_count, 3, 'apply : three jobs written' );
 ok( $text =~ m|backup : (\S+)|, 'apply : backup path in the reply' );
 my $backup = $1 // '';
-ok( -f $backup && ( ( stat $backup )[2] & 07777 ) == 0600,
+ok( -f $backup && ( ( CORE::stat $backup )[2] & 07777 ) == 0600,
     'apply : backup file exists, mode 0600' );
 
 my ( $tar_xz, $tar_data );
@@ -450,19 +450,19 @@ ok( $tar->get_content('jobs/review/1.yaml') =~ m|\\x80|,
 is_str( YAML::XS::LoadFile( job_file( 1, 'review' ) )->{'title'},
     $german, 'apply : active job repaired on disk' );
 is_str( $store_job->{'title'}, $german,
-    'apply : in-memory ' . 'store record repaired' );
+    'apply : in-memory store record repaired' );
 is_str( $store_job->{'last_modified'},
     'V7WRITTEN',
     'apply : store record stamped [ next sync push carries it ]' );
 my $deleted = YAML::XS::LoadFile( job_file( 3, 'deleted:V7AAAAA' ) );
 is_str( $deleted->{'description'},
-    'Prüfung', 'apply : deleted ' . 'job repaired' );
+    'Prüfung', 'apply : deleted job repaired' );
 is_str( $deleted->{'deleted_epoch'},
     'V7AAAAA', 'apply : deleted job kept in its epoch bucket' );
 ok( !-d "$jobsite/jobs/deleted/V7NOWNOW", 'apply : no new epoch bucket' );
 is_str( YAML::XS::LoadFile( job_file( 4, 'trash:V7AAAAA' ) )->{'company'},
     'Bäckerei', 'apply : trash job repaired' );
-is_str( ( stat job_file( 1, 'review' ) )[2] & 07777,
+is_str( ( CORE::stat job_file( 1, 'review' ) )[2] & 07777,
     0604, 'apply : file mode kept' );
 is_str( YAML::XS::LoadFile( job_file( 6, 'review' ) )->{'title'},
     mojibake('für'), 'apply : status mismatch job untouched' );
@@ -488,8 +488,8 @@ if ($fail_count) {
 say ':: all tests passed';
 exit 0;
 
-#,,..,.,.,.,.,,..,...,.,,,..,,,,,,..,,..,,..,,..,,...,...,.,,,,..,,..,,.,,.,,,
-#SX2QSP7GYDIEU4X44TADWSWJBHBD27TFNC5C62VTQTSIVAENDDW7A6WWJA6XY3RXQ4N2GSNDPH5R6
-#\\\|VN3UTYHTEEBGGRBIADOVDFONMDPGMCYZQBNEJXI6EKHUBFGCGGF \ / AMOS7 \ YOURUM ::
-#\[7]ZJEMCDAJGKVWLHML2OFYCFDEDRD3A6X5NH3KXZ27MN5IIQFZREAI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,..,,.,.,.,,,,..,...,.,.,...,..,,...,..,,,..,,.,,,..,..,,.,,,
+#NABKI4Z7WVKB7SNIIBOPXU2CGCJI6I7NTNLCAXSEMUMVUP6FACSSKAT65KLFDO2NE2UC57YTOJXXY
+#\\\|5FSGLGUC6QKZOM7WNCU43TXSJWCLMFWWA4YJ54V7IUVUPUZ3NE5 \ / AMOS7 \ YOURUM ::
+#\[7]YL6V5U3BBTLN6VMMEHDL6DNE2PRXDQ5NEZ5GGCD752UQDJPNBIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

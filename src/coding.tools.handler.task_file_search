@@ -157,7 +157,7 @@ if (@filename_matches) {
 
         for my $m ( sort { $b->{'mtime'} <=> $a->{'mtime'} } @$list ) {
             my $ts = POSIX::strftime( qw| %Y-%m-%d |,
-                localtime( $m->{'mtime'} ) );
+                CORE::localtime( $m->{'mtime'} ) );
             $output .= sprintf "  %-5s  %s  %-45s  %7d  %s\n",
                 $m->{'ext'} || '?',
                 $ts,
@@ -172,7 +172,8 @@ if (@content_matches) {
     $output .= sprintf "## content matches [%d files] ##\n",
         scalar @content_matches;
     for my $m ( sort { $b->{'mtime'} <=> $a->{'mtime'} } @content_matches ) {
-        my $ts = POSIX::strftime( qw|%Y-%m-%d|, localtime( $m->{'mtime'} ) );
+        my $ts = POSIX::strftime( qw|%Y-%m-%d|,
+            CORE::localtime( $m->{'mtime'} ) );
         $output .= sprintf "  %-5s  %s  %-45s  %7d  %s\n", $m->{'ext'} || '?',
             $ts,
             $m->{'name'},
@@ -192,8 +193,8 @@ if ( not @filename_matches and not @content_matches ) {
 
 return $output;
 
-#,,,,,,.,,.,,,..,,..,,...,..,,,..,,,,,,.,,,,,,.,.,...,...,,..,,..,,..,,,.,.,,,
-#57NBHIY2SSMTOUKWVAHQULYTPVN3R4GVPOGQ5SNZKBDI33ENQDLSEUTBPQSFC5V5ECF6TUFSF74LQ
-#\\\|PU64I5RZ4W64I3DSIKLUPALH2QN3P24ZKQYGV7X766GYIU3XYND \ / AMOS7 \ YOURUM ::
-#\[7]GBLUBSEHMKAL6EX7Y2H5VT6WWDQDSQXDFZBBVLU6AJH6PY2QRQAQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,..,,.,.,..,,,,.,,,,,,.,,,,.,,.,,.,.,...,...,..,,...,.,.,...,..,,
+#2GP5HB6QFLV6ZCFTXSUCMBZTOQDUESXJ7R7G44QCS2TCMFEQVKA6XSQ44F7IME3T4J7GA6IDJHV2E
+#\\\|EOVJPDHASWR3ELSPNXUXISIZGJG4VQBZ3DLOY4UDJIK6KTKYSTQ \ / AMOS7 \ YOURUM ::
+#\[7]7MVDKAYVZPPO37FWN6VNQLMQWXENQMYHZWEU5LEOQJHZPSQYXOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

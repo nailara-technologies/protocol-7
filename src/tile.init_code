@@ -14,7 +14,7 @@
 };
 
 ## configuration path owner ##
-( undef, undef, my $uid, my $gid ) = getpwnam(<system.amos-zenka-user>);
+( undef, undef, my $uid, my $gid ) = CORE::getpwnam(<system.amos-zenka-user>);
 
 <tile.cfg_directory>   //= qw| /etc/protocol-7/zenki/tile |;
 <tile.setup_file_name> //= qw| base |;    ##  <-- default config name  ##
@@ -50,7 +50,8 @@ if ( not -d <tile.cfg_directory> ) {
             "creating config directory '%s'.. [%s]",
             $cfg_dir, $perms
         );
-        my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+        my ( undef, undef, $uid, $gid )
+            = CORE::getpwnam(<system.amos-zenka-user>)
             or die "user '"
             . <system.amos-zenka-user>
             . "' not in passwd file";
@@ -269,8 +270,8 @@ push @{ <system.callbacks.initialized> //= [] },
 
 0;
 
-#,,..,.,.,.,,,,..,,.,,.,.,,..,,..,,..,.,,,,,,,..,,...,...,..,,.,.,,,,,...,..,,
-#LYJY3LYB5T7P3AHRI3AL6F23PN35UY3OPJFW5C6ACW7CDIV6IO4P3V7T5T6LLU4J3MD6DVBX4JUDC
-#\\\|PDM6JHR6ZMVTUR27DDBESJ67ML57LOAQ7TSHXNW5J3AYI4R5UYQ \ / AMOS7 \ YOURUM ::
-#\[7]FCSN5SNFGBJH2SDQD5QXS4MGHFSRMYHHAIOEH6CISSED7E5BE2CA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,..,,..,.,.,,..,...,..,,,,.,,,.,..,,...,...,...,..,,,..,.,,,.,,,
+#RQHAK5T46UYESW5LKSAIMW6NZXJTBBWB5DN4KPQVPKIJWSD2YW6J3W5BQEP5SWUOQULZI4ATZ63OG
+#\\\|GNPAHZMYUWFQSOWIHFIMZ36DHNOEL7Y36HYPKNOAAPRZYVUEC5G \ / AMOS7 \ YOURUM ::
+#\[7]LHYYVFVDTET2BYK2VJI4IIMU5KZHSO6Q3VCCN5SINTOHXMK4NIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

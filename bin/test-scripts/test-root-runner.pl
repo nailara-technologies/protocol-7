@@ -87,7 +87,7 @@ finish() if not $have_runner;
 my $as_root = ( $EUID == 0 or $UID == 0 ) ? 1 : 0;
 my ( $run_uid, $run_gid )
     = $as_root
-    ? ( getpwnam('nobody') )[ 2, 3 ]
+    ? ( CORE::getpwnam('nobody') )[ 2, 3 ]
     : ( $UID, ( split m| |, $GID )[0] );
 die "no 'nobody' user to run as\n" if not defined $run_uid;
 
@@ -389,13 +389,13 @@ expect_refused(
 ## _private_group -- a broken one would change the expectation too          ##
 my $private = 1;
 {
-    my $members  = ( getgrgid $run_gid )[3] // '';
-    my $run_name = getpwuid($run_uid)       // '';
+    my $members  = ( CORE::getgrgid $run_gid )[3] // '';
+    my $run_name = getpwuid($run_uid)             // '';
     $private = 0
         if grep { length($ARG) and $ARG ne $run_name and $ARG ne 'root' }
         split m|\s+|, $members;
     setpwent();
-    while ( my @user = getpwent() ) {
+    while ( my @user = CORE::getpwent() ) {
         $private = 0
             if $user[3] == $run_gid
             and $user[2] != 0
@@ -479,7 +479,7 @@ if ($as_root) {
     );
     chown $run_uid, $run_gid, "$deps/backend/fakefam.pm";
 
-    my $tmp_uid = ( stat $tmp )[4];
+    my $tmp_uid = ( CORE::stat $tmp )[4];
     chown $other_uid - 1, -1, $tmp;
     expect_refused( 'dir above the lib root owned by a third uid',
         qr|p7-root-runner-\w+' is owned by uid \d+ \[ expected root| );
@@ -503,15 +503,15 @@ if ($as_root) {
         "root runner : family '$real' from detect_os, not 'fakefam'"
     ) or say "         [ got '$child->{'status'}' ]";
     ok( stop_runner($child) == 0,
-        'root runner : clean ' . 'exit [ no install sent ]' );
+        'root runner : clean exit [ no install sent ]' );
 } else {
     say ': [ not root : the root-ignores-test-family check is skipped ]';
 }
 
 finish();
 
-#,,.,,,..,,.,,,,.,...,,,,,.,.,,,.,.,,,,,,,.,,,..,,...,...,...,.,.,...,.,,,.,,,
-#TUNIUHMSAZ7HOCN7FXWJ2QP343Z7VOHOVZVNRFEIB6ZNXMHXKIO643SM37S2DCDIYOODXAVT4XLXK
-#\\\|5KYD62QU3BT5SZBKGCKN7FU7ALMJLKVGIOVEP24QPFXFBG2Y2UU \ / AMOS7 \ YOURUM ::
-#\[7]PQY5TYC5XUBAHMXBJB7FS7ZIWRBTWN54COPAEH7TCUTBSZXN3ODI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,..,,.,.,.,.,.,.,...,,..,.,.,.,.,..,,...,...,.,,,,..,,,,,,.,,..,,
+#SEHGOIF4GBFDL6PMCQTBRV7IDBWSA5XANFNQ2C7NYWSAUCTUSAZQJ5FZT4DMZDA2VPKLJSHTHO7LS
+#\\\|W56AMVCE5RJVDLHF5VSBNAYGS66SRRO7CNBCLILA4UTZMBHNZ7D \ / AMOS7 \ YOURUM ::
+#\[7]AQY2UZDUL5TVTAN2CD26QKQLY2KAVK2YY2OLWMWMUQGCHH4U6KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

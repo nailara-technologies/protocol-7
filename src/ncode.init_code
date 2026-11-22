@@ -85,7 +85,7 @@ if ( <system.zenka.name> eq qw| ncode | ) {
     <ncode.cfg.drop_privs_user> = <system.amos-zenka-user>;
     ## default: zenka's own group [ no-op in drop_privs ] ##
     my ( undef, undef, undef, $zenka_gid )
-        = getpwnam(<system.amos-zenka-user>);
+        = CORE::getpwnam(<system.amos-zenka-user>);
     <ncode.cfg.drop_privs_admin_group> = getgrgid($zenka_gid) // '';
     if ($assume_admin) {
         my $root_stat  = File::stat::stat( <system.root_path> // '' );
@@ -126,8 +126,8 @@ if ( <system.zenka.name> eq qw| ncode | ) {
 
 return TRUE;
 
-#,,..,,..,...,...,.,,,...,,.,,..,,...,,.,,.,.,.,.,...,..,,.,.,...,.,.,...,.,,,
-#6DNSFT7322LTXOAPJNMMTD5ZSWOL3N2BDR3ZET5NJYQEIIQR4THR6QMNDU76APO4IA5637NBZJ2KO
-#\\\|4VF7U5JZVJBO3QYINJICWFSKEEPXJ7MG4H6SPXAHOL7UVYGE2RD \ / AMOS7 \ YOURUM ::
-#\[7]EBIYP4DQOOE7UW74UNSW2OKJT2BIC5ZTJPG5IXK5GASPKQLB6SAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,.,,,..,,,.,...,,..,,..,,,.,,.,,.,.,...,..,,...,.,.,...,.,,,...,
+#VDNQN4AD6C3I5EBGVROHBVYVFFJPOIR5273HAL2BYPVPZFVRNWC7XCQAB37VTFOFKUYEQTK32FEJQ
+#\\\|NYUDHPTNNC2LVAPUJCF5QPTII72OQ6L3YGPRJGH4GDZPXPIDCQT \ / AMOS7 \ YOURUM ::
+#\[7]KWWXZSHETEJLOFYJNT3VKDTOS6XBQ7OSTYBAGGG6ZJGEBWFGGYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

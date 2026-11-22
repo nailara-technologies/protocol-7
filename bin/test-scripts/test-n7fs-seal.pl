@@ -229,8 +229,8 @@ cli(0,             'unseal named tree', '-root-key', $rootfile,
 );
 ok( read_file("$tree_target/node-3") eq read_file( $paths[3] ),
     'tree operand restores verified content' );
-my @source_stat = stat $paths[3];
-my @tree_stat   = stat "$tree_target/node-3";
+my @source_stat = CORE::stat $paths[3];
+my @tree_stat   = CORE::stat "$tree_target/node-3";
 ok( ( $source_stat[2] & 07777 ) == ( $tree_stat[2] & 07777 )
         and $source_stat[9] == $tree_stat[9]
         and $source_stat[4] == $tree_stat[4]
@@ -586,8 +586,8 @@ cli( 1, 'cascade refused rather than ignored',
 
 done();
 
-#,,..,,.,,,,.,..,,..,,,,,,.,.,...,,.,,,,,,,.,,..,,...,...,.,,,.,.,,,.,,,.,,.,,
-#JMWPEZ675R6X6U2YKLQ43VYQWWZTOESYT537N4UNCVSXU2LQJJXDGLRJK7OADQFZXU46EUFF5YLBK
-#\\\|QC4ILOOY4JNR3KAU4VJQGC5SGFUO4NYKTQNNMIGRX4IYDUVZ5VX \ / AMOS7 \ YOURUM ::
-#\[7]AXSSECH66NGG3FR6CRN4JRIUERZTFKCUD7IPWL4XAYIJPXIM5ECI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,,..,..,,,,,,.,,,,..,,..,,.,,..,,...,...,,,,,,..,..,,,.,,..,,
+#S65JJVWTQQ2W33GMPCMVYZCQZJDW2GPPMTG6HGGM5LRXMABW5IGNP2P6ZWLX25LEBVUGTFMTSJ5IW
+#\\\|D7UVIRHHILHW6DTFCHZ4RGY3C5UHU7YENZ6MWSFMBN5OIW4PZKV \ / AMOS7 \ YOURUM ::
+#\[7]BI27GJFRMRMDLX2PGHWAHNLFYUGHL7PWJVZGEHV6UR6VMUNY6QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,20 +11,21 @@ use bytes;
 ## auth-keypair v2 + link-upgrade binding END TO END [ in-process ] [       ##
 ## 2026-10-06, data/md/design/AUTH-LINK-BINDING.md + HOST-ROOT-DELEGATION   ##
 ## .md ] : the REAL server modules and the REAL client modules talk to each ##
-## other over a socketpair : fork, the CHILD drives auth.auth_select [      ##
-## incl. the REQUIRED host-root delegation 4th field ], plugin.auth.        ##
-## auth-keypair, base.handler.auth, base.handler.command [ the binding gate ##
-## ], cube.cmd.link-upgrade, protocol.protocol-7.link-upgrade.init,         ##
-## base.handler.link-upgrade and base.session.register_authenticated with a ##
-## tiny read -> handler -> write loop ; the PARENT runs the REAL            ##
-## auth.client.auth-keypair.authenticate + protocol.protocol-7.link-        ##
-## upgrade.handshake against it [ incl. the REAL trust.statement \          ##
-## trust.verify \ trust.key_id delegation check + the host-root pin store   ##
-## ]. covers : success + pin file, a pinned re-run, a different host-root,  ##
-## a rotated S under the same host-root, an unknown client key, an eph-key  ##
-## tamper relay, a replayed auth line, the pending command gate and a       ##
-## link-complete without client sig. no zenka started, restarted or         ##
-## reloaded, no network, no real key dirs [ throwaway keys + tempdirs ].    ##
+## other over a socketpair : fork, the CHILD drives auth.auth_select        ##
+## [ incl. the REQUIRED host-root delegation 4th field ], plugin.auth.      ##
+## auth-keypair, base.handler.auth, base.handler.command                    ##
+## [ the binding gate ], cube.cmd.link-upgrade,                             ##
+## protocol.protocol-7.link-upgrade.init, base.handler.link-upgrade and     ##
+## base.session.register_authenticated with a tiny read -> handler -> write ##
+## loop ; the PARENT runs the REAL auth.client.auth-keypair.authenticate +  ##
+## protocol.protocol-7.link-upgrade.handshake against it [ incl. the REAL   ##
+## trust.statement \ trust.verify \ trust.key_id delegation check + the     ##
+## host-root pin store ]. covers : success + pin file, a pinned re-run, a   ##
+## different host-root, a rotated S under the same host-root, an unknown    ##
+## client key, an eph-key tamper relay, a replayed auth line, the pending   ##
+## command gate and a link-complete without client sig. no zenka started,   ##
+## restarted or reloaded, no network, no real key dirs                      ##
+## [ throwaway keys + tempdirs ].                                           ##
 
 use File::Spec;
 use Cwd        qw| abs_path |;
@@ -203,8 +204,8 @@ my $srv_root_key_dir = "$home/keys/root";
 $code{'crypt.C25519.root_key_dir'} = sub { return $srv_root_key_dir };
 
 ## client identity signing : the explicit base key name is recorded ; the ##
-## pair itself is a throwaway in-memory stand-in for the real key files [ ##
-## never touches ~/.n/ ]                                                  ##
+## pair itself is a throwaway in-memory stand-in for the real key files   ##
+## [ never touches ~/.n/ ]                                                ##
 my ( $client_sign_pub, $client_sign_priv );
 my @client_signed;
 $code{'crypt.C25519.sign_data'} = sub {
@@ -455,9 +456,9 @@ sub server_child_main {
             'input'     => { 'handler' => qw| base.handler.command | },
             'read-mode' => qw| linewise |,
 
-            ## the real state 3 init arms encrypted framing + event        ##
-            ## watchers : outside this plaintext wire test [ the wire ends ##
-            ## at link-complete-ok ]                                       ##
+            ## the real state 3 init arms encrypted framing + event ##
+            ## watchers : outside this plaintext wire test          ##
+            ## [ the wire ends at link-complete-ok ]                ##
             'init' => sub { return TRUE },
         },
     };
@@ -628,7 +629,7 @@ if ($clean) {
         'handshake : shared_secret returned [ 32 bytes ]'
     );
     ok( ( $hs_data->{'nonce_sid'} // 0 ) > 0,
-        'handshake : ' . 'nonce_sid returned'
+        'handshake : nonce_sid returned'
     );
     ok( $client_signed[-1][1] eq 'test-c.base',
         'client_bind_sig signed with the explicit base key name' );
@@ -655,13 +656,13 @@ if ($clean) {
 }
 
 say ': pin file';
-ok( -f $pin_path,                              'pin file exists' );
-ok( ( ( stat $pin_path )[2] & 07777 ) == 0600, 'pin file mode 0600' );
+ok( -f $pin_path,                                    'pin file exists' );
+ok( ( ( CORE::stat $pin_path )[2] & 07777 ) == 0600, 'pin file mode 0600' );
 my $pin_is_fp = read_pin() eq $host_root_fp . "\ntest-host.cube\n0\n";
 ok( $pin_is_fp, 'pin file : host-root key id + the leaf name' );
 ok( length $host_root_fp == 77,
     'host-root key id is 77 chars [ bmw384 b32 ]' );
-my ( $pin_mtime, $pin_inode ) = ( stat $pin_path )[ 9, 1 ];
+my ( $pin_mtime, $pin_inode ) = ( CORE::stat $pin_path )[ 9, 1 ];
 
 ######################################################################
 say ': second run against the SAME pinned home';
@@ -685,8 +686,8 @@ ok( $R2->{'authenticated'} eq qw| yes |,
 );
 my $pin_after_rerun = read_pin() eq $host_root_fp . "\ntest-host.cube\n0\n";
 ok( $pin_after_rerun, 'pin unchanged : content' );
-ok( ( stat $pin_path )[9] == $pin_mtime
-        && ( stat $pin_path )[1] == $pin_inode,
+ok( ( CORE::stat $pin_path )[9] == $pin_mtime
+        && ( CORE::stat $pin_path )[1] == $pin_inode,
     'pin unchanged : not rewritten'
 );
 
@@ -1087,8 +1088,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,,,,,...,.,.,.,,,..,,.,,,...,,,,,.,.,,.,,..,,...,...,...,,..,,,,,,,.,..,,
-#ZS4DM6GNQD67WUJT6VQLRRN4AWGVBHSHKEHD4GXPPX6SLY3HJKLB776VJJEPVXPEEWFWS2LN7KER4
-#\\\|6RNWXEOV54NQ66HE5PEOQT3SLSBWISKFQQFW7ISR2GGQLNZGGLQ \ / AMOS7 \ YOURUM ::
-#\[7]SR7FB7PIGOHHZ47LZDZ56FVH4CG46MO7PCZGVYBF3VAACJ6ZLOBQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,..,,,.,,,,,..,,,,.,,,.,.,,,.,.,..,,...,...,..,,..,,,..,.,.,,,,,
+#FBFVNANZ6LUQ3ZWDB5ARDYN3FPZKU7OVPVMLC5DDWOJ46FBGTON45ORI6G2AAJ64DD7EWRK3VNWXC
+#\\\|32NBFT47CACK2Y6EXFE3C2F6LVZLGLXBYATTVHCLY3C7Z4HJWLU \ / AMOS7 \ YOURUM ::
+#\[7]RQYI3TOJT5LVZ7SRDBTCOA75B6NSGSNPTE7NYERL2XMOLQRNSYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

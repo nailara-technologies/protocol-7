@@ -21,7 +21,7 @@ use AMOS7;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::FILE-VERSION.7EBKAZA |;
+our $VERSION = qw| AMOS7::FILE-VERSION.W6AHXDQ |;
 
 @EXPORT = qw| create_dir_path |;
 
@@ -90,7 +90,7 @@ sub create_dir_path {
                 $param_owner );
             return undef;
         }
-        ( undef, undef, $uid, $gid ) = getpwnam($param_owner);
+        ( undef, undef, $uid, $gid ) = CORE::getpwnam($param_owner);
         if ( not defined $uid ) {
             warn_err( "owner %s not in passwd file", 1, $param_owner );
             return undef;
@@ -276,7 +276,7 @@ sub get_homepath {
         $user = getpwuid($user);    # given by uid
     }    # else provided as name .,
 
-    my @pwnam = getpwnam($user);
+    my @pwnam = CORE::getpwnam($user);
     $homedir = $pwnam[7];
 
     if ( @pwnam == 0 ) {
@@ -486,8 +486,8 @@ sub read_timestamped_multiline_recent {
 
 return TRUE ##################################################################
 
-#,,..,,,.,,,,,..,,...,,.,,,..,.,,,,..,.,,,..,,..,,...,...,.,.,.,.,,,,,..,,..,,
-#B3LSLOKEVE462XLECZSYXCHKH7OE5XA4UOLOENV5OVOF6XYR3KODSKIGVSOQPFVH7AGIFCDWTYJKU
-#\\\|K6UFWPSW54NTZQREHTOITVFEUT5MP6HONUOCSWAKX7CQU3VVVBN \ / AMOS7 \ YOURUM ::
-#\[7]F2BIHNJV2P2SWN4WQWLYVH7HKNHMP6A2C4EDKEOQU4NTVNYHL6DQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,.,,,..,,,..,,,.,,,,,,..,,.,,..,,...,...,...,...,.,.,...,...,
+#DBKXBIB63T7KODWCQFJLNSLZIDGWO6RKWZQH66SHUTJJ6ITBZ65XF4DQ6QRIDPBRTS6AIK5DJTLXK
+#\\\|Q7UPCSNLPIWXFXRHZOZT5RQG7BATHWFKTLRMHQNC3OGSFDEGHU3 \ / AMOS7 \ YOURUM ::
+#\[7]3T333RTMQHFJDWZ32M2HTT73VHPWTBCXXLEPCMXKS7XZHCMLYECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

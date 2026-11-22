@@ -105,7 +105,7 @@ warn_err(
 
 @EXPORT = qw| compile_inline_source $VERSION |;
 
-$VERSION = qw| AMOS7::INLINE-VERSION.TNKAMGY |;
+$VERSION = qw| AMOS7::INLINE-VERSION.4UR2HNI |;
 
 return TRUE;    ## true ##
 
@@ -520,7 +520,7 @@ sub prune_cache {
         next if defined $key and $key eq $current;
 
         my $object_dir = "$parent/$name";
-        my @stat       = lstat $object_dir or next;
+        my @stat       = CORE::lstat $object_dir or next;
         next if -l _ or not -d _ or $stat[4] != $UID;
         ## the 3-part form : only when old enough ##
         next if defined $key and $now - $stat[9] < $max_age;
@@ -530,7 +530,7 @@ sub prune_cache {
         my $lock_fh;
         if ( -e $lock_path or -l $lock_path ) {
             sysopen( $lock_fh, $lock_path, O_RDWR | O_NOFOLLOW ) or next;
-            my @lock_stat = stat $lock_fh;
+            my @lock_stat = CORE::stat $lock_fh;
             next if not -f _ or $lock_stat[4] != $UID;
             next if not flock $lock_fh, LOCK_EX | LOCK_NB;
         }
@@ -618,7 +618,7 @@ sub _build_slot {
         qw| error | => sprintf "build lock '%s' : %s",
         $lock_path, $OS_ERROR
         };
-    my @lock_stat = stat $lock_fh;
+    my @lock_stat = CORE::stat $lock_fh;
     return { qw| error | => "build lock '$lock_path' is not a plain file"
             . ' owned by this user' }
         if not -f _
@@ -778,7 +778,7 @@ sub _acquire_build_cap {
             "$parent/.build-slot.$slot_no",
             O_RDWR | O_CREAT | O_NOFOLLOW, 0600
         ) or next;
-        my @slot_stat = stat $slot_fh;
+        my @slot_stat = CORE::stat $slot_fh;
         next if not -f _ or $slot_stat[4] != $UID;
         return $slot_fh if flock $slot_fh, LOCK_EX | LOCK_NB;
     }
@@ -791,7 +791,7 @@ sub _builder_active {
     return FALSE
         if not
         sysopen( my $lock_fh, "$object_dir.lock", O_RDWR | O_NOFOLLOW );
-    my @lock_stat = stat $lock_fh;
+    my @lock_stat = CORE::stat $lock_fh;
     return FALSE if not -f _ or $lock_stat[4] != $UID;
     return TRUE if not flock $lock_fh, LOCK_EX | LOCK_NB;
     flock $lock_fh, LOCK_UN;
@@ -1055,8 +1055,8 @@ sub _src_digest {
 
 return TRUE ##################################################################
 
-#,,,,,,.,,.,,,.,,,.,,,,..,,,,,...,..,,.,,,,..,..,,...,...,..,,,..,.,.,...,.,.,
-#VCXM2CXTJ3BFWSCASWUFMZ3AJEIPZBVQ7DKO65ABYZBYX2KAETHXR6L3A22ZOLIW6RS3N5OLB7EXW
-#\\\|ILUBMCTX3KQC6XA4RW4YVWGVJTQHDWASS7GHHCDEMXSAFEJMT3K \ / AMOS7 \ YOURUM ::
-#\[7]FD4JAHZO46Y44R4PQRQ7ZBQTJDTVB6KW2HAI7V2A2KPPFYHF4MAA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,..,,,,,,.,.,,..,.,.,.,.,,,,,..,,...,..,,,..,.,.,,,.,,.,,,.,,
+#XWW6BA5U2AM3TC2FOLY5JAPMLJPPL5QR33LGT3QILU4HG6VZISAOWAOM5KZVRJH3LB6E74WAQP3WU
+#\\\|YZTFG33TB6V5B6E4XSUZYFF3EJZR2H7WYJT32SNFH6A4GJWI6XC \ / AMOS7 \ YOURUM ::
+#\[7]BL6AHSEKPTTR5U5EEEUJ5Y2GGMNLQ7XJOESQEEIYM5IVUAICKOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

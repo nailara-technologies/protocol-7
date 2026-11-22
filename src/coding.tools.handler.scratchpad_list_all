@@ -41,7 +41,7 @@ for my $e (@rows) {
         ? 'imported '
         . $e->{'imported'}
         : POSIX::strftime( '%Y-%m-%d %H:%M',
-        localtime( $e->{'tmp_mtime'} // 0 ) );
+        CORE::localtime( $e->{'tmp_mtime'} // 0 ) );
     $ts =~ s{\s+\S+$}{} if length( $e->{'imported'} // '' );
     my $files
         = ( $e->{'repo_files'} and $e->{'tmp_files'} )
@@ -60,8 +60,8 @@ push( @out,
 
 return join( "\n", @out );
 
-#,,..,...,.,,,,..,,.,,,.,,.,.,,..,,.,,,.,,,..,..,,...,...,..,,.,.,..,,.,.,.,,,
-#6YIK6LGZ2P4UAVNJIDFLQ4CJJ6UPXRSM6NUUQR5FUL22UI4HK7PBFKNKHGRCR7I5ZZLJXGEOLF6NQ
-#\\\|FFTK6Q6VNNXQDM6QSICRIMU2VFIP6T6PIZNXM5S4RJFJJXMNYE7 \ / AMOS7 \ YOURUM ::
-#\[7]5C46IKJVNF34NNHWBYFTNUCFY6P2EENAJPHQIJ72C5S32VGUVQCI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,.,,,...,,.,,,..,,,,,,,,,,.,,..,,...,...,...,..,,.,,,...,,,,,
+#GYKPM47JG7LPZCXAZZZWY6NQFOS2SNUZTRBQV2OIPSEO5FIVTXLTEUB7BGMMMYBM4JLBCLQLH3I3Q
+#\\\|JNKVM5SFNJ7F6LLJRNF3EUIGMFWPRRALFC2XH7PTJVQ2FKQOOYI \ / AMOS7 \ YOURUM ::
+#\[7]PTY5PFOIMPMIDJZRHI6EIKAIIH7KRZ7IQ5GSPETVF4HJSDG5ROCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

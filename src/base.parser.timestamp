@@ -13,7 +13,8 @@ if ( $mode =~ m|^(\d+)(\.\d+)?$| ) { $time = $1 and $mode = qw| time-stamp | }
 $time = <[base.n2u_time]>->($time)
     if length( int($time) ) >= 13;       ##  <-- network time ?  ##
 
-my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) = localtime($time);
+my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday )
+    = CORE::localtime($time);
 
 $year = sprintf( '%02d', $year + 1900 );
 $mon  = sprintf( '%02d', $mon + 1 );
@@ -27,8 +28,8 @@ push( @result, sprintf( qw| %02d:%02d:%02d |, $hour, $min, $sec ) )
 
 return join ' ', @result;
 
-#,,..,,,.,,.,,...,.,.,..,,,..,,,.,,,.,,.,,.,,,..,,...,...,.,.,.,.,..,,,,,,,.,,
-#HKN5W4AJ2MPKDJWHMZF2JOQMEJDJX2W2IQFLWLHE2TK2EYA4P3HWTEYJ5SOHFY4T2NLOXFOKBDC6C
-#\\\|PRVNBU2QVAPCR5KOO5QQNDFV4WBMBZ5CSYQKXAZFSRBVI5UYXXM \ / AMOS7 \ YOURUM ::
-#\[7]SLQ7Z26YGUVOIBVJXI65AV5MQBZE3KWJOMLRHECFTXEWOE3TYCBI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,,,,,,,,.,,,.,,.,,,.,,,...,..,,..,,...,..,,..,,,..,.,.,.,.,...,
+#V7AS3YA5WQGFPUIAH7NHBD4XQA2UGQU7IHV4ZKIAW4L5CNCO6KP3RLEYBRBGLFXPFPV4AYMQMMBBS
+#\\\|IVMEDX3ZBRRRK4JSMSB6KVVAPUOHVJJF32DPEVANLIWO5YAPRCN \ / AMOS7 \ YOURUM ::
+#\[7]D65XQYUVKUX6EGLYJXGRZNFVPRYEO6Q22FNGVHUTWB2XRTCYJUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

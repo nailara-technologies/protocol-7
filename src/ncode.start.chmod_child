@@ -16,14 +16,15 @@ return if not $allow_chmod or not $assume_admin;
 my $admin_group = <ncode.cfg.drop_privs_admin_group> // '';
 return if not length $admin_group;
 
-my $admin_gid = ( getgrnam($admin_group) )[2];
+my $admin_gid = ( CORE::getgrnam($admin_group) )[2];
 return if not defined $admin_gid;
 
 ## resolve admin user for privilege drop ##
 my $admin_user = <system.admin-user> // '';
 return if not length $admin_user;
 
-my ( undef, undef, $admin_uid, $admin_user_gid ) = getpwnam($admin_user);
+my ( undef, undef, $admin_uid, $admin_user_gid )
+    = CORE::getpwnam($admin_user);
 return if not defined $admin_uid;
 
 <system.path.perl_bin> //= <[base.get_path.perl_exec]>;
@@ -50,9 +51,9 @@ while ( my \$line = <STDIN> ) {
         ## grant group-write on directory ##
         my \$path = \$1;
         do { print "skip\n"; next } if not -d \$path;
-        my \$gid = ( stat \$path )[5];
+        my \$gid = ( CORE::stat \$path )[5];
         do { print "skip\n"; next } if not defined \$gid or \$gid != \$admin_gid;
-        my \$cur = ( stat \$path )[2] & 07777;
+        my \$cur = ( CORE::stat \$path )[2] & 07777;
         chmod( \$cur | 0020, \$path );
         print "ok\n";
     } elsif ( \$line =~ m|^create (.+)\$| ) {
@@ -63,7 +64,7 @@ while ( my \$line = <STDIN> ) {
         do { print "skip\n"; next } if -e \$path;
         ( my \$dir = \$path ) =~ s|/[^/]+\$||;
         do { print "skip\n"; next } if not -d \$dir;
-        my \$dir_gid = ( stat \$dir )[5];
+        my \$dir_gid = ( CORE::stat \$dir )[5];
         do { print "skip\n"; next }
             if not defined \$dir_gid or \$dir_gid != \$admin_gid;
         if ( open my \$fh, '>', \$path ) {
@@ -100,8 +101,8 @@ EOT
     <ncode.chmod_child.pid>, $admin_group, $admin_gid
 );
 
-#,,..,..,,,.,,..,,.,.,,,,,.,.,,.,,...,,.,,..,,..,,...,..,,.,,,,,,,.,.,,,,,,,.,
-#IPVD6UHAQ5RSIE4NPRZL7TCBWK2NS6GQ63JLV6OBEJR5ICHWVQSFIKI7QWRFVECQPBGAZUISEFW6M
-#\\\|RTENG4VEXPAATHXRPTZNY5SCWTSLMKAWEKBYMZUZDMBMVZVHV7Q \ / AMOS7 \ YOURUM ::
-#\[7]F7RPFRBD2ZBNBI2BPVM624PFBS5HF7DZMSTOT5UKDFTRFSM2U6CY 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,,,,,,.,,,..,..,,,..,.,,,..,,..,,...,...,...,,.,,,.,,,,,,,..,
+#AY7N5KRURCCW7CS5CGOMKM2XLWHAMWEMOBEDHMYGUDOG2YPGCDHYTCCP32I2X2Y2BNCNBQHWSQRAS
+#\\\|ABNVVETENA7LYWF6TQXQP6CKR2KSB356U277LQGIBHXDHNRZ2RK \ / AMOS7 \ YOURUM ::
+#\[7]GYFJ5F7MB2YEJB63HIAHCCTE2ESTQYOVH56NTOJV7KOJ7SHP7WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

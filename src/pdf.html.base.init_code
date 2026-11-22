@@ -20,7 +20,7 @@ my $cache_dir = <pdf.html.cache_dir>;
 my $perms = <pdf.html.cache_perm> // '0750';
 if ( !-d $cache_dir ) {
     <[base.log]>->( 1, "creating cache directory '$cache_dir'.. [$perms]" );
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     make_path( $cache_dir,
         { mode => oct($perms), 'uid' => $uid, 'group' => $gid } )
@@ -41,8 +41,8 @@ chdir($cache_dir) or die "chdir($cache_dir) : \l$OS_ERROR";
 
 0;
 
-#,,.,,.,.,.,.,,..,,,.,.,,,...,,..,,,.,,,,,.,.,..,,...,...,,,.,.,.,...,,,.,.,.,
-#H3FK5XPAIFNCO46PJUMBYVGSFLYA4QDLOHPUMG5BIOYK3MINCHDI7HZFSO4ARWH4QNTRQA55W5OJ6
-#\\\|73A2PU6XBFWJPLZ5IN3E6F2HLGJYCTZC56RYJGSGVUZDHTWOLNT \ / AMOS7 \ YOURUM ::
-#\[7]5F43LCGQ3HYSOLFCRTPPH4AUENLSE3ZQLYI7YUM4HFFOV7OEZGDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,.,,,..,.,.,,,.,,,.,,,,,,..,..,,...,...,..,,,,.,,,,,..,,,..,
+#EQXKK37OGLGUMRIA5HWXMAH73KGVZ6EZPGRYLMAVD5I6MELMIV6NCOJU2KDQLDOHSMDGI7V3WPJTC
+#\\\|KPDF37XRWC5CX6WOTO5RW6YLT6REDSDDN2DF7CZELFAA767IJCA \ / AMOS7 \ YOURUM ::
+#\[7]V6T5KOZ7BFDU7KP5YU7OK46K7RZIVHNLFUQ26HJASZSOMBY7IEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

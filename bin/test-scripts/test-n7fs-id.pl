@@ -75,7 +75,7 @@ ok( $parsed->{'payload'}{'intent'} eq 'n7fs id test [ test data ]'
 );
 
 my $keyfile = "$hdir/stores/$disk.store.key";
-ok( -f $keyfile && ( ( stat $keyfile )[2] & 0777 ) == 0600,
+ok( -f $keyfile && ( ( CORE::stat $keyfile )[2] & 0777 ) == 0600,
     'store key on the host side, 0600' );
 ok( !-e "$root/$disk/.n7fs/store.key", 'no secret key inside the store' );
 ok( state_read("$root/$disk")->{'store_format'} == 3,
@@ -461,8 +461,8 @@ sub remove_tree_all { AMOS7::N7FS::remove_tree(shift) }
 
 done();
 
-#,,.,,,..,.,.,.,.,,.,,,..,,,.,,..,,..,..,,,,,,..,,...,.,.,,.,,.,.,,,.,...,,..,
-#E7PIGKYMQ4XDHAPKUPUIILHDHHENWPONWACRYRWIN3M2UUZYYFNPPGB6IYHCNTORS5WULCBWX7BAQ
-#\\\|IUE4XWQG64Y4ZVQNO54T77A65SKAKXMS3QDLYAW5PZE5WPGHITB \ / AMOS7 \ YOURUM ::
-#\[7]7LTRNVC33W6M2P3YLP4SQTVGGKMCD7SZYXIUFODNL4IBSHB4MOBI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,..,,,,.,...,.,.,,.,,...,.,.,..,,...,...,,,.,,,.,...,,.,,,.,,
+#2GM73EC64TUM6YGSBJCWKY4E7J5TWFXDYIYDCAYQMD4BGD3SBMD7THAMFVQC77VOQZA556ANELW6U
+#\\\|JD4DBJ7W3FVDKFN6QZIYIOYLJWKWUFQ4RIHUFBKDUOSHPG6IWDC \ / AMOS7 \ YOURUM ::
+#\[7]4XYW7TLE7BCSYWVWRGJ5O2HYT6EXPU7PT4WKLFSLGFZIJFGU6ECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

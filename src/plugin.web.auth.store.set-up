@@ -18,7 +18,7 @@
 my $session_base = <[plugin.web.auth.session.path]>;
 my $owner        = <system.amos-zenka-user> // qw| protocol-7 |;
 
-my ( undef, undef, $owner_uid, $owner_gid ) = getpwnam $owner;
+my ( undef, undef, $owner_uid, $owner_gid ) = CORE::getpwnam $owner;
 if ( not defined $owner_uid ) {
     <[base.s_warn]>->(
         'plugin.web.auth.store.set-up : unix user %s does not exist', $owner
@@ -27,7 +27,7 @@ if ( not defined $owner_uid ) {
 }
 
 my $group = <[plugin.web.auth.store.group]>;
-my ( undef, undef, $group_gid ) = getgrnam $group;
+my ( undef, undef, $group_gid ) = CORE::getgrnam $group;
 $group_gid = $owner_gid if not defined $group_gid;
 
 my $is_root = ( $EFFECTIVE_USER_ID == 0 );
@@ -95,8 +95,8 @@ if ( not <plugin.web.auth.warned_old_store> and -d "$old_base/active" ) {
 
 return TRUE;
 
-#,,.,,..,,.,,,.,.,..,,,,.,,..,.,,,,,,,.,.,,,.,..,,...,...,.,,,.,.,.,,,.,,,,..,
-#DXSHAJYBU7LJKQWWAF3WXW74YKPZYXQ26KIULYMA2HWXEAQTTEYSUXT6AMP6EDTKP2EOA34M2TALO
-#\\\|YW7L5HUNY2VYMO7LSZLSWZBOE5KZTSRXKQO2MW6WL6APGNYDBNC \ / AMOS7 \ YOURUM ::
-#\[7]4ZQDCYFXPCD356AS5T7YOVILWMBSGEJ2K3VMDEQ2DK7NJZXUXGDY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,,,,,.,.,,,.,.,.,,,..,,.,,,,.,,..,,...,...,...,...,..,,...,...,
+#QWWNSGF5535M7IK4BA66ZVO6X3HOWF332WI37I4OIBGUGBS2CBWHKPZXT3SCIEBI7RMCCHLCQYIZY
+#\\\|NOQPLSJBNBDABDBFP3SNHCTJPJ7FDUFC7IXDAHU7OEALSTMBXJ4 \ / AMOS7 \ YOURUM ::
+#\[7]X2SYCM6XQNK2Q55AUNIIYPERRVRTQJ7XCJZGEQHKFMP4AVED2YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

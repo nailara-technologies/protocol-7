@@ -1353,14 +1353,12 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
         if ( exists <diag.cmd_anomalies>->{$cmd} ) {
             my $reason = <diag.cmd_anomalies>->{$cmd};
             $output->$* .= <[base.sprint_t]>->(
-                qw| MALFORMED_CMD |,
-                $cmd_id_str, $cmd, $reason
+                qw| LISBBDY |, $cmd_id_str, $cmd, $reason
             );
         } else {
             ( my $corrected_cmd = $cmd ) =~ s|\.cmd\.|.|g;
             $output->$* .= <[base.sprint_t]>->(
-                qw| CMD_HAS_DOT |,
-                $cmd_id_str, $corrected_cmd
+                qw| JHTBRRQ |, $cmd_id_str, $corrected_cmd
             );
         }
 
@@ -1384,8 +1382,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,,,,,,,,,,.,,.,.,.,.,...,..,,...,.,.,..,,..,,...,..,,,..,.,,,.,.,,..,,..,
-#LBGGVHKI7BE7NXPTSV7RVHOXJ5P77NJUMMYLCBH26JVHTB2ZBZDD6LPJDDT6B7IN5QE7FUIKGQKHI
-#\\\|XAXA3EITZPWSSJ3FQ7K7L6VI55WRKZUFIE6J65DFVPIVTOSZYSF \ / AMOS7 \ YOURUM ::
-#\[7]ZDSH2FTIW6LZGLETYICTCCAWKHAAVZ3H5BGJK4NYEXX7WT3R4CBQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,,,,.,,.,,,.,.,...,,,,,.,,,.,.,..,,...,...,.,,,.,.,.,,,,.,,..,,
+#WJ5KKHAAYYKDRFFFKZSKWV7QS6NEF6RMHFFRHUOZ5E4FSIMBT3UOGKFMYMWHFFLG7ZAIXN33LUX4O
+#\\\|ZI4SUFHGB2SRA7ZNP3KZCM2JWUWPD5Q3ELH2ADWVUUAN5JJP7RT \ / AMOS7 \ YOURUM ::
+#\[7]XKW3WWJIK74YF3UUYWT7DUJMJVUDAGLQNF35ZSPHUAXOVPE5TUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -75,7 +75,7 @@ return {
     }
     if $grant =~ m|\*|;
 
-my $home = ( getpwuid($EUID) )[7] // '';
+my $home = ( CORE::getpwuid($EUID) )[7] // '';
 return { 'mode' => qw| false |, 'data' => 'no home directory' }
     if not length $home or not -d $home;
 
@@ -160,8 +160,8 @@ return {
         . 'only, cube key pinned + authorized [ in effect ]'
 };
 
-#,,,,,,..,.,,,..,,...,...,,,.,...,.,,,.,,,.,,,..,,...,.,,,..,,,,.,...,,,.,,..,
-#225BEX6WYNIZVF2JQCWO2NLHJVSCFJAY67ZWN42XDKQ4XSGSIBBBTUUF4EZ4XL7E6KAZXTEKBLF72
-#\\\|J3QBNNSNMIPHRJXRHK2FCIQVCZTKYTTXGPBBMDWSKPZOFSJ4SCN \ / AMOS7 \ YOURUM ::
-#\[7]BZAA4GHNBZYGHFZDFB6OPYTSNT5CEPNIJGDZ3IPJTD6224NHPYBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,..,,,..,,.,,.,.,.,,,,.,,..,,..,,...,...,...,,,.,.,,,.,,,,,.,
+#STORGGB44FOW4JB6EI337UCCUW2WM45OFKVYEFWJYIJA5NKD6G5MU2BL2L4CBZHVSMNGNWONDHXKC
+#\\\|FUSRB3J5VQLYGRN76AUA3GIJTPMUZTAFF2VHP22BNAXV2MJWDKE \ / AMOS7 \ YOURUM ::
+#\[7]IGC3SQKYI6GHILV7BTTUNV43MWXJDI4AHXND7YJXBZFN4Y4TLSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

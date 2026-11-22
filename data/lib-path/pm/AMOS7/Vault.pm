@@ -30,7 +30,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::Vault-VERSION.D75HXTI |;
+our $VERSION = qw| AMOS7::Vault-VERSION.FG62EAY |;
 
 @EXPORT_OK = qw|
     vault_init
@@ -212,7 +212,7 @@ sub _dir_of { ( my $dir = shift ) =~ s|/[^/]+$||; return $dir }
 sub _own_like_parent {
     my ( $target, $path ) = @ARG;
     return if $EUID != 0;
-    my ( $uid, $gid ) = ( stat _dir_of($path) )[ 4, 5 ];
+    my ( $uid, $gid ) = ( CORE::stat _dir_of($path) )[ 4, 5 ];
     return if not defined $uid or $uid == 0;
     chown $uid, $gid, $target;
     return;
@@ -327,8 +327,7 @@ sub _kdf_line {
 sub _layer_keys {
     my ( $root, $salt, $label ) = @ARG;
     my $twofish
-        = hkdf( $root, $salt, qw| BLAKE2b_512 |, 44,
-        "$label " . "twofish-gcm" );
+        = hkdf( $root, $salt, qw| BLAKE2b_512 |, 44, "$label twofish-gcm" );
     my $chacha = hkdf( $root, $salt, qw| BLAKE2b_512 |,
         32, "$label chacha20-poly1305" );
     return ( substr( $twofish, 0, 32 ), substr( $twofish, 32, 12 ), $chacha );
@@ -504,7 +503,7 @@ sub _b32_file_text {
     ## every frame line space-prefixed, the payload closes directly with   ##
     ## ':.' [ a bare ':' line would announce more elements or metadata ] ; ##
     ## a blank line before and after                                       ##
-    my $text = join '', "\n .:[ $title " . "]:.\n", " :\n",
+    my $text = join '', "\n .:[ $title ]:.\n", " :\n",
         map( {" : $ARG\n"} @rows ),
         " :.\n", "\n";
     die "vault : base32 round trip failed\n"
@@ -1116,7 +1115,7 @@ sub blob_import {
     my ( $vault, $path ) = @ARG;
 
     die "vault : locked\n" if not defined $vault->{'key'};
-    my @before = stat $path or die "vault : cannot stat $path\n";
+    my @before = CORE::stat $path or die "vault : cannot stat $path\n";
 
     ## pass 1 : the name mac walks the content ##
     my $name   = _blob_name_of_mac( _blob_name_mac( $vault, $path ) );
@@ -1125,7 +1124,7 @@ sub blob_import {
 
     ## pass 2 : encrypt. the file changed between the passes -- size or mtime
     ## differ -- means the mac and the content would disagree : abort
-    my @now = stat $path;
+    my @now = CORE::stat $path;
     die "vault : $path changed while importing\n"
         if @now < 13
         or $now[7] != $before[7]
@@ -1427,7 +1426,7 @@ sub archive_write {
     my $salt = _random_bytes(16);
     my ( $nonce, $ct, $tag )
         = _cascade_encrypt( $vault->{'key'}, $salt,
-        "p7-vault-archive " . "$FORMAT",
+        "p7-vault-archive $FORMAT",
         _archive_ad($vault), $payload );
 
     my $bin = pack( q{a4 C N/a a16 a12 a16},
@@ -1629,8 +1628,8 @@ sub gen_password {
 
 1;
 
-#,,,.,,..,,,,,,,.,,..,.,,,.,.,.,,,...,,,.,,,,,..,,...,...,...,,,,,,..,...,,.,,
-#A6TDNWVPUJDCAVCUWWMTLK6ARFU3UXPEXJBVIDFVQZSK4IVGSRJRLJ2YJ544T5Y77UDS5G57G3RAW
-#\\\|O5W7RSJZS5GCEBRNTLEDAUNTKQFSTIVJ7EDOQF5X4L2IK2QM3AA \ / AMOS7 \ YOURUM ::
-#\[7]Q2RCONFBE2HIYJU22CHWWWRXTWXUJ67LBETJJXYEUH4A4NGBIEDA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,,,,,,,.,,,,,,,.,,,,,.,.,,,..,,..,,...,...,...,,,,,,.,,.,.,.,,,
+#6VUS46F5RMJYZJEP3RRVI2DN7L7VOGC3BHIF7HUBDXXYA5ENZ5T44HCIPXIKI65QCN4OUWE6JVLMU
+#\\\|GQARCOQ6NSS5IJHTKCWYHNDOEHT3VYZYCNZESHEAZFIZVCUFJ5P \ / AMOS7 \ YOURUM ::
+#\[7]5JE3DND54VNNNLA3PSKP3PGTWEII5G3XB4YQ6K2EVBJCFMRSTIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

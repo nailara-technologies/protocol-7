@@ -268,7 +268,7 @@ sub read_file_raw {
 
 sub file_mode {
     my $path = shift;
-    return ( stat($path) )[2] & 07777;
+    return ( CORE::stat($path) )[2] & 07777;
 }
 
 ##[ test 1 : C25519 sign/verify round-trip ]##################################
@@ -288,7 +288,7 @@ my $body_b32 = encode_b32r( $bmw_one->digest );
 
 my $ntime_b32 = ntime_to_b32( ntime_now() );
 my $bytes     = length($body);
-my $lines     = () = $body =~ /\n/g;
+my $lines     = () = $body =~ m|\n|g;
 my $header    = join ':', $ntime_b32, $bytes, $lines, $body_b32;
 my $sig_b32   = encode_b32r( Crypt::Ed25519::sign( $header, $pkey, $skey ) );
 
@@ -548,8 +548,8 @@ remove_tree($test_dir);
 
 exit( $fail ? 1 : 0 );
 
-#,,,.,,..,,,,,..,,.,,,...,..,,,.,,.,,,.,,,,,,,..,,...,..,,..,,,,.,,..,,..,.,,,
-#U5ZJZSKBZ6LOWJZOFKWQC6MBFGXLBLMDKEVAXLVIG6KVABJEX65JVUPYIUCQ4NEWGBK54PX55JLOI
-#\\\|UGE55KJZSBCBVKVFMMDZCHFDRKEM4E4NMJDTCC65YTYSK3O5B7P \ / AMOS7 \ YOURUM ::
-#\[7]MIJQAWX4OI75H7VTJXWI57JBARZW25H3TFGYQDKF4DMK4I6TUIBA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,,,,..,..,,.,,,,,.,...,,,,,.,.,..,,...,...,,..,,,.,.,.,.,,,,..,
+#A5MD5GLLEXV6MK5XSF2UEYAUVNAWNQFDC7OW3FGXZYVUWA6DMAXCTF4R3MRJAWE4OY5D3F5CONGY6
+#\\\|ZEXM3OEVU2LBVK3JCDEMK44ISWDJ6BBXT2IPRUPKT2PNLWTG3GB \ / AMOS7 \ YOURUM ::
+#\[7]BM54TCA6ASHYYCRRHX5TCNDSZLTFKZF37KESVWF536JWLEEYVIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

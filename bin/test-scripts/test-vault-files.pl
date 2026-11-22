@@ -301,7 +301,7 @@ ok( slurp("$dest/a.txt") eq 'alpha'
         && slurp("$dest/sub/c.bin") eq 'gamma',
     'export -d : the contents landed relative to the prefix'
 );
-ok( ( ( stat "$dest/sub" )[2] & 0777 ) == 0700,
+ok( ( ( CORE::stat "$dest/sub" )[2] & 0777 ) == 0700,
     'export -d : a new parent directory is 0700'
 );
 
@@ -520,8 +520,8 @@ SKIP_UNREADABLE: {
 say "\npassed : $pass  failed : $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,.,,...,...,,..,,,,,.,.,,..,,..,.,.,,,,,..,,...,...,...,.,.,.,.,,,.,..,,
-#N7HMMXU4TVFC32NVHDUVJJQL7SFUKC2PW3UWFVIZDG3OVKKBQA7LQ7QQRBMRZTBRLB72VPTA5PMVW
-#\\\|S25P2WR2SAP7UTNFXXGKBX3XYMCSRN36YLVO4U4EC7DHXX7WZ3F \ / AMOS7 \ YOURUM ::
-#\[7]ART2FR3FL6LPWNLVLRACAVWER6MSMM4TVD63K7DHCPKVUZPGTEDA 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,.,...,.,.,..,,...,,..,..,,,.,,..,,...,...,,.,,.,.,...,,..,.,,,
+#2YPKIBAGUGXAEQSFYEHIMND3RQ2JDEJFP2NIDIV3YVWPOK6TBNKQ7PJJGBUDXDZGZ7NMM5A2PPF3C
+#\\\|HA2HLICIDTV7PUULJUPMXWOUAFOHMOVKGZJLLTQAO5I757OLJXX \ / AMOS7 \ YOURUM ::
+#\[7]J5LIWVIZVD4YACED2VHGY4B46KMSMESTYKTT6NC7EUGFUTBRWADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
