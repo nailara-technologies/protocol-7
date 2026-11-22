@@ -5,6 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
+- [session-handover-place-httpsd-core-sweep](project-2026-11-22-session-handover-place-httpsd-core-sweep.md) — NEWEST, START HERE 2026-11-22 : tier A place running [ fast code ] ; httpsd signed files : https live test on yourum before zulum ; CORE:: sweep landed
+- [core-builtins-forked-children-https](feedback-core-builtins-forked-children-https.md) — CORE:: for list-form builtins ; forked children recompile stubs [ fix modules.load + whitelist ] ; test https through httpsd
 - [session-handover-host-prep-inline-config](project-2026-11-18-session-handover-host-prep-inline-config.md) — NEWEST, START HERE 2026-11-18 eve : power drivers, inline categories, AMOS7::Config ; servers clean on 68993003f
 - [session-handover-release-6-77-7](project-2026-11-18-session-handover-release-6-77-7.md) — 2026-11-18 pm : release 6.77.7, SEGV fix ; all 4 servers deployed clean
 - private notes : ~/.n/private-notes/ -- owner-private context lives there, outside the repo ; check it before asking
@@ -111,8 +113,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,.,,,.,.,.,,,..,,,..,.,,,,..,...,,,.,.,.,..,,...,...,...,,.,,,.,,,,,,,.,,
-#DXJRZDDDGW4TWOHYUGT24CRDC7L3QU4SHED2M5TB2HYBWHKP3LRQWCKVFNVTBZG4BZT3IBZDAMREM
-#\\\|X2FQ3JAEQ4BOI2U25QRUVIGWZEGUCXXMKZ7VVFOO5AL3JCPMLUD \ / AMOS7 \ YOURUM ::
-#\[7]VWNJJIVYGSB6MQQG5ZYSQ6AGHT24XPGNDKGJFIAH57SWALGEPSDY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,,,.,,,,,.,,..,..,,.,,,,,.,.,.,..,,...,...,..,,,..,,.,,,..,,..,
+#BTQQWYJELWYTBHZJQR5OERATJQ4Y5XJUWVWE27VP24ALTPTZDSSKR5NVNHDCGLFECHY7UAZVAMWDE
+#\\\|BQ6O5WKAPTOB53H53EB4OQIZBS4LSSUYVNHTJWVEQ6MTHNHDI3J \ / AMOS7 \ YOURUM ::
+#\[7]GSDV5MHHFE66IZF5DTOKFYN5WIFB3IJ3B35N7E2OIORQFTMMXCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
