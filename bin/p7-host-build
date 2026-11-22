@@ -177,7 +177,8 @@ my ( $L, $layout_error ) = parse_layout_file($LAYOUT_PATH);
 frame_error_exit( $TOOL, "layout $LAYOUT_PATH : $layout_error" )
     if defined $layout_error;
 
-my $HOST = $L->{'host'};
+my $HOST      = $L->{'host'};
+my $MAIN_HOST = $HOST;          ## luks mapping names stay the main host's ##
 
 my $TARGET = $opt{'target'}
     // File::Spec->catdir( length $TEST_ROOT ? $TEST_ROOT : '/',
@@ -188,16 +189,21 @@ frame_error_exit( $TOOL, "target not valid [ $TARGET ]" )
 frame_error_exit( $TOOL, "target outside the test root [ $TARGET ]" )
     if length $TEST_ROOT and index( "$TARGET/", "$TEST_ROOT/" ) != 0;
 
+## each further system has its own tree beside the main one ##
+$ARG->{'target'} = "$TARGET.$ARG->{'name'}" foreach @{ $L->{'systems'} };
+my @ALL_TARGETS = ( $TARGET, map { $ARG->{'target'} } @{ $L->{'systems'} } );
+
 ## an existing target is empty or mounted already [ by an earlier run ] -- ##
 ## never mounted over a live directory [ -target /usr ]                    ##
-frame_error_exit( $TOOL, "target $TARGET is not a directory -- refused" )
-    if -e $TARGET and not -d $TARGET;
-if ( -d $TARGET and not is_empty_dir($TARGET) ) {
-    my ( $exit, $out ) = run_read( qw| findmnt -r -n -o TARGET |, $TARGET );
+foreach my $dir (@ALL_TARGETS) {
+    frame_error_exit( $TOOL, "target $dir is not a directory -- refused" )
+        if -e $dir and not -d $dir;
+    next if not -d $dir or is_empty_dir($dir);
+    my ( $exit, $out ) = run_read( qw| findmnt -r -n -o TARGET |, $dir );
     frame_error_exit( $TOOL,
-        "target $TARGET exists, is not empty and not a mount -- refused" )
+        "target $dir exists, is not empty and not a mount -- refused" )
         if $exit != 0
-        or ( $out // '' ) ne $TARGET;
+        or ( $out // '' ) ne $dir;
 }
 
 ## -wipe names the disk as the layout does, or nothing is destructive ##
@@ -241,6 +247,11 @@ my @STEPS = (
     [ 'bootloader',    \&step_bootloader ],
     [ 'protocol-7',    \&step_protocol_7 ],
 );
+## further systems after the main one, then the one menu that lists them ##
+foreach my $sys ( @{ $L->{'systems'} } ) {
+    CORE::push @STEPS, [ "system $sys->{'name'}", step_system($sys) ];
+}
+CORE::push @STEPS, [ 'boot menu', \&step_boot_menu ] if @{ $L->{'systems'} };
 
 say frame_section_header('plan');
 foreach my $step (@STEPS) {
@@ -351,17 +362,19 @@ sub parse_layout_file {
 sub parse_layout {
     my ($text) = @ARG;
     my %l = (
-        qw| parts |  => [],
-        qw| lvs |    => [],
-        qw| crypt |  => {},
-        qw| suite |  => qw| trixie |,
-        qw| arch |   => qw| amd64 |,
-        qw| mirror | => 'http://deb.debian.org/debian',
-        qw| locale | => qw| C.UTF-8 |,
-        qw| boot |   => qw| grub-efi |,
-        qw| enable | => qw| no |,
+        qw| parts |   => [],
+        qw| lvs |     => [],
+        qw| crypt |   => {},
+        qw| suite |   => qw| trixie |,
+        qw| arch |    => qw| amd64 |,
+        qw| mirror |  => 'http://deb.debian.org/debian',
+        qw| locale |  => qw| C.UTF-8 |,
+        qw| boot |    => qw| grub-efi |,
+        qw| enable |  => qw| no |,
+        qw| systems | => [],
     );
     my %seen;
+    my %sys;    ## further systems by name : field -> value ##
     my $n   = 0;
     my $err = sub { return ( undef, sprintf 'line %d : %s', $n, shift ) };
 
@@ -380,6 +393,12 @@ sub parse_layout {
         return $err->("key twice [ $key ]")     if $seen{$key}++;
 
         my @w = split m|\s+|, $value;
+
+        ## system.main.<field> is system.<field> [ the main system ] ##
+        if ( $key =~ m{\Asystem\.main\.(suite|profile)\z} ) {
+            $key = "system.$1";
+            return $err->("key twice [ $key ]") if $seen{$key}++;
+        }
 
         if ( $key eq qw| host.name | ) {
             return $err->("host name not valid [ $value ]")
@@ -434,6 +453,21 @@ sub parse_layout {
             return $err->("service is enable or no [ $value ]")
                 if $value !~ m{\A(enable|no)\z};
             $l{'enable'} = $value eq qw| enable | ? qw| yes | : qw| no |;
+        } elsif ( $key
+            =~ m{\Asystem\.([a-z][a-z0-9_]{0,15})\.(lv|suite|profile|hostname)\z}
+        ) {
+            my ( $name, $field ) = ( $1, $2 );
+            return $err->("system.main lives on '/' [ $key ]")
+                if $name eq qw| main |;
+            my %check = (
+                qw| lv |       => qr|\Alv\.[a-z][a-z0-9_]{0,31}\z|,
+                qw| suite |    => qr|\A[a-z][a-z0-9\-]*\z|,
+                qw| profile |  => qr|\A[\w][\w\-]*\z|,
+                qw| hostname | => qr|\A[a-z0-9][a-z0-9\-]{0,62}\z|,
+            );
+            return $err->("$field not valid [ $value ]")
+                if $value !~ $check{$field};
+            $sys{$name}{$field} = $value;
         } elsif ( $key eq qw| user.name | ) {
             return $err->("user name not valid [ $value ]")
                 if $value !~ m|\A[a-z_][a-z0-9_\-]{0,30}\z|
@@ -485,6 +519,39 @@ sub parse_layout {
         return $err->("mount point twice [ $mount ]") if $mounts{$mount}++;
     }
     return $err->("no '/' mount point") if not $mounts{'/'};
+
+    ## further systems : each on its own unmounted lv, its menu entry in ##
+    ## the main system's grub                                            ##
+    my %lv_names = map { $ARG->{'name'} => $ARG } @{ $l{'lvs'} };
+    my %lv_used;
+    foreach my $name ( sort keys %sys ) {
+        my $s = $sys{$name};
+        return $err->("system.$name.lv missing") if not defined $s->{'lv'};
+        ( my $lv_name = $s->{'lv'} ) =~ s|\Alv\.||;
+        my $lv = $lv_names{$lv_name}
+            // return $err->("system.$name.lv : no $s->{'lv'}");
+        return $err->(
+            "system.$name.lv : $s->{'lv'} is mounted at $lv->{'mount'}")
+            if defined $lv->{'mount'};
+        return $err->( "system.$name.lv : $s->{'lv'} "
+                . "is $lv->{'fs'} [ ext4 or xfs ]" )
+            if $lv->{'fs'} !~ m{\A(ext4|xfs)\z};
+        return $err->("system.$name.lv : $s->{'lv'} holds another system")
+            if $lv_used{$lv_name}++;
+        ( my $host = $s->{'hostname'} // "$l{'host'}-$name" ) =~ tr|_|-|;
+        return $err->("system.$name : host name not valid [ $host ]")
+            if $host !~ m|\A[a-z0-9][a-z0-9\-]{0,62}\z|;
+        CORE::push @{ $l{'systems'} },
+            {
+            qw| name |     => $name,
+            qw| lv |       => $lv,
+            qw| suite |    => $s->{'suite'}   // $l{'suite'},
+            qw| profile |  => $s->{'profile'} // $l{'profile'},
+            qw| hostname | => $host,
+            };
+    }
+    return $err->('further systems need system.bootloader = grub-efi')
+        if @{ $l{'systems'} } and $l{'boot'} ne qw| grub-efi |;
     return $err->('grub-efi needs a vfat part at /boot/efi')
         if $l{'boot'} eq qw| grub-efi |
         and not grep {
@@ -957,7 +1024,7 @@ sub part_path {
 
 ##[ step 3 : encryption ]#####################################################
 
-sub crypt_name { return "$HOST-$ARG[0]_crypt" }
+sub crypt_name { return "$MAIN_HOST-$ARG[0]_crypt" }
 
 ## the device a part's content lives on [ its luks mapping if any ] ##
 sub content_path {
@@ -1317,11 +1384,13 @@ sub read_mounts {
     return \%m;
 }
 
+## under the main tree or a further system's tree ##
 sub under_target {
     my ($path) = @ARG;
-    return ( $path eq $TARGET or index( $path, "$TARGET/" ) == 0 )
-        ? TRUE
-        : FALSE;
+    foreach my $dir (@ALL_TARGETS) {
+        return TRUE if $path eq $dir or index( $path, "$dir/" ) == 0;
+    }
+    return FALSE;
 }
 
 ## the tree mounted at the target, '/' first ; FALSE on any failure ##
@@ -1689,6 +1758,165 @@ sub step_bootloader {
     return fail( 'grub-efi', 'no EFI/BOOT/BOOTX64.EFI after grub-install' )
         if not efi_present();
     done( 'bootloader', 'installed', $bios ? 'efi + bios' : 'efi' );
+    return TRUE;
+}
+
+## further systems : the kernel only -- the main system's grub boots them ##
+sub step_kernel {
+    my ( $mode, $step ) = @ARG;
+    if ( $mode eq qw| plan | ) {
+        if ( not plan_tree_visible() or not base_present() ) {
+            plan( $step, 'kernel', 'if missing', FALSE );
+        } elsif ( not kernel_present() ) {
+            plan( $step, 'kernel', 'install', FALSE );
+        }
+        return TRUE;
+    }
+    if ( kernel_present() ) {
+        row( 'kernel', 'ok', 'booted by the main menu' );
+        return TRUE;
+    }
+    my @pkgs = ("linux-image-$L->{'arch'}");
+    CORE::push @pkgs, qw| cryptsetup-initramfs | if %{ $L->{'crypt'} };
+    CORE::push @pkgs, qw| lvm2 |                 if defined $L->{'vg'};
+    CORE::push @pkgs, qw| xfsprogs |
+        if grep { $ARG->{'fs'} eq qw| xfs | } @{ $L->{'lvs'} };
+    return FALSE if not chroot_apt(@pkgs);
+    return fail( 'kernel', 'no /boot/vmlinuz-* after the install' )
+        if not kernel_present();
+    done( 'kernel', 'installed', $L->{'suite'} );
+    return TRUE;
+}
+
+##[ further systems ]#########################################################
+
+## the layout as one further system sees it : its own lv is '/', no other ##
+## file system of the disk in its fstab, its suite \ profile \ host name  ##
+sub system_layout {
+    my ($sys) = @ARG;
+    return {
+        %{$L},
+        qw| host |    => $sys->{'hostname'},
+        qw| suite |   => $sys->{'suite'},
+        qw| profile | => $sys->{'profile'},
+        qw| parts |   => [
+            map {
+                { %{$ARG}, qw| mount | => undef }
+            }
+            grep { $ARG->{'crypt'} } @{ $L->{'parts'} }
+        ],
+        qw| lvs |     => [ { %{ $sys->{'lv'} }, qw| mount | => '/' } ],
+        qw| boot |    => qw| kernel |,
+        qw| systems | => [],
+    };
+}
+
+## the main steps 6 to 9 once more, inside the system's own tree ##
+sub step_system {
+    my ($sys) = @ARG;
+    my @steps = (
+        [ 'debian base',   \&step_debian_base ],
+        [ 'configuration', \&step_configuration ],
+        [ 'kernel',        \&step_kernel ],
+        [ 'protocol-7',    \&step_protocol_7 ],
+    );
+    return sub {
+        my ( $mode, $step ) = @ARG;
+        my @saved = ( $L, $TARGET, $HOST );
+        ( $L, $TARGET, $HOST )
+            = ( system_layout($sys), $sys->{'target'}, $sys->{'hostname'} );
+        row( 'system', $sys->{'name'},
+            "$sys->{'suite'} -- $sys->{'hostname'} on lv.$sys->{'lv'}{'name'}"
+        ) if $mode eq qw| act |;
+        my $ok = TRUE;
+        foreach my $s (@steps) {
+            $ok = $s->[1]->( $mode, $step );
+            last if not $ok;
+        }
+        ( $L, $TARGET, $HOST ) = @saved;
+        return $ok;
+    };
+}
+
+## the main system's grub owns the menu : one explicit entry per further    ##
+## system [ /etc/grub.d, by file system uuid ], os-prober off. the kernel \ ##
+## initrd symlinks at the system's root follow its kernel upgrades          ##
+sub menu_files {
+    my @lines = (
+        '#!/bin/sh',
+        '## written by p7-host-build [ the further systems of this disk ]',
+        'exec tail -n +4 "$0"'
+    );
+    foreach my $sys ( @{ $L->{'systems'} } ) {
+        my $uuid = probe_uuid( lv_path( $sys->{'lv'} ) );
+        return ( undef, "no uuid for lv.$sys->{'lv'}{'name'}" )
+            if not length $uuid;
+        my $fs_mod = $sys->{'lv'}{'fs'} eq qw| xfs | ? qw| xfs | : qw| ext2 |;
+        CORE::push @lines,
+            "menuentry '$sys->{'name'} [ $sys->{'suite'}, "
+            . "$sys->{'hostname'} ]' --id p7-system-$sys->{'name'} {",
+            '    insmod part_gpt',
+            '    insmod lvm',
+            ( %{ $L->{'crypt'} } ? ('    insmod cryptodisk') : () ),
+            "    insmod $fs_mod",
+            "    search --no-floppy --fs-uuid --set=root $uuid",
+            "    linux /vmlinuz root=UUID=$uuid ro",
+            '    initrd /initrd.img',
+            '}';
+    }
+    return (
+        {   'etc/grub.d/41_p7-systems' => join( "\n", @lines ) . "\n",
+            'etc/default/grub.d/p7-host-build.cfg' =>
+                "## written by p7-host-build [ the menu lists "
+                . "every system ]\nGRUB_DISABLE_OS_PROBER=true\n",
+        },
+        undef
+    );
+}
+
+sub step_boot_menu {
+    my ( $mode, $step ) = @ARG;
+    if ( $mode eq qw| plan | ) {
+        my $count = scalar @{ $L->{'systems'} };
+        if ( not plan_tree_visible() or not base_present() ) {
+            plan( $step, 'menu entries', 'if differing', FALSE,
+                "$count systems" );
+            return TRUE;
+        }
+        my ($files) = menu_files();
+        foreach my $rel ( sort keys %{ $files // {} } ) {
+            plan( $step, "/$rel", 'write', FALSE )
+                if ( slurp("$TARGET/$rel") // '' ) ne $files->{$rel};
+        }
+        return TRUE;
+    }
+    return FALSE if not tree_ready($mode);
+    my ( $files, $why ) = menu_files();
+    return fail( 'boot menu', $why ) if not defined $files;
+    my $written = 0;
+    foreach my $rel ( sort keys %{$files} ) {
+        my $path = "$TARGET/$rel";
+        if ( ( slurp($path) // '' ) eq $files->{$rel} ) {
+            row( "/$rel", 'ok' );
+            next;
+        }
+        my ( undef, $dir ) = File::Spec->splitpath($path);
+        make_path($dir) if not -d $dir;
+        return fail( "/$rel", "cannot write [ $OS_ERROR ]" )
+            if not spew( $path, $files->{$rel} );
+        $written++;
+        done( "/$rel", 'written' );
+    }
+    chmod 0755, "$TARGET/etc/grub.d/41_p7-systems";
+    if ( not $written ) {
+        row( 'boot menu', 'ok',
+            sprintf( '%d further systems', scalar @{ $L->{'systems'} } ) );
+        return TRUE;
+    }
+    return FALSE if not bind_mounts();
+    return FALSE if not act( 'update-grub', chroot_cmd(qw| update-grub |) );
+    done( 'boot menu', 'updated',
+        join ' ', map { $ARG->{'name'} } @{ $L->{'systems'} } );
     return TRUE;
 }
 
@@ -2131,8 +2359,8 @@ EOL
     return TRUE;
 }
 
-#,,,.,.,.,...,.,,,...,...,,.,,..,,,.,,.,,,...,..,,...,...,.,,,,,.,,,.,...,,,,,
-#75WSR7SGIOMYYFW3NJRCAEHPQLY32HSTEPGCSH3P3AFWEMOQ2KO2H6NSHWN3DI36LNCUPZ4KRY7Q2
-#\\\|FGXN3NK7SSH2YSG2TWCAZHQLU7GRCNXXZJHL5J5AZV2B3VGZR5W \ / AMOS7 \ YOURUM ::
-#\[7]3GYINWVDR5D25ZGYONK55VMKJKBMIG2VPOLQKRP52DEHJYW5UWBA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,..,..,,,.,,,,.,,,.,,.,,,.,,.,,,..,,...,...,,.,,.,.,,,,,.,.,,,,,
+#OTKGMJAH2DPFSZSW2PENXRIPZHWSWOHHANS6HQITEY25W2GHILQWZ2JAFXZVOEB4EG3C4JTYJRGQW
+#\\\|SIDXIP6W4SMUWTX3WUU4VPITPJN4UJVAB62CO5C3HSO4NQ7IZCN \ / AMOS7 \ YOURUM ::
+#\[7]4EH5UEXXANWD3UPAIQ3P7E2VC5CTF2LIPBI2YRN6LY3CQNDWHGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

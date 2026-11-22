@@ -47,12 +47,27 @@ system.bootloader = grub-efi
 system.profile   = minimal
 system.service   = no
 
+## further systems on the same disk, each on its own unmounted lv         ##
+## [ ext4 or xfs ] with its own debootstrap tree. the keys above mean the ##
+## main system [ system.main.suite \ .profile also work ].  the main      ##
+## system's grub owns the one menu : an explicit entry per further system ##
+## [ /etc/grub.d/41_p7-systems ], os-prober off.  suite \ profile default ##
+## to the main system's, hostname to <host.name>-<system>                 ##
+# system.rescue.lv       = lv.rescue
+# system.rescue.suite    = trixie
+# system.rescue.profile  = minimal
+# system.rescue.hostname = example-host-rescue
+#
+# lv.lab                 = 16G ext4         [ before lv.data : 'rest' stays last ]
+# system.lab.lv          = lv.lab
+# system.lab.suite       = unstable         [ experiment slot ]
+
 ## a first user [ the password is asked on the terminal, never argv ; ##
 ## without a terminal the account stays locked ]                      ##
 # user.name      = <name>
 
-#,,,.,,,,,,,.,,.,,,..,.,,,...,,,.,..,,,,,,...,..,,...,...,,..,..,,.,.,.,,,,..,
-#GWJSEGXIFGD7EXMBC4OPKS5Z6BXW6TTZBQKFGBOPSSDULJOKRMMC2F7WSUOPQQ36HUR4CK7XK7FN4
-#\\\|FJD5HFYNKSXTLXXGLUW6J2LL5EI3ZOGAENS66ZZVI7VAFOL7BQS \ / AMOS7 \ YOURUM ::
-#\[7]TWYCOAI7SC4X2LQU2JZWQU7Z3K4OPQ4XBISZQFAM5RMQC6QIOKAY 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,..,,,.,,...,,.,,,,.,,,.,...,..,,...,..,,...,..,,,.,,.,.,,,.,
+#DLUC7NEZM4MLYGZR7REKLUQZHZO3PU5PL2A2LSHQBM2ADVRYU3KXM4WDADV45H5ZVGLWG5QBRES6S
+#\\\|RTMWYOJ23XAUKAOVXMDCIUDFKMPQYXTJBGT7X7IXBZ25W6ZQUX7 \ / AMOS7 \ YOURUM ::
+#\[7]GHBMO2NYJLQ743WJU663LQFT7KKTKLP3DU7LNWSOFGCKXC4AFQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

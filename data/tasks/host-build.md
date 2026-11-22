@@ -143,8 +143,76 @@ files : bin/p7-host-build, cfg/host-build/layout.template, bin/test-scripts/test
   debootstrap behind P7_HOST_BUILD_SLOW_TEST=1. untested so far : kernel rereads, real lsblk \
   pvs \ lvs \ blkid \ findmnt output against the parsers, a real chroot
 
+## implementation notes [ 2026-11-23, several systems per disk -- not signed, not committed ]
+
+- layout : `system.<name>.lv | suite | profile | hostname` declares a further system ; the
+  single-system keys are unchanged and mean the main system [ `system.main.suite \ .profile`
+  are the same keys, both forms together are 'key twice' ]. the lv must exist, be ext4 \ xfs,
+  have no mount point, hold one system only ; suite \ profile default to the main system's,
+  hostname to <host>-<name> [ '_' -> '-' ]. further systems need system.bootloader = grub-efi
+- each further system gets its own tree beside the main one [ <target>.<name> ], held to the
+  same 'empty or a mount' rule ; under_target covers every tree [ busy checks, unmount ].
+  steps 6 7 9 run again in it with a layout view [ its lv is '/', fstab lists only that ;
+  luks parts kept for crypttab, mapping names stay the main host's ] ; step 8 there is the
+  kernel only [ no grub-install of its own ]. the first user is the same user.name
+- step 'boot menu' after the systems : the main tree gets /etc/grub.d/41_p7-systems [ 0755,
+  one explicit menuentry per further system : search by fs uuid, root=UUID=, /vmlinuz \
+  /initrd.img symlinks so kernel upgrades in that system need no new menu ] and
+  /etc/default/grub.d/p7-host-build.cfg [ GRUB_DISABLE_OS_PROBER=true ] ; written only
+  when the content differs, update-grub in the main chroot only then
+- open : the /vmlinuz \ /initrd.img symlinks at the system's root are debian's default
+  [ kernel-img.conf do_symlinks ] -- verify on the first real build ; grub on a luks vg
+  [ cryptodisk ] is listed but untested
+- tests : stub world two further systems [ rescue trixie, exp unstable xfs + own hostname \
+  profile ] : dry run lists both systems and the menu, writes nothing ; chain : three
+  debootstraps, one grub-install, the menu lists both by uuid, os-prober off, own trees \
+  host names \ root-only fstab \ kernel ; second run : no write, state and tree unchanged.
+  parser refusals for a mounted lv, a missing lv, no .lv, main suite twice. the root loop
+  part now runs the two-system layout [ exp on ext4 : mkfs.xfs refuses 32M ] and reads the
+  menu \ host names off the real lvs -- not run yet [ needs root ]
+
 #,,.,,...,.,,,,,.,,..,.,.,,..,.,.,,,,,,,,,,,,,..,,...,...,...,,..,.,,,,.,,,..,
 #UVKDEV4UN65PUTAQYGESO2XVBA642MGAVW2WWXS3XDH2ONI6UBFTGKQEPZB45YOZ7Q55AV2J3BQJK
 #\\\|7PDNLVFAJBXLZTM2SUCUSMFTHQPC3RJUJ7FJVWEM5LE3OW2EYZL \ / AMOS7 \ YOURUM ::
 #\[7]MX4CC4K7UTZ5KQN5ZO724DVPUBSJGE64SQH57XBAV2KT7LHGQGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## next stages [ owner 2026-11-23 ]
+
+### stage 1b : vault users and remote access [ after the current follow-ups ]
+
+- user passwords from p7-vault by naming convention : one 'login' entry per account,
+  title `host-build:<host>:<user>` [ fields user, password ] ; layout `user.password = vault`
+  or `vault:<title>`. read through a pipe from `p7-vault get <title> password`, handed to
+  chpasswd in the chroot on stdin -- never argv, file or log. a missing entry : say so, offer
+  `p7-vault gen` to create it, else the account stays locked. one vault unlock per run
+- access set-up, optional [ `access.from = installer` ] :
+  1. the installer's public key [ vault file entry `host-build:<host>:<user>:authorized_keys`,
+     else the running user's ~/.ssh/*.pub ] into the new user's authorized_keys ;
+     openssh-server, keys only
+  2. the new ssh host key is generated during the build : its fingerprint goes straight into
+     the installer's known_hosts [ no trust on first use ]
+  3. optional Host alias with HostKeyAlias in the installer's ~/.ssh/config [ `:::` works ]
+  4. the report names what was set up and the first connection command
+
+### stage 2 : protocol-7 integration
+
+- host-root key of the new host created during the build ; pinned on the installer for p-7-r
+  [ ~/.n/remote-keys/servers/ ] and for discover [ the protocol-7 user's pin store :
+  discover.read_host_root_pins trusts pinned host-roots only, never writes a pin ] ; the
+  installer's host-root pinned on the new host the same way
+- an access.users entry for the installing user
+- discover needs : the multicast group 239.13.5.42 udp 47 on a broadcast interface
+  [ discover.mcast.broadcast_interfaces prefixes : enp wlp eth .. ] -- so a working wired
+  \ wlan network first [ stage follow-up 2 ], no firewall drop for it
+- wake on lan [ power zenka, power.plugin.wol.* ] needs the target's mac : unknown while the
+  disk is built in another machine. ways : a layout key `net.mac` when known, else recorded at
+  the first boot [ the new host announces itself through discover, the installer stores its
+  mac for the power zenka ]. the target side : WakeOnLan=magic in a systemd .link file for the
+  wired interface, and wol enabled in the firmware [ the report reminds of it ]
+
+#,,..,.,.,,..,.,.,,,,,.,.,,..,..,,,,.,.,,,..,,..,,...,...,,.,,.,.,..,,.,.,,,.,
+#M2NO2D4FKKNQ3NHLOYDN4HJ45PGBF7W2BT7FXRCZ3KT33JRHJKF2W2UDGCWPVASSQUE3E6XQFHOA2
+#\\\|P6VE3W5EOEHNPUWVKA4EDYXZW2DAXYST4NSOHRLF5WL4SJOMMJH \ / AMOS7 \ YOURUM ::
+#\[7]DF2LI4CR5BON7M4ZUR5XBLKHFAVZS6M5APDWWSKJLSWPWA563KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

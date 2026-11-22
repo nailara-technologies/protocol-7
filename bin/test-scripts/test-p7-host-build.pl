@@ -502,6 +502,19 @@ say ':';
             "lv.x = 1G ext4 /a/../b\n",
             qr|mount point not valid|
         ],
+        [   'system on a mounted lv',
+            "system.x.lv = lv.data\n",
+            qr|lv\.data is mounted at /data|
+        ],
+        [   'system on no lv',
+            "system.x.lv = lv.nope\n",
+            qr|system\.x\.lv : no lv\.nope|
+        ],
+        [   'system without lv',
+            "system.x.suite = sid\n",
+            qr|system\.x\.lv missing|
+        ],
+        [ 'main suite twice', "system.main.suite = sid\n", qr|key twice| ],
     );
     foreach my $b (@bad) {
         my ( $label, $extra, $re ) = @{$b};
@@ -694,6 +707,127 @@ my $chain_world;
     check( 'second run : tree unchanged',
         same_snapshot( $before_tree, tree_snapshot( $w->{'root'} ) ) );
     check( 'second run : report says none', $out =~ m|changes \.+ none| );
+}
+
+## several systems on one disk : one grub menu in the main system ##
+my $MULTI_LAYOUT
+    = $LAYOUT =~ s{^(lv\.data .*)$}{lv.exp         = 32M xfs\n$1}mr . <<'EOL';
+system.rescue.lv       = lv.rescue
+system.rescue.suite    = trixie
+system.exp.lv          = lv.exp
+system.exp.suite       = unstable
+system.exp.profile     = base
+system.exp.hostname    = testhost-lab
+EOL
+
+sub multi_checks {
+    my ( $w, $label ) = @ARG;
+    my $main = "$w->{'state'}/store/_dev_mapper_test--vg-root";
+    my $menu = slurp("$main/etc/grub.d/41_p7-systems") // '';
+    my %uuid = map { my @x = split ' '; ( $x[0] => $x[2] ) }
+        grep {length} split m|\n|, slurp("$w->{'state'}/fs") // '';
+    check(
+        "$label : menu lists both systems by uuid",
+        count_of( qr|^menuentry |m, $menu ) == 2
+            && $menu =~ m|'rescue \[ trixie, testhost-rescue \]'|
+            && $menu =~ m|'exp \[ unstable, testhost-lab \]'|
+            && index( $menu,
+            "--set=root $uuid{'/dev/mapper/test--vg-rescue'}" ) >= 0
+            && index( $menu, "--set=root $uuid{'/dev/mapper/test--vg-exp'}" )
+            >= 0
+            && $menu =~ m|insmod xfs|
+            && $menu =~ m|insmod ext2|
+    ) or print $menu;
+    check(
+        "$label : menu file executable",
+        -x "$main/etc/grub.d/41_p7-systems"
+    );
+    check(
+        "$label : os-prober off",
+        ( slurp("$main/etc/default/grub.d/p7-host-build.cfg") // '' )
+            =~ m|^GRUB_DISABLE_OS_PROBER=true$|m
+    );
+    foreach my $s (
+        [qw| rescue testhost-rescue minimal |],
+        [qw| exp testhost-lab base |]
+    ) {
+        my $t     = "$w->{'state'}/store/_dev_mapper_test--vg-$s->[0]";
+        my $fstab = slurp("$t/etc/fstab") // '';
+        check(
+            "$label : $s->[0] has its own tree, host name, root fstab",
+            -f "$t/etc/debian_version"
+                && ( slurp("$t/etc/hostname") // '' ) eq "$s->[1]\n"
+                && count_of( qr|^UUID=|m, $fstab ) == 1
+                && $fstab =~ m|^UUID=\S+  /  |m
+        ) or print $fstab;
+        check(
+            "$label : $s->[0] kernel, no grub of its own",
+            -f "$t/boot/vmlinuz-6.12-fake" && !-e "$t/boot/efi"
+        );
+        check( "$label : $s->[0] p7-install, profile $s->[2]",
+            -d "$t/usr/local/protocol-7/.git" );
+    }
+}
+{
+    my $w = stub_world( qw| layout | => $MULTI_LAYOUT );
+    my ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -dry-run -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'} );
+    check( 'multi dry run : exit 0', $exit == 0 ) or print $out;
+    check(
+        'multi dry run : plan lists both systems and the menu',
+        $out        =~ m|system rescue|
+            && $out =~ m|system exp|
+            && $out =~ m|menu entries \.+ if differing \[ 2 systems|
+    ) or print $out;
+    check( 'multi dry run : no write command', !writes($w) );
+    check(
+        'multi dry run : nothing in the test root',
+        !%{ tree_snapshot( $w->{'root'} ) }
+    );
+
+    ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -wipe TESTSERIAL01 -yes -layout |,
+        $w->{'layout'} );
+    check( 'multi chain : exit 0', $exit == 0 ) or print $out;
+    my @boot = grep {m|^debootstrap|} calls($w);
+    check(
+        'multi chain : three debootstraps, suites per system',
+        @boot == 3
+            && ( grep {m| trixie \S+/testhost\.rescue |} @boot )
+            && ( grep {m| unstable \S+/testhost\.exp |} @boot )
+    ) or print join "\n", @boot, '';
+    check(
+        'multi chain : p7-install profiles per system',
+        ( grep {m|p7-install -no-hw -profile base|} calls($w) )
+            && ( grep {m|p7-install -no-hw -profile minimal|} calls($w) )
+    );
+    check(
+        'multi chain : one grub-install, in the main tree',
+        (   grep {m|^chroot \S+/testhost /.*grub-install .*x86_64-efi|}
+                calls($w)
+        ) == 1
+    ) or print join "\n", grep {m|grub-install|} calls($w), '';
+    check( 'multi chain : all unmounted',
+        !length( slurp("$w->{'state'}/mounts") // '' ) );
+    multi_checks( $w, 'multi chain' );
+
+    my $before_state = state_snap($w);
+    my $before_tree  = tree_snapshot( $w->{'root'} );
+    reset_calls($w);
+    ( $exit, $out ) = run_tool( $w->{'env'}, '-layout', $w->{'layout'} );
+    check( 'multi second run : exit 0',           $exit == 0 ) or print $out;
+    check( 'multi second run : no write command', !writes($w) )
+        or print join "\n", writes($w), '';
+    check(
+        'multi second run : state unchanged',
+        same_snapshot( $before_state, state_snap($w) )
+    );
+    check( 'multi second run : tree unchanged',
+        same_snapshot( $before_tree, tree_snapshot( $w->{'root'} ) ) );
+    check( 'multi second run : report says none',
+        $out =~ m|changes \.+ none| )
+        or print $out;
 }
 
 ## -nc and NO_COLOR : no escape anywhere ##
@@ -946,7 +1080,10 @@ sub root_loop_chain {
         die "losetup failed\n" if $loop !~ m|\A/dev/loop\d+\z|;
         CORE::push @loops, $loop;
 
-        my $layout = $LAYOUT;
+        ## the two-system layout [ main, rescue, exp ] ; exp on ext4 : ##
+        ## mkfs.xfs refuses a 32M volume                               ##
+        my $layout = $MULTI_LAYOUT;
+        $layout =~ s|^(lv\.exp\s+=\s+32M) xfs|$1 ext4|m;
         $layout =~ s|TESTSERIAL01|$serial|;
         $layout =~ s|test-vg|p7hb$PID|;
         spew( "$base/test.layout", $layout );
@@ -982,6 +1119,41 @@ sub root_loop_chain {
         my $mounts = slurp('/proc/self/mounts') // '';
         check( 'loop : nothing left mounted',
             index( $mounts, " $root" ) < 0 );
+
+        ## the main root, read-only, for the menu and the system trees ##
+        my $look = "$base/look";
+        make_path($look);
+        CORE::system( qw| vgchange -q -ay |, "p7hb$PID" );
+        my %menu_of;
+        foreach my $lv (qw| root rescue exp |) {
+            next
+                if
+                CORE::system( qw| mount -o ro |, "/dev/p7hb$PID/$lv", $look )
+                != 0;
+            $menu_of{$lv} = {
+                qw| menu | => slurp("$look/etc/grub.d/41_p7-systems") // '',
+                qw| hostname | => slurp("$look/etc/hostname")         // '',
+            };
+            CORE::system( qw| umount |, $look );
+        }
+        my $menu = $menu_of{'root'}{'menu'} // '';
+        my $uuid = sub {
+            my $u = qx| blkid -o value -s UUID /dev/p7hb$PID/$ARG[0] |;
+            chomp $u;
+            return $u;
+        };
+        check(
+            'loop : menu lists both systems by uuid',
+            count_of( qr|^menuentry |m, $menu ) == 2
+                && index( $menu, '--set=root ' . $uuid->('rescue') ) >= 0
+                && index( $menu, '--set=root ' . $uuid->('exp') ) >= 0
+        ) or print $menu;
+        CORE::system( qw| vgchange -q -an |, "p7hb$PID" );
+        check(
+            'loop : each system its own tree and host name',
+            ( $menu_of{'rescue'}{'hostname'} // '' ) eq "testhost-rescue\n"
+                && ( $menu_of{'exp'}{'hostname'} // '' ) eq "testhost-lab\n"
+        );
 
         my $sig = qx| sgdisk -p $loop |;
         ( $exit, $out ) = run_tool( \%env, '-layout', "$base/test.layout" );
@@ -1027,8 +1199,8 @@ sub root_loop_chain {
     return TRUE;
 }
 
-#,,..,,,,,.,,,.,,,,.,,...,..,,..,,,..,,,.,,..,..,,...,..,,,..,.,.,,..,.,.,,.,,
-#KM5FIQ5YOD3D7O26M4S3MGTJBRJXW7X56YRNZZDVEEOSMZUHBLTISAX4BFS4D6HWIP7YGAINL4NNA
-#\\\|5FNIT3DRDZUUY4KHN36Z6TSOLJFVWSHUPAL45F7GZFNM5QVU3LU \ / AMOS7 \ YOURUM ::
-#\[7]NIXYSGPSPYCNCTAWIRA7UUJXNCLVNHBDBOKF3WYNK43XRMCWL4AI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,,,,.,,,,.,...,.,,,..,,..,,,,.,..,,...,...,..,,,,,,.,,,,..,..,,
+#UVSYWTFT6A6BTE7UO2QR7CD3RUST2E2LEDYE2THFOFUTFONJUXLROYCQYTMBPCP2ITUDUW6BTH3MM
+#\\\|WBCN3YNYPUCHQFHSBKFXDSS4I6OBULVX2S5Z7EIZZ7PBYJZRM6Z \ / AMOS7 \ YOURUM ::
+#\[7]ZTGVAIY75DXOSV3H5MIQFASXBSA4A4SGDI2P6X6TUICX6LPTMQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
