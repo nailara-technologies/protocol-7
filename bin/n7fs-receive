@@ -238,7 +238,10 @@ sub sweep_stale {
     foreach my $d ( $dir, map {"$dir/$ARG"} @sub ) {
         opendir( my $dh, $d ) or next;
         my @stale = grep {m|\A\.receive\.[A-Za-z0-9_.-]+\z|}
-            grep { -M "$d/$ARG" > 1 / 24 } readdir $dh;
+            ## a concurrent put may rename its temporary between readdir ##
+            ## and -M : a vanished file is no leftover                   ##
+            ## [ undef age = not stale ]                                 ##
+            grep { ( -M "$d/$ARG" // 0 ) > 1 / 24 } readdir $dh;
         closedir $dh;
         foreach my $tmp (@stale) { unlink "$d/$tmp" if not -l "$d/$tmp" }
     }
@@ -767,8 +770,8 @@ if ( $verb eq 'delete' ) {
 
 out('unknown request');
 
-#,,,.,,.,,,.,,,..,,.,,..,,.,.,,,.,,,,,,,,,.,.,..,,...,...,...,...,,,,,,.,,,,.,
-#IYYCSE33XASDOYO3QTXG72JM5H35K7HMKWB7KIP646RVUWERUB5IY5IU5ASD5KNU7AGONZY63AWV6
-#\\\|J4HGRLDLWTX4NYLYKCIPRS5EQAORGIKQOMGY3CIRBOKHZ6XU45F \ / AMOS7 \ YOURUM ::
-#\[7]PDZ3UVU6XIJUS5SM7T42V67GJPLSW5FRTYDCNDKQFBTYBOXNXQCA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,.,.,,.,,,..,,,.,...,,,,,.,,,..,,...,...,.,.,.,,,,.,,..,,,.,,
+#JQAE3FZN7EU6LZTGNJWNNBKSDY2SNRLR4WR3GJG7IOU3IDCCIM5NIZBEPQ7H562KGK5CEHKXTPYEI
+#\\\|MCO36EFCB54NCBMNCMSWT6YKY6445SHANYRGRVJ5DERZXKPPXPH \ / AMOS7 \ YOURUM ::
+#\[7]PA7CSRQOSW6HHSYVP5UEDWRY4BQDTIPWAJR2D3JOBIJO5SCQECCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
