@@ -217,6 +217,18 @@ profiles:
       - DBD::SQLite
       - FFI::Platypus
 
+  host-build:
+    description: "bin/p7-host-build : disk layout, file systems, debian base [ install on demand ]"
+    apt:
+      - gdisk                   # sgdisk : gpt partitions
+      - parted                  # partprobe : kernel table reread
+      - lvm2                    # pv \ vg \ lv
+      - dosfstools              # mkfs.vfat : efi partition
+      - e2fsprogs               # mkfs.ext4
+      - xfsprogs                # mkfs.xfs : data volumes
+      - debootstrap             # debian base system
+      - cryptsetup              # only for layouts with crypt.<name> = luks
+
   hw-thinkpad-sandybridge:
     description: "hardware : sandy bridge thinkpads [ x220 tablet, w520 ] -- needs the non-free-firmware apt component"
     # replaces the legacy blanket 'firmware-misc-nonfree' : these machines

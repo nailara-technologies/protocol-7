@@ -1,0 +1,2138 @@
+#!/usr/bin/env perl
+use v5.32.0;
+use utf8;
+use strict;
+use English;
+use warnings;
+
+###               ###
+##  p7-host-build  ##
+###               ###
+
+## builds a host from an empty disk to a bootable debian with protocol-7,
+## driven by one layout file [ cfg/host-build/layout.template ] :
+##
+## 1. disk ............ found by serial : model \ serial \ size \ table
+## 2. partitions ...... gpt by sgdisk, names and sizes from the layout
+## 3. encryption ...... luks, only where the layout says crypt.<name> = luks
+## 4. lvm ............. pv, vg, lvs
+## 5. file systems .... vfat \ ext4 \ xfs \ swap
+## 6. debian base ..... debootstrap the suite into the mounted tree
+## 7. configuration ... fstab \ crypttab by uuid, hostname, locale, a user
+## 8. bootloader ...... grub-efi [ --removable --no-nvram ], bios fallback
+## when the layout has a bios_grub partition
+## 9. protocol-7 ...... bin/p7-install inside the new system [ chroot ]
+## 10. unmount ......... the tree, the vg, the luks mappings ; a report
+##
+## every step looks first and acts only on what is missing -- a second run
+## changes nothing and asks nothing. -dry-run reads only and prints the plan.
+##
+## safety is fail closed : nothing is written to a disk that is not named by
+## its serial in the layout AND in -wipe <serial>. a mounted disk, a disk in
+## use by lvm \ md \ swap \ dm-crypt and a read-only disk are refused, with
+## the reason. every destructive action is listed first, one confirmation
+## covers the whole plan [ -yes answers it ].
+##
+## standalone : core perl plus AMOS7.pm, AMOS7/TERM/Frame.pm,
+## AMOS7/Console/Progress.pm and AMOS7/TERM.pm
+## [ prompts, loaded only when a prompt is needed ] -- the repo layout works
+## as it is. step 9 copies bin/p7-install and its AMOS7 modules into the new
+## system.
+##
+## env P7_HOST_BUILD_ROOT : a test root -- root is not needed, the mount
+## target lives in there and only loop devices are accepted as disks.
+## P7_HOST_BUILD_TEST_SERIALS=1 gives a loop backed by <serial>.img inside
+## that test root its serial [ loop devices have none ].
+## P7_HOST_BUILD_TEST_PASSPHRASE : the luks passphrase, test root only
+
+use FindBin;
+use Getopt::Long ();
+use File::Spec;
+use File::Temp  qw| tempfile |;
+use File::Path  qw| make_path |;
+use File::Copy  qw| copy |;
+use Cwd         qw| abs_path |;
+use POSIX       ();
+use Time::HiRes ();
+
+BEGIN {
+    ## repo layout first, then a copy [ AMOS7/ beside the script ] ##
+    unshift @INC, "$FindBin::RealBin/../data/lib-path/pm", $FindBin::RealBin;
+}
+
+use AMOS7::TERM::Frame qw|
+    frame_column_line frame_title_banner frame_section_header
+    frame_status_row frame_error_exit frame_color_enabled
+    |;
+use AMOS7::Console::Progress qw| console_progress_bar |;
+
+##[ global constants ]##
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+$OUTPUT_AUTOFLUSH = 1;
+
+my $TOOL = qw| p7-host-build |;
+
+## status rows line up on the longest label ##
+my $LABEL_WIDTH = 19;
+
+## the size of an M \ G .. suffix             ##
+## [ binary, as sgdisk and lvcreate read it ] ##
+my %UNIT = (
+    qw| K | => 1024,
+    qw| M | => 1024**2,
+    qw| G | => 1024**3,
+    qw| T | => 1024**4,
+);
+
+my %FS_KNOWN = map { $ARG => TRUE } qw| vfat ext4 xfs swap |;
+
+## gpt type codes [ sgdisk -t ] ##
+my %GPT_CODE = (
+    qw| efi |       => qw| EF00 |,
+    qw| bios_grub | => qw| EF02 |,
+    qw| lvm |       => qw| 8E00 |,
+    qw| swap |      => qw| 8200 |,
+    qw| linux |     => qw| 8300 |,
+);
+
+## host tools by step and the debian packages that bring them ##
+my %TOOL_PACKAGE = (
+    qw| sgdisk |      => qw| gdisk |,
+    qw| lsblk |       => qw| util-linux |,
+    qw| blockdev |    => qw| util-linux |,
+    qw| wipefs |      => qw| util-linux |,
+    qw| findmnt |     => qw| util-linux |,
+    qw| blkid |       => qw| util-linux |,
+    qw| mount |       => qw| mount |,
+    qw| umount |      => qw| mount |,
+    qw| partprobe |   => qw| parted |,
+    qw| pvs |         => qw| lvm2 |,
+    qw| pvcreate |    => qw| lvm2 |,
+    qw| vgcreate |    => qw| lvm2 |,
+    qw| lvcreate |    => qw| lvm2 |,
+    qw| vgchange |    => qw| lvm2 |,
+    qw| cryptsetup |  => qw| cryptsetup |,
+    qw| mkfs.vfat |   => qw| dosfstools |,
+    qw| mkfs.ext4 |   => qw| e2fsprogs |,
+    qw| mkfs.xfs |    => qw| xfsprogs |,
+    qw| mkswap |      => qw| util-linux |,
+    qw| debootstrap | => qw| debootstrap |,
+    qw| chroot |      => qw| coreutils |,
+);
+
+## the files a standalone p7-install copy needs [ see its header ] ##
+my @P7_INSTALL_MODULES = qw|
+    AMOS7.pm AMOS7/TERM/Frame.pm AMOS7/deps/debp.pm AMOS7/deps/aptlog.pm
+    AMOS7/deps/tracked.pm AMOS7/deps/autoinstall.pm
+    |;
+
+## a redrawn progress line waits for its newline ##
+my $progress_drawn = FALSE;
+
+##[ options ]#################################################################
+
+my %opt;
+
+Getopt::Long::Configure(qw| no_ignore_case |);
+Getopt::Long::GetOptions(
+    \%opt,           'layout=s', 'wipe=s', 'target=s',
+    'dry-run',       'yes',      'nc',     'no-p7',
+    'install-tools', 'help|h|options'
+) or frame_error_exit( $TOOL, 'unknown option [ -options lists them ]' );
+
+$AMOS7::TERM::Frame::color_override = FALSE if $opt{'nc'};
+
+if ( $opt{'help'} ) {
+    print_help();
+    exit 0;
+}
+
+## a layout as the only argument works as -layout ##
+$opt{'layout'} //= shift @ARGV if @ARGV == 1;
+frame_error_exit( $TOOL, sprintf 'unexpected argument [ %s ]', $ARGV[0] )
+    if @ARGV;
+frame_error_exit( $TOOL, 'no layout given [ -layout <file|host> ]' )
+    if not defined $opt{'layout'};
+
+my $DRY_RUN   = $opt{'dry-run'} ? TRUE : FALSE;
+my $TEST_ROOT = $ENV{'P7_HOST_BUILD_ROOT'} // '';
+$TEST_ROOT =~ s|/+\z||;
+
+frame_error_exit( $TOOL, "test root is not a directory [ $TEST_ROOT ]" )
+    if length $TEST_ROOT and not -d $TEST_ROOT;
+
+## the first thing after the options : nothing is read or run before ##
+if ( $EUID != 0 and not length $TEST_ROOT ) {
+    frame_error_exit( $TOOL,
+              'needs root -- it partitions disks and mounts '
+            . 'file systems [ sudo bin/p7-host-build ]' );
+}
+
+##[ layout ]##################################################################
+
+my $LAYOUT_PATH = resolve_layout_path( $opt{'layout'} );
+my ( $L, $layout_error ) = parse_layout_file($LAYOUT_PATH);
+frame_error_exit( $TOOL, "layout $LAYOUT_PATH : $layout_error" )
+    if defined $layout_error;
+
+my $HOST = $L->{'host'};
+
+my $TARGET = $opt{'target'}
+    // File::Spec->catdir( length $TEST_ROOT ? $TEST_ROOT : '/',
+    qw| mnt p7-host-build |, $HOST );
+$TARGET =~ s|/+\z||;
+frame_error_exit( $TOOL, "target not valid [ $TARGET ]" )
+    if $TARGET !~ m|\A(/[\w.\-]+)+\z| or $TARGET =~ m{/\.\.?(/|\z)};
+frame_error_exit( $TOOL, "target outside the test root [ $TARGET ]" )
+    if length $TEST_ROOT and index( "$TARGET/", "$TEST_ROOT/" ) != 0;
+
+## an existing target is empty or mounted already [ by an earlier run ] -- ##
+## never mounted over a live directory [ -target /usr ]                    ##
+frame_error_exit( $TOOL, "target $TARGET is not a directory -- refused" )
+    if -e $TARGET and not -d $TARGET;
+if ( -d $TARGET and not is_empty_dir($TARGET) ) {
+    my ( $exit, $out ) = run_read( qw| findmnt -r -n -o TARGET |, $TARGET );
+    frame_error_exit( $TOOL,
+        "target $TARGET exists, is not empty and not a mount -- refused" )
+        if $exit != 0
+        or ( $out // '' ) ne $TARGET;
+}
+
+## -wipe names the disk as the layout does, or nothing is destructive ##
+if ( defined $opt{'wipe'} and $opt{'wipe'} ne $L->{'serial'} ) {
+    frame_error_exit( $TOOL,
+        sprintf "-wipe %s does not match the layout's disk serial %s",
+        $opt{'wipe'}, $L->{'serial'} );
+}
+my $WIPE_OK = defined $opt{'wipe'} ? TRUE : FALSE;
+
+##[ the run ]#################################################################
+
+say frame_column_line();
+say frame_title_banner(
+    $DRY_RUN
+    ? "host build : $HOST [ dry run ]"
+    : "host build : $HOST"
+);
+say frame_column_line();
+
+my @plan;                    ## [ step, label, action, destructive ] ##
+my @report;                  ## [ label, status, detail ] of what was done ##
+my %state;                   ## probed devices, filled by the steps ##
+my $ASSUME_FRESH = FALSE;    ## plan : the table is new, so is all below ##
+my $CONFIRMED    = FALSE;    ## the destructive plan was confirmed ##
+
+check_host_tools();
+
+## pass 1 : look at everything, plan, refuse -- no write of any kind ##
+say frame_section_header('disk');
+my $DISK = step_disk();
+say frame_column_line();
+
+my @STEPS = (
+    [ 'partitions',    \&step_partitions ],
+    [ 'encryption',    \&step_encryption ],
+    [ 'lvm',           \&step_lvm ],
+    [ 'file systems',  \&step_filesystems ],
+    [ 'debian base',   \&step_debian_base ],
+    [ 'configuration', \&step_configuration ],
+    [ 'bootloader',    \&step_bootloader ],
+    [ 'protocol-7',    \&step_protocol_7 ],
+);
+
+say frame_section_header('plan');
+foreach my $step (@STEPS) {
+    $step->[1]->( qw| plan |, $step->[0] );
+}
+if ( not @plan ) {
+    row( 'plan', 'nothing to do', 'the host matches the layout', 'ok' );
+} else {
+    foreach my $entry (@plan) {
+        my ( $step, $label, $action, $destructive ) = @{$entry};
+        row($label, $action,
+            $destructive ? 'destructive' : $step,
+            $destructive ? qw| warn |    : undef
+        );
+    }
+}
+say frame_column_line();
+
+my @destructive = grep { $ARG->[3] } @plan;
+
+if ($DRY_RUN) {
+    row( 'wipe', 'needed', "-wipe $L->{'serial'} -- not given", 'warn' )
+        if @destructive and not $WIPE_OK;
+    row( 'host build', 'dry run -- nothing written' );
+    say frame_column_line();
+    exit 0;
+}
+
+if ( @destructive and not $WIPE_OK ) {
+    frame_error_exit(
+        $TOOL,
+        sprintf '%d destructive actions planned '
+            . 'and no -wipe %s given -- refused',
+        scalar @destructive,
+        $L->{'serial'}
+    );
+}
+
+if (@destructive) {
+    my $answer = confirm_plan( scalar @destructive );
+    frame_error_exit( $TOOL, $answer ) if $answer ne qw| yes |;
+    $CONFIRMED = TRUE;
+}
+
+## pass 2 : each step looks again and acts on what is missing ##
+my $failed;
+foreach my $step (@STEPS) {
+    my ( $title, $code ) = @{$step};
+    say frame_section_header($title);
+    my $ok = $code->( qw| act |, $title );
+    say frame_column_line();
+    if ( not $ok ) {
+        $failed = $title;
+        last;
+    }
+}
+
+say frame_section_header('unmount');
+step_unmount();
+say frame_column_line();
+
+say frame_section_header('report');
+if ( not @report ) {
+    row( 'changes', 'none', 'the host matched the layout', 'ok' );
+} else {
+    row( @{$ARG} ) foreach @report;
+}
+say frame_column_line();
+
+frame_error_exit( $TOOL,
+    "$failed failed -- stopped here, run it again once fixed" )
+    if defined $failed;
+
+row( 'host build', 'ok', $HOST );
+say frame_column_line();
+exit 0;
+
+##[ layout file ]#############################################################
+
+## a path, or a host name -> ~/.n/host-build/<name>.layout of the caller ##
+## [ the sudo user's home when run through sudo ]                        ##
+sub resolve_layout_path {
+    my ($given) = @ARG;
+    return $given if index( $given, '/' ) >= 0 or -f $given;
+    frame_error_exit( $TOOL, "layout name not valid [ $given ]" )
+        if $given !~ m|\A[a-z0-9][a-z0-9\-]*\z|;
+    my $home = $ENV{'HOME'} // '';
+    if ( length( $ENV{'SUDO_USER'} // '' ) ) {
+        my $sudo_home = ( getpwnam( $ENV{'SUDO_USER'} ) )[7];
+        $home = $sudo_home if defined $sudo_home;
+    }
+    return File::Spec->catfile( $home, qw| .n host-build |, "$given.layout" );
+}
+
+sub parse_layout_file {
+    my ($path) = @ARG;
+    open( my $fh, '<:encoding(UTF-8)', $path )
+        or return ( undef, "cannot read [ $OS_ERROR ]" );
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $text = <$fh>;
+    close($fh);
+    return parse_layout($text);
+}
+
+## p7 config style : 'key = value' or 'key : value', '#' comments, '[ .. ]' ##
+## annotations. unknown keys are errors [ typos fail ] returns              ##
+## [ layout, undef ] or [ undef, 'line n : reason' ]                        ##
+sub parse_layout {
+    my ($text) = @ARG;
+    my %l = (
+        qw| parts |  => [],
+        qw| lvs |    => [],
+        qw| crypt |  => {},
+        qw| suite |  => qw| trixie |,
+        qw| arch |   => qw| amd64 |,
+        qw| mirror | => 'http://deb.debian.org/debian',
+        qw| locale | => qw| C.UTF-8 |,
+        qw| boot |   => qw| grub-efi |,
+        qw| enable | => qw| no |,
+    );
+    my %seen;
+    my $n   = 0;
+    my $err = sub { return ( undef, sprintf 'line %d : %s', $n, shift ) };
+
+    foreach my $line ( split m|\n|, $text ) {
+        $n++;
+        $line                             =~ s|\A\s+||;
+        next if not length $line or $line =~ m|\A#|;
+        $line                             =~ s|\s+#.*\z||;
+        $line                             =~ s|\s*\[[^\]]*\]\s*| |g;
+        $line                             =~ s|\s+\z||;
+        next if not length $line;
+
+        my ( $key, $value ) = $line =~ m|\A([\w.\-]+)\s*[=:]\s*(.*)\z|
+            or return $err->("not 'key = value' [ $line ]");
+        return $err->("value missing [ $key ]") if not length $value;
+        return $err->("key twice [ $key ]")     if $seen{$key}++;
+
+        my @w = split m|\s+|, $value;
+
+        if ( $key eq qw| host.name | ) {
+            return $err->("host name not valid [ $value ]")
+                if $value !~ m|\A[a-z0-9][a-z0-9\-]{0,62}\z|;
+            $l{'host'} = $value;
+        } elsif ( $key eq qw| disk.serial | ) {
+            return $err->("serial not valid [ $value ]")
+                if $value !~ m|\A[\w.:\-]+\z|;
+            $l{'serial'} = $value;
+        } elsif ( $key =~ m|\Apart\.([a-z][a-z0-9_]{0,15})\z| ) {
+            my $name  = $1;
+            my $entry = parse_entry( qw| part |, $name, @w );
+            return $err->($entry) if not ref $entry;
+            CORE::push @{ $l{'parts'} }, $entry;
+        } elsif ( $key =~ m|\Alv\.([a-z][a-z0-9_]{0,31})\z| ) {
+            my $name  = $1;
+            my $entry = parse_entry( qw| lv |, $name, @w );
+            return $err->($entry) if not ref $entry;
+            return $err->("lv cannot be $entry->{'fs'} [ $name ]")
+                if $entry->{'fs'} eq qw| lvm |
+                or $entry->{'fs'} eq qw| bios_grub |;
+            CORE::push @{ $l{'lvs'} }, $entry;
+        } elsif ( $key =~ m|\Acrypt\.([a-z][a-z0-9_]{0,15})\z| ) {
+            return $err->("crypt is luks or nothing [ $value ]")
+                if $value ne qw| luks |;
+            $l{'crypt'}{$1} = TRUE;
+        } elsif ( $key eq qw| system.suite | ) {
+            return $err->("suite not valid [ $value ]")
+                if $value !~ m|\A[a-z][a-z0-9\-]*\z|;
+            $l{'suite'} = $value;
+        } elsif ( $key eq qw| system.profile | ) {
+            return $err->("profile not valid [ $value ]")
+                if $value !~ m|\A[\w][\w\-]*\z|;
+            $l{'profile'} = $value;
+        } elsif ( $key eq qw| system.arch | ) {
+            return $err->("arch not valid [ $value ]")
+                if $value !~ m|\A[a-z0-9]+\z|;
+            $l{'arch'} = $value;
+        } elsif ( $key eq qw| system.mirror | ) {
+            return $err->("mirror not valid [ $value ]")
+                if $value !~ m|\Ahttps?://[\w.\-:/~]+\z|;
+            $l{'mirror'} = $value;
+        } elsif ( $key eq qw| system.locale | ) {
+            return $err->("locale not valid [ $value ]")
+                if $value !~ m|\A[\w.\-\@]+\z|;
+            $l{'locale'} = $value;
+        } elsif ( $key eq qw| system.bootloader | ) {
+            return $err->("bootloader is grub-efi or none [ $value ]")
+                if $value !~ m{\A(grub-efi|none)\z};
+            $l{'boot'} = $value;
+        } elsif ( $key eq qw| system.service | ) {
+            return $err->("service is enable or no [ $value ]")
+                if $value !~ m{\A(enable|no)\z};
+            $l{'enable'} = $value eq qw| enable | ? qw| yes | : qw| no |;
+        } elsif ( $key eq qw| user.name | ) {
+            return $err->("user name not valid [ $value ]")
+                if $value !~ m|\A[a-z_][a-z0-9_\-]{0,30}\z|
+                or $value eq qw| root |;
+            $l{'user'} = $value;
+        } else {
+            return $err->("unknown key [ $key ]");
+        }
+    }
+
+    $n = 0;
+    return $err->('host.name missing')   if not defined $l{'host'};
+    return $err->('disk.serial missing') if not defined $l{'serial'};
+    return $err->('no partition')        if not @{ $l{'parts'} };
+
+    my @lvm_parts = grep { $ARG->{'fs'} eq qw| lvm | } @{ $l{'parts'} };
+    return $err->('more than one lvm partition') if @lvm_parts > 1;
+    return $err->('lv entries without an lvm partition')
+        if @{ $l{'lvs'} } and not @lvm_parts;
+    $l{'vg'} = @lvm_parts ? $lvm_parts[0]{'vg'} : undef;
+
+    foreach my $list ( $l{'parts'}, $l{'lvs'} ) {
+        my @rest
+            = grep { $list->[$ARG]{'size'} eq qw| rest | } 0 .. $#{$list};
+        return $err->( "'rest' only for the last entry "
+                . "[ $list->[$rest[0]]{'name'} ]" )
+            if @rest and ( @rest > 1 or $rest[0] != $#{$list} );
+    }
+
+    my %part_names;
+    my $num = 0;
+    foreach my $part ( @{ $l{'parts'} } ) {
+        $part->{'num'}                 = ++$num;
+        $part->{'code'}                = gpt_code($part);
+        $part_names{ $part->{'name'} } = $part;
+    }
+    foreach my $name ( sort keys %{ $l{'crypt'} } ) {
+        my $part = $part_names{$name}
+            // return $err->("crypt.$name : no part.$name");
+        return $err->("crypt.$name : not on $part->{'fs'}")
+            if $part->{'fs'} eq qw| vfat |
+            or $part->{'fs'} eq qw| bios_grub |;
+        $part->{'crypt'} = TRUE;
+    }
+
+    my %mounts;
+    foreach my $entry ( @{ $l{'parts'} }, @{ $l{'lvs'} } ) {
+        my $mount = $entry->{'mount'} // next;
+        return $err->("mount point twice [ $mount ]") if $mounts{$mount}++;
+    }
+    return $err->("no '/' mount point") if not $mounts{'/'};
+    return $err->('grub-efi needs a vfat part at /boot/efi')
+        if $l{'boot'} eq qw| grub-efi |
+        and not grep {
+        $ARG->{'fs'} eq qw| vfat |
+            and ( $ARG->{'mount'} // '' ) eq qw| /boot/efi |
+        } @{ $l{'parts'} };
+    return ( \%l, undef );
+}
+
+## '<size> <fs> [ <mount> | <vg> ]' -> entry hash, else the reason ##
+sub parse_entry {
+    my ( $kind, $name, $size, $fs, $where, @extra ) = @ARG;
+    return "$kind.$name : '<size> <fs> [ <mount> ]' expected"
+        if not defined $fs or @extra;
+    my %e = ( qw| name | => $name, qw| fs | => $fs );
+    if ( $size eq qw| rest | ) {
+        $e{'size'} = qw| rest |;
+    } elsif ( $size =~ m|\A([1-9][0-9]{0,6})([KMGT])\z| ) {
+        $e{'size'}  = $1 * $UNIT{$2};
+        $e{'sized'} = $size;
+    } else {
+        return "$kind.$name : size not valid [ $size ]";
+    }
+    if ( $fs eq qw| lvm | ) {
+        return "$kind.$name : lvm needs a vg name"
+            if not defined $where
+            or $where !~ m|\A[a-z][a-z0-9_\-]{0,31}\z|;
+        $e{'vg'} = $where;
+    } elsif ( $fs eq qw| bios_grub | ) {
+        return "$kind.$name : bios_grub has no mount point"
+            if defined $where;
+    } elsif ( $FS_KNOWN{$fs} ) {
+        if ( defined $where ) {
+            return "$kind.$name : mount point not valid [ $where ]"
+                if $where !~ m|\A/([\w.\-]+(/[\w.\-]+)*)?\z|
+                or $where =~ m{/\.\.?(/|\z)};
+            return "$kind.$name : swap has no mount point"
+                if $fs eq qw| swap |;
+            $e{'mount'} = $where;
+        }
+    } else {
+        return "$kind.$name : file system not known [ $fs ]";
+    }
+    return \%e;
+}
+
+sub gpt_code {
+    my ($part) = @ARG;
+    return $GPT_CODE{'efi'}
+        if $part->{'fs'} eq qw| vfat |
+        and ( $part->{'mount'} // '' ) eq qw| /boot/efi |;
+    return $GPT_CODE{ $part->{'fs'} } // $GPT_CODE{'linux'};
+}
+
+##[ host tools ]##############################################################
+
+## the tools the layout needs, looked up in PATH. missing ones are named ##
+## with their packages ; -install-tools installs them through the debian ##
+## zenka [ p7c debian.install-packages ] -- never plain apt on the host  ##
+sub check_host_tools {
+    my @need = qw| lsblk blockdev sgdisk wipefs blkid findmnt mount umount |;
+    CORE::push @need, qw| pvs pvcreate vgcreate lvcreate vgchange |
+        if defined $L->{'vg'};
+    CORE::push @need, qw| cryptsetup | if %{ $L->{'crypt'} };
+    my %fs = map { $ARG->{'fs'} => TRUE } @{ $L->{'parts'} },
+        @{ $L->{'lvs'} };
+    CORE::push @need, qw| mkfs.vfat | if $fs{'vfat'};
+    CORE::push @need, qw| mkfs.ext4 | if $fs{'ext4'};
+    CORE::push @need, qw| mkfs.xfs |  if $fs{'xfs'};
+    CORE::push @need, qw| mkswap |    if $fs{'swap'};
+    CORE::push @need, qw| debootstrap chroot |;
+
+    my @missing = grep { not in_path($ARG) } @need;
+    return TRUE if not @missing;
+
+    my %pkg      = map { ( $TOOL_PACKAGE{$ARG} // $ARG ) => TRUE } @missing;
+    my @packages = sort keys %pkg;
+
+    if ( $opt{'install-tools'} and not $DRY_RUN and in_path(qw| p7c |) ) {
+        row( 'host tools', 'installing', join( ' ', @packages ) );
+        my ( $exit, $out )
+            = run_cap( {}, qw| p7c debian.install-packages |, @packages );
+        @missing = grep { not in_path($ARG) } @need;
+        if ( not @missing ) {
+            row( 'host tools', 'installed', 'debian zenka', 'ok' );
+            return TRUE;
+        }
+    }
+    frame_error_exit(
+        $TOOL,
+        sprintf 'missing host tools [ %s ] -- packages : %s%s',
+        join( ' ', @missing ),
+        join( ' ', @packages ),
+        in_path(qw| p7c |)
+        ? ' [ -install-tools : through the debian zenka ]'
+        : ''
+    );
+}
+
+##[ step 1 : disk ]###########################################################
+
+## the one disk with the layout's serial, refused when it is not safe to ##
+## touch -- every refusal names its reason                               ##
+sub step_disk {
+    my @disks = list_disks();
+    my @match = grep { $ARG->{'serial'} eq $L->{'serial'} } @disks;
+
+    if ( not @match ) {
+        frame_error_exit(
+            $TOOL,
+            sprintf 'no disk with serial %s [ seen : %s ]',
+            $L->{'serial'},
+            join( ' ', map { $ARG->{'serial'} || '-' } @disks ) || 'none'
+        );
+    }
+    if ( @match > 1 ) {
+        frame_error_exit(
+            $TOOL,
+            sprintf 'serial %s on %d disks [ %s ] -- refused',
+            $L->{'serial'},
+            scalar @match,
+            join( ' ', map { $ARG->{'path'} } @match )
+        );
+    }
+    my $disk = $match[0];
+
+    if ( length $TEST_ROOT and $disk->{'path'} !~ m|\A/dev/loop\d+\z| ) {
+        frame_error_exit( $TOOL,
+            "test root : $disk->{'path'} is not a loop device -- refused" );
+    }
+    if ( not length $TEST_ROOT and $disk->{'type'} ne qw| disk | ) {
+        frame_error_exit( $TOOL,
+            "$disk->{'path'} is a $disk->{'type'}, not a disk -- refused" );
+    }
+
+    row( 'disk',   $disk->{'path'} );
+    row( 'model',  $disk->{'model'} || '-' );
+    row( 'serial', $disk->{'serial'}, 'layout and disk', 'ok' );
+    row( 'size',   human_size( $disk->{'size'} ) );
+
+    ## the mount table must answer before anything else is decided ##
+    read_mounts();
+
+    ## read-only : lsblk's flag and the kernel's answer ##
+    my ( $ro_exit, $getro )
+        = run_read( qw| blockdev --getro |, $disk->{'path'} );
+    probe_failed( 'blockdev --getro', $ro_exit )
+        if $ro_exit != 0
+        or ( $getro // '' ) !~ m|\A[01]\z|;
+    if ( $disk->{'ro'} or ( $getro // '' ) eq '1' ) {
+        row( 'read-only', 'refused', 'blockdev --getro = 1' );
+        frame_error_exit( $TOOL,
+            "$disk->{'path'} is read-only [ blockdev --getro = 1 ] -- refused"
+        );
+    }
+
+    ## in use : mounted outside our target, swap, md, foreign lvm \ crypt ##
+    my $crypt_names
+        = { map { crypt_name($ARG) => TRUE } keys %{ $L->{'crypt'} } };
+    foreach my $dev ( list_tree( $disk->{'path'} ) ) {
+        my $why;
+        my $mp = $dev->{'mountpoint'};
+        if (   $mp eq '[SWAP]'
+            or $dev->{'fstype'} eq qw| swap | and length $mp ) {
+            $why = "$dev->{'path'} is in use as swap";
+        } elsif ( length $mp and not under_target($mp) ) {
+            $why = "$dev->{'path'} is mounted on $mp";
+        } elsif ( length $mp ) {
+            CORE::push @{ $disk->{'busy'} }, "$dev->{'path'} mounted on $mp";
+        } elsif ( $dev->{'type'} =~ m|\A(raid\d*\|md)\z| ) {
+            $why = "in use by md [ $dev->{'path'} ]";
+        } elsif ( $dev->{'type'} eq qw| lvm | ) {
+            my $vg = dm_vg_name( $dev->{'name'} );
+            $why = "in use by lvm [ vg $vg active, not the layout's ]"
+                if not defined $L->{'vg'}
+                or $vg ne $L->{'vg'};
+            CORE::push @{ $disk->{'busy'} }, "$dev->{'path'} active"
+                if not defined $why;
+        } elsif ( $dev->{'type'} eq qw| crypt | ) {
+            $why = "in use by dm-crypt [ $dev->{'name'} ]"
+                if not $crypt_names->{ $dev->{'name'} };
+            CORE::push @{ $disk->{'busy'} }, "$dev->{'path'} open"
+                if not defined $why;
+        }
+        next if not defined $why;
+        row( 'in use', 'refused', $why );
+        frame_error_exit( $TOOL, "$why -- refused" );
+    }
+
+    ## the swap list too [ a swap file is not in lsblk ] ##
+    my ( undef, $swaps ) = run_read(qw| swapon --show=NAME --noheadings |);
+    my %tree = map { $ARG->{'path'} => TRUE } list_tree( $disk->{'path'} );
+    foreach my $swap ( split m|\n|, $swaps // '' ) {
+        next if not $tree{$swap};
+        frame_error_exit( $TOOL, "$swap is in use as swap -- refused" );
+    }
+
+    my $table = read_table( $disk->{'path'} );
+    row('table',
+        @{ $table->{'parts'} }
+        ? sprintf( '%d partitions', scalar @{ $table->{'parts'} } )
+        : 'empty',
+        join( ' ',
+            map { $ARG->{'name'} || "#$ARG->{'num'}" }
+                @{ $table->{'parts'} } )
+    );
+    $disk->{'table'} = $table;
+    return $disk;
+}
+
+## disks by lsblk [ key="value" pairs, never json ] ##
+sub list_disks {
+    my ( $exit, $out ) = run_read( qw| lsblk -d -n -b -P -o |,
+        q|NAME,PATH,SERIAL,MODEL,SIZE,RO,TYPE| );
+    frame_error_exit( $TOOL, "lsblk failed [ exit $exit ]" ) if $exit != 0;
+    my @disks;
+    foreach my $line ( split m|\n|, $out ) {
+        my %f = lsblk_pairs($line);
+        next if ( $f{'TYPE'} // '' ) !~ m{\A(disk|loop)\z};
+        my %d = (
+            qw| name |   => $f{'NAME'},
+            qw| path |   => $f{'PATH'} || "/dev/$f{'NAME'}",
+            qw| serial | => $f{'SERIAL'} // '',
+            qw| model |  => $f{'MODEL'}  // '',
+            qw| size |   => $f{'SIZE'}   // 0,
+            qw| ro |     => ( $f{'RO'} // '0' ) eq '1' ? TRUE : FALSE,
+            qw| type |   => $f{'TYPE'},
+        );
+        $d{'serial'} = test_loop_serial(%d) if $d{'type'} eq qw| loop |;
+        CORE::push @disks, \%d;
+    }
+    return @disks;
+}
+
+## a loop device has no serial : in a test root with env                   ##
+## P7_HOST_BUILD_TEST_SERIALS=1 a loop backed by <dir>/<serial>.img inside ##
+## that test root takes <serial> -- nothing else does                      ##
+sub test_loop_serial {
+    my (%d) = @ARG;
+    return $d{'serial'}
+        if not length $TEST_ROOT
+        or not length( $ENV{'P7_HOST_BUILD_TEST_SERIALS'} // '' );
+    my $backing = File::Spec->catfile( '/sys/block', $d{'name'},
+        qw| loop backing_file | );
+    open( my $fh, '<', $backing ) or return $d{'serial'};
+    my $file = <$fh> // '';
+    close($fh);
+    chomp $file;
+    my $real = abs_path($TEST_ROOT) // return $d{'serial'};
+    return $d{'serial'} if index( $file, "$real/" ) != 0;
+    my ($serial) = $file =~ m|/([\w.:\-]+)\.img\z| or return $d{'serial'};
+    return $serial;
+}
+
+## the disk and everything below it ##
+sub list_tree {
+    my ($path) = @ARG;
+    my ( $exit, $out ) = run_read( qw| lsblk -n -b -P -o |,
+        'NAME,PATH,TYPE,FSTYPE,MOUNTPOINT,SIZE', $path );
+    probe_failed( "lsblk $path", $exit )
+        if $exit != 0
+        or not length( $out // '' );
+    my @tree;
+    foreach my $line ( split m|\n|, $out // '' ) {
+        my %f = lsblk_pairs($line);
+        CORE::push @tree,
+            {
+            qw| name |       => $f{'NAME'} // '',
+            qw| path |       => $f{'PATH'} || "/dev/$f{'NAME'}",
+            qw| type |       => $f{'TYPE'}       // '',
+            qw| fstype |     => $f{'FSTYPE'}     // '',
+            qw| mountpoint | => $f{'MOUNTPOINT'} // '',
+            qw| size |       => $f{'SIZE'}       // 0,
+            };
+    }
+    return @tree;
+}
+
+sub lsblk_pairs {
+    my ($line) = @ARG;
+    my %f;
+    while ( $line =~ m|([A-Z:\-]+)="((?:[^"\\]\|\\.)*)"|g ) {
+        my ( $key, $value ) = ( $1, $2 );
+        $value =~ s|\\x([0-9a-fA-F]{2})|chr hex $1|ge;
+        $value =~ s|\s+\z||;
+        $f{$key} = $value;
+    }
+    return %f;
+}
+
+## the dm name 'main--vg-root' -> vg 'main-vg' ##
+sub dm_vg_name {
+    my ($name) = @ARG;
+    my ($vg)   = $name =~ m{\A((?:[^\-]|--)+)-(?!-)} or return $name;
+    $vg =~ s|--|-|g;
+    return $vg;
+}
+
+## sgdisk -p : sector size and the partitions       ##
+## [ number, start, end, code, name ] -- reads only ##
+sub read_table {
+    my ($path) = @ARG;
+    my ( $exit, $out ) = run_read( qw| sgdisk -p |, $path );
+    probe_failed( "sgdisk -p $path", $exit )
+        if $exit != 0
+        or ( $out // '' ) !~ m|^Number\s+Start|m;
+    my %t = ( qw| sector | => 512, qw| parts | => [] );
+    foreach my $line ( split m|\n|, $out // '' ) {
+        if ( $line =~ m{sector size \(logical(?:/physical)?\):\s*(\d+)}i ) {
+            $t{'sector'} = $1;
+        } elsif ( $line
+            =~ m|\A\s*(\d+)\s+(\d+)\s+(\d+)\s+\S+\s+\S+\s+([0-9A-F]{4})\s*(.*)\z|
+        ) {
+            CORE::push @{ $t{'parts'} },
+                {
+                qw| num |   => $1,
+                qw| start | => $2,
+                qw| end |   => $3,
+                qw| code |  => $4,
+                qw| name |  => $5,
+                };
+        }
+    }
+    return \%t;
+}
+
+## the table as the layout wants it : TRUE, FALSE [ differs ] ##
+sub table_matches {
+    my ($table) = @ARG;
+    my @have    = @{ $table->{'parts'} };
+    my @want    = @{ $L->{'parts'} };
+    return FALSE if @have != @want;
+    foreach my $i ( 0 .. $#want ) {
+        my ( $h, $w ) = ( $have[$i], $want[$i] );
+        return FALSE
+            if $h->{'num'} != $w->{'num'}
+            or $h->{'name'} ne $w->{'name'}
+            or $h->{'code'} ne $w->{'code'};
+        next if $w->{'size'} eq qw| rest |;
+        my $bytes = ( $h->{'end'} - $h->{'start'} + 1 ) * $table->{'sector'};
+        return FALSE if $bytes != $w->{'size'};
+    }
+    return TRUE;
+}
+
+##[ step 2 : partitions ]#####################################################
+
+sub step_partitions {
+    my ( $mode, $step ) = @ARG;
+    my $table
+        = $mode eq qw| act |
+        ? read_table( $DISK->{'path'} )
+        : $DISK->{'table'};
+    my $count = scalar @{ $table->{'parts'} };
+
+    if ( table_matches($table) ) {
+        return TRUE if $mode eq qw| plan |;
+        row( 'table', 'ok', sprintf '%d partitions as the layout', $count );
+        return part_nodes_ready();
+    }
+
+    if ( $mode eq qw| plan | ) {
+        ## an interrupted run's mounts \ vg \ mapping are fine on a table ##
+        ## that stays -- never under one that is replaced                 ##
+        if ( $count and @{ $DISK->{'busy'} // [] } ) {
+            frame_error_exit(
+                $TOOL,
+                sprintf 'the table is to be replaced but %s '
+                    . '-- unmount \ deactivate first, refused',
+                $DISK->{'busy'}[0]
+            );
+        }
+        plan( $step, 'table', $count
+            ? ( 'replace', TRUE, $count )
+            : ( 'create', TRUE ) );
+        $ASSUME_FRESH = TRUE;
+        return TRUE;
+    }
+
+    if ($count) {
+        return FALSE
+            if not destroy( 'zap table', qw| sgdisk --zap-all |,
+            $DISK->{'path'} );
+    }
+    my @args;
+    foreach my $part ( @{ $L->{'parts'} } ) {
+        my $n   = $part->{'num'};
+        my $end = $part->{'size'} eq qw| rest | ? '0' : "+$part->{'sized'}";
+        CORE::push @args, "-n", "$n:0:$end", "-t", "$n:$part->{'code'}",
+            "-c", "$n:$part->{'name'}";
+    }
+    return FALSE
+        if
+        not destroy( 'create table', qw| sgdisk |, @args, $DISK->{'path'} );
+    reread_table();
+    return FALSE if not part_nodes_ready();
+    return FALSE if not part_sizes_match();
+
+    ## old signatures at the same offsets are not taken for ours ##
+    foreach my $part ( @{ $L->{'parts'} } ) {
+        return FALSE
+            if not destroy(
+            "clear $part->{'name'}",
+            qw| wipefs -a -q |,
+            part_path($part)
+            );
+    }
+    $state{'fresh_table'} = TRUE;
+    done(
+        'table', 'created',
+        sprintf '%d partitions',
+        scalar @{ $L->{'parts'} }
+    );
+    return TRUE;
+}
+
+sub reread_table {
+    run_cap( {}, qw| partprobe |, $DISK->{'path'} )
+        if in_path(qw| partprobe |);
+    run_cap( {}, qw| blockdev --rereadpt |, $DISK->{'path'} );
+    run_cap( {}, qw| udevadm settle | ) if in_path(qw| udevadm |);
+    return TRUE;
+}
+
+## the partition nodes as lsblk sees them, waited for a little ##
+sub part_nodes_ready {
+    my $delay = 0.13;
+    foreach my $try ( 1 .. 13 ) {
+        my %have = map { $ARG->{'path'} => TRUE }
+            grep { $ARG->{'type'} eq qw| part | }
+            list_tree( $DISK->{'path'} );
+        return TRUE
+            if not grep { not $have{ part_path($ARG) } } @{ $L->{'parts'} };
+        Time::HiRes::sleep($delay);
+        $delay *= 1.2;
+    }
+    row( 'partitions', 'failed', 'nodes did not appear' );
+    return FALSE;
+}
+
+## the kernel's partition sizes against the new table : an old geometry ##
+## [ a reread refused while busy ] is never wiped or formatted          ##
+sub part_sizes_match {
+    my $table = read_table( $DISK->{'path'} );
+    my %size  = map { $ARG->{'path'} => $ARG->{'size'} }
+        grep { $ARG->{'type'} eq qw| part | } list_tree( $DISK->{'path'} );
+    foreach my $p ( @{ $table->{'parts'} } ) {
+        my $want = ( $p->{'end'} - $p->{'start'} + 1 ) * $table->{'sector'};
+        my ($part) = grep { $ARG->{'num'} == $p->{'num'} } @{ $L->{'parts'} };
+        next if not defined $part;
+        my $have = $size{ part_path($part) } // 0;
+        next if $have == $want;
+        return fail(
+            'partitions',
+            'kernel geometry differs',
+            sprintf '%s is %d bytes, the table says %d -- nothing wiped',
+            part_path($part),
+            $have,
+            $want
+        );
+    }
+    return TRUE;
+}
+
+sub part_path {
+    my ($part) = @ARG;
+    my $sep = $DISK->{'path'} =~ m|\d\z| ? qw| p | : '';
+    return "$DISK->{'path'}$sep$part->{'num'}";
+}
+
+##[ step 3 : encryption ]#####################################################
+
+sub crypt_name { return "$HOST-$ARG[0]_crypt" }
+
+## the device a part's content lives on [ its luks mapping if any ] ##
+sub content_path {
+    my ($part) = @ARG;
+    return "/dev/mapper/" . crypt_name( $part->{'name'} ) if $part->{'crypt'};
+    return part_path($part);
+}
+
+sub crypt_open {
+    my ($part) = @ARG;
+    return run_cap( {}, qw| cryptsetup status |,
+        crypt_name( $part->{'name'} ) ) == 0 ? TRUE : FALSE;
+}
+
+## plan : what can be seen of an entry now -- 'fresh' [ will be created ], ##
+## 'blind' [ behind a closed luks or an inactive vg : looked at once it is ##
+## open, a destructive need found then is refused ], 'visible'             ##
+sub visibility {
+    my ($entry) = @ARG;
+    return qw| fresh | if $ASSUME_FRESH;
+    my $is_lv = grep { $ARG == $entry } @{ $L->{'lvs'} };
+    if ( not $is_lv ) {
+        return qw| blind | if $entry->{'crypt'} and not crypt_open($entry);
+        return qw| visible |;
+    }
+    my ($lvm_part) = grep { $ARG->{'fs'} eq qw| lvm | } @{ $L->{'parts'} };
+    my $pv_sight = visibility($lvm_part);
+    return $pv_sight if $pv_sight ne qw| visible |;
+    my %active = map { $ARG->{'path'} => TRUE } list_tree( $DISK->{'path'} );
+    return $active{ lv_path($entry) } ? qw| visible | : qw| blind |;
+}
+
+sub step_encryption {
+    my ( $mode, $step ) = @ARG;
+    my @crypted = grep { $ARG->{'crypt'} } @{ $L->{'parts'} };
+    if ( not @crypted ) {
+        row( 'luks', 'skipped', 'not in the layout' ) if $mode eq qw| act |;
+        return TRUE;
+    }
+    foreach my $part (@crypted) {
+        my $dev    = part_path($part);
+        my $mapper = crypt_name( $part->{'name'} );
+        my $label  = "luks $part->{'name'}";
+        my $is_luks
+            = ( $mode eq qw| plan | and $ASSUME_FRESH )
+            ? FALSE
+            : ( run_cap( {}, qw| cryptsetup isLuks |, $dev ) == 0 );
+        my $open = $is_luks && crypt_open($part);
+
+        if ( $mode eq qw| plan | ) {
+            if ( not $is_luks ) {
+                my $type = $ASSUME_FRESH ? '' : probe_fstype($dev);
+                plan( $step, $label, 'format', TRUE,
+                    length $type ? "over $type" : undef );
+            }
+            plan( $step, $label, 'open', FALSE, 'passphrase prompt' )
+                if not $open;
+            next;
+        }
+
+        if ( not $is_luks ) {
+            return FALSE if not destroy_allowed($label);
+            my $pass
+                = passphrase( "luks passphrase for $part->{'name'}", TRUE )
+                // return fail( $label, 'no passphrase' );
+            my $ok = act(
+                $label,
+                { qw| input | => $pass },
+                qw| cryptsetup luksFormat --type luks2 --batch-mode |,
+                '--key-file=-', $dev
+            );
+            wipe_string( \$pass );
+            return FALSE if not $ok;
+            done( $label, 'formatted', $dev );
+        } else {
+            row( $label, 'ok', $dev );
+        }
+        if ( not $open ) {
+            my $pass
+                = passphrase( "luks passphrase for $part->{'name'}", FALSE )
+                // return fail( $label, 'no passphrase' );
+            my $ok = act(
+                "open $part->{'name'}",
+                { qw| input | => $pass },
+                qw| cryptsetup open --key-file=- |,
+                $dev, $mapper
+            );
+            wipe_string( \$pass );
+            return FALSE if not $ok;
+            row( "open $part->{'name'}", 'opened', $mapper, 'ok' );
+        } else {
+            row( "open $part->{'name'}", 'ok', "$mapper open" );
+        }
+    }
+    return TRUE;
+}
+
+##[ step 4 : lvm ]############################################################
+
+sub lv_path {
+    my ($lv) = @ARG;
+    ( my $vg   = $L->{'vg'} )    =~ s|-|--|g;
+    ( my $name = $lv->{'name'} ) =~ s|-|--|g;
+    return "/dev/mapper/$vg-$name";
+}
+
+## pv -> vg of every pv lvm knows ##
+sub read_pvs {
+    my ( $exit, $out ) = run_read( qw| pvs --noheadings --separator : -o |,
+        q|pv_name,vg_name| );
+    probe_failed( 'pvs', $exit ) if $exit != 0;
+    my %pv;
+    foreach my $line ( split m|\n|, $out // '' ) {
+        $line =~ s|\A\s+||;
+        my ( $pv, $vg ) = split m|:|, $line, 2;
+        next if not length( $pv // '' );
+        $pv{$pv} = $vg // '';
+    }
+    return \%pv;
+}
+
+## lv name -> size in bytes [ inactive lvs are listed too ] ##
+sub read_lvs {
+    my ( undef, $out )
+        = run_read( qw| lvs --noheadings --units b --nosuffix --separator : |,
+        qw| -o |, q|lv_name,lv_size|, $L->{'vg'} );
+    my %lv;
+    foreach my $line ( split m|\n|, $out // '' ) {
+        $line =~ s|\A\s+||;
+        my ( $name, $size ) = split m|:|, $line;
+        $lv{$name} = $size if length( $name // '' );
+    }
+    return \%lv;
+}
+
+sub step_lvm {
+    my ( $mode, $step ) = @ARG;
+    my $vg = $L->{'vg'};
+    if ( not defined $vg ) {
+        row( 'lvm', 'skipped', 'not in the layout' ) if $mode eq qw| act |;
+        return TRUE;
+    }
+    my ($part) = grep { $ARG->{'fs'} eq qw| lvm | } @{ $L->{'parts'} };
+    my $dev    = content_path($part);
+    my $pvs    = read_pvs();
+
+    ## the layout's vg on another disk is never ours to extend ##
+    foreach my $pv ( sort keys %{$pvs} ) {
+        next if $pvs->{$pv} ne $vg;
+        next
+            if same_device( $pv, $dev )
+            or same_device( $pv, part_path($part) );
+        frame_error_exit( $TOOL,
+            "vg $vg exists on $pv, not on this disk -- refused" );
+    }
+
+    if ( $mode eq qw| plan | ) {
+        my $sight = visibility($part);
+        if ( $sight eq qw| blind | ) {
+            plan( $step, "vg $vg", 'look', FALSE, 'after luks open' );
+            return TRUE;
+        }
+        my $pv_vg = $sight eq qw| fresh | ? undef : find_pv( $pvs, $dev );
+        if ( defined $pv_vg and length $pv_vg and $pv_vg ne $vg ) {
+            plan( $step, 'pv', 'replace', TRUE, "belongs to vg $pv_vg" );
+            $pv_vg = undef;
+        }
+        if ( not defined $pv_vg ) {
+            my $type = $sight eq qw| fresh | ? '' : probe_fstype($dev);
+            plan( $step, 'pv', 'create', TRUE,
+                length $type ? "over $type" : $dev );
+        }
+        plan( $step, "vg $vg", 'create', TRUE )
+            if not defined $pv_vg or not length $pv_vg;
+        my $lvs = ( defined $pv_vg and length $pv_vg ) ? read_lvs() : {};
+        foreach my $lv ( @{ $L->{'lvs'} } ) {
+            plan( $step, "lv $lv->{'name'}",
+                'create', TRUE, $lv->{'sized'} // 'rest' )
+                if not exists $lvs->{ $lv->{'name'} };
+        }
+        plan( $step, "vg $vg", 'activate', FALSE )
+            if grep { visibility($ARG) eq qw| blind | } @{ $L->{'lvs'} };
+        return TRUE;
+    }
+
+    my $pv_vg = find_pv( $pvs, $dev );
+    if ( defined $pv_vg and length $pv_vg and $pv_vg ne $vg ) {
+        return FALSE
+            if
+            not destroy( "clear pv [ vg $pv_vg ]", qw| wipefs -a -q |, $dev );
+        $pv_vg = undef;
+    }
+    if ( not defined $pv_vg ) {
+        return FALSE if not destroy( 'pv', qw| pvcreate -q -y -ff |, $dev );
+        done( 'pv', 'created', $dev );
+        $pv_vg = '';
+    } else {
+        row( 'pv', 'ok', $dev );
+    }
+    if ( not length $pv_vg ) {
+        return FALSE if not destroy( "vg $vg", qw| vgcreate -q |, $vg, $dev );
+        done( "vg $vg", 'created', $dev );
+    } else {
+        row( "vg $vg", 'ok' );
+    }
+    return FALSE if not act( "activate $vg", qw| vgchange -q -ay |, $vg );
+    $state{'vg_active'} = TRUE;
+
+    my $lvs = read_lvs();
+    foreach my $lv ( @{ $L->{'lvs'} } ) {
+        my $name = $lv->{'name'};
+        if ( exists $lvs->{$name} ) {
+            my $size_ok = (
+                       $lv->{'size'} eq qw| rest |
+                    or $lvs->{$name} == $lv->{'size'}
+            );
+            row("lv $name",
+                $size_ok ? 'ok' : 'differs',
+                $size_ok
+                ? undef
+                : sprintf(
+                    'is %s, layout %s -- left as it is',
+                    human_size( $lvs->{$name} ),
+                    $lv->{'sized'}
+                )
+            );
+            next;
+        }
+        my @size
+            = $lv->{'size'} eq qw| rest |
+            ? (qw| -l 100%FREE |)
+            : ( qw| -L |, "$lv->{'size'}b" );
+        return FALSE
+            if not destroy( "lv $name", qw| lvcreate -q -y -W y -n |,
+            $name, @size, $vg );
+        done( "lv $name", 'created', $lv->{'sized'} // 'rest' );
+    }
+    return TRUE;
+}
+
+sub find_pv {
+    my ( $pvs, $dev ) = @ARG;
+    foreach my $pv ( keys %{$pvs} ) {
+        return $pvs->{$pv} if same_device( $pv, $dev );
+    }
+    return undef;
+}
+
+## two names of one node : the same text, or the same real path ##
+sub same_device {
+    my ( $a_path, $b_path ) = @ARG;
+    return TRUE if $a_path eq $b_path;
+    my ( $ra, $rb ) = map { abs_path($ARG) // $ARG } $a_path, $b_path;
+    return $ra eq $rb ? TRUE : FALSE;
+}
+
+##[ step 5 : file systems ]###################################################
+
+## every entry with a file system and its device ##
+sub fs_entries {
+    my @e;
+    foreach my $part ( @{ $L->{'parts'} } ) {
+        next if not $FS_KNOWN{ $part->{'fs'} };
+        CORE::push @e, [ $part, content_path($part) ];
+    }
+    CORE::push @e, [ $ARG, lv_path($ARG) ] foreach @{ $L->{'lvs'} };
+    return @e;
+}
+
+sub probe_fstype {
+    my ($dev) = @ARG;
+    my ( undef, $type ) = run_read( qw| blkid -p -o value -s TYPE |, $dev );
+    $type //= '';
+    return $type eq qw| msdos | ? qw| vfat | : $type;
+}
+
+sub probe_uuid {
+    my ($dev) = @ARG;
+    my ( undef, $uuid ) = run_read( qw| blkid -o value -s UUID |, $dev );
+    return $uuid // '';
+}
+
+sub mkfs_cmd {
+    my ( $entry, $dev ) = @ARG;
+    my $fs   = $entry->{'fs'};
+    my $name = $entry->{'name'};
+    return ( qw| mkfs.vfat -F 32 -n |, uc substr( $name, 0, 11 ), $dev )
+        if $fs eq qw| vfat |;
+    return ( qw| mkfs.ext4 -q -F -L |, substr( $name, 0, 16 ), $dev )
+        if $fs eq qw| ext4 |;
+    return ( qw| mkfs.xfs -q -f -L |, substr( $name, 0, 12 ), $dev )
+        if $fs eq qw| xfs |;
+    return ( qw| mkswap -L |, substr( $name, 0, 15 ), $dev );
+}
+
+sub step_filesystems {
+    my ( $mode, $step ) = @ARG;
+    my @todo;
+    foreach my $e ( fs_entries() ) {
+        my ( $entry, $dev ) = @{$e};
+        my $label = "$entry->{'fs'} $entry->{'name'}";
+
+        if ( $mode eq qw| plan | ) {
+            my $sight = visibility($entry);
+            if ( $sight eq qw| blind | ) {
+                plan( $step, $label, 'look', FALSE, 'once active' );
+                next;
+            }
+            my $have = $sight eq qw| fresh | ? '' : probe_fstype($dev);
+            plan( $step, $label, 'mkfs', TRUE,
+                length $have ? "over $have" : undef )
+                if $have ne $entry->{'fs'};
+            next;
+        }
+
+        my $have = probe_fstype($dev);
+        if ( $have eq $entry->{'fs'} ) {
+            row( $label, 'ok', $dev );
+            next;
+        }
+        CORE::push @todo, [ $entry, $dev, $label ];
+    }
+    return TRUE  if $mode eq qw| plan | or not @todo;
+    return FALSE if not destroy_allowed( $todo[0][2] );
+
+    my $started = Time::HiRes::time();
+    my $done    = 0;
+    foreach my $t (@todo) {
+        my ( $entry, $dev, $label ) = @{$t};
+        progress( $done, scalar @todo, $label, $started, 'fs/s' );
+        my @cmd = mkfs_cmd( $entry, $dev );
+        my ( $exit, $out ) = run_cap( {}, @cmd );
+        $done++;
+        if ( $exit != 0 ) {
+            progress_end();
+            return fail( $label, "$cmd[0] exit $exit", $out );
+        }
+    }
+    progress_final( $done, scalar @todo, 'file systems', $started, 'fs/s' );
+    done( $ARG->[2], 'created', $ARG->[1] ) foreach @todo;
+    return TRUE;
+}
+
+##[ mounting ]################################################################
+
+## target -> source of what is mounted under the target ##
+sub read_mounts {
+    my ( $exit, $out ) = run_read( qw| findmnt -r -n -o |, q|TARGET,SOURCE| );
+    probe_failed( 'findmnt', $exit ) if $exit != 0;
+    my %m;
+    foreach my $line ( split m|\n|, $out // '' ) {
+        my ( $target, $source ) = split m|\s+|, $line, 2;
+        next if not defined $target;
+        $target =~ s|\\x([0-9a-fA-F]{2})|chr hex $1|ge;
+        $m{$target} = $source // '';
+    }
+    return \%m;
+}
+
+sub under_target {
+    my ($path) = @ARG;
+    return ( $path eq $TARGET or index( $path, "$TARGET/" ) == 0 )
+        ? TRUE
+        : FALSE;
+}
+
+## the tree mounted at the target, '/' first ; FALSE on any failure ##
+sub mount_tree {
+    my @m = sort {
+        depth( $a->[0] ) <=> depth( $b->[0] )
+            or $a->[0] cmp $b->[0]
+        }
+        map { [ $ARG->[0]{'mount'}, $ARG->[1] ] }
+        grep { defined $ARG->[0]{'mount'} } fs_entries();
+    my $mounts = read_mounts();
+    make_path($TARGET) if not -d $TARGET;
+    foreach my $m (@m) {
+        my ( $mp, $dev ) = @{$m};
+        my $dir = $mp eq '/' ? $TARGET : "$TARGET$mp";
+        if ( exists $mounts->{$dir} ) {
+            next if same_device( $mounts->{$dir}, $dev );
+            return fail( "mount $mp", "$dir holds $mounts->{$dir}" );
+        }
+        make_path($dir) if not -d $dir;
+        return FALSE    if not act( "mount $mp", qw| mount |, $dev, $dir );
+    }
+    return TRUE;
+}
+
+## /dev \ /proc \ /sys for the chroot ##
+sub bind_mounts {
+    my $mounts = read_mounts();
+    foreach my $fs (qw| dev dev/pts proc sys |) {
+        my $dir = "$TARGET/$fs";
+        next            if exists $mounts->{$dir};
+        make_path($dir) if not -d $dir;
+        my @how
+            = $fs eq qw| proc | ? (qw| -t proc proc |)
+            : $fs eq qw| sys |  ? (qw| -t sysfs sys |)
+            :                     ( qw| --bind |, "/$fs" );
+        return FALSE if not act( "bind /$fs", qw| mount |, @how, $dir );
+    }
+    return TRUE;
+}
+
+sub depth { return scalar( () = $ARG[0] =~ m|/[^/]|g ) }
+
+sub tree_ready {
+    my ($mode) = @ARG;
+    return TRUE if $mode eq qw| plan |;
+    return mount_tree();
+}
+
+## plan : the tree can be looked into only where it is mounted already ##
+sub plan_tree_visible {
+    return FALSE if $ASSUME_FRESH;
+    my $mounts = read_mounts();
+    return exists $mounts->{$TARGET} ? TRUE : FALSE;
+}
+
+##[ step 6 : debian base ]####################################################
+
+sub base_present {
+    return (    -f "$TARGET/etc/debian_version"
+            and -f "$TARGET/var/lib/dpkg/status"
+            and not -e "$TARGET/debootstrap" ) ? TRUE : FALSE;
+}
+
+sub step_debian_base {
+    my ( $mode, $step ) = @ARG;
+    if ( $mode eq qw| plan | ) {
+        if ( not plan_tree_visible() ) {
+            plan( $step, 'mount tree',  'mount',      FALSE, $TARGET );
+            plan( $step, 'debootstrap', 'if missing', FALSE, $L->{'suite'} );
+        } elsif ( not base_present() ) {
+            plan( $step, 'debootstrap', 'install', FALSE, $L->{'suite'} );
+        }
+        return TRUE;
+    }
+    return FALSE if not tree_ready($mode);
+    row( 'tree', 'mounted', $TARGET, 'ok' );
+
+    if ( base_present() ) {
+        my $version = slurp("$TARGET/etc/debian_version") // '';
+        chomp $version;
+        row( 'debian base', 'ok', "debian $version" );
+        return TRUE;
+    }
+    if ( -e "$TARGET/debootstrap" ) {
+        return fail(
+            'debian base',
+            'an earlier debootstrap stopped half-way [ debootstrap/ '
+                . 'in the tree ] -- mkfs the root again with -wipe'
+        );
+    }
+    return run_debootstrap();
+}
+
+## debootstrap's phases drive the shared bar ; its last lines are kept for ##
+## a failure                                                               ##
+sub run_debootstrap {
+    my @cmd = (
+        qw| debootstrap |,
+        "--arch=$L->{'arch'}", $L->{'suite'}, $TARGET, $L->{'mirror'}
+    );
+    my @phases = (
+        qr|^I: Retrieving Release|,
+        qr|^I: Retrieving Packages|,
+        qr|^I: Validating|,
+        qr|^I: Retrieving |,
+        qr|^I: Extracting|,
+        qr|^I: Installing core|,
+        qr|^I: Unpacking|,
+        qr|^I: Configuring|,
+        qr|^I: Base system installed|,
+    );
+    my $phase   = 0;
+    my $started = Time::HiRes::time();
+    my @tail;
+
+    my $pid = open( my $fh, '-|' ) // return fail( 'debootstrap', 'no fork' );
+    if ( $pid == 0 ) {
+        open( STDERR, '>&', \*STDOUT );
+        open( STDIN,  '<',  File::Spec->devnull );
+        CORE::exec { $cmd[0] } @cmd;
+        CORE::exit 127;
+    }
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        CORE::push @tail, $line;
+        CORE::shift @tail if @tail > 13;
+        foreach my $i ( $phase .. $#phases ) {
+            next if $line !~ $phases[$i];
+            $phase = $i + 1;
+            last;
+        }
+        progress(
+            $phase,
+            scalar @phases,
+            'debootstrap ' . $L->{'suite'},
+            $started, 'phase/s'
+        );
+    }
+    close($fh);
+    my $exit = child_exit();
+    progress_final(
+        $exit == 0 ? scalar @phases : $phase,
+        scalar @phases,
+        'debootstrap ' . $L->{'suite'},
+        $started, 'phase/s'
+    );
+    return fail( 'debootstrap', "exit $exit", join "\n", @tail )
+        if $exit != 0 or not base_present();
+    done( 'debian base', 'installed', $L->{'suite'} );
+    return TRUE;
+}
+
+##[ step 7 : configuration ]##################################################
+
+## the managed files by their content -- written only when it differs ##
+sub wanted_files {
+    my %f;
+    my @fstab = ("## written by p7-host-build [ by uuid ]");
+    foreach my $e (
+        sort {
+            depth( $a->[0]{'mount'} // '/x/x/x' )
+                <=> depth( $b->[0]{'mount'} // '/x/x/x' )
+        } fs_entries()
+    ) {
+        my ( $entry, $dev ) = @{$e};
+        my $uuid = probe_uuid($dev);
+        return ( undef, "no uuid for $dev" ) if not length $uuid;
+        my $fs = $entry->{'fs'};
+        if ( $fs eq qw| swap | ) {
+            CORE::push @fstab, "UUID=$uuid  none  swap  sw  0  0";
+            next;
+        }
+        my $mp = $entry->{'mount'} // next;
+        my ( $opts, $pass )
+            = $mp eq '/'        ? ( qw| errors=remount-ro |, 1 )
+            : $fs eq qw| vfat | ? ( qw| umask=0077 |,        1 )
+            : $fs eq qw| xfs |  ? ( qw| defaults |,          0 )
+            :                     ( qw| defaults |, 2 );
+        CORE::push @fstab, "UUID=$uuid  $mp  $fs  $opts  0  $pass";
+    }
+    $f{'etc/fstab'} = join( "\n", @fstab ) . "\n";
+
+    my @crypt = grep { $ARG->{'crypt'} } @{ $L->{'parts'} };
+    if (@crypt) {
+        my @lines = ("## written by p7-host-build [ by uuid ]");
+        foreach my $part (@crypt) {
+            my $uuid = probe_uuid( part_path($part) );
+            return ( undef, "no luks uuid for $part->{'name'}" )
+                if not length $uuid;
+            CORE::push @lines, sprintf '%s  UUID=%s  none  luks,discard',
+                crypt_name( $part->{'name'} ), $uuid;
+        }
+        $f{'etc/crypttab'} = join( "\n", @lines ) . "\n";
+    }
+
+    $f{'etc/hostname'} = "$HOST\n";
+    $f{'etc/hosts'}
+        = "127.0.0.1  localhost\n127.0.1.1  $HOST\n::1 "
+        . " localhost ip6-localhost ip6-loopback\n";
+    $f{'etc/default/locale'} = "LANG=$L->{'locale'}\n";
+    return ( \%f, undef );
+}
+
+sub step_configuration {
+    my ( $mode, $step ) = @ARG;
+    if ( $mode eq qw| plan | ) {
+        if ( not plan_tree_visible() or not base_present() ) {
+            plan( $step, 'system files',      'if differing', FALSE );
+            plan( $step, "user $L->{'user'}", 'if missing',   FALSE )
+                if defined $L->{'user'};
+            return TRUE;
+        }
+        my ($files) = wanted_files();
+        foreach my $rel ( sort keys %{ $files // {} } ) {
+            plan( $step, "/$rel", 'write', FALSE )
+                if ( slurp("$TARGET/$rel") // '' ) ne $files->{$rel};
+        }
+        plan( $step, "user $L->{'user'}", 'create', FALSE )
+            if defined $L->{'user'} and not user_present( $L->{'user'} );
+        return TRUE;
+    }
+
+    my ( $files, $why ) = wanted_files();
+    return fail( 'system files', $why ) if not defined $files;
+    foreach my $rel ( sort keys %{$files} ) {
+        my $path = "$TARGET/$rel";
+        if ( ( slurp($path) // '' ) eq $files->{$rel} ) {
+            row( "/$rel", 'ok' );
+            next;
+        }
+        my ( undef, $dir ) = File::Spec->splitpath($path);
+        make_path($dir) if not -d $dir;
+        return fail( "/$rel", "cannot write [ $OS_ERROR ]" )
+            if not spew( $path, $files->{$rel} );
+        done( "/$rel", 'written' );
+    }
+
+    if ( $L->{'locale'} ne qw| C.UTF-8 | ) {
+        my $gen = slurp("$TARGET/etc/locale.gen") // '';
+        if ( $gen !~ m|^\Q$L->{'locale'}\E\s|m ) {
+            return FALSE if not chroot_apt(qw| locales |);
+            spew( "$TARGET/etc/locale.gen", "$gen$L->{'locale'} UTF-8\n" );
+            return FALSE
+                if not act( 'locale-gen', chroot_cmd(qw| locale-gen |) );
+            done( 'locale', 'generated', $L->{'locale'} );
+        } else {
+            row( 'locale', 'ok', $L->{'locale'} );
+        }
+    }
+
+    return step_first_user();
+}
+
+sub user_present {
+    my ($name) = @ARG;
+    my $passwd = slurp("$TARGET/etc/passwd") // '';
+    return $passwd =~ m|^\Q$name\E:|m ? TRUE : FALSE;
+}
+
+## the first user : created once ; its password goes to chpasswd on stdin ##
+## [ never argv ]. no terminal \ a test root : the account stays locked   ##
+sub step_first_user {
+    my $name = $L->{'user'} // do {
+        row( 'user', 'skipped', 'no user.name in the layout' );
+        return TRUE;
+    };
+    if ( user_present($name) ) {
+        row( "user $name", 'ok' );
+        return TRUE;
+    }
+    return FALSE if not bind_mounts();
+    my $group  = slurp("$TARGET/etc/group") // '';
+    my @groups = $group =~ m|^sudo:|m ? (qw| -G sudo |) : ();
+    return FALSE
+        if not act( "user $name",
+        chroot_cmd( qw| useradd -m -s /bin/bash |, @groups, $name ) );
+
+    my $pass
+        = ( length $TEST_ROOT or not -t STDIN )
+        ? undef
+        : passphrase( "password for $name", TRUE );
+    if ( not defined $pass ) {
+        done( "user $name", 'created', 'locked -- set it with passwd' );
+        return TRUE;
+    }
+    my $ok = act(
+        "password $name",
+        { qw| input | => "$name:$pass\n" },
+        chroot_cmd(qw| chpasswd |)
+    );
+    wipe_string( \$pass );
+    return FALSE if not $ok;
+    done( "user $name", 'created', 'password set' );
+    return TRUE;
+}
+
+##[ step 8 : bootloader ]#####################################################
+
+sub efi_present {
+    return (    -f "$TARGET/boot/efi/EFI/BOOT/BOOTX64.EFI"
+            and -f "$TARGET/boot/grub/grub.cfg" ) ? TRUE : FALSE;
+}
+
+sub kernel_present {
+    opendir( my $dh, "$TARGET/boot" ) or return FALSE;
+    my @k = grep {m|\Avmlinuz-|} readdir($dh);
+    closedir($dh);
+    return @k ? TRUE : FALSE;
+}
+
+sub step_bootloader {
+    my ( $mode, $step ) = @ARG;
+    my $bios = grep { $ARG->{'fs'} eq qw| bios_grub | } @{ $L->{'parts'} };
+
+    if ( $L->{'boot'} eq qw| none | ) {
+        row( 'bootloader', 'skipped', 'system.bootloader = none' )
+            if $mode eq qw| act |;
+        return TRUE;
+    }
+    if ( $mode eq qw| plan | ) {
+        if ( not plan_tree_visible() or not base_present() ) {
+            plan( $step, 'kernel + grub-efi', 'if missing', FALSE );
+        } elsif ( not kernel_present() or not efi_present() ) {
+            plan( $step, 'kernel + grub-efi', 'install', FALSE );
+        }
+        return TRUE;
+    }
+
+    if ( kernel_present() and efi_present() ) {
+        row( 'kernel', 'ok' );
+        row( 'grub-efi', 'ok', 'EFI/BOOT/BOOTX64.EFI' );
+        return TRUE;
+    }
+    return FALSE if not bind_mounts();
+    my @pkgs = ( "linux-image-$L->{'arch'}", "grub-efi-$L->{'arch'}" );
+    CORE::push @pkgs, qw| grub-pc-bin |          if $bios;
+    CORE::push @pkgs, qw| cryptsetup-initramfs | if %{ $L->{'crypt'} };
+    CORE::push @pkgs, qw| lvm2 |                 if defined $L->{'vg'};
+    CORE::push @pkgs, qw| xfsprogs |
+        if grep { $ARG->{'fs'} eq qw| xfs | } @{ $L->{'lvs'} },
+        @{ $L->{'parts'} };
+    return FALSE if not chroot_apt(@pkgs);
+
+    ## removable path, nvram untouched : the building machine keeps its own ##
+    ## boot entries, the disk boots wherever it is put                      ##
+    return FALSE
+        if not act(
+        'grub-efi',
+        chroot_cmd(
+            qw| grub-install --target=x86_64-efi |,
+            qw| --efi-directory=/boot/efi --removable --no-nvram |
+        )
+        );
+    if ($bios) {
+        return FALSE
+            if not act(
+            'grub bios',
+            chroot_cmd(
+                qw| grub-install --target=i386-pc |, $DISK->{'path'}
+            )
+            );
+    }
+    return FALSE if not act( 'update-grub', chroot_cmd(qw| update-grub |) );
+    return fail( 'grub-efi', 'no EFI/BOOT/BOOTX64.EFI after grub-install' )
+        if not efi_present();
+    done( 'bootloader', 'installed', $bios ? 'efi + bios' : 'efi' );
+    return TRUE;
+}
+
+##[ step 9 : protocol-7 ]#####################################################
+
+sub step_protocol_7 {
+    my ( $mode, $step ) = @ARG;
+    my $checkout = "$TARGET/usr/local/protocol-7/.git";
+    if ( $opt{'no-p7'} ) {
+        row( 'p7-install', 'skipped', '-no-p7' ) if $mode eq qw| act |;
+        return TRUE;
+    }
+    if ( $mode eq qw| plan | ) {
+        if ( not plan_tree_visible() or not base_present() ) {
+            plan( $step, 'p7-install', 'if missing', FALSE,
+                $L->{'profile'} // 'minimal' );
+        } elsif ( not -e $checkout ) {
+            plan( $step, 'p7-install', 'run', FALSE,
+                $L->{'profile'} // 'minimal' );
+        }
+        return TRUE;
+    }
+    if ( -e $checkout ) {
+        row( 'p7-install', 'ok',
+            'checkout in place [ p7-install inside updates ]' );
+        return TRUE;
+    }
+    return FALSE if not bind_mounts();
+
+    my $lib = "$FindBin::RealBin/../data/lib-path/pm";
+    $lib = $FindBin::RealBin if not -f "$lib/AMOS7.pm";
+    my $dest = "$TARGET/root/p7-host-build";
+    make_path( "$dest/AMOS7/TERM", "$dest/AMOS7/deps" );
+    copy( "$FindBin::RealBin/p7-install", "$dest/p7-install" )
+        or return fail( 'p7-install', "copy failed [ $OS_ERROR ]" );
+    foreach my $rel (@P7_INSTALL_MODULES) {
+        next if not -f "$lib/$rel";
+        copy( "$lib/$rel", "$dest/$rel" )
+            or return fail( 'p7-install', "copy $rel failed [ $OS_ERROR ]" );
+    }
+    ## p7-install compiles with modules of the 'perl' package, not ##
+    ## perl-base                                                   ##
+    if ( not glob("$TARGET/usr/share/perl/*/FindBin.pm") ) {
+        return FALSE if not chroot_apt(qw| perl |);
+    }
+    ## -no-hw : in a chroot the hardware is the building machine's ##
+    my @args = (qw| /usr/bin/perl /root/p7-host-build/p7-install -no-hw |);
+    CORE::push @args, '-profile', $L->{'profile'} if defined $L->{'profile'};
+    CORE::push @args, qw| -enable | if $L->{'enable'} eq qw| yes |;
+    CORE::push @args, qw| -nc |     if not frame_color_enabled();
+
+    ## p7-install frames its own output ##
+    my $exit = run_cmd( chroot_cmd(@args) );
+    return fail( 'p7-install', "exit $exit" ) if $exit != 0;
+    done( 'p7-install', 'done', $L->{'profile'} // 'minimal' );
+    return TRUE;
+}
+
+##[ step 10 : unmount ]#######################################################
+
+## everything under the target, deepest first ; then the vg and the luks ##
+## mappings. runs after a failure too                                    ##
+sub step_unmount {
+    if ($DRY_RUN) {
+        return TRUE;
+    }
+    my $mounts = read_mounts();
+    my @ours   = sort { depth($b) <=> depth($a) or $b cmp $a }
+        grep { under_target($ARG) } keys %{$mounts};
+    if ( not @ours ) {
+        row( 'tree', 'ok', 'nothing mounted' );
+    }
+    foreach my $dir (@ours) {
+        act( "umount $dir", qw| umount |, $dir )
+            or act( "umount -l $dir", qw| umount -l |, $dir );
+    }
+    row( 'tree', 'unmounted', sprintf( '%d mounts', scalar @ours ), 'ok' )
+        if @ours;
+    run_cap( {}, qw| sync | );
+
+    if ( defined $L->{'vg'} and $state{'vg_active'} ) {
+        act( "vg $L->{'vg'}", qw| vgchange -q -an |, $L->{'vg'} )
+            and row( "vg $L->{'vg'}", 'deactivated', undef, 'ok' );
+    }
+    foreach my $part ( grep { $ARG->{'crypt'} } @{ $L->{'parts'} } ) {
+        my $mapper = crypt_name( $part->{'name'} );
+        next if run_cap( {}, qw| cryptsetup status |, $mapper ) != 0;
+        act( "close $part->{'name'}", qw| cryptsetup close |, $mapper )
+            and row( "luks $part->{'name'}", 'closed', $mapper, 'ok' );
+    }
+    return TRUE;
+}
+
+##[ the one confirmation ]####################################################
+
+## every destructive action listed, then one yes-no [ default no ]. no ##
+## terminal and no -yes : refused                                      ##
+sub confirm_plan {
+    my ($count) = @ARG;
+    say frame_section_header('destructive');
+    row( 'on disk', $DISK->{'path'}, $L->{'serial'}, qw| warn | );
+    foreach my $entry ( grep { $ARG->[3] } @plan ) {
+        row( $entry->[1], $entry->[2], undef, qw| warn | );
+    }
+    say frame_column_line();
+    return qw| yes | if $opt{'yes'};
+
+    my $term = load_term()
+        // return 'no terminal module to confirm with -- -yes answers it';
+    return 'no terminal to confirm -- -yes answers it'
+        if not -t STDIN;
+    my $answer = AMOS7::TERM::ask(
+        {   qw| question | => sprintf(
+                'run %d destructive actions on %s [ %s ] ?',
+                $count, $DISK->{'path'}, $L->{'serial'}
+            ),
+            qw| default | => FALSE,
+        }
+    );
+    return $answer ? qw| yes | : 'not confirmed -- nothing written';
+}
+
+## AMOS7::TERM pulls in more than core perl : loaded only for a prompt ##
+sub load_term {
+    state $loaded;
+    return $loaded if defined $loaded;
+    $loaded = eval { require AMOS7::TERM; TRUE } ? TRUE : undef;
+    if ( not $loaded ) {
+        my ($why) = split m|\n|, $EVAL_ERROR // '';
+        row( 'AMOS7::TERM', 'missing', $why // 'not loadable' );
+    }
+    return $loaded;
+}
+
+## a passphrase through AMOS7::TERM [ repeated when it is new ] ##
+sub passphrase {
+    my ( $what, $new ) = @ARG;
+    if ( length $TEST_ROOT and defined $ENV{'P7_HOST_BUILD_TEST_PASSPHRASE'} )
+    {
+        return $ENV{'P7_HOST_BUILD_TEST_PASSPHRASE'};
+    }
+    load_term() // return undef;
+    return undef if not AMOS7::TERM::has_tty();
+    return $new
+        ? AMOS7::TERM::read_password_repeated( $what, '', 1, 130,
+        qw| fallback_on_no_tty | => qw| return_undef | )
+        : scalar AMOS7::TERM::read_password_single( $what, '', 1, 130,
+        qw| fallback_on_no_tty | => qw| return_undef | );
+}
+
+sub wipe_string {
+    my ($ref) = @ARG;
+    return if not defined ${$ref};
+    substr( ${$ref}, 0, length ${$ref} ) = "\0" x length ${$ref};
+    undef ${$ref};
+    return TRUE;
+}
+
+##[ progress ]################################################################
+
+## the shared bar : redrawn on a terminal only ; progress_final prints the ##
+## closing line everywhere                                                 ##
+sub progress {
+    my ( $current, $total, $label, $started, $unit, $final ) = @ARG;
+    my $line = console_progress_bar(
+        qw| current | => $current,
+        qw| total |   => $total,
+        qw| label |   => $label,
+        qw| started | => $started,
+        qw| unit |    => $unit,
+        qw| color |   => frame_color_enabled(),
+    );
+    if ($final) {
+        ( my $plain = $line ) =~ s|\r||g;
+        print "\r" if $progress_drawn;
+        say $plain;
+        $progress_drawn = FALSE;
+    } elsif ( -t STDOUT ) {
+        print $line;
+        $progress_drawn = TRUE;
+    }
+    return TRUE;
+}
+
+sub progress_final { return progress( @ARG[ 0 .. 4 ], TRUE ) }
+
+## a bar left half-drawn [ a failure ] gets its newline ##
+sub progress_end {
+    print "\n" if $progress_drawn;
+    $progress_drawn = FALSE;
+    return TRUE;
+}
+
+##[ helpers ]#################################################################
+
+sub plan {
+    my ( $step, $label, $action, $destructive, $detail ) = @ARG;
+    $action .= " [ $detail ]" if defined $detail and length $detail;
+    CORE::push @plan, [ $step, $label, $action, $destructive ? TRUE : FALSE ];
+    return TRUE;
+}
+
+sub done {
+    my ( $label, $status, $detail ) = @ARG;
+    row( $label, $status, $detail, qw| ok | );
+    CORE::push @report, [ $label, $status, $detail ];
+    return TRUE;
+}
+
+sub fail {
+    my ( $label, $why, $out ) = @ARG;
+    row( $label, 'failed', $why );
+    foreach my $line ( grep {length} split m|\n|, $out // '' ) {
+        row( '..', $line, undef, qw| value | );
+    }
+    return FALSE;
+}
+
+## the second gate, at the moment of writing : -wipe matched and the plan   ##
+## confirmed. a destructive need found only now                             ##
+## [ behind a closed luks, an inactive vg ] was not in the confirmed plan : ##
+## refused                                                                  ##
+sub destroy_allowed {
+    my ($label) = @ARG;
+    return TRUE if $WIPE_OK and $CONFIRMED;
+    return fail( $label, 'refused',
+        $WIPE_OK
+        ? 'destructive, found after the plan -- run again to see it planned'
+        : "destructive and no -wipe $L->{'serial'}" );
+}
+
+sub destroy {
+    my ( $label, @cmd ) = @ARG;
+    return FALSE if not destroy_allowed($label);
+    return act( $label, @cmd );
+}
+
+## a write command : run, its output shown only when it fails ##
+sub act {
+    my ( $label, @cmd ) = @ARG;
+    my $o = ref $cmd[0] eq qw| HASH | ? CORE::shift @cmd : {};
+    my ( $exit, $out ) = run_cap( $o, @cmd );
+    return TRUE if $exit == 0;
+    return fail( $label, "$cmd[0] exit $exit", $out );
+}
+
+sub chroot_cmd {
+    return (
+        qw| chroot |,
+        $TARGET,
+        qw| /usr/bin/env -i |,
+        'PATH=/usr/sbin:/usr/bin:/sbin:/bin',
+        'HOME=/root',
+        'LANG=C.UTF-8',
+        qw| DEBIAN_FRONTEND=noninteractive |,
+        @ARG
+    );
+}
+
+## plain apt inside the new system only ##
+sub chroot_apt {
+    my (@pkgs) = @ARG;
+    return FALSE if not bind_mounts();
+    return FALSE
+        if not act( 'apt-get update', chroot_cmd(qw| apt-get -q update |) );
+    return FALSE
+        if not act( 'apt-get install',
+        chroot_cmd( qw| apt-get -q -y install |, @pkgs ) );
+    done( 'packages', 'installed', join ' ', @pkgs );
+    return TRUE;
+}
+
+sub row {
+    my ( $label, $status, $detail, $level ) = @ARG;
+    say frame_status_row(
+        $label, $status,
+        {   qw| width |  => $LABEL_WIDTH,
+            qw| detail | => $detail,
+            qw| level |  => $level,
+        }
+    );
+    return TRUE;
+}
+
+## list form, output passes through ; the exit code [ 127 : not run ] ##
+sub run_cmd {
+    my (@cmd) = @ARG;
+    CORE::system { $cmd[0] } @cmd;
+    return child_exit();
+}
+
+## list form ; [ exit, stdout without the last newline ], stderr dropped ##
+sub run_read {
+    my (@cmd) = @ARG;
+    my $pid = open( my $pipe, '-|' ) // return ( 127, undef );
+    if ( $pid == 0 ) {
+        open( STDERR, '>', File::Spec->devnull );
+        open( STDIN,  '<', File::Spec->devnull );
+        CORE::exec { $cmd[0] } @cmd or CORE::exit 127;
+    }
+    my $out = do { local $INPUT_RECORD_SEPARATOR = undef; <$pipe> }
+        // '';
+    close($pipe);
+    $out =~ s|\n\z||;
+    return ( child_exit(), $out );
+}
+
+## list form ; stdout + stderr captured, an optional stdin text       ##
+## [ secrets travel here, never on argv ] -- [ exit, output ] in list ##
+## context                                                            ##
+sub run_cap {
+    my ( $o,      @cmd )      = @ARG;
+    my ( $out_fh, $out_path ) = tempfile(
+        qw| p7-host-build-XXXXXX |,
+        qw| TMPDIR | => 1,
+        qw| UNLINK | => 1
+    );
+    my $in_pipe;
+    my $pid;
+    if ( defined $o->{'input'} ) {
+        $pid = open( $in_pipe, '|-' );
+    } else {
+        $pid = fork();
+    }
+    return wantarray ? ( 127, '' ) : 127 if not defined $pid;
+    if ( $pid == 0 ) {
+        open( STDIN,  '<', File::Spec->devnull ) if not defined $o->{'input'};
+        open( STDOUT, '>&', $out_fh );
+        open( STDERR, '>&', $out_fh );
+        CORE::exec { $cmd[0] } @cmd;
+        CORE::exit 127;
+    }
+    if ( defined $in_pipe ) {
+        print {$in_pipe} $o->{'input'};
+        close($in_pipe);
+    } else {
+        waitpid( $pid, 0 );
+    }
+    my $exit = child_exit();
+    my $out  = slurp($out_path) // '';
+    close($out_fh);
+    unlink $out_path;
+    $out =~ s|\n\z||;
+    return wantarray ? ( $exit, $out ) : $exit;
+}
+
+## the exit code of the last child : 127 not run, 128 + n killed by signal ##
+## n [ a killed mkfs is no success ]                                       ##
+sub child_exit {
+    return 127                          if $CHILD_ERROR == -1;
+    return 128 + ( $CHILD_ERROR & 127 ) if $CHILD_ERROR & 127;
+    return $CHILD_ERROR >> 8;
+}
+
+## a probe without an answer refuses : the safety checks fail closed ##
+sub probe_failed {
+    my ( $what, $exit ) = @ARG;
+    frame_error_exit( $TOOL,
+        "$what gave no answer [ exit $exit ] -- refused" );
+}
+
+sub in_path {
+    my ($name) = @ARG;
+    foreach my $dir ( split m|:|, $ENV{'PATH'} // '' ) {
+        next if not length $dir;
+        my $path = File::Spec->catfile( $dir, $name );
+        return TRUE if -f $path and -x _;
+    }
+    return FALSE;
+}
+
+sub is_empty_dir {
+    my ($dir) = @ARG;
+    opendir( my $dh, $dir ) or return FALSE;
+    my @entries = grep { $ARG ne '.' and $ARG ne '..' } readdir($dh);
+    closedir($dh);
+    return @entries ? FALSE : TRUE;
+}
+
+sub slurp {
+    my ($path) = @ARG;
+    open( my $fh, '<:raw', $path ) or return undef;
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $content = <$fh>;
+    close($fh);
+    return $content // '';
+}
+
+sub spew {
+    my ( $path, $content ) = @ARG;
+    open( my $fh, '>:raw', $path ) or return FALSE;
+    print {$fh} $content;
+    close($fh) or return FALSE;
+    return TRUE;
+}
+
+sub human_size {
+    my ($bytes) = @ARG;
+    return '?' if not defined $bytes or $bytes !~ m|\A\d+\z|;
+    foreach my $u (qw| T G M K |) {
+        return sprintf '%.1f%siB', $bytes / $UNIT{$u}, $u
+            if $bytes >= $UNIT{$u};
+    }
+    return "$bytes bytes";
+}
+
+sub print_help {
+    my $help_str = <<"EOL";
+
+     bin/p7-host-build [ options ] -layout <file|host> .. builds a host
+                                   from an empty disk [ as root ]
+
+     -layout <file|host> .  the layout [ a host name reads
+                            ~/.n/host-build/<host>.layout ]
+     -wipe <serial> ......  allows the destructive steps on the disk
+                            with this serial [ must match the layout ]
+     -dry-run ............  read only, print the full plan
+     -yes ................  answers the one confirmation [ -wipe is
+                            still needed ]
+     -target <dir> .......  mount point of the new tree
+                            [ default : /mnt/p7-host-build/<host> ]
+     -no-p7 ..............  skip p7-install inside the new system
+     -install-tools ......  missing host tools through the debian zenka
+     -nc .................  no colours [ also with NO_COLOR, or no terminal ]
+     -options ............  this option list [ -h resolves here ]
+
+     a second run changes nothing that is in place already.
+
+EOL
+
+    if ( frame_color_enabled() ) {
+        my %C     = %AMOS7::C;
+        my @lines = split "\n", $help_str, -1;
+        pop @lines;
+        map {s|(\s?\W+\s?)|$C{B01}$C{0}$1$C{B02}$C{T}|g} @lines;
+        map { $ARG = "$C{B00}$C{0}$ARG$C{R}" } @lines;
+        $help_str = join( "\n", @lines ) . "\n";
+    }
+    print $help_str;
+    return TRUE;
+}
+
+#,,,.,.,.,...,.,,,...,...,,.,,..,,,.,,.,,,...,..,,...,...,.,,,,,.,,,.,...,,,,,
+#75WSR7SGIOMYYFW3NJRCAEHPQLY32HSTEPGCSH3P3AFWEMOQ2KO2H6NSHWN3DI36LNCUPZ4KRY7Q2
+#\\\|FGXN3NK7SSH2YSG2TWCAZHQLU7GRCNXXZJHL5J5AZV2B3VGZR5W \ / AMOS7 \ YOURUM ::
+#\[7]3GYINWVDR5D25ZGYONK55VMKJKBMIG2VPOLQKRP52DEHJYW5UWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

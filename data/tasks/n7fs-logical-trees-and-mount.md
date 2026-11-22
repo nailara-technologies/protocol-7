@@ -167,3 +167,42 @@ bin/test-scripts/test-n7fs-tree-category-performance.pl`.
 #\\\|R6XOIRIXJXOF2EHDUAEEUBIBA6YSIWL5D7HZM4HISESVV4VSTM5 \ / AMOS7 \ YOURUM ::
 #\[7]BYGVUQJNVJHFO2IEJ22S4KFK4QHEWZMPVLOWLJ4PBLJKFAKQ3GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## use case : ~/.ssh as a sealed n7fs mount [ owner 2026-11-22 ]
+
+a host install stays unencrypted [ data/tasks/host-build.md ] ; ~/.ssh is then the most
+exposed spot on a stolen laptop. mounting it from a sealed n7fs tree protects the keys AND
+the profiles \ config \ known_hosts [ who the user talks to ].
+
+needs, from what ssh expects :
+- write support : known_hosts and authorized_keys change [ the add-only log mount idea fits ]
+- ownership and modes ssh accepts [ StrictModes : the user, 0700 \ 0600 ] ; no other user
+  may read the mount [ fuse default_permissions, no allow_other ]
+- mounted before the first ssh use [ login or session start ] ; the vault unlock is the gate
+- a clear offline \ rescue answer : when n7fs or the vault is unavailable the directory is
+  absent or empty, never a silent fallback to an unprotected copy
+- ~/.ssh is a symlink to the mount target [ owner ] : while unmounted the link dangles, so
+  ssh \ ssh-keygen cannot auto-create a plain ~/.ssh and nothing lands outside the seal.
+  the target sits in a user-only place [ e.g. /run/user/<uid>/n7fs/ssh ] ; ssh follows the
+  link and checks the target's owner \ modes. a missing target gives a clear error, which
+  is the wanted behaviour
+- target in the p7 shm tree [ owner : /dev/shm/.7/... ] : e.g. /dev/shm/.7/USR/<user>/ssh,
+  the user's dir 0700 and owned by the user. /dev/shm is world-writable [ sticky ], so the
+  mount code checks the WHOLE chain before using it : /dev/shm/.7 owned by the protocol-7
+  user [ not only its group -- v7-zenki.setup_stdout_redir checks the group only today ],
+  no symlink anywhere, USR not writable by others, the user dir the user's own. a failed
+  check means no mount and a clear error, never a fallback
+- better target [ owner ] : /run/.7/USR/<user>/ssh. /run is root-owned 0755 tmpfs, so only
+  root [ v7-zenki ] can create /run/.7 -- nobody can take it first, unlike /dev/shm. use
+  /run, not /var/run : on debian /var/run is a symlink to /run and the chain check rejects
+  symlinks. still checked : /run/.7 owned by root or the protocol-7 user, USR not writable
+  by others, the user dir 0700 and the user's own
+- /run/.7 exists already [ protocol-7 0775 : UNIX sockets, STDOUT, v7-zenki, user files ].
+  it is group-writable, so v7-zenki creates USR owned by root \ protocol-7 and NOT group
+  writable ; below it one 0700 dir per user [ /run/.7/USR/<user>/ssh ]
+
+#,,,.,...,.,.,,,.,,,.,.,.,...,...,,,,,..,,,..,..,,...,...,...,.,,,,,.,.,.,,,.,
+#B4XO5DZ2LE2T2IPYN34ODVYS4WZM5WG23QZ7FPROUHLB4GGX5UL76YDVLG3VSGJ7HYBY4O36DMRPI
+#\\\|C6MSPEKKM3ZMTOCHQWF4L4S7PYRN3INFE6TM53AVNL6CSWDJPR7 \ / AMOS7 \ YOURUM ::
+#\[7]I56AUTUNAEFMCHWHWVWPMAM6KA5EB3HKM3UDRZNFPZJT4IIVPYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

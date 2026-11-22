@@ -1,0 +1,58 @@
+## p7-host-build layout template [ bin/p7-host-build -layout <file|host> ]
+##
+## copy it OUTSIDE the tracked tree before filling in real values :
+##   ~/.n/host-build/<host>.layout  [ then : bin/p7-host-build -layout <host> ]
+## real disk serials and host names never go into the repo.
+##
+## p7 config style : 'key = value' and 'key : value' are the same, '#'
+## starts a comment, '[ .. ]' is an annotation and is ignored. unknown keys
+## are refused [ a typo never passes silently ].
+##
+## sizes : <n>K \ M \ G \ T [ binary : 1G = 1024 MiB ] or 'rest' [ the
+## remaining space, the last entry of its list only ].
+## file systems : vfat ext4 xfs swap, lvm [ a partition holding a vg ],
+## bios_grub [ 1M, legacy boot fallback, no file system ]
+
+## the host and the disk [ lsblk -d -o NAME,SERIAL,MODEL,SIZE ] ##
+host.name        = example-host
+disk.serial      = 0000-REPLACE-ME
+
+## partitions in disk order : <size> <fs> [ <mount point> | <vg name> ] ##
+part.bios        = 1M bios_grub            [ legacy fallback, optional ]
+part.efi         = 512M vfat /boot/efi
+part.boot        = 1G ext4 /boot
+part.main        = rest lvm main-vg
+
+## luks on a partition [ an option, off by default : the actual installs ##
+## stay bootable without a passphrase, the data is sealed by n7fs ]      ##
+# crypt.main     = luks
+
+## logical volumes in main-vg : <size> <fs> [ <mount point> ] ##
+lv.root          = 40G ext4 /
+lv.rescue        = 8G ext4                 [ second boot system, not mounted ]
+lv.data          = rest xfs /data
+
+## the debian system : trixie for main systems, unstable allowed ##
+## [ experiment slot ]                                           ##
+system.suite     = trixie
+system.arch      = amd64
+system.mirror    = http://deb.debian.org/debian
+system.locale    = C.UTF-8
+
+## grub-efi [ removable path, no nvram write ] or none ##
+system.bootloader = grub-efi
+
+## bin/p7-install inside the new system : its dependency profile, and ##
+## 'enable' for the boot start of the service unit [ default : no ]   ##
+system.profile   = minimal
+system.service   = no
+
+## a first user [ the password is asked on the terminal, never argv ; ##
+## without a terminal the account stays locked ]                      ##
+# user.name      = <name>
+
+#,,,.,,,,,,,.,,.,,,..,.,,,...,,,.,..,,,,,,...,..,,...,...,,..,..,,.,.,.,,,,..,
+#GWJSEGXIFGD7EXMBC4OPKS5Z6BXW6TTZBQKFGBOPSSDULJOKRMMC2F7WSUOPQQ36HUR4CK7XK7FN4
+#\\\|FJD5HFYNKSXTLXXGLUW6J2LL5EI3ZOGAENS66ZZVI7VAFOL7BQS \ / AMOS7 \ YOURUM ::
+#\[7]TWYCOAI7SC4X2LQU2JZWQU7Z3K4OPQ4XBISZQFAM5RMQC6QIOKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
