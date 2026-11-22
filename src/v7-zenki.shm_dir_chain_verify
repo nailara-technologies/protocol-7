@@ -1,0 +1,69 @@
+## [:< ##
+
+# name   = v7-zenki.shm_dir_chain_verify
+# descr  = may a directory under /dev/shm/.7 be used [ fail closed ]
+# param  = <absolute path under /dev/shm/.7> [, 'missing_ok' ]
+# return = TRUE \ ( FALSE, <why> ) in list context
+# note   = /dev/shm is world-writable [ sticky ] : another local user can
+#          create /dev/shm/.7 or a subdir before v7-zenki starts. every
+#          entry from /dev/shm/.7 down to the path : a real directory
+#          [ lstat, no symlink ], owned by root or the zenka user, not
+#          writable by others. 'missing_ok' accepts entries not created
+#          yet [ the check before make_path : make_path chmods \ chowns
+#          an existing path and would follow a planted symlink ]
+
+my ( $path, $missing_mode ) = @ARG;
+$path //= '';
+my $missing_ok = ( $missing_mode // '' ) eq qw| missing_ok |;
+my $refuse     = sub { return wantarray ? ( FALSE, shift ) : FALSE };
+
+my $shm_root = qw| /dev/shm/.7 |;
+
+$path =~ s{/+$}{};
+return $refuse->("$path : not under $shm_root")
+    if $path ne $shm_root and index( $path, "$shm_root/" ) != 0;
+return $refuse->("$path : path not valid") if $path =~ m{/\.\.?(/|$)|//};
+
+my $zenka_user = <system.amos-zenka-user> // qw| protocol-7 |;
+my $zenka_uid  = ( CORE::getpwnam($zenka_user) )[2];
+my %owner_ok   = ( 0 => TRUE );
+$owner_ok{$zenka_uid} = TRUE if defined $zenka_uid;
+
+## entries from /dev/shm/.7 down to the path ##
+my @check = ($shm_root);
+my $rest  = substr $path, length $shm_root;
+my $entry = $shm_root;
+foreach my $part ( grep {length} split qw| / |, $rest ) {
+    $entry .= qq|/$part|;
+    push @check, $entry;
+}
+
+foreach my $dir (@check) {
+    my @dir_stat = CORE::lstat($dir);
+    if ( not @dir_stat ) {
+        ## a missing entry : everything below it is missing too ##
+        return TRUE if $missing_ok and $OS_ERROR{ENOENT};
+        return $refuse->(
+            sprintf '%s : cannot lstat [ %s ]',
+            $dir, <[base.str.os_err]>
+        );
+    }
+    return $refuse->("$dir : symlink")         if -l _;
+    return $refuse->("$dir : not a directory") if not -d _;
+    return $refuse->(
+        sprintf '%s : owner uid %d [ not root or %s ]',
+        $dir, $dir_stat[4], $zenka_user
+    ) if not $owner_ok{ $dir_stat[4] };
+    return $refuse->(
+        sprintf '%s : mode %04o, writable by others',
+        $dir, $dir_stat[2] & 07777
+    ) if $dir_stat[2] & 0002;
+}
+
+return TRUE;
+
+#,,..,.,.,..,,,,.,,.,,...,,,.,,,,,..,,.,.,,,,,..,,...,...,,..,..,,,,,,...,,..,
+#PNKLZ2YTK24KAXUZEUQHRCC4WFLKN7X5G6GNWCADB7SEL2V2W7VERLWUBTSVBD6PLHMHF6PBORCE4
+#\\\|FCGOS57VKQF3LKWYLWAOASIXYVOATK6V7YWYLPCECCNARMOIUPI \ / AMOS7 \ YOURUM ::
+#\[7]OO4NQVNYJTB2WLVJ4AHAU57J23EYPY5VKCNTTUJ63OF7N3M2HWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

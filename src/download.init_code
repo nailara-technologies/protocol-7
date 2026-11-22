@@ -45,7 +45,7 @@ my $download_path = <download.cfg.download_path>;
 <download.obj.ua>->timeout(<download.cfg.http.request_timeout>);
 
 if ( !-d $download_path ) {
-    my ( undef, undef, $uid, $gid ) = getpwnam(<system.amos-zenka-user>)
+    my ( undef, undef, $uid, $gid ) = CORE::getpwnam(<system.amos-zenka-user>)
         or die "user '" . <system.amos-zenka-user> . "' not in passwd file";
     <[base.logs]>->( "creating download directory '%s'.,", $download_path );
     make_path( $download_path,
@@ -56,8 +56,8 @@ if ( !-d $download_path ) {
 
 0;
 
-#,,..,.,.,,,,,..,,,,.,,,.,,,,,,.,,..,,,..,.,,,..,,...,..,,,,.,,.,,...,,,,,.,,,
-#FZPMHSHB6TUPKOMBSVPBIXS4MFTSSYWEQW3DXEH3TYC5JBLBZAXMH6Y6ME63BL3FJKW2XEQKPHWGS
-#\\\|3GEX5JUU6TH63NDAYTOZYYFKADMP7YIGX4H7ES64SLVE3EAKVK3 \ / AMOS7 \ YOURUM ::
-#\[7]EBX5DKG4CZJLV3NRZAQXKHZMLYFY56K2EA5F7LM4EXCQAS2SPWBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,,,.,.,,,.,.,.,.,,,,.,,.,,,,,,,..,,...,..,,,.,,,.,,.,,,.,,,.,.,
+#6HGBQRVX7TWZ5PBNESJMMUDMQDTD3UQKHSAM5Q4ASWU7FCV5H7U3KXBZA3RFWTOH6F3ML2T6O5B3E
+#\\\|OC75LBJCWXBJGJ5UTW23PSOU6JPKOVU6TBNVKAQ5IH4A5TWPIAD \ / AMOS7 \ YOURUM ::
+#\[7]XN5CD66SP4GNB3442M5COVWGFPEJV52557TM4FKXI4MQPYUVMCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,8 +10,22 @@ my $requested_zenka = shift;
 
 my $stdio_dir = qw|/dev/shm/.7/STDIO|;
 
-<[file.make_path]>->( $stdio_dir, 0775, <system.amos-zenka-user> )
-    if not -d $stdio_dir;
+## /dev/shm is world-writable : verify the chain before and after   ##
+## make_path, refuse the listeners on a planted \ foreign directory ##
+foreach my $stage (qw| before after |) {
+    my ( $ok, $why ) = <[v7-zenki.shm_dir_chain_verify]>->(
+        $stdio_dir, $stage eq qw| before | ? qw| missing_ok | : ()
+    );
+    if ( not $ok ) {
+        <[base.logs]>->(
+            0, 'stdio multiplex : refusing %s [ %s make_path ] : %s',
+            $stdio_dir, $stage, $why
+        );
+        return [];
+    }
+    <[file.make_path]>->( $stdio_dir, 0775, <system.amos-zenka-user> )
+        if $stage eq qw| before | and not -d $stdio_dir;
+}
 
 my $zenka_config = <v7-zenki.start_setup.zenki.config> // {};
 
@@ -64,8 +78,8 @@ for my $zenka_name (@zenki) {
 
 return \@opened;
 
-#,,..,,,,,.,.,,,.,.,.,...,,.,,..,,..,,,,,,...,..,,...,..,,,.,,..,,..,,..,,.,,,
-#TUQJXQ33IU4JUH7QYQD3SEMCQZD3IZGHAP3ZOY4ATHIVTKJEXYHY6XDSUJNFZ3LB7URQJ3DE7IPIO
-#\\\|AMWK22PVS4FOXKGQGZH6SWP3MQZFX4HQSHKX5UOMEQSAPADKA3X \ / AMOS7 \ YOURUM ::
-#\[7]HN54QBOO2SIQEJ6BMMCAM4UIGXR4RUAZSXULLSFVZ56KXBGNUABA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,,,.,,..,...,..,,,,,,.,,,,.,,..,,...,...,...,,,,,,..,.,.,...,
+#NN5MQRVMJF5BMRHM5SK3GMOOJ34KCD2TTKCIZQQ5NYBFJ7CUI6QMF7NGCWWTBZZYIOVEW3J6Y7IZA
+#\\\|FS6SU5JNQTI6DEZT5E2SPZA5QPXWM7C7KNVGL6LOPGLK4A57KBB \ / AMOS7 \ YOURUM ::
+#\[7]NQTBZK6DRWZH6FR6CHR3UEBF7OE53PS75ZE2YGKGRIZOC2NDJYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

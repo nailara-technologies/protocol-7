@@ -71,6 +71,22 @@ if ( length $admin_user ) {
     }
 }
 
+## verify what already exists in /dev/shm before make_path touches it : ##
+## make_path chmods \ chowns an existing path and follows a symlink     ##
+my $shm_chain_ok = sub {
+    my $stage = shift;
+    my ( $ok, $why ) = <[v7-zenki.shm_dir_chain_verify]>->(
+        $shm_base_dir, $stage eq qw| before | ? qw| missing_ok | : ()
+    );
+    return TRUE if $ok;
+    <[base.logs]>->(
+        0,      ': refusing stdout log dir [ %s make_path ] : %s',
+        $stage, $why
+    );
+    return FALSE;
+};
+return undef if not $shm_chain_ok->(qw| before |);
+
 ## create tmpfs parent directory in /dev/shm ##
 my $stdout_log_mode = 0600;
 if ( defined $admin_group ) {
@@ -101,6 +117,7 @@ if ( not -d $shm_base_dir ) {
     );
     return undef;
 }
+return undef if not $shm_chain_ok->(qw| after |);
 
 ## create parent dir for symlink if needed ##
 <[file.make_path]>->( $var_run_link, 0755 ) unless -d $var_run_link;
@@ -198,8 +215,8 @@ push <callbacks.end_code>->@*, qw| v7-zenki.stdout_log.close |;
 
 return TRUE;
 
-#,,,,,,..,.,,,,..,,.,,..,,.,,,,,.,.,.,,,.,.,.,..,,...,...,,..,,..,..,,,..,..,,
-#HIMI5WWJDPZ5C3CLIE44LXPAJGPSVYMP5MHVOEXSWL5M57HXOEU5HH6HGYLRZAYP37MCXEPM3EDKW
-#\\\|P74KSUHOF2D4OPLLI2MT6UCTQSOX72F57H2PVFWQ362G77PYJCU \ / AMOS7 \ YOURUM ::
-#\[7]KWXCHCBUWAJM3B6HDYX7WQ37IKG6SZVKXH3I37GRFZNOGOSW5KAY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,,,.,.,,..,,.,,,..,,,,,,..,.,,,..,,...,...,.,.,..,,,,.,,,.,,..,
+#ALH3O4FDBLYZRPJ6VQFUMYXK2DMCEMFPXAHZU6MFMCPYPC2X2TZCT3FXXSMQKWJYK7KTAT4Y5PO6C
+#\\\|PBMD47NGFCAWA62TB6BJGXE2QRD5TWKVOC4LZFLMF7RYOBKMWR6 \ / AMOS7 \ YOURUM ::
+#\[7]BL5BO44RSCXL6NNX73AXZ24UKM2VZDCQFKZAQH4TVPDNXWGNHABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

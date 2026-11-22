@@ -1356,9 +1356,22 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
                 qw| LISBBDY |, $cmd_id_str, $cmd, $reason
             );
         } else {
-            ( my $corrected_cmd = $cmd ) =~ s|\.cmd\.|.|g;
+            ## '.cmd.' is the module file form : the command is the part    ##
+            ## after it, called on a zenka [ <zenka>.<command> ]. the word  ##
+            ## before it is the module namespace [ devmod, base ] : a zenka ##
+            ## only when one has that name, else the command is this        ##
+            ## zenka's own                                                  ##
+            my ( $route, $namespace, $command )
+                = $cmd =~ m{^(?:(.+)\.)?([^.]+)\.cmd\.(.+)$};
+            $command =~ s|\.cmd\.|.|g;
+            my $zenka
+                = defined $route ? $route
+                : ( $namespace =~ m|^[0-9A-Za-z][\w\-]*$|
+                    and -d <system.conf_path> . qq|/zenki/$namespace| )
+                ? $namespace
+                : <system.zenka.name>;
             $output->$* .= <[base.sprint_t]>->(
-                qw| JHTBRRQ |, $cmd_id_str, $corrected_cmd
+                qw| JHTBRRQ |, $cmd_id_str, qq|$zenka.$command|
             );
         }
 
@@ -1382,8 +1395,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,,..,...,,,,,,.,,.,,,.,.,...,,,,,.,,,.,.,..,,...,...,.,,,.,.,.,,,,.,,..,,
-#WJ5KKHAAYYKDRFFFKZSKWV7QS6NEF6RMHFFRHUOZ5E4FSIMBT3UOGKFMYMWHFFLG7ZAIXN33LUX4O
-#\\\|ZI4SUFHGB2SRA7ZNP3KZCM2JWUWPD5Q3ELH2ADWVUUAN5JJP7RT \ / AMOS7 \ YOURUM ::
-#\[7]XKW3WWJIK74YF3UUYWT7DUJMJVUDAGLQNF35ZSPHUAXOVPE5TUDY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,,.,,,..,,.,,.,.,..,,,..,,,,,..,,...,.,.,...,.,.,.,,,,..,,.,,
+#YOQ4YAYRNNCSXTLKWZYK4JCIXNE7OZ2S7QD6BTFYEAEWG5BO3O66S7MLPKK35C675AVQRDGRZXAD4
+#\\\|BWURU34MT6NV37AM7V5ICXEHQCT76CN2GFB435JJWNVHJTPG356 \ / AMOS7 \ YOURUM ::
+#\[7]L37VKXY3W3ZVTEUTM5NN5GI2QIDOOUIPFAXZJQNIFVQ7JUT76IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

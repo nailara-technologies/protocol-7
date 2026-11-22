@@ -114,9 +114,10 @@ foreach my $sub_name ( keys %code ) {
         ## reloaded code                                                    ##
         if ( $data{'code'}{$sub_name}{'deferred_stub'} ) {
             if ( not exists $code{$new_sub} ) {
-                $code{$new_sub}                          = $code{$sub_name};
-                $data{'code'}{$new_sub}{'deferred_stub'} = TRUE;
-                $data{'code'}{$sub_name}{'moved_to'}     = $new_sub;
+                $code{$new_sub} = $code{$sub_name};
+                $data{'code'}{$new_sub}{'deferred_stub'}    ## same stub ##
+                    = $data{'code'}{$sub_name}{'deferred_stub'};
+                $data{'code'}{$sub_name}{'moved_to'} = $new_sub;
             }
             next;
         }
@@ -207,8 +208,8 @@ if ( <[base.is_defined_recursive]>->(qw| base.subroutines.referenced |) ) {
     }
 }
 
-#,,,,,.,,,,,.,..,,...,,.,,..,,..,,,,.,,.,,,,,,..,,...,...,,,.,..,,,,,,,..,...,
-#RSFEUXOAZUZA3WI2KEY4N7OJROPLSXWPG62J3KEBZBFP2ZXXBY66DYIQ6Q4PYIPETKOICH4BRWPSC
-#\\\|44IYNZ23R3PFCG4PO2GM53BKYEELS3H2YYAECOQKPAFOXA5JYER \ / AMOS7 \ YOURUM ::
-#\[7]HWXR7EZWAKMG5MKL2E27M4CB7OA4W6IRKALCEYSVLPIWWONK3KAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,.,.,..,,...,,,,,...,..,,..,,..,,...,...,..,,,..,...,,,.,..,,
+#FZLMEIHGZ6W27S75HVUT25D3MYQLY237U3DE5FDZ37BVZ3HKFMORLVOWGGCD7HCL746ZDHQ3SHBTQ
+#\\\|MH7VNRJRXK5ZWBBCDTAAEMVLB5BT5CY2W3236OZSCRJASAH3F7C \ / AMOS7 \ YOURUM ::
+#\[7]6LN3SHKYINKJ6PZESOJMO5UED3J4OEZR3WRMODBPEXNWTK3MAWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

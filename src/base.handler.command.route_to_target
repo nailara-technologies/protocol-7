@@ -376,7 +376,15 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
                     qw| LISBBDY |, $cmd_id_str, $cmd, $reason
                 );
             } else {
-                ( my $corrected_cmd = $cmd ) =~ s|\.cmd\.|.|g;
+                ## '.cmd.' is the module file form : the command is the   ##
+                ## part after it, called on the target zenka. the word    ##
+                ## before it is the module namespace [ devmod, base ] and ##
+                ## no route : <target>.[<deeper route>.]<command>         ##
+                my ( $route, undef, $command )
+                    = $cmd =~ m{^(?:(.+)\.)?([^.]+)\.cmd\.(.+)$};
+                $command =~ s|\.cmd\.|.|g;
+                my $corrected_cmd = join qw| . |, $target_name,
+                    ( defined $route ? $route : () ), $command;
                 $output->$* .= <[base.sprint_t]>->(
                     qw| JHTBRRQ |, $cmd_id_str, $corrected_cmd
                 );
@@ -415,8 +423,8 @@ elsif ( $cmd =~ m|^\^(\w+)\.([^\.]+)$| )
 
 return undef;    ##  fell through : caller handles unknown-command  ##
 
-#,,.,,,,,,,,.,,.,,.,,,..,,,,,,,,.,,..,..,,..,,..,,...,...,,,,,..,,,,,,,.,,,.,,
-#IB3IG4EF5H3ZKO4RNEFY6VFWCJLK7GK2ABZPNO6RHJEF5QHRP5GC6PIOISFLD3CQUI5NEJHT7LWTM
-#\\\|ABDVP77H37HE73MMNTAPWE2MHEKVYFPKMFBR4AJDACLLX5Y5CKE \ / AMOS7 \ YOURUM ::
-#\[7]GBCA2A2PCGVN535QGFP2EYH6DKEPNABEUTDTUEGIVPJFEQWREKBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,..,,..,,,.,,..,,.,,,..,...,,..,..,,...,..,,.,,,.,.,,..,.,.,,..,
+#TYYK5Y22IV2MU6UJITFSXJ5ANKLKQ6KICR5BNOXP2UXBTLIDKEPKXKEBSHVEXMWUNAGASZL4SZLUE
+#\\\|MX66II4XQWE2SO3KFSOIJ4X7UETS4WCNQ25ONGY7BMM2ZADBEM6 \ / AMOS7 \ YOURUM ::
+#\[7]2MWJVXKWOGIZC3EYXIHWE73EXCWHBUF2AHYEYCAQVWNQDHZ6BCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

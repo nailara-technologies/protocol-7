@@ -8,6 +8,31 @@
 
 my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 
+## a stub is a CODE ref too : only its identity tells it from compiled     ##
+## code. the loader marks the stub's refaddr in deferred_stub              ##
+## [ swap_subs copies it to an alias ]. no mark + a compile status : real  ##
+## code, a caller held a stale stub ref. a plain TRUE mark                 ##
+## [ loader before the refaddr mark, src reloaded since ] or neither : the ##
+## sub at the key now is the stub                                          ##
+my $stub_mark   = $data{'code'}{$sub_name}{'deferred_stub'};
+my $compiled_ok = ( $data{'code'}{$sub_name}{'status'} // '' )
+    =~ m{^(?:no-error|warned)$};
+my $stub_addr
+    = ( defined $stub_mark and $stub_mark ne TRUE ) ? $stub_mark
+    : ( not defined $stub_mark and $compiled_ok ) ? undef
+    : ref $code{$sub_name} eq qw| CODE |
+    ? Scalar::Util::refaddr( $code{$sub_name} )
+    : undef;
+my $is_compiled = sub {
+    return FALSE if ref $code{$sub_name} ne qw| CODE |;
+    return TRUE  if not defined $stub_addr;
+    return Scalar::Util::refaddr( $code{$sub_name} ) != $stub_addr;
+};
+
+## a caller held a stale stub ref and real code already sits at the key : ##
+## hand off, no recompile                                                 ##
+goto &{ $code{$sub_name} } if $is_compiled->();
+
 <[base.logs]>->( 2, '..: deferred compile : %s ..,', $sub_name );
 
 ##  bypass whitelist : deferred stubs are for non-whitelisted modules  ##
@@ -18,7 +43,7 @@ my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
 ## [ e.g. base.base32.* -> base32.* ], the short-name key still holds this ##
 ## very stub and would recompile from scratch on every future call -- copy ##
 ## the freshly compiled sub there too so it stops re-entering here         ##
-if ( ref $code{$sub_name} eq qw| CODE | ) {
+if ( $is_compiled->() ) {
     delete $data{'code'}{$sub_name}{'deferred_stub'};    ## real code now ##
     my $moved_to = $data{'code'}{$sub_name}{'moved_to'};
     if ( defined $moved_to and $moved_to ne $sub_name ) {
@@ -31,13 +56,13 @@ if ( ref $code{$sub_name} eq qw| CODE | ) {
 }
 
 goto &{ $code{$sub_name} }    ##  transparent hand-off on first call  ##
-    if ref $code{$sub_name} eq qw| CODE |;
+    if $is_compiled->();
 
 ##  self-healing : attempt recovery via dep-graph scan  ##
 if ( length( <whitelist.miss.policy> // '' ) ) {
     <[base.handler.whitelist_miss]>->($sub_name);
 
-    if ( ref $code{$sub_name} eq qw| CODE | ) {
+    if ( $is_compiled->() ) {
         delete $data{'code'}{$sub_name}{'deferred_stub'};
         goto &{ $code{$sub_name} };
     }
@@ -56,8 +81,8 @@ $code{$sub_name} = eval(                         ##
 
 <[base.logs]>->( 0, '..: deferred compile failed [ %s ]', $sub_name );
 
-#,,,.,.,,,...,...,,,.,..,,,..,..,,.,.,.,,,.,,,..,,...,..,,,,,,...,...,,..,...,
-#TSCZR5RXC22LBOQBIAFHUKCAVK5LMATKNPEUKCSQUHAGKU5DXHUULVYWCP3PGX2UEQXQGC4M4ZSYU
-#\\\|WICTOO2Y33C6N2DFH5Q2D4YZWUFO4VD4MGJIPSXSLW5UM5ODPRI \ / AMOS7 \ YOURUM ::
-#\[7]LNARF42RZT5WAV23DXSFWWS5H6OPF7SDEL43PNZAZ4JNM3XLF2DY 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,...,,,.,,,.,..,,..,,...,.,,,..,,...,...,...,,,.,.,.,,,,,.,,,
+#AQW6BIVG6TRU7WK5MFRZWV62R6WE4TE66FBXYAKIPYVWFDDQC3WGZNHDN6QNV4IPFGD3GODM5PK6I
+#\\\|3QIJLNQ4T7P4G5JRXAGO62CJWN4HGGP3VQWAUN3O2ULWHB3I3T6 \ / AMOS7 \ YOURUM ::
+#\[7]XAXMQ2FKUJFL3YXG3K32PGSLRDC6GN22AF4VAVRT2T75JVRU7YDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

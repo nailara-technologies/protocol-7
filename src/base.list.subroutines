@@ -388,6 +388,8 @@ return [ qw[
         valued.init_code
         valued.cmd.stats
         valued.cmd.query
+        users.group.read
+        users.group.path
         users.cmd.remove
         usage.cmd.status
         usage.cmd.claude
@@ -568,6 +570,7 @@ return [ qw[
         v7-zenki.pre_init
         v7-zenki.call_cmd
         users.record.path
+        users.group.build
         universal.startup
         udev.reload_rules
         transport.promote
@@ -766,10 +769,9 @@ return [ qw[
         window.place.start
         web.scan_directory
         web.menu_generator
+        web.cmd.auth-renew
         web.cmd.auth-login
         web.cmd.auth-issue
-        web.cmd.auth-renew
-        web.cmd.lease-renew
         weather.cmd.widget
         vault-edit.repaint
         valued.node.create
@@ -1002,12 +1004,12 @@ return [ qw[
         window.place.cancel
         window.place.adjust
         websocket.init_code
+        web.cmd.lease-renew
         web.cmd.jobs-events
         web.cmd.auth-status
         web.cmd.auth-revoke
         web.cmd.auth-logout
         web.cmd.auth-bearer
-        web.cmd.auth-activity
         web.assets.registry
         web.assets.register
         web-browser.js_call
@@ -1018,18 +1020,8 @@ return [ qw[
         users.cmd.value-set
         users.cmd.value-get
         users.cmd.value-all
-        users.group.path
-        users.group.read
-        users.group.build
-        users.group.validate
-        users.group.ensure_dir
-        users.group.cube_records
-        users.group.cube_admin_level
-        users.cmd.group-list
         users.cmd.group-get
-        users.cmd.group-create
         users.cmd.group-add
-        users.cmd.group-remove
         user-edit.init_code
         usage.provider_list
         usage.format.report
@@ -1127,6 +1119,8 @@ return [ qw[
         jobsite.stray.check
         jobsite.store.prune
         jobsite.stage.fetch
+        jobsite.lease.start
+        jobsite.lease.renew
         jobsite.cmd.approve
         jobsite.assert.init
         jobqueue.remove_job
@@ -1267,7 +1261,9 @@ return [ qw[
         v7-zenki.zenka.start
         v7-zenki.start_count
         v7-zenki.backend.run
+        users.group.validate
         users.cmd.remote-get
+        users.cmd.group-list
         usage.complete_query
         tree.route.page.read
         tile.cmd.sort_layers
@@ -1332,6 +1328,8 @@ return [ qw[
         power.cmd.get_states
         power.cmd.add_device
         power-x11.get_states
+        povray.icon-set.next
+        povray.icon-set.jobs
         plugin.web.menu.tree
         plugin.web.jobs.sync
         plugin.web.jobs.list
@@ -1405,6 +1403,7 @@ return [ qw[
         keyring.cmd.distance
         jobsite.stage.review
         jobsite.replica.pull
+        jobsite.lease.failed
         jobsite.job.load_all
         jobsite.cmd.progress
         io.ssl.ip.input.open
@@ -1565,6 +1564,7 @@ return [ qw[
         work.console.overview
         work.console.bug-list
         window.profile.delete
+        web.cmd.auth-activity
         web-browser.post_init
         web-browser.init_view
         web-browser.init_code
@@ -1597,12 +1597,14 @@ return [ qw[
         space.jump.cache.read
         sourcecode.agent.sign
         source.valid_src_name
+        source.sign_generated
         smtpd.parse_mail.mime
         smtpd.archive.encrypt
         site-yaml.fetch.state
         set-up.json.init_code
         sessions.secret.child
         sessions.holder.child
+        screen.setup.dpi.exec
         reenc-msg.open_window
         reenc-msg.cmd.refresh
         reasoning.tree.render
@@ -1703,6 +1705,7 @@ return [ qw[
         image-quality.analyze
         httpd.vhost.init_code
         httpd.system.get_load
+        httpd.signature_watch
         httpd.send_error_page
         httpd.route.init_code
         httpd.request_handler
@@ -1853,6 +1856,8 @@ return [ qw[
         X-11.cmd.get_xorg_pid
         X-11.cmd.get_monitors
         X-11.cmd.get_geometry
+        X-11.cmd.forward-stop
+        X-11.cmd.forward-list
         X-11.cmd.dpms-disable
         zenki.parent.init_code
         zenki.parent.ensure_v7
@@ -1878,7 +1883,10 @@ return [ qw[
         v7-zenki.sys_deps.scan
         v7-zenki.startup_probe
         users.remote_fetch.run
+        users.group.ensure_dir
         users.cmd.remote-fetch
+        users.cmd.group-remove
+        users.cmd.group-create
         universal.switch_child
         universal.self_restart
         universal.lower_except
@@ -1921,6 +1929,7 @@ return [ qw[
         screenshot.pixel_color
         screenshot.grab_region
         screen.setup.init_code
+        screen.setup.dpi.apply
         rss.ticker.send_update
         route.bmw384.init_code
         reenc-msg.cmd.finished
@@ -2007,6 +2016,7 @@ return [ qw[
         jobsite.sync.push_soon
         jobsite.liveness.start
         jobsite.liveness.apply
+        jobsite.lease.schedule
         jobsite.cmd.set-status
         jobsite.cmd.job-upsert
         jobsite.cmd.import-url
@@ -2035,6 +2045,7 @@ return [ qw[
         httpsd.request_handler
         httpsd.register_socket
         httpd.system.cpu_usage
+        httpd.signature_policy
         httpd.route_dispatcher
         httpd.process_template
         httpd.cmd.vhost-status
@@ -2170,6 +2181,7 @@ return [ qw[
         X-11.cmd.record_hotkey
         X-11.cmd.is-composited
         X-11.cmd.hide-log-move
+        X-11.cmd.forward-start
         X-11.cmd.dpms-force-on
         X-11-pointer.init_code
         zulum.cmd.stream-status
@@ -2248,6 +2260,7 @@ return [ qw[
         ssh.set-up.export_rules
         ssh.cmd.profile_disable
         sourcecode.console.sign
+        source.verify_and_strip
         source.target_namespace
         source.extract_sig_body
         site-yaml.stepstone.job
@@ -2258,6 +2271,9 @@ return [ qw[
         sessions.holder.op.sign
         select.region.init_code
         select.region.damp.tick
+        screen.setup.dpi.revert
+        screen.setup.dpi.report
+        screen.setup.dpi.change
         rss.ticker.fetch.single
         route.bmw384.route.find
         route.bmw384.index.init
@@ -2296,6 +2312,7 @@ return [ qw[
         nameserv.sync.peer.fail
         nameserv.sync.addresses
         nameserv.start_listener
+        nameserv.name.normalize
         nameserv.entry.identity
         nameserv.cmd.set-record
         nameserv.cmd.remove-txt
@@ -2505,6 +2522,7 @@ return [ qw[
         X-11.cmd.get_xauth_data
         X-11.cmd.get-window-pid
         X-11.cmd.get-window-ids
+        X-11.cmd.forward-attach
         X-11.cmd.dpms-force-off
         X-11.cmd.capture-window
         X-11.cmd.capture-region
@@ -2542,6 +2560,7 @@ return [ qw[
         v7-zenki.cmd.host-reboot
         v7-zenki.available_zenki
         v7-zenki.autostart_zenki
+        users.group.cube_records
         users.cmd.create-default
         universal.cmd.dump_state
         ui.caller.security-level
@@ -2575,6 +2594,10 @@ return [ qw[
         set-up.cmd.export-config
         select.region.apply_drag
         screen.setup.open_window
+        screen.setup.dpi.persist
+        screen.setup.dpi.confirm
+        screen.setup.cmd.dpi-set
+        screen.setup.cmd.dpi-get
         rss.ticker.get_feed_urls
         rss.ticker.fetch_content
         route.bmw384.index.stats
@@ -2697,9 +2720,9 @@ return [ qw[
         httpsd.cmd.socket-status
         httpd.system.memory_free
         httpd.parse_range_header
-        source.verify_and_strip
-        httpd.signature_verify_start
+        httpd.generate_theme_css
         httpd.event.remove_timer
+        httpd.cmd.signature-mode
         httpd.cmd.install-vhosts
         httpd.classify.cmd.stats
         host-edit.action.run_p7r
@@ -2890,6 +2913,7 @@ return [ qw[
         space.travel.frame.expand
         sourcecode.sign_file_list
         source.load_signature_key
+        source.generated_envelope
         smtpd.parse_mail.fallback
         site-yaml.cmd.queue-depth
         site-yaml.cmd.outbox-list
@@ -2897,6 +2921,7 @@ return [ qw[
         select.region.open_window
         screen.setup.layout-model
         screen.setup.handler.draw
+        screen.setup.dpi.settings
         screen.setup.cmd.snapshot
         rss.ticker.fetch.multiple
         route.bmw384.visual.wheel
@@ -3010,7 +3035,9 @@ return [ qw[
         impressive.cmd.reposition
         image2html.base.init_code
         httpd.system.memory_stats
+        httpd.signature_cache_key
         httpd.handler.drain_check
+        httpd.generator_key_trust
         httpd.base.size.normalize
         host-edit.trust.pin_state
         host-edit.flow.passphrase
@@ -3209,6 +3236,7 @@ return [ qw[
         protocol.sftp.read_ssh_env
         powershell.cmd.usbipd-list
         power-x11.handler.show_all
+        povray.cmd.render-icon-set
         plugin.web.space.init_code
         plugin.web.space.grid.scan
         plugin.web.jobs.sync.merge
@@ -3289,11 +3317,6 @@ return [ qw[
         keys.console.clear-chksums
         keys.console.change-passwd
         jobsite.sync.token_for_url
-        jobsite.lease.schedule
-        jobsite.lease.start
-        jobsite.lease.failed
-        jobsite.lease.renew
-        jobsite.handler.lease-renewed
         jobsite.sync.apply_reverse
         jobsite.report.render_html
         jobsite.removed_log.append
@@ -3316,7 +3339,10 @@ return [ qw[
         httpsd.reload_certificates
         httpsd.load-cipher-profile
         httpd.vhost.read_manifests
+        httpd.signature_persistent
+        httpd.signature_cache_init
         httpd.handler.acme_request
+        httpd.generator_delegation
         httpd.classify.cmd.history
         host-edit.source.value_set
         host-edit.source.value_get
@@ -3528,6 +3554,7 @@ return [ qw[
         set-up.handler.export_reply
         screen.setup.handler.motion
         screen.setup.ensure-display
+        screen.setup.cmd.dpi-revert
         route.bmw384.route.as-curve
         route.bmw384.index.register
         route.bmw384.cmd.index-path
@@ -3833,6 +3860,7 @@ return [ qw[
         v7-zenki.bin_p7r_comp_chksum
         v7-zenki.bin_p7c_comp_chksum
         users.record.optional_fields
+        users.group.cube_admin_level
         user-edit.source.secret_hold
         universal.get_unix_sock_path
         universal.cmd.get_list_types
@@ -3863,6 +3891,9 @@ return [ qw[
         select.region.handler.scroll
         select.region.handler.motion
         select.region.apply_geometry
+        screen.setup.cmd.dpi-suggest
+        screen.setup.cmd.dpi-control
+        screen.setup.cmd.dpi-confirm
         rss.ticker.cmd.resend_update
         route.bmw384.index.query-arc
         route.bmw384.index.from-path
@@ -3881,8 +3912,7 @@ return [ qw[
         plugin.web.auth.store.set-up
         plugin.web.auth.session.read
         plugin.web.auth.session.path
-        plugin.web.auth.rotate_session
-        plugin.web.auth.admit.activity
+        plugin.web.auth.lease_caller
         plugin.web.auth.admit.status
         plugin.web.auth.admit.source
         plugin.web.auth.admit.select
@@ -3992,6 +4022,8 @@ return [ qw[
         impressive.autoinstall_check
         httpsd.request_capture.write
         httpd.vhost.request_tls_cert
+        httpd.signature_verify_start
+        httpd.signature_memory_store
         httpd.route.handler.iris-svg
         httpd.handler.web-relay.auth
         httpd.handler.template_reply
@@ -4096,6 +4128,7 @@ return [ qw[
         amos-term.term-params-update
         amos-term.render.draw_buffer
         amos-term.cmd.window-destroy
+        X-11.helper.xpra_server_argv
         X-11.helper.setup_display_wm
         X-11.handler.read_gpu_nvidia
         X-11.handler.read_gpu_metric
@@ -4136,6 +4169,7 @@ return [ qw[
         v7-zenki.zenka.cmd.gone_child
         v7-zenki.sub-process.get_ppid
         v7-zenki.stop_heartbeat_timer
+        v7-zenki.shm_dir_chain_verify
         v7-zenki.resolve.object.zenka
         v7-zenki.handler.zenka_status
         v7-zenki.handler.zenka_output
@@ -4145,6 +4179,7 @@ return [ qw[
         v7-zenki.cmd.delegation-issue
         v7-zenki.callback.host-reboot
         v7-zenki.apply_host_zenki_cfg
+        user-edit.source.groups_field
         usage.handler.provider_result
         usage.cmd.claude-refresh-test
         universal.handler.switch_fade
@@ -4164,6 +4199,7 @@ return [ qw[
         storage.visual.util.proximity
         ssh.handler.heartbeat_timeout
         sourcecode.source_path_set_up
+        sourcecode.signature_excluded
         sourcecode.console.test-cycle
         source.create_harmonic_footer
         site-yaml.util.field-checksum
@@ -4177,6 +4213,7 @@ return [ qw[
         select.region.cmd.last-coords
         select.region.classify_region
         screen.setup.monitor-at-point
+        screen.setup.dpi.handler.exec
         route.bmw384.negotiation.tick
         route.bmw384.ledger.increment
         route.bmw384.ledger.decrement
@@ -4198,7 +4235,6 @@ return [ qw[
         plugin.web.auth.session.write
         plugin.web.auth.session.prune
         plugin.web.auth.handler.login
-        plugin.web.auth.ui_session.info
         plugin.usage.claude.init_code
         plugin.storage.util.find_path
         plugin.image-resize.init_code
@@ -4266,6 +4302,7 @@ return [ qw[
         jobsite.replica.forward-retry
         jobsite.handler.sync-response
         jobsite.handler.rewire-assess
+        jobsite.handler.lease-renewed
         jobsite.dispatch.release_slot
         jobsite.dispatch.reassess_now
         jobsite.dispatch.consume_slot
@@ -4283,6 +4320,7 @@ return [ qw[
         httpsd.callback.reset-capture
         httpd.vhost_template_resolver
         httpd.vhost.dns_matches_local
+        httpd.signature_trust_context
         httpd.route.handler.web-relay
         httpd.route.handler.web-login
         httpd.handler.web-relay.login
@@ -4379,6 +4417,7 @@ return [ qw[
         base.ntime.b32_is_shape_valid
         base.net.client.auth_with_pwd
         base.log.send-buffer.watchers
+        base.interval.rhythm.lifetime
         base.handler.ondemand_timeout
         base.handler.ondemand_startup
         base.handler.hooks.unregister
@@ -4482,6 +4521,7 @@ return [ qw[
         select.region.set_hover_cursor
         screenshot.cmd.capture-to-disk
         screen.setup.handler.key_press
+        screen.setup.dpi.place-windows
         rss.ticker.warn_urls_undefined
         rss-ticker.set-up.import_rules
         rss-ticker.set-up.export_rules
@@ -4501,12 +4541,12 @@ return [ qw[
         plugin.web.space.index.persist
         plugin.web.jobs.cache.read_all
         plugin.web.auth.verify_session
+        plugin.web.auth.rotate_session
         plugin.web.auth.handler.status
         plugin.web.auth.handler.logout
         plugin.web.auth.create_session
-        plugin.web.auth.ui_session.begin
-        plugin.web.auth.lease_caller
         plugin.web.auth.admit.schedule
+        plugin.web.auth.admit.activity
         plugin.web.attention.pop_state
         plugin.web.attention.init_code
         plugin.usage.kimi.refresh_reap
@@ -4622,12 +4662,13 @@ return [ qw[
         httpd.vhost.handler.cert_reply
         httpd.route.handler.web-status
         httpd.route.handler.web-logout
-        httpd.route.handler.web-session-command
         httpd.route.handler.iris-route
         httpd.route.handler.iris-pulse
+        httpd.handler.signature_verify
         httpd.handler.shm_replay_sweep
         httpd.diagnostic.end_operation
         httpd.cmd.setup-acme-challenge
+        httpd.cmd.generator-delegation
         host-edit.source.field_options
         graphics.matrix.visual.hamming
         graphics-matrix.guess_bg_color
@@ -4801,6 +4842,7 @@ return [ qw[
         protocol-7-menu.cmd.menu-update
         plugin.web.space.grid.init_code
         plugin.web.jobs.events.trailing
+        plugin.web.auth.ui_session.info
         plugin.web.auth.destroy_session
         plugin.web.attention.push_state
         plugin.user-edit.example.render
@@ -4879,10 +4921,10 @@ return [ qw[
         image-quality.vision.subprocess
         httpsd.cmd.list-cipher-profiles
         httpsd.callback.ssl_cert_select
+        httpd.signature_memory_pressure
         httpd.route.handler.iris-ledger
         httpd.path.create_default_index
         httpd.handler.download_transfer
-        httpd.handler.signature_verify
         httpd.cmd.remove-acme-challenge
         httpd.benchmark.collect_metrics
         host-edit.source.secret_release
@@ -4975,7 +5017,6 @@ return [ qw[
         base.p7refs.gen_template_chksum
         base.number-cache.get-templates
         base.interval.rhythm.non-linear
-        base.interval.rhythm.lifetime
         base.inotify.install_io_watcher
         base.handler.link-upgrade.input
         base.file.zenka_dir.unlink_file
@@ -5040,6 +5081,7 @@ return [ qw[
         set-up.json.cmd.get-config-names
         sessions.util.secret.start_child
         sessions.util.holder.start_child
+        screen.setup.dpi.handler.windows
         screen.setup.cmd.display-layouts
         route.bmw384.visual.wheel.vortex
         route.bmw384.visual.wheel.metric
@@ -5052,6 +5094,7 @@ return [ qw[
         powershell.util.extract_icon_tag
         plugin.web.space.index.init_code
         plugin.web.jobs.events.heartbeat
+        plugin.web.auth.ui_session.begin
         plugin.web.auth.secure_transport
         plugin.web.auth.refuse_plaintext
         plugin.web.auth.admit.wait_until
@@ -5267,6 +5310,7 @@ return [ qw[
         site-yaml.stepstone.job_from_html
         select.region.cmd.screenshot-rect
         screen.setup.handler.button_press
+        screen.setup.dpi.restore-original
         rss.ticker.handler.get_list_reply
         route.bmw384.visual.wheel.overlay
         route.bmw384.visual.wheel.heatmap
@@ -5347,6 +5391,7 @@ return [ qw[
         image-quality.vision.select_model
         image-quality.vision.encode_image
         httpsd.handler.cert_request_reply
+        httpd.signature_memory_invalidate
         httpd.handler.web-relay.strm_open
         host-edit.transport.forward_ready
         graphics.matrix.visual.similarity
@@ -5454,6 +5499,7 @@ return [ qw[
         v7-zenki.handler.condition_recheck
         v7-zenki.callback.object.unix_user
         v7-zenki.callback.instance.restart
+        user-edit.source.memberships_reply
         universal.handler.image2html_reply
         tile.handler.poll_tile_color_reply
         ticker.handler.resend_update_reply
@@ -5821,6 +5867,7 @@ return [ qw[
         system.process.handler.collect_table
         storchencam.handler.reposition_reply
         space.search.util.fallback_resonance
+        sourcecode.console.verify-signatures
         sourcecode.console.update-signatures
         source.restore_payload_endline_state
         site-yaml.stepstone.search_from_html
@@ -5959,6 +6006,7 @@ return [ qw[
         v7-zenki.callback.object.root.session
         universal.handler.extract_frame_reply
         transport.handler.credential_resolved
+        screen.setup.cmd.dpi-restore-original
         reasoning.branch.internal.check_stuck
         proxy.handler.tunnel_target_to_client
         proxy.handler.tunnel_client_to_target
@@ -6175,7 +6223,6 @@ return [ qw[
         v7-zenki.parser.manually_stopped_tstamp
         v7-zenki.handler.stdio_multiplex_listen
         v7-zenki.callback.delete_instance_cache
-        sourcecode.console.verify-signatures
         sourcecode.console.test-sign-and-verify
         sourcecode.console.report-endline-state
         route.bmw384.visual.wheel.alpha-density
@@ -6202,6 +6249,7 @@ return [ qw[
         jobsite.handler.reassess-refetch-queued
         invoke-web.handler.startup_resume_reply
         invoke-web.handler.recover_resume_reply
+        httpd.route.handler.web-session-command
         graphics.matrix.visual.build-cubic-grid
         editor.control.multiline.viewport_slice
         discover.callback.resend_interval_reset
@@ -6573,8 +6621,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,.,,..,,...,,.,,,..,,..,...,,.,,..,,..,,.,.,...,...,.,.,...,,..,.,,,,,.,
-#ZLIDUS3XRUQZ6KSQ36VWERYB7AMYK23DIYFOK7Z66HCQ4A6D43HHHVRFDTLM4GODOWLZR5REGK7OM
-#\\\|LDV4R4JHBZE7EBEJGDYW6ARXEENHMQRO6K4ZOD5CRAZK2Z4KVRR \ / AMOS7 \ YOURUM ::
-#\[7]LWLJQURYQWQYNEOO2BXOR7XJFST6CXVKHMHNIEP27CKSF2VBHUCA 7  DATA SIGNATURE ::
+#,,..,...,.,,,..,,.,,,..,,,..,,.,,,.,,.,.,.,.,.,.,...,...,,..,,.,,..,,,.,,.,.,
+#DVAZIQZPMAMYOIWTWWCYNCEJ3PDMUX5GO3YRVUZHGAOZ7RG4JZ7AWVZ7LSAEL4U7IEQBVANBHNQT6
+#\\\|PIOCC26MECJPP66ZLI4V3KT6UWYAQFAXCLQY2NXC5EVAIRAVI35 \ / AMOS7 \ YOURUM ::
+#\[7]PDCIYJBWLA27QEYKOSGIVBRV5ZPFFJIVWEOSIZU4H33OM7YX4WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

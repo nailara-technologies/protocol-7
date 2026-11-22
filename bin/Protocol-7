@@ -2364,8 +2364,13 @@ sub p7_load_code {
                         ## real reloaded code [ see                         ##
                         ## feedback-v7-reload-init-live- swap-subs-crash ]; ##
                         ## cleared in  base.handler.deferred_compile once   ##
-                        ## real code lands at this key                      ##
-                        $data{'code'}{$file_name}{'deferred_stub'} = TRUE;
+                        ## real code lands at this key. the mark is the     ##
+                        ## stub's refaddr [ truthy ] : the stub is a CODE   ##
+                        ## ref too, only its identity tells it from the     ##
+                        ## compiled sub                                     ##
+                        require Scalar::Util;
+                        $data{'code'}{$file_name}{'deferred_stub'}
+                            = Scalar::Util::refaddr( $code{$file_name} );
                         next;
                     }
 
@@ -7209,8 +7214,8 @@ __DATA__
 :
 :.
 
-#,,,,,...,,,,,,,,,,,.,,.,,.,,,,..,.,,,.,,,,,.,..,,...,...,..,,,..,,,.,.,.,,,.,
-#KC5AHASQANKPIOFNDLTAO552VHMR4R4ASJUSWNBPMNYXPR5GIM57Y4D5AEB2OTXVIDBSNPBRWJPEU
-#\\\|HSLPVQYUJZNZELUAKHGMRMNVL2NSJ7QUGNWCONKEDHRKPRFE53B \ / AMOS7 \ YOURUM ::
-#\[7]WP5HZTJN63MZVLR3T4SNC76ZX2UE2TPN7PLHUE4GAQQJIV4BH6DQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,..,.,.,,..,,.,,.,,,,..,.,.,.,.,..,,...,.,.,...,.,,,...,,,,,,,,,
+#TUO55HKIYXSL6LM6J5GXHMERB4JCWTDIHUTIL4POUSXVK7U7WFXXY5JA7N75YNIYOPNMYIUMB76G6
+#\\\|QWINA4LNKZDPKE5UESAOSZQY5A7KN3TWJ5AEIV3JELHVDRQO5ZN \ / AMOS7 \ YOURUM ::
+#\[7]EXLEA7DMOFGDTT4JIDXMOCCLBCFN7SVXID5FN4HY6GI22JAZIOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
