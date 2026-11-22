@@ -54,8 +54,19 @@ engine, n7fs-web-desktop, recovery-partition, n7fs-logical-trees-and-mount [ fol
 built : token leases + ui session renewal, user groups, dpi control, theme tokens,
 povray icon set, xpra forwarding, generator signing, n7fs set-category \ place speed-ups.
 
-#,,,,,,,.,...,..,,,,,,.,,,.,,,,..,,,.,...,,..,..,,...,...,,.,,...,..,,,.,,,..,
-#VS5ZAQ55YTSRHCA57ARUS7UJOJV7ZOIE57JRITHYTAY4DDNLZZ2ZR7TIRLB2LKFPAM5PUY2P6TE4A
-#\\\|K5E5PRXRBEGDWRN4OJLFKQ6XEXY7QQGVSXFHOYNBYKXYZ5AU5CL \ / AMOS7 \ YOURUM ::
-#\[7]3C2QZDKF37TRCEWTKRUFOJJO3O452N7HYNLUTJF3CP6M2QIW64DA 7  DATA SIGNATURE ::
+**update [ late 2026-11-22 ]**
+- signed-file serving is LIVE on zulum and yourum [ http + https live tests passed ; the
+  jobsite page is served stripped, 134547 bytes, no footer ]. httpsd names its key
+  explicitly [ 8fc2eec798 ]. n7fs progress bar \ colours \ tcflush landed [ c85f7b18ea ].
+- kimi session_21f5765d-0359-4ba3-b336-b0ec3817378f is building : signature_mode
+  off|verify|require + types + per-vhost override, a verify-vs-BMW benchmark, a
+  persistent BMW-keyed verification cache and a bounded RAM cache [ inotify ]. REVIEW it
+  [ module lists + whitelist, no workarounds ] ; then add `tmpl` to the default types and
+  verify templates BEFORE httpd.process_template [ owner : .tmpl is a default type ].
+- place of tier A still running on the home server [ owner's tmux ].
+
+#,,.,,,..,...,.,.,..,,,..,..,,.,.,,.,,..,,.,.,..,,...,...,.,,,,..,,.,,...,,..,
+#66HXZ67JUWAA23BYGKSOV4YCW3Z55F745PDENPYRVY7AEIZWL3JV6RMELH4ZLOOMZSN3U5BWL5FC6
+#\\\|KA2M3KISFGZM35HK6XLMF7CRNS23L4MGA5V2QI6RY6ABG4IYMYI \ / AMOS7 \ YOURUM ::
+#\[7]RBI2E5JFFCACPHTBT2OQHHQLVYKJUSDNPDGIAPTQKXPNMCKEZ6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
