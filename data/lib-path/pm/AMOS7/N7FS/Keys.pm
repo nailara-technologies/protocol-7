@@ -14,7 +14,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.CLEM4EA |;
+our $VERSION = qw| AMOS7::N7FS::Keys-VERSION.H67MWHA |;
 
 @EXPORT_OK = qw| root_init root_open root_convert root_passphrase
     vault_note_load vault_note_save |;
@@ -55,6 +55,10 @@ sub root_passphrase {
             ( $opt{'prompt'} // 'root passphrase' ),
             undef, 0, $timeout );
         refuse('passphrase input aborted') if $aborted or not defined $pass;
+        ## close the prompt block in the house style : the next output
+        ## [ progress, an ssh error from a holder ] starts on its own ':' line
+        ## instead of under the stars
+        print { $AMOS7::TERM::TTY_OUTPUT // *STDERR } ":\n";
         return $pass;
     }
     print {*STDERR} ( $opt{'prompt'} // 'root passphrase' ), ' : ';
@@ -337,8 +341,8 @@ sub root_convert {
 
 1;
 
-#,,..,,,,,,..,,..,,,,,,,,,.,,,.,,,...,,,,,,,.,..,,...,...,.,.,,,,,,..,,,,,.,,,
-#FZVBKVJFWJ3XX6ABPBXC7XT3N6DILREISP4M723ANIWQADVUBMJT3KO2WLQMMOJDQ3F6MK5D5SVEK
-#\\\|WQQDNFE4CW7IPAC7YZMTHFUEHMBXOSIFJHI4HERRZVO3SWQWK5Q \ / AMOS7 \ YOURUM ::
-#\[7]TAKE2HEIJEDNAX4TSAUKQRGKW6SCWGC7FX4CFWOXUI5RA56VQSDI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,..,,,,,,.,.,...,,.,,.,,,,,,,,,,,..,,...,...,.,,,,.,,.,.,.,.,.,.,
+#MXMOKATRSVJWZ3B6TENEJFYQMEY3WHNS7SMH6AIUM7C7AZMMW375CAUXFVBFT76BSYM2GM45TTGTC
+#\\\|QUVPUDVWSAUVFR7O5KF4KWC5PGUB26THLBMHX7D6MH2OITIFYR5 \ / AMOS7 \ YOURUM ::
+#\[7]26C5IDWWJHT3W5U5N76GR7KA2EUUDQKHB3NQIOGPQS5JCIYNVYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
