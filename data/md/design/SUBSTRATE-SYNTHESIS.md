@@ -529,6 +529,12 @@ what follows, and is not done :
    EQUIVALENT re-creation [ same recipe, same quality level, other bytes ]
    is a new identity with a 'recreates' edge to the old one in the identity
    tree. ties into question 6 [ recipes ].
+   owner : technically it is always exact -- what differs is whether all of
+   the entropy that went in was tracked [ seed, model and tool versions,
+   hardware nondeterminism, inputs ], lost track of, or specifically not
+   tracked [ on purpose, e.g. for variation or privacy ]. so 'equivalent' is
+   a statement about the recipe's record, not about the process : a recipe
+   names which entropy it tracks, and its re-creations are exact up to that.
 4. **pools.** must every pool name an accounting parent, or may a pool stand
    with none [ contradiction 1 ; the parent is already in the address where
    it is named ] ?
@@ -623,8 +629,8 @@ what the review asked for and is still open, on purpose : contradiction 8
 [ who signs weights ], the ring questions of 10, and membership. each is an
 owner question, and none is needed for the two ready steps.
 
-#,,.,,,..,,.,,.,,,,,.,,.,,.,.,,,,,,.,,,,.,,,,,..,,...,...,..,,...,,..,.,.,,,.,
-#2NPV4EGSIZQSHXL6LL4ETQG6YLOHWCV5WVVW3VMDN6O76CDVXSEFUNIPM7E7AC4JM2N4CQLYMRCTC
-#\\\|5ZHNPBBFOJVJCHBEB4CTWRWMLFSWFBFQG7GLV77F2NZXUVXQV4P \ / AMOS7 \ YOURUM ::
-#\[7]C6LBVS7BHTRI7WZEU5VHQAW5WGF4ZI4BPC2UTKJBFUFJUFURUQAY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,,,,,,.,...,.,.,,,.,,..,,..,..,,...,...,.,.,,,,,,,,,.,,,,,.,
+#GF5HDYP3WUUEZS42XUHTWKYRRKRPDTZS5YE2KKBKAEV4UOTWIYH4ZQPL6XAMEZREAFB5C6W3IGGW2
+#\\\|LXANHHE4FIPA2QWG42GOX5XVVQJB4RXV2JZ4KYP2ZTHURC3A2SR \ / AMOS7 \ YOURUM ::
+#\[7]2JPAR5DZHRNJNPIBFNVYTF4NTD5FPU4C37MM3GWPSWSSZOHQ3SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
