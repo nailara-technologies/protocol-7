@@ -546,7 +546,13 @@ what follows, and is not done :
    may reassign the slot -- possibly as another resource type : an idle
    compute slot is better used by a background task or a cold storage
    transport than by nothing, unless a temperature \ utilisation policy for
-   that time bucket keeps it idle on purpose. today's instances of the same
+   that time bucket keeps it idle on purpose. the nrt side already has the
+   rule for it [ RESOURCE-ACCOUNTING-UNIFIED.md : question 39, shadow
+   accounts, 'fail fast, with a refund' ] : a failure is only what the
+   journal shows -- a deadline frame passed without the due record ; the
+   refund is exactly what is owed, no penalty, from the shadow, by the
+   authority of the closed slot. so a missed threshold is a deadline frame,
+   and reassigning the slot follows the refund. today's instances of the same
    view : system.disk-register, store shares with a ceiling, the timed dns
    trust, base.interval rhythms.
 4. **pools.** must every pool name an accounting parent, or may a pool stand
@@ -643,8 +649,8 @@ what the review asked for and is still open, on purpose : contradiction 8
 [ who signs weights ], the ring questions of 10, and membership. each is an
 owner question, and none is needed for the two ready steps.
 
-#,,,.,,,.,..,,.,.,...,.,,,,,.,..,,.,,,.,.,...,..,,...,...,,,,,.,,,,,.,,,.,,.,,
-#LOAQ4P5T4GME76DSKX7ZGQUYYEQYPTH757HGTAPW2U7B47HCM77V5HLHOT7FYKEEBSAB24CG453XG
-#\\\|BJ6M36Q6IOBH6HFZMPXPV4NYRJ7CCAHY6S27Q6ON3KR423H3XES \ / AMOS7 \ YOURUM ::
-#\[7]ZGJKYJAWVZQAO773BNKTKBB4576CDZ6SINH5GZGTRVOPFEE7TGCY 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,,.,,...,...,,..,...,,,.,,,,,..,,...,...,.,.,...,,,,,.,.,...,
+#AIWBYUACBNFG2XJN6W6W5LZHIPEJQ2SAERGNDCN3MDQM77J4DEVO4HFZLAF2QENCT2D3GIUWLLZ7E
+#\\\|XZ7P4GR4XCA3WRMFT7GLJR7ABFXYGD5K3464KQPTRVLRLADNCTX \ / AMOS7 \ YOURUM ::
+#\[7]OS6NUAGUHEGWWZ37TV2ZI3NM5HAW6K5RFP47K3UXDO7KR6FIZGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
