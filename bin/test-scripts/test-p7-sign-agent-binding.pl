@@ -300,7 +300,7 @@ if ( defined $probe_count and $probe_count > 0 ) {
 }
 
 my $hello = agent_request( $socket_one, qw| HELLO | );
-ok( defined $hello && $hello =~ m|^OK p7-sign-agent:002 |,
+ok( defined $hello && $hello =~ m|^OK p7-sign-agent:003 |,
     'HELLO answers with the protocol + public key'
 );
 
@@ -426,7 +426,7 @@ my $denied_reply = run_request(
         length $file_body ),
     qw| GO |
 );
-ok( defined $denied_reply && $denied_reply =~ m|^NO denied|,
+ok( defined $denied_reply && $denied_reply =~ m|^NO no_terminal|,
     'RUN refused with no controlling terminal and no test flag'
 ) or say "       run reply : " . ( $denied_reply // '<none>' );
 
@@ -520,8 +520,8 @@ if ( $fail_count == 0 ) {
 say "$fail_count check(s) FAILED";
 exit 1;
 
-#,,,.,...,...,,.,,...,,..,,,.,,.,,.,.,...,.,.,..,,...,...,,..,,..,.,,,,.,,,.,,
-#GYNPSSLCCTR5DYKBZQLMMICDERYNS4777CJN7CLVMYZI3ESIZDUIDC5MHEZWCO7I2ZEMKGD2KRPOU
-#\\\|ZBVMKQMUNPBXSMOGJUCVMY73VMPR5ANYS56IQ2MSYN45VG6U4RN \ / AMOS7 \ YOURUM ::
-#\[7]MRNWKYJI6RRBFQK3DO52RIK6QXP6QJYGYVKM67XK6SJB7C23O2DQ 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,.,,.,,..,,,..,,..,,,.,.,,,,,,,..,,...,..,,..,,,,,,,.,,,,,,..,,
+#ZZKBCDCSRTJ4GOAGUM3J3ZTNBH3PFU6UVWMAQMAG3TMHPEJ6XIMWSZPUQ3UCNKMIL4V6IW2DDL63Y
+#\\\|NJOJF6DENJ4FLZAV2DSVLZJM2PFFEO6GXU6UK5IIP7LT2YB4EP5 \ / AMOS7 \ YOURUM ::
+#\[7]M7TW3D32ANK4IMZZXPUM6FFUQYNEYR4JR5BOKO5532OXD4QQK6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -40,22 +40,37 @@ $SIG{'PIPE'} = 'IGNORE';
 ## [ or  P7_SIGN_AGENT_TEST_STDIN=1 ] is the ONLY case where the approval
 ## prompt may fall back to stdin -- tests, never production.
 ##
-## line protocol, one op per connection [ see the design note ] :
-##   HELLO                         -> OK <proto> <public-b32>
-##   RUN <run> <tree-b32> <count>  -> then 'F <rel-b32> <chk-b32> <len>'
-##                                    lines + 'GO'
-##                                 -> OK | NO denied [ <reason-b32> ]
-##   SIGN <run> <rel-b32> <body-chksum-b32> <body-len> <buffer-b32>
-##                                 -> OK <signature-b32> | NO <reason>
-##   END <run>                     -> OK <ntime-b32> <end-sig-b32>
-## relative paths only on the wire -- the agent joins them under the
-## approved work tree and validates every component. the F line's chksum
-## + length bind the approval to the file CONTENTS [ BMW-512 over the
-## signature-stripped body, the same value get-code-signed computes ]. the
-## agent re-reads every file itself at RUN and again at SIGN and refuses
-## the moment its own checksum disagrees -- an approved PATH alone signs
-## nothing. the gate is the SO_PEERCRED same-uid check PLUS the per-run
-## approval prompt in this process's own terminal.
+## line protocol, one op per connection [ see the design note ] : HELLO
+## -> OK <proto> <public-b32>  RUN <run> <tree-b32> <count>  -> then 'F
+## <rel-b32> <chk-b32> <len>' lines + 'GO'
+## -> [ QUEUED <n> .. ] OK | NO denied  [ <reason-b32> ] | NO busy |  NO
+## content_changed_<n> | NO <reason>  queuing [ p7-sign-agent:003 ] : a RUN
+## arriving while another request's prompt is open is read and content-checked
+## at once, then held -- the reply is 'QUEUED <n>'
+## [ n = its place, 1 = next ], repeated whenever the place changes, and the
+## client keeps waiting without a timeout. its turn re-checks the content
+## [ changed while queued -> NO content_changed_<n> ] and prompts it on its
+## own : every answer binds to exactly one request, keys pressed just before a
+## queued prompt shows are dropped. a queued client that closes its socket is
+## dropped as 'withdrawn'. over the queue limit [ --queue-limit, default 7 ] :
+## NO busy, never queued. HELLO \ PING \ SIGN \ END are answered while a
+## prompt is open. 'NO denied' is only ever the owner's answer -- every other
+## end has its own word  SIGN <run> <rel-b32> <body-chksum-b32> <body-len>
+## <buffer-b32>
+## -> OK <signature-b32> | NO <reason>  END <run> [ <status> [ <reason-b32> ]
+## ]
+## -> OK <ntime-b32> <end-sig-b32>  END's status is the client's word on how
+## its run ended : ok | incomplete | aborted, the reason base32
+## [ shown on the agent screen, never part of the signed end record ]. no
+## status = ok [ older clients ].  a run closed without END
+## [ requester gone, idle ] shows as aborted relative paths only on the wire
+## -- the agent joins them under the approved work tree and validates every
+## component. the F line's chksum + length bind the approval to the file
+## CONTENTS [ BMW-512 over the signature-stripped body, the same value
+## get-code-signed computes ]. the agent re-reads every file itself at RUN and
+## again at SIGN and refuses the moment its own checksum disagrees -- an
+## approved PATH alone signs nothing. the gate is the SO_PEERCRED same-uid
+## check PLUS the per-run approval prompt in this process's own terminal.
 
 use FindBin;
 use Getopt::Long ();
@@ -107,10 +122,13 @@ STDOUT->autoflush(1);
 ## linux SO_PEERCRED [ Socket.pm exports it there ; 17 is the arch value ] ##
 my $SO_PEERCRED = eval { Socket::SO_PEERCRED() } // 17;
 
-my $protocol_name    = qw| p7-sign-agent:002 |;    ## wire version, HELLO ##
+my $protocol_name    = qw| p7-sign-agent:003 |;    ## wire version, HELLO ##
 my $key_name         = qw| proto-7.sourcecode |;
 my $request_timeout  = 13;     ## seconds : client header + list lines ##
 my $run_idle_seconds = 120;    ## approved runs expire when idle past this ##
+my $queue_limit      = 7;      ## RUN requests held behind an open prompt ##
+## seconds : keys dropped as a queued prompt shows ##
+my $queue_guard = 0.7;
 
 ## runtime dir : socket + runs.log. XDG_RUNTIME_DIR only when it exists and is
 ## writable [ wsl sets it to a /run/user/<uid> nobody created ] -- the client
@@ -145,6 +163,7 @@ Getopt::Long::GetOptions(
     'run-dir=s'           => \my $run_dir_option,
     'test-stdin-approval' => \$test_stdin_approval,
     'key-fd=i'            => \$key_fd,
+    'queue-limit=i'       => \$queue_limit,
 ) or die "p7-sign-agent : option error\n";
 
 $test_stdin_approval = TRUE
@@ -182,12 +201,19 @@ my %C = (
     qw|  1  | => "\e[38;2;38;46;153m",    ## blue : labels        ##
     qw|  2  | => "\e[38;2;170;94;2m",     ## orange : attention   ##
     qw|  3  | => "\e[38;2;9;170;94m",     ## green : done         ##
+    qw|  E  | => "\e[38;2;150;52;78m",    ## muted red : error end ##
     qw|  B  | => "\e[1m",
     qw|  R  | => "\e[0m",
 );
 %C = map { $ARG => '' } keys %C if length( $ENV{'NO_COLOR'} // '' );
 
 my $progress_open = FALSE;    ## a \r progress line waits for its \n ##
+
+## queuing : the request whose prompt is open, and the ones held behind it ##
+my $prompt_open      = FALSE;
+my $last_answer_time = 0;       ## the carry-over guard's clock ##
+my @run_queue;        ## request infos, oldest first ##
+my $listen_server;    ## the server socket, served while a prompt waits ##
 
 ## the idle terminal watch [ ctrl-r ] and its saved mode ##
 my ( $tty_watch, $tty_termios, $tty_lflag_saved );
@@ -199,6 +225,7 @@ sub progress_close {
 }
 
 sub out_line {
+    return if $prompt_open;    ## the prompt keeps the screen ##
     progress_close();
     return say STDERR sprintf '%s: %s%s%s', $C{'0'}, $C{'1'},
         join( '', @ARG ), $C{'R'};
@@ -224,8 +251,35 @@ sub ui_field {
 
 sub ui_rule { return print STDERR sprintf "%s:%s\n", $C{'0'}, $C{'R'} }
 
-## the agent at rest : startup and after every run           ##
-## [ a 0.7s look at the summary first, then a clean screen ] ##
+## the agent at rest : startup and after every run                       ##
+## [ a 0.7s look at the summary first, then a clean screen ] how a run   ##
+## ENDED : one status element, colour on the element only, the word +    ##
+## symbol carry it without colour [ NO_COLOR \ -nc terminals ].  kinds : ##
+## done [ + ] , note [ ~ ] , error [ x , upper case word ]               ##
+my $last_end;    ## the last end, kept on the idle screen ##
+
+sub end_element {
+    my ( $kind, $text ) = @ARG;
+    my %look = (
+        qw| done |  => [ $C{'3'}, qw| + | ],
+        qw| note |  => [ $C{'T'}, qw| ~ | ],
+        qw| error | => [ $C{'E'}, qw| x | ],
+    );
+    my ( $colour, $symbol ) = ( $look{$kind} // $look{'note'} )->@*;
+    $text =~ s|^(\S+)|\U$1| if $kind eq qw| error |;
+    return sprintf '%s[ %s %s ]%s', $colour, $symbol, $text, $C{'R'};
+}
+
+## one run end on screen + remembered for the idle screen ##
+sub end_show {
+    my ( $run_id, $kind, $text ) = @ARG;
+    $last_end = sprintf '%s  %s%s%s', end_element( $kind, $text ),
+        $C{'1'}, $run_id, $C{'R'};
+    return if $prompt_open;    ## the prompt keeps the screen ##
+    progress_close();
+    return printf STDERR "%s:\n%s:. %s\n", $C{'0'}, $C{'0'}, $last_end;
+}
+
 sub idle_show {
     ui_head(qw| p7-sign-agent |);
     ui_field(
@@ -237,29 +291,31 @@ sub idle_show {
     ui_field( qw| socket |, $socket_path, "uid $EUID only" );
     ui_field( 'run log', $runs_log_path );
     ui_rule();
+    printf STDERR "%s:  %slast run%s  : %s\n%s:%s\n", $C{'0'}, $C{'1'},
+        $C{'0'}, $last_end, $C{'0'}, $C{'R'}
+        if defined $last_end;
     printf STDERR "%s:. %swaiting for requests%s\n",
         $C{'0'}, $C{'1'}, $C{'R'};
     return;
 }
 
 sub idle_return {
+    return if $prompt_open or @run_queue;    ## a prompt follows ##
     Time::HiRes::sleep(0.7);
     print STDERR "\e[H\e[2J";
     return idle_show();
 }
 
-## a run's end on screen : the open progress line closed, then n of m ##
+## an approved run's end : signed n of m, or how it failed ##
+## [ word : aborted \ incomplete, why : the reason ]       ##
 sub run_summary {
-    my $run    = shift;
-    my $reason = shift;
+    my ( $run_id, $run, $kind, $word, $why ) = @ARG;
     return if ref $run ne qw| HASH |;
-    my $signed = scalar keys $run->{'signed'}->%*;
-    my $total  = $run->{'count'};
-    progress_close();
-    return printf STDERR "%s:\n%s:.[ %s%ssigned %d "
-        . "of %d files%s%s : %s ]:.%s\n",
-        $C{'0'}, $C{'0'}, $signed == $total ? $C{'3'} : $C{'2'},
-        $C{'B'}, $signed, $total, $C{'R'}, $C{'0'}, $reason, $C{'R'};
+    my $text = sprintf 'signed %d of %d', scalar keys $run->{'signed'}->%*,
+        $run->{'count'};
+    $text = join ', ', grep {length} $why // '', $text;
+    $text = "$word : $text" if length( $word // '' );
+    return end_show( $run_id, $kind, $text );
 }
 
 ## AMOS7::TERM::wipe_secret : in place random overwrite x2, then truncate
@@ -631,7 +687,11 @@ sub run_close {
     my $reason = shift // qw| ended |;
     return if not exists $run_approved{$run_id};
     sign_end($run_id);
-    run_summary( $run_approved{$run_id}, "closed : $reason" );
+    ## closed without the client's END : the run did not finish ##
+    run_summary( $run_id, $run_approved{$run_id},
+        $reason eq 'agent exit'
+        ? ( qw| note |, '', $reason )
+        : ( qw| error |, qw| aborted |, $reason ) );
     delete $run_approved{$run_id};
     idle_return() if $reason ne 'agent exit';
     return;
@@ -702,7 +762,11 @@ sub run_diff {
 ## [ the prompt clears the screen and calls it back through redraw ]
 sub request_show {
     my $info = shift;
-    ui_head('p7-sign-agent : signing request');
+    ui_head(
+        $info->{'queued'}
+        ? 'p7-sign-agent : next signing request [ was queued ]'
+        : 'p7-sign-agent : signing request'
+    );
     ui_field( qw| key |,   $key_name );
     ui_field( qw| run |,   $info->{'run_id'} );
     ui_field( qw| tree |,  $info->{'work_tree'} );
@@ -712,6 +776,8 @@ sub request_show {
         "pid $info->{'peer_pid'}",
         "uid $info->{'peer_uid'}"
     );
+    ui_field( qw| queued |, scalar @run_queue, 'requests waiting' )
+        if @run_queue;
     ui_rule();
 
     foreach my $entry ( sort { $a->{'path'} cmp $b->{'path'} }
@@ -741,6 +807,8 @@ sub approve_run {
             qw| reason | => TRUE,
             ## the requester closing its socket withdraws the request ##
             qw| cancel_fh | => $info->{'client'},
+            qw| watch |     => queue_watch(),
+            qw| guard |     => $info->{'guard'} ? $queue_guard : 0,
             qw| redraw |    => sub { request_show($info) },
             qw| diff   |    => sub {
                 run_diff( $info->{'work_tree'},
@@ -750,16 +818,127 @@ sub approve_run {
     );
     return ( $answer ? TRUE : FALSE, $reason ) if defined $answer;
 
-    if ($test_stdin_approval) {
-        print STDERR q|: sign ? [y/n] : |;
-        $answer = <STDIN>;    ## test flag only -- never in production ##
-    } else {
-        out_line('approval refused : no controlling terminal');
+    if ( not $test_stdin_approval ) {
+        progress_close();
+        say STDERR ': approval refused : no controlling terminal';
+        return ( FALSE, qw| :no-terminal: | );    ## not the owner's no ##
+    }
+    ## test flag only -- never in production. the same queue service as the ##
+    ## terminal prompt [ watch + cancel_fh ], one line per answer           ##
+    print STDERR q|: sign ? [y/n] : |;
+    my $watch = queue_watch();
+    while (TRUE) {
+        my $wait = IO::Select->new( \*STDIN, $info->{'client'},
+            $watch->{'fhs'}->() );
+        my @ready = $wait->can_read();
+        return ( FALSE, qw| cancelled | )
+            if grep { $ARG == $info->{'client'} } @ready;
+        my @others
+            = grep { $ARG != \*STDIN and $ARG != $info->{'client'} } @ready;
+        $watch->{'ready'}->(@others) if @others;
+        next                         if not grep { $ARG == \*STDIN } @ready;
+        $answer = <STDIN>;
+        return ( FALSE, qw| :terminal-gone: | ) if not defined $answer;
+        chomp $answer;
+        return $answer eq qw| y | ? TRUE : FALSE;
+    }
+}
+
+##[ queuing ]#################################################################
+
+## what an open prompt serves : the server socket [ new connections ] and ##
+## every queued client [ readable = gone or talking out of turn ]         ##
+sub queue_watch {
+    return {
+        qw| fhs | => sub {
+            return ( grep {defined} $listen_server ),
+                map { $ARG->{'client'} } @run_queue;
+        },
+        qw| ready | => sub {
+            my $before = scalar @run_queue;
+            foreach my $fh (@ARG) {
+                if ( defined $listen_server and $fh == $listen_server ) {
+                    connection_accept();
+                } else {
+                    queue_withdraw($fh);
+                }
+            }
+            return scalar @run_queue != $before ? TRUE : FALSE;
+        },
+    };
+}
+
+## a queued client readable : it closed [ withdrawn ] or wrote out of turn ##
+## -- either way its request leaves the queue, never answered 'denied'     ##
+sub queue_withdraw {
+    my $fh = shift;
+    my ($info) = grep { $ARG->{'client'} == $fh } @run_queue;
+    return if not defined $info;
+    @run_queue = grep { $ARG->{'client'} != $fh } @run_queue;
+    run_log_line(
+        qw| withdrawn |,  $info->{'run_id'},
+        $info->{'count'}, qw| queued |
+    );
+    close $fh;
+    queue_places_send();
+    return;
+}
+
+## every queued client learns its place [ 1 = next ] -- a failed write is a ##
+## client that went away                                                    ##
+sub queue_places_send {
+    my $place = 0;
+    foreach my $info (@run_queue) {
+        $place++;
+        next if ( $info->{'place'} // 0 ) == $place;
+        $info->{'place'} = $place;
+        print { $info->{'client'} } "QUEUED $place\n"
+            or $info->{'gone'} = TRUE;
+    }
+    return;
+}
+
+sub queue_add {
+    my $info = shift;
+    if ( @run_queue >= $queue_limit ) {
+        run_log_line( qw| busy |, $info->{'run_id'}, $info->{'count'} );
+        respond_no( $info->{'client'}, qw| busy | );
         return FALSE;
     }
-    return FALSE if not defined $answer;
-    chomp $answer;
-    return $answer eq qw| y | ? TRUE : FALSE;
+    $info->{'queued'} = TRUE;
+    push @run_queue, $info;
+    run_log_line(
+        qw| queued |,     $info->{'run_id'},
+        $info->{'count'}, scalar @run_queue
+    );
+    queue_places_send();
+    return TRUE;
+}
+
+## after a prompt is answered : the queued requests, oldest first, each on ##
+## its own prompt with its own client and content binding                  ##
+sub queue_drain {
+    while ( my $info = shift @run_queue ) {
+        queue_places_send();
+        if ( $info->{'gone'} or client_gone( $info->{'client'} ) ) {
+            run_log_line(
+                qw| withdrawn |,  $info->{'run_id'},
+                $info->{'count'}, qw| queued |
+            );
+        } else {
+            run_prompt($info);
+        }
+        close $info->{'client'};
+    }
+    return;
+}
+
+## readable with nothing pending = the peer closed its end ##
+sub client_gone {
+    my $client = shift;
+    return FALSE if not IO::Select->new($client)->can_read(0);
+    my $got = recv( $client, my $peek, 1, Socket::MSG_PEEK() );
+    return ( not defined $got or not length $peek ) ? TRUE : FALSE;
 }
 
 ##[ socket + peer gate ]######################################################
@@ -860,43 +1039,58 @@ sub op_hello {
     return;
 }
 
-sub op_run {
+## RUN : read + validate the request and its content binding. undef when ##
+## refused [ the NO is sent here ], else the request info                ##
+sub run_request_read {
     my ( $client, $args_aref, $peer_pid, $peer_uid ) = @ARG;
 
     my ( $run_id, $work_tree_b32, $count ) = $args_aref->@*;
-    return respond_no( $client, 'run arguments' )
-        if not defined $run_id
+    if (   not defined $run_id
         or $run_id !~ m|^[0-9A-Za-z_.-]{1,80}$|
         or not b32_field_valid($work_tree_b32)
         or not defined $count
         or $count !~ m|^\d+$|
-        or $count < 1;
-    return respond_no( $client, 'run already open' )
-        if exists $run_approved{$run_id};
+        or $count < 1 ) {
+        respond_no( $client, 'run arguments' );
+        return undef;
+    }
+    if ( exists $run_approved{$run_id}
+        or grep { $ARG->{'run_id'} eq $run_id } @run_queue ) {
+        respond_no( $client, 'run already open' );
+        return undef;
+    }
 
     my $work_tree = decode_b32r($work_tree_b32);
-    return respond_no( $client, 'work tree' )
-        if not defined $work_tree
+    if (   not defined $work_tree
         or not length $work_tree
         or index( $work_tree, "\0" ) != -1
-        or not -d $work_tree;
+        or not -d $work_tree ) {
+        respond_no( $client, 'work tree' );
+        return undef;
+    }
 
     my @entries;
     foreach my $n ( 1 .. $count ) {
         my $f_line = read_line_alarm( $client, $request_timeout );
-        return respond_no( $client, 'file list truncated' )
-            if not defined $f_line;
+        if ( not defined $f_line ) {
+            respond_no( $client, 'file list truncated' );
+            return undef;
+        }
         chomp $f_line;
         my ( $tag, $path_b32, $chk_b32, $len ) = split m| |, $f_line, 4;
-        return respond_no( $client, 'file list format' )
-            if ( $tag // '' ) ne qw| F |
+        if (   ( $tag // '' ) ne qw| F |
             or not b32_field_valid($path_b32)
             or not b32_field_valid($chk_b32)
             or not defined $len
-            or $len !~ m|^\d+$|;
+            or $len !~ m|^\d+$| ) {
+            respond_no( $client, 'file list format' );
+            return undef;
+        }
         my $rel = decode_b32r($path_b32);
-        return respond_no( $client, 'file list path' )
-            if not rel_path_valid($rel);
+        if ( not rel_path_valid($rel) ) {
+            respond_no( $client, 'file list path' );
+            return undef;
+        }
         push @entries,
             {
             qw| path |   => $rel,
@@ -906,16 +1100,33 @@ sub op_run {
     }
 
     my $go_line = read_line_alarm( $client, $request_timeout );
-    return respond_no( $client, 'file list go' )
-        if not defined $go_line or $go_line ne "GO\n";
+    if ( not defined $go_line or $go_line ne "GO\n" ) {
+        respond_no( $client, 'file list go' );
+        return undef;
+    }
 
-    ## content binding : read every file NOW, derive the stripped body from ##
-    ## the agent's own disk read and compare against the client's chksum +  ##
-    ## len -- approval binds to CONTENT, so a file that changed between the ##
-    ## client's read and this prompt never enters the run [ todo HX4 ]      ##
-    my $probe_run = { qw| work_tree | => $work_tree };
+    my $info = {
+        qw| run_id    | => $run_id,
+        qw| work_tree | => $work_tree,
+        qw| count     | => scalar @entries,
+        qw| entries   | => \@entries,
+        qw| peer_pid  | => $peer_pid,
+        qw| peer_uid  | => $peer_uid,
+        qw| client    | => $client
+    };
+    return content_binding_check($info) ? $info : undef;
+}
+
+## content binding : read every file NOW, derive the stripped body from the ##
+## agent's own disk read and compare against the client's chksum + len --   ##
+## approval binds to CONTENT, so a file that changed between the client's   ##
+## read and this prompt never enters the run [ todo HX4 ]. at RUN, and      ##
+## again when a queued request's turn comes                                 ##
+sub content_binding_check {
+    my $info      = shift;
+    my $probe_run = { qw| work_tree | => $info->{'work_tree'} };
     my ( @mismatch, @unreadable );
-    foreach my $entry (@entries) {
+    foreach my $entry ( $info->{'entries'}->@* ) {
         my $body = run_file_body( $probe_run, $entry->{'path'} );
         if ( not defined $body ) {
             push @unreadable, $entry->{'path'};
@@ -924,14 +1135,49 @@ sub op_run {
             push @mismatch, $entry->{'path'};
         }
     }
-    return respond_no( $client, sprintf 'content changed %d',
-        scalar @mismatch )
-        if @mismatch;
-    return respond_no(
-        $client,
-        sprintf 'content unreadable %d',
-        scalar @unreadable
-    ) if @unreadable;
+    if (@mismatch) {
+        if ( $info->{'queued'} ) {
+            run_log_line( qw| changed |, $info->{'run_id'},
+                scalar @mismatch );
+            end_show(
+                $info->{'run_id'}, qw| error |,
+                sprintf 'refused : content changed %d',
+                scalar @mismatch
+            );
+        }
+        return respond_no(
+            $info->{'client'},
+            sprintf 'content changed %d',
+            scalar @mismatch
+        );
+    }
+    if (@unreadable) {
+        return respond_no(
+            $info->{'client'},
+            sprintf 'content unreadable %d',
+            scalar @unreadable
+        );
+    }
+    return TRUE;
+}
+
+sub op_run {
+    my $info = run_request_read(@ARG) // return FALSE;
+    ## another request's prompt is open : held, the client kept open ##
+    return queue_add($info) ? qw| queued | : FALSE if $prompt_open;
+    run_prompt($info);
+    return FALSE;
+}
+
+## one request's turn : on screen, its own prompt, its own answer ##
+sub run_prompt {
+    my $info = shift;
+    my ( $client, $run_id, $work_tree, $peer_pid )
+        = $info->@{qw| client run_id work_tree peer_pid |};
+    my @entries = $info->{'entries'}->@*;
+    ## a queued request's files may have changed while it waited ##
+    return FALSE if $info->{'queued'} and not content_binding_check($info);
+    my $probe_run = { qw| work_tree | => $work_tree };
 
     ## the request is on screen now                                      ##
     ## [ p7-sign-run : preparing -> awaiting approval ] -- logged before ##
@@ -939,16 +1185,15 @@ sub op_run {
     run_log_line( qw| request |, $run_id, scalar @entries,
         qw| pid |, $peer_pid );
     tty_watch_mode(FALSE);    ## the prompt \ reason line read cooked ##
-    my ( $approved, $deny_reason ) = approve_run(
-        {   qw| run_id    | => $run_id,
-            qw| work_tree | => $work_tree,
-            qw| count     | => scalar @entries,
-            qw| entries   | => \@entries,
-            qw| peer_pid  | => $peer_pid,
-            qw| peer_uid  | => $peer_uid,
-            qw| client    | => $client
-        }
-    );
+    $prompt_open = TRUE;
+    ## the carry-over guard : a queued request, or any prompt showing soon ##
+    ## after the previous answer [ a key meant for that one is dropped ]   ##
+    $info->{'guard'} = TRUE
+        if $info->{'queued'}
+        or Time::HiRes::time() - $last_answer_time < 2;
+    my ( $approved, $deny_reason ) = approve_run($info);
+    $last_answer_time = Time::HiRes::time();
+    $prompt_open      = FALSE;
     tty_watch_mode(TRUE);
     ## the reason travels base32 [ line protocol ] ##
     if ( not $approved ) {
@@ -956,13 +1201,22 @@ sub op_run {
             = length( $deny_reason // '' )
             ? encode_b32r($deny_reason)
             : ();
+        ## no answer at all : its own word, never 'denied' ##
+        if ( ( $deny_reason // '' ) =~ m{^:(no-terminal|terminal-gone):$} ) {
+            my $word = $1;
+            run_log_line( qw| refused |, $run_id, scalar @entries, $word );
+            end_show( $run_id, qw| error |, "refused : $word" );
+            respond_no( $client, $word =~ s|-| |gr );
+            return FALSE;
+        }
         if ( ( $deny_reason // '' ) eq qw| cancelled | ) {
             run_log_line( qw| withdrawn |, $run_id, scalar @entries );
-            out_line('request withdrawn by the requester');
+            end_show( $run_id, qw| note |, 'withdrawn by the requester' );
             idle_return();
             return FALSE;
         }
         run_log_line( qw| denied |, $run_id, scalar @entries, @reason );
+        end_show( $run_id, qw| note |, 'denied' );
         respond_no( $client, qw| denied |, @reason );
         idle_return();    ## the request + prompt leave the screen ##
         return FALSE;
@@ -978,6 +1232,12 @@ sub op_run {
     } @entries;
     if (@changed_since) {
         run_log_line( qw| changed |, $run_id, scalar @changed_since );
+        end_show(
+            $run_id, qw| error |,
+            sprintf 'refused : content changed %d',
+            scalar @changed_since
+        );
+        idle_return();
         return respond_no(
             $client,
             sprintf 'content changed %d',
@@ -1124,21 +1384,39 @@ sub op_sign {
     if ( not $run->{'signed'}{$rel} ) {
         run_log_line( qw| sign |, $run_id, $rel, $peer_pid );
         $run->{'signed'}{$rel} = TRUE;
-        print STDERR progress_line( $rel, scalar keys $run->{'signed'}->%*,
-            $run->{'count'}, $run->{'label_width'} );
-        $progress_open = TRUE;
+        if ( not $prompt_open ) {    ## an open prompt keeps the screen ##
+            print STDERR progress_line( $rel,
+                scalar keys $run->{'signed'}->%*,
+                $run->{'count'}, $run->{'label_width'} );
+            $progress_open = TRUE;
+        }
     }
     return respond_ok( $client, encode_b32r($signature) );
 }
 
+## END <run> [ <status> [ <reason-b32> ] ] : the client's own word on how ##
+## its run ended [ ok | incomplete | aborted ], shown as the end          ##
 sub op_end {
     my ( $client, $args_aref ) = @ARG;
-    my ($run_id) = $args_aref->@*;
+    my ( $run_id, $status, $reason_b32 ) = $args_aref->@*;
     return respond_no( $client, 'unknown run' )
         if not defined $run_id
         or not exists $run_approved{$run_id};
+    my $reason = b32_field_valid($reason_b32) ? decode_b32r($reason_b32) : '';
+    $reason = '' if not defined $reason;
+    $reason =~ s|[^[:print:]]| |g;    ## a screen line, nothing else ##
+    $reason = substr( $reason, 0, 120 );
     my ( $ntime, $sig_b32 ) = sign_end($run_id);
-    run_summary( $run_approved{$run_id}, 'run closed' );
+    my $run = $run_approved{$run_id};
+    $status //= '';
+
+    if ( $status eq qw| aborted | or $status eq qw| incomplete | ) {
+        run_log_line( qw| run-end |, $run_id, $status );
+        run_summary( $run_id, $run, qw| error |, $status, $reason );
+    } else {
+        my $all = scalar keys $run->{'signed'}->%* == $run->{'count'};
+        run_summary( $run_id, $run, $all ? qw| done | : qw| note | );
+    }
     delete $run_approved{$run_id};
     my $responded = respond_ok( $client, $ntime, $sig_b32 );
     idle_return();    ## after the reply : the client never waits for it ##
@@ -1174,7 +1452,8 @@ sub request_handle {
     } elsif ( $op eq qw| PING | ) {
         respond_ok($client);
     } elsif ( $op eq qw| RUN | ) {
-        op_run( $client, \@args, $peer_pid, $peer_uid );
+        ## 'queued' : the request is held, its client stays open ##
+        return op_run( $client, \@args, $peer_pid, $peer_uid );
     } elsif ( $op eq qw| SIGN | ) {
         op_sign( $client, \@args, $peer_pid );
     } elsif ( $op eq qw| END | ) {
@@ -1182,6 +1461,20 @@ sub request_handle {
     } else {
         respond_no( $client, 'unknown op' );
     }
+    return;
+}
+
+## one connection : the peer gate, its op, closed unless queued ##
+sub connection_accept {
+    my $client = $listen_server->accept() // return;
+    my ( $peer_pid, $peer_uid ) = peer_uid_check($client);
+    if ( not defined $peer_pid ) {
+        print {$client} "NO peer refused\n";
+        close $client;
+        return;
+    }
+    my $kept = request_handle( $client, $peer_pid, $peer_uid ) // '';
+    close $client if $kept ne qw| queued |;
     return;
 }
 
@@ -1433,6 +1726,7 @@ sub restart_agent {
 key_load();
 run_log_open();
 my $server = socket_set_up();
+$listen_server = $server;
 
 code_snapshot_take();    ## the code this process runs [ restart diff ] ##
 idle_show();
@@ -1460,23 +1754,16 @@ while (TRUE) {
             restart_agent($server) if $key eq "\x12";    ## ctrl-r ##
             next;
         }
-        my $client = $server->accept() // next;
-        my ( $peer_pid, $peer_uid ) = peer_uid_check($client);
-        if ( not defined $peer_pid ) {
-            print {$client} "NO peer refused\n";
-            close $client;
-            next;
-        }
-        request_handle( $client, $peer_pid, $peer_uid );
-        close $client;
+        connection_accept();
+        queue_drain();    ## the requests held behind the answered prompt ##
     }
 }
 
 ## footer note : this file is unsigned until the owner's next
 ## update-signatures run -- no signing happens in the HX4 slice
 
-#,,,.,.,,,.,,,.,,,.,,,..,,,,,,,..,...,.,.,...,..,,...,...,...,..,,,.,,...,,,,,
-#QNK5O3A5N36DCN7SBI2SAEVARIWI6D6WX7J5WPYSEABL6DQQWRWLQEW3ND3PECMKGCAL2STK5CCOG
-#\\\|PXNEERQN4UIXZ54PO2HJX2377RW5BBCKJDV2F6QHUQ7RCQCVZX3 \ / AMOS7 \ YOURUM ::
-#\[7]JEZLW464TKQAZZCRJGBSVEJZV75ULJA3FACRR6JESTEYQPVP7CCA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,,..,,,,,...,.,.,...,.,.,.,,,..,,...,...,..,,,,.,.,.,.,.,,,.,
+#UXXXWYNXZ5CJJNO6NO26JYG4GDYEEC4LPMGDF3ESZPFUFYUDOUUDPYY6SUX2KUZJKFGROE2A43RBA
+#\\\|6OW2D6LHZPJKLANVQK3EF2AXGDCSO4OKXQA5IU3Z55H53IHUACR \ / AMOS7 \ YOURUM ::
+#\[7]FWLSKX5MKC3FQNJRRFJRR4557JLY3Z5B5DWJ5OD6RWTHZWLN3AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

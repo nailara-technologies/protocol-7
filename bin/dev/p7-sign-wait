@@ -56,6 +56,8 @@ while (1) {
             print $state->{'report'} if length( $state->{'report'} // '' );
             say "reason : $state->{'denied_reason'}"
                 if length( $state->{'denied_reason'} // '' );
+            say "ended  : $state->{'end_reason'}"    ## not the owner's no ##
+                if length( $state->{'end_reason'} // '' );
             exit( $status =~ m{^(?:approved|committed)$} ? 0 : 1 );
         }
     }
@@ -78,8 +80,8 @@ while (1) {
     select( undef, undef, undef, 2 );
 }
 
-#,,..,,,.,,..,.,.,..,,...,,.,,...,,.,,,.,,,.,,..,,...,...,,..,,.,,,,,,,,,,,..,
-#3EMVIYFSWZG7UE3N3FJKSQDMTGP5Z4SKPD2GELZFVDQINBUUEY6FTQXPXOUFHLMNPVWXMYASYBA26
-#\\\|4HRKKTEZKDJ57ZPE4VSX2UPQ254E7DCGQWXDGH6JSH4BL35YHJU \ / AMOS7 \ YOURUM ::
-#\[7]5H4LKTRLAI44XQ42HFSRAGZLVLC7ICK3NLBLDNK7XH5GNEJ5EKDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,,,.,..,,...,..,,,..,.,.,.,.,..,,...,...,.,,,,..,,,.,...,,,.,
+#V3PHGUHWKDYP6PJWREQEOFRXO5NOSBULVTU7PNZQJHK63TW3A5AHLAMVSZ5DBXF2TDYGUVY2TJYWC
+#\\\|WFEE6OT7HL744V7T4DRRAYWPT7ECKJNQHPTHECLGQJGO3GPRSVF \ / AMOS7 \ YOURUM ::
+#\[7]WAXSXQ7MVJ7YA2GHFFC3L3VNVKDQWPVIJIMACNFW4I6YMMP5MABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

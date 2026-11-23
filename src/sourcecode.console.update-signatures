@@ -379,13 +379,50 @@ if ($agent_mode) {
         }
     );
 
+    ## 'denied' only when the owner said no -- busy, content changed, no    ##
+    ## reply each by their own word  an approved run that fails later       ##
+    ## [ any base.exit, a die ] tells the agent how it ended : END aborted, ##
+    ## so the agent screen never stays at 'approved'. this process only     ##
+    ## [ forked workers inherit it ]                                        ##
+    if ($begin_ok) {
+        $main::p7_sign_agent_open = $PID;
+        my $end_socket = $agent_socket;
+        my $end_run    = <sourcecode.cfg.sign_agent_run>;
+        my $end_call   = $main::code{'sourcecode.agent.sign'};
+        eval q{
+            END {
+                my $exit_code = $?;
+                if ( ( $main::p7_sign_agent_open // 0 ) == $PID ) {
+                    $main::p7_sign_agent_open = 0;
+                    $end_call->(
+                        {   'op'     => 'end',
+                            'socket' => $end_socket,
+                            'run'    => $end_run,
+                            'status' => 'aborted',
+                            'reason' => sprintf( 'exit %d', $exit_code )
+                        }
+                    );
+                }
+                $? = $exit_code;
+            }
+            1;
+        } or <[base.logs]>->( 0, ': no abort report for the agent : %s', $@ );
+    }
     if ( not $begin_ok ) {
-        <[base.log]>->( 0, ':. agent run denied, aborting .:' );
+        my $refusal = <sourcecode.cfg.sign_agent_refusal> // 'no reply';
+        if ( $refusal eq qw| busy | ) {
+            <[base.log]>->( 0, ':. agent busy, request not queued .:' );
+        } else {
+            <[base.logs]>->( 0, ':. agent run %s, aborting .:', $refusal );
+        }
         <[base.exit]>->(qw| 0110 |);
     }
 }
 
 my $file_count = scalar @source_paths;
+## files that needed a signature and did not get one [ sign_file_list ] -- ##
+## not $file_count : already valid files are never written                 ##
+my $failed_files = 0;
 my @staged_paths;
 
 ## below this many files, forking workers just adds overhead for no real ##
@@ -423,7 +460,8 @@ if ( $workers <= 1 ) {
     );
 
     @staged_paths = $result_href->{'staged'}->@*;
-    $file_count -= $result_href->{'written_count'};
+    $file_count   -= $result_href->{'written_count'};
+    $failed_files += $result_href->{'failed_count'} // 0;
 
 } else {
 
@@ -486,9 +524,12 @@ if ( $workers <= 1 ) {
             my @report_lines
                 = map {"STAGED\t$ARG"} $result_href->{'staged'}->@*;
             push @report_lines,
-                sprintf( "DONE\t%d\t%d",
+                sprintf(
+                "DONE\t%d\t%d\t%d",
                 $result_href->{'true_count'},
-                $result_href->{'written_count'} );
+                $result_href->{'written_count'},
+                $result_href->{'failed_count'}
+                );
 
             <[file.put]>
                 ->( $result_file, join( "\n", @report_lines ) . "\n" );
@@ -540,9 +581,11 @@ if ( $workers <= 1 ) {
             <[file.slurp]>->( $worker_result_file[$w], \$report )
                 if -f $worker_result_file[$w];
 
-            if ( defined $report and $report =~ m|^DONE\t(\d+)\t(\d+)|m ) {
+            if ( defined $report
+                and $report =~ m|^DONE\t(\d+)\t(\d+)\t(\d+)|m ) {
                 $true_counts[$w]    = $1;
                 $written_counts[$w] = $2;
+                $failed_files += $3;
                 push @staged_paths, ( $report =~ m|^STAGED\t(.+)$|mg );
                 delete $pending{$w};
             } elsif ( not kill( 0, $worker_pid[$w] ) ) {
@@ -584,10 +627,17 @@ if ( $workers <= 1 ) {
 if ($agent_mode) {
 
     ## the signed end timestamp : the agent's capability-reduction record ##
+    ## the regular end : ok, or incomplete when files stay unsigned       ##
+    $main::p7_sign_agent_open = 0;    ## the regular end : no abort ##
     my ( $end_ntime, $end_sig ) = <[sourcecode.agent.sign]>->(
         {   'op'     => qw| end |,
             'socket' => $agent_socket,
-            'run'    => <sourcecode.cfg.sign_agent_run>
+            'run'    => <sourcecode.cfg.sign_agent_run>,
+            $failed_files > 0
+            ? ( 'status' => qw| incomplete |,
+                'reason' => sprintf( '%d not signed', $failed_files )
+                )
+            : ( 'status' => qw| ok | )
         }
     );
     <[base.logs]>->(
@@ -615,8 +665,8 @@ printf( "%s\r", ' ' x 18 ) if <system.zenka.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,..,.,,,,,,,.,.,.,.,,..,...,..,,,..,,..,..,,..,,...,...,...,...,..,,,,.,...,
-#7FVVQH3N3JUQT3EANRJ3NEIACM3TRJQYSGLZR2AWFR5B7PQF3V7IWNP6XZJ4POQF2C6SJPVXRORKY
-#\\\|PICGFKO4WRREJ7S4K2WOJADU2SQCUQI2PSZZYJBRCZ5P5DW6FKO \ / AMOS7 \ YOURUM ::
-#\[7]5HVG3JDZM3OP73ZWEB7SO43OEGTDDIY5LXLNCOBWACTIMFKZKMCA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,,,,,,,.,..,,.,.,,..,.,,,,.,,..,,...,...,..,,,,.,,,,,,.,,.,.,
+#RRVJOAFXW4XB3T5T2ELBATICDC32IFJKH4XVP2VS4AK22IXOS5QIH5UXW2NLBBISZTGCVV7JFOKGW
+#\\\|HWOCESLKKRJQGLXVP6GY66UHCMRAKPK3Y34XRQCADXHCN4P5NLR \ / AMOS7 \ YOURUM ::
+#\[7]4MGWYP5J2VO2CR2GCTLUQFUYAJFFKOFYBUTXSNMZUZWDDHC2A2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,8 +20,11 @@ use warnings;
 ## approval stays in the user's p7-sign-agent terminal -- this job only
 ## submits and watches. its state goes to a JSON file at every phase :
 ##
-## starting -> versioning -> preparing -> awaiting-approval -> signing ->
-## approved | denied | aborted | failed
+## starting -> versioning -> preparing -> [ queued -> ] awaiting-approval ->
+## signing -> approved | denied | aborted | failed
+##
+## denied is only ever the owner's answer : an aborted job carries its own
+## word in end_reason [ busy, content changed .., withdrawn, no reply ]
 ##
 ## p7-sign-run -state <file.json> [ -version | -op <op> ] [ -plan ] <path> ..
 ##
@@ -355,23 +358,58 @@ if ( $sign_pid == 0 ) {
         or die "exec update-signatures : $OS_ERROR\n";
 }
 
+## which run-log lines are THIS job's : several jobs may wait at the agent ##
+## at once [ its queue ]. the run id starts '<pid>-' of the                ##
+## update-signatures process -- not $sign_pid, bin/Protocol-7 forks to a   ##
+## harmonic pid first -- so the pid is ours when its stdout \ stderr is    ##
+## this job's pipe [ /proc, same uid ]                                     ##
+my $pipe_inode = ( CORE::stat $sign_fh )[1];
+my ( $own_run, $attribution_off );
+my $run_is_ours = sub {
+    my $id = shift // return FALSE;
+    return TRUE if $attribution_off;    ## the single-job reading ##
+    return $id eq $own_run ? TRUE : FALSE if defined $own_run;
+    my ($pid) = $id =~ m|^(\d+)-| or return FALSE;
+    foreach my $fd ( 1, 2 ) {
+        my $target = CORE::readlink("/proc/$pid/fd/$fd") // next;
+        if ( $target eq "pipe:[$pipe_inode]" ) {
+            $own_run = $id;
+            return TRUE;
+        }
+    }
+    return FALSE;
+};
+
 ## the run log tells the phase : 'begin' only after the user approved ##
-my ( $run_id, %signed, $denied_reason, $ended, $output, $crash_reason );
+my ( $run_id, %signed, $denied_reason, $ended, $output, $crash_reason,
+    $end_reason );
 my $poll_run_log = sub {
     open( my $log_fh, '<:raw', $runs_log ) or return;
     seek( $log_fh, $log_offset, 0 );
     while ( my $line = <$log_fh> ) {
+        chomp $line;
         my ( undef, $kind, $id, @rest ) = split m| |, $line;
         next if not defined $kind;
+        next if $kind ne qw| crash | and not $run_is_ours->($id);
+        if ( $kind eq qw| queued | ) {
+            state_write(
+                qw| status | => qw| queued |,
+                qw| run_id | => $id,
+                qw| place |  => $rest[1]
+            );
+        }
         if (    $kind eq qw| request |
-            and not defined $run_id
-            and $state->{'status'} eq qw| preparing | ) {
+            and $state->{'status'} =~ m{^(?:preparing|queued)$} ) {
             state_write(
                 qw| status | => qw| awaiting-approval |,
                 qw| run_id | => $id
             );
             notify_approval_request();
         }
+        $end_reason = qw| busy |      if $kind eq qw| busy |;
+        $end_reason = qw| withdrawn | if $kind eq qw| withdrawn |;
+        $end_reason = "content changed $rest[0]"
+            if $kind eq qw| changed |;
         if ( $kind eq qw| begin | and not defined $run_id ) {
             $run_id = $id;
             state_write(
@@ -400,6 +438,7 @@ my $poll_denial = sub {
             next;
         }
         next if ( $kind // '' ) ne qw| denied |;
+        next if not $run_is_ours->($id);
         $run_id        = $id;
         $denied_reason = '';
         if ( length( $reason_b32 // '' ) ) {
@@ -426,6 +465,14 @@ while (TRUE) {
     state_write( qw| signed | => scalar keys %signed ) if defined $run_id;
 }
 close $sign_fh;
+## never tied to a run [ its process gone before a poll saw it, or a /proc ##
+## that does not answer ] : the log read the single-job way again, never   ##
+## worse than before the queue                                             ##
+if ( not defined $own_run ) {
+    $attribution_off = TRUE;
+    ( $run_id, $ended, $end_reason ) = ();
+    %signed = ();
+}
 $poll_run_log->();
 $poll_denial->() if not defined $run_id or not $ended;
 
@@ -439,6 +486,17 @@ if ( defined $crash_reason and not $ended ) {
         qw| run_id | => $run_id,
         qw| report | => "signing agent crashed : $crash_reason\n$report"
     );
+}
+## the client's own word when the run log could not be tied to this job   ##
+## [ the process gone before a poll saw it ] -- update-signatures says it ##
+if ( not defined $denied_reason and not defined $end_reason ) {
+    if ( $output =~ m|:\. agent busy, request not queued \.:| ) {
+        $end_reason = qw| busy |;
+    } elsif ( $output =~ m|:\. agent run denied, aborting \.:| ) {
+        $denied_reason = '';
+    } elsif ( $output =~ m|:\. agent run (.+?), aborting \.:| ) {
+        $end_reason = $1;
+    }
 }
 if ( defined $denied_reason ) {
     finish(
@@ -458,13 +516,14 @@ if ($ended) {
 }
 finish(
     qw| status | => qw| aborted |,
+    defined $end_reason ? ( qw| end_reason | => $end_reason ) : (),
     qw| run_id | => $run_id,
     qw| signed | => scalar keys %signed,
     qw| report | => $report
 );
 
-#,,.,,..,,.,.,..,,,..,,,.,.,,,...,..,,...,...,..,,...,...,,.,,...,,,.,...,...,
-#MIQXK2RDARJE6TLEZYPWLMNASIVGULLWFW22AMNH2UDPTIGN72IKQXRIZVPCIH7ZE5ZZ4H3DVYPS4
-#\\\|F7J46CICUVR4WO4BCV2SCXFIRHI5PETAN6UNAS2WBQO7VYWP7LS \ / AMOS7 \ YOURUM ::
-#\[7]URHV3NPHRTQYKA7GAYL34NU2GPNSPGBGGIGRC52MT2SXLNFNQUAI 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,.,.,,,,..,,,,,,..,...,,..,..,,..,,...,...,,,,,,,,,,,,,..,,,,.,
+#5BFPVSSI6K6FLXLBMKZPNADX3PNHBEIEKZPN6O6DOVQCULVFKOYHDYMGVYJT5WXTARAJQMTC3H65U
+#\\\|IDEYEU5SESVH3DM6UDEWKW4FYFIWWSA3CODRNNTU3Z3QXMZQPYD \ / AMOS7 \ YOURUM ::
+#\[7]HHDYEGSOWJOOSCXJY7KPE3R2QQOUC7BJVKIQAFMVWNBAZE5SUYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

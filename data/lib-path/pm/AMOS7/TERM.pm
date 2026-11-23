@@ -29,7 +29,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.FBY6ZWA |;
+our $VERSION = qw| AMOS7::TERM-VERSION.IE4FC5Q |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -1404,15 +1404,28 @@ sub confirm_key {
     ## lone esc rejects ; any other escape sequence                         ##
     ## [ arrows, a click elsewhere ] is no choice  cancel_fh [ optional ] : ##
     ## readable = the request behind the prompt is gone                     ##
-    ## [ a requester closed its socket ] -- the prompt ends there           ##
-    my $cancel_fh   = $params->{'cancel_fh'};
+    ## [ a requester closed its socket ] -- the prompt ends there watch     ##
+    ## [ optional ] : { fhs => <code ref returning handles>, ready => <code ##
+    ## ref> } -- other handles served while the prompt waits                ##
+    ## [ a caller's server socket, queued requests ]. ready gets the        ##
+    ## readable ones ; a TRUE return redraws the screen + prompt            ##
+    my $cancel_fh = $params->{'cancel_fh'};
+    my $watch
+        = ref $params->{'watch'} eq qw| HASH | ? $params->{'watch'} : undef;
     my $read_choice = sub {
         my $row = shift;
-        if ( defined $cancel_fh ) {
-            my $wait = IO::Select->new( $tty_in, $cancel_fh );
+        while ( defined $cancel_fh or defined $watch ) {
+            my @watched = defined $watch ? $watch->{'fhs'}->() : ();
+            my $wait    = IO::Select->new( $tty_in, grep {defined} $cancel_fh,
+                @watched );
             my @ready;
             @ready = $wait->can_read() until @ready;
-            return qw| :cancelled: | if grep { $ARG == $cancel_fh } @ready;
+            return qw| :cancelled: |
+                if defined $cancel_fh and grep { $ARG == $cancel_fh } @ready;
+            my @others = grep { $ARG != $tty_in } @ready;
+            return qw| :redraw: |
+                if @others and $watch->{'ready'}->(@others);
+            last if grep { $ARG == $tty_in } @ready;
         }
         sysread( $tty_in, my $key, 1 ) or return undef;
         return $key if $key ne "\e";
@@ -1436,18 +1449,44 @@ sub confirm_key {
         return '';
     };
 
-    my ( $answer, $bold, $cancelled ) = ( undef, '', FALSE );
+    ## guard [ seconds, optional ] : keys arriving that soon after the ##
+    ## prompt first shows are dropped -- a key meant for the previous  ##
+    ## prompt never answers this one                                   ##
+    ## [ a queued request comes next at once ]                         ##
+    my $guard_until
+        = ( $params->{'guard'} // 0 ) > 0
+        ? Time::HiRes::time() + $params->{'guard'}
+        : undef;
+
+    my ( $answer, $bold, $cancelled, $tty_gone )
+        = ( undef, '', FALSE, FALSE );
     while ( not defined $answer ) {
         $render->($bold);
+        if ( defined $guard_until ) {
+            my $left;
+            while ( ( $left = $guard_until - Time::HiRes::time() ) > 0 ) {
+                select( undef, undef, undef, $left );
+            }
+            ## the guard's keys dropped ##
+            $termios->setattr( $fd, TCSAFLUSH );
+            undef $guard_until;
+        }
         my $row = $use_mouse ? $prompt_row->() : undef;
         $mouse->(1);
         my $key = $read_choice->($row);
         $mouse->(0);
-        if ( defined $key and $key eq qw| :cancelled: | ) {
+        if ( defined $key and $key eq qw| :redraw: | ) {
+            print {$tty_out} "\e[H\e[2J";
+            $params->{'redraw'}->()
+                if ref $params->{'redraw'} eq qw| CODE |;
+            next;    ## same round, no bold ##
+        } elsif ( defined $key and $key eq qw| :cancelled: | ) {
             ## no reason asked ##
             ( $answer, $cancelled ) = ( FALSE, TRUE );
         } elsif ( not defined $key ) {
-            $answer = FALSE;    ## eof \ read error : deny ##
+            ## eof \ read error : no answer, the terminal is gone -- the ##
+            ## reason ':terminal-gone:', never a reason line             ##
+            ( $answer, $cancelled, $tty_gone ) = ( FALSE, TRUE, TRUE );
         } elsif ( $key eq qw| a | or $key eq qw| y | ) {
             $answer = TRUE;
         } elsif ( $key =~ m{^[rn\x03\x04\e]$} ) {
@@ -1499,7 +1538,10 @@ sub confirm_key {
     ## right \ home \ end move, backspace \ del erase, ctrl-u clears, esc \ ##
     ## ctrl-c \ ctrl-d skip, any other sequence is dropped -- cooked mode   ##
     ## echoed arrow keys as ^[[D into the line                              ##
-    my $reason = $cancelled ? qw| cancelled | : undef;
+    my $reason
+        = $tty_gone  ? qw| :terminal-gone: |
+        : $cancelled ? qw| cancelled |
+        :              undef;
     if ( not $answer and not $cancelled and $params->{'reason'} ) {
         my ( $min_len, $max_len ) = ( 13, 76 );
         my $prompt = $c{'T'} . ' :: reason [ enter skips ] :. ' . $c{'2'};
@@ -2357,8 +2399,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,,,,,,,,,,.,...,,..,..,,..,,,.,,..,,.,,,,,,,..,,...,...,.,.,.,.,.,.,..,,.,.,
-#F47U4HOZES7PWJJKIFMYXFRCAJGMNUXDEIZTRPD72HGTUNEP2BWYLUGM24SKSQLZEAAMYNV2B7I5O
-#\\\|B4DJK73ULLAH2VEHJJN56OYQ2S7GNXA6KVXLRQANABHSZIYSWIV \ / AMOS7 \ YOURUM ::
-#\[7]BTFKRNOPWHR7UXNU4535URM5V4SSUM7JPG7NPDMDAH4R723S7SBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,.,,,,..,,,.,,,,,,..,,,,,.,.,..,,...,...,...,.,,,.,,,,,,,.,.,
+#OTD5LWW5UR5GZ3UR5Y6HVELZCFC2M7STTR35JP4NMKJZL76H23BSRQUVGQEYDZHL44LXRI2234RAY
+#\\\|C3HVQGVMCJV2A7JAG7UCDWBKBGXMSCDLNANWYH4S3N5VL5BZBIQ \ / AMOS7 \ YOURUM ::
+#\[7]4H4KVTVSWZ5N6I6DSNHMLE5SJNL3JXNJYF6WCKMQJOCIO457RGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

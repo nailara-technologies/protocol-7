@@ -12,7 +12,8 @@
 #         inline in the console command itself" -- reproduces the original
 #         single-process console behaviour exactly.
 # args  = <path_list_aref>, <work_tree>, <sign_verbosity> [, <worker_tag>]
-# return = hashref : { staged => aref, true_count => int, written_count => int }
+# return = hashref : { staged => aref, true_count => int, written_count => int,
+#          failed_count => int [ files that needed a signature and did not get one ] }
 
 my $path_aref      = shift;
 my $work_tree      = shift;
@@ -21,6 +22,7 @@ my $worker_tag     = shift;        ## undef : sequential/interactive caller ##
 
 my $true_count    = 0;
 my $written_count = 0;
+my $failed_count  = 0;             ## needed a signature, did not get one ##
 my @staged_paths;
 
 ## worktree paths differing from the index, read once : an already-valid    ##
@@ -92,6 +94,7 @@ foreach my $path_rel ( $path_aref->@* ) {
         <[base.logs]>->(
             0, ': not able to create signature [ %s ]', $path_rel
         );
+        $failed_count++;
         next;
     }
 
@@ -122,12 +125,14 @@ foreach my $path_rel ( $path_aref->@* ) {
         <[base.logs]>->(
             0, ':E: file changed on disk since read, skipping: %s', $path_rel
         );
+        $failed_count++;
         next;
     }
 
     # Write the updated file with signature
     if ( not <[file.put_bin]>->( $path_abs, $code_data_ref->{'data'} ) ) {
         <[base.logs]>->( 0, ':E: failed to write file: %s', $path_rel );
+        $failed_count++;
         next;
     }
 
@@ -138,11 +143,12 @@ foreach my $path_rel ( $path_aref->@* ) {
 return {
     qw| staged        | => \@staged_paths,
     qw| true_count    | => $true_count,
+    qw| failed_count  | => $failed_count,
     qw| written_count | => $written_count
 };
 
-#,,.,,,,,,.,,,,.,,,,.,..,,,..,..,,.,,,,,.,..,,..,,...,..,,...,..,,.,.,,..,..,,
-#JS3ZLCBNUKDCGCIVRRWPB56UJGAJ7GLXFGBU6VCD7PFO2GT72K6AN4QO7SAKGW7M3W7RNDN5ZB2JK
-#\\\|FAZWKENMW4SJY6EYX6ZPQH5OGWCRQSSIR6V5DKYYI3GBIKLDP4Y \ / AMOS7 \ YOURUM ::
-#\[7]CGM45PUAVLY6ITZFHNUDHLEZMCEVGMY2453SVQYBP6EWX3OF4QCA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,..,,,..,..,,,..,,,,,.,,,..,,..,,...,...,...,...,.,,,,.,,...,
+#Q2MKRPBGOKPNUH745UF5VZI7BRDQWCNLZGRXHKYAC6LIYE6ZR55HMQCXVTWNHSQDGEHFOJDYSUPLW
+#\\\|FQ23CZQZZCJJLXJVTZGNCWCV6VRESAYAT5VEMJSIY2EPN2KO7CO \ / AMOS7 \ YOURUM ::
+#\[7]ZRZMBH3AWIRPDN65SGA73V3MD76WI2PGKISBEELZYJEWYGH65YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

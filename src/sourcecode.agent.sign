@@ -16,16 +16,25 @@
 #             work-tree => <dir>,
 #             paths => [ { path => <rel>, body-chksum => <b32>,
 #             body-length => <n> }, ... ] }
-#                                -> TRUE on approval | FALSE on denial
+#                                -> TRUE on approval | FALSE otherwise
 #                                  [ no timeout : the prompt is
-#                                  user-paced, agent-side ]. the per-path
+#                                  user-paced, agent-side ; 'QUEUED <n>'
+#                                  lines while another request's prompt
+#                                  is open keep it waiting ]. why it
+#                                  failed : <sourcecode.cfg.sign_agent_refusal>
+#                                  [ denied = the owner's answer only ;
+#                                  busy, content changed .., no reply,
+#                                  unreachable, refused ]. the per-path
 #                                  chksum + length bind the approval to
 #                                  file CONTENTS : the agent re-reads each
 #                                  file itself and refuses on any mismatch
 #           { op => 'sign', socket => <path>, run => <id>, path => <rel>,
 #             body-chksum => <b32>, body-length => <n>, buffer => <str> }
 #                                -> signature [ b32 ] | undef [ refusal ]
-#           { op => 'end', socket => <path>, run => <id> }
+#           { op => 'end', socket => <path>, run => <id>
+#             [ , status => ok | incomplete | aborted, reason => <str> ] }
+#                                [ how the run ended, shown on the agent
+#                                  screen ; older agents ignore it ]
 #                                -> list ( ntime_b32, end_sig_b32 ) |
 #                                  empty list on failure
 
@@ -74,6 +83,7 @@ my $handle = IO::Socket::UNIX->new(
 );
 
 if ( not defined $handle ) {
+    <sourcecode.cfg.sign_agent_refusal> = qw| unreachable |;
     <[base.logs]>
         ->( 0, ': signing agent not reachable [ %s ]', $socket_path );
     return undef;
@@ -129,21 +139,38 @@ if ( $op eq qw| hello | ) {
         encode_b32r($buffer) ) . "\n";
 } else {    ## end ##
     my $run_id = $call->{'run'} // return undef;
-    $line_out = "END $run_id\n";
+    my @status
+        = ( $call->{'status'} // '' ) =~ m{^(?:ok|incomplete|aborted)$}
+        ? ( $call->{'status'} )
+        : ();
+    push @status, encode_b32r( $call->{'reason'} )
+        if @status and length( $call->{'reason'} // '' );
+    $line_out = join( ' ', qw| END |, $run_id, @status ) . "\n";
 }
 
+<sourcecode.cfg.sign_agent_refusal> = undef;
 my $reply = eval {
     local $SIG{'ALRM'} = sub { die "agent request timed out\n" };
     alarm 30;    ## connect + write + reply, except begin [ see below ] ##
     print {$handle} $line_out;
     alarm( $wait_seconds > 0 ? $wait_seconds : 0 );
     my $line = <$handle>;
+    ## queued behind another request's prompt : its place, then keep ##
+    ## waiting -- the wait in the queue has no timeout               ##
+    while ( $op eq qw| begin |
+        and defined $line
+        and $line =~ m|^QUEUED (\d+)$| ) {
+        <[base.logs]>
+            ->( 0, ': signing agent : request queued, place %d', $1 );
+        $line = <$handle>;
+    }
     alarm 0;
     $line;
 };
 close $handle;
 
 if ( not defined $reply or not length $reply ) {
+    <sourcecode.cfg.sign_agent_refusal> = 'no reply';
     <[base.logs]>->( 0, ': signing agent gave no reply [ %s ]', $op );
     return undef;
 }
@@ -154,10 +181,12 @@ my ( $status_word, @fields ) = split m| |, $reply;
 ## the agent's wire version : an older or newer agent is refused by name ##
 ## here, not later as a confusing 'file list format' on the RUN lines    ##
 if ( $op eq qw| hello | and $status_word eq qw| OK | ) {
-    return $fields[1] if ( $fields[0] // '' ) eq qw| p7-sign-agent:002 |;
+    ## 003 adds the QUEUED lines, read by begin above ##
+    return $fields[1]
+        if ( $fields[0] // '' ) =~ m{^p7-sign-agent:00[23]$};
     <[base.logs]>->(
         0,
-        ': signing agent speaks %s, p7-sign-agent:002 expected',
+        ': signing agent speaks %s, p7-sign-agent:002 \\ 003 expected',
         $fields[0] // 'nothing'
     );
     return undef;
@@ -170,12 +199,18 @@ return @fields    if $op eq qw| end |   and $status_word eq qw| OK |;
 if (    $op eq qw| begin |
     and $status_word eq qw| NO |
     and ( $fields[0] // '' ) eq qw| denied | ) {
+    <sourcecode.cfg.sign_agent_refusal> = qw| denied |;
     my $reason = defined $fields[1] ? decode_b32r( $fields[1] ) : undef;
     <[base.logs]>->( 0, ': agent run denied : %s', $reason )
         if defined $reason and length $reason;
     return undef;    ## update-signatures logs the abort itself ##
 }
 
+## every other end has its own word [ busy, content changed .. ] ##
+<sourcecode.cfg.sign_agent_refusal>
+    = $status_word eq qw| NO |
+    ? join( ' ', @fields ) =~ s|_| |gr
+    : qw| refused |;
 <[base.logs]>->(
     0,   ': signing agent refused [ %s ] : %s',
     $op, scalar @fields ? join( ' ', @fields ) : $reply
@@ -183,8 +218,8 @@ if (    $op eq qw| begin |
 
 return undef;
 
-#,,.,,,..,,..,,..,.,.,.,.,,,,,,.,,,.,,...,.,,,.,.,...,..,,.,,,,,,,..,,...,.,.,
-#ZSWYFPJUW4QPOILVNWYPK64UCWQMEOS4FEI7RJCAVIBDLUYSHWQH2MTHEA4342RQZMD2HFQG54WY4
-#\\\|VG5VBWVZZPO5EQI4CYJG2GNDZ76VXDXB2DXNIESTEMGCB33OLFG \ / AMOS7 \ YOURUM ::
-#\[7]VU42UV5BJLFS4WWDLREPGFOFYAYKD3SC7VI6X5ZGEIMVMZQCVEDY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,.,.,,..,...,,..,,,.,,..,..,,.,.,...,...,..,,.,,,.,.,,.,,,..,
+#TKWDFYBPBKBNSX2DM5RD3SKXEFVRMFAJAII4SUEWOGJSUT6GLCPQ57KAL5SWRTNS3ESQPWMW36TEO
+#\\\|FSQDOI4H6AAHEGEOUTBTU7TZDLFRMC44JGDHDIM3SRIASJ2D7DC \ / AMOS7 \ YOURUM ::
+#\[7]MD6EXSUDKC2VENXWHNOUY4B4DVS6O3MIZ4STNVAC2JSNXLYF5SAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
