@@ -126,8 +126,38 @@ on a foreign network must not silently become the resolver :
 - the data is always collected [ servers, domain, network fingerprint ] : it feeds the
   awareness of where the host is, also when nothing of it is used
 
-#,,,.,.,.,,,.,...,,..,,,,,.,.,..,,..,,.,,,.,.,..,,...,...,,..,,.,,,,,,.,.,,,,,
-#AQ2X5KNP35IYX44KUFZA45PR23TDHZWMD7CIOL6IY5HFMBLRDWIJ75SANNQ53JELKZ3ZX52E4UAC6
-#\\\|KVGXQ3V7OTMTBND2YJN256WC7XPXUR7FLRXP36IAXP3QWLENM33 \ / AMOS7 \ YOURUM ::
-#\[7]NWMJC3D47PGXKC2W4LTVRWVN45GF3IQJC52L4WGUR7GP47IGJ2BQ 7  DATA SIGNATURE ::
+
+### refinements [ owner 2026-11-23 : all applied ]
+
+first round :
+- one policy per network fingerprint : trusted [ use its dns ] \ split [ only its domains,
+  the domain list belongs here ] \ held [ show, do not use ] \ blocked. defaults : lan role
+  trusted, external \ unknown held
+- captive portals : a temporary trusted state with a reason and an end condition [ portal
+  passed, or a base.interval.next span ] -- the 'temporary change with a way back' rule
+- reverse lookups for the network's own private subnet go to its dns, also when held [ they
+  reveal almost nothing and only that network can answer them ]
+- no leaks the other way : our own names [ p7 hosts, .lan, the nodes table ] are never
+  forwarded to a foreign resolver, whatever the policy
+
+later items :
+- dns behaviour per network, measured and stored next to the policy [ the owner decides the
+  policy, protocol-7 records the behaviour ] : open \ filtering \ intercepting \
+  blocking-outside
+  - filtering : rare comparison queries for neutral names ; nxdomain or a block-page address
+    from their dns where ours answers. never promote a filtering network to trusted by itself
+  - intercepting : all port 53 traffic redirected to their resolver, so our own upstreams
+    silently answer from theirs -- detected by known-answer names \ dnssec ; then an
+    encrypted path [ dns over tls 853, dns over 443 ]
+  - blocking-outside : our upstreams unreachable ; the encrypted path, else the held server
+    as a degraded mode with a clear reason -- 'never without dns' must hold here too
+- dnssec validation in nameserv : a foreign resolver cannot forge signed zones, so it can be
+  used more freely, bounded by validation instead of trust
+- dhcp options by role, the same rule beyond dns : routes, ntp servers, and above all wpad
+  [ proxy auto-discovery ] are held on external \ unknown networks
+
+#,,.,,.,,,,.,,,.,,,..,.,,,...,,..,,.,,.,.,.,.,..,,...,...,.,.,.,.,.,,,...,,.,,
+#CCH3INHXILUNOD5QXCOUYAHPKO3LE7WUWI7SQ6F5GXLROZLMOBH52EHYBTPN4RN4RMI5PTKPYPNTO
+#\\\|E6FI4Q5BUGG4U2VGNHLJUNFTTYXEXWY6JIYNL7SVIRUN262ZKYI \ / AMOS7 \ YOURUM ::
+#\[7]35455AIVGVQ54VYYRZQ5YC3GBUFCHY4T3YXLBCUTRM4TWAMFK4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
