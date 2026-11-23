@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = events.signal.raise
+# descr = raise a named signal : wake the entries waiting on it, journal it
+# args   = source zenka, signal name, values [ hash ref ]
+# return = array ref of the names of the entries woken
+#
+# an armed entry waits when its `on` is this name and every
+# `match.<key>` equals the value raised under <key> ; the entries wake in
+# id order, an action that dies is logged and does not stop the others
+
+my ( $source, $name, $values ) = @ARG;
+$values //= {};
+
+<events.signal.armed> //= {};
+
+my @woken;
+foreach my $ev_id ( sort { $a <=> $b } keys <events.signal.armed>->%* ) {
+    next if not defined <events.setup>->{$ev_id};
+    my $cfg = <events.entry.source_cfg>->{$ev_id}->{'signal'} // next;
+    next if ( $cfg->{'on'} // '' ) ne $name;
+
+    my $match = ref $cfg->{'match'} eq qw| HASH | ? $cfg->{'match'} : {};
+    next if grep {
+        not defined $values->{$ARG}
+            or $values->{$ARG} ne $match->{$ARG}
+    } keys %{$match};
+
+    my $ev_name = <events.setup>->{$ev_id}->{'name'} // $ev_id;
+    my $ran     = eval {
+        <[events.fire]>->(
+            {   'ev_id'   => $ev_id,
+                'ev_type' => qw| signal |,
+                'signal'  => {
+                    'name'   => $name,
+                    'source' => $source,
+                    'values' => $values
+                }
+            }
+        );
+    };
+    if ($EVAL_ERROR) {
+        <[base.logs]>->(
+            0, "<< event '%s' woken by signal '%s' failed : %s >>",
+            $ev_name, $name, $EVAL_ERROR =~ s{\s+\z}{}r
+        );
+        next;
+    }
+    push @woken, $ev_name if $ran;
+}
+
+<[base.logs]>->(
+    1, "signal '%s' from '%s' [ %d woken ]",
+    $name, $source, scalar @woken
+);
+
+<[events.signal.journal_write]>->(
+    {   'time'   => time,
+        'name'   => $name,
+        'source' => $source,
+        'values' => $values,
+        'woken'  => \@woken
+    }
+);
+
+return \@woken;
+
+#,,,,,.,,,.,,,,.,,,,.,,,,,...,...,...,,,,,,,,,..,,...,...,...,,,.,.,.,,.,,.,.,
+#YHU5V7NWRBQFGCRDWYUCIVWQVCC3FH6IU37EXVKK7Y3DOZN7AKZVLO6EYOGDCKDLG3RD7MNKJ6R2W
+#\\\|JRNYKAMARG75DCTXUU7WISE7ZO7SZ5QOFR7GGY6ZR6C72OTSNHV \ / AMOS7 \ YOURUM ::
+#\[7]VL2KERC3ZUZ6SXSNLYCCWISQ3CTVRDW7BG6V7HHOZ3YEYOIUNACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

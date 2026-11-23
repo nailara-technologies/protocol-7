@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = events.signal.journal_write
+# descr = append one signal to the add-only journal
+# one p7 config style line per signal :
+#   signal.<name> = time:<local time> source:<zenka> woken:<entry,..>
+#                   values:<key=value,..>
+# every field value escaped by events.signal.encode, '-' when empty ;
+# a failed write is logged, the in-memory list [ events.signal.recent ]
+# still carries the signal for events.signals
+#
+# args = { time, name, source, values [ hash ], woken [ entry names ] }
+
+my $rec = shift;
+
+my $stamp
+    = strftime( '%Y-%m-%dT%H:%M:%S', CORE::localtime( $rec->{'time'} ) );
+my $enc = sub { <[events.signal.encode]>->(@ARG) };
+
+my $values = join ',',
+    map { $enc->($ARG) . '=' . $enc->( $rec->{'values'}{$ARG} ) }
+    sort keys %{ $rec->{'values'} // {} };
+my $woken = join ',', map { $enc->($ARG) } @{ $rec->{'woken'} // [] };
+
+my $line = sprintf "signal.%s = time:%s source:%s woken:%s values:%s\n",
+    $rec->{'name'}, $stamp, $enc->( $rec->{'source'} ),
+    length $woken ? $woken : qw| - |, length $values ? $values : qw| - |;
+
+my $recent = <events.signal.recent> //= [];
+push @{$recent}, $line;
+shift @{$recent} while @{$recent} > 500;
+
+my $path = <events.signal.journal_path>
+    // sprintf qw| %s/events/signal.journal |,
+    <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+
+my ($dir) = $path =~ m{\A(.*)/[^/]+\z};
+if ( defined $dir and !-d $dir ) {
+    mkdir $dir,
+        0750
+        or <[base.logs]>->(
+        0,    "<< signal journal : cannot create '%s' : %s >>",
+        $dir, $OS_ERROR
+        );
+}
+
+if ( open my $fh, '>>:encoding(UTF-8)', $path ) {
+    print {$fh} $line;
+    close $fh;
+    return TRUE;
+}
+<[base.logs]>->(
+    0,     "<< signal journal : cannot append to '%s' : %s >>",
+    $path, $OS_ERROR
+);
+return FALSE;
+
+#,,,.,.,.,,.,,,,.,,,,,,,,,.,.,.,.,,,.,,,.,,..,..,,...,...,,,,,,.,,...,,.,,...,
+#X5JHTSDZUE3OQNZM7ADR6N76WDTWFTEN77QNUKQHQTCG5Z375576HXQ7OLNIRHBFM42HTGY33R4P2
+#\\\|WDSXX54HSTFJ7OZIIVEZ4G7YPN3U762WNA2ILLSXOJIBGCXS7UG \ / AMOS7 \ YOURUM ::
+#\[7]D5476OM2JG4A6I5IC4YHFQ62Y2K3RMD3ZXXLTREGHZIKOXQKAMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

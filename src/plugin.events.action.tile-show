@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = plugin.events.action.tile-show
+# descr = tile group visibility up [ down at end ]
+
+return {
+    'name'     => qw| tile-show |,
+    'kind'     => qw| action |,
+    'describe' => 'tile group visibility up [ down at end ]',
+    'run'      => sub {
+        my $fire        = shift;
+        my $ev_type     = $fire->{'ev_type'};
+        my $action      = $fire->{'action'};
+        my $action_type = $action->{'type'};
+
+        my $l_name = $action->{'tile-group-name'};
+        die "'tile_group_name' parameter is missing from '$action_type' setup"
+            if not defined $l_name;    ## <-- check \ test [LLL]
+        <events.stack.tile.visibility>->{$l_name} //= 0;
+        my $change = $ev_type eq qw| end | ? -1 : 1;
+        <events.stack.tile.visibility>->{$l_name} += $change;
+
+        <[events.action.tile_apply]>->($action);
+        return TRUE;
+    }
+};
+
+#,,.,,,..,...,.,,,.,.,,..,..,,...,,..,,..,..,,..,,...,...,...,,,.,.,,,...,.,.,
+#J76VSYRXLUZECMZKV3E6LVLJFFXZWXOXERNUAXXM45KONVWMYA4V3CQKRVXSANSGMNBWPMV7AJJEA
+#\\\|UM5USZCHVWQ5HOK4N27NR7FL44JLZAY3UBDXXXC3OKGIZFPSQCA \ / AMOS7 \ YOURUM ::
+#\[7]QRR3MYGP6V6WZZJNY3C6OEXW3QWNYGDZUTTTX2BK4V7UP52TDMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

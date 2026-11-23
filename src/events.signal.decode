@@ -1,0 +1,15 @@
+## [:< ##
+
+# name  = events.signal.decode
+# descr = journal field unescape [ inverse of events.signal.encode ]
+my $text = shift // '';
+return '' if $text eq qw| - |;
+$text =~ s|%([0-9A-Fa-f]{2})|chr hex $1|eg;
+utf8::decode($text);
+return $text;
+
+#,,,,,,,,,.,,,..,,...,.,.,..,,...,..,,.,.,,..,..,,...,...,.,.,.,,,..,,,..,.,,,
+#UAOPW65SLAGIQ6KT7S7KLBBEPWYGG4B5O7TGLEPHSSLD2VZN6VFZVCFOZKSXVOZN74USVONEIPU52
+#\\\|2PJUAHQL4XTTJM7XHDGJJQRWRKDMOTLAYHH3VGG4TNBOD3PZOCM \ / AMOS7 \ YOURUM ::
+#\[7]6P2IXZITFVW3DSNWRT5WKB7O5WW3PAIOS6ALRYOUHDYLGXQCYQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

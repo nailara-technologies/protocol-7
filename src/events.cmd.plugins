@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = events.cmd.plugins
+# descr = list the loaded events plugins [ sources and actions ]
+# descr = loaded source \ action plugins and what each does
+
+my $registry = <[events.plugin.registry]>->();
+
+my @lines;
+foreach my $kind (qw| source action |) {
+    foreach my $type ( sort keys %{ $registry->{$kind} } ) {
+        push @lines, sprintf ": %-6s %-24s %s\n", $kind, $type,
+            $registry->{$kind}{$type}{'describe'};
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'no events plugins loaded' }
+    if !@lines;
+
+return { 'mode' => qw| size |, 'data' => join( '', @lines ) };
+
+#,,,.,.,,,.,.,,,,,,,.,.,.,...,,.,,,.,,,.,,..,,..,,...,...,..,,,..,,.,,..,,..,,
+#3XQOWCU4CS2WMVFHPER7JAYCJRGK355Q5PPR6UYDBQQRGFV5FGB3SS6YUYHJAPJX57CD6RCTHRDTU
+#\\\|3JWS5RORESJYEOHULVUFIHR6B52GBWKLHKBGX775X7IB3Q2ZWAQ \ / AMOS7 \ YOURUM ::
+#\[7]WJYZ6LDUELZC2LWFJN4FTHETQHAH2Y7OKR7CFQ27FIUVU2W4J4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = plugin.events.action.playlist-show-entry
+# descr = playlist entry visibility up [ down at end ]
+
+return {
+    'name'     => qw| playlist-show-entry |,
+    'kind'     => qw| action |,
+    'describe' => 'playlist entry visibility up [ down at end ]',
+    'run'      => sub {
+        my $fire        = shift;
+        my $ev_type     = $fire->{'ev_type'};
+        my $action      = $fire->{'action'};
+        my $action_type = $action->{'type'};
+
+        my $b32id = $action->{'b32id'};    # SHOW event
+        die "'b32id' parameter is missing from '$action_type' setup"
+            if not defined $b32id;
+        <events.stack.playlist>->{$b32id}->{'visibility'} //= 0;
+        my $change = $ev_type eq qw| end | ? -1 : 1;
+        <events.stack.playlist>->{$b32id}->{'visibility'} += $change;
+
+        <[protocol-7.command.send.local]>
+            ->( { 'command' => qw| cube.content.update | } );
+        return TRUE;
+    }
+};
+
+#,,,.,...,...,,,.,,,,,,,.,.,,,,..,...,,,,,,.,,..,,...,...,,,.,,,.,..,,,.,,...,
+#JYL2G7XXPG5EVKVSSFKJUYQUIASLEWAQJY2O6OO42R6OPA2SHRUXMK4WQAUUYTGUK64HZOBTCCLEO
+#\\\|KACKNFDUOJL5NTHXZPABCPUMTYQLUCA6UNOYJNVSPBOOGJSTIXP \ / AMOS7 \ YOURUM ::
+#\[7]E6L6EOHPLVZP5373DM2GML4ODJ5ZAWDPH4BAH2VA4EVU4G5LI6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

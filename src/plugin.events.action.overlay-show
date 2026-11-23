@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = plugin.events.action.overlay-show
+# descr = overlay visibility show [ reverted at end ]
+
+return {
+    'name'     => qw| overlay-show |,
+    'kind'     => qw| action |,
+    'describe' => 'overlay visibility show [ reverted at end ]',
+    'run'      => sub {
+        my $fire        = shift;
+        my $ev_type     = $fire->{'ev_type'};
+        my $action      = $fire->{'action'};
+        my $action_type = $action->{'type'};
+
+        my $l_name = $action->{'tile-group-name'};
+        <events.stack.overlay.visibility>->{$l_name} //= 0;
+        my $change = $ev_type eq qw| end | ? -1 : 1;
+        <events.stack.overlay.visibility>->{$l_name} += $change;
+
+        <[events.action.overlay_apply]>->( $action, $ev_type );
+        return TRUE;
+    }
+};
+
+#,,..,..,,.,.,..,,,.,,,.,,,.,,,,,,.,,,...,,.,,..,,...,...,...,.,.,,..,,,.,,,,,
+#2EGMXFOKJSJNOABV6KTMCNTPR5FN6W62V34OXP7DBRBCI44OFZLV6OLWL3BKZ6NT4UTKNDXXTKASM
+#\\\|NFGAEVYMYHG7DZITHZ27G4MFCG4LEKIQI5PTXG4ZKHH73P74MTM \ / AMOS7 \ YOURUM ::
+#\[7]TBMQU7D4K2GZNVUG4JXHTCPEYLKOBLZAP23LYLNBU5BTRUCPE2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

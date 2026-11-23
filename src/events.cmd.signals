@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = events.cmd.signals
+# descr = list the last signals : events.signals [ n ]
+# param = [ n ]
+# descr = last n signals [ time, name, source, woken, values ]
+
+my $count = $call->{'args'} // 20;
+$count =~ s{\A\s+|\s+\z}{}g;
+$count = 20 if !length $count;
+
+return { 'mode' => qw| false |, 'data' => 'numerical [ n ] expected' }
+    if $count !~ m{\A\d+\z};
+
+my $records = <[events.signal.journal_read]>->($count);
+
+return { 'mode' => qw| false |, 'data' => 'no signals raised' }
+    if !@{$records};
+
+my @lines;
+foreach my $rec ( @{$records} ) {
+    my $values = $rec->{'values'};
+    my $woken
+        = @{ $rec->{'woken'} }
+        ? join( ', ', @{ $rec->{'woken'} } )
+        : 'nothing';
+    my $pairs = join ' ',
+        map { $ARG . '=' . $values->{$ARG} } sort keys %{$values};
+    push @lines, sprintf "%s %s from %s : woke %s%s\n", $rec->{'time'},
+        $rec->{'name'}, $rec->{'source'}, $woken,
+        length $pairs ? " [ $pairs ]" : '';
+}
+
+return { 'mode' => qw| size |, 'data' => join( '', @lines ) };
+
+#,,,.,...,,,,,,.,,...,..,,..,,,.,,..,,,.,,,..,..,,...,...,.,,,.,.,,,.,,,,,,,.,
+#FALDBIRYEGXTKNUUL2OGDAQE2YV2S7ODGJHMUJO5SXTAKM24VA7AAK3RFOTMXQCYVVCQC5ZNOVHEU
+#\\\|XGFW4IQIPPQIOAPZGFXH4DCNG2NP4LMAV6MAP5IAFRZ3XZIBZ3C \ / AMOS7 \ YOURUM ::
+#\[7]L3FHCBAKHSCXL4VHCWW45P5CG264QF7R6PGBR6YQ7LDFEZER5UBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

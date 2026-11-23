@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = plugin.events.action.send-command
+# descr = events action plugin : send a command through the cube
+
+## registration [ no arguments ] : name, kind, describe, run ; run gets { ##
+## ev_id, ev_type, name, action } -- the entry fired and why              ##
+## [ at \ start \ end \ signal ]                                          ##
+
+return {
+    'name'     => qw| send-command |,
+    'kind'     => qw| action |,
+    'describe' =>
+        'send the configured `command` [ route and params ] to the cube',
+    'run' => sub {
+        my $fire        = shift;
+        my $ev_type     = $fire->{'ev_type'};
+        my $action      = $fire->{'action'};
+        my $action_type = $action->{'type'};
+
+        map {
+            die "'$ARG' param is invalid for action type "
+                . "'$action_type', expected <at>-parameter"
+                if $ev_type eq $ARG
+        } ( 'start', 'end' );
+        die "setup parameter 'at' is missing for action type '$action_type'"
+            if $ev_type ne qw| at | and $ev_type ne qw| signal |;
+        die "'command' parameter is missing from '$action_type' setup"
+            if not defined $action->{'command'};
+
+        ( my $target_route, my $args_str )
+            = split( m| +|, $action->{'command'}, 2 );
+        my $args_ref = defined $args_str ? { 'args' => $args_str } : {};
+
+        my $args_lstr = defined $args_str ? " [ $args_str ]" : '';
+        <[base.log]>->( 1, "sending '$target_route' command" . $args_lstr );
+        <[protocol-7.command.send.local]>->(
+            {   'command'   => "cube.$target_route",
+                'call_args' => $args_ref
+            }
+        );
+        return TRUE;
+    }
+};
+
+#,,,,,.,.,.,,,..,,..,,,,,,,,.,,..,.,.,..,,.,.,..,,...,...,..,,.,,,,,.,.,.,,,,,
+#CI5A4XRAPQER4R75ZSKJ4KLLEV7YHIJQEACHGA7P7MMR7WYEDYQKPYITPU4HK7NBKW7QUX2FS7YMA
+#\\\|Y7PWWLE6JALJ3U3PZHDA45LEJZ244HBMYLJ2ZZ47BHQ7EPMBA4Z \ / AMOS7 \ YOURUM ::
+#\[7]QBVW72MM2GQ2MPOFMW6OZWOTVPVGIRFN7GYGSDIYRDMUATGWKODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = plugin.events.source.signal
+# descr = events source plugin : named signals raised by other zenki
+
+## an entry waits with `on = signal-name` and optionally `match.key =     ##
+## value` beside its other timetable keys ; events.signal.raise wakes the ##
+## armed ones                                                             ##
+
+return {
+    'name'     => qw| signal |,
+    'kind'     => qw| source |,
+    'describe' => 'named signal : on = name [ match.key = value ]',
+    'keys'     => [qw| on match |],
+    'arm'      => sub {
+        my $ev_ids = shift // [];
+        <events.signal.armed> //= {};
+        foreach my $ev_id ( @{$ev_ids} ) {
+            <events.signal.armed>->{$ev_id} = 1;
+        }
+        return scalar @{$ev_ids};
+    },
+    'disarm' => sub {
+        my $ev_ids = shift // [];
+        foreach my $ev_id ( @{$ev_ids} ) {
+            delete <events.signal.armed>->{$ev_id};
+        }
+        return TRUE;
+    }
+};
+
+#,,.,,.,.,.,,,.,,,...,..,,..,,,.,,,,,,.,.,.,.,..,,...,...,.,,,,,.,.,.,,.,,,,.,
+#G5ZJJB55P3ZOPFWTJ5VC7RTHQWWUD2VUFH4RQ7666LFKSFRJ5JQB3XNGMU7NOAJC5RJYJY3DEOI3A
+#\\\|K45AKWWYAESTJVREXPFQ6YUCPT7I6Y7KFMCBI5XDXTX5PLJQUOL \ / AMOS7 \ YOURUM ::
+#\[7]GWBBDSRBBSN3JBP7ERCBNO73YZTHSX2ENOKBILJQYT2X6DDB2MCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = events.action.overlay_apply
+# descr = overlay follow-up after an overlay-show \ overlay-hide : add or remove it
+
+# args = the action hash of the entry, the event type
+
+my ( $action, $ev_type ) = @ARG;
+
+my ( $show_hide, $overlay_name );
+return TRUE if $action->{'type'} !~ m,^overlay\-(show|hide)$,;
+$show_hide    = $LAST_PAREN_MATCH;
+$overlay_name = $action->{'tile-group-name'};
+my $command_str = (
+           $show_hide eq qw| show | and $ev_type eq qw| end |
+        or $show_hide eq qw| hide | and $ev_type eq qw| start |
+) ? qw| remove | : qw| add |;
+
+if ( $command_str eq qw| add |
+    and <events.stack.overlay.visibility>->{$overlay_name} ) {
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.tile.add_overlay |,
+            'call_args' => { 'args' => $overlay_name }
+        }
+    );
+} elsif ( $command_str eq qw| remove |
+    and !<events.stack.overlay.visibility>->{$overlay_name} ) {
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.tile.remove_overlay |,
+            'call_args' => { 'args' => $overlay_name }
+        }
+    );
+}
+delete <events.stack.overlay.visibility>->{$overlay_name}
+    if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
+
+return TRUE;
+
+#,,..,.,,,.,,,,..,,..,,,.,,,.,.,,,..,,...,,,.,..,,...,...,..,,,.,,.,,,..,,.,,,
+#AKNU3POFW5XERQCQAA4SQ4RPR43UFVGSYCD7X3TEO2GIYG4CDCFKKLUN7K33LSQXWTV2656VXISFC
+#\\\|FC62ITYT5LWKUP6Y4RD647OTFESCZXA3SJTPBPMYEODGXJSKD2J \ / AMOS7 \ YOURUM ::
+#\[7]M5A6URYYTLXY5PMDDATSWYWJLVMRZRQEV4ESHHLSTX2JACMSL4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

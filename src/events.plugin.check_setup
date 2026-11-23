@@ -1,0 +1,114 @@
+## [:< ##
+
+# name  = events.plugin.check_setup
+# descr = refuse entries naming an unknown type, split each entry's keys between its sources
+# called once after the entries are read [ events.init_code ] and again for
+# an entry added later [ buckets ] ; an entry is refused when its action
+# type is not a loaded action plugin, or a key it carries belongs to a
+# source that is not loaded -- logged with the list of known types, the
+# other entries still load
+#
+# keys of an entry's timetable section claimed by a non-timetable source
+# [ `on`, `match` of the signal source ] move to events.entry.source_cfg ;
+# events.entry.sources lists the sources an entry waits on
+#
+# args   = optional list of entry ids [ default : all ]
+# return = list of the refused entry ids
+
+my @only = @ARG;
+
+my $registry = <[events.plugin.registry]>->();
+my @known_a  = sort keys %{ $registry->{'action'} };
+my @known_s  = sort keys %{ $registry->{'source'} };
+
+<events.entry.sources>    //= {};
+<events.entry.source_cfg> //= {};
+
+## which source owns which timetable key : the keys the shipped sources ##
+## define, then whatever the loaded sources claim                       ##
+my %key_owner = (
+    qw| on       | => qw| signal    |,
+    qw| match    | => qw| signal    |,
+    qw| at       | => qw| timetable |,
+    qw| start    | => qw| timetable |,
+    qw| end      | => qw| timetable |,
+    qw| duration | => qw| timetable |,
+    qw| jitter   | => qw| timetable |
+);
+
+foreach my $type (@known_s) {
+    map { $key_owner{$ARG} = $type }
+        @{ $registry->{'source'}{$type}{'keys'} // [] };
+}
+
+my @refused;
+foreach
+    my $ev_id ( @only ? @only : sort { $a <=> $b } keys <events.setup>->%* ) {
+    my $entry   = <events.setup>->{$ev_id} // next;
+    my $name    = $entry->{'name'}         // $ev_id;
+    my $action  = $entry->{'action'};
+    my $type    = ref $action eq qw| HASH | ? $action->{'type'} : undef;
+    my $section = <events.timetable>->{$ev_id};
+
+    ## the section files do not nest dotted keys : `match.run = 1` is the ##
+    ## flat key 'match.run' -- gather those into the match hash           ##
+    if ( ref $section eq qw| HASH | ) {
+        foreach my $flat ( grep {m{\Amatch\.(.+)\z}} keys %{$section} ) {
+            my ($match_key) = $flat =~ m{\Amatch\.(.+)\z};
+            $section->{'match'} = {} if ref $section->{'match'} ne qw| HASH |;
+            $section->{'match'}{$match_key} = delete $section->{$flat};
+        }
+    }
+    my @section_keys = ref $section eq qw| HASH | ? keys %{$section} : ();
+
+    my %used = map { $ARG => 1 }
+        keys %{ <events.entry.source_cfg>->{$ev_id} // {} };
+    map { $used{ $key_owner{$ARG} } = 1 }
+        grep { exists $key_owner{$ARG} } @section_keys;
+
+    my $why;
+    if ( not defined $type or not length $type ) {
+        $why = 'no action type';
+    } elsif ( not exists $registry->{'action'}{$type} ) {
+        $why = sprintf "unknown action type '%s' [ known : %s ]", $type,
+            join( ', ', @known_a );
+    } else {
+        foreach my $source ( sort keys %used ) {
+            next if exists $registry->{'source'}{$source};
+            $why = sprintf "unknown source type '%s' [ known : %s ]",
+                $source, join( ', ', @known_s );
+            last;
+        }
+    }
+
+    if ( defined $why ) {
+        <[base.logs]>->( 0, "<< event '%s' refused : %s >>", $name, $why );
+        delete <events.setup>->{$ev_id};
+        delete <events.timetable>->{$ev_id};
+        delete <events.entry.sources>->{$ev_id};
+        delete <events.entry.source_cfg>->{$ev_id};
+        delete <events.enabled>->{$name};
+        push @refused, $ev_id;
+        next;
+    }
+
+    ## move the keys of non-timetable sources out of the section ##
+    foreach my $key (@section_keys) {
+        my $owner = $key_owner{$key} // next;
+        next if $owner eq qw| timetable |;
+        <events.entry.source_cfg>->{$ev_id}->{$owner}->{$key}
+            = delete $section->{$key};
+    }
+    if ( ref $section eq qw| HASH | and !keys %{$section} ) {
+        delete <events.timetable>->{$ev_id};
+    }
+    <events.entry.sources>->{$ev_id} = [ sort keys %used ];
+}
+
+return @refused;
+
+#,,,.,,,.,..,,,..,.,,,.,.,.,.,..,,,..,,,,,,..,..,,...,..,,,,,,,,,,...,.,,,..,,
+#3MGAS7YHHNLGQJ4BZWRADKQEHVZLGB7S73DAZVEQQKO4K6BKGPOZE33JQA2GJ54WPBK2IYSO2KHQQ
+#\\\|FXR5REXIOLDDKDLTLJUG235QHEYCNSA6RFITPBVFGQ7S6SUOARR \ / AMOS7 \ YOURUM ::
+#\[7]MXLOFGJFMLEFWJPJNJTHRRYTDGD2COML7YMOAVYTAMMO6ORROOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

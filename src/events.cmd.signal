@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = events.cmd.signal
+# descr = raise a named signal [ name key=value .. ]
+# param = name [ key=value .. ]
+# descr = raise a named signal ; the entries waiting on it wake
+#
+# the cube alias 'source_zenka' [ cfg/zenki/cube/command_aliases ] puts the
+# raising zenka's name first in the arguments : the source is the cube
+# session's identity, never something the caller declares. which names a
+# zenka may raise : events.signal.access
+
+my $args = $call->{'args'} // '';
+
+my ( $source, $name, @pairs ) = split m{\s+}, $args =~ s{\A\s+|\s+\z}{}gr;
+
+return { 'mode' => qw| false |, 'data' => 'no source zenka [ cube alias ]' }
+    if not defined $source or $source !~ m|\A[A-Za-z0-9][\w.:-]{0,63}\z|;
+
+return { 'mode' => qw| false |, 'data' => 'signal name expected' }
+    if not defined $name;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'signal name : lowercase letters, digits, . _ - [ 80 max ]'
+    }
+    if $name !~ m|\A[a-z0-9][a-z0-9._-]{0,79}\z|;
+
+return { 'mode' => qw| false |, 'data' => 'too many values [ 16 max ]' }
+    if @pairs > 16;
+
+my %values;
+foreach my $pair (@pairs) {
+    return {
+        'mode' => qw| false |,
+        'data' => "value '$pair' : key=value expected"
+        }
+        if $pair !~ m|\A([A-Za-z0-9_.-]{1,40})=(.{0,200})\z|s;
+    $values{$1} = $2;
+}
+
+if ( !<[events.signal.access]>->( $source, $name ) ) {
+    <[base.logs]>->(
+        0,     "<< signal '%s' refused for '%s' : not granted >>",
+        $name, $source
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => "'$source' may not raise signal '$name'"
+    };
+}
+
+my $woken = <[events.signal.raise]>->( $source, $name, \%values );
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'signal %s raised, %d woken', $name, scalar @{$woken} )
+};
+
+#,,..,.,.,.,.,.,.,,,.,.,.,,,,,.,.,,,.,,..,...,..,,...,...,.,,,.,,,.,,,,.,,,..,
+#ERZYVWDJ6CXUVDO72ONC5N6ENHUMMGNL223CIIM67Z7BV4UUWYBP3AUJFP6XWOM5NNETCMXZNSZI4
+#\\\|SS2LDA3WU6F2V7F754LF5CGVZUPKYT3L6HIAQU5XALIM6F7KGCR \ / AMOS7 \ YOURUM ::
+#\[7]HGFWKAXXEDAMZ73X6USW3DQLIHOYRUKPV76BR77I3SK53ZPVNWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -278,6 +278,14 @@
           access.cmd.usr.set-up   =  get-config *.get-config \
                                      *.get-config-names
 
+## named signals [ events.signal <name> [ key=value .. ] ] : a zenka that    ##
+## raises one lists `events.signal` [ the cube routes the call ] and, per    ##
+## signal, `events.signal.<name>` [ the events zenka checks it against the  ##
+## source the cube alias puts on the call ] ; `events.signal.<prefix>.*`     ##
+## grants a prefix, `events.signal.*` every name. e.g. for the kimi zenka :  ##
+##   access.cmd.usr.kimi = events.signal events.signal.kimi.run.done         ##
+## nothing is granted yet -- a zenka gets its names when it starts raising   ##
+
            access.cmd.usr.events  =  content.update v7-zenki.start_once \
                                      jobsite.scan \
                                      letsencr.renew \
@@ -594,8 +602,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,,.,..,,.,,,,.,,..,,.,.,.,.,,.,,..,,..,,..,,.,.,...,..,,,,.,,.,,,,.,,,.,,,,,
-#WB6QJLFFCVAIUHNYUXYP7BZSDTPW7I2KV5JEXWW6JKML33AZLM3TBYCGSQGZHFJFHNFBUBKCUW5MA
-#\\\|J4XQQLYXURVENIVIHIMVCYEIFX2ROQ5B72RWNXFPT57RGGKMIPQ \ / AMOS7 \ YOURUM ::
-#\[7]U56ILMDP27RANFHZXY2MOANXZUJOKG3DCSYK22DKOGM5PMFWEWAI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,..,,.,.,,,.,,.,,.,,,.,,,,,.,.,.,...,...,,.,,..,,.,,,,,,,.,.,
+#SJA5WK2YBUSCOGJ62ZMCAOPI35TYM4TTFQC6ACBBPRC5X4B6FFV5RXLSYRZAYRHVDQNATOVK67YS2
+#\\\|RNP5NALVDO5DJIOMIKYVZZMZRPX56YUB2DYT7KD74FML6WYDMDF \ / AMOS7 \ YOURUM ::
+#\[7]X2GASVZA5CJNYURIY2CXBCUT5ESMHZZVSMMSBTRMN6PEFFEYN2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

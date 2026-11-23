@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = events.action.tile_apply
+# descr = tile-group follow-up after a tile-show \ tile-hide : switch or reset the group
+
+# args = the action hash of the entry
+
+my $action = shift;
+
+<events.tile.cfg_directory> //= qw|/etc/protocol-7/zenki/tile|;
+
+delete <events.stack.tile.visibility>->{ $action->{'tile-group-name'} }
+    if 0
+    == ( <events.stack.tile.visibility>->{ $action->{'tile-group-name'} }
+        // -1 );
+
+my @tile_groups_stack = sort {
+    <events.stack.tile.visibility>->{$a} <=>
+        <events.stack.tile.visibility>->{$b}
+} keys <events.stack.tile.visibility>->%*;
+my $current_tile_group = pop @tile_groups_stack;
+my $restore_config
+    = -d <events.tile.cfg_directory>
+    ? <events.tile.cfg_directory> . '/tile-group.current'
+    : undef;
+
+if ( defined $current_tile_group
+    and <events.stack.tile.visibility>->{$current_tile_group} ) {
+    <[base.log]>->(
+        1, "writing 'tile-group.current' configuration., [ active event ]"
+    );
+    <[file.put]>->(
+        $restore_config,
+        sprintf( "%.4f %s\n", <[base.time]>->(4), $current_tile_group )
+    ) if defined $restore_config;
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.tile.switch-group |,
+            'call_args' => { 'args' => $current_tile_group }
+        }
+    );
+} else {
+    unlink $restore_config
+        if defined $restore_config and -f $restore_config;
+    <[protocol-7.command.send.local]>
+        ->( { 'command' => qw| cube.tile.reset-group | } );
+}
+
+return TRUE;
+
+#,,,.,.,,,...,...,.,.,.,,,..,,...,,..,.,,,,,.,..,,...,...,.,,,,.,,...,,,,,..,,
+#CX74W5WDCVTKJZUKVII65KWELBORCNTJ3GZIG7KGKRGPTAOPOZJOR7YJLLUNE55VMJFQ45Y66MD3Y
+#\\\|MCY53S5DYMPLYXUU7LRKOUEF4KC3UYH2DVK3WQHIAU2AXZ47DD7 \ / AMOS7 \ YOURUM ::
+#\[7]J7M7Q3JCFNUYZPQ2ITCHPJCRR64JXF6VLJXK446F6MZUALI67IAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

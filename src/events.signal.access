@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = events.signal.access
+# descr = may this zenka raise this signal : the grant in the cube access.zenki
+# a signal is granted like a command : in the raising zenka's list
+# [ access.cmd.usr.<zenka> ] of cfg/zenki/cube/access.zenki, as a token
+#   events.signal.<signal name>      exactly that signal
+#   events.signal.<prefix>.*         every signal under that prefix
+#   events.signal.*                  every signal
+# the generic `events.signal` token lets the cube route the call ; the
+# per-name tokens decide here which names pass. a zenka list under the
+# wildcard user [ access.cmd.usr.* ] applies to everyone.
+#
+# args   = source zenka, signal name
+# return = TRUE \ FALSE
+
+my ( $source, $name ) = @ARG;
+return FALSE if not defined $source or not defined $name;
+
+my $path = <events.signal.access_file>
+    // sprintf qw| %s/zenki/cube/access.zenki |, <system.conf_path>;
+
+my @stat = CORE::stat($path);
+if ( !@stat ) {
+    <[base.logs]>->( 0, "<< signal access : '%s' unreadable >>", $path );
+    return FALSE;
+}
+
+my $cache = <events.signal.access_cache> //= {};
+if (   ( $cache->{'path'} // '' ) ne $path
+    or ( $cache->{'mtime'} // -1 ) != $stat[9]
+    or ( $cache->{'size'}  // -1 ) != $stat[7] ) {
+
+    ## the access.zenki grants : 'access.cmd.usr.<zenka> = token ..' with ##
+    ## backslash continuations and '#' comments                           ##
+    my %grants;
+    if ( open my $fh, '<:encoding(UTF-8)', $path ) {
+        my $cont = '';
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            $line =~ s{\s\#.*\z}{};
+            $line =~ s{\A\s*\#.*\z}{};
+            my $joined = $cont . $line;
+            if ( $joined =~ s{\\\s*\z}{} ) {
+                $cont = $joined . ' ';
+                next;
+            }
+            $cont = '';
+            next if $joined !~ m{\A\s*access\.cmd\.usr\.(\S+)\s*=\s*(.*)\z};
+            my ( $who, $list ) = ( $1, $2 );
+            push @{ $grants{$who} }, grep {length} split m{\s+}, $list;
+        }
+        close $fh;
+    }
+    %{$cache} = (
+        'path'   => $path,
+        'mtime'  => $stat[9],
+        'size'   => $stat[7],
+        'grants' => \%grants
+    );
+}
+
+foreach my $who ( $source, qw| * | ) {
+    foreach my $token ( @{ $cache->{'grants'}{$who} // [] } ) {
+        next if $token !~ m{\Aevents\.signal\.(.+)\z};
+        my $grant = $1;
+        return TRUE if $grant eq $name or $grant eq qw| * |;
+        if ( $grant =~ m{\A(.+)\.\*\z} ) {
+            my $prefix = $1;
+            return TRUE if index( $name, $prefix . qw| . | ) == 0;
+        }
+    }
+}
+
+return FALSE;
+
+#,,..,,,.,,.,,.,,,..,,,,.,,,,,..,,,..,...,,,,,..,,...,...,.,.,..,,,..,..,,,..,
+#X76D3O46UBCHK34DOIIJDVHX5VZVCBHN6AFQ52QTXASWGFX2Z2J3E4IUYLKV6MTCH2U26BMF3UZRG
+#\\\|L7LZ73XZ4PIQTX2MEK2RDAR3FUPTK2HFXFUFY4VFGQSMIAPKKOK \ / AMOS7 \ YOURUM ::
+#\[7]CVJMZFY2FXNL5XD4JPF47BWA5WVF62FJ2IQXHPIKQOJYTPJLW6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

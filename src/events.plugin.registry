@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = events.plugin.registry
+# descr = what is loaded : every plugin.events.action.* and plugin.events.source.* module
+# return = { action => { type => registration }, source => { .. } }
+#
+# one registration shape for both kinds, returned by the plugin module when
+# it is called with no arguments :
+#   name, kind [ action | source ], describe
+#   run          [ action ] : sub, gets { ev_id, ev_type, name, action }
+#   arm, disarm  [ source ] : subs, get an array ref of entry ids
+#   keys         [ source ] : timetable keys the source owns
+# the registry is read from the loaded code each call : `reload plugins`
+# takes effect at once, nothing is cached here
+
+my $registry = { 'action' => {}, 'source' => {} };
+
+foreach my $code_name ( sort keys %code ) {
+    my ( $kind, $type )
+        = $code_name =~ m{\Aplugin\.events\.(action|source)\.([\w-]+)\z}
+        or next;
+    next if not defined $code{$code_name};
+
+    my $reg = eval { $code{$code_name}->() };
+    my $why;
+    if ( ref $reg ne qw| HASH | ) {
+        $why = 'registration is not a hash';
+    } elsif ( ( $reg->{'name'} // '' ) ne $type
+        or ( $reg->{'kind'} // '' ) ne $kind ) {
+        $why = 'name \ kind does not match the module name';
+    } elsif ( not defined $reg->{'describe'} ) {
+        $why = 'describe missing';
+    } elsif ( $kind eq qw| action | and ref $reg->{'run'} ne qw| CODE | ) {
+        $why = 'run missing';
+    } elsif (
+        $kind eq qw| source |
+        and (  ref $reg->{'arm'} ne qw| CODE |
+            or ref $reg->{'disarm'} ne qw| CODE | )
+    ) {
+        $why = 'arm \ disarm missing';
+    }
+    if ( defined $why ) {
+        <[base.logs]>->(
+            0,          "<< events plugin '%s' not registered : %s >>",
+            $code_name, $why
+        );
+        next;
+    }
+    $reg->{'code'} = $code_name;
+    $registry->{$kind}->{$type} = $reg;
+}
+
+return $registry;
+
+#,,..,..,,,,,,...,,..,.,.,,..,.,,,,,,,,.,,.,.,..,,...,...,,,,,,.,,...,,.,,..,,
+#BOJG5XUMOT6BRIJHA7RAVBFWMMZTAN7A4BTQQDXMZYZZU5UGS4SQTIL7UNDCG7DOQRNQYK2BWB7EY
+#\\\|GZOZGKQF37Y6LZHH2HGNQRPXRYCKB46C2RUSSNKYRTCQVDNH22K \ / AMOS7 \ YOURUM ::
+#\[7]NVFMALV7QBYTMNP53H4RPNSE2JPP7B5I72ACWEOTR6OVKOGF3IDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

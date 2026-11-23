@@ -11,9 +11,16 @@ events.load_config  = base        ## [ ./cfg/zenki/events/event-setup.<name> ]
 ##        available : letsencr | base  ## enable letsencr for 'remote-server'
 
 modules.load      = net protocol io.unix ui auth events set-up.json ## devmod
-access.cmd.usr.cube  = verify-instance commands heart reload *  ## <-- refine
+access.cmd.usr.cube  = verify-instance commands heart reload \
+                      signal signals plugins *  ## <-- refine
 
 [load_modules:<modules.load>]
+
+## event types : plugin.events.action.* what a fired entry does,    ##
+## plugin.events.source.* what wakes an entry [ timetable, signal ] ##
+plugins.load      = plugin.events
+[load_plugins:<plugins.load>]
+
 [init_modules]
 
 [root.drop_privs:<system.amos-zenka-user>]
@@ -23,8 +30,8 @@ access.cmd.usr.cube  = verify-instance commands heart reload *  ## <-- refine
 
 [zenka.loop]
 
-#,,..,.,.,.,,,,..,.,,,,,,,,.,,..,,.,.,,,.,..,,..,,...,.,.,..,,,..,,,.,.,.,.,,,
-#6B42KANPZBDKAPYQZI2GQUSKUAQCHISQ2IXQPVF3ONNSOK545G4T3YNEXTLYWWCLP37BCXPQSIJUI
-#\\\|CXJIU63LX47E5BWECLYM7DMDLQ32OFCRJOBUDU6ICWDQJWML2MT \ / AMOS7 \ YOURUM ::
-#\[7]3BLCR2SSGK6DM6IPHD74YDTLVANCPHJNCATZ7327BDLNZUTOQGAA 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,,,,,,..,,,.,..,,.,,,,,.,,.,,..,,...,...,..,,...,,,,,,,.,,.,,
+#YGCTA45PIL44AAAO73VZIU6UIUXCIRS27IBVJBQL6HSYTZ3NUMXL75GTM66XIWZ45RGQUCTIOHETM
+#\\\|O7XJCBH53CWBL7L4FD3HZKXJHBRRXTPP52F5OIJDA34INBP5OYI \ / AMOS7 \ YOURUM ::
+#\[7]SCKOMC2QO4T3XKNLTXENKO3MPLWRPRDCFELW4E4CKUI6DF6WIYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

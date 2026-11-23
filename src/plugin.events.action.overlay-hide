@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = plugin.events.action.overlay-hide
+# descr = overlay visibility hide [ reverted at end ]
+
+return {
+    'name'     => qw| overlay-hide |,
+    'kind'     => qw| action |,
+    'describe' => 'overlay visibility hide [ reverted at end ]',
+    'run'      => sub {
+        my $fire        = shift;
+        my $ev_type     = $fire->{'ev_type'};
+        my $action      = $fire->{'action'};
+        my $action_type = $action->{'type'};
+
+        my $l_name = $action->{'tile-group-name'};
+        <events.stack.overlay.visibility>->{$l_name} //= 0;
+        my $change = $ev_type eq qw| end | ? -1 : 1;
+        <events.stack.overlay.visibility>->{$l_name} -= $change;
+
+        <[events.action.overlay_apply]>->( $action, $ev_type );
+        return TRUE;
+    }
+};
+
+#,,,,,..,,.,.,.,,,,.,,,,,,,.,,.,,,...,,..,,.,,..,,...,...,,,.,...,...,,..,,,,,
+#AYLWBPU7WCRZ3YHCEOQVCMOPBAIW3VYT7DEIGJ34RXFCII7ZAWCGHWXHIK3PUXLSZYV4L34XMWTBW
+#\\\|6HGMQ4YXHWHGCLTNNSZ3TTJE5W6BDVRZWY6DRU7G65AI3DHN7ET \ / AMOS7 \ YOURUM ::
+#\[7]BEAOWQGOZ2O656OK6MLSIEKQDYK6MBWV422ZMRULIH4GMM5TA4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

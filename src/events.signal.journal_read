@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = events.signal.journal_read
+# descr = the last signals of the journal as records
+# args   = how many [ default 20 ]
+# return = array ref of { time, name, source, woken [ array ], values [ hash ] }
+#          oldest first ; read from the end of the journal file, the
+#          in-memory list when the file cannot be read
+
+my $count = shift // 20;
+$count = 20  if $count !~ m{\A\d+\z} or $count < 1;
+$count = 500 if $count > 500;
+
+my $path = <events.signal.journal_path>
+    // sprintf qw| %s/events/signal.journal |,
+    <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+
+my @lines;
+if ( -r $path and open my $fh, '<:encoding(UTF-8)', $path ) {
+    ## the tail only : 400 bytes a line is generous for 500 lines ##
+    my $size = -s $fh;
+    my $from = $size > 262144 ? $size - 262144 : 0;
+    seek $fh, $from, 0;
+    <$fh> if $from;    ## a partial first line ##
+    @lines = <$fh>;
+    close $fh;
+} else {
+    @lines = @{ <events.signal.recent> // [] };
+}
+@lines = @lines[ -$count .. -1 ] if @lines > $count;
+
+my @records;
+foreach my $line (@lines) {
+    chomp $line;
+    next
+        if $line
+        !~ m{\Asignal\.(\S+) = time:(\S+) source:(\S+) woken:(\S+) values:(\S+)\z};
+    my ( $name, $time, $source, $woken, $values ) = ( $1, $2, $3, $4, $5 );
+    my %values;
+    foreach my $pair ( $values eq qw| - | ? () : split m{,}, $values ) {
+        my ( $k, $v ) = split m{=}, $pair, 2;
+        $values{ <[events.signal.decode]>->($k) }
+            = <[events.signal.decode]>->( $v // '' );
+    }
+    push @records,
+        {
+        'time'   => $time,
+        'name'   => $name,
+        'source' => <[events.signal.decode]>->($source),
+        'woken'  => [
+            map { <[events.signal.decode]>->($ARG) }
+                $woken eq qw| - | ? () : split m{,},
+            $woken
+        ],
+        'values' => \%values
+        };
+}
+
+return \@records;
+
+#,,,.,,,,,,,,,,..,.,,,,,.,,.,,..,,.,.,.,,,...,..,,...,...,..,,...,,,.,.,.,.,.,
+#WCMMPEWSUXN42UHN37QYWL5ZPQ2CK42M7C5ZVDX4TBTHM3DTIOMDYHRMQGS6ZD4OKNCNXKSRZ7C7K
+#\\\|O5LBDB4UB6LYWXZHAR7BJHWTVVF5IXW5JRVSQ7Q2RQ6GCHVLJUM \ / AMOS7 \ YOURUM ::
+#\[7]PP63NQS6VQAWGKUJNNHQ7DD4W3ZGXLJ372ZCQDMMSQMRAGQWVOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

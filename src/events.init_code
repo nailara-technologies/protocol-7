@@ -48,7 +48,8 @@ my $config_filename = sprintf qw| event-setup.%s |, $config_name;
 <events.dates>     //= {};
 <events.timers>    //= {};
 
-if ( keys <events.timetable>->%* ) {
+## signal-only entries leave no timetable row : the entries decide ##
+if ( keys <events.timetable>->%* or keys <events.setup>->%* ) {
     <[base.log]>
         ->( 1, ':. skipping event set-up [ already initialized ] .,' );
     return FALSE;
@@ -173,13 +174,18 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 # };
 # ###
 
-<[events.calc_unix_table]>;
-<[events.set_up_timers]>;
+## entries naming an unknown action \ source type are refused here         ##
+## [ the others still load ] ; each loaded source plugin is then armed for ##
+## the entries that wait on it                                             ##
+## [ timetable : the unix table and its timers ]                           ##
+<events.signal.armed> //= {};
+<[events.plugin.check_setup]>;
+<[events.source.arm_all]>;
 
 0;
 
-#,,,.,..,,,.,,..,,,,.,,..,...,,,.,,,,,...,.,.,..,,...,..,,,,,,,.,,,..,.,,,..,,
-#4VEV2NM5DNBRTUEV2GR46MADJSU6VR46J4VYFGDWKWFQRLUDX6P5TUVLBONHJLYT4SOLW7YDOINO4
-#\\\|OEGUTUE4FOUISYL43KJKQI3VTEYDEWMY7J42IOBLMS3N7ZJXWOX \ / AMOS7 \ YOURUM ::
-#\[7]K5VFAJSTO3PT7YNU53JP6W6EPZPTGJNM5ZUHFMLEA6ZVMDN4RYDI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,,,.,,,,.,,,,,,.,.,,..,,,,,...,..,,...,...,...,,..,..,,.,.,,,,,
+#6RABVGF4HLV7TR3DN2MY7TUY27YW75RIWRUCHDLPTF27LYLFZTYXZVO7COGGL6GFBYR3CM2ZGK7AQ
+#\\\|IYETDM3V6JNSCIRWZIPYZVQWZXSJ3SVC4J6O6X4PCWAIDO5AV3M \ / AMOS7 \ YOURUM ::
+#\[7]DL4EUXNANLPUVINC6ZPHFYQELOVEPXI2KORGT6X4WPNGYASBPOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

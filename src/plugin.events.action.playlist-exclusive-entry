@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = plugin.events.action.playlist-exclusive-entry
+# descr = playlist entry exclusive for the span of the event
+
+return {
+    'name'     => qw| playlist-exclusive-entry |,
+    'kind'     => qw| action |,
+    'describe' => 'playlist entry exclusive for the span of the event',
+    'run'      => sub {
+        my $fire        = shift;
+        my $ev_type     = $fire->{'ev_type'};
+        my $action      = $fire->{'action'};
+        my $action_type = $action->{'type'};
+
+        my $b32id = $action->{'b32id'};    # EXCLUSIVE event
+        die "'b32id' parameter is missing from '$action_type' setup"
+            if not defined $b32id;
+        <events.stack.exclusive>->{$b32id} //= 0;
+        if ( $ev_type eq qw| start | ) {
+            <events.stack.exclusive>->{$b32id}++;
+        } elsif ( $ev_type eq qw| end | ) {
+            <events.stack.exclusive>->{$b32id}--;
+            delete <events.stack.exclusive>->{$b32id}
+                if !<events.stack.exclusive>->{$b32id};
+        }
+
+        <[protocol-7.command.send.local]>
+            ->( { 'command' => qw| cube.content.update | } );
+        return TRUE;
+    }
+};
+
+#,,,.,..,,...,.,.,...,,,.,,.,,.,.,,.,,..,,.,.,..,,...,...,,.,,,.,,..,,,,.,,..,
+#D4X7KEPCD54PNM6LRCLWSAI6FP6QQHDPFD3XHEAAZEUAEDJFUG2FSBBNQ4TFHUA7GGMNLJ5AOVRTY
+#\\\|LE3SWVKZB5JRF2ACLP4XJ5R4BK3EGRH6GOC63FLKBT4BLQY5ZBW \ / AMOS7 \ YOURUM ::
+#\[7]IXTFZHX2NC4NQA5NDG7GTC2PKFUTPVQVBYBWWUYDCGQC65J6EYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

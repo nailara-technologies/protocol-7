@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = plugin.events.action.zenka-present
+# descr = events action plugin : make sure a zenka runs [ or stop it ]
+
+return {
+    'name'     => qw| zenka-present |,
+    'kind'     => qw| action |,
+    'describe' => 'start_once `zenka-name` [ at \ start '
+        . '\ signal ], stop_implicit it at end',
+    'run' => sub {
+        my $fire    = shift;
+        my $ev_id   = $fire->{'ev_id'};
+        my $ev_type = $fire->{'ev_type'};
+        my $action  = $fire->{'action'};
+
+        my $command;
+        my $zenka_name = $action->{'zenka-name'};
+        die "parameter zenka_name not defined in event $ev_id setup"
+            if not defined $zenka_name;
+        $command = qw|  start_once   | if $ev_type eq qw| start |;
+        $command = qw| stop_implicit | if $ev_type eq qw|  end  |;
+        $command = qw|  start_once   | if $ev_type eq qw|   at  |;
+        $command = qw|  start_once   | if $ev_type eq qw| signal |;
+        die "event $ev_id action command undefined" if not defined $command;
+
+        <[protocol-7.command.send.local]>->(
+            {   'command'   => qw| cube.v7-zenki. | . $command,
+                'call_args' => { 'args' => $zenka_name }
+            }
+        );
+        return TRUE;
+    }
+};
+
+#,,,,,,.,,...,.,.,,..,.,,,.,.,.,,,,..,.,.,..,,..,,...,..,,,.,,..,,...,,.,,,,,,
+#JGAH352E7YWTPLWWDNQ3OKU5XXTZM5A2BSUFS2PJT4QQ2IFNXNADDJSWL62QWYG4ETNPVDFUOHYKY
+#\\\|HZCNEPUQ4ZVRFBP32GIS63ECCZINSRV3X3GQPANV6Y4FYF4KHMU \ / AMOS7 \ YOURUM ::
+#\[7]KG2IOVIRATGEQHN7PRVYF2V2QZXLWTX3UJQ4465Z3PCNRYAN22CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

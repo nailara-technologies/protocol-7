@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = events.signal.encode
+# descr = journal field escape : %XX for anything outside the plain set
+# args   = text
+# return = text safe in a space \ comma \ colon separated journal line ;
+#          the empty text is '-' [ a lone '-' is escaped as %2D ]
+
+my $text = shift // '';
+return qw| - | if !length $text;
+utf8::encode($text);    ## octets : one %XX per byte ##
+$text =~ s{([^A-Za-z0-9_./@+\-])}{sprintf '%%%02X', ord $1}ge;
+$text =~ s{\A-\z}{%2D};
+return $text;
+
+#,,,.,,.,,...,,..,..,,,..,.,,,,,.,.,,,.,.,,.,,..,,...,...,.,.,,,,,,..,.,,,,,,,
+#IZCQMNAVRHQWBPNCE7ZFVUINDTJSWSYFITYZPWEZGVAN5ZN2RMYWSTK5XLMO6ILBZ6V3JI3AHTKZE
+#\\\|PKMEXTTJIJVY2EZTKRET33YQKRI6C3J2EYU2G3YFT4GQ3QAFE2W \ / AMOS7 \ YOURUM ::
+#\[7]IB73OEIKJKBA4Y7SRDSQXCW6GWQUZQFDPVLA23EFTA6FONQXZIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
