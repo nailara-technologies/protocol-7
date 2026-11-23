@@ -74,8 +74,10 @@ my $sub_cfg
 
 ## cache and source upstream state            ##
 ## [ reinit safe : neither resets on reload ] ##
-<nameserv.cache.entries>       //= {};
-<nameserv.upstreams.by_source> //= {};
+<nameserv.cache.entries>              //= {};
+<nameserv.upstreams.by_source>        //= {};
+<nameserv.upstreams.held_by_source>   //= {};
+<nameserv.upstreams.domain_by_source> //= {};
 
 ## a config reload may change cache.upstream : read the list again ##
 delete <nameserv.cache.upstream_list> if $reinit;
@@ -137,8 +139,8 @@ for my $timer ( @{ <nameserv.consistency.timers> // [] } ) {
 
 0;
 
-#,,..,,..,,..,.,,,,,,,,,.,.,,,.,.,,,,,,,,,,..,..,,...,...,..,,.,,,,,.,,.,,,,.,
-#JAFERS4OOH6BEHWYAKRWMNA4JHKCVR25JFEOG7KCNM27K3MZPWMSNCJYQ2HXALYX4VUHAES3RQSK4
-#\\\|GJDT7Y32ZL66OELRZWBXGDPBX4AKRHVCSL4XUM3CH3QPCYGZ5CA \ / AMOS7 \ YOURUM ::
-#\[7]UXZSZZ657KPJUIOCNE5XHBAS745OUNS5MOHZWZJG5KSS4XLRZKAI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,..,,,.,,...,,,.,..,,.,,,.,.,..,,...,...,..,,...,,,.,...,,,,,
+#WKR7Y2IV3MBB32MPUVX7PYCQSDLR42OV3XYKHAZVHZWOLFFSJ4NBK2CXFFFV2LYHGRIVNMSCYYTWM
+#\\\|O4N2KTTELCOP6GJSHVDGNMGXNLU7GJVUJFWAQNBM3647657NN5X \ / AMOS7 \ YOURUM ::
+#\[7]6C673LEIMWULGVIHUEZFWOFATIT5L4QKDRESRKTRTAD3UIVQMYBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

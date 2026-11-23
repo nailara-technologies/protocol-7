@@ -1,22 +1,30 @@
 ## [:< ##
 
 # name  = nameserv.cmd.upstreams
-# descr = show active upstream addresses and their sources
+# descr = show active scoped and held upstream source addresses
 
 my @entries = <[nameserv.upstream_entries]>;
-return { mode => 'size', data => "active upstreams:\n  [none]" }
-    if not @entries;
+my @lines   = map { sprintf '  %s [%s]', $ARG->{'address'}, $ARG->{'source'} }
+    @entries;
 
-return {
-    mode => 'size',
-    data => "active upstreams:\n"
-        . join( "\n",
-        map { sprintf '  %s [%s]', $ARG->{'address'}, $ARG->{'source'} }
-            @entries )
-};
+my $domain = <nameserv.upstreams.domain_by_source> // {};
+foreach my $source ( sort keys $domain->%* ) {
+    my $route = $domain->{$source};
+    push @lines,
+        sprintf '  %s [%s : %s]',
+        $ARG, $source, join( ',', $route->{'domains'}->@* )
+        for $route->{'addresses'}->@*;
+}
+my $held = <nameserv.upstreams.held_by_source> // {};
+foreach my $source ( sort keys $held->%* ) {
+    push @lines, sprintf '  %s [%s : held]', $ARG, $source
+        for $held->{$source}->@*;
+}
+return { mode => 'size', data => "upstreams:\n  [none]" } if not @lines;
+return { mode => 'size', data => "upstreams:\n" . join( "\n", @lines ) };
 
-#,,,,,,..,..,,.,.,,..,,,,,..,,,,,,,.,,,..,.,.,..,,...,...,...,.,.,..,,,..,.,,,
-#NWORJJPS4JL5PSPGFRG5ASMIEFHKLSMGYCZFD4I5BF43IZKYOAQLBVVBZ5LBU5WR6XHCKDEVTDAN6
-#\\\|IZRMKRXFHZFQTLHBA3CNVZJUP5KZDDZKHJKM5YBRO3IQUFX7BN5 \ / AMOS7 \ YOURUM ::
-#\[7]XQ7Y3GNZ7EAGB3HZ7ZX6TOPNG4OEPUYPBN3OO26O45I3E37RL4AQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,,,.,,,...,.,.,..,,,,,,,..,.,,,..,,...,...,,,.,..,,..,,..,,,.,,
+#ZM653YIRAYLMNJLKR3QOAESHBA5B7ZUA4655QJ7ST63FAUEFHQXYCE2AM67Y2XQG3VRWZKQ5ADZXY
+#\\\|2SIQQXI5JKVYWSNWOI2N55LCJVENSLRHMMVX6DATMYGAWEY3PFR \ / AMOS7 \ YOURUM ::
+#\[7]BBIU3XL7EJ3LBJLSNQQZBJDFTQ2SRUKWQ4GO5WSKPQREG73UUUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

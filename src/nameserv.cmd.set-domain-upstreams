@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = nameserv.cmd.set-domain-upstreams
+# descr = route listed domains and subdomains to source upstreams
+
+my ( $source, $domain_arg, @addresses ) = split m|\s+|, $call->{'args'} // '';
+$source     //= '';
+$domain_arg //= '';
+return {
+    mode => 'false',
+    data => 'usage: set-domain-upstreams <source> <domain[,domain]> <addr> ..'
+    }
+    if $source !~ m{^[a-z][a-z0-9_.-]*(?::[a-z0-9_.-]+)*$}
+    or not @addresses;
+
+my @domains;
+my %domain_seen;
+for my $domain ( split m|,|, $domain_arg ) {
+    $domain = lc $domain;
+    $domain =~ s|^\*\.||;
+    $domain =~ s|\.$||;
+    return { mode => 'false', data => "invalid domain: $domain" }
+        if $domain !~ m|^[a-z0-9_](?:[a-z0-9_.-]*[a-z0-9_])?$|;
+    push @domains, $domain if not $domain_seen{$domain}++;
+}
+return { mode => 'false', data => 'at least one domain is required' }
+    if not @domains;
+
+my @canonical;
+my %seen;
+for my $address (@addresses) {
+    my $validated = <[nameserv.upstream_address]>->($address);
+    return { mode => 'false', data => "invalid ip address: $address" }
+        if not defined $validated;
+    push @canonical, $validated if not $seen{ lc $validated }++;
+}
+
+<nameserv.upstreams.domain_by_source> //= {};
+<nameserv.upstreams.held_by_source>   //= {};
+<nameserv.upstreams.domain_by_source>->{$source} = {
+    domains   => \@domains,
+    addresses => \@canonical,
+};
+delete <nameserv.upstreams.by_source>->{$source};
+delete <nameserv.upstreams.held_by_source>->{$source};
+delete <nameserv.upstreams.domain_by_source>->{"reverse:$source"};
+delete <nameserv.cache.upstream_list>;
+return {
+    mode => 'size',
+    data => sprintf "domain upstreams for %s:\n  %s : %s",
+    $source,
+    join( ',', @domains ), join( ' ', @canonical )
+};
+
+#,,.,,,.,,,.,,.,,,.,,,..,,,,.,.,.,,,.,,,.,..,,..,,...,...,,,,,,.,,,..,,.,,...,
+#AHOND5O7RT2DC4FT6TOSYL2BBUKUVWW56OZDMVNVN7W7Z35FBLLSKEIUAYEETFDZRQEXW2ARKRK2W
+#\\\|6SJYKP3UDABCN3CHRD7JTZ73NY42APTKORZUWH4RUEIOR4R7MBH \ / AMOS7 \ YOURUM ::
+#\[7]SQ3TRPBERHJXJOMGSGF7RWRP4IJAWAYQK2Z5H6GEQY4CQFR7IQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

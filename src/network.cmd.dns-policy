@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = network.cmd.dns-policy
+# descr = list dns policy and dhcp servers per network
+
+<[network.dns_policy.get]>->($ARG) for keys <network.lease>->%*;
+my $all = <network.dns_policy.by_fingerprint> // {};
+my @rows;
+foreach my $fingerprint ( sort keys $all->%* ) {
+    my $p = $all->{$fingerprint};
+    push @rows,
+        join( '  ',
+        $fingerprint,
+        $p->{'iface'},
+        $p->{'policy'},
+        join( ',', $p->{'domains'}->@* ) || qw| - |,
+        join( ',', $p->{'dhcp'}->@* )    || qw| - |,
+        $p->{'until'} // qw| - | );
+}
+return {
+    qw| mode | => qw| size |,
+    qw| data | => join( "\n",
+        'FINGERPRINT  IFACE  POLICY  DOMAINS  DHCP SERVERS  UNTIL',
+        @rows ? @rows : qw| - | )
+};
+
+#,,,,,,..,,.,,,,.,,.,,,,,,,,,,.,,,...,.,.,,,.,..,,...,...,..,,...,.,.,,,.,..,,
+#JDL7JPK3XBD4QIMZ3QQTY7CMUHEUBYCCZK2WFFO4QEZU43YDASUDHS7ETSOF4ZD35OET5HVPV45DW
+#\\\|ZUIOF6EPSLV6QUAVVJRJCN7GK7WEYVTUZDWSKH5G3PEAUF4HSUC \ / AMOS7 \ YOURUM ::
+#\[7]KDOXN2BBL4RFPAF467CIXG77GPOFVKTQNAXBZLQZSYOVM5B6FCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = network.dns_policy.save
+# descr = write persistent network dns policies to the state dir
+
+my $all  = <network.dns_policy.by_fingerprint> // {};
+my $text = "## net zenka : dns policy per network fingerprint ##\n## "
+    . "temporary portal trust is deliberately not saved ##\n\n";
+my $index = 0;
+foreach my $fingerprint ( sort keys $all->%* ) {
+    my $p = $all->{$fingerprint};
+    $text .= sprintf "%d.fingerprint = %s\n", $index, $fingerprint;
+    $text .= sprintf "%d.iface = %s\n",       $index, $p->{'iface'};
+    $text .= sprintf "%d.policy = %s\n",      $index, $p->{'policy'};
+    $text .= sprintf "%d.domains = %s\n\n",   $index,
+        join( ' ', $p->{'domains'}->@* );
+    $index++;
+}
+my $written = <[file.zenka_dir.write]>->(
+    <network.cfg.dns_policy_file>, \$text, qw| > |, 0600, qw| :raw |
+);
+return defined $written ? TRUE : FALSE;
+
+#,,,,,,,,,,.,,,.,,...,..,,...,.,,,.,,,,,.,,,,,..,,...,...,...,...,,,,,...,,,,,
+#F4ZG7IK6EI6WQDM335FXSHQTZOTYBEA7HVPRAQVZ3M54ENA3UM7V7T7E2NTJ7MPEUZU4FTF3CPMI6
+#\\\|CDDRC4XSMGBI5RNBDZHANVZ2CMNEUU37BABZCCQ2ELTRXUMZ2AU \ / AMOS7 \ YOURUM ::
+#\[7]5E2PTQUU2QM3TQYSLMNQQU6KMHFCICWALDXEMVFXDFT2D2IGDOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

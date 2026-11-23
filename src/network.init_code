@@ -16,6 +16,11 @@
 <network.cfg.discover_announce_cmd> //= qw| discover.reset-broadcast-timer |;
 <[network.lease.load]>;
 
+## persistent policies never include temporary captive portal trust ##
+<network.dns_policy.by_fingerprint> //= {};
+<network.cfg.dns_policy_file>       //= qw| dns-policy.state |;
+<[network.dns_policy.load]>;
+
 ## wlan : the root helper [ bin/p7-wlan-helper ] and the vault tool ##
 <network.cfg.wlan_helper>  //= <system.root_path> . qw| /bin/p7-wlan-helper |;
 <network.cfg.wpa_ctrl_dir> //= qw| /run/wpa_supplicant |;
@@ -26,8 +31,8 @@
 
 0;
 
-#,,..,.,.,...,,,,,.,,,,.,,.,.,,,.,,..,...,..,,..,,...,...,..,,,..,...,..,,,..,
-#Y7G2BRNCTZOLMUHAROCI2SAPJVKPQKPN6JJNSQAWAVKT6BPOAO3OPLFANWBG37MBD7ZE6S4UN46IK
-#\\\|IEE654U7APBYM5G34S5ON34EQ73G7G6ND44Y5K4R7UPP5PMDO5F \ / AMOS7 \ YOURUM ::
-#\[7]4P2KBXVUJXV4UCTKG6NETRG4XO3EGUM2L4TBNHMMNG6FJDRIRWCA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,...,,..,,,.,.,.,,,,,,,,,.,,,.,.,..,,...,.,.,..,,,,,,,.,,,,.,,,.,
+#65XTV3QUE5CNEVYGIHBNXAP6I5XERQ2FY3RJP4JHZWBOA4SMDXR4ECAGCSVVGL7RU4CKV3Q7XDHMW
+#\\\|J265DVZUSJ2M3QGJA7WOOUBEUODGFDEOD3LFHEM3B767C45WVVF \ / AMOS7 \ YOURUM ::
+#\[7]IQK7PE6PJ4OYXLBEVOTNX4JBTI6B3JWWYJNWURSDXKWGUDXUOSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

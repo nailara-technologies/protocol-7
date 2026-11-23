@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = network.dns_policy.get
+# param = <fingerprint|iface>
+# descr = find or create the dns policy for one network
+
+my $target = shift // return undef;
+my $all    = <network.dns_policy.by_fingerprint> //= {};
+return $all->{$target} if exists $all->{$target};
+
+my ($network)
+    = grep { $ARG->{'iface'} eq $target or $ARG->{'fingerprint'} eq $target }
+    (<[netinfo.local_networks]>)->@*;
+return undef if not defined $network;
+
+my $fingerprint = $network->{'fingerprint'};
+return $all->{$fingerprint} if exists $all->{$fingerprint};
+
+my $policy
+    = ( $network->{'role'} // qw| unknown | ) eq qw| lan |
+    ? qw| trusted |
+    : qw| held |;
+return $all->{$fingerprint} = {
+    qw| fingerprint | => $fingerprint,
+    qw| iface |       => $network->{'iface'},
+    qw| policy |      => $policy,
+    qw| domains |     => [],
+    qw| dhcp |        => [],
+};
+
+#,,,.,,.,,...,,.,,.,.,...,,,,,.,,,.,,,.,,,.,.,..,,...,..,,,..,,.,,,.,,..,,,.,,
+#4WCZW7ZTPCOZ3FW2KPNFWVL7A35NDBWPAFL7WHDL6TNQLFJAJNVLICZLVJ4TN2M5ESCYG6QGZUSWA
+#\\\|PDUXQ2K56PHYGKZ6VK2WBEV277IMGW4Y7HFPVHN7J34PFEY3SG7 \ / AMOS7 \ YOURUM ::
+#\[7]NWS4GPYVZXE326N53ZNH5NRWE4PZPGIOB4OML4HFHINGKYF4PKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

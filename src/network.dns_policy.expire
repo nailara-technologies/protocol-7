@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = network.dns_policy.expire
+# param = [ <fingerprint>, <generation> ]
+# descr = restore the policy from before temporary portal trust
+
+my $args = shift // return FALSE;
+my ( $fingerprint, $generation ) = $args->@*;
+my $p = <network.dns_policy.by_fingerprint>->{$fingerprint} // return FALSE;
+return FALSE
+    if not $p->{'temporary'}
+    or ( $p->{'generation'} // 0 ) != $generation;
+
+my $previous = delete $p->{'previous'};
+$p->{'policy'}  = $previous->{'policy'};
+$p->{'domains'} = $previous->{'domains'};
+delete @{$p}{qw| temporary until generation timer reason |};
+<[network.dns_policy.save]>;
+<[network.lease.dns_handoff]>->( $p->{'iface'} );
+return TRUE;
+
+#,,.,,,..,,..,...,..,,,,.,,.,,,.,,,.,,..,,,..,..,,...,...,...,.,,,..,,,,.,.,.,
+#NOIPXCZQZRTJJXIL5JC2MQLYZ2MDQAVV7JQCTPYATJVKJGPSX7JWBT5J7GVYPEEGSA2COUGQKLPU4
+#\\\|DNHGENPY3KRKNN2AVJLZ5PC5CO7AAQGEPUGMIJW6HU22SIGKVWI \ / AMOS7 \ YOURUM ::
+#\[7]7RFBRG6XNZTKHMWYXH2ZZJHKANHOIPHKVWKJEQUYKB6KYGQZK4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

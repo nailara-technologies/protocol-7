@@ -146,7 +146,8 @@ $code{'file.zenka_dir.write'}
 $code{'file.zenka_dir.load'} = sub {
     return exists $state_file{ $ARG[0] } ? \$state_file{ $ARG[0] } : undef;
 };
-$data{'network'}{'cfg'}{'lease_file'} = 'leases.state';
+$data{'network'}{'cfg'}{'lease_file'}      = 'leases.state';
+$data{'network'}{'cfg'}{'dns_policy_file'} = 'dns-policy.state';
 put( "$root/run/network/ifstate", "lo=lo\neth0=eth0\n" );
 $code{'network.interfaces.ip_addr_text'} = sub { return $ip_text };
 ## test-net-nodes-power.pl ##
@@ -163,13 +164,33 @@ $code{'network.interfaces.roles'} = sub {
             keys $ARG[0]->%*
     };
 };
+$code{'netinfo.local_networks'} = sub {
+    return [
+        map {
+            {   iface       => $ARG,
+                fingerprint => "$ARG,10.0.0.0/24,52:54:00:aa:bb:ff",
+                role        => $ARG eq 'eth0' ? 'lan' : 'unknown',
+            }
+        } qw| eth0 eth1 wlan0 br0 |
+    ];
+};
+my @policy_timers;
+$code{'base.interval.next'} = sub { return 780 };
+$code{'event.add_timer'}    = sub {
+    my $timer = { params => $ARG[0] };
+    push @policy_timers, $timer;
+    return $timer;
+};
 load_src($ARG) for qw| network.read_line network.interfaces.ip_addr_parse
     network.interfaces.collect network.cmd.interfaces
     network.status.default_route network.status.dns_servers
     network.status.backend network.cmd.status
     network.cmd.event network.cmd.leases network.cmd.macs
     network.lease.save network.lease.parse network.lease.load
-    network.lease.dns_handoff |;
+    network.dns_policy.get network.dns_policy.save network.dns_policy.load
+    network.dns_policy.expire network.dns_policy.handoff
+    network.lease.reverse_zones network.lease.dns_handoff
+    network.cmd.dns-policy network.cmd.dns-policy-set |;
 
 my $i = $code{'network.interfaces.collect'}->();
 is_deeply [ sort keys %$i ], [qw| br0 eth0 eth1 lo wlan0 |],
@@ -335,6 +356,69 @@ is_deeply \@sent_upstreams,
 ok( ( grep {m|not delivered \[ nameserv not running \? \]|} @logged ),
     'missing nameserv is non-fatal' );
 
+## policy transitions : scoped, held, blocked and back to scoped ##
+$call = { args => 'eth0 split corp.example,internal.example' };
+is $code{'network.cmd.dns-policy-set'}->()->{'mode'}, 'true',
+    'split policy accepted';
+is $sent_upstreams[-1]{'command'}, 'nameserv.set-domain-upstreams',
+    'split policy uses domain upstreams';
+like $sent_upstreams[-1]{'call_args'}{'args'},
+    qr|^dhcp:eth0 corp\.example,internal\.example 192\.0\.2\.1|,
+    'split domains handed off';
+$call = { args => 'eth0 held' };
+$code{'network.cmd.dns-policy-set'}->();
+is $sent_upstreams[-1]{'command'}, 'nameserv.set-held-upstreams',
+    'held policy keeps servers inactive';
+$call = { args => 'eth0 blocked' };
+$code{'network.cmd.dns-policy-set'}->();
+is $sent_upstreams[-1]{'command'}, 'nameserv.set-held-upstreams',
+    'blocked policy only records servers';
+$call = { args => 'eth0 split corp.example' };
+$code{'network.cmd.dns-policy-set'}->();
+like $code{'network.cmd.dns-policy'}->()->{'data'},
+    qr|eth0\s+split\s+corp\.example\s+192\.0\.2\.1,192\.0\.2\.53|,
+    'policy list includes iface domains and dhcp servers';
+
+## temporary trust reverts by timer and is not persisted across restart ##
+$call = { args => 'eth0 trusted :for:13' };
+is $code{'network.cmd.dns-policy-set'}->()->{'mode'}, 'true',
+    'temporary portal trust accepted';
+my $policy = $code{'network.dns_policy.get'}->('eth0');
+ok $policy->{'temporary'} && $policy->{'until'}, 'temporary end recorded';
+like $state_file{'dns-policy.state'}, qr|\.policy = split|,
+    'persistent policy remains split during temporary trust';
+$code{'network.dns_policy.expire'}->( $policy_timers[-1]{'params'}{'data'} );
+is $code{'network.dns_policy.get'}->('eth0')->{'policy'}, 'split',
+    'timer restores the previous policy';
+$call = { args => 'eth0 trusted :for:13' };
+$code{'network.cmd.dns-policy-set'}->();
+$data{'network'}{'dns_policy'}{'by_fingerprint'} = {};
+ok $code{'network.dns_policy.load'}->(), 'saved dns policies read';
+$policy = $code{'network.dns_policy.get'}->('eth0');
+is $policy->{'policy'}, 'split', 'restart restores the previous policy';
+ok !$policy->{'temporary'}, 'restart drops temporary portal trust';
+
+## private reverse zones route in held and split, including ula ##
+$data{'network'}{'lease'}{'eth0'}{'ip'}     = '10.0.0.7';
+$data{'network'}{'lease'}{'eth0'}{'prefix'} = 24;
+$data{'network'}{'lease'}{'eth0'}{'ip6'}    = ['fd00::7'];
+$call                                       = { args => 'eth0 held' };
+$code{'network.cmd.dns-policy-set'}->();
+is $sent_upstreams[-1]{'command'}, 'nameserv.set-domain-upstreams',
+    'held policy has a reverse-only route';
+like $sent_upstreams[-1]{'call_args'}{'args'},
+    qr|^reverse:dhcp:eth0 0\.0\.10\.in-addr\.arpa,|,
+    'held reverse route uses the lease subnet';
+like $sent_upstreams[-1]{'call_args'}{'args'}, qr|\.ip6\.arpa |,
+    'ula reverse zone included';
+$call = { args => 'eth0 split corp.example' };
+$code{'network.cmd.dns-policy-set'}->();
+like $sent_upstreams[-1]{'call_args'}{'args'},
+    qr|corp\.example,0\.0\.10\.in-addr\.arpa|,
+    'split route includes approved domains and reverse zones';
+$data{'network'}{'lease'}{'eth0'}{'ip'} = '192.0.2.7';
+delete $data{'network'}{'lease'}{'eth0'}{'ip6'};
+
 ## restart : empty table, load from the state file ##
 $data{'network'}{'lease'} = {};
 ok $code{'network.lease.load'}->(), 'saved leases read';
@@ -381,13 +465,15 @@ ok !( grep {m|dns hand-off|} @logged[ $n .. $#logged ] ),
     'no hand-off without dns';
 $call = { args => 'RENEW eth1 dns=192.0.2.1,192.0.2.53' };
 $code{'network.cmd.event'}->();
-ok !( grep {m|dns hand-off|} @logged[ $n .. $#logged ] ),
-    'same upstreams : not logged again';
+is $sent_upstreams[-1]{'command'}, 'nameserv.set-held-upstreams',
+    'unknown network role defaults to held';
+is $code{'network.dns_policy.get'}->('eth1')->{'policy'}, 'held',
+    'default held policy stored for the unknown network';
 
 done_testing;
 
-#,,,,,.,.,.,,,...,...,...,...,,.,,,,.,,,,,...,..,,...,...,..,,..,,,.,,..,,,,,,
-#ENLOTCF5MJQ5N2Y3EMAO5PPNV3DZ3WS3P3SKTJI6SVPNQEPMTUN244P5ZGL7MXN24U5LCYFCDGMUU
-#\\\|3KCSNTCPW3O2CNGPQU6HD5MOVYGD3U6AIF3RU6IJ7TJCGJLSZAH \ / AMOS7 \ YOURUM ::
-#\[7]XMN5SEZLBNNCABOWHNY2ZC5VIPXMLYHAZCDXLXL6KC2ZREVFY6DA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,,.,,,..,..,,,.,,,,,,,..,,,.,..,,...,...,,,.,,,,,,,.,..,,,,.,
+#ZIAHX7H5B66TIXVDZN5AQPSE3GOSMUEVWBCNQWFKOI37ZADWNU6CEHCYZ7P7O36VSXRRE2J4C2WHG
+#\\\|GXHLDL3GMWF6YK76PW4YYRZGD3OQQHHCFWK5NMYOW7QMKUORK6W \ / AMOS7 \ YOURUM ::
+#\[7]Z4PJ2T3CRDO3RIN5A6TCBZREUZW6VI7D25U2DXJQR2PEY7DHQ6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

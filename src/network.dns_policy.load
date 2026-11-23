@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = network.dns_policy.load
+# descr = read persistent network dns policies after a restart
+
+my $sref
+    = <[file.zenka_dir.load]>->( <network.cfg.dns_policy_file>, qw| :raw | );
+return FALSE if ref $sref ne qw| SCALAR |;
+
+my %valid = map { $ARG => 1 } qw| trusted split held blocked |;
+my %entry;
+foreach my $line ( split m|\n|, $sref->$* ) {
+    next
+        if $line
+        !~ m{^(\d+)\.(fingerprint|iface|policy|domains)\s*[=:]\s*(.*?)\s*$};
+    my ( $id, $key, $value ) = @{^CAPTURE};
+    next if $value !~ m|^[\w.*:,/@-]*$|;
+    $entry{$id}{$key} = $value;
+}
+my $all = <network.dns_policy.by_fingerprint> //= {};
+foreach my $id ( keys %entry ) {
+    my $p = $entry{$id};
+    next
+        if not defined $p->{'fingerprint'}
+        or not defined $p->{'iface'}
+        or not $valid{ $p->{'policy'} // '' };
+    $all->{ $p->{'fingerprint'} } //= {
+        qw| fingerprint | => $p->{'fingerprint'},
+        qw| iface |       => $p->{'iface'},
+        qw| policy |      => $p->{'policy'},
+        qw| domains |     =>
+            [ grep {length} split m|[\s,]+|, $p->{'domains'} // '' ],
+        qw| dhcp | => [],
+    };
+}
+return TRUE;
+
+#,,..,.,,,,,.,,,.,.,.,,,.,.,,,.,.,.,.,,.,,..,,..,,...,...,...,...,...,,,.,,,,,
+#2ISIR6WKCYF3XRP62EH2I7HU5PHGNDHLL5OMESD2LZDWP553MGHVMS4NOMSDBGIII2G6FHQSGZRU2
+#\\\|CGKJKCAEDKHMEJYBJUBICNPZY3K7AX3XVK5WQJFLAKOGKMVJINU \ / AMOS7 \ YOURUM ::
+#\[7]T6JKUYLKU57IYRL5WPEU5ZCIAA37LG4ZGNFKPZXP7XISHPALI6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

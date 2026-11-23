@@ -7,30 +7,12 @@
 my $iface = shift                     // return FALSE;
 my $l     = <network.lease>->{$iface} // return FALSE;
 return FALSE if $l->{'reason'} !~ m{^(BOUND|RENEW|REBIND|REBOOT)6?$};
-my @dns = ( ( $l->{'dns'} // [] )->@*, ( $l->{'dns6'} // [] )->@* );
-return FALSE if not @dns;
-my $before = join ' ', ( <network.dns.upstreams> // [] )->@*;
-<network.dns.upstreams>       = \@dns;
-<network.dns.upstreams_iface> = $iface;
-return TRUE if $before eq join ' ', @dns;
 
 ## fire and forget : a missing nameserv never makes the lease update fail ##
-my $sent = <[protocol-7.command.send.local]>->(
-    {   'command'   => qw| nameserv.set-upstreams |,
-        'call_args' => { 'args' => join( ' ', "dhcp:$iface", @dns ) }
-    }
-);
-<[base.logs]>->(
-    ( $sent // 0 ) > 0 ? 1 : 0,
-    ': dns hand-off [ nameserv upstreams ] : %s from %s : %s',
-    join( ' ', @dns ),
-    $iface,
-    ( $sent // 0 ) > 0 ? 'sent' : 'not delivered [ nameserv not running ? ]'
-);
-return TRUE;
+return <[network.dns_policy.handoff]>->($iface);
 
-#,,,,,.,.,,..,...,,..,.,.,,,.,,.,,,,,,,..,,,.,..,,...,...,,..,..,,..,,,.,,,,,,
-#35HHHJPEBNTVYCKZQP7GEKHMA2AT5FSYCBKSYTJS3YB5MAELRI5RQN2JR7EQJI27FDDEUQSTIUJL6
-#\\\|KGYVF2BC5MEMD4NRNF7KGSNOTT3GHNHOUI6EJYUY5JMDUPBMTXH \ / AMOS7 \ YOURUM ::
-#\[7]IORTGSS5JC57GVPFL5NFQCXO6Z4JEVOAPPCW63Y5MWYTNOJHSWDA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,..,,,,,,,.,,.,,,..,..,,.,,,.,,,..,,...,...,.,,,.,.,..,,.,,,.,.,
+#3PBNRNJANP3KRH2XDUSZPMIHVNCV2QSBWHQKRJMVJK6C5WU4EMHUI3BKWWBZLAQH2BBYIU3Q35A2S
+#\\\|PBMU2M2KEN5J6I3AF7ZWGZFVLVJHK4AMHSJQNBE5AOXAJODIXGZ \ / AMOS7 \ YOURUM ::
+#\[7]TOXBX3IFMNPFENW7CRKOMCVE2CMFDGWNMN2N6UWLEEU7HKD6V2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

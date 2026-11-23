@@ -19,8 +19,13 @@ for my $address (@addresses) {
     push @canonical, $validated if not $seen{ lc $validated }++;
 }
 
-<nameserv.upstreams.by_source> //= {};
+<nameserv.upstreams.by_source>        //= {};
+<nameserv.upstreams.held_by_source>   //= {};
+<nameserv.upstreams.domain_by_source> //= {};
 <nameserv.upstreams.by_source>->{$source} = \@canonical;
+delete <nameserv.upstreams.held_by_source>->{$source};
+delete <nameserv.upstreams.domain_by_source>->{$source};
+delete <nameserv.upstreams.domain_by_source>->{"reverse:$source"};
 delete <nameserv.cache.upstream_list>;
 
 return {
@@ -30,8 +35,8 @@ return {
     )
 };
 
-#,,,.,,.,,,,,,...,...,,,.,,.,,,.,,.,,,...,...,..,,...,...,...,,,.,.,.,..,,.,,,
-#7TZI73G2XQXPZPLBRJ2SI2NYISMX33X57MGD3WRDGL2CVK246NMLU2MABHBCIWQ6KXYKMZ4XL4I56
-#\\\|2LJC7DMNHO27K4HBA55GV72PXRVUBGHZLVMXMQYKXDXDDM2YBRV \ / AMOS7 \ YOURUM ::
-#\[7]JMUIDFJEBHI2P2NQG5WHQ7RDSQKIR5JX66KQMAKPF24HZHFFQIBI 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,..,,,,,,,,.,.,,,...,,..,,,.,..,,...,...,.,,,,.,,,..,,..,.,.,
+#GMTVI7SIBADCQZMJR7DBTCH765JIGTBGY4KKUA63TKE7S53JSHVGLQBFSN7MCPRF5FHBVKHFT7EKS
+#\\\|JJAENSYR6M4GW25SM7RIYYPQZW2XUJM4MBYZEBFBZGXZB3VGBPN \ / AMOS7 \ YOURUM ::
+#\[7]XCUXZNU3JCYABMOIT4DYMHWY22CG3B4WWSDNVGQNCZTB2YC6AMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -121,8 +121,12 @@ for my $mod (
     nameserv.cache.put
     nameserv.upstream_address
     nameserv.upstream_entries
+    nameserv.cache.own_name
+    nameserv.cache.route_upstreams
     nameserv.cache.upstreams
     nameserv.cmd.set-upstreams
+    nameserv.cmd.set-held-upstreams
+    nameserv.cmd.set-domain-upstreams
     nameserv.cmd.upstreams
     nameserv.cache.forward
     nameserv.cache.forward.try
@@ -255,13 +259,15 @@ sub reset_state {
             'cache_servfail'  => 0,
         },
     };
-    $data{'nameserv'}{'dns_tcp'}{'conns'}       = {};
-    $data{'nameserv'}{'cache'}{'entries'}       = {};
-    $data{'nameserv'}{'cache'}{'in_flight'}     = {};
-    $data{'nameserv'}{'upstreams'}{'by_source'} = {};
-    @io_watchers                                = ();
-    @timers                                     = ();
-    @logs                                       = ();
+    $data{'nameserv'}{'dns_tcp'}{'conns'}              = {};
+    $data{'nameserv'}{'cache'}{'entries'}              = {};
+    $data{'nameserv'}{'cache'}{'in_flight'}            = {};
+    $data{'nameserv'}{'upstreams'}{'by_source'}        = {};
+    $data{'nameserv'}{'upstreams'}{'held_by_source'}   = {};
+    $data{'nameserv'}{'upstreams'}{'domain_by_source'} = {};
+    @io_watchers                                       = ();
+    @timers                                            = ();
+    @logs                                              = ();
     return;
 }
 
@@ -326,6 +332,53 @@ check 'upstream address : ipv6 canonicalized',
     $code{'nameserv.upstream_address'}->('2001:0db8::0001') eq '2001:db8::1';
 check 'upstream address : non-address rejected',
     not defined $code{'nameserv.upstream_address'}->('resolver.example');
+
+## --- policy source modes, reverse routes and local-name leak protection ##
+
+$call = { args => 'dhcp:eth0 corp.example,0.0.10.in-addr.arpa 192.0.2.54' };
+check 'set-domain-upstreams : valid scoped source accepted',
+    $code{'nameserv.cmd.set-domain-upstreams'}->()->{'mode'} eq 'size';
+check 'split : approved domain and subdomain use dhcp dns',
+    join( ' ', $code{'nameserv.cache.upstreams'}->('host.corp.example') ) eq
+    '192.0.2.54';
+check 'split : other names do not use scoped dhcp dns',
+    join( ' ', $code{'nameserv.cache.upstreams'}->('elsewhere.org') ) eq
+    '192.0.2.53 2001:db8::53';
+check 'reverse : private lease zone uses scoped dhcp dns',
+    join( ' ', $code{'nameserv.cache.upstreams'}->('7.0.0.10.in-addr.arpa') )
+    eq '192.0.2.54';
+
+$call = { args => 'dhcp:eth0 192.0.2.54' };
+check 'set-held-upstreams : valid held source accepted',
+    $code{'nameserv.cmd.set-held-upstreams'}->()->{'mode'} eq 'size';
+check 'held and blocked : dhcp dns absent from general forwarding',
+    join( ' ', $code{'nameserv.cache.upstreams'}->('elsewhere.org') ) eq
+    '192.0.2.53 2001:db8::53';
+check 'held : upstream display marks the source held',
+    $code{'nameserv.cmd.upstreams'}->()->{'data'}
+    =~ m{192\.0\.2\.54 \[dhcp:eth0 : held\]};
+$call = { args => 'reverse:dhcp:eth0 0.0.10.in-addr.arpa 192.0.2.54' };
+$code{'nameserv.cmd.set-domain-upstreams'}->();
+check 'held : the network private reverse zone still uses dhcp dns',
+    join( ' ', $code{'nameserv.cache.upstreams'}->('7.0.0.10.in-addr.arpa') )
+    eq '192.0.2.54';
+
+$call = { args => 'dhcp:eth0 192.0.2.54' };
+$code{'nameserv.cmd.set-upstreams'}->();
+$data{'nameserv'}{'discovered'}
+    = { 'p7.example' => [ { name => 'node7', p7ref => 'test' } ] };
+for my $own_name (qw| missing.example.com host.lan node7 node7.p7.example |) {
+    check "no leaks : $own_name never uses dhcp-sourced dns",
+        join( ' ', $code{'nameserv.cache.upstreams'}->($own_name) ) eq
+        '192.0.2.53 2001:db8::53';
+}
+check 'trusted : foreign names still use active dhcp dns',
+    join( ' ', $code{'nameserv.cache.upstreams'}->('elsewhere.org') ) eq
+    '192.0.2.53 2001:db8::53 192.0.2.54';
+$data{'nameserv'}{'cfg'}{'cache'}{'upstream'} = '';
+check 'no leaks : no static resolver means no local-name fallback',
+    scalar $code{'nameserv.cache.upstreams'}->('host.lan') == 0;
+set_upstreams( '192.0.2.53', '2001:0db8:0:0::53' );
 
 ## --- client_allowed                                     ##
 ## ------------------------------------------------------ ##
@@ -1191,8 +1244,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,.,,,,,,,.,...,,.,,.,,,,..,,,.,...,,..,..,,...,...,..,,.,,,,,,,.,.,,.,,
-#ZDWBZJJW33LHQ75M3NQMCI3GSUQVOANQQNBJG4YBUSPHG54E46CLM65UTZVUI5ATWGU2BPBMERSI2
-#\\\|IW37EUJRUGOPSR4GJV3U626NSDQV4VVHVM4QBCTE2PY5XLXGPS6 \ / AMOS7 \ YOURUM ::
-#\[7]LLWEX7RBHXY3PEK2MV4TGWU7MZWDHLRBNZ76GDICBS7F5H2DIUAY 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,.,.,,,,,..,,...,,,.,.,.,..,,..,,...,..,,...,,.,,.,.,..,,...,
+#SLPNSZDINTAQ7BAGPJTIWIJFUZM74XSDEP2ZXM57LUO5JCOITPXNVRJGZXEWNG3TNT6SKWX26U32G
+#\\\|NU37D5H6YL654TB2PCD376BILXK7B3AQEH6SDVBYRTE32PRLJZM \ / AMOS7 \ YOURUM ::
+#\[7]2XKUEHJHWFOC4G3OGY4UIWGDMIXRDYYOXYP5HKETZ4V4WTIIYWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

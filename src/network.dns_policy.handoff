@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = network.dns_policy.handoff
+# param = <iface>
+# descr = apply one network dns policy to nameserv source state
+
+my $iface = shift                                // return FALSE;
+my $l     = <network.lease>->{$iface}            // return FALSE;
+my $p     = <[network.dns_policy.get]>->($iface) // return FALSE;
+my @dns   = ( ( $l->{'dns'} // [] )->@*, ( $l->{'dns6'} // [] )->@* );
+return FALSE if not @dns;
+
+$p->{'dhcp'} = \@dns;
+my $source  = "dhcp:$iface";
+my @reverse = <[network.lease.reverse_zones]>->($iface);
+my @command;
+if ( $p->{'policy'} eq qw| trusted | ) {
+    push @command, [ qw| nameserv.set-upstreams |, $source, @dns ];
+} elsif ( $p->{'policy'} eq qw| split | ) {
+    my %seen;
+    my @domains = grep { not $seen{$ARG}++ } $p->{'domains'}->@*, @reverse;
+    push @command,
+        [
+        qw| nameserv.set-domain-upstreams |, $source,
+        join( ',', @domains ),               @dns
+        ];
+} else {
+    push @command, [ qw| nameserv.set-held-upstreams |, $source, @dns ];
+    push @command,
+        [
+        qw| nameserv.set-domain-upstreams |, "reverse:$source",
+        join( ',', @reverse ),               @dns
+        ]
+        if @reverse and $p->{'policy'} eq qw| held |;
+}
+
+<network.dns.upstreams>       = $p->{'policy'} eq qw| trusted | ? \@dns : [];
+<network.dns.upstreams_iface> = $iface;
+foreach my $cmd (@command) {
+    my $sent = <[protocol-7.command.send.local]>->(
+        {   qw| command |   => $cmd->[0],
+            qw| call_args | =>
+                { qw| args | => join( ' ', $cmd->@[ 1 .. $#$cmd ] ) }
+        }
+    );
+    <[base.logs]>->(
+        ( $sent // 0 ) > 0 ? 1 : 0,
+        ': dns hand-off [ %s ] : %s from %s : %s',
+        $cmd->[0],
+        join( ' ', @dns ),
+        $iface,
+        ( $sent // 0 ) > 0
+        ? 'sent'
+        : 'not delivered [ nameserv not running ? ]'
+    );
+}
+return TRUE;
+
+#,,.,,,,.,,,,,,,.,,.,,...,,.,,.,,,,,.,,..,...,..,,...,...,.,.,...,.,.,...,.,.,
+#HK4IFQLNPPDK4RAEJ4DPVHKIG7R6VHQX3LZJSCH6HSG4DO5MXOFLTJFORVOXBCQQ3IN3UHDTSSK2U
+#\\\|SAU3NGJJP4OFDD6MC6QKIGLTKYA35NNA3QDHBGJGC7LQG77HZG2 \ / AMOS7 \ YOURUM ::
+#\[7]RYHVBNIOV6GXWMQZ6KWNVRCNZ5YEWAUEMVT4X6S5S7U2L5ZYFEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

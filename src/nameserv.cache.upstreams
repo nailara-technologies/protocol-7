@@ -3,17 +3,15 @@
 # name  = nameserv.cache.upstreams
 # descr = upstream resolver list for the forwarding cache [ read once ]
 
-## configured static ips come first, then per-source lists [ dhcp etc. ],   ##
-## deduplicated. without active entries the nameserver lines of             ##
-## /etc/resolv.conf are used, loopback addresses excluded -- the cache must ##
-## never ask itself. read once, the first time, then cached                 ##
+## configured static ips come first, then active per-source lists. scoped ##
+## sources replace that list for their domains ; local names use static   ##
+## only. without selected entries resolv.conf supplies the fallback       ##
 
-my $cached = <nameserv.cache.upstream_list>;
-return @$cached if ref $cached eq qw| ARRAY |;
+my $qname     = shift // '';
+my @upstreams = <[nameserv.cache.route_upstreams]>->($qname);
 
-my @upstreams = map { $ARG->{'address'} } <[nameserv.upstream_entries]>;
-
-if ( not scalar @upstreams ) {
+if (    not scalar @upstreams
+    and not <[nameserv.cache.own_name]>->($qname) ) {
     if ( open my $fh, '<:encoding(UTF-8)', '/etc/resolv.conf' ) {
         while ( my $line = <$fh> ) {
             next unless $line =~ m{^\s*nameserver\s+(\S+)}i;
@@ -25,12 +23,10 @@ if ( not scalar @upstreams ) {
     }
 }
 
-<nameserv.cache.upstream_list> = \@upstreams;
-
 return @upstreams;
 
-#,,.,,...,.,.,,.,,.,.,.,.,.,,,..,,,.,,,,.,.,.,..,,...,...,...,,,.,,..,,..,,.,,
-#DOEPKOQMBDSKLAALUCNBAVJ66LK6MSX3G5HFTJN7R7VKTJ3PREZIEP2LYQ5DAV2WB4ZERSAZWPH66
-#\\\|KKMTZBY3TWGORS5IFFHUPSN6WTI54PBDRRAFAJSEQWBROGHX3F7 \ / AMOS7 \ YOURUM ::
-#\[7]2Z3E3W4XEOA7VITOSRX5GDVZR5HA6WULTICRCWWODHKBXSNRH2BA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,..,,.,.,..,,..,,.,,,,,,,..,,..,,...,...,.,.,,..,,..,..,,,.,,
+#KRD6OCN3ETM5OUHUOD7JXMOI5Z54XWXESKJV3BSG7GMPYLYPBAAY4FOII3J3MWA3JHMNAHKIB6URY
+#\\\|3ECF4ARKMQEDXRSLPZTLVR6Z3AEHOL7PCHWIRBOBXLXSGFHTUNM \ / AMOS7 \ YOURUM ::
+#\[7]RLXBDM26CODJV375YMZZRA6QWMNONLAP5LJCYYFJP47UEVMXBUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

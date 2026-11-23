@@ -25,7 +25,7 @@ for my $name (qw| watcher timer |) {
 close $state->{'sock'} if defined $state->{'sock'};
 $state->{'sock'} = undef;
 
-my @upstreams = <[nameserv.cache.upstreams]>;
+my @upstreams = <[nameserv.cache.upstreams]>->( $state->{'qname'} );
 
 if ( $state->{'upstream_idx'} >= scalar @upstreams ) {
     ## every upstream failed : servfail to every waiter ##
@@ -107,8 +107,8 @@ $state->{'timer'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,,.,,.,,..,,...,,..,...,..,,,,.,..,,,..,,,,,..,,...,...,.,,,,,,,.,,,..,,.,.,
-#ZRTKXTZN2TTEQON6W2QOES5Y2CT6AIX5QI2PPLEVMPR2FZDPZI6J5JB2SW467EL4FXBZGOF5GRAHC
-#\\\|EMK4H5RCBU5E5FZAVSAB7JNLFL2M53E24RZCUXQIKSWCWJVD7GX \ / AMOS7 \ YOURUM ::
-#\[7]XVVAVVTTXPI42XMF5OIRYR757VPIYJH4AHFIXLYDFJPS54BJ2UDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,,,,,,,.,.,,,,,,.,,.,.,.,.,,..,..,,...,..,,,.,,.,.,,..,,,.,,.,,
+#BAKSR544YYEFWASVT35YOABNKQ5UQT6F6GMTEYO7WACPQ7ZQERH2F5ZUPINQOTI7K65QWMNJLB462
+#\\\|MGEYEKBJFDWWYCWDQMCHAFLWUXO5KGHPRPMOR5R3XDPT7PS6Z5S \ / AMOS7 \ YOURUM ::
+#\[7]QYBT2AISTLUKNIVPB46UIEZ7DHPHMMT7HHWHJF4HH3A6UVZWH2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

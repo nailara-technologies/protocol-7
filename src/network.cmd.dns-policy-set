@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = network.cmd.dns-policy-set
+# descr = set trusted split held or blocked dns network policy
+
+my ( $target, $policy, @args ) = split m|\s+|,
+    ( $call->{'args'} // '' ) =~ s|^\s+||r;
+my %valid = map { $ARG => 1 } qw| trusted split held blocked |;
+return { qw| mode | => qw| false |, qw| data | => 'unknown policy' }
+    if not defined $policy
+    or not $valid{$policy};
+
+my $minutes;
+if ( @args and $args[0] =~ m|^:for:(\d+)$| ) {
+    $minutes = shift(@args) =~ m|(\d+)| ? $1 : 0;
+    return { qw| mode | => qw| false |, qw| data | => 'minutes must be > 0' }
+        if not $minutes;
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => 'only trusted accepts :for:<minutes>'
+        }
+        if $policy ne qw| trusted |;
+}
+
+my @domains = grep {length} split m|,|, join( ' ', @args );
+for my $domain (@domains) {
+    $domain = lc $domain;
+    $domain =~ s|^\*\.||;
+    $domain =~ s|\.$||;
+    return { qw| mode | => qw| false |, qw| data | => 'invalid domain' }
+        if $domain !~ m|^[a-z0-9_](?:[a-z0-9_.-]*[a-z0-9_])?$|;
+}
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'domains are only valid with split policy'
+    }
+    if @domains and $policy ne qw| split |;
+
+my $p = <[network.dns_policy.get]>->($target) // return {
+    qw| mode | => qw| false |,
+    qw| data | => 'unknown network fingerprint or interface'
+};
+
+if ( defined $minutes ) {
+    my $previous
+        = $p->{'temporary'}
+        ? $p->{'previous'}
+        : {
+        qw| policy |  => $p->{'policy'},
+        qw| domains | => [ $p->{'domains'}->@* ],
+        };
+    $p->{'previous'}   = $previous;
+    $p->{'temporary'}  = TRUE;
+    $p->{'reason'}     = qw| captive-portal |;
+    $p->{'generation'} = ( $p->{'generation'} // 0 ) + 1;
+    $p->{'timer'}->cancel
+        if ref $p->{'timer'} and $p->{'timer'}->can('cancel');
+    <base.interval.cfg.type.minutes.minutes> = $minutes;
+    my $delay
+        = <[base.interval.next]>
+        ->( { qw| type | => qw| minutes |, qw| state | => {} } )
+        // $minutes * 60;
+    $p->{'until'} = CORE::time() + int( $delay + 0.5 );
+    $p->{'timer'} = <[event.add_timer]>->(
+        {   qw| after |   => $delay,
+            qw| handler | => qw| network.dns_policy.expire |,
+            qw| data |    => [ $p->{'fingerprint'}, $p->{'generation'} ],
+            qw| desc |    => 'temporary network dns trust',
+        }
+    );
+} else {
+    $p->{'timer'}->cancel
+        if $p->{'temporary'}
+        and ref $p->{'timer'}
+        and $p->{'timer'}->can('cancel');
+    delete @{$p}{qw| temporary previous until generation timer reason |};
+}
+
+$p->{'policy'}  = $policy;
+$p->{'domains'} = \@domains;
+<[network.dns_policy.save]> if not defined $minutes;
+<[network.lease.dns_handoff]>->( $p->{'iface'} );
+return {
+    qw| mode | => qw| true |,
+    qw| data | => sprintf( '%s : %s%s',
+        $p->{'fingerprint'}, $policy,
+        defined $minutes ? " until $p->{'until'}" : '' )
+};
+
+#,,,,,,.,,,,,,.,,,.,.,.,.,,,,,..,,,,.,..,,,.,,..,,...,...,...,...,,..,,,.,.,.,
+#NNTZPGZHH5DNQYTTENH2G745C4MNKC63W7OEP5QLKJHFNWOCTOSPT5PG73DT36FJU3QMYIJQ26LWQ
+#\\\|MTROZK7Y7NIPOVWIW7KG6ER2DIURTBR7DPBJLWQVDD5ZOKJGOBQ \ / AMOS7 \ YOURUM ::
+#\[7]OV7BHFA355EUTBKI2HSZQGV3FMPI7O7MXRRVJAZ4UR5XFFFWEGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

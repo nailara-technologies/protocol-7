@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = nameserv.cache.own_name
+# param = <qname>
+# descr = recognize local zones protocol-7 hosts and lan names
+
+my $name = lc( shift // '' );
+$name =~ s|\.$||;
+return FALSE if not length $name;
+return TRUE  if $name eq qw| lan | or $name =~ m|\.lan$|;
+
+my $owned = sub {
+    my $candidate = lc( shift // '' );
+    $candidate =~ s|\.$||;
+    return FALSE if not length $candidate;
+    return TRUE  if $name eq $candidate or $name =~ m|\.\Q$candidate\E$|;
+    return FALSE;
+};
+
+foreach my $zone ( keys <nameserv.zones>->%* ) {
+    return TRUE if $owned->($zone);
+}
+foreach my $domain ( keys <nameserv.discovered>->%* ) {
+    foreach my $node ( <nameserv.discovered>->{$domain}->@* ) {
+        my $node_name = $node->{'name'} // '';
+        return TRUE if $name eq lc $node_name;
+        return TRUE if $owned->("$node_name.$domain");
+    }
+}
+
+## available when a shared nodes table exists ; isolated nameservs have ##
+## none                                                                 ##
+foreach my $table (
+    <nodes.local-network.online-hosts> // {},
+    <nodes.remote-nodes>               // {},
+    <nodes.trunc>                      // {},
+) {
+    foreach my $id ( keys $table->%* ) {
+        my $node = $table->{$id};
+        next if ref $node ne qw| HASH |;
+        foreach my $key (qw| name hostname host node_name |) {
+            return TRUE if $name eq lc( $node->{$key} // '' );
+        }
+    }
+    return TRUE if exists $table->{$name};
+}
+return FALSE;
+
+#,,,.,...,.,.,..,,..,,..,,,..,.,.,..,,.,.,...,..,,...,...,.,,,..,,.,,,..,,.,,,
+#S2UFAQHQ366NJWR67SEBP5WGNXENCSQQDQS3TCSBCFDTRGPPF4TT72Y66AJSV2U42HJ73KGQRC5AU
+#\\\|QAYSVY5REYYDTWYECU3AIBYJ7XD23DQHTLHYTUVJ2NFLANVIYIV \ / AMOS7 \ YOURUM ::
+#\[7]H7NULUCBWRGKU7YMAA2SLZQYEHABQYDDSTIBLUKRYD7N2NOOIABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

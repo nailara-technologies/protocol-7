@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = nameserv.cmd.set-held-upstreams
+# descr = record held upstream addresses without activating them
+
+my ( $source, @addresses ) = split m|\s+|, $call->{'args'} // '';
+$source //= '';
+return {
+    mode => 'false',
+    data => 'usage: set-held-upstreams <source> <addr> ..'
+    }
+    if $source !~ m{^[a-z][a-z0-9_.-]*(?::[a-z0-9_.-]+)*$}
+    or not @addresses;
+
+my @canonical;
+my %seen;
+for my $address (@addresses) {
+    my $validated = <[nameserv.upstream_address]>->($address);
+    return { mode => 'false', data => "invalid ip address: $address" }
+        if not defined $validated;
+    push @canonical, $validated if not $seen{ lc $validated }++;
+}
+
+<nameserv.upstreams.held_by_source>   //= {};
+<nameserv.upstreams.domain_by_source> //= {};
+<nameserv.upstreams.held_by_source>->{$source} = \@canonical;
+delete <nameserv.upstreams.by_source>->{$source};
+delete <nameserv.upstreams.domain_by_source>->{$source};
+delete <nameserv.upstreams.domain_by_source>->{"reverse:$source"};
+delete <nameserv.cache.upstream_list>;
+return {
+    mode => 'size',
+    data => sprintf "held upstreams for %s:\n  %s",
+    $source,
+    join( ' ', @canonical )
+};
+
+#,,..,.,.,,,,,,,.,.,,,.,,,,..,.,,,.,.,,,.,,..,..,,...,...,.,.,,.,,.,.,,.,,.,.,
+#PVQQ553GETFJ72OJ6WJNSIMRUOKOKVGRW4BGNHMOEM5ZCUJ7M5LAQGKDHVGFMSQDN2USGYNYKZZQC
+#\\\|NFBFKV2GYC5OF6J3ZNTU2G4JPFRU2HDMBR3AE645X33MWL6RCGD \ / AMOS7 \ YOURUM ::
+#\[7]PKM7XGQRYJOYKGQF2JYDWKYJZJG2N4GEY2YDO5FD6COXTWWHI2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

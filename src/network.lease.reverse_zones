@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = network.lease.reverse_zones
+# param = <iface>
+# descr = private lease subnet reverse zones for dhcp dns routing
+
+my $iface = shift                     // return;
+my $l     = <network.lease>->{$iface} // return;
+my @zones;
+
+if (    ( $l->{'ip'} // '' ) =~ m|^(\d+)\.(\d+)\.(\d+)\.(\d+)$|
+    and ( $l->{'prefix'} // 24 ) =~ m|^\d+$| ) {
+    my @octet  = split m|\.|, $l->{'ip'};
+    my $prefix = $l->{'prefix'};
+    my $private
+        = $octet[0] == 10
+        || ( $octet[0] == 172 && $octet[1] >= 16 && $octet[1] <= 31 )
+        || ( $octet[0] == 192 && $octet[1] == 168 );
+    if ( $private and $prefix >= 8 and $prefix <= 32 ) {
+        my $octets = $prefix >= 24 ? 3 : $prefix >= 16 ? 2 : 1;
+        push @zones,
+            join( '.', reverse( @octet[ 0 .. $octets - 1 ] ) )
+            . qw| .in-addr.arpa |;
+    }
+}
+
+foreach my $entry ( ( $l->{'ip6'} // [] )->@* ) {
+    my ( $address, $prefix ) = split m|/|, $entry;
+    $prefix //= 64;
+    next
+        if $address !~ m|^f[cd][0-9a-f:]*$|i
+        or $prefix  !~ m|^\d+$|
+        or $prefix > 128;
+    my ( $head, $tail ) = split m|::|, $address, 2;
+    my @part = (
+        ( length $head                  ? split( m|:|, $head ) : () ),
+        ( defined $tail && length $tail ? split( m|:|, $tail ) : () )
+    );
+    my $missing = 8 - scalar @part;
+    $missing = 0 if $missing < 0;
+    my @hex = map { hex($ARG) } @part;
+    splice @hex, ( length $head ? scalar split( m|:|, $head ) : 0 ), 0,
+        (0) x $missing
+        if defined $tail;
+    next if @hex != 8;
+    my $nibbles = join '', map { sprintf '%04x', $ARG } @hex;
+    my $count   = int( ( $prefix + 3 ) / 4 );
+    push @zones,
+        join( '.', reverse split( //, substr( $nibbles, 0, $count ) ) )
+        . qw| .ip6.arpa |;
+}
+
+my %seen;
+return grep { not $seen{$ARG}++ } @zones;
+
+#,,,,,,,.,...,,..,.,,,...,,.,,,,.,,..,.,.,.,,,..,,...,...,...,,.,,...,.,.,.,,,
+#Y3SY5JGHIL5NUZ5FGGULVY2IFSJX5TCIXME5DFY26JCL45OHTUO4E6LDRF56ACJUATS3B3L7DQQWU
+#\\\|HL2VE576TEBT2TGZBK5Z7HIFEWTBAJZX4TA5YT4ILLIOUYF6NZY \ / AMOS7 \ YOURUM ::
+#\[7]6FKQEI75PBUDCSEJCOGCEIAL3C7XKW6ZMRZYQSEHCDPCZE36SSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
