@@ -560,7 +560,13 @@ what follows, and is not done :
    intent it was given for, recorded as such [ the source sees 'refund of
    slot X re-spent at hop Y for intent Z' ], never a transfer to the hop --
    otherwise the no-penalty rule [ question 39 ] would be broken by the back
-   door. a source may also say 'always return'. today's instances of the same
+   door. a source may also say 'always return'. exact and equivalent again :
+   returning along the route is exact [ to the width of a bmw route ], the
+   re-spend is equivalent to the resolution the intent is stated at -- at
+   full resolution the only equivalent left is the exact way back. owner :
+   a network can take a frame based view of reality, frames can be
+   equivalent or indistinguishable, and the difference is resolution, even
+   if as a sampling rate. today's instances of the same
    view : system.disk-register, store shares with a ceiling, the timed dns
    trust, base.interval rhythms.
 4. **pools.** must every pool name an accounting parent, or may a pool stand
@@ -657,8 +663,8 @@ what the review asked for and is still open, on purpose : contradiction 8
 [ who signs weights ], the ring questions of 10, and membership. each is an
 owner question, and none is needed for the two ready steps.
 
-#,,..,..,,...,...,,,,,,,,,..,,.,.,...,.,,,,,,,..,,...,...,...,,.,,.,.,.,,,,,.,
-#C3ZJUDRIT54247M5G37AASO67W6II2G3YX66XCGCT4KOAOORA4M7OZUFDGWRAMENQB47J7XNKBDQY
-#\\\|JN3PRVCOYTJHJNJA3XHAL73BHL5APXPPLZY63XTVEYS5VLTGX2R \ / AMOS7 \ YOURUM ::
-#\[7]ZNHLANG6RKSNGQAQRVP565WK4QGCMEP4PHW6OCNGIANWB2L6UUCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,,,.,...,,..,...,.,.,,..,,..,..,,...,...,.,.,...,.,,,,..,...,
+#NA5SL25NJNKOO6QU6YVRFQYTYHAHAKOOM2P4TYWHLIRCK5KENXYONJ6GBX5ASQCCV4V5FBKDRL3DQ
+#\\\|QDGCDT7UOVN6SJJHZBVFAML7L5A5S73MGDPW25GGSU4D7TS5WKA \ / AMOS7 \ YOURUM ::
+#\[7]KJVRCLPIKMQHIJSBUEI6SM4NLR7RFYEHIEZPLAGLMF7Z5DHPZSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
