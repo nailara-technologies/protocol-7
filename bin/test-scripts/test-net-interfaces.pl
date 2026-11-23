@@ -137,13 +137,25 @@ $data{'network'}{'cfg'} = {
 $data{'network'}{'lease'} = {};
 my @logged;
 $code{'base.log'} = sub { push @logged, $ARG[1]; return TRUE };
+$code{'base.logs'}
+    = sub { shift; push @logged, sprintf( shift, @ARG ); return TRUE };
+## zenka state dir stand-in [ file.zenka_dir.* ] ##
+my %state_file;
+$code{'file.zenka_dir.write'}
+    = sub { $state_file{ $ARG[0] } = ${ $ARG[1] }; return 1 };
+$code{'file.zenka_dir.load'} = sub {
+    return exists $state_file{ $ARG[0] } ? \$state_file{ $ARG[0] } : undef;
+};
+$data{'network'}{'cfg'}{'lease_file'} = 'leases.state';
 put( "$root/run/network/ifstate", "lo=lo\neth0=eth0\n" );
 $code{'network.interfaces.ip_addr_text'} = sub { return $ip_text };
 load_src($ARG) for qw| network.read_line network.interfaces.ip_addr_parse
     network.interfaces.collect network.cmd.interfaces
     network.status.default_route network.status.dns_servers
     network.status.backend network.cmd.status
-    network.cmd.event network.cmd.leases network.cmd.macs |;
+    network.cmd.event network.cmd.leases network.cmd.macs
+    network.lease.save network.lease.parse network.lease.load
+    network.lease.dns_handoff |;
 
 my $i = $code{'network.interfaces.collect'}->();
 is_deeply [ sort keys %$i ], [qw| br0 eth0 eth1 lo wlan0 |],
@@ -284,10 +296,74 @@ like $l,
     'leases row';
 note $l;
 
+## persistence : the event wrote the state file, p7 config style ##
+my $saved = $state_file{'leases.state'} // '';
+like $saved, qr|^eth0\.reason = BOUND$|m, 'state : reason line';
+like $saved, qr|^eth0\.dns = 192\.0\.2\.1 192\.0\.2\.53$|m,
+    'state : list with spaces';
+unlike $saved, qr|[{}"\[]|, 'state : no json';
+ok(
+    (   grep {m|dns hand-off .* 192\.0\.2\.1 192\.0\.2\.53 from eth0|}
+            @logged
+    ),
+    'dns hand-off logged'
+);
+is_deeply $data{'network'}{'dns'}{'upstreams'},
+    [ '192.0.2.1', '192.0.2.53' ], 'upstreams kept';
+
+## restart : empty table, load from the state file ##
+$data{'network'}{'lease'} = {};
+ok $code{'network.lease.load'}->(), 'saved leases read';
+is $data{'network'}{'lease'}{'eth0'}{'ip'}, '192.0.2.7',
+    'lease back after restart';
+is_deeply $data{'network'}{'lease'}{'eth0'}{'routers'}, ['192.0.2.1'],
+    'list back after restart';
+ok !$data{'network'}{'lease'}{'eth0'}{'expired'}, 'fresh lease not expired';
+
+## expiry and hostile lines ##
+my $now = time;
+my $p   = $code{'network.lease.parse'}->(
+    join( "\n",
+        '# comment',
+        'eth0.100.reason = BOUND',
+        'eth0.100.time = ' . ( $now - 7200 ),
+        'eth0.100.lease = 3600',
+        'wlan0.reason : RENEW',
+        'wlan0.time : ' . ( $now - 60 ),
+        'wlan0.lease : 3600',
+        'wlan0.dns = 1.1.1.1;rm',
+        'wlan0.evil = 1',
+        'eth9.ip = 192.0.2.99',
+        '' ),
+    $now
+);
+ok $p->{'eth0.100'}{'expired'},
+    'old lease marked expired [ vlan iface name ]';
+ok !$p->{'wlan0'}{'expired'},     'young lease kept [ colon form ]';
+ok !exists $p->{'wlan0'}{'dns'},  'bad value dropped';
+ok !exists $p->{'wlan0'}{'evil'}, 'unknown key dropped';
+ok !exists $p->{'eth9'},          'entry without reason \ time dropped';
+$data{'network'}{'lease'} = $p;
+like $code{'network.cmd.leases'}->()->{'data'},
+    qr|^eth0\.100\s+BOUND expired\s|m, 'leases shows expired';
+
+## no hand-off on a release or without dns ##
+my $n = @logged;
+$call = { args => 'RELEASE eth1' };
+$code{'network.cmd.event'}->();
+$call = { args => 'BOUND eth1 ip=192.0.2.8' };
+$code{'network.cmd.event'}->();
+ok !( grep {m|dns hand-off|} @logged[ $n .. $#logged ] ),
+    'no hand-off without dns';
+$call = { args => 'RENEW eth1 dns=192.0.2.1,192.0.2.53' };
+$code{'network.cmd.event'}->();
+ok !( grep {m|dns hand-off|} @logged[ $n .. $#logged ] ),
+    'same upstreams : not logged again';
+
 done_testing;
 
-#,,,.,...,,..,.,.,.,.,,..,,..,,,,,,,,,,.,,...,..,,...,..,,..,,...,...,,..,,..,
-#L7PLFU3RCU7A2SNJ7C2QUVK5D3JEMKUIDMGRRQPTMM2CTS4VDBMTVS4CSWQHVAOGU2UPSTADEASLW
-#\\\|HY2XCST42DMVMCHTVKHWZCHVX5DCJJQ7UIZJKYZVDTACZYUYINO \ / AMOS7 \ YOURUM ::
-#\[7]UNQR6SSDEMVLEZHIAA3DXSRIWZQPZCGNHWEIGFA6K37R7725PSDY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,,.,,,..,,.,,,,,,,..,,,.,..,,..,,...,..,,..,,...,.,.,..,,,,.,
+#5UWJDBTHORKQ7ZFPF4MRRQKXBA4ZXECOWCGZEX5VNTGON3L3UMTZUF6G2NPWXTJ3L7J2TQAUT4WUE
+#\\\|YJAASBPXRKZ4QZ2UGUZZQRKTUJL2LNDCDE46RLLFLY3UCCEDKNW \ / AMOS7 \ YOURUM ::
+#\[7]P2VCH3MWGGB5KSE5J3AAN556BGNRHAMIO4HUPY2ZUCQWQUZOZUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

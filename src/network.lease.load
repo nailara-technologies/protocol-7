@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = network.lease.load
+# descr = read the lease table saved before the restart
+
+my $sref = <[file.zenka_dir.load]>->( <network.cfg.lease_file>, qw| :raw | );
+return FALSE if ref $sref ne qw| SCALAR |;
+my $lease = <[network.lease.parse]>->( $sref->$* );
+## an event that came in since the start wins over the saved one ##
+<network.lease>->{$ARG} //= $lease->{$ARG} foreach keys $lease->%*;
+<[base.logs]>->( 1, ': %d saved leases read', scalar keys $lease->%* );
+return TRUE;
+
+#,,,,,.,,,...,,,.,,..,,..,,,.,.,.,..,,..,,.,.,..,,...,.,.,,..,...,,,.,..,,,.,,
+#NPO35SZFZQJ5TIIYKEFZS2MSM543HHMBVNUTZMNTH3O2OKEZXL7XBK4GQ3DU2PSSNQ6MJRNHIIBRS
+#\\\|TLM5GMG55SMWGHOIM56U7C3Z2XKSSYMIYZ4WNNFKD6IKY6Y5DWD \ / AMOS7 \ YOURUM ::
+#\[7]VOTXZOUU5OFBHIOXT5V5M26BWNQQSKE2LAMO32IPLHQBGSWTREDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

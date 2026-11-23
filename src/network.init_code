@@ -10,8 +10,10 @@
 <network.cfg.ifupdown_conf>  //= qw| /etc/network/interfaces |;
 <network.cfg.ifupdown_state> //= qw| /run/network/ifstate |;
 
-## last dhcpcd event per interface [ memory only, net.leases ] ##
-<network.lease> //= {};
+## last dhcpcd event per interface [ kept in leases.state, net.leases ] ##
+<network.lease>          //= {};
+<network.cfg.lease_file> //= qw| leases.state |;
+<[network.lease.load]>;
 
 ## wlan : the root helper [ bin/p7-wlan-helper ] and the vault tool ##
 <network.cfg.wlan_helper>  //= <system.root_path> . qw| /bin/p7-wlan-helper |;
@@ -23,8 +25,8 @@
 
 0;
 
-#,,..,,.,,.,,,.,.,.,.,.,.,,,.,.,.,.,,,.,,,.,.,..,,...,...,...,,,.,...,,..,,,,,
-#UZGE2C7HUX727CWSEIBNOKOBRE43NNNZOD5RBZNNIOS7YS5KDMHCTPSNYYAU5PB3EJ4DZ6SBKFFHG
-#\\\|VAIIOOBO4C7GNQL4A2WMFXF2PZVPTLX7AFI4H6EH536WU4GMVPA \ / AMOS7 \ YOURUM ::
-#\[7]FWNIONPQ6N7UTTXP2QPCWZQFK3URXOZZT6A7KTU4KLHC3MUOR6BA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,,,.,.,.,.,,,...,.,,,...,,,.,..,,...,...,...,,.,,,.,,,.,,,..,
+#H7HLZL43EN64AXNL7ZZ65JO5LL4WU72RVKLN4SAKCLS4M3NPBCOC3FGLJWGUNO3BTROH36JFLNG36
+#\\\|JXDIPDE3LSIDV45ZXAMA2H4M5HIFSPZGHLS4JBOQBICJ7AFXTAB \ / AMOS7 \ YOURUM ::
+#\[7]VZ7DFSM6YTLWSQ64MNE6SB33J7TCVKVYFOKKHDLX2JJL5IPEFYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

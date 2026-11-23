@@ -16,7 +16,7 @@ foreach my $name (@names) {
     $name_width = length $name if length($name) > $name_width;
 }
 my $format
-    = join( ' ', "%-${name_width}s", qw| %-9s %8s %-18s %-15s %s | ) . "\n";
+    = join( ' ', "%-${name_width}s", qw| %-17s %8s %-18s %-15s %s | ) . "\n";
 my $table = sprintf( $format, qw| IFACE REASON AGE ADDRESS ROUTERS DNS | );
 my $now   = CORE::time();
 foreach my $name (@names) {
@@ -29,7 +29,7 @@ foreach my $name (@names) {
     my @dns = ( ( $l->{'dns'} // [] )->@*, ( $l->{'dns6'} // [] )->@* );
     $table .= sprintf( $format,
         $name,
-        $l->{'reason'},
+        $l->{'reason'} . ( $l->{'expired'} ? ' expired' : '' ),
         $age < 5400
         ? sprintf( '%d s',   $age )
         : sprintf( '%.1f h', $age / 3600 ),
@@ -39,8 +39,8 @@ foreach my $name (@names) {
 }
 return { qw| mode | => qw| size |, qw| data | => $table };
 
-#,,..,,.,,,.,,..,,,,.,..,,..,,,..,,,,,,,.,,.,,..,,...,...,.,,,,.,,..,,..,,,.,,
-#HCENS4BOUME5IWZMDLEBZBMXMFTLHOKUY3VC467H2DOWWPVSYP2FXXC2MP72GW6WQVFCTBQZHQ6Y6
-#\\\|4H2CAXU3YFOKHE7YQCDUR6RLMXAYELBCPVXWDHXEACG63HR4H67 \ / AMOS7 \ YOURUM ::
-#\[7]OT5VVZEIEKPLRDEA3WV3OTQ4OZYCU5QSMRTLLGH6HPE3QECNJ4AQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,,.,,,..,.,,,..,,,.,,,..,...,..,,...,...,..,,,.,,.,.,,.,,,,,,
+#JS5SXA32CF6THVCFPX3E6MKG5FAY2LZLK7DDDVF4C3TIPA6DHVYL6XWCFHL7652I4SM3AUBVBF3JO
+#\\\|EO5TEWQJQQPL33HMY4GCIDREZIX6OO3SHCE5RQEKPY7CXJ2FTXY \ / AMOS7 \ YOURUM ::
+#\[7]GM7PW4W6HCBDMZF3336JB6V5NMKTSFTIHEG7UKEJAVLMNOTWT6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

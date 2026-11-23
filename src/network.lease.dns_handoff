@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = network.lease.dns_handoff
+# param = <iface>
+# descr = hand the dhcp dns servers to nameserv [ log only ]
+
+## nameserv has no command to set its upstreams yet : the hand-off is ##
+## logged and kept in <network.dns.upstreams> until it has one        ##
+my $iface = shift                     // return FALSE;
+my $l     = <network.lease>->{$iface} // return FALSE;
+return FALSE if $l->{'reason'} !~ m{^(BOUND|RENEW|REBIND|REBOOT)6?$};
+my @dns = ( ( $l->{'dns'} // [] )->@*, ( $l->{'dns6'} // [] )->@* );
+return FALSE if not @dns;
+my $before = join ' ', ( <network.dns.upstreams> // [] )->@*;
+<network.dns.upstreams>       = \@dns;
+<network.dns.upstreams_iface> = $iface;
+return TRUE if $before eq join ' ', @dns;
+<[base.logs]>->(
+    1,
+    ': dns hand-off [ nameserv upstreams, not sent yet ] : %s from %s',
+    join( ' ', @dns ), $iface
+);
+return TRUE;
+
+#,,,,,,.,,..,,.,.,,,,,...,.,,,.,,,,,,,.,,,.,.,..,,...,..,,,,.,.,.,.,,,,..,,,,,
+#FIQVET5LLB5VWVZLHPROJRAB3G4ALA2BYSC4QYRXIQRMI2KNOERUOFHCKQUKYQEE6BM4EHQ435GHI
+#\\\|XOMCYZWU4RFM3CSJ44KHTZDACTVHMRW3BR2XUUGQLG4BBO2HGS5 \ / AMOS7 \ YOURUM ::
+#\[7]W2QUULP7QRP2N7CPGPKT2WR5D2B6PUMSQE4NLBLIJM2IWEXZUYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

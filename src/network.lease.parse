@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = network.lease.parse
+# param = <state text> [ <now> ]
+# descr = lease state text -> table, old leases expired
+
+my $text = shift // '';
+my $now  = shift // CORE::time();
+my %list = map { $ARG => 1 } qw| routers dns dns6 ip6 |;
+my %key  = map { $ARG => 1 } qw| reason time ip prefix routers dns domain ip6
+    dns6 mtu lease |;
+my %lease;
+foreach my $line ( split m|\n|, $text ) {
+    next if $line =~ m|^\s*(#.*)?$|;
+    ## the key has no dot : the last dot splits it from the iface name ##
+    next
+        if $line
+        !~ m|^\s*([A-Za-z0-9][\w.:@-]{0,14})\.(\w+)\s*[=:]\s*(.*?)\s*$|;
+    my ( $iface, $key, $value ) = @{^CAPTURE};
+    next if not $key{$key} or $value !~ m|^[\w.:/, -]*$|;
+    $lease{$iface}{$key}
+        = $list{$key} ? [ grep {length} split m|[\s,]+|, $value ] : $value;
+}
+foreach my $iface ( keys %lease ) {
+    my $l = $lease{$iface};
+    ## an entry without reason or time is not one net.event wrote ##
+    if (   not defined $l->{'reason'}
+        or not defined $l->{'time'}
+        or $l->{'time'} !~ m|^\d+$| ) {
+        delete $lease{$iface};
+        next;
+    }
+    $l->{'expired'} = 1
+        if defined $l->{'lease'}
+        and $l->{'lease'} =~ m|^\d+$|
+        and $l->{'time'} + $l->{'lease'} < $now;
+}
+return \%lease;
+
+#,,..,,..,..,,,,.,,.,,.,,,,,,,,.,,.,,,,..,...,..,,...,...,,..,..,,..,,.,.,.,.,
+#WZ7P6WJTE4GYCUWJAGQLY6TND35N7T3ODMNU5DGMKRT36AEBFNCDLBSBFVL3YQUL2BW3VPJYZHS6Q
+#\\\|CVQUWCWV5IAPCKK5CDZLCSZVW7MQML2S75B36Z5WZ5SJYXL2ZRB \ / AMOS7 \ YOURUM ::
+#\[7]45BTGP5V2Q4VFGE5E6PGSYVR7DAJNLLIO4CMBUZ24OMA2E7EBGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

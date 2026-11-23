@@ -42,6 +42,8 @@ my %lease = (
     } keys %value
 );
 <network.lease>->{$iface} = \%lease;
+<[network.lease.save]>;
+<[network.lease.dns_handoff]>->($iface);
 <[base.log]>->(
     1,
     sprintf(
@@ -52,8 +54,8 @@ my %lease = (
 );
 return { qw| mode | => qw| true |, qw| data | => 'event recorded' };
 
-#,,.,,,,.,,.,,..,,.,.,,..,,,,,...,,,,,.,,,,,.,..,,...,..,,,,,,...,.,.,.,,,.,.,
-#VNQPSW3BU77TQ72RGABONS4I3NGKKN7MENXQRJSXEBDJEMY4CEDHZCTDFSQPDQ4GYKERC4D4K6WSW
-#\\\|RMAOUAZKIGQNLXMNKGLTX3YROQ5HRXDLI6R2HCMRTDN5OZRCMKX \ / AMOS7 \ YOURUM ::
-#\[7]DVRJ3LGAACVOGTR2GKXTEK3QVX3EUKUHYMKYZH3US42325ESQ2BA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,...,,,,,,.,,,..,.,.,.,.,.,,,..,,...,...,..,,,,.,.,.,.,,,.,.,
+#R6HYTZ3GY6E6E7MNHIA4PMIFOBAAF3HDVZTHAWJGSGE6W46FTTZSKEYKPR7XSZWXIKGUMTTYWITNI
+#\\\|SPBNPYPAQBNR6FVB3343YZ6VX4THPJXMEIKDAMXOROJ62D5AZZG \ / AMOS7 \ YOURUM ::
+#\[7]G2NBULFCVYIIWC6O5HYZCJQ2XP3GNSWFICKDMECYXNCW5GPJNUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

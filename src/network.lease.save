@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = network.lease.save
+# descr = write the lease table to the zenka state dir
+
+## p7 config style, one '<iface>.<key> = <value>' per line, lists with ##
+## spaces ; every value passed the net.event alphabet check before     ##
+my $lease = <network.lease> // {};
+my $text  = "## net zenka : last dhcpcd event per interface ##\n## "
+    . "rewritten on each net.event, read at start    ##\n\n";
+foreach my $iface ( sort keys $lease->%* ) {
+    my $l = $lease->{$iface};
+    foreach my $key ( sort grep { $ARG ne qw| expired | } keys $l->%* ) {
+        my $value = ref $l->{$key} ? join( ' ', $l->{$key}->@* ) : $l->{$key};
+        $text .= sprintf( "%s.%s = %s\n", $iface, $key, $value // '' );
+    }
+    $text .= "\n";
+}
+my $written = <[file.zenka_dir.write]>->(
+    <network.cfg.lease_file>, \$text, qw| > |, 0600, qw| :raw |
+);
+<[base.logs]>->(
+    0, ': lease state not written [ %s ]',
+    <network.cfg.lease_file>
+) if not defined $written;
+return defined $written ? TRUE : FALSE;
+
+#,,.,,.,.,.,.,,,.,,..,..,,,,,,,..,.,.,,.,,.,.,..,,...,...,...,..,,.,.,,..,,.,,
+#S3LVUKK7ZCS7Q6QRVCFICZWMKDPRVWQPHHKZUXP2VYUAT555BJACCFW75GDJHCPV5VBCFYVJ3LEJE
+#\\\|WRLMMA2GKCB72JGN7NWISWIMQOPMOAMBLBUWVZN7HQBT7M62DCN \ / AMOS7 \ YOURUM ::
+#\[7]CWDPX6PGYM4JLMLEUUOCUNKLCLVJORMUNY2OSDJ2V372S2WYU6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
