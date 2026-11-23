@@ -522,8 +522,13 @@ what follows, and is not done :
    itself, even if relative". the host memory design uses the same split
    [ data/tasks/host-memory.md : identity strand and chain = identity tree ;
    presence signatures, sync receipts, epoch buckets = occupancy view ].
-   still open : should a re-creation after a delete be told apart from a
-   first creation ?
+   re-creation after a delete [ owner ] : like text-to-image with a seed --
+   both kinds exist and each may be wanted. an EXACT re-creation [ same
+   recipe, same seed, bit-identical ] has the same content part : the same
+   identity, a new occupancy [ the occupancy view keeps the gap ]. an
+   EQUIVALENT re-creation [ same recipe, same quality level, other bytes ]
+   is a new identity with a 'recreates' edge to the old one in the identity
+   tree. ties into question 6 [ recipes ].
 4. **pools.** must every pool name an accounting parent, or may a pool stand
    with none [ contradiction 1 ; the parent is already in the address where
    it is named ] ?
@@ -618,8 +623,8 @@ what the review asked for and is still open, on purpose : contradiction 8
 [ who signs weights ], the ring questions of 10, and membership. each is an
 owner question, and none is needed for the two ready steps.
 
-#,,,.,.,.,,,,,,..,..,,.,.,,,.,,,,,.,,,.,,,,,,,..,,...,..,,..,,.,,,.,.,,,,,,,,,
-#ZDJ7LCVCBCGFJSMVU42DG2LL7EPZYOASG5QXDLHVHS77XSPHQWMKEFYV3FMR4LAXZOUUHXUQWG2YC
-#\\\|G765IKI3672WKVI4OJ6YWROAO5YRCGZVBBAUC5VJNGZSOT35DZM \ / AMOS7 \ YOURUM ::
-#\[7]NYJADGFNG3G3FMVRJO6XMF2VKFGGNLRMOARQQ3WOGAY2KRBAAEBI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,,,,,.,,.,,.,.,,,,,,.,,,,.,,,,,..,,...,...,..,,...,,..,.,.,,,.,
+#2NPV4EGSIZQSHXL6LL4ETQG6YLOHWCV5WVVW3VMDN6O76CDVXSEFUNIPM7E7AC4JM2N4CQLYMRCTC
+#\\\|5ZHNPBBFOJVJCHBEB4CTWRWMLFSWFBFQG7GLV77F2NZXUVXQV4P \ / AMOS7 \ YOURUM ::
+#\[7]C6LBVS7BHTRI7WZEU5VHQAW5WGF4ZI4BPC2UTKJBFUFJUFURUQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
