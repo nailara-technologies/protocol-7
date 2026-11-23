@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = events.cmd.bucket-show
+# descr = show the caller's own bucket : entries, state, waits
+# descr = each entry : state, what it waits for, its reason
+
+my $parsed = <[events.bucket.parse_args]>->( $call->{'args'} );
+my ($owner) = @{ $parsed->{'words'} // [] };
+return { 'mode' => qw| false |, 'data' => 'no source zenka [ cube alias ]' }
+    if not defined $owner or $owner !~ m|\A[A-Za-z0-9][\w.:-]{0,63}\z|;
+my $bucket = <[events.bucket.get]>->($owner);
+my $stamp
+    = sub { strftime( '%Y-%m-%d %H:%M:%S', CORE::localtime( shift // 0 ) ) };
+my @lines = ("bucket '$owner'\n");
+if ( not defined $bucket or not @{ $bucket->{'order'} } ) {
+    push @lines, ": empty\n";
+}
+foreach my $id ( defined $bucket ? @{ $bucket->{'order'} } : () ) {
+    my $e     = $bucket->{'entries'}{$id};
+    my $state = $e->{'state'};
+    my @waits;
+    if ( $state eq qw| waiting | ) {
+        if ( not $e->{'met'} ) {
+            push @waits, sprintf 'time %s [ in %d s%s ]',
+                $stamp->( $e->{'at'} ), $e->{'at'} - time,
+                defined $e->{'after'} ? ", after $e->{'after'}" : ''
+                if $e->{'when'} eq qw| at |
+                or $e->{'when'} eq qw| after |;
+            push @waits, sprintf 'signal %s%s', $e->{'on'},
+                %{ $e->{'match'} }
+                ? ' [ '
+                . join( ' ',
+                map {"$ARG=$e->{'match'}{$ARG}"}
+                sort keys %{ $e->{'match'} } )
+                . ' ]'
+                : ''
+                if $e->{'when'} eq qw| on |;
+        } elsif ( $e->{'when'} ne qw| none | ) {
+            push @waits, 'own condition met';
+        }
+        my @open = grep {
+            ( $bucket->{'entries'}{$ARG}{'state'} // '' ) ne qw| fired |
+        } @{ $e->{'depends'} };
+        push @waits, 'depends ' . join( ',', @open ) if @open;
+    } elsif ( $e->{'result'} ne '' ) {
+        push @waits, $e->{'result'};
+    }
+    push @lines, sprintf ": %-20s %-8s %s%s\n", $id, $state,
+        @waits                      ? join( ' ; ', @waits ) : '-',
+        length $e->{'reason'} // '' ? "  # $e->{'reason'}"  : '';
+}
+push @lines, "note : signals raised while the events zenka was down "
+    . "are not replayed ; times that passed follow `missed`\n";
+return { 'mode' => qw| size |, 'data' => join( '', @lines ) };
+
+#,,,,,,..,..,,,,.,.,.,,,,,,..,,..,,..,..,,.,.,..,,...,...,...,.,.,.,.,...,,,,,
+#QNIE4R2T3VRI4ZXQVBMRIVRMWROIB4PJAIFGH3OQJLOF2SHFWBDWWKUYSSS3P5V3TGYKZ34MSW7ZQ
+#\\\|Z5NMZOLXKGU4YU5W4GHNM66AXBLPHHGOXDXQQUC3Z64BUGJE7A6 \ / AMOS7 \ YOURUM ::
+#\[7]LT5DYX27SKSXEDJ24EMGHB3LUDYYKWQAS66ETELB7B73SIXBF2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

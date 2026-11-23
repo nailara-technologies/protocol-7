@@ -1,9 +1,10 @@
 ## [:< ##
 
 # name  = events.signal.raise
-# descr = raise a named signal : wake the entries waiting on it, journal it
+# descr = raise a signal, wake the entries waiting on it
 # args   = source zenka, signal name, values [ hash ref ]
 # return = array ref of the names of the entries woken
+#          [ bucket entries as '<owner>/<id>' ]
 #
 # an armed entry waits when its `on` is this name and every
 # `match.<key>` equals the value raised under <key> ; the entries wake in
@@ -49,6 +50,20 @@ foreach my $ev_id ( sort { $a <=> $b } keys <events.signal.armed>->%* ) {
     push @woken, $ev_name if $ran;
 }
 
+## the bucket entries waiting on it : own tables, entry names ##
+## '<owner>/<id>'                                             ##
+if ( defined $code{'events.bucket.wake_signal'} ) {
+    my $bucket_woken
+        = eval { <[events.bucket.wake_signal]>->( $source, $name, $values ); };
+    if ($EVAL_ERROR) {
+        <[base.logs]>->(
+            0,     "<< bucket entries woken by signal '%s' failed : %s >>",
+            $name, $EVAL_ERROR =~ s{\s+\z}{}r
+        );
+    } else {
+        push @woken, @{$bucket_woken};
+    }
+}
 <[base.logs]>->(
     1, "signal '%s' from '%s' [ %d woken ]",
     $name, $source, scalar @woken
@@ -65,8 +80,8 @@ foreach my $ev_id ( sort { $a <=> $b } keys <events.signal.armed>->%* ) {
 
 return \@woken;
 
-#,,,,,.,,,.,,,,.,,,,.,,,,,...,...,...,,,,,,,,,..,,...,...,...,,,.,.,.,,.,,.,.,
-#YHU5V7NWRBQFGCRDWYUCIVWQVCC3FH6IU37EXVKK7Y3DOZN7AKZVLO6EYOGDCKDLG3RD7MNKJ6R2W
-#\\\|JRNYKAMARG75DCTXUU7WISE7ZO7SZ5QOFR7GGY6ZR6C72OTSNHV \ / AMOS7 \ YOURUM ::
-#\[7]VL2KERC3ZUZ6SXSNLYCCWISQ3CTVRDW7BG6V7HHOZ3YEYOIUNACI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,,,,..,..,,.,,,,.,,,,,,..,,.,.,..,,...,...,...,...,,..,...,.,.,
+#UKBG2YF3CKEPYPLEHKYNUMBPVS6QU4GSATROY4UNL3LYYO6TFQ44PNBXHI2AZ4ZGXICEMRW2LSMRU
+#\\\|EC53SGMH3OXRWLOYGQPSOY7M335MJ6ENDR55DDCWJ2G2SNEXRTK \ / AMOS7 \ YOURUM ::
+#\[7]QYQ45WDUWKWBFQ5O55OUJMNNWDXIZIYEECQSYXQ2BUO3XAHPA6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = events.bucket.cycle
+# descr = the dependency cycle an entry would close, if any
+# args   = bucket, entry id, its depends [ array ref ]
+# return = the cycle as text [ 'a -> b -> a' ], undef when there is none
+#
+# walks the depends of the existing entries from every new dependency ;
+# the entry itself is looked up in the new depends, not in the stored ones,
+# so a replacement is judged by what it will be
+
+my ( $bucket, $id, $depends ) = @ARG;
+my $path;
+my %seen;
+$path = sub {
+    my ( $at, $trail ) = @ARG;
+    return join( ' -> ', @{$trail}, $id ) if $at eq $id;
+    return undef                          if $seen{$at}++;
+    my $e = $bucket->{'entries'}{$at} // return undef;
+    foreach my $dep ( @{ $e->{'depends'} // [] } ) {
+        my $found = $path->( $dep, [ @{$trail}, $at ] );
+        return $found if defined $found;
+    }
+    return undef;
+};
+foreach my $dep ( @{$depends} ) {
+    my $found = $path->( $dep, [$id] );
+    return $found if defined $found;
+}
+return undef;
+
+#,,.,,,.,,..,,,.,,,,,,...,,,,,..,,.,.,,..,..,,..,,...,...,.,.,,..,,..,.,.,...,
+#6TKGYERNWHT3IABLUECA2OJVLUAOI53VASVGL6IQRMBFVPZFRD67K3NHXYE3Z5HPJUMANRXQYEECY
+#\\\|WE5MN3DLGHN6FCC2Y2RH7SOMZARXNEKO46YF24MCVANSKHZ3CND \ / AMOS7 \ YOURUM ::
+#\[7]M4Q62DPTEUXHDFDUTGWXOLEX6EEKUI6KUUGP2JUYFQQEY2UDG4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = events.bucket.journal
+# descr = append one result to the add-only bucket journal
+# args   = { owner, id, state, result [, time ] }
+# one p7 config style line per result :
+#   bucket.<owner> = time:<local time> entry:<id> state:<state> result:<text>
+# fields escaped by events.signal.encode ; a failed write is logged
+
+my $rec   = shift;
+my $stamp = strftime( '%Y-%m-%dT%H:%M:%S',
+    CORE::localtime( $rec->{'time'} // time ) );
+my $enc  = sub { <[events.signal.encode]>->(@ARG) };
+my $line = sprintf "bucket.%s = time:%s entry:%s state:%s result:%s\n",
+    $rec->{'owner'}, $stamp, $enc->( $rec->{'id'} ), $rec->{'state'},
+    $enc->( $rec->{'result'} );
+my $path = <[events.bucket.path]>->();
+my ($dir) = $path =~ m{\A(.*)/[^/]+\z};
+if ( defined $dir and !-d $dir ) {
+    mkdir $dir,
+        0750
+        or <[base.logs]>->(
+        0,    "<< bucket journal : cannot create '%s' : %s >>",
+        $dir, $OS_ERROR
+        );
+}
+if ( open my $fh, '>>:encoding(UTF-8)', $path ) {
+    print {$fh} $line;
+    close $fh;
+    return TRUE;
+}
+<[base.logs]>->(
+    0,     "<< bucket journal : cannot append to '%s' : %s >>",
+    $path, $OS_ERROR
+);
+return FALSE;
+
+#,,.,,...,,,,,,,.,..,,..,,,,,,.,,,,,.,...,,,,,..,,...,..,,.,.,..,,..,,...,...,
+#OFO6U6RKILFVP2E3BO5JBEGM54DFGZB3YWBGJATVYUYFNBJYJZRTZVDHB7RQ6246MYA2HUQI6X26G
+#\\\|MBAOX36W6IPTIOZTWHDPDP65ZS7IIR5ZFN4K3W7IFBXBY6DFVQJ \ / AMOS7 \ YOURUM ::
+#\[7]6PTNNNDX26KKPKDQOL5HDL5AXUTGXD5FDT75EWR37DQEFEJAKCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

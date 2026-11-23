@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = events.bucket.handler.timer
+# descr = timer handler : the time of a bucket entry has come
+# gets the EVENT [ the data is in ->w->data ] : { owner, id }
+
+my $data   = shift->w->data;
+my $owner  = $data->{'owner'};
+my $bucket = <[events.bucket.get]>->($owner)       // return FALSE;
+my $e      = $bucket->{'entries'}{ $data->{'id'} } // return FALSE;
+return FALSE if ( $e->{'state'} // '' ) ne qw| waiting | or $e->{'met'};
+delete <events.bucket_timers>->{ "$owner/" . $e->{'id'} };
+$e->{'met'} = TRUE;
+<[events.bucket.evaluate]>->($owner);
+return TRUE;
+
+#,,,.,,..,,,,,.,,,..,,.,,,,..,,,,,...,,.,,.,,,..,,...,...,..,,.,.,,.,,.,,,,.,,
+#KKDA4YJ7CGUKIE2L7UJOSQAEHGDQXTJTGBYG4PQJJVN7YE2V6SHZF7EUJASHPADLKJ2QDRI643UPY
+#\\\|KDRBLCBWOMCUQU7WYLBDRVBD7I44XSNT5QCZV6USHJCYC5WRD7W \ / AMOS7 \ YOURUM ::
+#\[7]LMZS3QRC26U7BNPKFH7WB2XMWFP7NEZ36CRNFW3NSCVRB3IL4OAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

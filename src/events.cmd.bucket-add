@@ -1,0 +1,171 @@
+## [:< ##
+
+# name  = events.cmd.bucket-add
+# descr = add \ replace an entry in the caller's own bucket
+# param = <entry-id> key=value ..
+# descr = park an action : when, depends, action, reason
+#
+# the owner is the cube session's zenka [ alias source_zenka puts it first
+# in the arguments, never a parameter ] ; the bucket is created on first use
+#   when     at=<time> | after=<interval type> | on=<signal> [ match.<key>=<v> ]
+#            [ none : due as soon as the depends have fired ]
+#   depends  id,id [ entries of this bucket, must exist, no cycle ]
+#   action   a registered action type [ send-command command="zenka.cmd args",
+#            task-continue id=<task> message="text", zenka-present .. ]
+#   reason   text shown in bucket-show
+#   missed   fire [ default ] | keep : an `at` that passed while down
+# values with spaces are "double quoted". an entry that has fired is final ;
+# any other state is replaced by the same id. the command must be one the
+# owner may send itself [ its access.zenki list ]
+
+my $parsed = <[events.bucket.parse_args]>->( $call->{'args'} );
+my $fail   = sub { return { 'mode' => qw| false |, 'data' => shift } };
+return $fail->( $parsed->{'error'} ) if defined $parsed->{'error'};
+my ( $owner, $id ) = @{ $parsed->{'words'} };
+my %kv = %{ $parsed->{'pairs'} };
+return $fail->('no source zenka [ cube alias ]')
+    if not defined $owner or $owner !~ m|\A[A-Za-z0-9][\w.:-]{0,63}\z|;
+return $fail->('entry id expected')
+    if not defined $id;
+return $fail->('entry id : letters, digits, _ and -, 80 max')
+    if $id !~ m|\A[A-Za-z0-9][\w-]{0,79}\z|;
+return $fail->('only <entry-id> and key=value are expected')
+    if @{ $parsed->{'words'} } > 2;
+my %reserved
+    = map { $ARG => 1 } qw| at after on depends action reason missed |;
+my ( %match, %param );
+
+foreach my $key ( keys %kv ) {
+    if ( $key =~ m{\Amatch\.(.+)\z} ) {
+        $match{$1} = $kv{$key};
+    } elsif ( not $reserved{$key} ) {
+        $param{$key} = $kv{$key};
+    }
+}
+## when ##
+my @when = grep { defined $kv{$ARG} } qw| at after on |;
+return $fail->('one of at, after, on only') if @when > 1;
+return $fail->('match.<key> needs on=<signal>')
+    if %match and ( $when[0] // '' ) ne qw| on |;
+my $when = $when[0] // qw| none |;
+my $e    = {
+    'id'      => $id,
+    'when'    => $when,
+    'state'   => qw| waiting |,
+    'met'     => FALSE,
+    'depends' => [],
+    'match'   => \%match,
+    'added'   => time,
+    'result'  => ''
+};
+if ( $when eq qw| at | ) {
+    my $text = $kv{'at'};
+    my $unix = $text =~ m|\A\d{9,11}\z| ? $text + 0 : str2time($text);
+    return $fail->("at : time '$text' not understood") if not defined $unix;
+    $e->{'at'} = int $unix;
+} elsif ( $when eq qw| after | ) {
+    my $type = $kv{'after'};
+    return $fail->("after : interval type expected [ letters, digits, - ]")
+        if $type !~ m{\A[\w-]+\z};
+    return $fail->( "after : interval type '$type' is not configured "
+            . '[ base.interval.cfg.type.<type> ]' )
+        if ref <base.interval.cfg.type>->{$type} ne qw| HASH |;
+    my $delay
+        = <[base.interval.next]>->( { 'type' => $type, 'state' => {} } );
+    return $fail->("after : no delay from type '$type'")
+        if not defined $delay;
+    ## computed once and kept : a restart does not roll it again ##
+    $e->{'after'} = $type;
+    $e->{'at'}    = time + int( $delay + 0.5 );
+} elsif ( $when eq qw| on | ) {
+    return $fail->('on : signal name : lowercase letters, digits, . _ -')
+        if $kv{'on'} !~ m|\A[a-z0-9][a-z0-9._-]{0,79}\z|;
+    $e->{'on'} = $kv{'on'};
+}
+$e->{'met'} = TRUE
+    if $when eq qw| none |
+    or ( defined $e->{'at'} and $e->{'at'} <= time );
+## action ##
+my $type = $kv{'action'};
+return $fail->('action expected') if not defined $type;
+return $fail->( "no action plugin '$type' [ known : "
+        . join( ' ', <[events.plugin.known]>->(qw| action |) )
+        . ' ]' )
+    if not grep { $ARG eq $type } <[events.plugin.known]>->(qw| action |);
+$e->{'action'} = { 'type' => $type, %param };
+my $route = <[events.bucket.action_route]>->( $e->{'action'} );
+return $fail->("action '$type' has no command to check : not for buckets")
+    if not defined $route;
+return $fail->("'$owner' may not send '$route' [ access.zenki ]")
+    if !<[events.access.route_ok]>->( $owner, $route );
+## missed, reason ##
+my $missed = $kv{'missed'} // qw| fire |;
+return $fail->('missed : fire or keep') if $missed !~ m{\A(?:fire|keep)\z};
+$e->{'missed'} = $missed;
+$e->{'reason'} = substr( $kv{'reason'} // '', 0, 200 ) =~ s{[\r\n]+}{ }gr;
+## bucket, replace, limit, depends, cycle ##
+my $bucket = <[events.bucket.get]>->( $owner, TRUE );
+my $old    = $bucket->{'entries'}{$id};
+return $fail->("entry '$id' has fired : it is final, add under another id")
+    if defined $old and $old->{'state'} eq qw| fired |;
+return $fail->("entry '$id' is firing now")
+    if defined $old and $old->{'state'} eq qw| due |;
+my @depends = grep {length} split m{,}, $kv{'depends'} // '';
+
+foreach my $dep (@depends) {
+    return $fail->("depends : '$dep' is not an entry id")
+        if $dep !~ m|\A[A-Za-z0-9][\w-]{0,79}\z|;
+    return $fail->("depends : '$dep' is not in the bucket of '$owner'")
+        if $dep ne $id and not defined $bucket->{'entries'}{$dep};
+}
+my $cycle = <[events.bucket.cycle]>->( $bucket, $id, \@depends );
+return $fail->("dependency cycle : $cycle") if defined $cycle;
+$e->{'depends'} = \@depends;
+my $cap = <events.bucket_limit> // 377;
+$cap = 377 if $cap !~ m{\A\d+\z} or $cap < 1;
+if ( not defined $old and keys %{ $bucket->{'entries'} } >= $cap ) {
+    ## room : the oldest fired entries nobody waits on go ##
+    ## [ the journal keeps them ]                         ##
+    my %wanted = map { $ARG => 1 } @depends, map { @{ $_->{'depends'} } }
+        grep { $ARG->{'state'} =~ m{\A(?:waiting|due)\z} }
+        values %{ $bucket->{'entries'} };
+    foreach my $gone (
+        grep {
+            $bucket->{'entries'}{$ARG}{'state'} eq qw| fired |
+                and not $wanted{$ARG}
+        } @{ $bucket->{'order'} }
+    ) {
+        delete $bucket->{'entries'}{$gone};
+        @{ $bucket->{'order'} }
+            = grep { $ARG ne $gone } @{ $bucket->{'order'} };
+        last if keys %{ $bucket->{'entries'} } < $cap;
+    }
+    return $fail->(
+        "bucket of '$owner' is full [ $cap entries ] : remove some")
+        if keys %{ $bucket->{'entries'} } >= $cap;
+}
+## in ##
+if ( defined $old ) {
+    <[events.bucket.disarm]>->( $owner, $old );
+    $e->{'added'} = $old->{'added'};
+} else {
+    push @{ $bucket->{'order'} }, $id;
+}
+$bucket->{'entries'}{$id} = $e;
+<[events.bucket.arm]>->( $owner, $e );
+<[events.bucket.save]>->($owner);
+<[events.bucket.evaluate]>->($owner);
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "entry '%s' %s [ %s ]",
+        $id, defined $old ? 'replaced' : 'added',
+        $e->{'state'}
+    )
+};
+
+#,,,,,,..,,,.,...,,,.,..,,,.,,..,,,.,,,..,,.,,..,,...,...,.,,,...,...,.,,,..,,
+#BCLH62XC5UNHTUEMVKE57MEGJFRFO3BZANWVT6Q57GBEMFAS2KUEE3P3EPIBKJTMZQTUWNHHOR7BY
+#\\\|XU53LHOQ2X7AW5424YXHXHDNBO7KJMCLQT3YDB3RJUKOFYEQCE5 \ / AMOS7 \ YOURUM ::
+#\[7]S3FL6SGKNUQI4XMJZGSNDSHB62BNYM5FBTZSESX3TZO6EC3PBSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -173,6 +173,7 @@ load_module($ARG) for qw|
     events.calc_unix_table
     events.set_up_timers
     events.recalc
+    events.access.grants
     events.signal.access
     events.signal.raise
     events.signal.encode
@@ -220,14 +221,15 @@ my @sources = sort keys %{ $reg->{'source'} };
 is_deeply_list(
     \@actions,
     [   sort qw|
-            send-command zenka-present playlist-show-entry
+            send-command task-continue zenka-present playlist-show-entry
             playlist-hide-entry playlist-exclusive-entry tile-show tile-hide
             overlay-show overlay-hide |
     ],
     'registry : every built-in action type is registered'
 );
-is_deeply_list( \@sources, [qw| signal timetable |],
-    'registry : timetable and signal sources are registered' );
+is_deeply_list( \@sources, [qw| bucket-dependency signal timetable |],
+          'registry : timetable, signal and '
+        . 'bucket-dependency sources are registered' );
 ok( !grep( { !ref $reg->{'action'}{$ARG}{'run'} } @actions ),
     'registry : each action has run' );
 ok( !grep( { !ref $reg->{'source'}{$ARG}{'arm'}
@@ -493,8 +495,9 @@ ok( "@{ $data{'events'}{'entry'}{'sources'}{4} }" eq 'signal'
     delete $code{'plugin.events.source.signal'};
     my @r = $code{'events.plugin.check_setup'}->();
     ok( "@r" eq '1' && scalar(
-            grep {m{unknown source type 'signal' \[ known : timetable \]}}
-                @logged
+            grep {
+                m{unknown source type 'signal' \[ known : bucket-dependency, timetable \]}
+            } @logged
         ),
         'an entry needing a source that is not loaded is refused'
     );
@@ -810,8 +813,8 @@ ok( "@{$w}" eq 'on-claude-ok'
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,.,.,.,,,.,,,,,,,.,,..,,.,,,..,,,.,..,,,,.,..,,...,...,.,.,.,.,,..,..,,..,,
-#OW7PP4M2RORCIXGP647UFMRFMT4WT5PY7VXDDMBR2CT767C3UDDH3H3YTLWXG2VGQFFKK5TXOD6D4
-#\\\|DRQOVZCKJZWK4EK6KBQN3H2P2HVLTCRMC2RNPHKYQWNP57JWPB7 \ / AMOS7 \ YOURUM ::
-#\[7]I6XMXF2TIT63YJ35JCKFQYWOWD5RVCS2N6GYSPG62PNXIATICSCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,.,,.,,,..,,..,,,,,,..,,..,,,.,..,,...,...,...,,.,,,,.,,,.,...,
+#45QKRUJIA5DW35FMOX7GU4C4IVFIUZUHJRXK36QZGQEREK6X563EDUG45ZWZ2AFLQLTZHRAKDW47S
+#\\\|7JV2VILN7FOKQ3NXWK44MEW7KSKVFEJ6FZOLBSO4UUI5R2LLSRW \ / AMOS7 \ YOURUM ::
+#\[7]MG4FN4MNUHDOZAEUMKDNGHVLLKZDOFE3NL4DFCNIPRXKRW4I7CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

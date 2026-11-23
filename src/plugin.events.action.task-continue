@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = plugin.events.action.task-continue
+# descr = events action plugin : continue a task with a message
+## a thin send-command : task.continue <id> <message> through the cube ##
+return {
+    'name'     => qw| task-continue |,
+    'kind'     => qw| action |,
+    'describe' => 'task.continue : id = <task id>, message = <text>',
+    'run'      => sub {
+        my $fire    = shift;
+        my $ev_type = $fire->{'ev_type'};
+        my $action  = $fire->{'action'};
+        die "task-continue wakes on a time or a signal, not '$ev_type'"
+            if $ev_type ne qw| at | and $ev_type ne qw| signal |;
+        my $id      = $action->{'id'}      // '';
+        my $message = $action->{'message'} // '';
+        $message =~ s{\s+}{ }g;
+        die "'id' parameter is missing from 'task-continue'"
+            if $id !~ m{\A[\w.-]+\z};
+        die "'message' parameter is missing from 'task-continue'"
+            if !length $message;
+        <[base.log]>->( 1, "continuing task '$id'" );
+        <[protocol-7.command.send.local]>->(
+            {   'command'   => qw| cube.task.continue |,
+                'call_args' => { 'args' => "$id $message" }
+            }
+        );
+        return TRUE;
+    }
+};
+
+#,,.,,,..,...,.,.,,..,,,.,.,.,.,,,..,,,..,,.,,..,,...,...,..,,.,.,,,,,.,,,,..,
+#5WQUS3BCUO3FE47ZQONOJPWROKANRYAJJVSTY4BQUAQV7PWJTK7H6BIACG4YSWNRLL3PRFPA7VIEM
+#\\\|ZD4NOA7W442WZFAHNYCZQUYYWN2QTG3HVQHYRCIRLRRY6JDZPHQ \ / AMOS7 \ YOURUM ::
+#\[7]M5H3M4YA66SCXBP3OOOYTWPRWHCUD2FG7SLSBYSE3YKKLQE6BEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

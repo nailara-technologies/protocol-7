@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = events.bucket.finish
+# descr = record how an entry ended, wake dependants
+# args   = owner, entry, state [ fired | failed | blocked | missed ], result
+# the result is kept in the entry, appended to the add-only journal, and
+# the bucket-dependency source is told so the dependants are looked at
+
+my ( $owner, $e, $state, $result ) = @ARG;
+$e->{'state'}  = $state;
+$e->{'result'} = $result;
+$e->{'done'}   = time;
+<[events.bucket.journal]>->(
+    {   'owner'  => $owner,
+        'id'     => $e->{'id'},
+        'state'  => $state,
+        'result' => $result
+    }
+);
+<[base.logs]>->(
+    1, "bucket '%s' entry '%s' %s : %s",
+    $owner, $e->{'id'}, $state, $result
+);
+my $dependency
+    = <[events.plugin.registry]>->()->{'source'}{'bucket-dependency'};
+$dependency->{'wake'}->( $owner, $e->{'id'}, $state )
+    if defined $dependency and ref $dependency->{'wake'} eq qw| CODE |;
+return TRUE;
+
+#,,,.,...,.,.,,..,,,,,...,,.,,.,,,,,,,...,,,.,..,,...,..,,,,,,.,,,,,.,,..,,,.,
+#RYO3NTWVY2RTRKI7DOOFQT76MYO4CK32HSMWNIPBFB7HLJC4WCP676PLGYW4SIKTLBTA5TWFKBD7G
+#\\\|2WV5PDENMLWN3MZKGISIMH3EEOYDAVEUEPBAMQ75FNK2JEPVLEI \ / AMOS7 \ YOURUM ::
+#\[7]PZO7SEYFZC5F3PYWLWS6JGBVS4VFV2BYTRNFTJ5K7B2ZLQUEIKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

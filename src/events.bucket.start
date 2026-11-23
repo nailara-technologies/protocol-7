@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = events.bucket.start
+# descr = load the buckets, settle the downtime, arm
+# return = number of buckets loaded
+#
+# runs once after the zenka is up [ timer from events.init_code : the cube
+# is connected and the privileges are dropped ]. per entry :
+#   due      a restart in the middle of firing : failed [ interrupted ]
+#            never run again
+#   waiting  an `at` \ `after` time that passed while the zenka was down is
+#            MISSED : `missed = fire` [ default ] fires it once now,
+#            `missed = keep` marks it missed and journals it
+#   others   unchanged ; the future times are armed again
+# signals raised while the zenka was down are not replayed
+
+return FALSE if <events.bucket_started>;
+<events.bucket_started> = TRUE;
+## the bucket files live in their own directory, apart from the journal and ##
+## from any tmp file : only `<owner>.bucket` is a bucket                    ##
+my $dir = <[events.bucket.path]>->('x') =~ s{/[^/]+\z}{}r;
+my @owners;
+if ( opendir my $dh, $dir ) {
+    @owners = sort map { m{\A([A-Za-z0-9][\w.:-]*)\.bucket\z} ? $1 : () }
+        readdir $dh;
+    closedir $dh;
+}
+my $now = time;
+foreach my $owner (@owners) {
+    delete <events.buckets>->{$owner};
+    my $bucket = <[events.bucket.load]>->($owner) // next;
+    foreach my $id ( @{ $bucket->{'order'} } ) {
+        my $e = $bucket->{'entries'}{$id};
+        $e->{'met'} = ( $e->{'met'} // 0 ) ? TRUE : FALSE;
+        if ( ( $e->{'state'} // '' ) eq qw| due | ) {
+            <[events.bucket.finish]>->(
+                $owner, $e, qw| failed |,
+                'interrupted [ the zenka stopped while it was firing ]'
+            );
+        } elsif ( ( $e->{'state'} // '' ) eq qw| waiting |
+            and not $e->{'met'}
+            and defined $e->{'at'}
+            and $e->{'at'} <= $now ) {
+            if ( ( $e->{'missed'} // qw| fire | ) eq qw| keep | ) {
+                <[events.bucket.finish]>->(
+                    $owner, $e, qw| missed |,
+                    'time passed while the zenka was down [ kept ]'
+                );
+            } else {
+                $e->{'met'}    = TRUE;
+                $e->{'result'} = 'missed while down [ fired on start ]';
+            }
+        }
+    }
+    <[events.bucket.save]>->($owner);
+}
+foreach my $owner (@owners) {
+    my $bucket = <events.buckets>->{$owner} // next;
+    foreach my $id ( @{ $bucket->{'order'} } ) {
+        <[events.bucket.arm]>->( $owner, $bucket->{'entries'}{$id} );
+    }
+    <[events.bucket.evaluate]>->($owner);
+}
+<[base.logs]>->( 1, "buckets loaded : %d", scalar @owners );
+return scalar @owners;
+
+#,,,.,,,,,,..,,,,,,..,.,.,.,,,..,,,.,,..,,.,.,..,,...,..,,,..,,,.,...,,.,,.,.,
+#WP3WN5P3SLVZZUODQE7ETHYHJFU7TPXG6HSR2QJXNCZ63QZCHIARWIB6G3VSGDMQKVGC7WH2I3EGO
+#\\\|QYIYI2TLMH7EWHYQEA4UYGKWF43NTTKJ4EWR5DVDZJXK7FLTKZ6 \ / AMOS7 \ YOURUM ::
+#\[7]YGJBQEXIKWE77HJRFITJVFW75IQBP66VN5UVRRF7ZKEGDV7N6ABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

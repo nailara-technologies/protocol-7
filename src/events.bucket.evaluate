@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = events.bucket.evaluate
+# descr = resolve a bucket : block, fire what is due
+# args   = owner zenka
+# return = names of the entries fired by this call
+#
+# an entry is due when its own condition holds [ met ] and every depends
+# entry has fired ; a dependency that failed, is blocked, was missed [ kept ]
+# or no longer exists blocks the entry, with the reason, and it never
+# fires. due entries run through events.fire [ the action plugin ] in
+# dependency order -- an entry fires only after the entries it depends on,
+# the rest in the order they were added -- each exactly once : the state
+# is set to `due` and saved BEFORE the action runs, so a restart in the
+# middle finds `due` and records the entry as failed [ interrupted ]
+# rather than running it again. re-entered calls only ask for another pass
+
+my $owner  = shift;
+my $bucket = <[events.bucket.get]>->($owner) // return [];
+<events.bucket_busy> //= {};
+if ( <events.bucket_busy>->{$owner} ) {
+    <events.bucket_busy>->{$owner} = 2;    ## another pass wanted ##
+    return [];
+}
+<events.bucket_busy>->{$owner} = 1;
+my @fired;
+my $changed = FALSE;
+my $passes  = 0;
+my $limit   = 2 + scalar @{ $bucket->{'order'} };
+while ( $passes++ < $limit ) {
+    <events.bucket_busy>->{$owner} = 1;
+    my $moved = FALSE;
+    foreach my $id ( @{ $bucket->{'order'} } ) {
+        my $e = $bucket->{'entries'}{$id} // next;
+        next if ( $e->{'state'} // '' ) ne qw| waiting |;
+        my ( @unmet, $blocked );
+        foreach my $dep ( @{ $e->{'depends'} // [] } ) {
+            my $de = $bucket->{'entries'}{$dep};
+            if ( not defined $de ) {
+                $blocked = "dependency '$dep' no longer exists";
+            } elsif ( $de->{'state'} eq qw| fired | ) {
+                next;
+            } elsif ( grep { $de->{'state'} eq $ARG }
+                qw| failed blocked missed | ) {
+                $blocked = "dependency '$dep' " . $de->{'state'};
+                $blocked .= ' : ' . $de->{'result'}
+                    if length $de->{'result'} // '';
+            } else {
+                push @unmet, $dep;
+            }
+            last if defined $blocked;
+        }
+        if ( defined $blocked ) {
+            <[events.bucket.finish]>->( $owner, $e, qw| blocked |, $blocked );
+            $moved = $changed = TRUE;
+            next;
+        }
+        next if @unmet or not $e->{'met'};
+        ## due : saved before the action runs [ exactly once ] ##
+        $e->{'state'} = qw| due |;
+        <[events.bucket.save]>->($owner);
+        my $type = $e->{'action'}{'type'};
+        my $ran  = eval {
+            <[events.fire]>->(
+                {   'ev_id'   => "$owner/$id",
+                    'ev_type' => ( $e->{'when'} // '' ) eq qw| on |
+                    ? qw| signal |
+                    : qw| at |,
+                    'entry' => {
+                        'name'   => "$owner/$id",
+                        'action' => { %{ $e->{'action'} } }
+                    }
+                }
+            );
+        };
+        if ($EVAL_ERROR) {
+            <[events.bucket.finish]>->(
+                $owner, $e, qw| failed |,
+                $EVAL_ERROR =~ s{\s+\z}{}r =~ s{\s+}{ }gr
+            );
+        } elsif ( not $ran ) {
+            <[events.bucket.finish]>->(
+                $owner, $e, qw| failed |,
+                "action '$type' did not run [ no such action plugin ]"
+            );
+        } else {
+            <[events.bucket.finish]>->(
+                $owner, $e, qw| fired |,
+                ( $e->{'result'} // '' ) =~ m{\Amissed}
+                ? $e->{'result'}
+                : 'action ran'
+            );
+            push @fired, $id;
+        }
+        $moved = $changed = TRUE;
+    }
+    last if not $moved;
+}
+delete <events.bucket_busy>->{$owner};
+<[events.bucket.save]>->($owner) if $changed;
+return \@fired;
+
+#,,,,,,,.,.,,,,.,,.,,,...,,.,,,,.,...,..,,,,,,..,,...,...,,..,,,.,...,,,,,.,,,
+#BG3RCHRA5YNLNPBYKX35QEO5RPL4WIU3CIWHHSFINS4YVNMRBXJJFWEFF4NHG2MNJ6I3M5MNCF2RM
+#\\\|VQDAVGK3OTHTRI3P4ELO6SS3JOW7P37HSDQKATWAG2CREQ5XXOB \ / AMOS7 \ YOURUM ::
+#\[7]EWJ354RLBOSOFKTTTHV5MAPRLUZJ5MU45NJBJ7SHFPDU4AAS4CDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

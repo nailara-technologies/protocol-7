@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = events.bucket.load
+# descr = read one bucket file into memory
+# args   = owner zenka
+# return = the bucket hash ref, undef when there is no file
+# see events.bucket.save for the format ; a line that does not parse is
+# logged and skipped, the others load. the entry order is the file order
+
+my $owner = shift;
+my $path  = <[events.bucket.path]>->($owner);
+return undef if !-f $path;
+my $bucket = { 'owner' => $owner, 'entries' => {}, 'order' => [] };
+if ( open my $fh, '<:encoding(UTF-8)', $path ) {
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        next if $line =~ m{\A\s*(?:\#|\.:|\z)};
+        if ( $line
+            !~ m{\Aentry\.([A-Za-z0-9][\w-]*)\.(\w+)(?:\.(\S+?))? = (.*)\z} )
+        {
+            <[base.logs]>->(
+                0,      "<< bucket '%s' : line not understood : %s >>",
+                $owner, $line
+            );
+            next;
+        }
+        my ( $id, $key, $sub, $value ) = ( $1, $2, $3, $4 );
+        $value =~ s{\\(.)}{$1 eq 'n' ? "\n" : $1}ge;
+        my $e = $bucket->{'entries'}{$id} //= do {
+            push @{ $bucket->{'order'} }, $id;
+            { 'id' => $id, 'depends' => [], 'match' => {}, 'action' => {} };
+        };
+        if ( $key eq qw| depends | ) {
+            $e->{'depends'} = [ grep {length} split m{,}, $value ];
+        } elsif ( $key eq qw| action | ) {
+            $e->{'action'}{'type'} = $value;
+        } elsif ( $key eq qw| param | and defined $sub ) {
+            $e->{'action'}{$sub} = $value;
+        } elsif ( $key eq qw| match | and defined $sub ) {
+            $e->{'match'}{$sub} = $value;
+        } else {
+            $e->{$key} = $value;
+        }
+    }
+    close $fh;
+}
+<events.buckets>->{$owner} = $bucket;
+return $bucket;
+
+#,,,,,,..,,,,,.,,,.,,,,.,,,,.,,,.,,,.,,,.,,,.,..,,...,...,.,,,.,,,,,,,,..,,,,,
+#6U2UIWOOC2C7WSAWGR7ZKXXUPWM5FGBB57KJ7XF7UXRULRQDIIKWMMU2IFD5F23TVN34T227BW7BS
+#\\\|YPZSBJEFB3UYBCEX66YXECED22JYRK4ITLXNSFN5CI6TEDKQXSE \ / AMOS7 \ YOURUM ::
+#\[7]KEZTVOZIF2TIF3KCFWWS27V3FPKXBSXR2OL4YQJAFZTJB7KJMIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

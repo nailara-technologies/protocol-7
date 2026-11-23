@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = events.bucket.parse_args
+# descr = split a bucket command line into words and key=value
+# args   = text
+# return = { words => [ .. ], pairs => { key => value }, error => text }
+#
+# a word without '=' is positional ; key=value where the value is either
+# a run without spaces or "double quoted" [ \" and \\ inside ] -- the
+# command, message and reason values carry spaces. a repeated key is an
+# error, an unclosed quote is an error
+
+my $text = shift // '';
+my ( @words, %pairs );
+pos($text) = 0;
+while ( $text =~ m{\G\s*}gc and pos($text) < length $text ) {
+    if ( $text =~ m|\G([A-Za-z0-9_.-]{1,60})=|cg ) {
+        my $key = $1;
+        my $value;
+        if ( $text =~ m{\G"((?:[^"\\]|\\.)*)"}gc ) {
+            $value = $1;
+            $value =~ s{\\(["\\])}{$1}g;
+        } elsif ( $text =~ m{\G"}gc ) {
+            return { 'error' => "value of '$key' : quote not closed" };
+        } else {
+            $text =~ m{\G(\S*)}gc;
+            $value = $1;
+        }
+        return { 'error' => "key '$key' given twice" } if exists $pairs{$key};
+        $pairs{$key} = $value;
+    } elsif ( $text =~ m{\G(\S+)}gc ) {
+        push @words, $1;
+    }
+}
+return { 'words' => \@words, 'pairs' => \%pairs };
+
+#,,,.,.,.,.,.,,,,,...,,,,,.,.,..,,,..,.,,,.,.,..,,...,...,,,,,,,.,.,,,...,...,
+#VOUT7VF556DEIVMXODU7C4WNOGZQTOMXWHIEFLYESANTZGZ76R465BQ53V7GWPYQO6YXENKWQ4RUY
+#\\\|UTVFZSR3QBMD5PG7KFHQJINSF72NR3V5SB6ECRQ7ACN3HNQFO2N \ / AMOS7 \ YOURUM ::
+#\[7]R4SV7LM3JUONERI5OT53NN6JRXVEY2AUTUWRRRRXDBWVDMNOBUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

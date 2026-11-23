@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = events.bucket.wake_signal
+# descr = a raised signal : mark the bucket entries waiting on it
+# args   = source zenka, signal name, values [ hash ref ]
+# return = array ref of '<owner>/<id>' of the entries it woke
+#
+# same match rule as the static entries : every `match.<key>` must equal
+# the value raised under <key>. an entry whose dependencies are not met
+# stays met and fires when they are. the signal is raised while an entry
+# waits : a signal that came while the zenka was down is not replayed
+
+my ( $source, $name, $values ) = @ARG;
+$values //= {};
+my @woken;
+my %touch;
+foreach my $owner ( sort keys %{ <events.buckets> // {} } ) {
+    my $bucket = <events.buckets>->{$owner};
+    foreach my $id ( @{ $bucket->{'order'} } ) {
+        my $e = $bucket->{'entries'}{$id} // next;
+        next if ( $e->{'state'} // '' ) ne qw| waiting | or $e->{'met'};
+        next if ( $e->{'when'}  // '' ) ne qw| on | or $e->{'on'} ne $name;
+        my $match = $e->{'match'} // {};
+        next if grep {
+            not defined $values->{$ARG} or $values->{$ARG} ne $match->{$ARG}
+        } keys %{$match};
+        $e->{'met'} = TRUE;
+        push @woken, "$owner/$id";
+        $touch{$owner} = 1;
+    }
+}
+foreach my $owner ( sort keys %touch ) {
+    my $ran = eval { <[events.bucket.evaluate]>->($owner) };
+    <[base.logs]>->(
+        0, "<< bucket '%s' woken by signal '%s' failed : %s >>",
+        $owner, $name, $EVAL_ERROR =~ s{\s+\z}{}r
+    ) if $EVAL_ERROR;
+    <[events.bucket.save]>->($owner);
+}
+return \@woken;
+
+#,,..,..,,.,.,.,.,,..,,.,,.,,,,,.,.,,,.,,,.,.,..,,...,...,.,,,,,.,..,,,..,,,.,
+#GU75V4DGBRXBVJ4T5LBZMZ7SCAHY3SVIAJVN4RCVZQKUXWSLWNEB72YT7PC3336GK5QMJKM2ZBO74
+#\\\|OCHOINQKPTPL374GECKCSV73DXZYETLCA6G527RGBPTVIPI7KP4 \ / AMOS7 \ YOURUM ::
+#\[7]EHYQDCOH3ZYZ5HUOR4C7WZYRGEDYW6CIUMZXAJX6UY3UV3L5EMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

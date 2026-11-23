@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = events.cmd.bucket-remove
+# descr = remove an entry of the caller's own bucket
+# param = <entry-id>
+# descr = remove an entry, whatever its state
+# an entry that waits for it is blocked at once : its dependency is gone
+
+my $parsed = <[events.bucket.parse_args]>->( $call->{'args'} );
+my ( $owner, $id ) = @{ $parsed->{'words'} // [] };
+return { 'mode' => qw| false |, 'data' => 'no source zenka [ cube alias ]' }
+    if not defined $owner or $owner !~ m|\A[A-Za-z0-9][\w.:-]{0,63}\z|;
+return { 'mode' => qw| false |, 'data' => 'entry id expected' }
+    if not defined $id;
+my $bucket = <[events.bucket.get]>->($owner);
+my $e      = defined $bucket ? $bucket->{'entries'}{$id} : undef;
+return { 'mode' => qw| false |, 'data' => "no entry '$id' in your bucket" }
+    if not defined $e;
+return { 'mode' => qw| false |, 'data' => "entry '$id' is firing now" }
+    if $e->{'state'} eq qw| due |;
+<[events.bucket.disarm]>->( $owner, $e );
+delete $bucket->{'entries'}{$id};
+@{ $bucket->{'order'} } = grep { $ARG ne $id } @{ $bucket->{'order'} };
+<[events.bucket.save]>->($owner);
+<[events.bucket.evaluate]>->($owner);
+return { 'mode' => qw| true |, 'data' => "entry '$id' removed" };
+
+#,,..,...,,,.,.,.,,,,,...,,..,,,.,,,.,...,.,.,..,,...,...,...,.,,,..,,,,,,,,.,
+#RPNGBWYMF3FM3XK45WQAT77QH5DPZXS33WFGINU7SZLNW7VJXIZ5VZDAUKC33366MVMPKPBLIILUI
+#\\\|56IVGPAZXUGQPPWBCLMLHZ273LLF66ED3DSW5IG3JPA6YALGWXW \ / AMOS7 \ YOURUM ::
+#\[7]SHXNEXYXY64JEJXGI52T5TNAUFOS64GCP3RAVF5XEYYFWWHQWUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

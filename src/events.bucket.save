@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = events.bucket.save
+# descr = write one bucket to its file [ tmp + rename ]
+# args   = owner zenka
+# return = TRUE \ FALSE
+#
+# p7 config style, one `entry.<id>.<key> = value` line each, readable and
+# editable by a person [ a stopped zenka only ] ; backslash and newline are
+# escaped in values. the file is written beside itself and renamed, so a
+# crash leaves the old or the new file, never half of one
+
+my $owner  = shift;
+my $bucket = <events.buckets>->{$owner} // return FALSE;
+my $path   = <[events.bucket.path]>->($owner);
+my ($dir)  = $path =~ m{\A(.*)/[^/]+\z};
+if ( defined $dir and !-d $dir ) {
+    my ($parent) = $dir =~ m{\A(.*)/[^/]+\z};
+    mkdir $parent, 0750 if defined $parent and !-d $parent;
+    mkdir $dir,
+        0750
+        or <[base.logs]>->(
+        0, "<< bucket '%s' : cannot create '%s' : %s >>",
+        $owner, $dir, $OS_ERROR
+        );
+}
+my $esc = sub {
+    my $v = shift // '';
+    $v =~ s{\\}{\\\\}g;
+    $v =~ s{\n}{\\n}g;
+    return $v;
+};
+my @out = (
+    ".:[ events bucket '$owner' ]:.\n",
+    "## written by the events zenka : edit only while it is stopped ##\n",
+    "\n"
+);
+foreach my $id ( @{ $bucket->{'order'} } ) {
+    my $e = $bucket->{'entries'}{$id} // next;
+    my $p = "entry.$id";
+    foreach my $key (
+        qw| state when at after on missed met added result done reason |) {
+        push @out, sprintf "%s.%s = %s\n", $p, $key, $esc->( $e->{$key} )
+            if defined $e->{$key};
+    }
+    push @out, sprintf "%s.depends = %s\n", $p, join ',', @{ $e->{'depends'} }
+        if @{ $e->{'depends'} // [] };
+    push @out, sprintf "%s.action = %s\n", $p,
+        $esc->( $e->{'action'}{'type'} );
+    foreach my $key ( sort keys %{ $e->{'match'} // {} } ) {
+        push @out, sprintf "%s.match.%s = %s\n", $p, $key,
+            $esc->( $e->{'match'}{$key} );
+    }
+    foreach
+        my $key ( sort grep { $ARG ne qw| type | } keys %{ $e->{'action'} } )
+    {
+        push @out, sprintf "%s.param.%s = %s\n", $p, $key,
+            $esc->( $e->{'action'}{$key} );
+    }
+    push @out, "\n";
+}
+my $tmp = "$path.tmp";
+if ( open my $fh, '>:encoding(UTF-8)', $tmp ) {
+    print {$fh} @out;
+    close $fh or return FALSE;
+    if ( CORE::rename( $tmp, $path ) ) {
+        return TRUE;
+    }
+    <[base.logs]>->(
+        0, "<< bucket '%s' : cannot rename '%s' : %s >>",
+        $owner, $tmp, $OS_ERROR
+    );
+    return FALSE;
+}
+<[base.logs]>->(
+    0, "<< bucket '%s' : cannot write '%s' : %s >>",
+    $owner, $tmp, $OS_ERROR
+);
+return FALSE;
+
+#,,..,,..,.,.,.,.,,,.,,,.,...,...,,,.,..,,,.,,..,,...,...,...,,,,,.,,,...,..,,
+#525427SX5ZQE6TOENWSVN6HF2MM7LOTGHWGH5GMXH4CSL6SGON4F74RPLINXVBANW36TOMVYN363U
+#\\\|CWKKDRFXN6WPT6TPFHCSF7KIK5VTZQ6LR63Y7JXAXHZF3KUQ6B2 \ / AMOS7 \ YOURUM ::
+#\[7]SK5JVNSGZB5QZGRTQASK3UGQKNW5JEWCLKOERUTDZR4C66GFHMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

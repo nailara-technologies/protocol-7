@@ -446,6 +446,25 @@ while ( my $file_path = shift @files ) {
             );
         }
 
+        ## the pre-commit hook's descr \ param rule, here so a check run  ##
+        ## finds it before a sign [ src/*cmd* files, the value at most 55 ##
+        ## bytes -- the hook reads without a layer, bytes it is ]         ##
+        if ( $file_path =~ m{(?:\A|/)src/[^/]*cmd} ) {
+            my $line_num = 0;
+            foreach my $line ( split m|\n|, $orig_text ) {
+                $line_num++;
+                next if $line !~ m{^#\s*(descr|param)\s*=\s*(.+)$};
+                my ( $field, $value ) = ( $1, $2 );
+                my $bytes = $value;
+                utf8::encode($bytes) if utf8::is_utf8($bytes);
+                next                 if length $bytes <= 55;
+                push @real_errors,
+                    sprintf '%s line %d is %d bytes [ '
+                    . 'the commit hook allows 55 ]',
+                    $field, $line_num, length $bytes;
+            }
+        }
+
         if (@real_errors) {
             warn color_msg( join_real_errors( $file_path, @real_errors ),
                 $file_path );
@@ -3538,8 +3557,8 @@ sub show_progress {
     );
 }
 
-#,,..,,..,,,.,,,,,,.,,.,.,..,,,.,,,,,,,..,..,,..,,...,..,,...,.,.,...,..,,,,,,
-#2QRT4CI5X4XTKLHYNZXKWH2UR2C2BMJXADQOJ4HIPXYYDCSFUIYHTLUNTURDKK245KP7NYBH2U4OO
-#\\\|3GJY3NFEVGFFT3ZRPXXK6NX7EIF3FOIU2MGXQAZPX3XMWTOU4IX \ / AMOS7 \ YOURUM ::
-#\[7]SRWDOTMJKJCFH67RQWQRLPGAQHREEUOBWZPOYVKV4E7OAT5S4KCA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,.,,..,,..,.,.,.,,,,,,,.,.,,,,,..,,...,...,...,..,,,,,,..,,.,.,
+#4TSSOAEERGSZ2KCUOBULSWG2MGQFOTZ3MZTLXIL7TCMRS452ACNCRBUA5C763Q6AZ5U2UWEBQQKC2
+#\\\|3F4T3BOJ2W6SCGOQLLJ6QXSTUUQ2O22QRWMJHC6CEKXR27H3ZPB \ / AMOS7 \ YOURUM ::
+#\[7]NMB5NGN6BWDFDJGHKJLPHPCII5AKSZYFIIVKDAIPUVUPW3OHQQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = events.access.grants
+# descr = the per-zenka grants of cfg/zenki/cube/access.zenki
+# return = hash ref { <zenka or *> => [ token .. ] } of the lines
+#          `access.cmd.usr.<zenka> = token ..` ; backslash continuations and
+#          '#' comments are handled, the parsed file is cached by path, mtime
+#          and size. an unreadable file gives undef [ logged ]
+
+my $path = <events.signal.access_file>
+    // sprintf qw| %s/zenki/cube/access.zenki |, <system.conf_path>;
+my @stat = CORE::stat($path);
+if ( !@stat ) {
+    <[base.logs]>->( 0, "<< access grants : '%s' unreadable >>", $path );
+    return undef;
+}
+my $cache = <events.signal.access_cache> //= {};
+if (   ( $cache->{'path'} // '' ) ne $path
+    or ( $cache->{'mtime'} // -1 ) != $stat[9]
+    or ( $cache->{'size'}  // -1 ) != $stat[7] ) {
+    ## the access.zenki grants : 'access.cmd.usr.<zenka> = token ..' with ##
+    ## backslash continuations and '#' comments                           ##
+    my %grants;
+    if ( open my $fh, '<:encoding(UTF-8)', $path ) {
+        my $cont = '';
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            $line =~ s{\s\#.*\z}{};
+            $line =~ s{\A\s*\#.*\z}{};
+            my $joined = $cont . $line;
+            if ( $joined =~ s{\\\s*\z}{} ) {
+                $cont = $joined . ' ';
+                next;
+            }
+            $cont = '';
+            next if $joined !~ m{\A\s*access\.cmd\.usr\.(\S+)\s*=\s*(.*)\z};
+            my ( $who, $list ) = ( $1, $2 );
+            push @{ $grants{$who} }, grep {length} split m{\s+}, $list;
+        }
+        close $fh;
+    }
+    %{$cache} = (
+        'path'   => $path,
+        'mtime'  => $stat[9],
+        'size'   => $stat[7],
+        'grants' => \%grants
+    );
+}
+return $cache->{'grants'};
+
+#,,.,,...,,.,,..,,...,.,,,.,.,,,.,,,,,..,,..,,..,,...,...,,.,,.,.,,,,,,..,.,.,
+#AKFAMWQWSBSEBSUHYOPM52QZLSHPAXCYZ56FXMB5QUVHPYDBHQDKO6QCXU7Z635PIR4NBEM6MZF4G
+#\\\|AW46DMMYDAWM6RD7RCEGBYZPDRHPYCNIUYPXXVYJU6MG2T3EPGF \ / AMOS7 \ YOURUM ::
+#\[7]O77GGL7RWSOCPGPE55L6RQSDOJA5LUGAGABLRLCE56YCE4MVFABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

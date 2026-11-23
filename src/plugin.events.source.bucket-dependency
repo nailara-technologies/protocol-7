@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = plugin.events.source.bucket-dependency
+# descr = events source plugin : an entry fired or failed
+## bucket entries wait on other entries of the same bucket [ depends ] ;  ##
+## events.bucket.finish tells this source when one ends, `wake` looks at  ##
+## the bucket again so the dependants fire or block. the registration has ##
+## no timetable keys : entries carry `depends`, not a section key         ##
+return {
+    'name'     => qw| bucket-dependency |,
+    'kind'     => qw| source |,
+    'describe' => 'bucket entry ended : depends = id,id [ same bucket ]',
+    'keys'     => [],
+    'arm'      => sub {
+        my $keys = shift // [];
+        <events.bucket_dep_armed> //= {};
+        foreach my $key ( @{$keys} ) { <events.bucket_dep_armed>->{$key} = 1 }
+        return scalar @{$keys};
+    },
+    'disarm' => sub {
+        my $keys = shift // [];
+        foreach my $key ( @{$keys} ) {
+            delete( ( <events.bucket_dep_armed> //= {} )->{$key} );
+        }
+        return TRUE;
+    },
+    'wake' => sub {
+        my ( $owner, $id, $state ) = @ARG;
+        <[events.bucket.evaluate]>->($owner);
+        return TRUE;
+    }
+};
+
+#,,..,...,,.,,,.,,..,,...,,.,,.,,,,.,,,,.,,.,,..,,...,...,..,,...,..,,.,,,...,
+#3FKSNG3YMMOUZU37AZEMDREQI2MBLSXPOXJ6DA6X3ELCI5B5GI2DAKTC6LWCUFOGT4PTMGLUEFS5E
+#\\\|JGENZX3XIAAAK6IO5KGJXGOXBTPNDFRVWLQ6IY42U4ATE7DU3Y2 \ / AMOS7 \ YOURUM ::
+#\[7]5QKYWYY7UXMZG4ZHMP3IKZMEYAJJIH4GFAF634GVW6ZNBW2ZHQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

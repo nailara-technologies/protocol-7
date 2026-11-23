@@ -1,8 +1,10 @@
 ## [:< ##
 
 # name  = events.fire
-# descr = run the action of an entry : enabled \ dependency checks, then the action plugin
-# args   = { ev_id, ev_type [ at | start | end | signal ] }
+# descr = run the action of an entry through its plugin
+# args   = { ev_id, ev_type [ at | start | end | signal ] [, entry ] }
+#          entry = { name, action } : a bucket entry, which is not in the
+#          static setup -- no enabled \ dependency check, the bucket did them
 # return = TRUE when the action ran, FALSE when the entry was skipped
 #          [ not enabled, dependencies unresolved, no such action ]
 # an action that dies dies through here, as it did in the handler
@@ -11,29 +13,32 @@ my $fire    = shift;
 my $ev_id   = $fire->{'ev_id'};
 my $ev_type = $fire->{'ev_type'};
 
-my $ev_data     = <events.setup>->{$ev_id};
-my $event_name  = $ev_data->{'name'};
-my $action      = $ev_data->{'action'};
+my $entry      = $fire->{'entry'};
+my $ev_data    = defined $entry ? undef            : <events.setup>->{$ev_id};
+my $event_name = defined $entry ? $entry->{'name'} : $ev_data->{'name'};
+my $action     = defined $entry ? $entry->{'action'} : $ev_data->{'action'};
 my $action_type = $action->{'type'};
 
-if (   not defined <events.enabled>->{$event_name}
-    or not <events.enabled>->{$event_name} ) {
-    <[base.logs]>->(
-        2, "[IGNORED] event '%s' not enabled in set-up", $event_name
-    );
-    return FALSE;
-}
+if ( not defined $entry ) {
+    if (   not defined <events.enabled>->{$event_name}
+        or not <events.enabled>->{$event_name} ) {
+        <[base.logs]>->(
+            2, "[IGNORED] event '%s' not enabled in set-up", $event_name
+        );
+        return FALSE;
+    }
 
-if ( defined $ev_data->{'dep_id'}
-    and !<[dependency.ok]>->( $ev_data->{'dep_id'}, $ev_id ) ) {
-    <[base.logs]>->(
-        1, "[IGNORED] '%s' event [ unresolved dependencies ]", $event_name
-    );
-    return FALSE;
-} elsif ( defined $ev_data->{'dep_id'} ) {
-    <[base.logs]>->(
-        2, "[RUN] dependencies resolved [ event '%s' ]", $event_name
-    );
+    if ( defined $ev_data->{'dep_id'}
+        and !<[dependency.ok]>->( $ev_data->{'dep_id'}, $ev_id ) ) {
+        <[base.logs]>->(
+            1, "[IGNORED] '%s' event [ unresolved dependencies ]", $event_name
+        );
+        return FALSE;
+    } elsif ( defined $ev_data->{'dep_id'} ) {
+        <[base.logs]>->(
+            2, "[RUN] dependencies resolved [ event '%s' ]", $event_name
+        );
+    }
 }
 
 <[base.logs]>->( "<%s> '%s' [%s]", $action_type, $event_name, uc($ev_type) );
@@ -62,8 +67,8 @@ $plugin->{'run'}->(
 
 return TRUE;
 
-#,,.,,.,,,,.,,...,,,,,.,.,,.,,,,.,,,,,..,,...,..,,...,...,,,.,..,,,.,,,..,.,.,
-#6HP5DYGUJUSIUFJYN2ADNAEM6OOPHPFD3FPL6SOUJT3QVF3Q7ZHLQZQO2S5PUUJ7OIWFXUH46RYAI
-#\\\|5IA7LT2ITJ2HA5HOFMJMQ2H3O5XYEGWB2M4OD46UCZT7FPSVOXP \ / AMOS7 \ YOURUM ::
-#\[7]2HE3J4WP6JHWH2EOYXM43BRC2XXJWQPIAWL4SW7YD3FDRTPME6BI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,..,,,,,,.,,,,.,,.,,,,.,...,..,,...,...,...,..,,.,.,...,..,,
+#W4BHBRSN4TJ5L7Z7N4YFLSKYQ4LONXNUEWU2BQW4YFDGD5PKFTQOEPJF7MSUEWDTWKQTVTWARNNLI
+#\\\|JNTKLLPM2G2B66ZTQLYMYZ7QJCC54NKUPDEYPPK6UKRVRJW3SP5 \ / AMOS7 \ YOURUM ::
+#\[7]5PMW7JZMA3RKBTYLLNRM6OZRCZB5Q2ARY6MGCO63GHLAACGS3ODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

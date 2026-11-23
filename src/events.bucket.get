@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = events.bucket.get
+# descr = the bucket of an owner : memory, file, new
+# args   = owner zenka, create [ TRUE : a missing bucket is created ]
+# return = bucket hash ref { owner, entries => { id => entry }, order => [ id .. ] }
+#          or undef when it does not exist and create is not set
+
+my ( $owner, $create ) = @ARG;
+<events.buckets> //= {};
+return <events.buckets>->{$owner} if defined <events.buckets>->{$owner};
+my $bucket = <[events.bucket.load]>->($owner);
+return $bucket if defined $bucket;
+return undef   if not $create;
+return <events.buckets>->{$owner}
+    = { 'owner' => $owner, 'entries' => {}, 'order' => [] };
+
+#,,,.,,,,,,,,,..,,...,.,,,..,,,,,,.,,,...,...,..,,...,...,.,,,...,,,.,...,,..,
+#ZD64TYD4X2JCXBXZUPMCHFYMVIRKAC4CHMUORU5MTKQBKQGHGTX3SVTEQOE2NCHEECXFKLWTS4QOG
+#\\\|BZ7KPO4NVWWFLITFXI3VRS7I4MP72FC5NC5TWV5UFFM2A66QCCJ \ / AMOS7 \ YOURUM ::
+#\[7]X5G6D4DQZOXSAJY5YMPMSZULNOOMEHNYFVJABM2Y7DN3RCBEEEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

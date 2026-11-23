@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = events.cmd.bucket-clear
+# descr = clear the caller's own bucket of entries not fired
+# descr = remove every entry that has not fired [ fired stay ]
+# entries that wait for a removed one are removed with it unless they
+# fired already -- nothing is left blocked by a clear
+
+my $parsed = <[events.bucket.parse_args]>->( $call->{'args'} );
+my ($owner) = @{ $parsed->{'words'} // [] };
+return { 'mode' => qw| false |, 'data' => 'no source zenka [ cube alias ]' }
+    if not defined $owner or $owner !~ m|\A[A-Za-z0-9][\w.:-]{0,63}\z|;
+my $bucket = <[events.bucket.get]>->($owner);
+return { 'mode' => qw| true |, 'data' => 'nothing to clear' }
+    if not defined $bucket;
+my @gone = grep { $bucket->{'entries'}{$ARG}{'state'} ne qw| fired | }
+    @{ $bucket->{'order'} };
+return {
+    'mode' => qw| false |,
+    'data' => 'a firing entry cannot be cleared'
+    }
+    if grep { $bucket->{'entries'}{$ARG}{'state'} eq qw| due | } @gone;
+
+foreach my $id (@gone) {
+    <[events.bucket.disarm]>->( $owner, $bucket->{'entries'}{$id} );
+    delete $bucket->{'entries'}{$id};
+}
+my %gone = map { $ARG => 1 } @gone;
+@{ $bucket->{'order'} } = grep { not $gone{$ARG} } @{ $bucket->{'order'} };
+<[events.bucket.save]>->($owner);
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( '%d entries cleared', scalar @gone )
+};
+
+#,,,.,..,,.,.,,..,,,.,,.,,,,,,,..,,.,,...,,,,,..,,...,..,,,..,,,.,,..,,,,,,,.,
+#6MUJDMFB7RPBO3HUV6LL35CPJVULSQCT7ZVGNMAHBZGTVXVJIV5VAMBSV3GZ3474QLLRFECZP7R66
+#\\\|TGESF2OTNXM6KP4TELIDOFZJ3TZNWGU4TSNG5EEPKMRD2ZKYS6V \ / AMOS7 \ YOURUM ::
+#\[7]YKDYZVAMWMBROR3DVTUNZZHJM6END7QBVH5FZBTSSVHMSRACPMBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

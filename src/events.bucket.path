@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = events.bucket.path
+# descr = where a bucket \ the bucket journal lives
+# args   = owner zenka, or nothing for the journal
+# return = path ; the directory is <events.bucket_dir> or the var dir of the
+#          events zenka [ one file per bucket : bucket.<owner> ]
+
+my $owner = shift;
+my $dir   = <events.bucket_dir>
+    // sprintf qw| %s/events |,
+    <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+return defined $owner ? "$dir/bucket/$owner.bucket" : "$dir/bucket.journal";
+
+#,,.,,..,,,,,,,,,,.,.,.,,,..,,,,,,..,,.,,,,,.,..,,...,...,,,.,,,.,,,,,..,,.,.,
+#WT7DO5YDYBFCVQACVO6KXAXBWHV2KCI4TUAFFES4ZY7V3WYXKDUUMXZOHOMEHYQFANIVLHIR5TY22
+#\\\|KY7RZ4UGCJBVLR6GZ26G7VHVTFA2LBWYMFITY4PU42GY2Y2IEG4 \ / AMOS7 \ YOURUM ::
+#\[7]HW7A7LUYBT3ITCP2KGKHHUTGY5KLVFHDIYW25K2X7AYVIFM6VQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

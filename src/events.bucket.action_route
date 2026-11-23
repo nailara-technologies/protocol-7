@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = events.bucket.action_route
+# descr = the command route an action would send
+# args   = action hash { type, .. }
+# return = route 'zenka.command', or undef when the action type has none
+#          that can be checked [ such a type is refused in a bucket ]
+#
+# the events zenka sends the command with its own grants, so an owner may
+# park only what it could send itself :
+#   send-command   the first word of `command`
+#   task-continue  task.continue
+#   zenka-present  v7-zenki.start_once
+
+my $action = shift;
+my $type   = $action->{'type'} // '';
+if ( $type eq qw| send-command | ) {
+    my ($route) = ( $action->{'command'} // '' ) =~ m{\A\s*(\S+)};
+    return $route;
+}
+return qw| task.continue |       if $type eq qw| task-continue |;
+return qw| v7-zenki.start_once | if $type eq qw| zenka-present |;
+return undef;
+
+#,,..,,,.,.,.,,..,,,,,,..,,,.,.,.,,..,.,,,..,,..,,...,...,,,.,...,,,.,,,,,,..,
+#OINUCYK2CZTBDIMKOSZHMRNEEBIFFBNJ6GSXTGQK5V2UFGC2ILB2TYTRHMDSPAAY3I4UEG4SYKNQQ
+#\\\|JSPX5K5MBLSCBMMF6XKIOFZGJDHLTNWNNIIVBCTGSDNRCYNO5M5 \ / AMOS7 \ YOURUM ::
+#\[7]KBTYPHXSDBWDTKXWFQWT6WVYRRP363SOOOOP4YX6JEMZY7V4YKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

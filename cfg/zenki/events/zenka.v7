@@ -12,7 +12,20 @@ events.load_config  = base        ## [ ./cfg/zenki/events/event-setup.<name> ]
 
 modules.load      = net protocol io.unix ui auth events set-up.json ## devmod
 access.cmd.usr.cube  = verify-instance commands heart reload \
-                      signal signals plugins *  ## <-- refine
+                      signal signals plugins \
+                      bucket-add bucket-remove bucket-show bucket-clear \
+                      *  ## <-- refine
+
+## buckets [ runtime timetables of the zenki, see events.bucket-add ] :     ##
+## entries per bucket, and the rhythms of `after=<type>` -- fresh state per ##
+## add, so each type gives its start value ; minutes 13 \ 15 preferred      ##
+events.bucket_limit                          = 377
+base.interval.cfg.type.bucket-wait-short.start   = 34
+base.interval.cfg.type.bucket-wait-short.factor  = 1.2
+base.interval.cfg.type.bucket-wait-short.cap     = 89
+base.interval.cfg.type.bucket-wait-short.cap_jitter = 13
+base.interval.cfg.type.bucket-wait.minutes   = 13
+base.interval.cfg.type.bucket-wait-long.minutes  = 89
 
 [load_modules:<modules.load>]
 
@@ -30,8 +43,8 @@ plugins.load      = plugin.events
 
 [zenka.loop]
 
-#,,.,,...,..,,.,,,,,,,,..,,,.,..,,.,,,,,.,,.,,..,,...,...,..,,...,,,,,,,.,,.,,
-#YGCTA45PIL44AAAO73VZIU6UIUXCIRS27IBVJBQL6HSYTZ3NUMXL75GTM66XIWZ45RGQUCTIOHETM
-#\\\|O7XJCBH53CWBL7L4FD3HZKXJHBRRXTPP52F5OIJDA34INBP5OYI \ / AMOS7 \ YOURUM ::
-#\[7]SCKOMC2QO4T3XKNLTXENKO3MPLWRPRDCFELW4E4CKUI6DF6WIYAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,...,.,.,,,.,,..,,.,,,..,,,.,.,,,..,,...,...,.,.,..,,,.,,.,.,...,
+#MWJLLOKMXMTHVMYVZ755LWJPR77US62MBMVBMEAWZK45U3BQXQMAMWFVM7UV3QA2M4L37RLJJBWBS
+#\\\|VBH7U3H5QQAFJCXCMAZZ6XPZUKYPQ3QDPEVYZM6CH7IR7VX7KIA \ / AMOS7 \ YOURUM ::
+#\[7]F43PNWIZGD2P75DFROADOWVLZ3SZM4EGTJBETSSMY4Z3HYCI2SBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

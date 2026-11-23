@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = events.access.route_ok
+# descr = may a zenka send this command [ its grants ]
+# args   = zenka, route [ zenka.command ]
+# return = TRUE \ FALSE
+#
+# a bucket entry sends its command as the events zenka, which holds more
+# grants than the owner ; so the owner's own list [ and the wildcard user
+# list ] must name the route : exactly, `<zenka>.*`, `*.<command>` or `*`
+
+my ( $owner, $route ) = @ARG;
+return FALSE if not defined $owner or not defined $route;
+return FALSE if $route !~ m{\A([^.\s]+)\.(\S+)\z};
+my ( $target, $command ) = ( $1, $2 );
+my $grants = <[events.access.grants]>->() // return FALSE;
+foreach my $who ( $owner, qw| * | ) {
+    foreach my $token ( @{ $grants->{$who} // [] } ) {
+        return TRUE if $token eq $route or $token eq qw| * |;
+        return TRUE if $token eq $target . qw| .* |;
+        return TRUE if $token eq qw| *. | . $command;
+    }
+}
+return FALSE;
+
+#,,,,,,.,,...,.,,,.,,,.,.,,..,..,,..,,..,,,,,,..,,...,...,...,.,.,,..,,,,,,.,,
+#C5IVJNGQYYOMBY6KCH3FWGT4VRB2RDTC7H7ED6WHY4KWMPILGW43WTPGNKI4VQYTY5PS4LZI5RDYA
+#\\\|DAVNOBFQBY6MQJRWOJ7NOYZ2YT6ZPLNI6CODX2OPXHTVG24EDWX \ / AMOS7 \ YOURUM ::
+#\[7]6VTLIWC6QRTCSG7546V6MVEUFNKVJV7BJGDVKHCZER3ZGYITC2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
