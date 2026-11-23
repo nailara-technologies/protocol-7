@@ -513,12 +513,17 @@ what follows, and is not done :
 2. **edge width.** BMW for identity edges and the AMOS 7 as route prefix and
    readable form [ contradiction 2 ; the AMOS 7 is 32 bits ] ? if yes : L13
    or 384 for tree edges ?
-3. **two views, and identity.** an identity tree rooted at the empty parent
-   [ the root as built ] and a dated occupancy view rooted at the epoch
-   [ contradiction 3 ] : is that the meaning of the two root ideas ? is the
-   identity of an n7fs node its content part `<amos>/<bmw>`, with the epoch
-   part as occupancy ? and should a re-creation after a delete be told apart
-   from a first creation ?
+3. **decided** [ owner 2026-11-23 ] : yes to both -- the identity tree
+   [ timeless, rooted at the empty parent ] and the dated occupancy view
+   [ rooted at the epoch ] are the meaning of the two root ideas, and the
+   identity of an n7fs node is its content part `<amos>/<bmw>`, the epoch
+   part is occupancy. owner : "identity is entropy presence, brought or
+   created, while time is environmental position, as space coordinates
+   itself, even if relative". the host memory design uses the same split
+   [ data/tasks/host-memory.md : identity strand and chain = identity tree ;
+   presence signatures, sync receipts, epoch buckets = occupancy view ].
+   still open : should a re-creation after a delete be told apart from a
+   first creation ?
 4. **pools.** must every pool name an accounting parent, or may a pool stand
    with none [ contradiction 1 ; the parent is already in the address where
    it is named ] ?
@@ -613,8 +618,8 @@ what the review asked for and is still open, on purpose : contradiction 8
 [ who signs weights ], the ring questions of 10, and membership. each is an
 owner question, and none is needed for the two ready steps.
 
-#,,,,,..,,,,.,,,,,...,,,.,,,.,,..,,,.,,,,,..,,..,,...,...,,.,,.,,,...,.,,,,..,
-#QUYVZQG346MRNWAD72WEK7QZ4H3IKBSEOVFX42U4UFFHBDQ7YYSLIYP2JH6UXWZ33Q3FMBFS2M6QU
-#\\\|T3KVF6R5EW4XC2K3RNIFUR5UPQX2RNGFU4PZ7B2VFH37IUHHCUN \ / AMOS7 \ YOURUM ::
-#\[7]SZDOMF67IQ2IJC2DBLH35LN5C24OLQTAWFZGRS75APMFQZVGAADQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,..,,.,.,,,.,,,,,.,,,.,,,,,,,..,,...,..,,..,,.,,,.,.,,,,,,,,,
+#ZDJ7LCVCBCGFJSMVU42DG2LL7EPZYOASG5QXDLHVHS77XSPHQWMKEFYV3FMR4LAXZOUUHXUQWG2YC
+#\\\|G765IKI3672WKVI4OJ6YWROAO5YRCGZVBBAUC5VJNGZSOT35DZM \ / AMOS7 \ YOURUM ::
+#\[7]NYJADGFNG3G3FMVRJO6XMF2VKFGGNLRMOARQQ3WOGAY2KRBAAEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
