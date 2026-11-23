@@ -4,15 +4,19 @@
 # descr = net zenka defaults [ read-only view of interfaces, routes, dns ]
 
 ## paths stay configurable so tests point them at a fake tree ##
-<network.cfg.sys_class_net> //= qw| /sys/class/net |;
-<network.cfg.proc_root>     //= qw| /proc |;
-<network.cfg.resolv_conf>   //= qw| /etc/resolv.conf |;
-<network.cfg.ifupdown_conf> //= qw| /etc/network/interfaces |;
+<network.cfg.sys_class_net>  //= qw| /sys/class/net |;
+<network.cfg.proc_root>      //= qw| /proc |;
+<network.cfg.resolv_conf>    //= qw| /etc/resolv.conf |;
+<network.cfg.ifupdown_conf>  //= qw| /etc/network/interfaces |;
+<network.cfg.ifupdown_state> //= qw| /run/network/ifstate |;
+
+## last dhcpcd event per interface [ memory only, net.leases ] ##
+<network.lease> //= {};
 
 0;
 
-#,,..,,.,,,,.,...,..,,..,,,..,.,,,,,,,,,.,..,,..,,...,..,,...,.,.,,.,,,,.,,..,
-#CU6ED6BPQ4MPHGHZFQQUGQA2UE6B4GEEMXMLZOWEKVYTZSKAL2GLCVBENT7QJP4JPPM554CNRXVRU
-#\\\|WYSVPNE7DBVFUCT6E6FRKLRXYGP5Q735QHOUIEYX6V7EGYH4IZT \ / AMOS7 \ YOURUM ::
-#\[7]QAAHU2NHZCH33QACFXDQIG5LK63H7XS6NIFY5ZDAS7PHTZPEKYAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,,,.,,..,,..,,,,,,.,,,.,,,.,,..,,...,...,...,...,,.,,.,,,.,,,
+#QEAA3T5K4CMTIUP7FLBGWULD5ORARYIK5YXH7SFWJYLSLVFAQBDLVZCQUPZ7XW7J6LSBOPGSNEEKE
+#\\\|DVGCNCHSQJQYPPNZVWUTBUR6FVLBCRO534WWUVPKB36ZEQXDRKW \ / AMOS7 \ YOURUM ::
+#\[7]JNR2V6Y2UVKBZIYZKOLN5JETKBOA33E22LJK4IQN4YQ5O3MFIUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

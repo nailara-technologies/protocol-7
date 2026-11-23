@@ -1,0 +1,49 @@
+# dhcpcd hook : forwards each event to the protocol-7 net zenka
+#
+# install [ as root, once ; p7-host-build does it later ] :
+#   install -m 0644 bin/dhcpcd-hook/50-protocol-7-net /lib/dhcpcd/dhcpcd-hooks/
+#
+# dhcpcd-run-hooks SOURCES this file : no 'exit' here [ it would skip the
+# hooks after it ]. the call runs in the background with a short timeout,
+# so a stopped zenka or a missing p7c never delays or fails dhcpcd.
+
+p7_net_list() {
+    # space separated words -> comma list, only the address alphabet kept
+    printf '%s' "$*" | tr -cs 'A-Za-z0-9.:/_-' ',' | sed 's/^,//; s/,$//'
+}
+
+p7_net_event() {
+    p7_net_p7c=${P7_NET_P7C:-p7c}
+    command -v "$p7_net_p7c" >/dev/null 2>&1 || return 0
+    command -v timeout >/dev/null 2>&1 || return 0
+    p7_net_args="$reason $interface"
+    [ -n "$new_ip_address" ] && p7_net_args="$p7_net_args ip=$new_ip_address"
+    [ -n "$new_subnet_cidr" ] && p7_net_args="$p7_net_args prefix=$new_subnet_cidr"
+    [ -n "$new_routers" ] && p7_net_args="$p7_net_args routers=$(p7_net_list $new_routers)"
+    [ -n "$new_domain_name_servers" ] &&
+        p7_net_args="$p7_net_args dns=$(p7_net_list $new_domain_name_servers)"
+    [ -n "$new_domain_name" ] && p7_net_args="$p7_net_args domain=$(p7_net_list $new_domain_name)"
+    [ -n "$new_dhcp6_ia_na1_ia_addr1" ] &&
+        p7_net_args="$p7_net_args ip6=$(p7_net_list $new_dhcp6_ia_na1_ia_addr1)"
+    [ -n "$new_dhcp6_name_servers" ] &&
+        p7_net_args="$p7_net_args dns6=$(p7_net_list $new_dhcp6_name_servers)"
+    [ -n "$new_interface_mtu" ] && p7_net_args="$p7_net_args mtu=$new_interface_mtu"
+    [ -n "$new_dhcp_lease_time" ] && p7_net_args="$p7_net_args lease=$new_dhcp_lease_time"
+    # word splitting of p7_net_args is wanted : every value is comma joined
+    ( timeout 3 "$p7_net_p7c" net.event $p7_net_args >/dev/null 2>&1 & ) \
+        >/dev/null 2>&1
+    return 0
+}
+
+case "$reason" in
+    BOUND|BOUND6|RENEW|RENEW6|REBIND|REBIND6|REBOOT|REBOOT6|INFORM|INFORM6|\
+    EXPIRE|EXPIRE6|RELEASE|RELEASE6|STOP|STOP6|NOCARRIER|CARRIER|ROUTERADVERT|\
+    PREINIT|DEPARTED|TIMEOUT|FAIL|IPV4LL|STATIC|NAK)
+        p7_net_event || true ;;
+esac
+
+#,,,.,,..,.,.,...,.,.,..,,..,,.,.,...,,..,,,,,..,,...,...,...,,,,,,,,,,,,,.,,,
+#UJASPD5LCQJ3MN45DYBF4APRD6DTESIH6LJQ2HR6VOG6FXJP2LKZKK32657G55R3FUXCKJXSSSSV6
+#\\\|6FD4D4L4MLVOPW2MBBX5BDT5P43ZBY2VFWMQKNEOSHASJ4NQEEV \ / AMOS7 \ YOURUM ::
+#\[7]6LXHBOBY4DXSROVHN7HEILWBPLBMYVTFTGHVAXFZUG6OOHQFTYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

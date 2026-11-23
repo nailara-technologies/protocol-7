@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = network.cmd.macs
+# descr = name, mac and type of wired and wlan interfaces
+
+## one line per iface : '<name> <mac> <type>' [ for discover \ power ] ##
+my $iface = <[network.interfaces.collect]>;
+my @lines;
+foreach my $name ( sort keys $iface->%* ) {
+    my $i = $iface->{$name};
+    next if $i->{'type'} ne qw| wired | and $i->{'type'} ne qw| wlan |;
+    next if $i->{'mac'} !~ m|^[0-9a-f]{2}(:[0-9a-f]{2}){5}$|i;
+    push @lines, join( ' ', $name, lc $i->{'mac'}, $i->{'type'} );
+}
+return {
+    qw| mode | => qw| size |,
+    qw| data | => join( '', map {"$ARG\n"} @lines )
+};
+
+#,,.,,,,,,,.,,,,,,...,,.,,.,,,,..,.,,,...,,..,..,,...,...,.,,,,.,,.,,,.,.,.,.,
+#GVQCGDIMRWZTQTMNO43JDJHXSDTZUGK22Y62KHVLACNIBWCMADTJ35BFSCPMAFKM2IR22W7OIKFR6
+#\\\|WG3LFEIMXLRJ6DQI263WW2VZI3EWLGFLLINLBOXHE4OAK4N6QNE \ / AMOS7 \ YOURUM ::
+#\[7]2YXPQOG4JV7BGEPVT3IW3KVETCDLZIM2BB2F47TA2EUOBHNN7KBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

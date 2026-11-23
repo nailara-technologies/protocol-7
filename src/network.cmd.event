@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = network.cmd.event
+# param = <reason> <iface> [ key=value .. ]
+# descr = dhcpcd hook event : keep the last state per iface
+
+## sent by the dhcpcd hook [ bin/dhcpcd-hook/50-protocol-7-net ] ##
+my @word = split m|\s+|, ( $call->{'args'} // '' ) =~ s|^\s+||r;
+my ( $reason, $iface ) = splice( @word, 0, 2 );
+my $refuse = sub {
+    <[base.log]>->( 1, sprintf( ': net.event refused : %s', $ARG[0] ) );
+    return { qw| mode | => qw| false |, qw| data | => "$ARG[0]\n" };
+};
+return $refuse->('expected <reason> <iface> [ key=value .. ]')
+    if not defined $iface;
+return $refuse->('reason not a dhcpcd reason word')
+    if $reason !~ m|^[A-Z][A-Z0-9_]{1,23}$|;
+return $refuse->('interface name not valid')
+    if $iface !~ m|^[A-Za-z0-9][\w.:@-]{0,14}$|;
+
+## known keys only, values from a plain address \ name alphabet ##
+my %allowed = map { $ARG => 1 } qw| ip prefix routers dns domain ip6 dns6 mtu
+    lease |;
+my %value;
+foreach my $pair (@word) {
+    my ( $key, $val ) = split m|=|, $pair, 2;
+    return $refuse->("not key=value : $pair") if not defined $val;
+    return $refuse->("unknown key : $key")    if not $allowed{$key};
+    return $refuse->("value not valid for $key")
+        if length $val > 255 or $val !~ m|^[\w.:/,\-]*$|;
+    $value{$key} = $val;
+}
+my %lease = (
+    qw| reason | => $reason,
+    qw| time |   => CORE::time(),
+    map {
+        $ARG => (
+            m{^(routers|dns|dns6|ip6)$}
+            ? [ grep {length} split m|,|, $value{$ARG} ]
+            : $value{$ARG}
+        )
+    } keys %value
+);
+<network.lease>->{$iface} = \%lease;
+<[base.log]>->(
+    1,
+    sprintf(
+        ': net.event %s %s%s',
+        $reason, $iface,
+        join( '', map {" $ARG=$value{$ARG}"} sort keys %value )
+    )
+);
+return { qw| mode | => qw| true |, qw| data | => "event recorded\n" };
+
+#,,,.,,,.,,.,,.,.,,.,,.,.,,,,,.,.,.,,,...,.,.,..,,...,...,.,.,,.,,,,,,,..,,,.,
+#V6OXYQGKUIH65KIYUHSIVKOMHFTY5CPCSFTGGG4YCMXODOSSLKYC7SHCPCQV2F3HU32C6AWMAPA5S
+#\\\|TKVBI4MMANP2JXZV7FHIHLR32A74Z5YKEPEKJBSB2UWNW7VLDKX \ / AMOS7 \ YOURUM ::
+#\[7]SHHYOAXFTO6VM3FC6NNAAOPRR4CPLXI5D6QHNNPQPSAGKMHGD4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

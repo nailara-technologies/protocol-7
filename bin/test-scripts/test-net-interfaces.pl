@@ -128,16 +128,22 @@ put( "$root/etc/resolv.conf",
 put( "$root/etc/network/interfaces", "auto lo\niface lo inet loopback\n" );
 
 $data{'network'}{'cfg'} = {
-    sys_class_net => $sys,
-    proc_root     => "$root/proc",
-    resolv_conf   => "$root/etc/resolv.conf",
-    ifupdown_conf => "$root/etc/network/interfaces",
+    sys_class_net  => $sys,
+    proc_root      => "$root/proc",
+    resolv_conf    => "$root/etc/resolv.conf",
+    ifupdown_conf  => "$root/etc/network/interfaces",
+    ifupdown_state => "$root/run/network/ifstate",
 };
+$data{'network'}{'lease'} = {};
+my @logged;
+$code{'base.log'} = sub { push @logged, $ARG[1]; return TRUE };
+put( "$root/run/network/ifstate", "lo=lo\neth0=eth0\n" );
 $code{'network.interfaces.ip_addr_text'} = sub { return $ip_text };
 load_src($ARG) for qw| network.read_line network.interfaces.ip_addr_parse
     network.interfaces.collect network.cmd.interfaces
     network.status.default_route network.status.dns_servers
-    network.status.backend network.cmd.status |;
+    network.status.backend network.cmd.status
+    network.cmd.event network.cmd.leases network.cmd.macs |;
 
 my $i = $code{'network.interfaces.collect'}->();
 is_deeply [ sort keys %$i ], [qw| br0 eth0 eth1 lo wlan0 |],
@@ -180,7 +186,17 @@ my $b = $code{'network.status.backend'}->();
 is $b->{'backend'}, 'ifupdown+dhcpcd', 'backend ifupdown + dhcpcd';
 is_deeply $b->{'running'}, [qw| dhcpcd wpa_supplicant |], 'running daemons';
 
-put( "$root/proc/104/comm", "systemd-network\n" );
+## a debian base ships interfaces with lo only : not ifupdown ##
+put( "$root/run/network/ifstate", "lo=lo\n" );
+is $code{'network.status.backend'}->()->{'backend'}, 'dhcpcd',
+    'lo-only ifstate is not ifupdown';
+put( "$root/etc/network/interfaces",
+          "auto lo\niface lo inet loopback\nallow-hotplug "
+        . "eth0\niface eth0 inet dhcp\n" );
+is $code{'network.status.backend'}->()->{'backend'}, 'ifupdown-idle dhcpcd',
+    'configured but not up';
+put( "$root/etc/network/interfaces", "auto lo\niface lo inet loopback\n" );
+put( "$root/proc/104/comm",          "systemd-network\n" );
 unlink "$root/etc/network/interfaces";
 unlink "$root/proc/101/comm";
 is $code{'network.status.backend'}->()->{'backend'}, 'networkd',
@@ -195,10 +211,83 @@ like $s, qr|^default ipv4 : br0 via 198\.51\.100\.254$|m,
 like $s, qr|^dns\s+: 192\.0\.2\.1 2001:db8::1$|m, 'status dns';
 note $t, $s;
 
+## macs : wired + wlan only ##
+is $code{'network.cmd.macs'}->()->{'data'},
+    "eth0 52:54:00:aa:bb:01 wired\neth1 52:54:00:aa:bb:02 "
+    . "wired\nwlan0 52:54:00:aa:bb:03 wlan\n",
+    'macs lists wired and wlan';
+
+## dhcpcd hook : fake env -> fake p7c -> args -> net.event -> leases ##
+my $out  = "$root/p7c.args";
+my $fake = "$root/bin/p7c";
+put( $fake,
+          "#!/bin/sh\nprintf '%s\\n' \"\$*\" "
+        . "> $out.tmp && mv $out.tmp $out\n" );
+chmod 0755, $fake;
+my $hook = "$RealBin/../dhcpcd-hook/50-protocol-7-net";
+{
+    local %ENV = (
+        PATH                    => "$root/bin:/usr/bin:/bin",
+        P7_NET_P7C              => 'p7c',
+        reason                  => 'BOUND',
+        interface               => 'eth0',
+        new_ip_address          => '192.0.2.7',
+        new_subnet_cidr         => '24',
+        new_routers             => '192.0.2.1',
+        new_domain_name_servers => '192.0.2.1 192.0.2.53',
+        new_domain_name         => 'lan',
+        new_dhcp_lease_time     => '86400',
+    );
+    my $rc = system( qw| sh -c |,
+        ". '$hook'; echo rest-of-hooks-ran > $root/after" );
+    is $rc, 0, 'sourced hook returns 0';
+}
+ok -e "$root/after", 'hook does not exit the sourcing shell';
+for ( 1 .. 50 ) { last if -e $out; select( undef, undef, undef, 0.1 ) }
+open my $afh, '<', $out or die "hook never called p7c";
+chomp( my $args = <$afh> );
+close $afh;
+is $args,
+    'net.event BOUND eth0 ip=192.0.2.7 prefix=24 routers=192.0.2.1 '
+    . 'dns=192.0.2.1,192.0.2.53 domain=lan lease=86400', 'hook args';
+{
+    local %ENV = (
+        PATH       => "/usr/bin:/bin",
+        P7_NET_P7C => "p7c-not-installed",
+        reason     => 'BOUND',
+        interface  => 'eth0'
+    );
+    is system( qw| sh -c |, ". '$hook'" ), 0, 'missing p7c is quiet';
+}
+( $call = { args => $args } )->{'args'} =~ s|^net\.event ||;
+is $code{'network.cmd.event'}->()->{'mode'}, 'true', 'event accepted';
+is_deeply $data{'network'}{'lease'}{'eth0'}{'dns'},
+    [ '192.0.2.1', '192.0.2.53' ], 'dns kept as list';
+like $logged[-1], qr|net\.event BOUND eth0|, 'event logged';
+foreach my $bad (
+    'BOUND',
+    'bound eth0',
+    'BOUND eth0;rm',
+    'BOUND eth0 evil=1',
+    'BOUND eth0 ip=1.2.3.4;x',
+    'BOUND eth0 ip'
+) {
+    $call = { args => $bad };
+    is $code{'network.cmd.event'}->()->{'mode'}, 'false', "refused : $bad";
+}
+is scalar keys $data{'network'}{'lease'}->%*, 1,
+    'refused events store nothing';
+my $l = $code{'network.cmd.leases'}->()->{'data'};
+like $l, qr|^IFACE\s+REASON\s+AGE\s+ADDRESS\s+ROUTERS\s+DNS|, 'leases header';
+like $l,
+    qr|^eth0\s+BOUND\s+\d+ s\s+192\.0\.2\.7/24\s+192\.0\.2\.1\s+192\.0\.2\.1 192\.0\.2\.53$|m,
+    'leases row';
+note $l;
+
 done_testing;
 
-#,,,.,.,,,.,.,,.,,.,.,,..,.,.,..,,..,,,.,,,,,,..,,...,...,,.,,..,,,.,,,..,..,,
-#HHHQETXF7BNMSA2P5TNE4BWBBB7XOXHTOPZAQWWC5IXHE3AK7HIYWQK6RXO3FEZQGWC2U44EZEPPI
-#\\\|QDEJFC56YXG622MMKGLGZ3F57UHLHT22XCWGAXBWV6DEGTMGO7J \ / AMOS7 \ YOURUM ::
-#\[7]T3JEHR6AA4HQKNVXXTJDPIG2OIA2BUVSX3STULMLA7KMJW6M46BA 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,.,.,,..,,..,,,,,,,,,,.,,...,..,,...,..,,..,,...,...,,..,,..,
+#L7PLFU3RCU7A2SNJ7C2QUVK5D3JEMKUIDMGRRQPTMM2CTS4VDBMTVS4CSWQHVAOGU2UPSTADEASLW
+#\\\|HY2XCST42DMVMCHTVKHWZCHVX5DCJJQ7UIZJKYZVDTACZYUYINO \ / AMOS7 \ YOURUM ::
+#\[7]UNQR6SSDEMVLEZHIAA3DXSRIWZQPZCGNHWEIGFA6K37R7725PSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

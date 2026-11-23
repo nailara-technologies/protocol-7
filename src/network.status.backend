@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = network.status.backend
-# descr = which base network layer runs : ifupdown + dhcpcd, networkd, NetworkManager, none
+# descr = which base network layer runs
 
 my $proc = <network.cfg.proc_root>;
 my %running;
@@ -16,21 +16,45 @@ if ( opendir( my $dh, $proc ) ) {
     }
     closedir($dh);
 }
-my $ifupdown = -f <network.cfg.ifupdown_conf> ? 1 : 0;
+## ifupdown counts only when it brings up more than lo : a debian base     ##
+## always ships an interfaces file with lo, so the file alone says nothing ##
+my $ifupdown = 0;
+my $non_lo   = sub {
+    my ( $path, $pattern ) = @ARG;
+    open( my $fh, '<', $path ) or return 0;
+    my $found = 0;
+    while ( my $line = readline($fh) ) {
+        next       if $line !~ $pattern;
+        $found = 1 if ${^CAPTURE}[0] ne qw| lo |;
+    }
+    close($fh);
+    return $found;
+};
+## ifstate lines read 'eth0=eth0' : written by ifup, empty when none ran ##
+$ifupdown = 1
+    if $non_lo->( <network.cfg.ifupdown_state>, qr|^\s*([^=\s]+)=| );
+my $ifupdown_cfg = 0;
+foreach my $path ( <network.cfg.ifupdown_conf>,
+    glob( <network.cfg.ifupdown_conf> . qw| .d/* | ) ) {
+    $ifupdown_cfg = 1 if $non_lo->( $path, qr|^\s*iface\s+(\S+)| );
+}
 my @backend;
 push @backend, qw| NetworkManager | if $running{'NetworkManager'};
 push @backend, qw| networkd |       if $running{'networkd'};
 push @backend, $running{'dhcpcd'} ? qw| ifupdown+dhcpcd | : qw| ifupdown |
     if $ifupdown;
-push @backend, qw| dhcpcd | if $running{'dhcpcd'} and not $ifupdown;
+## configured for more than lo but nothing brought up by ifup ##
+push @backend, qw| ifupdown-idle | if $ifupdown_cfg      and not $ifupdown;
+push @backend, qw| dhcpcd |        if $running{'dhcpcd'} and not $ifupdown;
 return {
-    qw| backend |  => @backend ? join( ' ', @backend ) : qw| none |,
-    qw| running |  => [ sort keys %running ],
-    qw| ifupdown | => $ifupdown,
+    qw| backend |      => @backend ? join( ' ', @backend ) : qw| none |,
+    qw| running |      => [ sort keys %running ],
+    qw| ifupdown |     => $ifupdown,
+    qw| ifupdown_cfg | => $ifupdown_cfg,
 };
 
-#,,.,,..,,..,,,..,,.,,.,.,,,,,..,,,..,.,,,,,,,..,,...,...,,,,,.,.,,..,,,.,,.,,
-#QCCGHG6LZXHOFHRRJ3RHCOJQCT7GS4LMBUK2TVR72FRHVDM5TWJXRXCJJHD2M23G5H3EWGPITDEDA
-#\\\|ZG4ROMJWVGMJAGH7N7MPTV6YZ7QDCWMEW25EV2KFZPAPLLXCCRI \ / AMOS7 \ YOURUM ::
-#\[7]GD5YQ6VEJIVPCCLUQ6HI6MY56CWBHEE24O4QX6DXXVQ7W3SGGKDY 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,,,,,.,.,,..,.,.,,,.,.,.,,,.,..,,...,...,..,,..,,,,,,,,.,,,,,
+#X22U3XOC73LQEEDNWG4CXJ6OE7FQAJERNNJHGWUGTNF6W7ETKWHOMRISFLRCWFVBL2QC4CQK5Q6UE
+#\\\|6NHFGOGECTO5W5NNSTY7DGMYO5PU4V4CUG3YNQ4M6G77AEPFCN4 \ / AMOS7 \ YOURUM ::
+#\[7]MT66PWNKI5JJQNIFNH5I2VSFNBKE6EW4WEHOGM6W2XCQVWJQNUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

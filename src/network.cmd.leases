@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = network.cmd.leases
+# descr = last dhcpcd event per interface
+
+my $lease = <network.lease> // {};
+my @names = sort keys $lease->%*;
+return {
+    qw| mode | => qw| size |,
+    qw| data | => "no dhcpcd events since the zenka started\n"
+    }
+    if not @names;
+my $list = sub { my $v = shift; return ref $v ? join( ' ', $v->@* ) : $v };
+my $name_width = length qw| IFACE |;
+foreach my $name (@names) {
+    $name_width = length $name if length($name) > $name_width;
+}
+my $format
+    = join( ' ', "%-${name_width}s", qw| %-9s %8s %-18s %-15s %s | ) . "\n";
+my $table = sprintf( $format, qw| IFACE REASON AGE ADDRESS ROUTERS DNS | );
+my $now   = CORE::time();
+foreach my $name (@names) {
+    my $l   = $lease->{$name};
+    my $age = $now - $l->{'time'};
+    my $addr
+        = defined $l->{'ip'}
+        ? $l->{'ip'} . ( defined $l->{'prefix'} ? "/$l->{'prefix'}" : '' )
+        : qw| - |;
+    my @dns = ( ( $l->{'dns'} // [] )->@*, ( $l->{'dns6'} // [] )->@* );
+    $table .= sprintf( $format,
+        $name,
+        $l->{'reason'},
+        $age < 5400
+        ? sprintf( '%d s',   $age )
+        : sprintf( '%.1f h', $age / 3600 ),
+        $addr,
+        ( $l->{'routers'} // [] )->@* ? $list->( $l->{'routers'} ) : qw| - |,
+        @dns                          ? join( ' ', @dns ) : qw| - | );
+}
+return { qw| mode | => qw| size |, qw| data | => $table };
+
+#,,..,,.,,,.,,..,,,,.,..,,..,,,..,,,,,,,.,,.,,..,,...,...,.,,,,.,,..,,..,,,.,,
+#HCENS4BOUME5IWZMDLEBZBMXMFTLHOKUY3VC467H2DOWWPVSYP2FXXC2MP72GW6WQVFCTBQZHQ6Y6
+#\\\|4H2CAXU3YFOKHE7YQCDUR6RLMXAYELBCPVXWDHXEACG63HR4H67 \ / AMOS7 \ YOURUM ::
+#\[7]OT5VVZEIEKPLRDEA3WV3OTQ4OZYCU5QSMRTLLGH6HPE3QECNJ4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
