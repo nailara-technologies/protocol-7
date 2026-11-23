@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = nodes.ifaces.load
+# descr = read the node interface table saved before
+
+my $sref = <[file.zenka_dir.load]>->( <nodes.cfg.ifaces_file>, qw| :raw | );
+return FALSE if ref $sref ne qw| SCALAR |;
+my $all = <[nodes.ifaces.parse]>->( $sref->$* );
+<nodes.ifaces>->{$ARG} //= $all->{$ARG} foreach keys $all->%*;
+return TRUE;
+
+#,,.,,.,.,...,,..,,.,,,,,,,.,,.,,,,,.,,.,,,..,..,,...,...,..,,,,.,,,,,,..,.,.,
+#7UCOJ2FZPY47A5MA7Y3IRWLIWG4FRWGALXVQHUEG6YRR6NS2JVMMEIUJDHBD6ZJ5SM64YPJLSK4GU
+#\\\|PEFEA6RCG3VR3HQ7JRIRWZF37MN6ZFAEVJETXO772L3QR66HC7V \ / AMOS7 \ YOURUM ::
+#\[7]J22BYHNNZJG3CE2DM6QPZ4F5OEPAXW7UMRWU2RKW4UKSECEZH4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

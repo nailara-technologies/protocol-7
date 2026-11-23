@@ -47,8 +47,13 @@ foreach my $key (qw| trust root_fp delegated_name |) {
 }
 delete $stash->{$name};    ##  consumed  ##
 
-#,,,,,..,,,,.,...,,,,,.,,,,,.,.,.,..,,,,,,,,.,..,,...,...,,,,,,..,,,,,,..,.,,,
-#5MPPK6PW76CRIYQ674Q6RK5LPG63FV23PFYT5GPKODRGD25GOT5D74VVAAJTF3WGGZXQJO2SO6BFG
-#\\\|53OGDCSZUZ6CJ5EKZV7X3WZPNLN4WLQIRSS24775QWIGGJTSWKZ \ / AMOS7 \ YOURUM ::
-#\[7]M6KK5V6E3225MZGMDUM64IXSRUCXAENY677RDEOBP4INWZTLSMDA 7  DATA SIGNATURE ::
+## per interface table [ net piece 5 ] : survives the host going offline    ##
+## [ wake needs it then ] ; local_iface stays undef until discover tells on ##
+## which local interface the announcement arrived                           ##
+<[nodes.ifaces.record]>->( $name, \%reply_params, $host_href->{'trust'} );
+
+#,,,.,..,,.,.,.,,,.,.,,,,,,..,..,,,..,,..,,.,,..,,...,..,,..,,..,,,,.,,,.,.,,,
+#EVB54PX2G5DRBAQASUOCVSVZF6FDNVS3DONFNX2PETJ5W4CIHJJ6TJS7N6BYN7DZR4VN7L7KPH3HK
+#\\\|TEPWZOV4EJKOZDIOSPXSGSDZ4YMR57JOW5W5R3VKJQQDFYA7MEZ \ / AMOS7 \ YOURUM ::
+#\[7]PKRVMEGMODHSXGGWVT7YRJ526GCBXXWOFTXTAD36EOSRUTA4EYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

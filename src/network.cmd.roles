@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = network.cmd.roles
+# descr = iface roles [ lan external unknown ] and networks
+
+my $iface = <[network.interfaces.collect]>;
+my $role  = <[network.interfaces.roles]>->($iface);
+my @names = sort keys $role->%*;
+return {
+    qw| mode | => qw| size |,
+    qw| data | => "no network interfaces found\n"
+    }
+    if not @names;
+my $width = length qw| IFACE |;
+foreach my $name (@names) {
+    $width = length $name if length($name) > $width;
+}
+my $format = "%-${width}s %-8s %-11s %s\n";
+my $table  = sprintf( $format, qw| IFACE ROLE SOURCE NETWORK | );
+$table
+    .= sprintf( $format, $ARG, $role->{$ARG}->@{qw| role source network |} )
+    foreach @names;
+$table .= "set a role : net.role.<iface> = "
+    . "lan|external in host-config/net.cfg\n";
+return { qw| mode | => qw| size |, qw| data | => $table };
+
+#,,,.,..,,,..,.,,,,,,,...,,.,,,..,..,,.,,,..,,..,,...,...,...,...,...,.,,,,.,,
+#BGHV5XXIJMWQCYVUJRD5LIO74BY6VI4F76QYJELUGMNXNXECYFL4XGYUSFWLNPAJZNTWDY2V6NNHW
+#\\\|4RIWWQORTHSDRWTW3KBELVZ7SFK4YMVCMHWN3ZXRITWDAZJK3W2 \ / AMOS7 \ YOURUM ::
+#\[7]N76RF7QRRDMOWTQANJ3NIK23FS2ZD25TROJCQDRRNBCBE7IDJOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

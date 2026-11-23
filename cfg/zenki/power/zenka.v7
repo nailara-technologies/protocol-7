@@ -3,7 +3,7 @@
 
 [load_config_file:'shared-params']
 
-access.cmd.usr.cube = verify-instance heart commands reload add-wol-device remove-wol-device * # <-- LLL
+access.cmd.usr.cube = verify-instance heart commands reload add-wol-device remove-wol-device wake * # <-- LLL
 
 modules.preload = power.set-up set-up.json
 [load_modules:<modules.preload>]
@@ -16,7 +16,14 @@ power.state_file  = states.json
 
 # power.cfg. =
 
-modules.load = auth.client net protocol io.unix ui power set-up.json
+## wake : every candidate network at once, then repeat rounds against ##
+## packet loss on short, growing delays [ power.wake.schedule_next ]  ##
+power.cfg.wake_repeats = 3
+base.interval.cfg.type.wake-fallback.start = 3.1
+base.interval.cfg.type.wake-fallback.factor = 1.3
+base.interval.cfg.type.wake-fallback.cap = 13
+
+modules.load = auth.client net protocol io.unix ui power set-up.json netinfo
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -29,8 +36,8 @@ modules.load = auth.client net protocol io.unix ui power set-up.json
 
 [zenka.loop]
 
-#,,.,,,,,,...,...,,..,.,,,...,..,,.,.,...,.,.,..,,...,...,..,,.,,,...,...,,,,,
-#LXB6CX5IVJ37MZKN3RXNWPGRLGIVUSH5CYWWPMIU3WI3L2LLXQ6HXEL3YDIVHEQQDTGBOKIITSMRQ
-#\\\|YC3Q3O22XYIQAHC5TMHSVDX5KDEQ55VAOLFZSLHGD5GJCNLT2TA \ / AMOS7 \ YOURUM ::
-#\[7]CXHXW5P7XY56KPIAPFDNP5UVIOQGSTHUIXFDYMFKDURO4NQ7KMBY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,..,,,,,.,,,,.,,..,,,.,,,..,,.,,..,,...,...,,..,,,,,,,,,..,,.,.,
+#OUH6IXVWEDUVHVAGPLVDZIKYXYTYVM6ATYEBF6W3FVMX3IV4SYTPEYPXZC6LDVVZX53C76D3Q3ITI
+#\\\|P2NVPDB4EQ2DXAN3QYVS3ZMSKDHDJ3NFX7S3SO3Z2HNVUCW24KP \ / AMOS7 \ YOURUM ::
+#\[7]SR77D3RIV4T2QCTCAPTE3C64ISCDNGZJVHR3KEJIV7SF42Q6C6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -78,6 +78,9 @@ $code{'protocol-7.route-send'} = sub { push @events, shift; return TRUE };
 
 load_src('system.disk.poll');
 load_src('system.disk.cmd.disk-status');
+load_src('system.disk.cmd.disk-register');
+load_src('system.disk.cmd.disk-update');
+load_src('system.disk.cmd.disk-done');
 load_src('base.interval.rhythm.disk');
 
 $free = 40;
@@ -182,6 +185,51 @@ like $status->{'data'}, qr|\d+/\d+\s+\d+\s+.*B/s|,
 is_deeply \@log_levels, [ (0) x @log_levels ],
     'every crossing is logged into the system buffer';
 
+$data{'system'}{'disk'}{'jobs'} = {};
+my $registered = $code{'system.disk.cmd.disk-register'}
+    ->( 'import-one', '/fake/store', 100 );
+is $registered->{'mode'}, 'true', 'writer registration accepts a fitting job';
+like $registered->{'data'},
+    qr|\Afits mount=/fake expected=100 free=900 reserved=0 free_after=800|,
+    'fit answer reports expected and remaining free bytes';
+is $data{'system'}{'disk'}{'jobs'}{'import-one'}{'started'}, $now,
+    'registered writer keeps its start time';
+my $updated = $code{'system.disk.cmd.disk-update'}->( 'import-one', 20 );
+like $updated->{'data'}, qr|expected=100 written=20 left=80|,
+    'writer update reports expected, written and left';
+my $tight = $code{'system.disk.cmd.disk-register'}
+    ->( 'import-two', '/fake/other', 740 );
+is $tight->{'mode'}, 'true', 'tight writer registration is allowed';
+like $tight->{'data'}, qr|\Atight .*reserved=80 free_after=80|,
+    'fit calculation includes other registered writers';
+my $refused = $code{'system.disk.cmd.disk-register'}
+    ->( 'import-three', '/fake/full', 800 );
+is $refused->{'mode'}, 'false', 'writer below critical space is refused';
+like $refused->{'data'}, qr|\Adoes-not-fit .*free_after=-720|,
+    'refusal includes the projected free bytes';
+ok !exists $data{'system'}{'disk'}{'jobs'}{'import-three'},
+    'refused writer is not registered';
+my $jobs_status = $code{'system.disk.cmd.disk-status'}->();
+like $jobs_status->{'data'},
+    qr|jobs on /fake : free after jobs 80 B|,
+    'disk-status subtracts all remaining writer demand';
+like $jobs_status->{'data'},
+    qr|import-one : expected 100 B, written 20 B, left 80 B|,
+    'disk-status lists expected, written and left per writer';
+@events = ();
+$free   = 120;
+$code{'system.disk.poll'}->();
+like $events[0]{'call_args'}{'args'},
+    qr|registered jobs : import-one, import-two|,
+    'warning names registered writers on the mount';
+my $done = $code{'system.disk.cmd.disk-done'}->('import-two');
+like $done->{'data'}, qr|\Adone import-two mount=/fake|,
+    'completed writer is acknowledged';
+ok !exists $data{'system'}{'disk'}{'jobs'}{'import-two'},
+    'completed writer leaves the registry';
+$code{'system.disk.cmd.disk-done'}->('import-one');
+$free = 900;
+
 my $fake_mounts = $code{'system.disk.mounts'};
 my $tmp         = tempdir( CLEANUP => 1 );
 my $mounts_file = "$tmp/mounts";
@@ -222,8 +270,8 @@ is $delays[2], 13, 'critical pressure reaches configured floor';
 
 done_testing();
 
-#,,.,,,.,,.,,,,.,,...,,,,,..,,,..,,.,,,..,,,.,..,,...,...,..,,,..,,,,,.,,,,..,
-#OQ7EMKFS3R5IWAKOHDLGHIN4WNKVDM35DUYZKLCVRCO5EHXISBYWVLL4PUXEEO376LRXJYCK2T2WQ
-#\\\|5GMIP5VXN5PWTO4XL24CPHVKN5S3ELKA7XJOHAOJEGRLBZABJV7 \ / AMOS7 \ YOURUM ::
-#\[7]N6ZZDOBNUDDDPSHCDKD4OHPOP7UHVJ3KXS4JLOOWJFJQ654OZ2AI 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,,,.,.,,..,...,,.,,,,.,,..,,,.,..,,...,...,...,.,,,,,,,.,,,,,.,
+#6HNCBQ5OSMQL2HCC24N5R6AF3NASAXYHT5SKG4RLRYNI4PI3CEGJMP3DDNDLRLNA4NBHXQSAD3ILW
+#\\\|UNEVXNG3DRXCQ6QO2UJ2NTSQLJZTAGFXELQTDRKXPMBOE4S7DBJ \ / AMOS7 \ YOURUM ::
+#\[7]Z36ZWQ32NBJUNBQ2FQYCFQWYIAZLPWXIF6QCWYRCEJAH2BZD2SBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

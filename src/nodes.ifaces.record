@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = nodes.ifaces.record
+# param = <node name> <details hash> [ <trust> ]
+# descr = add a node observation tied to a local network
+
+## an observation : network fingerprint as seen from here                 ##
+## [ the local network the address lies in, see netinfo.local_networks ], ##
+## remote iface, mac, ip, last seen, times seen. a different network is a ##
+## new observation, never an overwrite ; old ones age out                 ##
+my ( $name, $d, $trust ) = @ARG;
+return FALSE if not defined $name or $name !~ m|^[\w.-]{1,253}$|;
+return FALSE if ref $d ne qw| HASH |;
+my $iface = $d->{'iface'}  // return FALSE;
+my $mac   = $d->{'hwaddr'} // return FALSE;
+return FALSE if $iface !~ m|^[\w.:-]{1,15}$|;
+return FALSE if $mac   !~ m|^[0-9a-f]{2}(:[0-9a-f]{2}){5}$|i;
+my $ip = $d->{'ip_addr'} // qw| - |;
+$ip = qw| - | if $ip !~ m|^[0-9A-Fa-f.:]{2,45}$|;
+my $net     = <[netinfo.network_of]>->($ip);
+my $network = defined $net ? $net->{'fingerprint'} : qw| - |;
+my $now     = CORE::time();
+my $node    = <nodes.ifaces>->{$name} //= { qw| obs | => [] };
+$node->{'trust'} = $trust if defined $trust and $trust =~ m|^[a-z]{1,13}$|;
+my ($seen) = grep {
+            $ARG->{'network'} eq $network
+        and $ARG->{'iface'} eq $iface
+        and $ARG->{'hwaddr'} eq lc $mac
+} $node->{'obs'}->@*;
+if ( defined $seen ) {
+    $seen->{'ip_addr'} = $ip;
+    $seen->{'seen'}    = $now;
+    $seen->{'count'}++;
+} else {
+    push $node->{'obs'}->@*,
+        {
+        qw| network | => $network,
+        qw| iface |   => $iface,
+        qw| hwaddr |  => lc $mac,
+        qw| ip_addr | => $ip,
+        qw| seen |    => $now,
+        qw| count |   => 1,
+        };
+}
+<[nodes.ifaces.age_out]>->( $node, $now );
+<[nodes.ifaces.save]>;
+return TRUE;
+
+#,,,,,,,,,.,,,,,.,,,,,,,,,..,,..,,,,.,,,,,,.,,..,,...,...,..,,,.,,,..,,,.,,,.,
+#MA4WGFF46HMSKLS4HRUOOPIK2G7FRSTSQDXWXVXT5QGTSJGIDYR3BW33SA7M342JAO3AA5P3FQRP6
+#\\\|KSDCK6G6D6C7KOPUHRCXCDB55E7ZURIKRTAAGWCWBTR4IQ5R7XC \ / AMOS7 \ YOURUM ::
+#\[7]72CZUMSPVRMYDVA273M2C4ZXQIZ7P452KT7OY5FTRE2ECAH53QCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

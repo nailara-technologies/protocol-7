@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = power.wake.schedule_next
+# param = { host, tries, last, state }
+# descr = queue the next wake repeat round
+
+## short, growing delays from the wake-fallback rhythm ##
+my $job   = shift;
+my $delay = <[base.interval.next]>->(
+    { qw| type | => qw| wake-fallback |, qw| state | => $job->{'state'} } );
+return FALSE if not defined $delay;
+<[event.add_timer]>->(
+    {   qw| after |   => $delay,
+        qw| handler | => qw| power.handler.wake_next |,
+        qw| data |    => $job
+    }
+);
+return TRUE;
+
+#,,,,,,..,..,,,,.,..,,,.,,.,,,,,,,,..,..,,,..,..,,...,...,...,...,,,,,,.,,.,.,
+#TPXU46ZY4DV7JC4WFBFGRXWLSD5ERWIL4B5OKVZ3LIIC2XSJYN3ZPHF6HJMJOTDM23UYIWAO7RDAC
+#\\\|AKGGRVGW3TUL3Q52HOA4R6KTDHSFOVQ2BCLH5KDGUEV7VVZNXS7 \ / AMOS7 \ YOURUM ::
+#\[7]XGQPJLJUFVFNUW7AOLJWMINYXA63WTPOC7L5UFHMFBXA447SGUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -95,18 +95,29 @@ foreach my $mount ( @{$mounts} ) {
         $eta = $free / -$rate if defined $rate and $rate < 0;
     }
 
+    my @jobs = sort { $a->{'name'} cmp $b->{'name'} }
+        grep { $ARG->{'mount'} eq $path } values <system.disk.jobs>->%*;
+    my $reserved = 0;
+    foreach my $job (@jobs) {
+        my $left = $job->{'expected'} - $job->{'written'};
+        $reserved += $left > 0 ? $left : 0;
+    }
     $current->{$path} = {
         %{$mount},
         qw| size |                => $size,
         qw| used |                => $used,
         qw| free |                => $free,
+        qw| free_after_jobs |     => $free - $reserved,
         qw| free_percent |        => $free_pct,
+        qw| warn_free_bytes |     => $warn_limit * $size / 100,
+        qw| critical_free_bytes | => $crit_limit * $size / 100,
         qw| inodes |              => $stat->{'files'},
         qw| inodes_used |         => $stat->{'files'} - $stat->{'files_free'},
         qw| inodes_free |         => $stat->{'files_free'},
         qw| inodes_free_percent | => $inode_free_pct,
         qw| inodes_counted |      => $inodes_counted,
         qw| level |               => $level,
+        qw| jobs |                => \@jobs,
         qw| history |             => $history,
         qw| rate |                => $rate,
         qw| eta |                 => $eta,
@@ -120,8 +131,13 @@ foreach my $mount ( @{$mounts} ) {
         :               qw| warning |;
     my $inode_text
         = $inodes_counted ? sprintf( '%.1f %%', $inode_free_pct ) : qw| n/a |;
-    my $message = sprintf '%s : %s [ %.1f %% bytes, %s inodes free ]',
-        $path, $kind, $free_pct, $inode_text;
+    my $job_text
+        = @jobs
+        ? sprintf( ', registered jobs : %s',
+        join( ', ', map { $ARG->{'name'} } @jobs ) )
+        : '';
+    my $message = sprintf '%s : %s [ %.1f %% bytes, %s inodes free%s ]',
+        $path, $kind, $free_pct, $inode_text, $job_text;
     <[base.logs]>->( 0, 'disk space : %s', $message );
     my $quoted = $message =~ s|'|\\'|gr;
     <[protocol-7.route-send]>->(
@@ -138,8 +154,8 @@ foreach my $mount ( @{$mounts} ) {
 <system.disk.interval_state> {'pressure'} = $max_pressure;
 return $current;
 
-#,,,.,.,,,,..,.,,,,,.,,.,,.,,,,,,,,,,,.,.,.,,,..,,...,...,...,.,.,.,,,...,.,,,
-#JCS5ESWJ7PKWQ7JX6JEKR4VRGFX7H2IUGEVNQE4ZL5PORWYKV4GUPNIDB4E5I3OWMBUKYJ6DWTYNU
-#\\\|QFFERRGULU5ZSSFWOGW636MLI4UZ4TRUFUSQJIKH4D2OQCLPRBN \ / AMOS7 \ YOURUM ::
-#\[7]MARSALUURQ26B7HCG5OL4JTKDIMV6ZQGYN5UX7RKMFLTXARWIAAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,,,,,,,,,.,,.,,,.,,..,,,,.,,,,,..,,...,.,,,...,,,,,...,..,,.,.,
+#QUM3POIV5OLJEWKI7UUSHRXPV4GCUHHDBUNN7E5UXLC52MPMKCQERMKFWOYJQ7KYVM7JTQX7CLSNU
+#\\\|SDJ52ALEEP5YCGNRVCI5TWM4HMEO5VZ4YRJBKHIGXRBPGT4LWQC \ / AMOS7 \ YOURUM ::
+#\[7]GTGFNUMJCFC3JZHKBQUHYHEDJTLFKQIYX5GFGP7QHRGNGSHWVEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = nodes.ifaces.parse
+# param = <state text> [ <now> ]
+# descr = node observation state text -> table
+
+my $text = shift // '';
+my $now  = shift;
+my $netw
+    = qr{(?:-|[\w:-]{1,15},[\d.]{7,15}/\d{1,2},(?:-|[0-9a-f]{2}(?::[0-9a-f]{2}){5}))};
+my %all;
+foreach my $line ( split m|\n|, $text ) {
+    next if $line =~ m|^\s*(#.*)?$|;
+    if ( $line =~ m|^\s*([\w.-]{1,253})\.trust\s*[=:]\s*([a-z]{1,13})\s*$| ) {
+        $all{ ${^CAPTURE}[0] }{'trust'} = ${^CAPTURE}[1];
+        next;
+    }
+    next
+        if $line
+        !~ m{^\s*([\w.-]{1,253})\.obs\s*[=:]\s*($netw)\s+([\w.:-]{1,15})\s+(?#
+        )([0-9a-f]{2}(?::[0-9a-f]{2}){5})\s+([0-9A-Fa-f.:-]{1,45})\s+(\d+)\s+(\d+)\s*$}x;
+    my ( $name, $network, $iface, $mac, $ip, $seen, $count ) = @{^CAPTURE};
+    push $all{$name}{'obs'}->@*,
+        {
+        qw| network | => $network,
+        qw| iface |   => $iface,
+        qw| hwaddr |  => $mac,
+        qw| ip_addr | => $ip,
+        qw| seen |    => $seen,
+        qw| count |   => $count,
+        };
+}
+foreach my $node ( values %all ) {
+    $node->{'obs'} //= [];
+    <[nodes.ifaces.age_out]>->( $node, $now );
+}
+return \%all;
+
+#,,.,,...,.,,,,..,,,,,,..,,,.,,,,,,.,,,..,.,,,..,,...,..,,,,.,,.,,,,,,,,.,,.,,
+#HCU6RKZEBRFJWUIMOSCOE7PKN4IPXAOC5U7GPML4STAH6HHY4KTZHJJFUISRHINQZRKB27DZZCO72
+#\\\|YXFMWQECDCDBO3EOUL3NGAV3REWJSF5MVCQTPLXLTRZB3TXVKBL \ / AMOS7 \ YOURUM ::
+#\[7]JJUEYHZEB355OLZO4BPU6MNYTPE3UUCAOKN67GG4TQPXY4WOZKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = system.disk.cmd.disk-register
+# param = <job-name> <path> <expected-bytes>
+# descr = register a writer and compare its expected space
+
+my ( $name, $path, $expected ) = @ARG;
+my $refuse = sub {
+    return { qw| mode | => qw| false |, qw| data | => "$ARG[0]\n" };
+};
+return $refuse->('expected <job-name> <path> <expected-bytes>')
+    if not defined $expected;
+return $refuse->('job name not valid')
+    if $name !~ m|\A[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}\z|;
+return $refuse->('path must be absolute') if $path !~ m|\A/|;
+return $refuse->('expected bytes must be a non-negative integer')
+    if $expected !~ m|\A\d+\z|;
+return $refuse->("job already registered : $name")
+    if exists <system.disk.jobs>->{$name};
+
+my $mounts = <[system.disk.poll]> // {};
+my ($mount) = sort { length($b) <=> length($a) }
+    grep {
+    $path eq $ARG
+        or index( $path, $ARG eq qw| / | ? qw| / | : "$ARG/" ) == 0
+    } keys %{$mounts};
+return $refuse->("no mounted local file system for $path")
+    if not defined $mount;
+
+my $reserved = 0;
+foreach my $job ( values <system.disk.jobs>->%* ) {
+    next if $job->{'mount'} ne $mount;
+    my $left = $job->{'expected'} - $job->{'written'};
+    $reserved += $left > 0 ? $left : 0;
+}
+my $m          = $mounts->{$mount};
+my $free_after = $m->{'free'} - $reserved - $expected;
+my $fit
+    = $free_after <= $m->{'critical_free_bytes'} ? qw| does-not-fit |
+    : $free_after <= $m->{'warn_free_bytes'}     ? qw| tight |
+    :                                              qw| fits |;
+my $answer
+    = sprintf '%s mount=%s expected=%d free=%d reserved=%d '
+    . 'free_after=%d warn_free=%d critical_free=%d',
+    $fit, $mount, $expected, $m->{'free'}, $reserved, $free_after,
+    $m->{'warn_free_bytes'}, $m->{'critical_free_bytes'};
+return $refuse->($answer) if $fit eq qw| does-not-fit |;
+
+<system.disk.jobs>->{$name} = {
+    qw| name |     => $name,
+    qw| path |     => $path,
+    qw| mount |    => $mount,
+    qw| expected | => $expected,
+    qw| written |  => 0,
+    qw| started |  => <[base.time]>->(2),
+};
+return { qw| mode | => qw| true |, qw| data | => "$answer\n" };
+
+#,,.,,,,,,,.,,,.,,,..,,,,,,..,...,...,.,.,,.,,.,.,...,...,.,.,.,,,,.,,,,.,,.,,
+#GARASRZB6QOHEPYGYUO4ECUENU3XMLNSXQ2N4U7KRVBFLOUYD73AUQTZD4FLA5DTMAILEPSY25EHS
+#\\\|FPNPEPHLLLIOPE7TDKH4KNJPBKRYAG7AKVIINJR62M3K5WVC4FJ \ / AMOS7 \ YOURUM ::
+#\[7]GKRQUAPQHWSGBS2ULA5GIN734LLBHQFRFSUBKRUUTS3OGNQVSCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

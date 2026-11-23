@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = power.cmd.wake
+# param = <host> [ <iface> ]
+# descr = wake a node seen by nodes, or a wol device
+
+my ( $host, $want ) = split m|\s+|, ( $call->{'args'} // '' ) =~ s|^\s+||r;
+return {
+    qw| mode | => qw| false |,
+    qw| data | => 'usage : power.wake <host> [iface]'
+    }
+    if not defined $host or $host !~ m|^[\w.-]{1,253}$|;
+return {
+    qw| mode | => qw| false |,
+    qw| data | => "invalid interface '$want'"
+    }
+    if defined $want and $want !~ m|^[\w:-]{1,15}$|;
+<[protocol-7.command.send.local]>->(
+    {   qw| command | => <power.cfg.node_macs_command>
+            // qw| nodes.node-macs |,
+        qw| call_args | => { qw| args | => $host },
+        qw| reply |     => {
+            qw| params | => {
+                qw| host |     => $host,
+                qw| iface |    => $want,
+                qw| reply_id | => $call->{'reply_id'}
+            },
+            qw| handler | => qw| power.handler.wake_reply |
+        }
+    }
+);
+return { qw| mode | => qw| deferred | };
+
+#,,,,,.,.,,..,,,.,.,.,.,,,...,,.,,,,.,,,.,.,.,..,,...,..,,..,,...,..,,,,.,.,.,
+#AVDVMW5U4VOA5WAXH2IYSKZGTI3I7ERRIAT26U3B7MFOYMOTGIAQJQYYZWU23ENZBOCMT5CZYDTRM
+#\\\|PU7NX33KTKFEUSWDITWLS7IK4WNCKKXO5WZIP6UKLXDANEBKVDM \ / AMOS7 \ YOURUM ::
+#\[7]M5IDBZIF3HDE4YSJNBBA3MGGRU5LMLOSSIBI7JXT6VS7MAAZ2CDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

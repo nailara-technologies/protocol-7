@@ -149,6 +149,15 @@ $code{'file.zenka_dir.load'} = sub {
 $data{'network'}{'cfg'}{'lease_file'} = 'leases.state';
 put( "$root/run/network/ifstate", "lo=lo\neth0=eth0\n" );
 $code{'network.interfaces.ip_addr_text'} = sub { return $ip_text };
+## test-net-nodes-power.pl ##
+$code{'network.lease.announce'} = sub { return 0 };
+## roles : real module in test-net-nodes-power.pl ##
+$code{'network.interfaces.roles'} = sub {
+    return {
+        map { $ARG => { role => ( $ARG eq 'eth0' ? 'lan' : 'unknown' ) } }
+            keys $ARG[0]->%*
+    };
+};
 load_src($ARG) for qw| network.read_line network.interfaces.ip_addr_parse
     network.interfaces.collect network.cmd.interfaces
     network.status.default_route network.status.dns_servers
@@ -177,12 +186,13 @@ is_deeply $i->{'br0'}{'ipv4'}, ['198.51.100.1/24'],
 is_deeply $i->{'lo'}{'ipv6'}, ['::1/128'], 'lo ipv6';
 
 my $t = $code{'network.cmd.interfaces'}->()->{'data'};
-like $t, qr|^IFACE\s+TYPE\s+MAC\s+STATE\s+CARRIER\s+SPEED\s+ADDRESSES|,
+like $t, qr|^IFACE\s+TYPE\s+ROLE\s+MAC\s+STATE\s+CARRIER\s+SPEED\s+ADDRESSES|,
     'table header';
 like $t,
-    qr|^eth0\s+wired\s+52:54:00:aa:bb:01\s+up\s+up\s+1000 Mb/s\s+192\.0\.2\.7/24|m,
+    qr|^eth0\s+wired\s+lan\s+52:54:00:aa:bb:01\s+up\s+up\s+1000 Mb/s\s+192\.0\.2\.7/24|m,
     'eth0 row';
-like $t, qr|^eth1\s+wired\s+\S+\s+down\s+down\s+-\s+-$|m, 'eth1 row unknowns';
+like $t, qr|^eth1\s+wired\s+unknown\s+\S+\s+down\s+down\s+-\s+-$|m,
+    'eth1 row unknowns';
 my @len = map { index( $ARG, 'TYPE' ) } ( split m|\n|, $t )[0];
 ok( ( grep { substr( $ARG, $len[0] - 1, 1 ) eq ' ' } split m|\n|, $t ) == 6,
     'columns aligned' );
@@ -362,8 +372,8 @@ ok !( grep {m|dns hand-off|} @logged[ $n .. $#logged ] ),
 
 done_testing;
 
-#,,,.,,.,,.,.,.,.,,.,,,..,,.,,,,,,,..,,,.,..,,..,,...,..,,..,,...,.,.,..,,,,.,
-#5UWJDBTHORKQ7ZFPF4MRRQKXBA4ZXECOWCGZEX5VNTGON3L3UMTZUF6G2NPWXTJ3L7J2TQAUT4WUE
-#\\\|YJAASBPXRKZ4QZ2UGUZZQRKTUJL2LNDCDE46RLLFLY3UCCEDKNW \ / AMOS7 \ YOURUM ::
-#\[7]P2VCH3MWGGB5KSE5J3AAN556BGNRHAMIO4HUPY2ZUCQWQUZOZUAA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,..,,,,.,,..,...,,,,,,..,,..,..,,...,..,,,..,..,,,,.,,,,,.,.,
+#7ZT4QRXFH5JJKOVILZGHVHI2UDOP7FBRRGDJZ65JONOH7DFNJEG7X7IW3REQBDAOPOX7T3Z3VZX4G
+#\\\|4TK457O2BCDZXD5MQXYBEW2TABECC2N3VV6ZHPNHFHRVXBQJEZZ \ / AMOS7 \ YOURUM ::
+#\[7]FRI7JIPOSWQG5FVM3X6EGFQOZJFTOZZ2THCZ436UUE5VPYB2XWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

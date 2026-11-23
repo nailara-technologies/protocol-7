@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = network.lease.announce
+# param = <reason> <iface>
+# descr = new link or lease : discover re-announces now
+
+## fire and forget : no reply handler. the command is a config key :   ##
+## discover.reset-broadcast-timer restarts the announce broadcast, the ##
+## brief's discover.resend-awareness registers a peer watch instead    ##
+my ( $reason, $iface ) = @ARG;
+return FALSE if ( $reason // '' ) !~ m{^(BOUND|REBOOT|CARRIER)6?$};
+my $command = <network.cfg.discover_announce_cmd>;
+return FALSE if not defined $command or not length $command;
+my $sent
+    = <[protocol-7.command.send.local]>->( { qw| command | => $command } );
+<[base.logs]>->(
+    ( $sent // 0 ) > 0 ? 1 : 0,
+    ': %s on %s : %s %s',
+    $reason,
+    $iface,
+    $command,
+    ( $sent // 0 ) > 0 ? 'sent' : 'not delivered [ discover not running ? ]'
+);
+return ( $sent // 0 ) > 0 ? TRUE : FALSE;
+
+#,,.,,.,,,,.,,.,,,.,,,,..,..,,,.,,,,,,,..,.,.,..,,...,...,,,.,...,,.,,...,..,,
+#G56QKHTNYMQP7IILM6Y3CJIOWK4KJDFFUOL22PLUUXIWKOFWQYAZDJHSQ264UH4KBIOOBVCJYJDYE
+#\\\|YBJCA46DFORENEVEA2G27RL5RHTNYAQSYAVSHBMJXN7G66DTXNL \ / AMOS7 \ YOURUM ::
+#\[7]2KEDUREW6RJNF74E34ZTYRIVTTVXKXL44TAMMPNGN2QT4NR5AACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

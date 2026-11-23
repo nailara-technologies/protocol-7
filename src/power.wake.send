@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = power.wake.send
+# param = <mac> <broadcast>
+# descr = one magic packet : undef when sent, else why
+
+my ( $mac, $broadcast ) = @ARG;
+return 'no broadcast address' if not defined $broadcast;
+my ( $dev, $why )
+    = <[power.plugin.wol.open]>
+    ->( { qw| mac | => $mac, qw| broadcast | => $broadcast } );
+return $why if not defined $dev;
+## sent : [ 'E' ] , the state is unknown until the host answers ##
+return ref <[power.plugin.wol.set]>->( $dev, [1] ) eq qw| ARRAY |
+    ? undef
+    : 'packet not sent';
+
+#,,..,,.,,.,,,,,.,..,,,,,,,..,,.,,..,,,..,.,.,..,,...,...,...,.,.,.,,,,..,,,,,
+#C475EA7DVML6ZMZRW2YICUNOUOFXQLT7WHCZQUO7ANUXJNJCGV67EQL26TL6XDXN77Y47WHN3H7WG
+#\\\|7GPTTGIUKV36JNOFH5Z2QAJ6XHMBBHZOZ43YAJPGL2L3UVTHCSH \ / AMOS7 \ YOURUM ::
+#\[7]4OJPSOEAZOZRXTAWBOVWEOPXC657ZY5A635PT55747ZGERKRWKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

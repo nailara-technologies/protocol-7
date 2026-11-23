@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.IDGJZAQ |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.L4B42QY |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -1120,6 +1120,50 @@ sub _file_format {
 
 our $STATVFS = sub { return [ statvfs( $ARG[0] ) ] };
 
+sub _disk_command {
+    my @command = @ARG;
+    my $pid     = CORE::open( my $fh, '-|', 'p7c', @command );
+    return undef if not defined $pid;
+    local $INPUT_RECORD_SEPARATOR;
+    my $output = <$fh> // '';
+    CORE::close $fh;
+    return { qw| ok | => $CHILD_ERROR == 0, qw| data | => $output };
+}
+
+sub _disk_job_register {
+    my ( $opt, $id, $expected ) = @ARG;
+    return $opt->{'_disk_job_name'} if defined $opt->{'_disk_job_name'};
+    return undef                    if $opt->{'_disk_job_attempted'};
+    $opt->{'_disk_job_attempted'} = TRUE;
+    my $name = sprintf 'n7fs-%s-%d', $id->{'disk'}, $PROCESS_ID;
+    my $reply
+        = _disk_command( 'system.disk-register', $name, $id->{'path'},
+        $expected );
+    return undef if not defined $reply;
+    my ($fit) = $reply->{'data'} =~ m{\A\s*(fits|tight|does-not-fit)\b};
+    return undef if not defined $fit;
+
+    if ( $fit eq qw| does-not-fit | ) {
+        my $answer = $reply->{'data'};
+        chomp $answer;
+        refuse( 'assimilate : system disk pre-check : %s', $answer );
+    }
+    $opt->{'_disk_job_name'} = $name;
+    return $name;
+}
+
+sub _disk_job_guard {
+    my $name = shift // return undef;
+    return bless { qw| name | => $name }, 'AMOS7::N7FS::Store::DiskJob';
+}
+
+sub AMOS7::N7FS::Store::DiskJob::DESTROY {
+    my $self = shift;
+    _disk_command( 'system.disk-done', $self->{'name'} )
+        if defined $self->{'name'};
+    return;
+}
+
 ## unique source content absent from this epoch is the expected store growth
 sub assimilate_space_check {
     my ( $opt, $id, $epoch, $items ) = @ARG;
@@ -1156,10 +1200,12 @@ sub assimilate_space_check {
         $id->{'path'},
         scalar keys %new_nodes
     ) if $expected > $free;
+    my $disk_job = _disk_job_register( $opt, $id, $expected );
     return {
         qw| expected_bytes | => $expected,
         qw| free_bytes |     => $free,
         qw| new_nodes |      => scalar keys %new_nodes,
+        defined $disk_job ? ( qw| disk_job | => $disk_job ) : (),
     };
 }
 
@@ -1277,11 +1323,13 @@ sub assimilate {
         not defined $hit;
     } @items;
 
+    my $disk_job_guard;
     if ( not $opt{'dry_run'} ) {
         assimilate_space_check( \%opt, $id, $epoch, \@items );
-        $lock  = disk_lock($id);
-        $state = state_read( $id->{'path'}, $id->{'store_pub'} );
-        $codec = codec( $state->{'store_format'} );
+        $disk_job_guard = _disk_job_guard( $opt{'_disk_job_name'} );
+        $lock           = disk_lock($id);
+        $state          = state_read( $id->{'path'}, $id->{'store_pub'} );
+        $codec          = codec( $state->{'store_format'} );
         my $locked_epoch = write_epoch($state);
         if ( $locked_epoch != $epoch ) {
             $epoch = $locked_epoch;
@@ -1824,8 +1872,8 @@ sub _remove_source {
 
 1;
 
-#,,,,,...,.,.,,,.,.,,,,.,,...,,,.,,,,,,,,,..,,..,,...,...,.,.,,..,,,,,.,.,,,,,
-#NQAPJU6IVGG7ENYMGF73BPY5RRGZNKANNUGCX365OSVMYKU2PJHF2FELUZGQH3GO2MOO4MQ33UEOO
-#\\\|LV2MVJJJOBPYA3G2CUF2JEY4AFTMDZILC2GYFLA6ETCYBTVXE2O \ / AMOS7 \ YOURUM ::
-#\[7]UWSASLXMSUPCABXQT7HB7O6DMHC7LQEPZCJUZQEX3NFA7ZT6LWAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,...,.,.,,.,,...,.,,,..,,.,.,,..,..,,...,...,,,.,..,,,,,,...,,,,,
+#5UU75AWOVNDGQ4II334S3CWXA7HAUFDRNEHAOAZWDI4BEOMQQYU6TBTKVJWZYHBDGSJNZO43ZPW2A
+#\\\|5RC2SPW4CX3PPDQ66ADKVGLFN6NWTT3TRPAXXREK7R5KGUQINCG \ / AMOS7 \ YOURUM ::
+#\[7]HBREKUFDLULV7FJ7XEM3DFLZDTMBI2PFDT47JPZNQ2LDI7LC6MCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

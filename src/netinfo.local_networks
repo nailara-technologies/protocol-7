@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = netinfo.local_networks
+# descr = attached ipv4 networks : fingerprint and role
+
+## fingerprint '<iface>,<net>/<prefix>,<gateway mac or ->' : the gateway ##
+## mac [ arp table ] is the strongest same-lan hint. role : host config  ##
+## net.role.<iface>, else external for the default route iface, else     ##
+## unknown                                                               ##
+my $proc = <netinfo.cfg.proc_root> // qw| /proc |;
+my $role = <[netinfo.role_overrides]>;
+my ( @net, %gateway, $default_iface, $default_metric );
+my $ip = sub { join( qw| . |, unpack( 'C4', pack( 'N', shift ) ) ) };
+open( my $fh, '<', "$proc/net/route" ) or return [];
+while ( my $line = readline($fh) ) {
+    my @f = split m|\s+|, $line;
+    next
+        if @f < 8
+        or $f[1] !~ m|^[0-9A-Fa-f]{8}$|
+        or $f[7] !~ m|^[0-9A-Fa-f]{8}$|;
+    next if not hex( $f[3] ) & 1;    # [ RTF_UP ]
+    my $dest = unpack( 'N', pack( 'V', hex $f[1] ) );
+    my $mask = unpack( 'N', pack( 'V', hex $f[7] ) );
+    if ( $dest == 0 and $mask == 0 ) {
+        $gateway{ $f[0] } //= $ip->( unpack( 'N', pack( 'V', hex $f[2] ) ) );
+        if ( not defined $default_metric or $f[6] < $default_metric ) {
+            ( $default_iface, $default_metric ) = ( $f[0], $f[6] );
+        }
+        next;
+    }
+    next if $f[2] ne qw| 00000000 |;
+    my $prefix = unpack( '%32b*', pack( 'N', $mask ) );
+    push @net,
+        {
+        qw| iface |     => $f[0],
+        qw| net |       => $dest,
+        qw| mask |      => $mask,
+        qw| cidr |      => $ip->($dest) . "/$prefix",
+        qw| broadcast | => $ip->( $dest | ( ~$mask & 0xFFFFFFFF ) ),
+        };
+}
+close($fh);
+my %arp;
+if ( open( my $afh, '<', "$proc/net/arp" ) ) {
+    while ( my $line = readline($afh) ) {
+        my @f = split m|\s+|, $line;
+        next if @f < 6 or $f[3] !~ m|^[0-9a-f]{2}(:[0-9a-f]{2}){5}$|i;
+        next if $f[3] eq qw| 00:00:00:00:00:00 |;
+        $arp{"$f[5] $f[0]"} = lc $f[3];
+    }
+    close($afh);
+}
+foreach my $n (@net) {
+    my $gw = $gateway{ $n->{'iface'} };
+    $n->{'gateway'}     = $gw;
+    $n->{'gw_mac'}      = defined $gw ? $arp{"$n->{'iface'} $gw"} : undef;
+    $n->{'fingerprint'} = join ',', $n->{'iface'}, $n->{'cidr'},
+        $n->{'gw_mac'} // qw| - |;
+    $n->{'role'} = $role->{ $n->{'iface'} } // (
+        defined $default_iface && $n->{'iface'} eq $default_iface
+        ? qw| external |
+        : qw| unknown |
+    );
+    $n->{'role_source'}
+        = exists $role->{ $n->{'iface'} } ? qw| host-config | : qw| default |;
+}
+return \@net;
+
+#,,,.,,..,...,.,.,,,.,..,,,,.,,,,,.,.,,..,,..,..,,...,...,...,.,,,,,,,...,,.,,
+#M2B4HU5YXTKAWLBHV32K23Q73JA7THZNFY2I4QPR5QSYGKGMUFWOK3J76WLQFZDBTHIPICEJH6PXU
+#\\\|JVJBHP5PIDDC2UGWOZWC3YDZA7XR2ZV5WLQPHNVULIDB2XGXQMB \ / AMOS7 \ YOURUM ::
+#\[7]GVJRU2KGIYIJFIA4ICGZA6RZFCTZGF4AIFHXPUQ2EQL5QA4T4GAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

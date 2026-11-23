@@ -56,8 +56,60 @@ it should be -- so it changes it when needed and restores it afterwards.
 - the base layer stays independent : when the zenka is down, ifupdown + dhcpcd keep the last
   plain configuration running -- the zenka writes that plain configuration as its fallback
 
-#,,,,,.,,,.,,,...,,.,,,,,,...,..,,.,.,,..,.,.,..,,...,...,,,,,.,.,,.,,..,,...,
-#7NIUGNSFZ7BFU36FTTBHR6TNOKIUS4YEJRYQESR33LZLAB3TOOPPWPQ75RX3NDBM2Z54R7W3CUYZQ
-#\\\|YVXPIGVPOXJW5SIKJK7ZKTHFO5WMKRUPXLONOVJGK4ZLNIRNVQM \ / AMOS7 \ YOURUM ::
-#\[7]VA5MYMQYR4LI64LOEYJK2HR2A7CWKWBK4CMBVCWUJSVTWYLWYEBY 7  DATA SIGNATURE ::
+## nodes \ power \ discover [ pieces 5 + 5b, 2026-11-23 ]
+
+- roaming hosts : a laptop plugs into other switches \ docks \ wlans -- what worked before is
+  a GROUP of observations, each tied to a network as seen from here
+- network fingerprint [ netinfo.local_networks, shared by net \ nodes \ power ] :
+  '<local iface>,<subnet>,<gateway mac or ->' -- the gateway mac [ arp table, default route
+  gateway on that iface ] is the strongest same-lan hint
+- nodes keeps per node a short history [ nodes.ifaces, node-ifaces.state ] : network, remote
+  iface, mac, ip, last seen, times seen. a different network is a new entry, never an
+  overwrite ; entries age out [ 13 days, newest 13 kept ]. nodes.node-macs <host> :
+  '<network> <iface> <mac> <ip> <seen> <count>' lines, newest first, + 'trust <state>'
+- local interface roles : lan \ external \ unknown. host config net.role.<iface> =
+  lan|external [ /etc/protocol-7/host-config/net.cfg, read only when trusted ] ; without one
+  the default route iface is external, the rest unknown. shown in net.interfaces and
+  net.roles. external is never used to wake or fall back, even when a stale observation
+  points there -- a lan on the default route iface needs net.role.<iface> = lan
+- power.wake <host> [ iface ] sends IN PARALLEL, ONLY from observations :
+  1. every observation on a network we are on now [ exact fingerprint, not external ]
+  2. every earlier network whose subnet we are on now [ another dock \ gateway ]
+  both tiers go out in the FIRST round at once, each to its subnet-directed broadcast [ one
+  packet per mac + broadcast ] ; then power.cfg.wake_repeats repeat rounds [ default 3 ]
+  against packet loss on the wake-fallback rhythm [ base.interval.next ], stopped early when
+  the newest current observation answers a ping. a try whose local iface is gone or turned
+  external is skipped. never an all-interface fallback, never 255.255.255.255.
+  no match : 'last seen on <network> [ <when> ], not reachable from here' + the group.
+  a packet only for trust pinned [ else the mac + power.add-wol-device line ]. registered
+  wol devices wake only through their attached, non-external iface
+- connecting to an awake node [ later, not built ] : staggered start [ happy eyeballs ] --
+  one attempt per candidate path [ remote iface \ local network, the wake order ], started a
+  few hundred ms apart, not after a timeout ; the first that AUTHENTICATES wins [ a tcp
+  connect alone is not enough ], the others are closed at once ; the winning path is
+  recorded for the TX-interface mapping
+- arp \ neighbour awareness [ later ] :
+  - static arp entries for observed macs on a lan network : wake by unicast to the last ip
+    [ through switches that drop broadcasts ], set and removed by the net zenka
+  - the neighbour table [ ip neigh \ /proc/net/arp, both families ] as a discovery source :
+    macs seen on the lan add awareness [ hosts that do not run discover, a laptop arriving
+    before its first announcement ] and feed the observations
+- net : BOUND \ REBOOT \ CARRIER [ + 6 ] -> discover.reset-broadcast-timer [ config key
+  network.cfg.discover_announce_cmd ] : this host re-announces on the new network at once
+- goal : TX interface mapping -- for each remote interface the LOCAL interface \ network it
+  is reachable on, so sender and receiver talk on the same network [ and power wakes over
+  the right card ]. todo :
+  - discover : record the local receiving interface per announcement [ IP_PKTINFO \
+    recvmsg ; s_read sees no destination today ] ; the fingerprint's local iface is derived
+    from the subnet until then
+  - discover.host_details returns the FIRST entry for a name and nodes asks once per online
+    period : a multi-interface host adds one observation per period. needs a details form
+    returning every entry of a host
+  - ipv6 : fingerprints and wake are ipv4 only
+  - interface type [ wired \ wlan ] of a remote iface : announce it
+
+#,,.,,,,,,,,,,..,,,..,,..,.,.,,,.,.,,,.,.,,..,..,,...,...,,,.,,,.,.,,,,..,,,,,
+#MJ6LQOIBPU47N2D6Y6THGCM7FHPIDRNKOGTECZURBYPEMQOLJLBFVTTHY77CJSUC5KRPN22W2YQFE
+#\\\|AQQNRYV472OA5K3FJOZ2PMFBRLDQZB3EX5EIV62QVWX72ANZOLM \ / AMOS7 \ YOURUM ::
+#\[7]YDFZX4ZZKL4JBDGTQX4AFUNUDKY3TGJVNRCMHEMAN5LRHFSATECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

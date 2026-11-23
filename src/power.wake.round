@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = power.wake.round
+# param = <wake job>
+# descr = one wake round : every try at once, deduplicated
+
+## a try is sent only while its local iface is still attached with the same ##
+## broadcast and not external [ the network may change between rounds ] ;   ##
+## one packet per mac + broadcast                                           ##
+my $job      = shift;
+my $networks = <[netinfo.local_networks]>;
+my ( %done, @where, $error );
+my $sent = 0;
+foreach my $try ( $job->{'tries'}->@* ) {
+    next if $done{"$try->{'mac'} $try->{'broadcast'}"}++;
+    my ($net) = grep {
+                $ARG->{'iface'} eq $try->{'local'}
+            and $ARG->{'role'} ne qw| external |
+            and $ARG->{'broadcast'} eq $try->{'broadcast'}
+    } $networks->@*;
+    if ( not defined $net ) {
+        $error = "$try->{'local'} no longer attached";
+        next;
+    }
+    my $why = <[power.wake.send]>->( $try->{'mac'}, $try->{'broadcast'} );
+    if ( defined $why ) {
+        $error = $why;
+        next;
+    }
+    $sent++;
+    push @where, "$try->{'iface'} $try->{'mac'} via $try->{'local'}";
+}
+<[base.logs]>->(
+    1,              ': wake %s round : %s',
+    $job->{'host'}, @where ? join( ', ', @where ) : "nothing sent [ $error ]"
+);
+return { sent => $sent, where => \@where, error => $error // 'no try' };
+
+#,,,.,..,,...,,.,,,..,,,.,..,,.,,,.,.,,,,,..,,..,,...,...,.,,,,,.,,,.,,,.,.,.,
+#7UDYKLA3TT4Y4JP2XGQ35OUPWOWR6KBDT43N3QRUBK3CIHYI4VEEOBOQFMK7B4A4R2CADFRHJDKKG
+#\\\|W23A5MPHKGG4KI5XQOUTMABK3X7PHMPI3M5OZQSZRF7Q2OZLUXC \ / AMOS7 \ YOURUM ::
+#\[7]Q6JYP7NULAWHKLLODO5ZRMNUV3GJFPTZNAUOJY5I5FSYC5KWVACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

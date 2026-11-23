@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = power.handler.wake_reply
+# descr = nodes.node-macs answer -> magic packets or a hint
+
+my $reply  = shift              // {};
+my $params = $reply->{'params'} // {};
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my $host   = $params->{'host'};
+my $answer = sub {
+    my ( $ok, $msg ) = @ARG;
+    <[base.callback.cmd_reply]>->(
+        $params->{'reply_id'},
+        { qw| mode | => $ok ? qw| true | : qw| false |, qw| data | => $msg }
+    ) if defined $params->{'reply_id'};
+    return $ok ? TRUE : FALSE;
+};
+my $networks = <[netinfo.local_networks]>;
+my $when     = sub {
+    my $age = CORE::time() - shift;
+    return
+          $age < 5400   ? sprintf( '%d min ago', $age / 60 )
+        : $age < 187200 ? sprintf( '%.1f h ago', $age / 3600 )
+        :                 sprintf( '%.1f d ago', $age / 86400 );
+};
+
+## never seen by nodes : a registered wol device still works ##
+if ( $mode eq qw| false | or not length $text ) {
+    my $dev = ( <power.cfg.devices> // {} )->{$host};
+    return $answer->( FALSE,
+        "'$host' not seen by nodes and not a wol device" )
+        if ref $dev ne qw| HASH |
+        or ( $dev->{'driver'} // '' ) ne qw| wol |;
+    ## its iface must be attached and not external : no blind broadcast ##
+    my ($net) = grep {
+                $ARG->{'iface'} eq ( $dev->{'iface'} // '' )
+            and $ARG->{'role'} ne qw| external |
+    } $networks->@*;
+    return $answer->(
+        FALSE, "wol device $host : its interface is not an attached lan here"
+    ) if not defined $net;
+    my $error = <[power.wake.send]>->( $dev->{'mac'}, $net->{'broadcast'} );
+    return $answer->( FALSE, "wol device $host : $error" ) if defined $error;
+    <[base.logs]>->( 1, ': wake %s [ wol device %s ]', $host, $dev->{'mac'} );
+    return $answer->( TRUE, "magic packet sent to wol device $host" );
+}
+my $d = <[power.wake.decide]>->(
+    {   lines      => $text,
+        want_iface => $params->{'iface'},
+        networks   => $networks
+    }
+);
+return $answer->( FALSE, "$host : $d->{'reason'}" )
+    if $d->{'action'} eq qw| error |;
+if ( $d->{'action'} eq qw| away | ) {
+    my $last = $d->{'group'}[0];
+    return $answer->(
+        FALSE,
+        sprintf(
+            "%s last seen on %s [ %s ], not reachable from here\n%s",
+            $host,
+            $last->{'network'},
+            $when->( $last->{'seen'} ),
+            join(
+                '',
+                map {
+                    sprintf(
+                        "  %s %s %s %s [ %s, %dx ]\n",
+                        $ARG->{'network'},         $ARG->{'iface'},
+                        $ARG->{'mac'},             $ARG->{'ip'},
+                        $when->( $ARG->{'seen'} ), $ARG->{'count'}
+                    )
+                } $d->{'group'}->@*
+            )
+        )
+    );
+}
+my $first = $d->{'tries'}[0];
+if ( $d->{'action'} eq qw| hint | ) {
+    return $answer->(
+        FALSE,
+        sprintf(
+            '%s is not pinned [ trust %s ] : no packet sent. '
+                . '%s %s on %s, or : power.add-wol-device %s %s %s',
+            $host,           $d->{'trust'},     $first->{'iface'},
+            $first->{'mac'}, $first->{'local'}, $host,
+            $first->{'mac'}, $first->{'local'}
+        )
+    );
+}
+## all candidates at once [ tier 1 then tier 2 in the same round ], each to ##
+## its subnet broadcast ; repeats against packet loss follow on the         ##
+## wake-fallback rhythm [ power.handler.wake_next ]                         ##
+my $job = {
+    host        => $host,
+    tries       => $d->{'tries'},
+    rounds_left => <power.cfg.wake_repeats> // 3,
+    state       => {}
+};
+my $round = <[power.wake.round]>->($job);
+return $answer->( FALSE, "$host : no packet sent [ $round->{'error'} ]" )
+    if not $round->{'sent'};
+<[power.wake.schedule_next]>->($job) if $job->{'rounds_left'} > 0;
+return $answer->(
+    TRUE,
+    sprintf(
+        "magic packets sent to %s on %d network%s [ %s ] ; %d repeats queued",
+        $host,
+        $round->{'sent'},
+        $round->{'sent'} == 1 ? '' : 's',
+        join( ', ', $round->{'where'}->@* ),
+        $job->{'rounds_left'}
+    )
+);
+
+#,,..,,,,,...,,,.,,.,,..,,,,,,,,.,,,,,,,,,,,,,..,,...,...,..,,..,,,.,,..,,.,,,
+#C7BBEC65ZN57AHHOMRUL4R4STJ4E4WXC7DNPLXCPLHFQYCGUHYSPUX73SNNXWJ3HC6WKMIRI43WF6
+#\\\|7S3SDQBJSXLMFMQ454Z43FXXLEHDMLCA5GLANLVNGY3OMBNYP45 \ / AMOS7 \ YOURUM ::
+#\[7]7TCQRPEKP3EHBPEA73XPZVCGJXEGDSMG4NFQNOZB4ALSLOPGLGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

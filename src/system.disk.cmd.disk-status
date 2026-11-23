@@ -57,11 +57,21 @@ foreach my $path (@paths) {
         $m->{'inodes_counted'} ? $m->{'inodes_free'} : qw| - |,
         $trend,
         $duration->( $m->{'eta'} ) );
+    next if not $m->{'jobs'}->@*;
+    $table .= sprintf "jobs on %s : free after jobs %s\n", $path,
+        $bytes->( $m->{'free_after_jobs'} );
+    foreach my $job ( $m->{'jobs'}->@* ) {
+        my $left = $job->{'expected'} - $job->{'written'};
+        $left = 0 if $left < 0;
+        $table .= sprintf "  %s : expected %s, written %s, left %s\n",
+            $job->{'name'}, $bytes->( $job->{'expected'} ),
+            $bytes->( $job->{'written'} ), $bytes->($left);
+    }
 }
 return { qw| mode | => qw| size |, qw| data | => $table };
 
-#,,..,,,,,,..,,,.,,,.,..,,.,,,,.,,.,.,...,.,.,..,,...,...,.,.,,,.,,,,,,,.,..,,
-#AZLD33T6HL6E4P727GZSZNDI5V5DZIBQ6FUCVQAYHM74DBOHZQKKBL52MQPZC23E7FQTG5WVZLYGM
-#\\\|AYSU4BLT5JK32YRGZO3GICIRNFRRCJ7EUSISIFBVOIGLGTXRL7K \ / AMOS7 \ YOURUM ::
-#\[7]XEOEXKQ6RHABFAKBKRRFWOMG5Q6YSHMKNLF64BFLLC2VBULTOSAI 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,,,,,,,,,.,,..,.,,,..,,...,.,,,..,,...,...,.,,,,,.,.,,,,..,,,.,
+#T4QLE66RZCDICCVBIDGNHNHB3TRUWPYYUTJP6GGLICSIUWTYN4B5SQJFXXCV6XFN7LGUTQKCDBGVS
+#\\\|VIEFLKRUYOVZ75DOGWCCXZAP5YYDAP5DQJB7WGSB6VV4DQHKIBR \ / AMOS7 \ YOURUM ::
+#\[7]DB5ZQ6HSBNTYNZYGGH56VETFITPHPQEQ5H6YXOIFXRNFIDO674AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

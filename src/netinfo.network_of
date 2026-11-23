@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = netinfo.network_of
+# param = <ipv4> [ <networks> ]
+# descr = the local network an address lies in, or undef
+
+my $addr = shift // return undef;
+my $nets = shift // <[netinfo.local_networks]>;
+return undef if $addr !~ m|^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$|;
+return undef if grep { $ARG > 255 } @{^CAPTURE};
+my $n = unpack( 'N', pack( 'C4', @{^CAPTURE} ) );
+foreach my $net ( $nets->@* ) {
+    return $net if ( $n & $net->{'mask'} ) == $net->{'net'};
+}
+return undef;
+
+#,,,,,,,,,...,.,.,...,.,.,..,,,.,,,.,,,.,,.,,,..,,...,.,.,,.,,..,,.,,,.,,,,.,,
+#D4LV44S4XWB63W4VALFMHKRMVOKR4QCXMOUZ2FSN25GI4VWNX3A6F6YWY6CU4GJQHP4XV6POY7BHS
+#\\\|BF2KUZYTADE53JZABQW5GEEGIMVDIOIK7QYGHH7TNK5YBR2ZRH3 \ / AMOS7 \ YOURUM ::
+#\[7]7LPE2O2RZ7MUYOZZ37LX2OGTXK6BC2534YN6S2XRBS4Y22GNL2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

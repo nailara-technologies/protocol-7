@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = nodes.ifaces.save
+# descr = write node observations, p7 config style
+
+## '<node>.trust = <state>' and one line per observation :  '<node>.obs = ##
+## <network> <iface> <mac> <ip> <seen> <count>'                           ##
+my $text = "## nodes : observations per node [ rewritten on change ] ##\n\n";
+my $all  = <nodes.ifaces> // {};
+foreach my $name ( sort keys $all->%* ) {
+    my $node = $all->{$name};
+    $text .= sprintf( "%s.trust = %s\n", $name, $node->{'trust'} )
+        if defined $node->{'trust'};
+    foreach my $o ( ( $node->{'obs'} // [] )->@* ) {
+        $text .= sprintf(
+            "%s.obs = %s %s %s %s %d %d\n",
+            $name,          $o->{'network'}, $o->{'iface'},
+            $o->{'hwaddr'}, $o->{'ip_addr'}, $o->{'seen'},
+            $o->{'count'}
+        );
+    }
+}
+my $written = <[file.zenka_dir.write]>->(
+    <nodes.cfg.ifaces_file>, \$text, qw| > |, 0600, qw| :raw |
+);
+<[base.log]>->( 0, ': node observations not written' )
+    if not defined $written;
+return defined $written ? TRUE : FALSE;
+
+#,,..,,.,,...,...,..,,.,.,.,,,...,,,.,,..,...,..,,...,.,.,,..,.,.,,.,,,,,,.,,,
+#BADBBJVLGO67VQYLGCI7U72MPUNBARFHFTYOSVBEJAM4E7CF57YWCH7SXLKQEV3QBIMW2W3HLKB4U
+#\\\|2WKPOFSZEL25VBHLUEBGFAJXUDHMDGUIKTJOLX7DIX232ZG6YK3 \ / AMOS7 \ YOURUM ::
+#\[7]F7RWVDEZQAQIR6NYA3ILITVSXEBEFZXRVMYELOQPENNDM4BPY2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

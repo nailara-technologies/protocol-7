@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = network.interfaces.roles
+# descr = role per iface : lan, external, unknown
+
+## host config net.role.<iface> wins ; the default route iface is external ##
+## ; anything else unknown ; loopback has no role                          ##
+my $iface = shift
+    // <[network.interfaces.collect]>->( { qw| ip_addr_text | => '' } );
+my $over = <[netinfo.role_overrides]>;
+my $nets = <[netinfo.local_networks]>;
+my %net  = map { $ARG->{'iface'} => $ARG } $nets->@*;
+my %role;
+foreach my $name ( keys $iface->%* ) {
+    my $source = exists $over->{$name} ? qw| host-config | : qw| default |;
+    my $role
+        = $iface->{$name}{'type'} eq qw| loopback |
+        ? qw| - |
+        : $over->{$name}
+        // ( $net{$name} ? $net{$name}{'role'} : qw| unknown | );
+    $role{$name} = {
+        qw| role |    => $role,
+        qw| source |  => $role eq qw| - | ? qw| - |               : $source,
+        qw| network | => $net{$name} ? $net{$name}{'fingerprint'} : qw| - |,
+    };
+}
+return \%role;
+
+#,,,.,,,.,,.,,,,,,.,.,...,.,.,.,.,..,,,.,,..,,..,,...,..,,.,.,.,,,..,,,,.,,..,
+#PGZ2H42Z32D5YDWLEIG6LOF4P57VYPEFQQL4FTYMQYAH6IZJVUJM5NBEI7VQN5CPZRHLXGL5LSXMA
+#\\\|U4YOYMVTEO3EJOZEWNFJJAFS3NPKQU26TQ2AWXYF6LNHYSQMQPF \ / AMOS7 \ YOURUM ::
+#\[7]V7PGE4W54FZA4TZOCY3NSC3IEOVUO5ZB2YHFVADNFTEQY2IFRCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

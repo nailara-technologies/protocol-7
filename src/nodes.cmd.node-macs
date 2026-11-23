@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = nodes.cmd.node-macs
+# param = <host>
+# descr = node observations : network iface mac ip seen n
+
+## one line per observation, newest first :  '<network> <iface> <mac> <ip> ##
+## <seen epoch> <times seen>' and a last 'trust <state>' line              ##
+my $name = ( $call->{'args'} // '' ) =~ s|^\s+\|\s+$||gr;
+return { qw| mode | => qw| false |, qw| data | => 'expected <host>' }
+    if $name !~ m|^[\w.-]{1,253}$|;
+my $node = <nodes.ifaces>->{$name};
+<[nodes.ifaces.age_out]>->($node) if defined $node;
+return { qw| mode | => qw| false |, qw| data | => "node '$name' not seen" }
+    if not defined $node
+    or not scalar( ( $node->{'obs'} // [] )->@* );
+my $text = join '', map {
+    join( ' ', $ARG->@{qw| network iface hwaddr ip_addr seen count |} ) . "\n"
+} $node->{'obs'}->@*;
+## live trust first : the stored one may be older ##
+my $online = <nodes.local-network.online-hosts>->{$name} // {};
+$text .= sprintf( "trust %s\n",
+    $online->{'trust'} // $node->{'trust'} // qw| unknown | );
+return { qw| mode | => qw| size |, qw| data | => $text };
+
+#,,..,.,.,,,.,.,,,.,,,,,.,,,.,,,.,..,,,,,,,..,..,,...,...,...,.,.,...,,,,,..,,
+#M5OPXY7NXOU6K3WOSULKAHZBXGU6MHBTSN4LEWGLAG6DTHBL7CZRTKXZ5KSXOXMIMCHWYYDBD7ULE
+#\\\|R66WPZBHAVV3ZXS3LQBMWHQWFU5ADW25IXYZZ5WQXBP45G5CEFJ \ / AMOS7 \ YOURUM ::
+#\[7]T6G3IUBQ5IUFJJVSKWB3KLCIOCU42OJYJDZ7L3W7EWVU3JXFSGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = power.wake.decide
+# param = { lines, want_iface, networks }
+# descr = ordered wake tries from node observations
+
+## lines : nodes.node-macs output. networks : netinfo.local_networks.    ##
+## tries come ONLY from observations, never on an external iface :       ##
+## 1. observations whose network is one we are on now                    ##
+## [ exact fingerprint ], newest then most seen first                    ##
+## 2. observations from an earlier network whose subnet we are on now    ##
+## [ another dock \ gateway ], newest first  nothing else : no           ##
+## all-interface fallback, no 255.255.255.255.  result action : send     ##
+## [ pinned ], hint [ not pinned ], away [ no current network matches ], ##
+## error                                                                 ##
+my $in = shift;
+my ( @obs, $trust );
+foreach my $line ( split m|\n|, $in->{'lines'} // '' ) {
+    if ( $line =~ m|^trust (\S+)$| ) { $trust = ${^CAPTURE}[0]; next }
+    my ( $network, $iface, $mac, $ip, $seen, $count ) = split m| |, $line;
+    next if not defined $count or $mac !~ m|^[0-9a-f]{2}(:[0-9a-f]{2}){5}$|;
+    push @obs,
+        {
+        network => $network,
+        iface   => $iface,
+        mac     => $mac,
+        ip      => $ip,
+        seen    => $seen,
+        count   => $count
+        };
+}
+return { action => qw| error |, reason => 'node has no observation' }
+    if not @obs;
+my $want = $in->{'want_iface'};
+if ( defined $want and length $want ) {
+    @obs = grep { $ARG->{'iface'} eq $want } @obs;
+    return {
+        action => qw| error |,
+        reason => "node has no interface '$want'"
+        }
+        if not @obs;
+}
+my @usable = grep { $ARG->{'role'} ne qw| external | }
+    ( $in->{'networks'} // [] )->@*;
+my %by_fp   = map { $ARG->{'fingerprint'} => $ARG } @usable;
+my %by_cidr = map { $ARG->{'cidr'}        => $ARG } @usable;
+my $order   = sub {
+    sort { $b->{'seen'} <=> $a->{'seen'} or $b->{'count'} <=> $a->{'count'} }
+        @ARG;
+};
+my ( @tries, %done );
+foreach
+    my $o ( $order->( grep { exists $by_fp{ $ARG->{'network'} } } @obs ) ) {
+    my $n = $by_fp{ $o->{'network'} };
+    push @tries,
+        {
+        %$o,
+        local     => $n->{'iface'},
+        broadcast => $n->{'broadcast'},
+        tier      => 1
+        };
+    $done{"$o->{'network'} $o->{'mac'}"} = 1;
+}
+foreach my $o ( sort { $b->{'seen'} <=> $a->{'seen'} } @obs ) {
+    next if $done{"$o->{'network'} $o->{'mac'}"};
+    my $cidr = ( split m|,|, $o->{'network'} )[1] // next;
+    my $n    = $by_cidr{$cidr}                    // next;
+    push @tries,
+        {
+        %$o,
+        local     => $n->{'iface'},
+        broadcast => $n->{'broadcast'},
+        tier      => 2
+        };
+}
+return {
+    action => qw| away |,
+    trust  => $trust // qw| unknown |,
+    group  => [ sort { $b->{'seen'} <=> $a->{'seen'} } @obs ]
+    }
+    if not @tries;
+return {
+    action => ( ( $trust // '' ) eq qw| pinned | ? qw| send | : qw| hint | ),
+    trust  => $trust // qw| unknown |,
+    tries  => \@tries,
+};
+
+#,,.,,,,.,.,.,.,,,,.,,,,,,.,,,,.,,,..,.,,,.,,,..,,...,...,...,,,,,,.,,.,.,,.,,
+#CVD65YF6K77GRX62QPJJ5YQDPPG3NUGC76P6JAKMUFMPFC7VTR4UCBXGFFGFT7IEIHXJASNG7ZZDU
+#\\\|2OJYP2BIKELNQBWVBWMAMA4BYSONBSKCPAV6YSDGWHFE7S6A7MX \ / AMOS7 \ YOURUM ::
+#\[7]ASHKN6KNCRGV44PW4NQVWZHVBTHX6Y6N4MY5NW6GTWR4ECG6G6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = netinfo.role_overrides
+# descr = iface roles from the net host config overlay
+
+## 'net.role.<iface> = lan|external' lines of host-config/net.cfg ; read by ##
+## net, nodes and power alike, only when the file is trusted                ##
+my $path = <netinfo.cfg.roles_file>
+    // ( ( <system.path.zenka-dirs> // {} )->{'etc_P7'}
+        // qw| /etc/protocol-7 | )
+    . qw| /host-config/net.cfg |;
+return {} if not -e $path;
+my ( $ok, $why ) = <[base.host.trusted_file]>->($path);
+if ( not $ok ) {
+    <[base.logs]>->(
+        0,     ': net roles not read [ %s : %s ]',
+        $path, $why // '?'
+    ) if not <netinfo.warned.roles>++;
+    return {};
+}
+open( my $fh, '<', $path ) or return {};
+my %role;
+while ( my $line = readline($fh) ) {
+    next
+        if $line
+        !~ m{^\s*net\.role\.([\w:-]{1,15})\s*[=:]\s*(lan|external)\s*(?:#.*)?$};
+    $role{ ${^CAPTURE}[0] } = ${^CAPTURE}[1];
+}
+close($fh);
+return \%role;
+
+#,,,.,,,,,..,,...,.,.,.,.,,..,,,,,.,.,.,,,.,.,..,,...,...,.,.,,,.,,,.,,..,,,.,
+#L6SLIUEEC5DLBYLTFRBPAAOOZGWOY2AFKOKEE2GGDNWPS6DSFPCRQECVZ7KZJGBPCA35NASONGOTY
+#\\\|DRMPXKQN2N5PLHQMRWMO7L3VNQ5R45FBC3T64T2QSY3AIVI35XI \ / AMOS7 \ YOURUM ::
+#\[7]ASJB4Y2DUFCHBXN2MYC4XGCG2C3WBMC3WJ4N3DZIOWJQFEARWKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

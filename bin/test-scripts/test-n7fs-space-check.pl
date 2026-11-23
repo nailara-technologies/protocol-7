@@ -5,6 +5,7 @@ use English;
 use warnings;
 
 use FindBin;
+use File::Temp qw| tempdir |;
 BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
 use AMOS7::N7FS::Disk  qw| disk_init disk_attach |;
@@ -35,6 +36,28 @@ my $body = "test data : space check\n" x 13;
 write_file( "$src/one", $body );
 write_file( "$src/two", $body );
 
+my $p7c_dir = tempdir( CLEANUP => 1 );
+my $p7c_log = "$p7c_dir/calls";
+write_file(
+    "$p7c_dir/p7c",
+    <<'P7C_STUB'
+#!/usr/bin/env perl
+use strict;
+use warnings;
+exit 127 if $ENV{'P7C_TEST_FAIL'};
+open my $log, '>>', $ENV{'P7C_TEST_LOG'} or die $!;
+print {$log} join( "\t", @ARGV ), "\n";
+close $log;
+my $fit = $ENV{'P7C_TEST_FIT'} // 'fits';
+print "$fit mount=/fake expected=13 free=130 reserved=0 free_after=117 "
+    . "warn_free=13 critical_free=5\n";
+exit( $fit eq 'does-not-fit' ? 1 : 0 );
+P7C_STUB
+);
+chmod 0755, "$p7c_dir/p7c" or die $OS_ERROR;
+local $ENV{'PATH'}         = "$p7c_dir:$ENV{'PATH'}";
+local $ENV{'P7C_TEST_LOG'} = $p7c_log;
+
 local $AMOS7::N7FS::Store::STATVFS
     = sub { return [ 1, 1, 1000, 1000, length($body) - 1, 1, 1, 1 ] };
 my $before = snapshot($root);
@@ -62,11 +85,53 @@ my $repeat = assimilate( %run, paths => ["$src/one"] );
 ok( $repeat->{'entries'}[0]{'status'} eq 'unchanged',
     'already stored content needs no free data space'
 );
+open my $calls_fh, '<', $p7c_log or die $OS_ERROR;
+my @calls = <$calls_fh>;
+close $calls_fh;
+chomp @calls;
+ok( $calls[0] =~ qr|\Asystem\.disk-register\tn7fs-.*\t${\( length $body )}\z|,
+    'assimilate registers expected unique store growth through p7c'
+);
+ok( $calls[1] =~ qr|\Asystem\.disk-done\tn7fs-.*\z|,
+    'assimilate completes its registered writer'
+);
+ok( $calls[2] =~ qr|\Asystem\.disk-register\t.*\t0\z|,
+    'unchanged content registers zero expected growth'
+);
+ok( $calls[3] =~ qr|\Asystem\.disk-done\t|,
+    'zero-growth writer is also completed'
+);
+
+{
+    local $ENV{'P7C_TEST_FIT'} = 'does-not-fit';
+    local $AMOS7::N7FS::Store::STATVFS
+        = sub { return [ 1, 1, 1000, 1000, 10000, 1, 1, 1 ] };
+    write_file( "$src/three", "new content for remote refusal\n" );
+    my $remote_before = snapshot($root);
+    refused(
+        sub { assimilate( %run, paths => ["$src/three"] ) },
+        qr|system disk pre-check : does-not-fit .*free_after=117|,
+        'system zenka does-not-fit answer refuses before writing'
+    );
+    ok( snap_equal( $remote_before, snapshot($root) ),
+        'remote refusal writes no store content'
+    );
+}
+
+{
+    local $ENV{'P7C_TEST_FAIL'} = 1;
+    local $AMOS7::N7FS::Store::STATVFS
+        = sub { return [ 1, 1, 1000, 1000, 10000, 1, 1, 1 ] };
+    write_file( "$src/four", "new content without system zenka\n" );
+    my $without_p7c = assimilate( %run, paths => ["$src/four"] );
+    ok( $without_p7c->{'failed'} == 0,
+        'unavailable p7c leaves the local pre-check non-fatal' );
+}
 
 done();
 
-#,,..,...,,.,,,,,,.,.,.,,,...,,,.,...,,..,,,,,..,,...,..,,..,,,.,,,..,..,,,,,,
-#JYTZHXOYMX4AMQIVE37WRO2BJOILLMAHXSDF2LAPVQM533V4ZNO7O2WTEGPNM5YOQJKG2EDWQLPTE
-#\\\|GCUE7QZWDTCRXOW3DZUIDACWRVMFFASWYDJHLEEJSWLUDNRHIPV \ / AMOS7 \ YOURUM ::
-#\[7]WISL7ETALAFDXINWK4JEQL45SEN7M5MEQKEEJFZWIZFRUR2RKCDA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,...,..,,..,,,,.,,,,,,,.,..,,,,.,..,,...,..,,,..,...,..,,.,,,.,,,
+#5KTKTU7YBY562PQPARH2SFB5G6B3H6WRU7TZQLZCNIAI6TK3WLX4BJU3S74NVPCHWMCEU4TIWP6KI
+#\\\|SYJBZOT3ZPRTTR4VZ7GZ445ZUM25ALVYDLTU5MYKJTYB4UGQ2YT \ / AMOS7 \ YOURUM ::
+#\[7]LO6GDQ6HJDIY54RHPXP3GQSU4MB6XCDPCRFHWEMVMDB3HGWKJUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

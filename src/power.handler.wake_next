@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = power.handler.wake_next
+# descr = repeat a wake round unless the host answers
+
+my $job = shift->w->data;
+return FALSE if ref $job ne qw| HASH |;
+## the newest observation on a current network answers : done ##
+my $first = $job->{'tries'}[0];
+if (    defined $first
+    and $first->{'ip'} ne qw| - |
+    and <[power.host_reachable]>->( $first->{'ip'}, 1 ) ) {
+    <[base.logs]>->(
+        1,              ': wake %s : up on %s, repeats stop',
+        $job->{'host'}, $first->{'ip'}
+    );
+    return TRUE;
+}
+$job->{'rounds_left'}--;
+<[power.wake.round]>->($job);
+<[power.wake.schedule_next]>->($job) if $job->{'rounds_left'} > 0;
+return TRUE;
+
+#,,,,,,,.,..,,..,,...,,,,,...,.,,,...,,.,,,..,..,,...,...,.,.,...,,..,,..,,.,,
+#S4K3OWBCY2UMJFKOM2ZBGVLFGDW4E4J673IF6GQF3DRDXX3X3RZN3UBNZINQHVXOIYHDUC2IPSB4A
+#\\\|VDZSRE322IWL4S7HFQBVQ7E25K4QLVD4ZRHJCC64PWHWW7VB2R3 \ / AMOS7 \ YOURUM ::
+#\[7]THWAE56QTZXEIJB6EJUT5YMB4CACHWBJX5OFAXBRDMYII5CI74BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

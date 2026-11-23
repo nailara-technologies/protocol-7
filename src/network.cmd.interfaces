@@ -4,6 +4,7 @@
 # descr = interfaces : type, mac, state, speed, addresses
 
 my $iface = <[network.interfaces.collect]>;
+my $role  = <[network.interfaces.roles]>->($iface);
 my @names = sort keys $iface->%*;
 return {
     qw| mode | => qw| size |,
@@ -14,16 +15,18 @@ my $name_width = length qw| IFACE |;
 foreach my $name (@names) {
     $name_width = length $name if length($name) > $name_width;
 }
-my $format = join( ' ', "%-${name_width}s", qw| %-8s %-17s %-9s %7s %9s %s | )
+my $format
+    = join( ' ', "%-${name_width}s", qw| %-8s %-8s %-17s %-9s %7s %9s %s | )
     . "\n";
-my $table
-    = sprintf( $format, qw| IFACE TYPE MAC STATE CARRIER SPEED ADDRESSES | );
+my $table = sprintf( $format,
+    qw| IFACE TYPE ROLE MAC STATE CARRIER SPEED ADDRESSES | );
 foreach my $name (@names) {
     my $i    = $iface->{$name};
     my @addr = ( $i->{'ipv4'}->@*, $i->{'ipv6'}->@* );
     $table .= sprintf( $format,
         $name,
         $i->{'type'},
+        $role->{$name}{'role'},
         $i->{'mac'},
         $i->{'operstate'},
         defined $i->{'carrier'}
@@ -34,8 +37,8 @@ foreach my $name (@names) {
 }
 return { qw| mode | => qw| size |, qw| data | => $table };
 
-#,,.,,.,,,..,,,,,,,..,..,,,,.,,,,,,.,,.,.,.,,,..,,...,...,.,,,.,.,...,.,.,.,,,
-#TKGFIUJIMWUWWVT7QQED62KDHTVGQBLN25YRGYZWZO3FWYTRMR2L7OID4ANUPYA72WCDYGVNWAQV2
-#\\\|V3KZ32S7VRXK3MRBT7OXUE6PFFGAMO7EI6P4ZOMOGGMDZ7FCNGK \ / AMOS7 \ YOURUM ::
-#\[7]BZEA5EHWBZHF33I4J7RFFPYFCL4Q6NUEE273IWYJHNATYW7IYKDA 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,,,,,,,.,.,.,.,.,,..,,,.,,.,,..,,...,...,.,,,,..,,.,,..,,.,.,
+#4X4J6GFHVBJ3Y6AEMZUE5WFVUAN44QYCA6N7GURCLGLRL4HCFAASHI6E4OHRQ4FO43JUMF2HYLGBQ
+#\\\|6HUK5S2QKYDNCHUDVWWZCOWQTYASN2Y3HIRASSVN7BVGST3IUML \ / AMOS7 \ YOURUM ::
+#\[7]U3V2ZYZTR5NDVAMGYXUNC4B3ZHJCHHMFTKSXWU53XPRPAJDNDSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

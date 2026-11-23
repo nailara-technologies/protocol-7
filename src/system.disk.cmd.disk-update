@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = system.disk.cmd.disk-update
+# param = <job-name> <written-bytes>
+# descr = update written bytes for a registered writer
+
+my ( $name, $written ) = @ARG;
+return {
+    qw| mode | => qw| false |,
+    qw| data | => "expected <job-name> <written-bytes>\n"
+    }
+    if not defined $written;
+return {
+    qw| mode | => qw| false |,
+    qw| data | => "written bytes must be a non-negative integer\n"
+    }
+    if $written !~ m|\A\d+\z|;
+my $job = <system.disk.jobs>->{$name};
+return { qw| mode | => qw| false |, qw| data | => "unknown job : $name\n" }
+    if not defined $job;
+$job->{'written'} = $written;
+my $left = $job->{'expected'} - $written;
+$left = 0 if $left < 0;
+return {
+    qw| mode | => qw| true |,
+    qw| data | => sprintf(
+        "%s mount=%s expected=%d written=%d left=%d\n",
+        $name, $job->{'mount'}, $job->{'expected'}, $written, $left
+    )
+};
+
+#,,.,,,,,,...,,,.,,,,,.,.,..,,,..,,..,,..,...,.,.,...,...,.,,,,..,.,,,..,,,,.,
+#7CWGS4ZJVPW5WZNWP7WRTQSRFA427GMKRESUNRZAOPAMIGHQZJA4M37RO6N36UBWQUW7CCLSFCWTW
+#\\\|M4KKO5BJ4G7DBL37XT66YYFOXSZT47YJDF3KERGLYSYW56GYLKW \ / AMOS7 \ YOURUM ::
+#\[7]7ST47VLY47NHWJNSD6Z7KBOVYHUD3SWWPZ3UMO46DIPFIT5RLSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = nodes.ifaces.age_out
+# param = <node entry> [ <now> ]
+# descr = drop old node observations, keep the newest
+
+my ( $node, $now ) = @ARG;
+$now //= CORE::time();
+my $max_age = <nodes.cfg.obs_max_age> // 1123200;    # [ 13 days ]
+my $max_obs = <nodes.cfg.obs_max>     // 13;
+my @keep    = sort { $b->{'seen'} <=> $a->{'seen'} }
+    grep { $now - $ARG->{'seen'} <= $max_age } ( $node->{'obs'} // [] )->@*;
+splice( @keep, $max_obs ) if @keep > $max_obs;
+$node->{'obs'} = \@keep;
+return scalar @keep;
+
+#,,,,,.,,,,,,,..,,,..,...,.,.,...,,..,..,,,,,,..,,...,.,,,,,,,,,,,...,,,,,.,.,
+#OCA6G5EMQWOM6Y22C5HTEAE4JJNDQKJZPKKMSDMC2HU6TYYD37EBCTW52BAQ2HWCKJHRROKVM3OYA
+#\\\|BVGOQJBR2DP7JU6VKSR5ZXW5D5YNQ2BYSZ7TBJARBWWP5N5Z5GD \ / AMOS7 \ YOURUM ::
+#\[7]6HQWED4JBP5KYN3VEBHTJ7THRY33CD5BBVZAQD7JKOEYBTZCIWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

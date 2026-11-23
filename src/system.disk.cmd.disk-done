@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = system.disk.cmd.disk-done
+# param = <job-name>
+# descr = remove a completed writer from disk accounting
+
+my $name = shift @ARG // '';
+my $job  = <system.disk.jobs>->{$name};
+return { qw| mode | => qw| false |, qw| data | => "unknown job : $name\n" }
+    if not defined $job;
+delete <system.disk.jobs>->{$name};
+return {
+    qw| mode | => qw| true |,
+    qw| data | => sprintf(
+        "done %s mount=%s expected=%d written=%d\n",
+        $name, $job->{'mount'}, $job->{'expected'}, $job->{'written'}
+    )
+};
+
+#,,.,,,.,,,.,,..,,.,.,,,,,,.,,.,,,...,.,.,,..,.,.,...,...,,.,,..,,.,,,,.,,,,,,
+#TS3UIDEUQLXCLDGPUMOXOKWD66F6JME7IUPUNDFQJGH73RDX5COME4KIMGP25AVYF6XLLOSWBSIEW
+#\\\|ZY4AZJW4EMVY3VEPRLKLQ7NUV6OROFVEZA64FGMY3N3XSTPXQPM \ / AMOS7 \ YOURUM ::
+#\[7]PPC7UGPHEMJO5ZAX4GDEWRTYMAGKXUCJ3EZHGGIX2WHZJMCMZSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
