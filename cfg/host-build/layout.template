@@ -47,6 +47,7 @@ system.locale    = C.UTF-8
 # net.backend    = ifupdown                [ ifupdown | networkd | none ]
 # net.wired      = en*                     [ the default ]
 # net.wlan       = wl*                     [ optional, disabled stub ]
+# net.mac.enp1s0 = 02:00:00:00:00:01       [ per wired interface : wake on lan ]
 
 ## grub-efi [ removable path, no nvram write ] or none ##
 system.bootloader = grub-efi
@@ -89,8 +90,13 @@ system.service   = no
 # access.from    = installer
 # access.alias   = <alias>               [ a Host block in ~/.ssh/config, no dots ]
 
-#,,,,,...,.,,,,.,,..,,,.,,...,..,,,.,,,,,,.,,,..,,...,...,,..,..,,...,,.,,,,,,
-#JSSM2ACCA7ZT4XRC6HU3VQO3BWZ6T5KIYPYCT25B2YIUSVNYA6NWJTNIV7EOD6TGRMZB7XYQMCWHE
-#\\\|YKODFSFSIBUATM7MZDQGEVFJFRB4R45DSOT3TSN6OEV5C3JVAED \ / AMOS7 \ YOURUM ::
-#\[7]BQARDRXJXYARPF3SWQU3LJPVOT5MV2FK26CCDESZDQQTXVFRQ2DI 7  DATA SIGNATURE ::
+## protocol-7 [ stage 2, always unless -no-p7 ] : the new host-root key is ##
+## created root-held and pinned both ways [ installer <-> new host ] ;     ##
+## optional : a cube grant for user.name [ host-config/cube.cfg ]          ##
+# access.p7_user = ** ..*.**             [ the access.cmd.usr.<user> mask ]
+
+#,,,.,..,,,,,,,,,,...,.,,,..,,,..,.,,,...,.,,,..,,...,.,,,.,.,.,,,,,,,...,,,.,
+#HKCMIKUWEWYJBXTOPPESOCWLFNSRTBGZMDCIXPBRPHYUTYL2SLPDHDO5NBQKV7I5WO7MG7Y73AF2G
+#\\\|QOQTE2V6UMO3ZOGSYDLYECIJXRVS3TIA3IBUSV7ABI3RSQ7FKT3 \ / AMOS7 \ YOURUM ::
+#\[7]I4OVFXMYRK72MBCN52GYLFAIXXNCNFJGYLN5GKUKLDU4XTGSS6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

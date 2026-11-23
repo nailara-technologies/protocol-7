@@ -251,6 +251,72 @@ files : bin/p7-host-build, cfg/host-build/layout.template, bin/test-scripts/test
   stays ; missing entry : locked + title + commands, and the vault file entry wins over
   ~/.ssh/*.pub ; -password-fd wins without a vault call
 
+## implementation notes [ 2026-11-23, stage 2 protocol-7 trust -- not signed, not committed ]
+
+- step 'trust' after 'protocol-7' [ main system ; -no-p7 : skipped ]. the backend user =
+  `protocol-7` [ cfg/system-user-map system.amos-zenka-user ], uid \ gid \ home from the NEW
+  tree's passwd [ never getpwnam ] ; no such line after p7-install : failed, fail closed
+- host-root : `<home>/.n/user-keys/root/host-root.{secret,private,public}` in the new tree
+  [ HOST-ROOT-DELEGATION.md 'root-held keys' ]. format = crypt.C25519.write_keys unencrypted :
+  secret \ private `encode_b32r('U:' . key)`, public `encode_b32r(pub)`, one line each ;
+  the pair = crypt.C25519.gen_keys : Crypt::Ed25519::generate_keypair, regenerated until the
+  public key AND its b32 pass AMOS7::Assert::Truth::is_true [ harmonic ] ; the secret = BMW-256
+  over 32 bytes /dev/urandom + 32 bytes /dev/random [ gen_keys mixes its fortuna stream and
+  /dev/random ; no sha ]. root/ 0700 owner 0:0, files 0600 owner 0:0 via temp + rename,
+  O_EXCL|O_NOFOLLOW ; .n \ user-keys 0700 owned by the backend user. the ownership rule of
+  crypt.C25519.key_path is checked on every read [ broken : refused ] ; a present .public is
+  only read [ its key id ], a .secret without .public : refused. v7-zenki's first start finds
+  the key present [ crypt.C25519.host_root.create returns TRUE, never regenerates ]
+- key id = trust.key_id : `encode_b32r( bmw_384( 32 byte pub ) )`, 77 chars ; printed in two
+  halves after the step
+- pins : exactly `<key id>\n`, 0600 [ a step 1 pin : auth.client.server_pin.check accepts
+  line 1 alone and adds the name line itself later ; discover reads line 1 ], file name
+  `<name>_42.public` [ 42 = the p-7-r default port ; pins name the HOST, HOST-SETUP.md ].
+  new key id -> installer : `<installer HOME>/.n/remote-keys/servers/` [ p-7-r ] and the
+  installer's protocol-7 user home [ discover, if that user exists ], under host.name and
+  access.alias. the installer's host-root [ its protocol-7 home `.n/user-keys/root/host-root.
+  public`, same ownership rule ] -> the new tree's protocol-7 home [ discover ] and user.name's
+  home [ p-7-r ], named by the installer's short host name. no installer host-root : a row,
+  that direction skipped. a pin with the same line 1 : ok ; another key id \ an old 52 char
+  pin \ a symlink \ not a pin : refused with the reason, and every conflict is checked
+  before ANY pin is written [ a conflict writes nothing ]. dirs made 0700, chown to the
+  store owner when root
+- `access.p7_user = <mask>` [ needs user.name ] : `access.cmd.usr.<user> = <mask>` appended to
+  the new tree's /etc/protocol-7/host-config/cube.cfg [ base.load_host_config, 0644 root ]
+  -- NOT cfg/zenki/cube/access.users [ tracked, signed : a pull would conflict ]. the same
+  value : ok ; another value for that user : refused
+- `net.mac.<iface> = <mac>` [ any of ':' '-' none, stored lowercase ':' ] : the target side
+  /etc/systemd/network/50-p7-wol-<iface>.link [ Match MACAddress, the 99-default policies,
+  WakeOnLan=magic ] ; a different existing file : refused. without net.mac : 'the mac is
+  learned at first boot'. the report reminds of wol in the firmware
+- PARTIAL : the power zenka's wol plugin reads devices from power.cfg.devices =
+  /etc/protocol-7/zenki/power/set-up.json on the installer -- json, written by power.save_
+  config of the live zenka. not written here [ no json, no race with the zenka ] ; the report
+  names the mac [ 'power : wol device mac ..' ]. next : a power command adding a wol device
+  [ driver wol, mac, broadcast ] or a p7 config style device source, then the build calls it
+- the grant names user.name : p-7-r logs in as the caller's PROTOCOL_7_BIN_P7R_USER \ USER on
+  the installer -- it works only when that login equals user.name [ open : a separate key if
+  they differ ]
+- pass 1 refuses an existing installer pin for host.name \ access.alias when the new key
+  cannot exist yet [ a new partition table, or a mounted tree without the key ] : a rebuild
+  stops before the wipe. an unmounted existing tree is checked only when written [ after the
+  earlier steps ] -- still fail closed, nothing pinned
+- the one-line pin is accepted by all three readers : auth.client.server_pin.check,
+  discover.read_host_root_pins and the C client's helper [ p7-auth-keypair-helper.pl pin_read :
+  no name line = undef ]
+- the truth module builds its inline code under HOME/.7 on first use [ a cache, not a pin ]
+- tests [ no root ] : every stub world has a test HOME [ the runner inherited the real HOME
+  before ] ; P7_HOST_BUILD_TEST_P7_HOME \ P7_HOST_BUILD_TEST_INSTALLER [ test root only ] give
+  the installer's protocol-7 home and name ; the fake p7-install adds a protocol-7 passwd
+  line. dry run : plan names the pins \ wol, no write, both installer pin stores unchanged ;
+  chain : key files in the write_keys format [ the secret derives the public key ], 0700 \
+  0600, the new key id in 4 installer pins [ p-7-r + discover, host + alias ], the installer
+  id in 2 new-tree pins, the cube grant, the .link ; second run : no write, changes none, the
+  new tree and both pin stores byte-identical ; a conflicting pin : refused with the reason,
+  kept, nothing pinned [ a removed installer pin stays removed ] ; a stale pin before a fresh
+  build : refused in pass 1, no write ; no net.mac : learned at first boot. root loop part :
+  only a test HOME [ it inherited the real one -- would have pinned into root's ~/.n ]
+
 ## next stages [ owner 2026-11-23 ]
 
 ### stage 1b : vault users and remote access [ DONE 2026-11-23, see implementation notes ]
@@ -269,7 +335,7 @@ files : bin/p7-host-build, cfg/host-build/layout.template, bin/test-scripts/test
   3. optional Host alias with HostKeyAlias in the installer's ~/.ssh/config [ `:::` works ]
   4. the report names what was set up and the first connection command
 
-### stage 2 : protocol-7 integration
+### stage 2 : protocol-7 integration [ PARTIAL 2026-11-23 : key, pins, grant, wol .link done ; the power zenka device entry and the discover \ network items open ]
 
 - host-root key of the new host created during the build ; pinned on the installer for p-7-r
   [ ~/.n/remote-keys/servers/ ] and for discover [ the protocol-7 user's pin store :
@@ -285,8 +351,8 @@ files : bin/p7-host-build, cfg/host-build/layout.template, bin/test-scripts/test
   mac for the power zenka ]. the target side : WakeOnLan=magic in a systemd .link file for the
   wired interface, and wol enabled in the firmware [ the report reminds of it ]
 
-#,,..,..,,,,.,...,,,.,,,.,.,.,,..,,,.,,.,,,,.,..,,...,...,.,,,,.,,...,.,.,...,
-#JY2PEEPBSAMQSPV22SUW3W7QTX6MTE3TRULHGO37VUBENL2WPBPQ6VXQJZDSTMH7M3XDITKP2OEO2
-#\\\|Y54WBWHZ4H2NYLQRUHU46BILPYHVBU55SJM3WLRYJO3MR7CLZZD \ / AMOS7 \ YOURUM ::
-#\[7]I43WX676QNMRKBDGXINPSWOURDTSD4CFNDAT6EQKR6ANJYP5WGCY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,.,.,.,,.,,...,,,.,...,...,,..,..,,...,..,,..,,,,.,..,,,,.,...,
+#4XFYZBSTFZVWD2654I26VK3DRMGHJV6WOPZCEUS6JAZW4UAOYSCGNPJKMNPP6C2S3Z7O5E7R5QTCI
+#\\\|J46MKUYUVX272Y5ZWKPM7AW4XUS4NQEOTNO4PCNGLRUKUAF66FZ \ / AMOS7 \ YOURUM ::
+#\[7]5EUDA72WV2BHQP2YNZ3OLOVIBDA4754264BVF4QNWNRZ6GBQWABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

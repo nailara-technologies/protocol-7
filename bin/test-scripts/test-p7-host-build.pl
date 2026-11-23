@@ -400,6 +400,8 @@ if ( $name eq 'chroot' ) {
     if ( $cmd eq '/usr/bin/perl' ) {
         exit 6 if not -f "$t$ARGV[0]" or not -f "$t/root/p7-host-build/AMOS7/TERM/Frame.pm";
         make_path("$t/usr/local/protocol-7/.git");
+        touch( "$t/etc/passwd", "protocol-7:x:997:997::/var/lib/protocol-7:/usr/sbin/nologin\n" ) if index( do { open( my $f, '<', "$t/etc/passwd" ); local $/; <$f> } // '', 'protocol-7:' ) < 0;
+        make_path("$t/var/lib/protocol-7");
         exit 0;
     }
     exit 9;
@@ -472,6 +474,8 @@ sub stub_world {
         qw| P7_HOST_BUILD_TEST_PASSPHRASE |  => 'not-on-argv-passphrase',
         qw| NO_COLOR |                       => '',
         qw| P7_HOST_BUILD_TEST_HOST_RESOLV | => "nameserver 192.0.2.53\n",
+        ## never the real ~/.n \ ~/.ssh : a test home in every world ##
+        qw| HOME | => "$base/home",
     };
     $w{'target'} = "$w{'root'}/mnt/p7-host-build/testhost";
     return \%w;
@@ -1189,6 +1193,181 @@ VAULT_EOF
     ) or print $out;
 }
 
+## stage 2 : host-root, pins both ways, the cube grant, wake on lan ##
+{
+    my $world = sub {
+        my $w
+            = stub_world( qw| layout | => $LAYOUT
+                . "access.from    = installer\naccess.alias   = "
+                . "testalias\naccess.p7_user = ** "
+                . "..*.**\nnet.mac.enp1s0 = 02-00-5E-10-00-01\n" );
+        my $home = "$w->{'base'}/home";
+        my $p7   = "$w->{'base'}/p7home";
+        spew( "$home/.ssh/id_ed25519.pub",
+            "ssh-ed25519 AAAAinstaller me\@test\n" );
+        ## the installer's own host-root : a test key in its root/ ##
+        require Crypt::Ed25519;
+        require Crypt::Misc;
+        require Digest::BMW;
+        my ($pub) = Crypt::Ed25519::generate_keypair( 'i' x 32 );
+        spew(
+            "$p7/.n/user-keys/root/host-root.public",
+            Crypt::Misc::encode_b32r($pub) . "\n"
+        );
+        chmod 0600, "$p7/.n/user-keys/root/host-root.public";
+        chmod 0700, "$p7/.n/user-keys/root";
+        $w->{'inst_id'}
+            = Crypt::Misc::encode_b32r( Digest::BMW::bmw_384($pub) );
+        $w->{'env'}{'P7_HOST_BUILD_TEST_P7_HOME'}   = $p7;
+        $w->{'env'}{'P7_HOST_BUILD_TEST_INSTALLER'} = 'installer';
+        @{$w}{qw| home p7 |} = ( $home, $p7 );
+        return $w;
+    };
+    my $w       = $world->();
+    my $root    = "$w->{'state'}/store/_dev_mapper_test--vg-root";
+    my $stores0 = tree_snapshot("$w->{'home'}/.n");
+    my $p70     = tree_snapshot( $w->{'p7'} );
+
+    my ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -dry-run -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'} );
+    check(
+        'trust dry run : planned, nothing written, both pin stores untouched',
+        $exit == 0
+            && $out =~ m|host-root pins|
+            && $out =~ m|wol enp1s0|
+            && !writes($w)
+            && same_snapshot( $stores0, tree_snapshot("$w->{'home'}/.n") )
+            && same_snapshot( $p70,     tree_snapshot( $w->{'p7'} ) )
+    ) or print $out;
+
+    ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -yes -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'} );
+    check( 'trust chain : exit 0', $exit == 0 ) or print $out;
+    my $kd  = "$root/var/lib/protocol-7/.n/user-keys/root";
+    my %key = map { $ARG => slurp("$kd/host-root.$ARG") // '' }
+        qw| secret private public |;
+    my $pub_b32 = $key{'public'} =~ s|\n\z||r;
+    my $id      = Crypt::Misc::encode_b32r(
+        Digest::BMW::bmw_384( Crypt::Misc::decode_b32r($pub_b32) // '' ) );
+    my $sec = Crypt::Misc::decode_b32r( $key{'secret'} =~ s|\n\z||r ) // '';
+    check(
+        'host-root : write_keys format, root/ 0700, files 0600',
+        $pub_b32 =~ m|\A[A-Z2-7]{52}\z|
+            && length($sec) == 34
+            && substr( $sec, 0, 2 ) eq 'U:'
+            && ( Crypt::Ed25519::eddsa_public_key( substr( $sec, 2 ) ) eq
+            Crypt::Misc::decode_b32r($pub_b32) )
+            && ( Crypt::Misc::decode_b32r( $key{'private'} =~ s|\n\z||r )
+            // '' ) =~ m|\AU:.{64}\z|s
+            && ( ( stat($kd) )[2] & 07777 ) == 0700
+            && !grep { ( ( stat("$kd/host-root.$ARG") )[2] & 07777 ) != 0600 }
+            qw| secret private public |
+    ) or print $out;
+    my @inst_pins
+        = map {"$ARG/.n/remote-keys/servers/testhost_42.public"} $w->{'home'},
+        $w->{'p7'};
+    CORE::push @inst_pins,
+        map { "$ARG/.n/remote-keys/ser" . "vers/testalias_42.public" }
+        $w->{'home'}, $w->{'p7'};
+    my @new_pins
+        = map { "$root$ARG/.n/remote-keys/s" . "ervers/installer_42.public" }
+        qw| /var/lib/protocol-7 /home/builder |;
+    check(
+        'pins : the new key id on the installer '
+            . '[ p-7-r + discover, host + alias ]',
+        !grep {
+                   ( slurp($ARG) // '' ) ne "$id\n"
+                or ( ( stat($ARG) )[2] & 07777 )
+                != 0600
+        } @inst_pins
+    ) or print $out;
+    check(
+        "pins : the installer's key id in the new tree [ discover + p-7-r ]",
+        !grep { ( slurp($ARG) // '' ) ne "$w->{'inst_id'}\n" } @new_pins
+    ) or print $out;
+    check(
+        'access.p7_user : the grant in the cube host overlay',
+        ( slurp("$root/etc/protocol-7/host-config/cube.cfg") // '' )
+            =~ m|^access\.cmd\.usr\.builder = \*\* \.\.\*\.\*\*$|m
+    );
+    check(
+        'net.mac : a .link with the mac and WakeOnLan=magic',
+        ( slurp("$root/etc/systemd/network/50-p7-wol-enp1s0.link") // '' )
+            =~ m|^MACAddress=02:00:5e:10:00:01\n.*^WakeOnLan=magic$|ms
+            && $out =~ m|wol device mac 02:00:5e:10:00:01|
+    ) or print $out;
+
+    ## the new tree and both installer pin stores ##
+    my $view = sub {
+        return {
+            map { %{ tree_snapshot($ARG) } } $root, "$w->{'home'}/.n",
+            "$w->{'p7'}/.n"
+        };
+    };
+    my $snap = $view->();
+    reset_calls($w);
+    ( $exit, $out ) = run_tool( $w->{'env'}, '-layout', $w->{'layout'} );
+    my $snap2 = $view->();
+    check(
+        'trust second run : key once, no write, changes none',
+        $exit == 0
+            && !writes($w)
+            && $out =~ m|changes \.+ none|
+            && ( slurp("$kd/host-root.secret") // '' ) eq $key{'secret'}
+            && same_snapshot( $snap, $snap2 )
+        )
+        or print $out, map {"changed : $ARG\n"}
+        grep { ( $snap->{$ARG} // "\0" ) ne ( $snap2->{$ARG} // "\0" ) }
+        sort keys %{ { %{$snap}, %{$snap2} } };
+
+    ## a conflicting pin [ the built tree ] : refused with the reason, ##
+    ## nothing pinned -- a removed installer pin stays removed         ##
+    my $other = join '',
+        map { ( 'A' .. 'Z', 2 .. 7 )[ int rand 32 ] } 1 .. 77;
+    my $conflict = "$root/var/lib/protocol-7/.n/remot"
+        . "e-keys/servers/installer_42.public";
+    spew( $conflict, "$other\n" );
+    CORE::unlink( $inst_pins[0] );
+    reset_calls($w);
+    ( $exit, $out ) = run_tool( $w->{'env'}, '-layout', $w->{'layout'} );
+    check(
+        'conflicting pin : refused with the reason, kept, nothing pinned',
+        $exit != 0
+            && $out =~ m|pins another host-root|
+            && slurp($conflict) eq "$other\n"
+            && !-e $inst_pins[0]
+    ) or print $out;
+
+    ## a stale pin before a fresh build : refused in pass 1, nothing ##
+    ## written                                                       ##
+    $w    = $world->();
+    $root = "$w->{'state'}/store/_dev_mapper_test--vg-root";
+    my $stale = "$w->{'p7'}/.n/remote-keys/servers/testalias_42.public";
+    spew( $stale, "$other\n" );
+    ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -yes -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'} );
+    check(
+        'stale pin, fresh disk : refused before any write',
+        $exit != 0
+            && $out =~ m|a pin for the new host exists|
+            && !writes($w)
+            && slurp($stale) eq "$other\n"
+    ) or print $out;
+
+    ## without net.mac : learned at first boot ##
+    $w = stub_world();
+    ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -yes -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'} );
+    check(
+        'no net.mac : the report says learned at first boot',
+        $exit == 0 && $out =~ m|mac is learned at first boot|
+    ) or print $out;
+}
+
 ## -nc and NO_COLOR : no escape anywhere ##
 {
     my $w = stub_world();
@@ -1450,7 +1629,10 @@ sub root_loop_chain {
         my %env = (
             qw| P7_HOST_BUILD_ROOT |         => $root,
             qw| P7_HOST_BUILD_TEST_SERIALS | => 1,
-            qw| NO_COLOR |                   => 1,
+            ## a test home : the trust step pins there, never in the real ##
+            ## ~/.n                                                       ##
+            qw| HOME |     => "$base/home",
+            qw| NO_COLOR | => 1,
         );
         if ( not $ENV{'P7_HOST_BUILD_SLOW_TEST'} ) {
             spew( "$fake/fake", "#!$EXECUTABLE_NAME\n$FAKE" );
@@ -1568,8 +1750,8 @@ sub root_loop_chain {
     return TRUE;
 }
 
-#,,,,,...,.,,,,,.,.,.,...,...,,.,,,.,,,.,,,,.,..,,...,...,,..,,,,,,,.,,..,,.,,
-#MC4LCKWKWWIGA2P5AB3V7IJKVRUZSYC5AJGXCRB2FMU3V3HIZ6CKXIVP4QPH7XNLFAYZNO642H2FC
-#\\\|A5AN5D5OMQTKVPO33XXYL6YLQBWBDK3R2COFYUAA6TSJGXNJUAV \ / AMOS7 \ YOURUM ::
-#\[7]JZAIZMXM7AYU5XPEQECNMD3SXDO4PDHK4PTVLLR5QVD6SOHWGKDA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,..,,,,.,,..,,,,,,.,,,..,,,,,,..,..,,...,...,..,,,,.,..,,.,.,...,
+#SSUFUL6EOCKREVV5PZCYV57L7KUSGQZPWND52T5DGLG56MW56I7AAFC37BB5WY7UZJHPJTIVSCVNY
+#\\\|YNRNNWWLCOKHGH7Y53FOEYRCYYYBXIRR2XTDJGMEMQ5E2BZSUEZ \ / AMOS7 \ YOURUM ::
+#\[7]5HCVHQFBO26Z5XLS3NPW6VZ7PEK53ZL6U775YF6UAH62RZ4HE6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

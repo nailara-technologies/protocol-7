@@ -137,6 +137,13 @@ my $SSHD_TEXT
     = "## written by p7-host-build : keys only\nPasswordAuthentication "
     . "no\nKbdInteractiveAuthentication no\n";
 
+## stage 2 : trust [ step_trust ] ##
+my $P7_USER   = qw| protocol-7 |;       ## system.amos-zenka-user ##
+my $PIN_PORT  = 42;                     ## the p-7-r default port ##
+my $KEY_ID_RE = qr|\A[A-Z2-7]{77}\z|;
+## the cube host overlay [ base.load_host_config ] : a grant for the user ##
+my $CUBE_OVERLAY = qw| etc/protocol-7/host-config/cube.cfg |;
+
 ## systemd-networkd files in the new system ##
 my $NETWORK_DIR = qw| etc/systemd/network |;
 
@@ -292,6 +299,7 @@ my @STEPS = (
     [ 'access',        \&step_access ],
     [ 'bootloader',    \&step_bootloader ],
     [ 'protocol-7',    \&step_protocol_7 ],
+    [ 'trust',         \&step_trust ],
 );
 ## further systems after the main one, then the one menu that lists them ##
 foreach my $sys ( @{ $L->{'systems'} } ) {
@@ -424,6 +432,7 @@ sub parse_layout {
         qw| boot |    => qw| grub-efi |,
         qw| enable |  => qw| no |,
         qw| systems | => [],
+        qw| mac |     => {},
     );
     my %seen;
     my %sys;    ## further systems by name : field -> value ##
@@ -556,6 +565,20 @@ sub parse_layout {
             return $err->("access.alias not valid [ $value ]")
                 if $value !~ m|\A[A-Za-z0-9][\w\-]{0,62}\z|;
             $l{'alias'} = $value;
+        } elsif ( $key eq qw| access.p7_user | ) {
+            ## the cube command mask for the user [ access.cmd.usr.<user> ] ##
+            return $err->("access.p7_user not valid [ $value ]")
+                if $value !~ m|\A[\w.*\- ]{1,200}\z|;
+            $l{'p7_user'} = join ' ', @w;
+        } elsif ( $key =~ m|\Anet\.mac\.([a-z][\w\-]{0,14})\z| ) {
+            my $iface = $1;
+            my $mac   = lc $value;
+            $mac =~ tr|-|:|;
+            $mac = join ':', unpack '(A2)*', $mac
+                if $mac =~ m|\A[0-9a-f]{12}\z|;
+            return $err->("$key : a mac address [ $value ]")
+                if $mac !~ m|\A[0-9a-f]{2}(?::[0-9a-f]{2}){5}\z|;
+            $l{'mac'}{$iface} = $mac;
         } else {
             return $err->("unknown key [ $key ]");
         }
@@ -640,6 +663,8 @@ sub parse_layout {
         if defined $l{'pw_vault'} and not defined $l{'user'};
     return $err->('access.from needs user.name')
         if defined $l{'access'} and not defined $l{'user'};
+    return $err->('access.p7_user needs user.name')
+        if defined $l{'p7_user'} and not defined $l{'user'};
     return $err->('access.alias needs access.from')
         if defined $l{'alias'} and not defined $l{'access'};
     ## the vault title by convention : host-build:<host>:<user> ##
@@ -2520,6 +2545,512 @@ sub step_protocol_7 {
     return TRUE;
 }
 
+##[ step 9b : trust ]#########################################################
+
+## stage 2 [ data/md/design/HOST-ROOT-DELEGATION.md ] : the new host-root  ##
+## in root/ of the backend user's key tree, its key id pinned on the       ##
+## installer [ p-7-r + discover ], the installer's pinned in the new tree, ##
+## the cube grant for the user, wake on lan                                ##
+
+## a passwd line of a tree [ '' = the installer ] : ( uid, gid, home ) ##
+sub passwd_entry {
+    my ( $root, $name ) = @ARG;
+    if ( not length $root ) {
+        ## a test protocol-7 home [ only with a test root ] ##
+        return (
+            $UID,
+            ( split ' ', $GID )[0],
+            $ENV{'P7_HOST_BUILD_TEST_P7_HOME'}
+            )
+            if length $TEST_ROOT
+            and defined $ENV{'P7_HOST_BUILD_TEST_P7_HOME'};
+        return () if length $TEST_ROOT;
+        my @pw = CORE::getpwnam($name) or return ();
+        return @pw[ 2, 3, 7 ];
+    }
+    my $passwd = slurp("$root/etc/passwd") // '';
+    my ( $uid, $gid, $home )
+        = $passwd =~ m|^\Q$name\E:[^:]*:(\d+):(\d+):[^:]*:([^:]*):|m
+        or return ();
+    return ( $uid, $gid, $home );
+}
+
+## root-held files belong to uid 0 [ the running user in a test root ] ##
+sub root_uid { return length $TEST_ROOT ? $EUID : 0 }
+
+## the ownership rule of crypt.C25519.key_path : root/ a real dir, owner 0, ##
+## 0700 ; each key file regular, owner 0, 0600 [ public 0644 too ] --       ##
+## reason when broken, undef when kept                                      ##
+sub root_rule_broken {
+    my ($dir) = @ARG;
+    my @st    = CORE::lstat($dir) or return undef;
+    return "$dir is not a real directory" if not -d _ or -l $dir;
+    return "$dir : owner $st[4], mode " . sprintf( '%04o', $st[2] & 07777 )
+        if $st[4] != root_uid()
+        or ( $st[2] & 07777 ) != 0700;
+    foreach my $type (qw| secret private public |) {
+        my $file = "$dir/host-root.$type";
+        my @f    = CORE::lstat($file) or next;
+        return "$file is not a regular file" if not -f _ or -l $file;
+        my $mode = $f[2] & 07777;
+        return "$file : owner $f[4], mode " . sprintf( '%04o', $mode )
+            if $f[4] != root_uid()
+            or ( $mode != 0600
+            and not( $type eq qw| public | and $mode == 0644 ) );
+    }
+    return undef;
+}
+
+## the key id of a host-root.public                                         ##
+## [ bmw384 of the 32 byte key, b32r : trust.key_id ] -- ( id ) or ( undef, ##
+## reason )                                                                 ##
+sub host_root_id {
+    my ($dir) = @ARG;
+    my $file = "$dir/host-root.public";
+    if ( not -e $file ) {
+        return ( undef, "$dir holds host-root.secret but no .public" )
+            if -e "$dir/host-root.secret" or -e "$dir/host-root.private";
+        return ();
+    }
+    my $broken = root_rule_broken($dir);
+    return ( undef, "$broken -- refused" ) if defined $broken;
+    require Crypt::Misc;
+    require Digest::BMW;
+    my $b32 = slurp($file) // return ( undef, "$file not readable" );
+    $b32 =~ s|\s+\z||;
+    my $pub
+        = $b32 =~ m|\A[A-Z2-7]{52}\z|
+        ? Crypt::Misc::decode_b32r($b32)
+        : undef;
+    return ( undef, "$file is not a public key" )
+        if not defined $pub
+        or length $pub != 32;
+    return Crypt::Misc::encode_b32r( Digest::BMW::bmw_384($pub) );
+}
+
+## a fresh secret : BMW-256 over os random bytes                            ##
+## [ /dev/random waits for the kernel crng, as crypt.C25519.gen_keys does ] ##
+sub fresh_secret {
+    my $bytes = '';
+    foreach my $dev (qw| /dev/urandom /dev/random |) {
+        open( my $fh, '<:raw', $dev ) or next;
+        my $got  = '';
+        my $read = CORE::sysread( $fh, $got, 32 );
+        close($fh);
+        $bytes .= $got if defined $read and $read == 32;
+    }
+    return undef if length $bytes < 32;
+    return Digest::BMW->new(256)->add($bytes)->digest;
+}
+
+## the host-root key pair as crypt.C25519.gen_keys makes it                ##
+## [ harmonic : the public key and its b32 true ] and write_keys stores it ##
+## [ secret \ private : b32r of 'U:' . key, public : b32r of the key ]     ##
+sub create_host_root {
+    my ( $dir, $p7 ) = @ARG;
+    require Crypt::Ed25519;
+    require Crypt::Misc;
+    require Digest::BMW;
+    require AMOS7::Assert::Truth;
+    my ( $secret, $pub, $priv );
+    foreach ( 1 .. 4200 ) {
+        $secret = fresh_secret() // return 'no random bytes';
+        ( $pub, $priv ) = Crypt::Ed25519::generate_keypair($secret);
+        last
+            if AMOS7::Assert::Truth::is_true( \$pub, FALSE, TRUE )
+            and
+            AMOS7::Assert::Truth::is_true( \Crypt::Misc::encode_b32r($pub),
+            FALSE, TRUE );
+        $pub = undef;
+    }
+    return 'no harmonic key found' if not defined $pub;
+
+    ## <home>/.n and user-keys : the backend user's, 0700 ; root/ : 0:0, ##
+    ## 0700                                                              ##
+    my ( $uid, $gid, $home ) = @{$p7};
+    foreach my $d ( "$TARGET$home/.n", "$TARGET$home/.n/user-keys" ) {
+        next if -d $d;
+        CORE::mkdir( $d, 0700 ) or return "cannot create $d [ $OS_ERROR ]";
+        CORE::chown( $uid, $gid, $d ) if $EUID == 0;
+    }
+    if ( not -d $dir ) {
+        CORE::mkdir( $dir, 0700 )
+            or return "cannot create $dir [ $OS_ERROR ]";
+        CORE::chown( 0, 0, $dir ) if $EUID == 0;
+        CORE::chmod( 0700, $dir );
+    }
+    my $broken = root_rule_broken($dir);
+    return "$broken -- refused" if defined $broken;
+
+    my %text = (
+        qw| secret |  => Crypt::Misc::encode_b32r("U:$secret") . "\n",
+        qw| private | => Crypt::Misc::encode_b32r("U:$priv") . "\n",
+        qw| public |  => Crypt::Misc::encode_b32r($pub) . "\n",
+    );
+    foreach my $type (qw| secret private public |) {
+        my $file = "$dir/host-root.$type";
+        my $tmp  = "$file.$PID.tmp";
+        CORE::sysopen(
+            my $fh,
+            $tmp,
+            Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+                | Fcntl::O_NOFOLLOW(),
+            0600
+        ) or return "cannot write $tmp [ $OS_ERROR ]";
+        CORE::binmode($fh);
+        CORE::chmod( 0600, $fh );
+        CORE::chown( 0, 0, $fh ) if $EUID == 0;
+        my $ok = print {$fh} $text{$type};
+        if ( not close($fh) or not $ok or not CORE::rename( $tmp, $file ) ) {
+            CORE::unlink($tmp);
+            return "cannot write $file";
+        }
+    }
+    wipe_string( \$secret );
+    wipe_string( \$priv );
+    return undef;
+}
+
+## a pin file of the readers [ auth.client.server_pin.check, discover ] : ##
+## line 1 the key id. 'missing' \ 'same', or ( undef, reason )            ##
+sub pin_state {
+    my ( $path, $id ) = @ARG;
+    return qw| missing | if not -e $path and not -l $path;
+    return ( undef, "$path is a symlink" )        if -l $path;
+    return ( undef, "$path is not a plain file" ) if not -f $path;
+    my $text    = slurp($path) // return ( undef, "$path not readable" );
+    my ($first) = split m|\n|, $text;
+    ( $first //= '' ) =~ s|\s+\z||;
+    return qw| same | if $first eq $id;
+    return ( undef, "$path holds an old server key pin" )
+        if $first =~ m|\A[A-Z2-7]{52}\z|;
+    return ( undef, "$path pins another host-root [ $first ]" )
+        if $first =~ $KEY_ID_RE;
+    return ( undef, "$path is not a pin file" );
+}
+
+## exactly '<key id>\n', 0600, never through a link, never over a file ##
+sub write_pin {
+    my ( $pin, $id )  = @ARG;
+    my ( $uid, $gid ) = @{$pin}{qw| uid gid |};
+    my $dir = $pin->{'dir'};
+    my @make;
+    for ( my $d = $dir; not -d $d; $d =~ s|/[^/]+\z|| ) {
+        CORE::unshift @make, $d;
+        last if $d eq $pin->{'home'} or $d !~ m|/|;
+    }
+    foreach my $d (@make) {
+        CORE::mkdir( $d, 0700 ) or return "cannot create $d [ $OS_ERROR ]";
+        CORE::chown( $uid, $gid, $d ) if $EUID == 0;
+    }
+    CORE::sysopen(
+        my $fh,
+        $pin->{'path'},
+        Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL()
+            | Fcntl::O_NOFOLLOW(),
+        0600
+    ) or return "cannot write $pin->{'path'} [ $OS_ERROR ]";
+    CORE::chown( $uid, $gid, $fh ) if $EUID == 0;
+    my $ok = print {$fh} "$id\n";
+    if ( not close($fh) or not $ok ) {
+        CORE::unlink( $pin->{'path'} );
+        return "cannot write $pin->{'path'}";
+    }
+    return undef;
+}
+
+## the installer's own name in a pin file name [ short host name ] ##
+sub installer_name {
+    my $name
+        = ( length $TEST_ROOT
+            and defined $ENV{'P7_HOST_BUILD_TEST_INSTALLER'} )
+        ? $ENV{'P7_HOST_BUILD_TEST_INSTALLER'}
+        : ( POSIX::uname() )[1];
+    $name = lc( $name // '' );
+    $name =~ s|\..*\z||;
+    return $name =~ m|\A[a-z0-9][a-z0-9\-]{0,62}\z| ? $name : undef;
+}
+
+## the pin stores : [ label, home, dir, uid, gid ] of a pin of $name ##
+sub pin_stores {
+    my ( $side, @names ) = @ARG;
+    my @stores;
+    if ( $side eq qw| installer | ) {
+        my $who = installer();
+        CORE::push @stores,
+            [ 'p-7-r', $who->{'home'}, $who->{'uid'}, $who->{'gid'} ]
+            if length $who->{'home'};
+        my ( $uid, $gid, $home ) = passwd_entry( '', $P7_USER );
+        CORE::push @stores, [ 'discover', $home, $uid, $gid ]
+            if defined $home and length $home;
+    } else {
+        my ( $uid, $gid, $home ) = passwd_entry( $TARGET, $P7_USER );
+        CORE::push @stores, [ 'discover', "$TARGET$home", $uid, $gid ]
+            if defined $home;
+        if ( defined $L->{'user'} ) {
+            ( $uid, $gid, $home ) = user_home();
+            CORE::push @stores, [ 'p-7-r', "$TARGET$home", $uid, $gid ]
+                if defined $uid;
+        }
+    }
+    my @pins;
+    foreach my $s (@stores) {
+        my ( $label, $home, $uid, $gid ) = @{$s};
+        my $dir = "$home/.n/remote-keys/servers";
+        foreach my $name (@names) {
+            CORE::push @pins,
+                {
+                qw| label | => "$label $name",
+                qw| home |  => $home,
+                qw| dir |   => $dir,
+                qw| path |  => "$dir/${name}_$PIN_PORT.public",
+                qw| uid |   => $uid,
+                qw| gid |   => $gid,
+                };
+        }
+    }
+    return @pins;
+}
+
+sub grant_state {
+    my $path = "$TARGET/$CUBE_OVERLAY";
+    my $key  = "access.cmd.usr.$L->{'user'}";
+    return qw| missing | if not -e $path;
+    return ( undef, "/$CUBE_OVERLAY is not a plain file" )
+        if -l $path or not -f $path;
+    foreach my $line ( split m|\n|, slurp($path) // '' ) {
+        my ($value) = $line =~ m|\A\s*\Q$key\E\s*[=:]\s*(.*?)\s*\z| or next;
+        $value =~ s|\s*##.*\z||;
+        return qw| same |
+            if join( ' ', split ' ', $value ) eq $L->{'p7_user'};
+        return ( undef, "/$CUBE_OVERLAY grants $key otherwise [ $value ]" );
+    }
+    return qw| append |;
+}
+
+## wake on lan : the target side, a .link per wired interface ##
+sub wol_link {
+    my ($iface) = @ARG;
+    return (
+        "etc/systemd/network/50-p7-wol-$iface.link",
+        join "\n",
+        "## written by p7-host-build [ net.mac.$iface ]",
+        '[Match]',
+        "MACAddress=$L->{'mac'}{$iface}",
+        '',
+        '[Link]',
+        'NamePolicy=keep kernel database onboard slot path',
+        'AlternativeNamesPolicy=database onboard slot path',
+        'MACAddressPolicy=persistent',
+        'WakeOnLan=magic',
+        ''
+    );
+}
+
+sub step_trust {
+    my ( $mode, $step ) = @ARG;
+    if ( $opt{'no-p7'} ) {
+        row( 'host-root', 'skipped', '-no-p7' ) if $mode eq qw| act |;
+        return TRUE;
+    }
+    my @p7       = passwd_entry( $TARGET, $P7_USER );
+    my $key_dir  = @p7 ? "$TARGET$p7[2]/.n/user-keys/root" : undef;
+    my $inst     = installer_name();
+    my @new_name = ( $HOST, defined $L->{'alias'} ? $L->{'alias'} : () );
+
+    if ( $mode eq qw| plan | ) {
+        ## no key yet : the new host-root is unknown, so an installer pin   ##
+        ## for its names is stale -- refused before the disk is touched [ a ##
+        ## new table, or a mounted tree without the key ; an unmounted tree ##
+        ## is checked when it is written ]                                  ##
+        my $visible = plan_tree_visible();
+        my ($known) = ( $visible and @p7 ) ? host_root_id($key_dir) : ();
+        if ( $ASSUME_FRESH or ( $visible and not defined $known ) ) {
+            foreach my $pin ( pin_stores( qw| installer |, @new_name ) ) {
+                next if not -e $pin->{'path'} and not -l $pin->{'path'};
+                frame_error_exit( $TOOL,
+                    "a pin for the new host exists [ $pin->{'path'} ] -- "
+                        . 'the new host-root cannot '
+                        . 'match it, remove it first' );
+            }
+        }
+        if ( not plan_tree_visible() or not @p7 ) {
+            plan( $step, 'host-root', 'if missing', FALSE, 'root-held' );
+            plan( $step, 'host-root pins',
+                'if missing', FALSE, 'installer + new tree' );
+            plan( $step, "/$CUBE_OVERLAY", 'if missing', FALSE,
+                "access.cmd.usr.$L->{'user'}" )
+                if defined $L->{'p7_user'};
+            plan( $step, "wol $ARG", 'if missing', FALSE, $L->{'mac'}{$ARG} )
+                foreach sort keys %{ $L->{'mac'} };
+            return TRUE;
+        }
+        my ( $id, $why ) = host_root_id($key_dir);
+        plan( $step, 'host-root', defined $why ? 'refused' : 'create',
+            FALSE, $why )
+            if not defined $id;
+        foreach my $pin (
+            defined $id ? pin_stores( qw| installer |, @new_name ) : () ) {
+            my ( $state, $reason ) = pin_state( $pin->{'path'}, $id );
+            plan(
+                $step,
+                "pin $pin->{'label'}",
+                defined $state ? 'write' : 'refused',
+                FALSE, $reason // $pin->{'path'}
+            ) if ( $state // '' ) ne qw| same |;
+        }
+        my ($inst_id) = host_root_id( passwd_home_root() );
+        foreach my $pin (
+            ( defined $inst_id and defined $inst )
+            ? pin_stores( qw| target |, $inst )
+            : ()
+        ) {
+            my ( $state, $reason ) = pin_state( $pin->{'path'}, $inst_id );
+            plan(
+                $step,
+                "pin $pin->{'label'}",
+                defined $state ? 'write' : 'refused',
+                FALSE, $reason // $pin->{'path'}
+            ) if ( $state // '' ) ne qw| same |;
+        }
+        if ( defined $L->{'p7_user'} ) {
+            my ( $state, $reason ) = grant_state();
+            plan( $step, "/$CUBE_OVERLAY",
+                defined $state ? 'write' : 'refused',
+                FALSE, $reason // "access.cmd.usr.$L->{'user'}" )
+                if ( $state // '' ) ne qw| same |;
+        }
+        foreach my $iface ( sort keys %{ $L->{'mac'} } ) {
+            my ( $rel, $text ) = wol_link($iface);
+            plan( $step, "wol $iface", 'write', FALSE, "/$rel" )
+                if ( slurp("$TARGET/$rel") // '' ) ne $text;
+        }
+        return TRUE;
+    }
+
+    return fail( 'host-root', "no $P7_USER user in the new tree" ) if not @p7;
+    require Fcntl;
+
+    ## 1. the new host-root : created once, then only read ##
+    my ( $id, $why ) = host_root_id($key_dir);
+    return fail( 'host-root', $why ) if defined $why;
+    if ( defined $id ) {
+        row( 'host-root', 'ok', 'present' );
+    } else {
+        my $err = create_host_root( $key_dir, \@p7 );
+        return fail( 'host-root', $err ) if defined $err;
+        ( $id, $why ) = host_root_id($key_dir);
+        return fail( 'host-root', $why // 'not readable after writing' )
+            if not defined $id;
+        done( 'host-root', 'created',
+            "root-held [ $p7[2]/.n/user-keys/root ]" );
+    }
+    row( 'key id', substr( $id, 0, 39 ), undef, qw| value | );
+    row( '..', substr( $id, 39 ), undef, qw| value | );
+
+    ## 2. pins both ways : every conflict refused before anything is ##
+    ## written                                                       ##
+    my @todo;
+    my @refused;
+    my ( $inst_id, $inst_why ) = host_root_id( passwd_home_root() );
+    my @sets = ( [ $id, pin_stores( qw| installer |, @new_name ) ] );
+    if ( defined $inst_id and defined $inst ) {
+        CORE::push @sets, [ $inst_id, pin_stores( qw| target |, $inst ) ];
+    }
+    foreach my $set (@sets) {
+        my ( $want, @pins ) = @{$set};
+        foreach my $pin (@pins) {
+            my ( $state, $reason ) = pin_state( $pin->{'path'}, $want );
+            if ( not defined $state ) {
+                CORE::push @refused, [ $pin, $reason ];
+            } elsif ( $state eq qw| same | ) {
+                row( "pin $pin->{'label'}", 'ok' );
+            } else {
+                CORE::push @todo, [ $pin, $want ];
+            }
+        }
+    }
+    return fail( 'installer host-root', $inst_why ) if defined $inst_why;
+    if (@refused) {
+        fail( "pin $ARG->[0]{'label'}", 'refused', $ARG->[1] )
+            foreach @refused;
+        return fail( 'host-root pins',
+            'a conflicting pin -- nothing pinned' );
+    }
+    foreach my $t (@todo) {
+        my $err = write_pin( @{$t} );
+        return fail( "pin $t->[0]{'label'}", $err ) if defined $err;
+        done( "pin $t->[0]{'label'}", 'written', $t->[0]{'path'} );
+    }
+    if ( not defined $inst_id ) {
+        row( 'installer host-root', 'none', 'not pinned in the new tree' );
+    } elsif ( not defined $inst ) {
+        row( 'installer host-root', 'not pinned', 'no usable host name' );
+    }
+
+    ## 3. the cube grant for the user [ host overlay, root-owned ] ##
+    if ( defined $L->{'p7_user'} ) {
+        my ( $state, $reason ) = grant_state();
+        my $key = "access.cmd.usr.$L->{'user'}";
+        return fail( "/$CUBE_OVERLAY", 'refused', $reason )
+            if not defined $state;
+        if ( $state eq qw| same | ) {
+            row( "/$CUBE_OVERLAY", 'ok', $key );
+        } else {
+            my $path = "$TARGET/$CUBE_OVERLAY";
+            make_path( "$TARGET/etc/proto" . "col-7/host-config",
+                { qw| mode | => 0755 } );
+            my $old = slurp($path) // '';
+            my $add
+                = ( length $old and $old !~ m|\n\z| ? "\n" : '' )
+                . "## added by p7-host-build [ "
+                . "access.p7_user ]\n$key = $L->{'p7_user'}\n";
+            open( my $fh, '>>:raw', $path )
+                or
+                return fail( "/$CUBE_OVERLAY", "cannot write [ $OS_ERROR ]" );
+            print {$fh} $add;
+            close($fh) or return fail( "/$CUBE_OVERLAY", 'cannot write' );
+            CORE::chmod( 0644, $path );
+            done( "/$CUBE_OVERLAY", 'added', $key );
+        }
+    }
+
+    ## 4. wake on lan : the target side here ; the installer's power zenka ##
+    ## keeps its devices in set-up.json -- named, not written              ##
+    if ( not keys %{ $L->{'mac'} } ) {
+        row( 'wake on lan', 'no net.mac',
+            'the mac is learned at first boot' );
+    }
+    foreach my $iface ( sort keys %{ $L->{'mac'} } ) {
+        my ( $rel, $text ) = wol_link($iface);
+        my $have = slurp("$TARGET/$rel");
+        if ( defined $have and $have eq $text ) {
+            row( "wol $iface", 'ok', $L->{'mac'}{$iface} );
+        } elsif ( defined $have ) {
+            return fail( "wol $iface", 'refused',
+                "/$rel differs -- left as it is" );
+        } else {
+            make_path("$TARGET/etc/systemd/network");
+            return fail( "wol $iface", "cannot write [ $OS_ERROR ]" )
+                if not spew( "$TARGET/$rel", $text );
+            done( "wol $iface", 'written', "/$rel WakeOnLan=magic" );
+        }
+        row( '..', "power : wol device mac $L->{'mac'}{$iface}",
+            undef, qw| value | );
+    }
+    row( 'wake on lan', 'firmware', 'enable wake on lan in the firmware too' )
+        if keys %{ $L->{'mac'} };
+    return TRUE;
+}
+
+## root/ of the installer's protocol-7 key tree ##
+sub passwd_home_root {
+    my ( undef, undef, $home ) = passwd_entry( '', $P7_USER );
+    return ( defined $home and length $home )
+        ? "$home/.n/user-keys/root"
+        : '/nonexistent/.n/user-keys/root';
+}
+
 ##[ step 10 : unmount ]#######################################################
 
 ## everything under the target, deepest first ; then the vg and the luks ##
@@ -2908,8 +3439,8 @@ EOL
     return TRUE;
 }
 
-#,,,,,.,,,,..,.,.,,.,,,..,..,,.,,,,,,,,,.,..,,..,,...,...,.,.,,..,.,,,,.,,..,,
-#IDTIZJ7IVSFEPTLGS4LQ4VAFISA4RBSKDY7PEQ2QCFOSO3BOC4UVBHM7CL6O6OREH5N7KGPAIR3DW
-#\\\|VK67CDC4FBUQ4ZW5OP4TCSURM6U2ZNAM6IPQUTJFPYBCWWAEJFM \ / AMOS7 \ YOURUM ::
-#\[7]RCQNZ7TYOPWTDUGAOH4EWJ4Q5XNHCFPQOAPN5XY4ZMWX5BXXWOAQ 7  DATA SIGNATURE ::
+#,,.,,...,...,.,,,..,,,,.,,..,,.,,,,.,.,.,,,.,..,,...,..,,,..,..,,,,,,,,.,,.,,
+#OJM3WZGYLXITXYO37PBVL6AGDHBBMFZCJSHYV5AZYCCCRLKIG7TLAOUPG2LF2WFRVPXLTBP4GTITM
+#\\\|5AFBSBRKY5OQOEWOLRT2MFBV6KCL3IRRN6KQDAHS6BDO4YN4PRD \ / AMOS7 \ YOURUM ::
+#\[7]XRDNQJBEG2BSCMKFSCCYFTCHGU25HMF5HBAVIQA7IRL2XI4JNCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
