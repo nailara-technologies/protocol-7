@@ -161,6 +161,10 @@ $code{'event.add_timer'} = sub {
     return $w;
 };
 
+my @handoffs;    ## network.lease.dns_handoff calls [ iface ] ##
+$code{'network.lease.dns_handoff'}
+    = sub { push @handoffs, shift; return TRUE };
+
 my @sent;
 my $deliver = 1;
 $code{'protocol-7.command.send.local'} = sub {
@@ -431,6 +435,10 @@ my $r = $code{'network.cmd.dns-behaviour'}->();
 check( 'behaviour recorded',
     $r->{'mode'} eq 'size' && $p->{'behaviour'} eq 'filtering' );
 check( 'policy unchanged by behaviour', $p->{'policy'} eq 'held' );
+check(
+    'a changed behaviour is handed to nameserv again',
+    scalar @handoffs == 1 && $handoffs[0] eq 'eth0'
+);
 check( 'change logged',
     grep {m|unmeasured -> filtering \[ policy stays held \]|} @logs );
 
@@ -441,9 +449,11 @@ check( 'open result keeps the owner policy', $p->{'policy'} eq 'trusted' );
 $p->{'policy'} = 'held';
 $code{'network.cmd.dns-behaviour'}->();
 check( 'open never promotes held', $p->{'policy'} eq 'held' );
-@logs = ();
+@logs     = ();
+@handoffs = ();
 $code{'network.cmd.dns-behaviour'}->();
-check( 'same behaviour : no change line', not grep {m|->|} @logs );
+check( 'same behaviour : no change line',     not grep {m|->|} @logs );
+check( 'same behaviour : no second hand-off', not @handoffs );
 
 $call = { 'args' => 'fp-a trusted' };
 check( 'invalid behaviour refused',
@@ -524,8 +534,8 @@ check(
 printf "\n%d passed, %d failed\n", $pass_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,..,.,,,,..,.,.,.,.,.,.,...,...,,,.,,,.,,,,,..,,...,..,,.,.,,,.,,..,.,.,,..,
-#NZ57FADBBQQV2I7BFCCOK6OQLOLE3H3567R3HAZETGL4CDTFTZHDASAH2YGFYKP6AYLF7CYDDCHPS
-#\\\|TEABFADUUAOORXBYDLRTUOG47K3SCDCSVC73RD6T2SULGGCBFGF \ / AMOS7 \ YOURUM ::
-#\[7]HU7LT3SNP7VJNV6Y5NGDG7DMRJ5DNYDTFWT234TLHKPPWFYIGAAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,,,,,,,.,,,,,.,,,,,,,,,.,.,,,..,,...,..,,...,.,.,.,.,,.,,,..,
+#ZGBVVMYKVAGKJH67TUWDL6FRPOVH4AXBUIQGT3EH4YDJ7CUCSTQHX7M5CSQNCEMBJEFSOT3KRNAOY
+#\\\|JGQULXV7EQDO6545CLE5AJQCSL4V57UFVQCKJL6WIQUALNIFZAS \ / AMOS7 \ YOURUM ::
+#\[7]IN4TTVNTEEVOP3FZXNI7FV5Y224XTHGQZSSMDRMJQ4KMDGPFVSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

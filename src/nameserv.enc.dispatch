@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = nameserv.enc.dispatch
+# param = <connection> <dns wire>
+# descr = hand one reply of an encrypted connection to the waiting query
+
+my $conn = shift // return FALSE;
+my $wire = shift // return FALSE;
+
+my $id    = unpack qw| n |, $wire;
+my $state = $conn->{'inflight'}{$id} // return FALSE;    ## late \ unknown ##
+delete $conn->{'inflight'}{$id};
+$state->{'enc_conn'} = undef;
+if ( ref $state->{'timer'} ) {
+    $state->{'timer'}->cancel
+        if $state->{'timer'}->can('is_active')
+        and $state->{'timer'}->is_active;
+    $state->{'timer'} = undef;
+}
+return <[nameserv.enc.deliver]>->( $state, $wire );
+
+#,,..,,,,,,.,,,,.,,,,,,,.,.,,,,,,,.,,,.,,,,.,,..,,...,...,...,,..,...,.,.,.,.,
+#PDTSGPA6G4JU5DJITVBC4D4EWVPSICQGZW6IIW5DZ2Y666HQN4DCOH3AZXPWWNB76O25DWJOTXJIC
+#\\\|UMRRGWR6IJDSIK4L746BQLUB47RKYMJYNY5QL5FFJ2DJFS2MWMV \ / AMOS7 \ YOURUM ::
+#\[7]RDWQASDUYTL7DUM6L6J3KPOT34MAWPU7I4S7U37ZVIXMQQOT2ABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

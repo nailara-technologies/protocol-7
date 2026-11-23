@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = nameserv.enc.doh_response
+# param = \$buffer
+# descr = take one complete http/1.1 response out of a read buffer
+
+## returns [ 'need' ] while incomplete, [ 'error', reason ] or            ##
+## [ 'ok', body, close ] where close says the server ends the connection. ##
+## content-length and chunked bodies are understood ; the status must be  ##
+## 200 and the content type application/dns-message                       ##
+
+my $buffer = shift // return ( qw| error |, 'no buffer' );
+
+my $end = index $buffer->$*, "\r\n\r\n";
+if ( $end < 0 ) {
+    return ( qw| error |, 'http header too large' )
+        if length $buffer->$* > 16384;
+    return (qw| need |);
+}
+my $head   = substr $buffer->$*, 0, $end;
+my @line   = split m|\r\n|, $head;
+my $status = shift @line // '';
+return ( qw| error |, 'bad http status line' )
+    if $status !~ m|^HTTP/1\.[01] (\d{3})\b|;
+my $code = $1;
+
+my %header;
+for my $line (@line) {
+    next if $line !~ m{^([\w-]+):[ \t]*(.*?)[ \t]*$};
+    $header{ lc $1 } = $2;
+}
+return ( qw| error |, "http status $code" ) if $code != 200;
+return ( qw| error |, 'content type is not application/dns-message' )
+    if ( $header{'content-type'} // '' )
+    !~ m{^application/dns-message\s*(?:;|$)}i;
+
+my $close = ( $header{'connection'} // '' ) =~ m{\bclose\b}i ? TRUE : FALSE;
+my $start = $end + 4;
+my $body;
+
+if ( ( $header{'transfer-encoding'} // '' ) =~ m{\bchunked\b}i ) {
+    my $pos = $start;
+    my $out = '';
+    while (TRUE) {
+        my $eol = index $buffer->$*, "\r\n", $pos;
+        return (qw| need |) if $eol < 0;
+        my $size_text = substr $buffer->$*, $pos, $eol - $pos;
+        $size_text =~ s{;.*}{};
+        return ( qw| error |, 'bad chunk size' )
+            if $size_text !~ m|^\s*([0-9a-fA-F]{1,6})\s*$|;
+        my $size = hex $1;
+        if ( not $size ) {
+            ## last chunk : an empty trailer ends the message ##
+            my $tail = index $buffer->$*, "\r\n\r\n", $eol;
+            return (qw| need |) if $tail < 0;
+            $pos = $tail + 4;
+            last;
+        }
+        return (qw| need |)
+            if length $buffer->$* < $eol + 2 + $size + 2;
+        $out .= substr $buffer->$*, $eol + 2, $size;
+        return ( qw| error |, 'dns message too large' )
+            if length $out > 65535;
+        $pos = $eol + 2 + $size + 2;
+    }
+    $body = $out;
+    substr( $buffer->$*, 0, $pos ) = '';
+} elsif ( defined $header{'content-length'} ) {
+    return ( qw| error |, 'bad content-length' )
+        if $header{'content-length'} !~ m|^\d{1,6}$|
+        or $header{'content-length'} > 65535;
+    my $length = $header{'content-length'} + 0;
+    return (qw| need |) if length $buffer->$* < $start + $length;
+    $body = substr $buffer->$*, $start, $length;
+    substr( $buffer->$*, 0, $start + $length ) = '';
+} else {
+    return ( qw| error |, 'no content-length or chunked body' );
+}
+
+return ( qw| error |, 'empty dns message' ) if length $body < 12;
+return ( qw| ok |, $body, $close );
+
+#,,..,,.,,,,.,,.,,.,,,,,,,.,.,,,.,..,,,,.,,.,,..,,...,...,,,,,,..,.,.,,,,,,,.,
+#GECP5TDW452BFA3HM3L6I2XPD4MDB7N6JIVIBSMOFQRBR7KOPRWY6ZR6SDW6YMZNIEO743VPYK6WO
+#\\\|FLE2FQSIPYAX76MTPATGEWGZ2YKU3QF6IX6VAUR3GZXQYMUA5DN \ / AMOS7 \ YOURUM ::
+#\[7]NRE5MFAJLGXWMIDYDLJ2F6A65QVMLA4TVQYZZ45BSQODYHVBE4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

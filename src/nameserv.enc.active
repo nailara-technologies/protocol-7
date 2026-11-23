@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = nameserv.enc.active
+# descr = is the encrypted path in use : [ flag, sources, fallback servers ]
+
+## a network whose stored behaviour is intercepting or blocking-outside     ##
+## moves the default route to the encrypted upstreams ; the dhcp servers of ##
+## those networks are the degraded fallback [ the held server ]             ##
+
+my $by = <nameserv.upstreams.behaviour_by_source> // {};
+my ( @sources, @fallback, %seen );
+for my $source ( sort keys %{$by} ) {
+    next
+        if ( $by->{$source}{'behaviour'} // '' )
+        !~ m{^(?:intercepting|blocking-outside)$};
+    push @sources, $source;
+    push @fallback,
+        grep { not $seen{ lc $ARG }++ } @{ $by->{$source}{'dhcp'} // [] };
+}
+return ( scalar(@sources) ? TRUE : FALSE, \@sources, \@fallback );
+
+#,,,.,...,..,,..,,.,,,,.,,,,.,.,.,,,.,.,,,,..,..,,...,...,,,,,...,..,,,,.,,..,
+#DI4XZFAA7R2GMWBUGZ5ONHEABLB4QV2UJEDZQUDVM6Z57CBGUHDE2KTQI2HNVX65X6QCTYK7O4OLY
+#\\\|5C477ZYIALIDAY6UZ33W6T6CZCLPJ262AI5VEWDG4FU5H7QLB7D \ / AMOS7 \ YOURUM ::
+#\[7]PTUUPYTLRLKEPBXQMXOFX6HSUQTXLW2YTOTKRO3NQPFZC2QMFGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

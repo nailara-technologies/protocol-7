@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = nameserv.enc.normalize
+# param = { name address port protocol tls_name path }
+# descr = validate one encrypted upstream and fill its defaults
+
+## returns the entry hash, or [ undef, reason ]. protocol dot = dns over    ##
+## tls [ rfc 7858, default port 853 ], doh = dns over https                 ##
+## [ rfc 8484, default port 443 and path /dns-query ]. tls_name is the sni  ##
+## and the certificate name check -- it is never optional : an unverifiable ##
+## upstream is not an upstream                                              ##
+
+my $raw = shift;
+return ( undef, 'no upstream given' ) if ref $raw ne qw| HASH |;
+
+my $name = lc( $raw->{'name'} // '' );
+return ( undef, "invalid name: $name" )
+    if $name !~ m{\A[a-z][a-z0-9_-]*\z};
+
+my $protocol = lc( $raw->{'protocol'} // '' );
+$protocol = qw| dot | if $protocol eq qw| tls |;
+$protocol = qw| doh | if $protocol eq qw| https |;
+return ( undef, "protocol must be dot or doh: $protocol" )
+    if $protocol ne qw| dot | and $protocol ne qw| doh |;
+
+my $address = <[nameserv.upstream_address]>->( $raw->{'address'} // '' );
+return ( undef, "invalid ip address: " . ( $raw->{'address'} // '' ) )
+    if not defined $address;
+
+my $port = $raw->{'port'};
+$port = $protocol eq qw| dot | ? 853 : 443
+    if not defined $port or not length $port;
+return ( undef, "invalid port: $port" )
+    if $port !~ m|\A\d{1,5}\z|a
+    or $port < 1
+    or $port > 65535;
+$port += 0;
+
+my $tls_name = lc( $raw->{'tls_name'} // '' );
+return ( undef, 'tls hostname missing [ sni and certificate name ]' )
+    if not length $tls_name;
+return ( undef, "invalid tls hostname: $tls_name" )
+    if $tls_name  !~ m|\A[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?\z|
+    and $tls_name !~ m|\A[0-9a-f:]{2,45}\z|;
+
+my $path;
+if ( $protocol eq qw| doh | ) {
+    $path = $raw->{'path'};
+    $path = '/dns-query' if not defined $path or not length $path;
+    return ( undef, "invalid doh path: $path" )
+        if $path !~ m|\A/[\w.~%!\$&()*+,;=:\@/?-]{0,1023}\z|a;
+}
+
+return {
+    'name'     => $name,
+    'protocol' => $protocol,
+    'address'  => $address,
+    'port'     => $port,
+    'tls_name' => $tls_name,
+    'path'     => $path
+};
+
+#,,,.,...,...,,,.,..,,,,,,,..,.,.,.,.,,,,,,.,,..,,...,...,,..,,,.,.,,,,,,,..,,
+#AGCFSTS3RTR2BSKNKBLUF3UC6L26JLMDMD5LT22GZO334QIS2CTSYBX3ICWUUVD3WDNHUYMUQG254
+#\\\|WHQ4GAJ7MM7RRLZKD5TFCBANLUNQ65NOSCZCG43XWZH6DGHNEZL \ / AMOS7 \ YOURUM ::
+#\[7]SZKA2HBBJB5KV44ZS36OI67UFL7AYO6J5ANKJ35ZJSZRVIVNJWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

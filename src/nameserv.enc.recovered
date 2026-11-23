@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = nameserv.enc.recovered
+# param = <upstream name>
+# descr = an encrypted upstream answered : leave the degraded mode
+
+my $name  = shift // return FALSE;
+my $since = <nameserv.enc.degraded_since>;
+return TRUE if ref $since ne qw| HASH |;
+delete <nameserv.enc.degraded_since>;
+<[base.logs]>->(
+    1,     ': dns back on encrypted upstream %s [ degraded for %d s : %s ]',
+    $name, time - $since->{'at'},
+    $since->{'reason'}
+);
+return TRUE;
+
+#,,..,,..,,.,,,,.,..,,,..,...,...,...,..,,...,..,,...,...,.,.,.,,,.,,,.,,,...,
+#S3XJLPCD62NDN535ZI7NPK7ZU65PLITMCYX2VAAB6T3HJCKPHULJESSBNKMGAZVO3EPAE7HOH4CZY
+#\\\|3WDRUIBEMIV7YI7RISGPEI7E7QJRONYOCTWPHO4CNYP7ZJQOJZP \ / AMOS7 \ YOURUM ::
+#\[7]LWAUZ74BIU6FBK5EITVBPO573MV4KAVLSJAJTBBLROGE472IWKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

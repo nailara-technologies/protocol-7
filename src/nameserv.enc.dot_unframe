@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = nameserv.enc.dot_unframe
+# param = \$buffer
+# descr = take every complete dns over tls message out of a read buffer
+
+## returns the messages [ octets ] ; a partial message stays in the buffer. ##
+## a length below a dns header [ 12 ] is a protocol error : undef           ##
+
+my $buffer = shift // return undef;
+my @messages;
+while ( length $buffer->$* >= 2 ) {
+    my $length = unpack qw| n |, $buffer->$*;
+    return undef if $length < 12;
+    last         if length $buffer->$* < 2 + $length;
+    push @messages, substr $buffer->$*, 2, $length;
+    substr( $buffer->$*, 0, 2 + $length ) = '';
+}
+return @messages;
+
+#,,,,,...,,,.,.,.,,.,,,.,,,..,...,,..,,..,,..,..,,...,...,,.,,,,,,..,,...,,,.,
+#75HLMESHQR4QEVSPN4OMQYRKTT3AJGZ6ZM4ZVURROP2HBPDVJPAKT3TMXZ4RWXD2BT7BI7VHK5FHI
+#\\\|TGPFSTASUMH3JFHGEPVAJ65AXXCUXKHRDGGQERAQWGYXPILCT6R \ / AMOS7 \ YOURUM ::
+#\[7]T6KIVYDLWXEVWD2KZX376VKZ7EOLEHVJ34TUG72CK2DXHU52HMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -123,8 +123,8 @@ if ( $pkt->header->tc and $phase ne qw| tcp_read | ) {
 ## first -- delivered [ never cached ] only from the last upstream      ##
 my $rcode = $pkt->header->rcode;
 if ( $rcode eq qw| SERVFAIL | or $rcode eq qw| REFUSED | ) {
-    my @upstreams = <[nameserv.cache.upstreams]>;
-    if ( $state->{'upstream_idx'} + 1 < scalar @upstreams ) {
+    my @targets = <[nameserv.cache.targets]>->( $state->{'qname'} );
+    if ( $state->{'upstream_idx'} + 1 < scalar @targets ) {
         <[base.logs]>->(
             2, ': cache upstream %s [ %s %s ] -- next upstream',
             $rcode, $state->{'qname'}, $state->{'qtype'}
@@ -139,8 +139,8 @@ if ( $rcode eq qw| SERVFAIL | or $rcode eq qw| REFUSED | ) {
 
 return;
 
-#,,,.,.,.,.,.,,..,,..,.,,,,,,,,,,,,..,..,,,.,,..,,...,...,...,,..,.,.,,.,,,,.,
-#DSVTMMVOAIH45XLP7K52IQQRVFZD2MBZYPJXK66XTR2BATPDVOHSDVZKNMOBZNZ2T7JC7KHBC3ITU
-#\\\|XHULCQJPVKFGPUYDD35POO7WJ7GYSHKLL4VRGMHLSISDULCQQS2 \ / AMOS7 \ YOURUM ::
-#\[7]2XRJISP6BAAUTEAJ54T3DZWQPROWPPSHUITDFYM5HTRSUAFVQ2BQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,..,,,..,.,,,,..,,,.,,.,,..,,..,,...,...,...,.,,,..,,..,,.,.,
+#CV5BXY5WHVY6BZ72KEY4UJK3PUD6QEWFFB5XN64MV7RA24YXFOFCTERLPU6W4L7WZRDY3D7KWTPY6
+#\\\|GA7YLCJP6USISSE5T6NGIZWYH6WK3VJPSWCPJFSVYDEEYBUN3EX \ / AMOS7 \ YOURUM ::
+#\[7]IYZIMXEYAPC76H4ZVR3J6F2RYCHZ3KFUVWVVOUC7ZTIHZ3UKVCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,30 +11,14 @@ my @static  = grep { $ARG->{'source'} eq qw| static | } @entries;
 return map { $ARG->{'address'} } @static
     if <[nameserv.cache.own_name]>->($name);
 
-my $domain  = <nameserv.upstreams.domain_by_source> // {};
-my $longest = 0;
-my @addresses;
-foreach my $source ( sort keys $domain->%* ) {
-    my $route = $domain->{$source};
-    foreach my $suffix ( $route->{'domains'}->@* ) {
-        next
-            if $name ne $suffix
-            and $name !~ m|\.\Q$suffix\E$|;
-        if ( length($suffix) > $longest ) {
-            $longest   = length($suffix);
-            @addresses = ();
-        }
-        push @addresses, $route->{'addresses'}->@*
-            if length($suffix) == $longest;
-    }
-}
+my ( $longest, @addresses ) = <[nameserv.cache.domain_route]>->($name);
 my %seen;
 return grep { not $seen{ lc $ARG }++ } @addresses if $longest;
 return grep { not $seen{ lc $ARG }++ }
     map { $ARG->{'address'} } @entries;
 
-#,,..,.,,,,,.,,.,,...,.,,,,..,.,,,..,,,,,,,,.,..,,...,...,.,.,,,,,,..,...,,,.,
-#4H7J3UJEEJGQ4DS2KL7HAN5SAL6HX5E63ZQZOSZPH5FCS2ZXIZ62UK4PFMZROJ75NNJLXLOSVO6QC
-#\\\|EQ6HPCGCSEPT7ALYQSIWPZUHHKKSEWNG3XP3E2NZRQW6UGJECXQ \ / AMOS7 \ YOURUM ::
-#\[7]GEEZI3NRRNC66QPSSYZAUMP4NGU5P3EWTQ24DW5WUM3RUN46TSBA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,.,,,,..,,.,,,,.,.,,,,.,,.,.,..,,...,..,,...,...,,,,,,.,,,,,,
+#UOQI6P2XBZKRPB35YKZCITX4ZFKFVZ35SNS6UQX7CQOISNLNH5OJOYDQ6JFRAVPSSD2BOJM7LI72M
+#\\\|TBA66C2O4DFLWEP7HQPX5RUG5GSQN4QRNV3B7VKDEARQ7ET7WYN \ / AMOS7 \ YOURUM ::
+#\[7]FH3Y5TR6BI4DA5KFRPY3ZGZJRSTXGPCVRCXVIPLSPVPN6ERIT4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

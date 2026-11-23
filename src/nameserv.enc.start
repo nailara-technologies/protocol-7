@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = nameserv.enc.start
+# param = <state> <encrypted target>
+# descr = send one cache-miss query through an encrypted upstream, async
+
+## the connection per upstream is pooled and reused while alive ; a new one ##
+## is opened lazily, never blocking. an upstream in back-off is skipped. a  ##
+## failure moves the state to the next target -- never to a plain port 53   ##
+## server except the logged degraded fallback of the list                   ##
+
+my $state  = shift // return FALSE;
+my $target = shift // return FALSE;
+my $up     = $target->{'upstream'};
+my $name   = $up->{'name'};
+
+$state->{'enc_target'} = $target;
+
+my $health = ( <nameserv.enc.health> //= {} )->{$name};
+if ( ref $health and time < ( $health->{'until'} // 0 ) ) {
+    push @{ $state->{'enc_reasons'} },
+        "$name : in back-off after $health->{'reason'}";
+    return <[nameserv.cache.forward.next]>->($state);
+}
+
+my $pool = <nameserv.enc.pool> //= {};
+my $conn = $pool->{$name};
+if (ref $conn
+    and (  $conn->{'dead'}
+        or $conn->{'key'} ne
+        join( '|', @{$up}{qw| protocol address port tls_name |} ) )
+) {
+    <[nameserv.enc.close]>->($conn);
+    $conn = undef;
+}
+if ( not ref $conn ) {
+    my ( $new, $reason ) = <[nameserv.enc.connect]>->($up);
+    if ( not defined $new ) {
+        <[nameserv.enc.note_failure]>->( $name, $reason );
+        <[base.logs]>->(
+            0,     ': dns encrypted upstream %s failed : %s',
+            $name, $reason
+        );
+        push @{ $state->{'enc_reasons'} }, "$name : $reason";
+        return <[nameserv.cache.forward.next]>->($state);
+    }
+    $conn = $pool->{$name} = $new;
+}
+
+## the query : our own id [ doh uses 0, rfc 8484 ], recursion desired ##
+my $query_id
+    = $up->{'protocol'} eq qw| doh |
+    ? 0
+    : unpack qw| n |, <[base.prng.bytes]>->(2);
+my $query_wire = $state->{'query'}->data(65535);
+my $query      = eval { Net::DNS::Packet->new( \$query_wire ) };
+if ( not defined $query ) {
+    return <[nameserv.cache.forward.next]>->($state);
+}
+$query->header->id($query_id);
+$query->header->qr(0);
+$query->header->aa(0);
+$query->header->tc(0);
+$query->header->rd(1);
+$query_wire = $query->data(65535);
+
+@{$state}{qw| query_id query_wire in out upstream_ip upstream_port phase |}
+    = (
+    $query_id, $query_wire, '', '', $up->{'address'}, $up->{'port'},
+    qw| enc |
+    );
+$state->{'sock'}     = undef;
+$state->{'enc_conn'} = $conn;
+## the wait comes from base.interval.next [ type dns-enc-wait ], one state ##
+## per query : each further encrypted try waits a little longer            ##
+my $wait = <[base.interval.next]>->(
+    {   'type'  => qw| dns-enc-wait |,
+        'state' => ( $state->{'enc_wait'} //= {} )
+    }
+);
+$state->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $wait,
+        'handler' => qw| nameserv.enc.handler.timeout |,
+        'data'    => $state,
+        'desc'    => "encrypted upstream timeout [ "
+            . "$state->{'qname'} $state->{'qtype'} via $name ]"
+    }
+);
+push @{ $conn->{'queue'} }, $state;
+
+<nameserv.stats>->{'cache_forwarded'}++;
+<nameserv.stats>->{'cache_encrypted'}++;
+
+<[nameserv.enc.pump]>->($conn);
+return TRUE;
+
+#,,,.,...,.,.,...,.,.,..,,,..,,..,.,,,...,,.,,..,,...,...,..,,..,,,,.,...,..,,
+#6L2J26EJ6UBPATKDC7HWCQEBZ5VNSQ6JOTFRPLCBJUQGKHE6UAYCVCP6RDTYZYXGNOZ3EWNEUOYVQ
+#\\\|Q5ARQTEUCDFBZKRCCYFRGGBBPFEGE453EPEMUJ7VQCNSQ3NBPHK \ / AMOS7 \ YOURUM ::
+#\[7]EHIJJ67HK4PY4PVQ4OHYWIQ34QCEHTZK3FDODUKV2TGBALS6DMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

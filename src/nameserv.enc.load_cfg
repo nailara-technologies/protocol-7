@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = nameserv.enc.load_cfg
+# descr = read the encrypted upstreams from config into runtime state
+
+## nameserv.cfg.encrypted.upstream.NAME.{address port protocol tls_name   ##
+## path}> ; entries set by command stay, config entries are replaced on a ##
+## reload. an invalid entry is logged and skipped                         ##
+
+my $all = <nameserv.encrypted.upstreams> //= {};
+for my $name ( keys %{$all} ) {
+    delete $all->{$name} if ( $all->{$name}{'source'} // '' ) eq qw| cfg |;
+}
+
+my $cfg = <nameserv.cfg.encrypted.upstream>;
+return TRUE if ref $cfg ne qw| HASH |;
+
+for my $name ( sort keys %{$cfg} ) {
+    next if ref $cfg->{$name} ne qw| HASH |;
+    next if exists $all->{$name};
+    my ( $entry, $error )
+        = <[nameserv.enc.normalize]>
+        ->( { %{ $cfg->{$name} }, 'name' => $name } );
+    if ( not defined $entry ) {
+        <[base.logs]>->(
+            0,     ': encrypted upstream %s from config ignored : %s',
+            $name, $error
+        );
+        next;
+    }
+    $entry->{'source'} = qw| cfg |;
+    $all->{$name} = $entry;
+}
+return TRUE;
+
+#,,,.,..,,...,,.,,,..,.,.,,.,,.,,,.,,,,.,,,,,,..,,...,...,...,,,,,.,.,,,.,.,,,
+#C5YVVJXKDQWO3NVTXOZUNWRNBVSE4F64IJUKKTUH7XMJM6QG5E2ANF534B5ZQNZ646PVJWIJ27EJ2
+#\\\|N5EBO2NT6LN2UOSFZD6UQ2Z6KGGS2QHSVI5QS4P2GVMKOQOHKPK \ / AMOS7 \ YOURUM ::
+#\[7]NCJLQ2XMIAT4WSNCN3RBX63JK6UBUHOCMXS4FDLAWTKXORZ27ACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

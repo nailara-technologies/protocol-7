@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = nameserv.cmd.set-behaviour
+# param = <source> <behaviour> <dhcp addr> ..
+# descr = record the dns behaviour of one network, from net
+
+## net hands the stored behaviour over with every dns hand-off, the way it ##
+## hands the policy. intercepting \ blocking-outside select the encrypted  ##
+## path ; the dhcp servers listed are its degraded fallback. nothing else  ##
+## changes here                                                            ##
+
+my ( $source, $behaviour, @addresses ) = split m|\s+|, $call->{'args'} // '';
+my $usage = 'usage: set-behaviour <source> <behaviour> <addr> ..';
+my %valid = map { $ARG => 1 }
+    qw| open filtering intercepting blocking-outside unknown unmeasured |;
+return { mode => 'false', data => $usage }
+    if ( $source // '' ) !~ m{^[a-z][a-z0-9_.-]*(?::[a-z0-9_.-]+)*$}
+    or not $valid{ $behaviour // '' };
+
+my @canonical;
+my %seen;
+for my $address (@addresses) {
+    my $validated = <[nameserv.upstream_address]>->($address);
+    return { mode => 'false', data => "invalid ip address: $address" }
+        if not defined $validated;
+    push @canonical, $validated if not $seen{ lc $validated }++;
+}
+
+my $all = <nameserv.upstreams.behaviour_by_source> //= {};
+my $old = ( $all->{$source} // {} )->{'behaviour'} // qw| unmeasured |;
+$all->{$source} = {
+    'behaviour' => $behaviour,
+    'dhcp'      => \@canonical,
+    'at'        => time
+};
+if ( $old ne $behaviour ) {
+    <[base.logs]>->(
+        1,
+        ': dns behaviour of %s : %s -> %s [ %s path ]',
+        $source,
+        $old,
+        $behaviour,
+        $behaviour =~ m{^(?:intercepting|blocking-outside)$}
+        ? 'encrypted'
+        : 'plain'
+    );
+}
+delete <nameserv.cache.upstream_list>;
+return { mode => 'size', data => "dns behaviour of $source : $behaviour" };
+
+#,,,.,,.,,.,,,.,,,,,,,...,,..,.,,,.,.,,..,,,.,..,,...,...,,..,...,...,..,,...,
+#6YLBGT3FM6L565IUWJ3KX2HVKCIJULBNCGSTAJFUBMOIDMTBO5SX7IMXD4NQV475WPE2PMT2VYAMQ
+#\\\|QIS3SEBK5E4PYG52ESE4WNEPTCUV2NWE6CRZOCX6CXHY52GOLLU \ / AMOS7 \ YOURUM ::
+#\[7]P3FQ7FRWGYK5KL5LGDFFT5IBGQESG4NC42HQSUT3MEFHEAB5K2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

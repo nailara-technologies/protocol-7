@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = nameserv.cmd.set-encrypted-upstreams
+# param = <name> dot|doh <addr> <tls-name> [port] [path] | off
+# descr = set or remove one encrypted upstream [ dot \ doh ]
+
+## used instead of plain port 53 when the stored behaviour of a network is ##
+## intercepting or blocking-outside. the tls name is the sni and the name  ##
+## the certificate is verified for. also configurable as                   ##
+## nameserv.cfg.encrypted.upstream.NAME.{protocol address tls_name port    ##
+## path} ; off removes one [ a config entry returns on the next reload ]   ##
+
+my ( $name, $protocol, $address, $tls_name, $port, $path ) = split m|\s+|,
+    $call->{'args'} // '';
+my $usage = 'usage: set-encrypted-upstreams <name> dot|doh '
+    . '<addr> <tls-name> [port] [path]  |  <name> off';
+return { mode => 'false', data => $usage }
+    if ( $name // '' ) !~ m{\A[a-z][a-z0-9_-]*\z}
+    or not length( $protocol // '' );
+
+my $all = <nameserv.encrypted.upstreams> //= {};
+if ( lc $protocol eq qw| off | ) {
+    return { mode => 'false', data => "no encrypted upstream: $name" }
+        if not exists $all->{$name};
+    delete $all->{$name};
+    if ( ref <nameserv.enc.pool> and ref <nameserv.enc.pool>->{$name} ) {
+        <[nameserv.enc.fail]>->( <nameserv.enc.pool>->{$name}, 'removed' );
+    }
+    delete <nameserv.enc.health>->{$name} if ref <nameserv.enc.health>;
+    return { mode => 'size', data => "encrypted upstream $name removed" };
+}
+
+my ( $entry, $error ) = <[nameserv.enc.normalize]>->(
+    {   'name'     => $name,
+        'protocol' => $protocol,
+        'address'  => $address,
+        'tls_name' => $tls_name,
+        'port'     => $port,
+        'path'     => $path
+    }
+);
+return { mode => 'false', data => "$error ; $usage" } if not defined $entry;
+
+$entry->{'source'} = qw| cmd |;
+$all->{$name} = $entry;
+delete <nameserv.enc.health>->{$name} if ref <nameserv.enc.health>;
+return {
+    mode => 'size',
+    data => sprintf 'encrypted upstream %s : %s %s:%d [ tls name %s%s ]',
+    $name, $entry->{'protocol'}, $entry->{'address'}, $entry->{'port'},
+    $entry->{'tls_name'},
+    defined $entry->{'path'} ? ", path $entry->{'path'}" : ''
+};
+
+#,,.,,,.,,,,,,..,,.,,,,.,,.,.,.,.,,..,.,.,,,,,..,,...,...,...,.,.,...,,.,,...,
+#BCNSU67FX76ZZTN7J5N5FSARMO6H2TTWDRT25BADLRL47G3TES4XRCGIROSFOB5B7LDRV4BALU2A4
+#\\\|NRWOWNUSOQDONV6PNG75A4HC33UFLZXERXWSQNATUL6RWCN3KHD \ / AMOS7 \ YOURUM ::
+#\[7]47DTG4RKDZ4P3MWPVBZILMIOAVBICTSWBYYP4PAWZD2CE5F3SACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

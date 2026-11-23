@@ -59,7 +59,9 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       remove-zone restore-zone sync-pull sign-zone \
                       add-record apply-zone-source consistency \
                       ensure-challenge-alias upstreams set-upstreams \
-                      set-domain-upstreams set-held-upstreams dns-probe
+                      set-domain-upstreams set-held-upstreams dns-probe \
+                      set-behaviour encrypted-upstreams \
+                      set-encrypted-upstreams
 
 ## dns behaviour probe [ nameserv.dns-probe, asked by net ] : one name per ##
 ## list and round. known_answer = name=addr[,addr] pairs whose real answer ##
@@ -71,6 +73,31 @@ base.interval.cfg.type.dns-probe-wait.start      = 2.1
 base.interval.cfg.type.dns-probe-wait.factor     = 1.01
 base.interval.cfg.type.dns-probe-wait.cap        = 2.1
 base.interval.cfg.type.dns-probe-wait.cap_jitter = 0.34
+
+## encrypted fallback [ dns over tls 853, dns over https 443 ] : used for a ##
+## network whose stored behaviour is intercepting \ blocking-outside ; the  ##
+## held dhcp server is the logged degraded fallback. tls_name is the sni    ##
+## and the certificate name, verification is always on                      ##
+## [ system ca store, or nameserv.cfg.encrypted.ca_file ]. examples only :  ##
+# nameserv.cfg.encrypted.upstream.quad9-dot.protocol = dot
+# nameserv.cfg.encrypted.upstream.quad9-dot.address  = 9.9.9.9
+# nameserv.cfg.encrypted.upstream.quad9-dot.tls_name = dns.quad9.net
+# nameserv.cfg.encrypted.upstream.quad9-doh.protocol = doh
+# nameserv.cfg.encrypted.upstream.quad9-doh.address  = 9.9.9.9
+# nameserv.cfg.encrypted.upstream.quad9-doh.tls_name = dns.quad9.net
+# nameserv.cfg.encrypted.upstream.quad9-doh.path     = /dns-query
+## how long one encrypted try waits [ connect, tls, answer ] : start, then ##
+## x1.2 per further try of the same query, capped with a jitter            ##
+base.interval.cfg.type.dns-enc-wait.start      = 4.7
+base.interval.cfg.type.dns-enc-wait.factor     = 1.2
+base.interval.cfg.type.dns-enc-wait.cap        = 8.1
+base.interval.cfg.type.dns-enc-wait.cap_jitter = 1.3
+## a failed connect \ handshake backs the upstream off, the delay from ##
+## base.interval.next ; the first success clears it                    ##
+base.interval.cfg.type.dns-enc-reconnect.start      = 3.4
+base.interval.cfg.type.dns-enc-reconnect.factor     = 1.6
+base.interval.cfg.type.dns-enc-reconnect.cap        = 377
+base.interval.cfg.type.dns-enc-reconnect.cap_jitter = 55
 
 ## logging verbosity
 system.zenka.verbosity.buffer  = 2
@@ -106,8 +133,8 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml \
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,.,,.,.,,.,,..,,,..,.,,,,,,,..,,.,,,.,,,.,,,..,,...,..,,.,,,...,,..,..,,,..,
-#NZHHQAWKWDWZ2A4OYVZEC4RALUOIX2ZQSUACRVBV4DBAJ4CW35RSBD6MVL45ZNC54XW3E4YGN3SZ4
-#\\\|OU23AIQPJ7JFFH3JOZ3SPNIPMN2NVYC7E56III7LY67ST7BJVFA \ / AMOS7 \ YOURUM ::
-#\[7]UJF4CBAILA2TTYKT6T5DOSIYLCRKEBER5PEV4OJLBNQ7U3ERRODA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,.,.,..,,,,,,,,.,..,,.,,,,,.,.,,,..,,...,...,,,.,,.,,,.,,,,,,...,
+#FBJZ6U32KSDZWHPLTR4XLBEGPYLEKJLRNCPPQKJLBDWROCL65AED2VOLOBRNMIFSFFOJ5QCROXZUW
+#\\\|3BSPO4TZPEEBK4TSJ24Q4EJKAT7JHCOLFLEK3UXFJJPY46L56HY \ / AMOS7 \ YOURUM ::
+#\[7]5OR7M5X5C2CLK7EWKIZM5I6PLZG6AX7KDITJMHREICIN25VULAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

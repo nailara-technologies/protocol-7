@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = nameserv.enc.deliver
+# param = <state> <dns wire>
+# descr = validate an encrypted upstream reply and finish the query
+
+## the transport is authenticated, so a wrong id \ question is a broken     ##
+## server : the next target. servfail \ refused also move on, unless it was ##
+## the last target [ then delivered, never cached ]                         ##
+
+my $state = shift // return FALSE;
+my $wire  = shift // return FALSE;
+
+my $key     = $state->{'key'}            // return FALSE;
+my $pending = <nameserv.cache.in_flight> // return FALSE;
+return FALSE unless ref $pending->{$key} and $pending->{$key} == $state;
+
+my $name = ( $state->{'enc_target'}{'upstream'}{'name'} // 'encrypted' );
+
+my $pkt       = eval { Net::DNS::Packet->new( \$wire ) };
+my @questions = defined $pkt ? $pkt->question : ();
+if (   not defined $pkt
+    or not $pkt->header->qr
+    or $pkt->header->id != $state->{'query_id'}
+    or scalar @questions != 1
+    or lc( $questions[0]->qname ) ne $state->{'qname'}
+    or $questions[0]->qtype ne $state->{'qtype'}
+    or $questions[0]->qclass ne $state->{'qclass'} ) {
+    <[base.logs]>->(
+        1, ': dns encrypted upstream %s : invalid reply [ %s %s ]',
+        $name, $state->{'qname'}, $state->{'qtype'}
+    );
+    push @{ $state->{'enc_reasons'} }, "$name : invalid reply";
+    return <[nameserv.cache.forward.next]>->($state);
+}
+
+my $rcode = $pkt->header->rcode;
+if ( $rcode eq qw| SERVFAIL | or $rcode eq qw| REFUSED | ) {
+    my @targets = <[nameserv.cache.targets]>->( $state->{'qname'} );
+    if ( $state->{'upstream_idx'} + 1 < scalar @targets ) {
+        <[base.logs]>->(
+            2, ': cache upstream %s %s [ %s %s ] -- next upstream',
+            $name, $rcode, $state->{'qname'}, $state->{'qtype'}
+        );
+        push @{ $state->{'enc_reasons'} }, "$name : $rcode";
+        return <[nameserv.cache.forward.next]>->($state);
+    }
+}
+
+<[nameserv.enc.recovered]>->($name);
+return <[nameserv.cache.complete]>->( $state, $pkt );
+
+#,,..,,.,,,,.,.,.,,,,,..,,,..,,..,...,..,,,.,,..,,...,..,,,..,.,.,.,,,..,,.,,,
+#IJ6YVN5V5QRIMLEMWD5L7XX4U5JACZRUFY6FCPQGKO2XJCLSQILG5FK2UKM3SYPUWIA7AKUUPJR3M
+#\\\|5IBA54INHR6DO5BRAUNOAND63OYP4LZBRFKBLFXTDNFAQDDENMK \ / AMOS7 \ YOURUM ::
+#\[7]QVGC6MJAQVKVULRAXK4AK5T6LL35ERF7BKHBKNRSW3RLVA3JFAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

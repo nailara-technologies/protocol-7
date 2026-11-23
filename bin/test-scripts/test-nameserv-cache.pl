@@ -123,6 +123,13 @@ for my $mod (
     nameserv.upstream_entries
     nameserv.cache.own_name
     nameserv.cache.route_upstreams
+    nameserv.cache.domain_route
+    nameserv.cache.targets
+    nameserv.enc.active
+    nameserv.enc.list
+    nameserv.enc.detach
+    nameserv.enc.degraded
+    nameserv.enc.close
     nameserv.cache.upstreams
     nameserv.cmd.set-upstreams
     nameserv.cmd.set-held-upstreams
@@ -1244,8 +1251,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,,..,...,..,,.,.,,,,,..,,...,,,.,.,.,..,,..,,...,..,,...,,.,,.,.,..,,...,
-#SLPNSZDINTAQ7BAGPJTIWIJFUZM74XSDEP2ZXM57LUO5JCOITPXNVRJGZXEWNG3TNT6SKWX26U32G
-#\\\|NU37D5H6YL654TB2PCD376BILXK7B3AQEH6SDVBYRTE32PRLJZM \ / AMOS7 \ YOURUM ::
-#\[7]2XKUEHJHWFOC4G3OGY4UIWGDMIXRDYYOXYP5HKETZ4V4WTIIYWDY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,.,,,,,,.,,.,.,,..,..,,.,.,...,..,,...,...,.,.,,..,..,,.,.,..,,
+#YDJQOEUM4B4JKKNHAVBMIAAUV7MDOOXUV24PIQ6LMANLLLXNZSJBPVNL2THIDG3V3VYI4X2LDRS56
+#\\\|GN35UIZNCWFBP6W5AV5KUPPA5O3XUIEMXIM3Z4WDQIULMOT2SBI \ / AMOS7 \ YOURUM ::
+#\[7]3FKJHCPUYZOXBDPVNGJSU6NJ6BDA46LVFCLYBSJBG7RW56G5IUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

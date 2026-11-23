@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = nameserv.enc.flush
+# param = <connection>
+# descr = write the pending bytes of an encrypted connection, non-blocking
+
+require IO::Socket::SSL;
+
+my $conn = shift // return FALSE;
+return FALSE if $conn->{'dead'};
+my $sock = $conn->{'sock'} // return FALSE;
+
+while ( length $conn->{'out'} ) {
+    my $written = syswrite $sock, $conn->{'out'};
+    if ( not defined $written ) {
+        last
+            if $OS_ERROR{EAGAIN}
+            or $OS_ERROR{EWOULDBLOCK}
+            or ( $IO::Socket::SSL::SSL_ERROR // 0 )
+            == IO::Socket::SSL::SSL_WANT_READ()
+            or ( $IO::Socket::SSL::SSL_ERROR // 0 )
+            == IO::Socket::SSL::SSL_WANT_WRITE();
+        return <[nameserv.enc.fail]>->( $conn, "write failed : $OS_ERROR" );
+    }
+    return <[nameserv.enc.fail]>->( $conn, 'write returned zero' )
+        if not $written;
+    substr( $conn->{'out'}, 0, $written ) = '';
+}
+
+## poll writable only while bytes wait ##
+$conn->{'watcher'}->poll( length $conn->{'out'} ? qw| rw | : qw| r | )
+    if ref $conn->{'watcher'} and $conn->{'phase'} eq qw| ready |;
+return TRUE;
+
+#,,,.,.,.,,,.,,.,,,..,,,.,,..,.,.,,.,,...,,,.,..,,...,...,...,..,,,.,,,.,,.,,,
+#KC7VWWKCW5LC7XB6RV53XRMCENYQUK5P6YRIE2X62R76Y2KP4ONUPAIH2IV45R4RSTFSIIZJD7GRU
+#\\\|HJLPNRKPVZBM43LARV4LEF5OUGEMSGSCIW4W3GDUV7XRQMGE5GT \ / AMOS7 \ YOURUM ::
+#\[7]5DHFHNVH7QQ5O6SBXZGV2NZR3DKKDSPVQEYASHHMGKKMPCIETWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

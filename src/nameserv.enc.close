@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = nameserv.enc.close
+# param = <connection>
+# descr = tear one encrypted connection down quietly [ no state is notified ]
+
+my $conn = shift // return FALSE;
+return FALSE if $conn->{'dead'}++;
+
+if ( ref $conn->{'watcher'} ) {
+    $conn->{'watcher'}->cancel
+        if $conn->{'watcher'}->can('is_active')
+        and $conn->{'watcher'}->is_active;
+}
+$conn->{'watcher'} = undef;
+
+if ( defined $conn->{'sock'} ) {
+    ## a half open tls socket must not wait for a close_notify ##
+    eval { $conn->{'sock'}->close( 'SSL_no_shutdown' => 1 ); 1 }
+        or close $conn->{'sock'};
+    $conn->{'sock'} = undef;
+}
+
+my $pool = <nameserv.enc.pool> // {};
+my $name = $conn->{'up'}{'name'};
+delete $pool->{$name}
+    if ref $pool->{$name} and $pool->{$name} == $conn;
+return TRUE;
+
+#,,,.,,,,,,.,,,..,,.,,..,,,,,,.,.,.,,,,..,.,,,..,,...,.,.,...,.,.,,,.,,.,,.,.,
+#VZ4AMFQFQKFUOGNMCVXIG4YJXJREOSVISGCYLYLUPHW3KHYK3DWWE5FXW257Q6OCXNE2NAQTKDSHQ
+#\\\|I6FBNXMTPU75XU6IEKB53DDMPNEDTFGGTSV5UPIFWUBB5C3BA2J \ / AMOS7 \ YOURUM ::
+#\[7]GBFDO5AHYDZBIJUK4YWLU6WT3NQ6RGEIP3BIWQQAHU3R2B44CQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

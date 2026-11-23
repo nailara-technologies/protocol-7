@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = nameserv.enc.pump
+# param = <connection>
+# descr = move waiting queries onto a ready encrypted connection
+
+## dns over tls : every waiting query is framed and sent, replies match by ##
+## id. dns over https on http/1.1 : one request at a time, the next one    ##
+## goes out when the answer is in                                          ##
+
+my $conn = shift // return FALSE;
+return FALSE if $conn->{'dead'} or $conn->{'phase'} ne qw| ready |;
+
+if ( $conn->{'up'}{'protocol'} eq qw| dot | ) {
+    while ( my $state = shift @{ $conn->{'queue'} } ) {
+        my $wire = $state->{'query_wire'};
+        my $id   = $state->{'query_id'};
+        while ( exists $conn->{'inflight'}{$id} ) {    ## id in use ##
+            $id = unpack qw| n |, <[base.prng.bytes]>->(2);
+            substr( $wire, 0, 2 ) = pack qw| n |, $id;
+        }
+        @{$state}{qw| query_id query_wire |} = ( $id, $wire );
+        $conn->{'inflight'}{$id} = $state;
+        $conn->{'out'} .= <[nameserv.enc.dot_frame]>->($wire);
+    }
+} elsif ( not %{ $conn->{'inflight'} } and @{ $conn->{'queue'} } ) {
+    my $state   = shift @{ $conn->{'queue'} };
+    my $request = <[nameserv.enc.doh_request]>->(
+        $conn->{'up'}, $state->{'query_wire'}
+    );
+    if ( not defined $request ) {
+        unshift @{ $conn->{'queue'} }, $state;
+        return <[nameserv.enc.fail]>->(
+            $conn,
+            'cannot build the doh request [ wide character in the upstream ]'
+        );
+    }
+    $conn->{'inflight'}{ $state->{'query_id'} } = $state;
+    $conn->{'out'} .= $request;
+}
+return <[nameserv.enc.flush]>->($conn);
+
+#,,.,,,..,...,..,,.,.,..,,...,,,.,.,,,,,,,,.,,..,,...,...,.,.,..,,,.,,...,,.,,
+#KZJ7V4KD27PPLNONVMP3IHQN32IP2STZUF22KWS5BP3LSFR2B4C4G7VALCPNARW5B4622C3XHXOUI
+#\\\|36HWLSR4AGC37LC2UQGCNAJKMZXG7BOKC7UYM7ALHXEH7VQW6XJ \ / AMOS7 \ YOURUM ::
+#\[7]763INAA7ORXF3SO7AYH2ZS6SQ2FHQTXKU33UINBXRYUYO4E654AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

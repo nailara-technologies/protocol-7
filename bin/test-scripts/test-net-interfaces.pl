@@ -153,7 +153,13 @@ $code{'network.interfaces.ip_addr_text'} = sub { return $ip_text };
 ## test-net-nodes-power.pl ##
 $code{'network.lease.announce'} = sub { return 0 };
 my @sent_upstreams;
+## nameserv.set-behaviour rides along with every hand-off ##
+my @sent_behaviour;
 $code{'protocol-7.command.send.local'} = sub {
+    if ( $ARG[0]{'command'} eq 'nameserv.set-behaviour' ) {
+        push @sent_behaviour, $ARG[0];
+        return 0;
+    }
     push @sent_upstreams, $ARG[0];
     return 0;
 };
@@ -353,6 +359,9 @@ ok(
 );
 is_deeply $data{'network'}{'dns'}{'upstreams'},
     [ '192.0.2.1', '192.0.2.53' ], 'upstreams kept';
+is $sent_behaviour[-1]{'call_args'}{'args'},
+    'dhcp:eth0 unmeasured 192.0.2.1 192.0.2.53',
+    'hand-off carries the stored behaviour [ unmeasured ] and the servers';
 is_deeply [ grep { $ARG->{'command'} =~ m|^nameserv\.set-| }
         @sent_upstreams ],
     [
@@ -381,6 +390,8 @@ $call = { args => 'eth0 blocked' };
 $code{'network.cmd.dns-policy-set'}->();
 is $sent_upstreams[-1]{'command'}, 'nameserv.set-held-upstreams',
     'blocked policy only records servers';
+is $sent_behaviour[-1]{'call_args'}{'args'}, 'dhcp:eth0 unmeasured',
+    'blocked policy hands over no behaviour and no servers';
 $call = { args => 'eth0 split corp.example' };
 $code{'network.cmd.dns-policy-set'}->();
 like $code{'network.cmd.dns-policy'}->()->{'data'},
@@ -485,8 +496,8 @@ is $code{'network.dns_policy.get'}->('eth1')->{'policy'}, 'held',
 
 done_testing;
 
-#,,..,,.,,..,,,..,.,,,,,,,..,,.,,,...,,.,,...,..,,...,...,.,,,.,.,.,,,,,,,,,.,
-#XCSO56UYLH677ZKIARMHTJKVECV4JUC5YX6AWWSL4VI22TSMB66FQ454ZUFEEPMUJCKNBOLQKCNEW
-#\\\|V3QIBXHRCNFQRG3JBJDEGI5WQJ2FXLHQL2ZAIZPUA2AUAX2AHMJ \ / AMOS7 \ YOURUM ::
-#\[7]GCEDWDO7PLMHZOSALTWA2TUHLGWBZIWGDDRNNS4VL6FDFZWPI6DY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,.,..,,.,.,,,.,.,,,,,,,..,,..,,..,,...,...,,.,,..,,.,,,,..,,.,,
+#4NOOF7WFL3L6YDBFEPZ45RM4TYVRSIZPTFF3AE3ZZ6EOB3VKBAAFUF7P3435FC2MUEVW4ICP5CYAI
+#\\\|TR6SJQT3IT35XXYIPARAIWXUHDD6DZQAWDKPAQVE4YCH6O72SRL \ / AMOS7 \ YOURUM ::
+#\[7]HFTR4XRNZBWIAFESP4NUGGIODC5YZWNT3Z45F43XXFXIZ2QRFQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

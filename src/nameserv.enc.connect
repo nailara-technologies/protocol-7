@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = nameserv.enc.connect
+# param = <upstream>
+# descr = begin a non-blocking connection to one encrypted upstream
+
+## tcp connect only : the tls handshake is started by the io handler once ##
+## the socket is writable. returns the connection hash, or                ##
+## [ undef, reason ]. nothing here blocks                                 ##
+
+my $up = shift // return ( undef, 'no upstream' );
+
+require IO::Socket::IP;
+
+my $sock = IO::Socket::IP->new(
+    'PeerHost' => $up->{'address'},
+    'PeerPort' => $up->{'port'},
+    'Proto'    => qw| tcp |,
+    'Blocking' => 0,
+);
+return ( undef,
+    "tcp connect to $up->{'address'}:$up->{'port'} : "
+        . ( $EVAL_ERROR || $OS_ERROR ) )
+    if not defined $sock;
+
+my $conn = {
+    'up'       => $up,
+    'key'      => join( '|', @{$up}{qw| protocol address port tls_name |} ),
+    'sock'     => $sock,
+    'phase'    => qw| connect |,
+    'in'       => '',
+    'out'      => '',
+    'queue'    => [],
+    'inflight' => {},
+    'at'       => time,
+};
+$conn->{'watcher'} = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'poll'    => qw| w |,
+        'handler' => qw| nameserv.enc.handler.io |,
+        'data'    => $conn,
+        'desc'    => "encrypted upstream $up->{'name'} [ $up->{'protocol'} "
+            . "$up->{'address'}:$up->{'port'} ]"
+    }
+);
+if ( not ref $conn->{'watcher'} ) {
+    close $sock;
+    return ( undef, 'no io watcher' );
+}
+return $conn;
+
+#,,,.,,.,,,,.,..,,..,,..,,,,.,..,,,,.,,,.,,.,,..,,...,...,.,.,,..,..,,,,.,..,,
+#LXTTGRWYQC76IILFEIKIOA7LQC6KNYJZWUCACZLZV4T2DN254ONLH77GCNAPERIOOAZDWORHIOAZG
+#\\\|RCPK7B6SZDZFUT7RBKQSSUAPEISUABT6I7HG62API7OAGEIUHMS \ / AMOS7 \ YOURUM ::
+#\[7]CP5S3LU5IC2BQ2YQZVB3LPDTJTXGDHRCMGPTEILD54Q2ONAV4ODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

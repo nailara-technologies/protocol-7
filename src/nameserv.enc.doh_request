@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = nameserv.enc.doh_request
+# param = <upstream> <dns wire>
+# descr = build the dns over https request [ rfc 8484 post, http/1.1 ]
+
+## the host header carries the tls name                                     ##
+## [ the name the certificate was checked for ], with the port only when it ##
+## is not 443                                                               ##
+
+my $up   = shift // return undef;
+my $wire = shift // return undef;
+
+my $host = $up->{'tls_name'};
+$host = "[$host]" if index( $host, qw| : | ) >= 0;
+$host .= ':' . $up->{'port'} if $up->{'port'} != 443;
+
+## the request is octets : the header strings may carry the utf8 flag from ##
+## a decoded config \ command, which would upgrade every wire byte >= 0x80 ##
+## on concatenation. a wide character in them is refused                   ##
+my $header = join( "\r\n",
+    "POST $up->{'path'} HTTP/1.1",
+    "Host: $host",
+    'Accept: application/dns-message',
+    'Content-Type: application/dns-message',
+    'Content-Length: ' . length $wire,
+    'Connection: keep-alive',
+    '',
+    '' );
+return undef if not utf8::downgrade( $header, TRUE );
+utf8::downgrade( $wire, TRUE ) or return undef;
+return $header . $wire;
+
+#,,.,,.,.,...,.,,,,..,..,,.,,,.,,,.,.,,,,,,,.,..,,...,...,,..,,.,,.,,,,,.,..,,
+#7D4OUJBWKAWFFDG7R362F3P73C2EMFE2HQ2JYPEQ6DQGAE644PQHLILQDWH4SH3MWM77SQSZ7THHE
+#\\\|NWWU7D4QU5M4NXLOP7MLZ2T3MLYTZX4NIWOZHSOI5TC4TVYRDIN \ / AMOS7 \ YOURUM ::
+#\[7]P4RPKMT2U4GZWPMTXRTNPHEXKZWXLDAFZZSLP7ZCOL4QHJYWXCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -45,13 +45,16 @@ if ( $old ne $behaviour ) {
     );
 }
 <[network.dns_policy.save]>;
+
+## nameserv chooses its path by the behaviour : a change is handed over ##
+<[network.lease.dns_handoff]>->( $p->{'iface'} ) if $old ne $behaviour;
 return {
     mode => 'size',
     data => "dns behaviour of $fingerprint : $behaviour"
 };
 
-#,,..,,,,,.,,,,.,,.,.,,..,.,.,,.,,.,.,,..,,,.,..,,...,...,.,.,.,.,.,,,,.,,,.,,
-#NHKOTS7MJRHOHKL56Q3PC7PMR7LIKYYTOENVT4JTUERPBB5U5FAE4JBG7NU3GNZ3HKHDGKNXAWJRA
-#\\\|W5XQQZ4FEAQDJC4O7GW6F3ENV2NWRDJPYWO5PSJNHGEK6MXL3IN \ / AMOS7 \ YOURUM ::
-#\[7]YUJPBGAXHUE7CLRCU6VL2MRX6ZLB7JP6N4DGH2SKWBECRPXG2GDY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,..,,...,,..,,.,,.,.,...,..,,...,..,,...,..,,.,,,,.,,.,.,,.,,.,,,
+#QARLC4Y4TF6FILVFEUBWW5VAL4L2RR3AM2WWUMKSDA6JGHN4Z5YTF6TJMESGD7Y6G6UFSTJAGG3CC
+#\\\|HR7KVBJDAVL6CEOZEW5EBKMGRL7LL4WP35WJHBCJTFYXVZXKKYK \ / AMOS7 \ YOURUM ::
+#\[7]PSR576NM6A23RIR6YXYMM37UX65GRX5KIFWYTM5Z7GMIBTW5NEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

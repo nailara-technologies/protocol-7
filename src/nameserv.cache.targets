@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = nameserv.cache.targets
+# param = <qname>
+# descr = ordered forward targets for one name : plain \ encrypted \ held
+
+## the path choice. plain port 53 upstreams unless the stored behaviour of  ##
+## a network is intercepting \ blocking-outside : then the default route is ##
+## the encrypted upstreams, then the held dhcp server as a logged degraded  ##
+## mode. a split network's domain routes stay on its own dns.  own names go ##
+## to the owner's own resolvers only : the static upstreams normally, but   ##
+## while the encrypted path is active port 53 is intercepted or blocked, so ##
+## they go to the owner's encrypted upstreams only -- never to the held     ##
+## server, and plain static only when none is configured.  each target is a ##
+## hash : kind plain [ server ] or dot \ doh [ upstream ]                   ##
+
+my $qname    = shift // '';
+my @plain    = <[nameserv.cache.upstreams]>->($qname);
+my @as_plain = map { +{ 'kind' => qw| plain |, 'server' => $ARG } } @plain;
+
+my ( $encrypted, $sources, $fallback ) = <[nameserv.enc.active]>;
+return @as_plain if not $encrypted;
+
+my $name = lc $qname;
+$name =~ s|\.$||;
+my @targets = map { +{ 'kind' => $ARG->{'protocol'}, 'upstream' => $ARG } }
+    <[nameserv.enc.list]>;
+if ( <[nameserv.cache.own_name]>->($name) ) {
+    return @targets if @targets;    ## encrypted only, no held fallback ##
+    return @as_plain;
+}
+return @as_plain if ( <[nameserv.cache.domain_route]>->($name) )[0];
+
+if ( @{$fallback} ) {
+    push @targets, map {
+        +{  'kind'     => qw| plain |,
+            'server'   => $ARG,
+            'degraded' => TRUE,
+            'held'     => TRUE,
+            'sources'  => $sources
+        }
+    } @{$fallback};
+} elsif ( not @targets ) {
+    ## nothing encrypted configured, no held server : never without dns -- ##
+    ## the plain list, loudly                                              ##
+    push @targets, map {
+        +{  'kind'     => qw| plain |,
+            'server'   => $ARG->{'server'},
+            'degraded' => TRUE,
+            'sources'  => $sources,
+            'reason'   => 'no encrypted upstream configured [ '
+                . 'nameserv.cfg.encrypted.upstream ] and no '
+                . 'held server'
+        }
+    } @as_plain;
+}
+return @targets;
+
+#,,,.,...,,,,,,.,,.,.,...,,.,,,,.,,,.,.,,,,,,,..,,...,..,,..,,,..,.,.,.,,,,,.,
+#CQ7KGFQZGLH3HXJJQ7R67ZNGXL4KAUTBO4WBKEKNAZ5JJNSBR42B754FPJ2YTTQELKTHYDSOL2VBO
+#\\\|FXQLJYQZVY7SXYTCMEVVZN3ZVBHI6NMTGNHEUH4NVJIDLZLDLVZ \ / AMOS7 \ YOURUM ::
+#\[7]ZDAW3B4QIL4JO2MH7OTPRB3TDBSYAP3JWJ5COMFMFH366BMLYCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

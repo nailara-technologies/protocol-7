@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = nameserv.enc.handler.timeout
+# descr = time out one encrypted try of the forwarding cache
+
+## timer handler : the event carries the state hash. a connection that did ##
+## not answer in time is failed as a whole -- before the handshake that    ##
+## puts the upstream into back-off                                         ##
+
+my $state = shift->w->data;
+return unless ref $state eq qw| HASH |;
+
+my $key     = $state->{'key'}            // return;
+my $pending = <nameserv.cache.in_flight> // return;
+return unless ref $pending->{$key} and $pending->{$key} == $state;
+
+my $limit = sprintf '%.1f', $state->{'enc_wait'}{'last'} // 0;
+my $conn  = $state->{'enc_conn'};
+if ( ref $conn ) {
+    return <[nameserv.enc.fail]>->(
+        $conn, "no answer within $limit s [ $conn->{'phase'} ]"
+    );
+}
+my $name = $state->{'enc_target'}{'upstream'}{'name'} // 'encrypted';
+push @{ $state->{'enc_reasons'} }, "$name : timeout";
+return <[nameserv.cache.forward.next]>->($state);
+
+#,,.,,...,,,,,,..,..,,...,..,,..,,,..,...,,,,,..,,...,...,.,,,,,,,,..,...,,.,,
+#NKVL4FM26E7KOQAETK64YX3L4DHSAQE7JXANHR3OKDLPWQOEWERMUGG4U4FKBSQCDYRZERVW5VU3O
+#\\\|3BV2ZVTAWRDWO77QWSX5YGI5KZPSM7XQXG2NK3DASU4MZHW3GDX \ / AMOS7 \ YOURUM ::
+#\[7]BPU6COIIDWE2RKR2M3FQDSPUPQSZ3VURCNWDN7F7254R2BEM3IBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

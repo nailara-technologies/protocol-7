@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = nameserv.cmd.encrypted-upstreams
+# descr = list encrypted upstreams, state and path in use
+
+my @lines;
+for my $up (<[nameserv.enc.list]>) {
+    my $conn   = ( <nameserv.enc.pool>   // {} )->{ $up->{'name'} };
+    my $health = ( <nameserv.enc.health> // {} )->{ $up->{'name'} };
+    my $state
+        = ref $conn   && !$conn->{'dead'} ? $conn->{'phase'}
+        : ref $health && time < ( $health->{'until'} // 0 )
+        ? "back-off [ $health->{'reason'} ]"
+        : qw| idle |;
+    push @lines,
+        sprintf '  %-12s %s %s:%d  tls name %s%s  [%s ; %s]',
+        $up->{'name'}, $up->{'protocol'}, $up->{'address'}, $up->{'port'},
+        $up->{'tls_name'},
+        defined $up->{'path'} ? "  path $up->{'path'}" : '',
+        $up->{'source'} // qw| cmd |, $state;
+}
+my ( $active, $sources, $fallback ) = <[nameserv.enc.active]>;
+unshift @lines,
+    $active
+    ? sprintf(
+    '  path : encrypted [ %s ] ; degraded fallback : %s',
+    join( ' ', @{$sources} ),
+    @{$fallback} ? join( ' ', @{$fallback} ) : '[none]'
+    )
+    : '  path : plain port 53 [ no network is intercepting or blocking ]';
+push @lines,
+      '  degraded since '
+    . CORE::localtime( $ARG->{'at'} )
+    . " : $ARG->{'reason'}"
+    for grep { ref $ARG eq qw| HASH | } <nameserv.enc.degraded_since>;
+return {
+    mode => 'size',
+    data => "encrypted upstreams:\n"
+        . join( "\n", @lines, @lines > 1 ? () : '  [none]' )
+};
+
+#,,.,,.,,,,..,..,,..,,.,,,,,,,.,,,...,,.,,.,,,..,,...,...,..,,,..,...,.,,,,..,
+#QVQIAI4HBPUREWBHRSM234Y6BNFWQZWYFJIW22RRCTPQHPKECCQLSJCRAAGIWASYOHHLDQ6QNSTNQ
+#\\\|IG4YGQWEICTANLIN6ZKK4WWGLKMHXWC4BU3ZEAWTAGI24PEMT44 \ / AMOS7 \ YOURUM ::
+#\[7]AYDCDWAUEUWUPMUYJ7AAFL6EFKC5PG3RYEZGVDO6VFMBXV4NIABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,15 @@
+## [:< ##
+
+# name  = nameserv.enc.dot_frame
+# param = <dns wire>
+# descr = dns over tls message framing [ rfc 7858 : 2 byte length prefix ]
+
+my $wire = shift // return undef;
+return undef if length $wire > 65535;
+return pack( qw| n |, length $wire ) . $wire;
+
+#,,..,,,,,.,.,..,,..,,,,,,,.,,...,..,,,..,,.,,..,,...,...,,.,,,,.,.,,,,.,,...,
+#6HZ5CFM27ALGFDA56TBNLHDA7RG375F6JJPAJVASHT6T5RESUPX5IPAUBZWDZXRGMKE5XAWI7J2FS
+#\\\|E5VOIVXHU7EPX36OOFXREONQBS4SH4RK2OJLNGVOJMMKGUFXPRC \ / AMOS7 \ YOURUM ::
+#\[7]QHSJXVNA5TGO3OL5VIYZRPTQFOGMZZCDIBNMD2VORHDLKYL4BYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = nameserv.enc.note_failure
+# param = <upstream name> <reason>
+# descr = remember a failed connect or handshake and set the back-off
+
+## the delay comes from base.interval.next [ type dns-enc-reconnect ] : a   ##
+## failed upstream is skipped until then, never hammered. the first success ##
+## clears it                                                                ##
+
+my ( $name, $reason ) = @ARG;
+my $all   = <nameserv.enc.health> //= {};
+my $h     = $all->{$name}         //= { 'state' => {} };
+my $delay = <[base.interval.next]>
+    ->( { 'type' => qw| dns-enc-reconnect |, 'state' => $h->{'state'} } );
+$h->{'until'}  = time + ( $delay // 0 );
+$h->{'reason'} = $reason;
+$h->{'fails'}++;
+return $delay;
+
+#,,,,,.,,,.,.,...,,,.,.,.,.,,,,,.,...,...,..,,..,,...,.,.,,.,,.,,,,.,,.,,,,,.,
+#IFBROPTB55RQMOFTR6S5PE5YS2SF6ZQTRRQEB6RLZ4KC5DQOL4L2EE5ORGOYEUUZITGV7K33Y2U3Q
+#\\\|L5MUKHAX7UTYJQMQG4UWQVNSGKGJL7VLCUZ5VBFJDO6CRPQMNGS \ / AMOS7 \ YOURUM ::
+#\[7]3NPQCKSLDFQVABHFFIGJNMHZJSAK2C7SLWPBB4E465CO7TLSBWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

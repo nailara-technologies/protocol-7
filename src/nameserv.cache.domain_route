@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = nameserv.cache.domain_route
+# param = <qname>
+# descr = longest matching domain route : [ match length, addresses ]
+
+## a split network's domain list wins over the default route ; length 0 ##
+## means no domain route matches                                        ##
+
+my $name = lc( shift // '' );
+$name =~ s|\.$||;
+
+my $domain  = <nameserv.upstreams.domain_by_source> // {};
+my $longest = 0;
+my @addresses;
+foreach my $source ( sort keys $domain->%* ) {
+    my $route = $domain->{$source};
+    foreach my $suffix ( $route->{'domains'}->@* ) {
+        next
+            if $name ne $suffix
+            and $name !~ m|\.\Q$suffix\E$|;
+        if ( length($suffix) > $longest ) {
+            $longest   = length($suffix);
+            @addresses = ();
+        }
+        push @addresses, $route->{'addresses'}->@*
+            if length($suffix) == $longest;
+    }
+}
+return ( $longest, @addresses );
+
+#,,.,,,,.,.,,,,,,,.,.,...,..,,,..,...,,,.,,.,,..,,...,...,..,,,..,,,.,.,.,,,,,
+#NTDMO3PRGAGGVQCPBTNX2F7NBQPBCL3ZKPX3YS4JSABRJVAKN6EQGYD5YGVTCYRUIL2VHFD4TDIFW
+#\\\|76TXRGL57MVVXPPR6BLY3ZVFN7X3AN2VSBOSQHZ2XWESGZE243F \ / AMOS7 \ YOURUM ::
+#\[7]GL6YIU5DF77TZ6NSYOX5L6PX5RY7GZCRWYV7L4JBEUJKRN3PHYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

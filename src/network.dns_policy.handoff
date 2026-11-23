@@ -34,6 +34,20 @@ if ( $p->{'policy'} eq qw| trusted | ) {
         if @reverse and $p->{'policy'} eq qw| held |;
 }
 
+## the stored behaviour goes along, the way the policy does : intercepting ##
+## \ blocking-outside select nameserv's encrypted path, the dhcp servers   ##
+## are its degraded fallback [ not for a blocked network ]  a blocked      ##
+## network is never a resolver : nothing of its measured behaviour or its  ##
+## servers is handed over                                                  ##
+## [ no encrypted path chosen by it, never the degraded fallback ]         ##
+push @command,
+    $p->{'policy'} eq qw| blocked |
+    ? [ qw| nameserv.set-behaviour |, $source, qw| unmeasured | ]
+    : [
+    qw| nameserv.set-behaviour |,          $source,
+    $p->{'behaviour'} // qw| unmeasured |, @dns
+    ];
+
 <network.dns.upstreams>       = $p->{'policy'} eq qw| trusted | ? \@dns : [];
 <network.dns.upstreams_iface> = $iface;
 foreach my $cmd (@command) {
@@ -56,8 +70,8 @@ foreach my $cmd (@command) {
 }
 return TRUE;
 
-#,,.,,,,.,,,,,,,.,,.,,...,,.,,.,,,,,.,,..,...,..,,...,...,.,.,...,.,.,...,.,.,
-#HK4IFQLNPPDK4RAEJ4DPVHKIG7R6VHQX3LZJSCH6HSG4DO5MXOFLTJFORVOXBCQQ3IN3UHDTSSK2U
-#\\\|SAU3NGJJP4OFDD6MC6QKIGLTKYA35NNA3QDHBGJGC7LQG77HZG2 \ / AMOS7 \ YOURUM ::
-#\[7]RYHVBNIOV6GXWMQZ6KWNVRCNZ5YEWAUEMVT4X6S5S7U2L5ZYFEBA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,...,,.,,..,,,.,,.,,,,.,,.,,,,.,,..,,...,...,..,,.,,,.,,,,,.,,,.,
+#6ELNIQVPLY5TWREBBHVUFPWBR7CPWERTJZWCLPBS3EWGOBDB6LMZIWBRC77ZII2XDOOACSQWOS7HG
+#\\\|DUJGK7RYVB2RVGQDFKZJLYJHDJW2CUECBJMOAG4TG7KZVHZJPSL \ / AMOS7 \ YOURUM ::
+#\[7]TSSKKER7YZN3DPGOQOKPTSF25C33WKVS5P2VU4P3OSG5YXNO7WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,9 @@ my $state = shift // return FALSE;
 require IO::Socket::IP;
 require Socket;
 
-## drop the previous attempt's watcher + timer + socket ##
+## drop the previous attempt's encrypted connection slot, watcher, timer ##
+## and socket                                                            ##
+<[nameserv.enc.detach]>->($state);
 for my $name (qw| watcher timer |) {
     if ( ref $state->{$name} ) {
         $state->{$name}->cancel
@@ -25,14 +27,23 @@ for my $name (qw| watcher timer |) {
 close $state->{'sock'} if defined $state->{'sock'};
 $state->{'sock'} = undef;
 
-my @upstreams = <[nameserv.cache.upstreams]>->( $state->{'qname'} );
+my @targets = <[nameserv.cache.targets]>->( $state->{'qname'} );
 
-if ( $state->{'upstream_idx'} >= scalar @upstreams ) {
+if ( $state->{'upstream_idx'} >= scalar @targets ) {
     ## every upstream failed : servfail to every waiter ##
     return <[nameserv.cache.complete]>->( $state, undef );
 }
 
-my $server = $upstreams[ $state->{'upstream_idx'} ];
+my $target = $targets[ $state->{'upstream_idx'} ];
+
+## encrypted upstream : dot \ doh, pooled connection, never blocking ##
+return <[nameserv.enc.start]>->( $state, $target )
+    if $target->{'kind'} ne qw| plain |;
+
+## the held server of a network whose plain path is unusable : degraded ##
+<[nameserv.enc.degraded]>->( $state, $target ) if $target->{'degraded'};
+
+my $server = $target->{'server'};
 my $ip     = $server;
 my $port   = 53;
 if ( $server =~ m{^\[(.+)\]:(\d+)$} ) {
@@ -111,8 +122,8 @@ $state->{'timer'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,.,,,..,.,.,,.,,.,,,,,.,,,.,,..,,,.,...,...,..,,...,...,..,,,,.,...,.,.,,..,
-#UQZPXFX6HGYM35WXYLLD64P6RCXE6XQ3CJDTIZDJCSMO7L3NZVOJR5NLXVAMSDZG5MY5FSEVHS6DY
-#\\\|IGBX3JPM2H4PE5E5DK3TO7NJWEV5H5B5KHJVOTDUOLPR7DD3EMG \ / AMOS7 \ YOURUM ::
-#\[7]LYWMXCJ3VL5ZHVNWSLB34BC5ZMDNVARQEBGSFCCIRRLEZPD7UWDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,..,.,.,,,,,,..,.,.,,,.,,..,,,,,..,,...,...,...,,,.,,.,,.,.,,,,,
+#BSQBG6VYEJ23CXFLXXFAVSAEEPDGXFOZE7S5KBBVOATCWVB4UGAOFZVMVEY6GE6B7RUGIR7W4UPQW
+#\\\|IFCEALLHFTTMIU6HZ5RSA4IWHH76XTHFGJQNK5YU4NK7VILP3PS \ / AMOS7 \ YOURUM ::
+#\[7]V5TF3X2ZQEBE4V2FFDBNOEQQKPMP5FQZW6OKUI6NE5K5WYVRXUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

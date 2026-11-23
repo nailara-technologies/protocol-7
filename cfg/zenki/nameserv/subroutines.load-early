@@ -123,6 +123,9 @@ auth.auth_select
 ascii.frame.load
 plugin.auth.zenka
 net.read_bytewise
+nameserv.enc.pump
+nameserv.enc.list
+nameserv.enc.fail
 jobqueue.move_job
 jobqueue.exec_job
 base.stream.close
@@ -150,6 +153,9 @@ nameserv.zone.save
 nameserv.sync.sign
 nameserv.sync.reap
 nameserv.init_code
+nameserv.enc.start
+nameserv.enc.flush
+nameserv.enc.close
 nameserv.cache.put
 nameserv.cache.key
 nameserv.cache.get
@@ -177,6 +183,8 @@ nameserv.sync.start
 nameserv.sync.since
 nameserv.sync.apply
 nameserv.event.emit
+nameserv.enc.detach
+nameserv.enc.active
 nameserv.cmd.status
 io.ip.tcp.init_code
 base.utf8.clean_str
@@ -201,6 +209,8 @@ nameserv.sync.notify
 nameserv.sync.listen
 nameserv.sync.key.id
 nameserv.sync.accept
+nameserv.enc.deliver
+nameserv.enc.connect
 nameserv.cmd.add-txt
 io.ip.tcp.input.open
 format.yaml.pre_init
@@ -233,6 +243,9 @@ base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
 nameserv.sync.request
+nameserv.enc.load_cfg
+nameserv.enc.dispatch
+nameserv.enc.degraded
 jobqueue.get_next_job
 jobqueue.get_job_data
 io.ip.tcp.output.open
@@ -264,12 +277,16 @@ base.balanced-average
 nameserv.zone.checksum
 nameserv.sync.peer.arm
 nameserv.handler.query
+nameserv.enc.recovered
+nameserv.enc.normalize
+nameserv.enc.dot_frame
 nameserv.dns_tcp.close
 nameserv.cmd.upstreams
 nameserv.cmd.sync-pull
 nameserv.cmd.sign-zone
 nameserv.cmd.show-zone
 nameserv.cmd.dns-probe
+nameserv.cache.targets
 nameserv.cache.forward
 io.ip.tcp.output.close
 format.yaml.write_file
@@ -297,6 +314,7 @@ nameserv.sync.addresses
 nameserv.start_listener
 nameserv.name.normalize
 nameserv.entry.identity
+nameserv.enc.handler.io
 nameserv.dns_probe.done
 nameserv.cmd.set-record
 nameserv.cmd.remove-txt
@@ -340,6 +358,8 @@ nameserv.sync.entry.body
 nameserv.sync.conn.write
 nameserv.sync.conn.flush
 nameserv.sync.conn.close
+nameserv.enc.dot_unframe
+nameserv.enc.doh_request
 nameserv.dns_probe.start
 nameserv.dns_probe.query
 nameserv.consistency.run
@@ -375,6 +395,8 @@ nameserv.upstream_address
 nameserv.sync.peers.start
 nameserv.sync.peer.wakeup
 nameserv.sync.apply.entry
+nameserv.enc.note_failure
+nameserv.enc.doh_response
 nameserv.dns_probe.finish
 nameserv.cmd.restore-zone
 nameserv.cmd.reload-zones
@@ -410,6 +432,7 @@ nameserv.sync.client.start
 nameserv.dns_probe.address
 nameserv.consistency.query
 nameserv.cmd.set-upstreams
+nameserv.cmd.set-behaviour
 nameserv.cmd.remove-record
 nameserv.cache.forward.try
 io.unix.socket.output.open
@@ -443,6 +466,7 @@ nameserv.sync.client.finish
 nameserv.consistency.finish
 nameserv.cmd.discover-nodes
 nameserv.cache.forward.next
+nameserv.cache.domain_route
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
@@ -473,6 +497,7 @@ nameserv.sync.handler.accept
 nameserv.sync.client.timeout
 nameserv.sync.client.process
 nameserv.reply.echo_question
+nameserv.enc.handler.timeout
 io.unix.socket.input.connect
 crypt.C25519.keystr_is_valid
 crypt.C25519.delegation_file
@@ -564,6 +589,7 @@ nameserv.dns_tcp.handler.timeout
 nameserv.consistency.zone-serial
 nameserv.consistency.evaluate-dn
 nameserv.cmd.last-data-timestamp
+nameserv.cmd.encrypted-upstreams
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
 crypt.C25519.decrypt_priv_keystr
@@ -628,6 +654,7 @@ protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 nameserv.sync.client.handler.connect
 nameserv.consistency.handler.timeout
+nameserv.cmd.set-encrypted-upstreams
 graphics-3d.calc.cursor-translucency
 base.warnings.compact_diff_to_pragma
 base.warnings.compact_diff_from_bits
@@ -677,8 +704,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,..,,,,,.,.,.,.,,,,,.,,,,,,,..,,,,,,..,,,,.,..,,...,..,,.,,,,,.,,,,,,.,,,,.,
-#BZMU327KRXZK2DV7WYFGMPSHEA7PPRWL3EKXTOIQYYEFEV4AAJBAAZAR7A3MAJ3GLERPDDMCMNONE
-#\\\|FPTYI2GCNJQW5KZAVK2CRA4ZKSY5Y7TMK57FVJDGPZEY6M3R5MU \ / AMOS7 \ YOURUM ::
-#\[7]HABSP2JNUDKM43N6H6556O7ORDPEUX7U46RJ2MTBCPXTJRFFB6AY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,...,,,.,,..,,..,.,,,...,.,.,.,,,..,,...,...,,.,,,,.,.,.,.,.,,.,,
+#QEEG7WUB7NBEKA6ACLEJTSVUPYU3RDG2N6BDCQAQY5OEALP4XXRQRGWZJEAA6UYY25GUBMET4IYOI
+#\\\|4T6PYMJTGZYBCF5FAT4UISUTKUKJZGRQKMSWLQKVY3EVVP6ANYV \ / AMOS7 \ YOURUM ::
+#\[7]Z4KTZC2RU5IJBMACNTLJ2XUBCO5NG56UV7ULBYYMK3IMHHT7A4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = nameserv.enc.detach
+# param = <state>
+# descr = take a cache-miss state off its encrypted connection
+
+my $state = shift                // return FALSE;
+my $conn  = $state->{'enc_conn'} // return TRUE;
+$state->{'enc_conn'} = undef;
+
+$conn->{'queue'} = [ grep { $ARG != $state } @{ $conn->{'queue'} } ];
+for my $id ( keys %{ $conn->{'inflight'} } ) {
+    delete $conn->{'inflight'}{$id} if $conn->{'inflight'}{$id} == $state;
+}
+## a connection nobody waits for and that never became ready is dropped ##
+<[nameserv.enc.close]>->($conn)
+    if $conn->{'phase'} ne qw| ready |
+    and not @{ $conn->{'queue'} }
+    and not %{ $conn->{'inflight'} };
+return TRUE;
+
+#,,.,,..,,,,,,...,.,,,,,,,,.,,...,,.,,,..,,,.,..,,...,...,,.,,.,,,...,,.,,,.,,
+#RYK4BAIL44Q7WEADZWSLZENR4OG4PB24OOJV6MZH5UGVKETZAFMBBGR7APDMA3IWGJ64UQXGET3U6
+#\\\|M5TMCK65EQKKEQBXUD4WD7AF7G2LAVLBA4Y4XXBQC56VL4AH7KO \ / AMOS7 \ YOURUM ::
+#\[7]CTLOWITW2A5ZEX7UDMRF5277IU4ALYUSHC4AQSJC4KDKYEEQWUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

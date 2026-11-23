@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = nameserv.enc.degraded
+# param = <state> <plain target>
+# descr = log, once, that dns runs on the held server instead of encrypted
+
+## logged when the mode is entered, not per query : the reason is every   ##
+## failure of this query's encrypted attempts, or that none is configured ##
+
+my $state  = shift // return FALSE;
+my $target = shift // return FALSE;
+return TRUE if ref <nameserv.enc.degraded_since>;
+
+my $reason = join ' ; ', @{ $state->{'enc_reasons'} // [] };
+$reason = $target->{'reason'} // 'no encrypted upstream answered'
+    if not length $reason;
+<nameserv.enc.degraded_since> = {
+    'at'     => time,
+    'reason' => $reason,
+    'server' => $target->{'server'}
+};
+<[base.logs]>->(
+    0,
+    ': dns DEGRADED : %s -- using %s %s [ %s ]',
+    $reason,
+    $target->{'held'} ? 'the held server' : 'plain port 53 upstream',
+    $target->{'server'},
+    join( ' ', @{ $target->{'sources'} // [] } )
+);
+return TRUE;
+
+#,,,.,,.,,..,,...,,..,.,.,.,.,,..,,.,,,.,,.,.,..,,...,...,.,,,.,.,,..,.,.,,.,,
+#Y4QQFKIFDTGWMKE63A22R4SAYZSJZM5KCQUDZ5GFYPLXRHOAJIONTDEVNTD7W4D3CS4336D6MZJRW
+#\\\|STGYT6HVCPIEHT7EYCVBU6ZYJ4TRLONILQFXTAOT6DRGHBGQF7U \ / AMOS7 \ YOURUM ::
+#\[7]XGIYHJ2DQUFZQKJSU3S6M3HYYWHP7BIKKWFHWAWDYU6KTNXDWUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -43,7 +43,8 @@ my $sub_cfg
     'cache_hits'      => 0,
     'cache_misses'    => 0,
     'cache_forwarded' => 0,
-    'cache_servfail'  => 0
+    'cache_servfail'  => 0,
+    'cache_encrypted' => 0
 };
 <nameserv.discovered>              //= {};
 <nameserv.cfg.auto_publish_domain> //= undef;
@@ -74,10 +75,21 @@ my $sub_cfg
 
 ## cache and source upstream state            ##
 ## [ reinit safe : neither resets on reload ] ##
-<nameserv.cache.entries>              //= {};
-<nameserv.upstreams.by_source>        //= {};
-<nameserv.upstreams.held_by_source>   //= {};
-<nameserv.upstreams.domain_by_source> //= {};
+<nameserv.cache.entries>                 //= {};
+<nameserv.upstreams.by_source>           //= {};
+<nameserv.upstreams.held_by_source>      //= {};
+<nameserv.upstreams.domain_by_source>    //= {};
+<nameserv.upstreams.behaviour_by_source> //= {};
+
+## encrypted fallback [ dns over tls 853, dns over https 443 ] : used for ##
+## networks measured intercepting \ blocking-outside. upstreams from      ##
+## nameserv.cfg.encrypted.upstream.NAME.* or                              ##
+## nameserv.set-encrypted-upstreams ; connections and back-off state      ##
+## survive a reload                                                       ##
+<nameserv.encrypted.upstreams> //= {};
+<nameserv.enc.pool>            //= {};
+<nameserv.enc.health>          //= {};
+<[nameserv.enc.load_cfg]>;
 
 ## a config reload may change cache.upstream : read the list again ##
 delete <nameserv.cache.upstream_list> if $reinit;
@@ -139,8 +151,8 @@ for my $timer ( @{ <nameserv.consistency.timers> // [] } ) {
 
 0;
 
-#,,,,,.,,,...,..,,..,,,.,,...,,,.,..,,.,,,.,.,..,,...,...,..,,...,,,.,...,,,,,
-#WKR7Y2IV3MBB32MPUVX7PYCQSDLR42OV3XYKHAZVHZWOLFFSJ4NBK2CXFFFV2LYHGRIVNMSCYYTWM
-#\\\|O4N2KTTELCOP6GJSHVDGNMGXNLU7GJVUJFWAQNBM3647657NN5X \ / AMOS7 \ YOURUM ::
-#\[7]6C673LEIMWULGVIHUEZFWOFATIT5L4QKDRESRKTRTAD3UIVQMYBI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,...,,..,..,,..,,,,,,..,,...,,..,..,,...,...,..,,...,.,.,,.,,,.,,
+#SWLWZTB37IOMMIYVO5QJWI7HF5HPNUJFAWP65IUAQPQOVT7LDFLEEY37TSUJ6LKNDOCSH7KZU3BIE
+#\\\|YU2QS4RPL77BIXALDXT6NVTIB3I6TZMEZNDPG33D4A3JOL4IBHM \ / AMOS7 \ YOURUM ::
+#\[7]G3ZC5ENM3RTCKHNPFS6MPUZNNFTXZD2NQRW2222FI65SQ575K4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

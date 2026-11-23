@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = nameserv.enc.fail
+# param = <connection> <reason>
+# descr = an encrypted connection failed : tell every query waiting on it
+
+## before the handshake finished the upstream goes into back-off and the    ##
+## queries move on. a connection that had worked is retried once on a fresh ##
+## one per query [ a server closing an idle session is normal ]             ##
+
+my ( $conn, $reason ) = @ARG;
+return FALSE if ref $conn ne qw| HASH | or $conn->{'dead'};
+
+my $up    = $conn->{'up'};
+my $name  = $up->{'name'};
+my $ready = $conn->{'ever_ready'} ? TRUE : FALSE;
+
+my %seen;
+my @states = grep { not $seen{ $ARG + 0 }++ }
+    ( values %{ $conn->{'inflight'} }, @{ $conn->{'queue'} } );
+$conn->{'inflight'} = {};
+$conn->{'queue'}    = [];
+<[nameserv.enc.close]>->($conn);
+
+if ($ready) {
+    <[base.logs]>->(
+        2,     ': dns encrypted connection to %s closed : %s',
+        $name, $reason
+    );
+} else {
+    <[nameserv.enc.note_failure]>->( $name, $reason );
+    <[base.logs]>->(
+        0, ': dns encrypted upstream %s [ %s %s:%d ] failed : %s',
+        $name, $up->{'protocol'}, $up->{'address'}, $up->{'port'}, $reason
+    );
+}
+
+for my $state (@states) {
+    next if ( $state->{'enc_conn'} // 0 ) != $conn;
+    $state->{'enc_conn'} = undef;
+    push @{ $state->{'enc_reasons'} }, "$name : $reason";
+    if ( ref $state->{'timer'} ) {
+        $state->{'timer'}->cancel
+            if $state->{'timer'}->can('is_active')
+            and $state->{'timer'}->is_active;
+        $state->{'timer'} = undef;
+    }
+    my $target = $state->{'enc_target'};
+    if ( $ready and ref $target and not $state->{'enc_retry'}{$name}++ ) {
+        <[nameserv.enc.start]>->( $state, $target );
+    } else {
+        <[nameserv.cache.forward.next]>->($state);
+    }
+}
+return TRUE;
+
+#,,,.,.,.,.,,,,.,,,,,,..,,,,.,.,,,,.,,,,.,,,,,..,,...,...,.,,,,..,,,,,,,.,,,,,
+#TTLBSL3GNCOTNOCN2UZIAPW5IS6FIDN5BCETPLNJCJMH6HH5W25AODPYRRC6GWYOBWNLHRLICONDW
+#\\\|UQD7EZHVEM7WPPORUP3BXGYYE3JM7HVNEIT64SBMID2ORIBXTRQ \ / AMOS7 \ YOURUM ::
+#\[7]BNES3O5AUTITLSR47Y5GLF2F43TD3OO7LF2YAIHPVS7D3VT2MCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
