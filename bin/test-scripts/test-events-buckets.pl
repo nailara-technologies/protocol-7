@@ -147,7 +147,12 @@ $code{'event.add_timer'} = sub {
 load_module($ARG) for qw|
     events.plugin.registry
     events.plugin.known
+    events.source.arm_all
+    events.source.disarm
     events.fire
+    events.handler.event_triggered
+    events.calc_unix_table
+    events.set_up_timers
     events.action.tile_apply
     events.action.overlay_apply
     events.access.grants
@@ -167,11 +172,7 @@ load_module($ARG) for qw|
     events.bucket.cycle
     events.bucket.finish
     events.bucket.evaluate
-    events.bucket.arm
-    events.bucket.disarm
-    events.bucket.handler.timer
     events.bucket.handler.start
-    events.bucket.wake_signal
     events.bucket.start
     events.bucket.action_route
     events.cmd.bucket-add
@@ -254,8 +255,11 @@ sub state_of {
 
 sub fire_timer {
     my ( $owner, $id ) = @ARG;
-    $code{'events.bucket.handler.timer'}
-        ->( FakeEvent->new( { 'owner' => $owner, 'id' => $id } ) );
+    $code{'events.handler.event_triggered'}->(
+        FakeEvent->new(
+            { 'type' => 'at', 'id' => "$owner/$id", 'at' => time }
+        )
+    );
 }
 
 sub restart {    ## memory gone, files stay : a new process ##
@@ -328,7 +332,7 @@ ok( bucket_entry( 'coding', 'a1' )->{'action'}{'command'} eq
 ok( @{ $data{'events'}{'buckets'}{'coding'}{'order'} } == 1,
     'replace : one entry, not two' );
 ok( @timers == 2
-        && $data{'events'}{'bucket_timers'}{'coding/a1'}{'args'}{'at'}
+        && $data{'events'}{'timers'}{'coding/a1'}{'at'}{'args'}{'at'}
         == $now + 7200,
     'replace : the timer follows the new time'
 );
@@ -376,7 +380,7 @@ ok( $r->{'mode'} eq 'true'
         && $aft->{'after'} eq 'bucket-wait-short',
     'when after : the delay comes from base.interval.next [ stored absolute ]'
 ) or say '#   ' . ( $aft->{'at'} - time );
-ok( $timers[-1] =~ m{events\.bucket\.handler\.timer \d+},
+ok( $timers[-1] =~ m{events\.handler\.event_triggered \d+},
     'when after : a timer is set' );
 $r = add(
     'coding',         'aft2',
@@ -682,7 +686,8 @@ ok( join( ',', @{ $data{'events'}{'buckets'}{'coding'}{'order'} } ) eq
 ok( state_of( 'coding', 'r3' ) eq 'fired' && !@sent,
     'persist : a fired entry is not fired again at start'
 );
-ok( scalar( grep { $ARG =~ m{events\.bucket\.handler\.timer} } @timers ) == 1,
+ok( scalar( grep { $ARG =~ m{events\.handler\.event_triggered} } @timers )
+        == 1,
     'persist : the future time is armed again'
 );
 fire_timer( 'coding', 'r1' );
@@ -902,7 +907,8 @@ $code{'events.cmd.signal'}->();
 ok( "@sent" eq '',
     'task-continue : a signal of another name does not wake it' );
 $call = { 'args' => 'claude run.done' };
-$code{'events.bucket.wake_signal'}->( 'claude', 'run.done', {} );
+$code{'events.plugin.registry'}->()->{'source'}{'signal'}{'wake'}
+    ->( 'claude', 'run.done', {} );
 ok( "@sent" eq 'cube.task.continue | task-44 wake',
     'task-continue : parked on a signal, woken by it'
 );
@@ -932,8 +938,8 @@ ok( exists $reg->{'source'}{'bucket-dependency'}
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,.,,.,,,,.,,,,,,,..,.,,,.,.,.,,,,,,,,,,,..,,...,...,,.,,,..,,..,,,.,.,.,
-#MK4UV556AVEYM25BUDAOAAMN4APYFRTE5HAMGDU2JW7FOYAS4CVP5Y34QDZTELGFBRNZX5XXMWHEE
-#\\\|ENSRMPHV7MMDOGT76YBBD3OCTROEW2LZ6Y2C5SVDC5EPYUKUESD \ / AMOS7 \ YOURUM ::
-#\[7]UXCL7I4UG2SLMQJ6DFWEQTWRK2AAWQ5FVPG5NQ2CLGUXR5QWJSDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,,.,,..,.,.,,,.,,..,.,,,.,.,..,,...,...,,..,,,.,,,,,,.,,.,,,
+#IKERZ5HSCX7BPAHELL45U7GAQEXGXEBRPPIIGJOANZS574YDVPKIJUX2PLTIZ7FHG4A6UCDXET4XS
+#\\\|QQBXECBK73JN3527UG3NK4RSGE7EQUUY2YO5MX2ZD73M36TWFOL \ / AMOS7 \ YOURUM ::
+#\[7]LDAD4VO7PNYG4UWZGL3ZIHGFRZQR3KUVXDPBPW3PULLEMRAFROBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

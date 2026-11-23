@@ -146,13 +146,13 @@ if ( not defined $old and keys %{ $bucket->{'entries'} } >= $cap ) {
 }
 ## in ##
 if ( defined $old ) {
-    <[events.bucket.disarm]>->( $owner, $old );
+    <[events.source.disarm]>->("$owner/$id");
     $e->{'added'} = $old->{'added'};
 } else {
     push @{ $bucket->{'order'} }, $id;
 }
 $bucket->{'entries'}{$id} = $e;
-<[events.bucket.arm]>->( $owner, $e );
+<[events.source.arm_all]>->("$owner/$id");
 <[events.bucket.save]>->($owner);
 <[events.bucket.evaluate]>->($owner);
 return {
@@ -164,8 +164,8 @@ return {
     )
 };
 
-#,,,,,,..,,,.,...,,,.,..,,,.,,..,,,.,,,..,,.,,..,,...,...,.,,,...,...,.,,,..,,
-#BCLH62XC5UNHTUEMVKE57MEGJFRFO3BZANWVT6Q57GBEMFAS2KUEE3P3EPIBKJTMZQTUWNHHOR7BY
-#\\\|XU53LHOQ2X7AW5424YXHXHDNBO7KJMCLQT3YDB3RJUKOFYEQCE5 \ / AMOS7 \ YOURUM ::
-#\[7]S3FL6SGKNUQI4XMJZGSNDSHB62BNYM5FBTZSESX3TZO6EC3PBSCA 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,,..,,..,,.,,..,,.,.,...,.,,,..,,...,..,,,..,.,,,.,,,...,.,,,
+#6P6KEINJTXOLYIJOSTQ37MO26QQBURVF4M24PWVBMRAY2XVRIHM4EMK2WENMYLOIBR3Y4DUPMI5A2
+#\\\|5XHGWP37RXZOGFOKM3OWH7RMFV4QHDLB3X3BO4RZOGEVWPD5QNC \ / AMOS7 \ YOURUM ::
+#\[7]L2XYRQUJ6KS7WWVMOYUTHRZXP7P3AZJUSJDVPNHWGCJNZV6QFODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,11 +2,23 @@
 
 # name = events.handler.event_triggered
 
-my $watcher    = shift->w;
-my $event      = $watcher->data;
-my $ev_id      = $event->{'id'};
-my $ev_type    = $event->{'type'};
-my $ev_data    = <events.setup>->{$ev_id};
+my $watcher = shift->w;
+my $event   = $watcher->data;
+my $ev_id   = $event->{'id'};
+my $ev_type = $event->{'type'};
+my $ev_data = <events.setup>->{$ev_id};
+
+## a bucket reference reaches the same source timer handler ; evaluate ##
+## fires through events.fire after its dependencies, exactly once      ##
+if ( not defined $ev_data and $ev_id =~ m{\A([^/]+)/(.+)\z} ) {
+    my ( $owner, $id ) = ( $1, $2 );
+    my $e = <events.buckets>->{$owner}->{'entries'}{$id} // return FALSE;
+    return FALSE if ( $e->{'state'} // '' ) ne qw| waiting | or $e->{'met'};
+    delete <events.timers>->{$ev_id};
+    $e->{'met'} = TRUE;
+    <[events.bucket.evaluate]>->($owner);
+    return TRUE;
+}
 my $event_name = $ev_data->{'name'};
 
 ## already-fired-this-slot guard [ NZ2 ] : one entry \ type \ second fires ##
@@ -36,8 +48,8 @@ if ( $ev_type eq qw| at | or $ev_type eq qw| end | ) {
         ->( { 'at' => time + 1, 'handler' => qw| events.recalc | } );
 }
 
-#,,,,,...,,.,,.,.,...,.,,,.,.,,..,...,.,.,,.,,..,,...,..,,,,.,...,..,,.,,,,.,,
-#PKIGAZ7LBCBVMUPZIZY5LWGC56OV4DXZMIGQZSQN63ICHHT72YLIOTDWQWI2J5VGRKVPARLJIHTMQ
-#\\\|XRD422XKBT45AI3CKL2WCECKYRPGBRNPLHSYFQRDBQY6VPGXT52 \ / AMOS7 \ YOURUM ::
-#\[7]D7SB7YKLTZPZRVO7LXVDUWOKYGJJ2TSBUUIKATCEHDFEQWUO4CCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,.,,,,,...,,..,,,,,.,.,...,...,..,,...,...,...,..,,,..,..,,,..,
+#LLX47FHM64ITZG22XT3ZFINMX2XWLFLCYC4HNVQJMWD2Z7GEHY2HXRIEOSK4IFKLTSBNJDP6AILN4
+#\\\|JDS33HXOYLH25C5RBO4IBXC2BD7QUGSXEQ5W2HUSD65CDMV7M6E \ / AMOS7 \ YOURUM ::
+#\[7]HZF7OZHZ7KUYTZGOXWXG7O2DVVMDVRLD2JIEUBLMGOMMF3RIXSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

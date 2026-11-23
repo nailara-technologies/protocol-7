@@ -22,7 +22,7 @@ return {
     if grep { $bucket->{'entries'}{$ARG}{'state'} eq qw| due | } @gone;
 
 foreach my $id (@gone) {
-    <[events.bucket.disarm]>->( $owner, $bucket->{'entries'}{$id} );
+    <[events.source.disarm]>->("$owner/$id");
     delete $bucket->{'entries'}{$id};
 }
 my %gone = map { $ARG => 1 } @gone;
@@ -33,8 +33,8 @@ return {
     'data' => sprintf( '%d entries cleared', scalar @gone )
 };
 
-#,,,.,..,,.,.,,..,,,.,,.,,,,,,,..,,.,,...,,,,,..,,...,..,,,..,,,.,,..,,,,,,,.,
-#6MUJDMFB7RPBO3HUV6LL35CPJVULSQCT7ZVGNMAHBZGTVXVJIV5VAMBSV3GZ3474QLLRFECZP7R66
-#\\\|TGESF2OTNXM6KP4TELIDOFZJ3TZNWGU4TSNG5EEPKMRD2ZKYS6V \ / AMOS7 \ YOURUM ::
-#\[7]YKDYZVAMWMBROR3DVTUNZZHJM6END7QBVH5FZBTSSVHMSRACPMBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,...,,.,,,,.,..,,,.,,...,..,,,..,..,,...,...,.,,,,.,,,,,,.,.,,,.,
+#WBP2MEZQHYHFDLOMAP2ZHEJC6H2E7CY7SD7P6XPXZSWWO2C3GWX3EIYHNHTW5HZSQIQRIWXCEFLYO
+#\\\|63YFXLDVLNCAJ5MRCPYF4FILWOU7HAOTHE7TQMUNTILDR2XN2UQ \ / AMOS7 \ YOURUM ::
+#\[7]RCRPG5RYK3L66KAZVYPJUM7R4PEFMZY6USJDCL4CLVZDDZUA34CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

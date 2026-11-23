@@ -1,12 +1,12 @@
 ## [:< ##
 
 # name  = plugin.events.source.timetable
-# descr = events source plugin : clock times [ at, start \ end ] -- today's timetable
+# descr = events source plugin : clock times for static and bucket entries
 
-## registration [ no arguments ] : name, kind, describe, keys               ##
-## [ the timetable keys this source owns ], arm \ disarm [ each gets an     ##
-## array ref of entry ids : the unix table is calculated for every entry at ##
-## once, so a source is armed as a batch ]                                  ##
+## registration [ no arguments ] : name, kind, describe, keys              ##
+## [ the timetable keys this source owns ], arm \ disarm [ each gets an    ##
+## array ref of entry references : numeric static ids or <owner>/<id> ].   ##
+## static entries keep the calculated unix table ; bucket times are stored ##
 
 return {
     'name'     => qw| timetable |,
@@ -15,8 +15,31 @@ return {
     'keys'     => [qw| at start end duration jitter |],
     'arm'      => sub {
         my $ev_ids = shift // [];
-        <[events.calc_unix_table]>;
-        <[events.set_up_timers]>;
+        my @static = grep { $_ !~ m{/} } @{$ev_ids};
+        if ( @static or not @{$ev_ids} ) {
+            <[events.calc_unix_table]>;
+            <[events.set_up_timers]>;
+        }
+        foreach my $key ( grep { $_ =~ m{/} } @{$ev_ids} ) {
+            my ( $owner, $id ) = split m{/}, $key, 2;
+            my $e = <events.buckets>->{$owner}->{'entries'}{$id} // next;
+            for my $timer ( values %{ <events.timers>->{$key} // {} } ) {
+                $timer->cancel if defined $timer and $timer->is_active;
+            }
+            delete <events.timers>->{$key};
+            next if ( $e->{'state'} // '' ) ne qw| waiting | or $e->{'met'};
+            next if not defined $e->{'at'};
+            <events.timers>->{$key}{'at'} = <[event.add_timer]>->(
+                {   'at'      => $e->{'at'},
+                    'handler' => qw| events.handler.event_triggered |,
+                    'data'    => {
+                        'type' => qw| at |,
+                        'at'   => $e->{'at'},
+                        'id'   => $key
+                    }
+                }
+            );
+        }
         return TRUE;
     },
     'disarm' => sub {
@@ -32,8 +55,8 @@ return {
     }
 };
 
-#,,..,..,,,,,,.,,,.,.,..,,,,.,,,.,,.,,,,.,.,,,..,,...,...,...,,.,,...,,.,,,..,
-#4FRUOGRAEENLCM3WXOGU7OPI5BKIMJWFVXVFKEHETYXKUW76RE5XRHXJYA6IOOBLYGABRDMFIPIWQ
-#\\\|6CKPXHEBJFHDCC7LAOEMETCEPEXKHHAUCIK6DZ5OAMYGFGLZVNP \ / AMOS7 \ YOURUM ::
-#\[7]TTO3J2C5EAVWEPDFAAUWRM5KZ373KEWFXLVCUERYTX4NMPCGEQBY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,..,,..,,..,,.,,,.,,,...,,,.,..,,...,...,.,.,..,,,.,,,.,,,..,
+#JRJ6WKT4QJHVQZOFHS5VCDP63NBPKUXCPOD56BVPRPGVSXFG4DT4J5E4VWQCAJS2GHM364YJ6AJWQ
+#\\\|KMNKFQBDNEWNSTVXUQDA2QBIQORX4NA6C26JQ5JK5TGIQYMT6H4 \ / AMOS7 \ YOURUM ::
+#\[7]JZFIFMJHF5ZQQE3ZF7AASVVKJS2NSK6TTSYVO32SRD4J7CG4NECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

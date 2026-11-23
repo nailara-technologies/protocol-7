@@ -3,9 +3,9 @@
 # name  = plugin.events.source.signal
 # descr = events source plugin : named signals raised by other zenki
 
-## an entry waits with `on = signal-name` and optionally `match.key =     ##
-## value` beside its other timetable keys ; events.signal.raise wakes the ##
-## armed ones                                                             ##
+## an entry waits with `on = signal-name` and optionally `match.key =       ##
+## value`. armed references are numeric static ids or <owner>/<id> ; wake   ##
+## handles both in one pass, and bucket dependencies resolve in their order ##
 
 return {
     'name'     => qw| signal |,
@@ -26,11 +26,86 @@ return {
             delete <events.signal.armed>->{$ev_id};
         }
         return TRUE;
+    },
+    'wake' => sub {
+        my ( $source, $name, $values ) = @ARG;
+        $values //= {};
+        my @woken;
+        my %touch;
+        my @keys = sort { $a <=> $b }
+            grep { $_ !~ m{/} } keys <events.signal.armed>->%*;
+        foreach my $owner ( sort keys %{ <events.buckets> // {} } ) {
+            foreach my $id ( @{ <events.buckets>->{$owner}->{'order'} } ) {
+                push @keys, "$owner/$id"
+                    if exists <events.signal.armed>->{"$owner/$id"};
+            }
+        }
+        foreach my $ev_id (@keys) {
+            if ( $ev_id !~ m{/} ) {
+                next if not defined <events.setup>->{$ev_id};
+                my $cfg = <events.entry.source_cfg>->{$ev_id}->{'signal'}
+                    // next;
+                next if ( $cfg->{'on'} // '' ) ne $name;
+                my $match
+                    = ref $cfg->{'match'} eq qw| HASH |
+                    ? $cfg->{'match'}
+                    : {};
+                next if grep {
+                    not defined $values->{$ARG}
+                        or $values->{$ARG} ne $match->{$ARG}
+                } keys %{$match};
+                my $ev_name = <events.setup>->{$ev_id}->{'name'} // $ev_id;
+                my $ran     = eval {
+                    <[events.fire]>->(
+                        {   'ev_id'   => $ev_id,
+                            'ev_type' => qw| signal |,
+                            'signal'  => {
+                                'name'   => $name,
+                                'source' => $source,
+                                'values' => $values
+                            }
+                        }
+                    );
+                };
+                if ($EVAL_ERROR) {
+                    <[base.logs]>->(
+                        0,
+                        "<< event '%s' woken by signal '%s' failed : %s >>",
+                        $ev_name, $name, $EVAL_ERROR =~ s{\s+\z}{}r
+                    );
+                    next;
+                }
+                push @woken, $ev_name if $ran;
+                next;
+            }
+            my ( $owner, $id ) = split m{/}, $ev_id, 2;
+            my $e = <events.buckets>->{$owner}->{'entries'}{$id} // next;
+            next if ( $e->{'state'} // '' ) ne qw| waiting | or $e->{'met'};
+            next if ( $e->{'when'} // '' ) ne qw| on | or $e->{'on'} ne $name;
+            my $match = $e->{'match'} // {};
+            next if grep {
+                not defined $values->{$ARG}
+                    or $values->{$ARG} ne $match->{$ARG}
+            } keys %{$match};
+            $e->{'met'} = TRUE;
+            delete <events.signal.armed>->{$ev_id};
+            push @woken, $ev_id;
+            $touch{$owner} = 1;
+        }
+        foreach my $owner ( sort keys %touch ) {
+            my $ran = eval { <[events.bucket.evaluate]>->($owner) };
+            <[base.logs]>->(
+                0, "<< bucket '%s' woken by signal '%s' failed : %s >>",
+                $owner, $name, $EVAL_ERROR =~ s{\s+\z}{}r
+            ) if $EVAL_ERROR;
+            <[events.bucket.save]>->($owner);
+        }
+        return \@woken;
     }
 };
 
-#,,.,,.,.,.,,,.,,,...,..,,..,,,.,,,,,,.,.,.,.,..,,...,...,.,,,,,.,.,.,,.,,,,.,
-#G5ZJJB55P3ZOPFWTJ5VC7RTHQWWUD2VUFH4RQ7666LFKSFRJ5JQB3XNGMU7NOAJC5RJYJY3DEOI3A
-#\\\|K45AKWWYAESTJVREXPFQ6YUCPT7I6Y7KFMCBI5XDXTX5PLJQUOL \ / AMOS7 \ YOURUM ::
-#\[7]GWBBDSRBBSN3JBP7ERCBNO73YZTHSX2ENOKBILJQYT2X6DDB2MCI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,..,,,,.,..,,,..,.,,,..,,,..,,,.,..,,...,...,.,,,.,.,...,,.,,,..,
+#J7LPSUA5KKLSK2CNUBFWMUCZVSOJ6BWAAF6PZPC2SVPJ2ROW7OZB3LQDGRL6IHFIKBXLX5BIGZTDY
+#\\\|DURDUKPZ7ZXIIIZ7YXFS3CVX3Y7YYJE42LXIN62ZE5HGKC276K6 \ / AMOS7 \ YOURUM ::
+#\[7]LPIPWIIX65QEBJJRZDZ2MDZ3M4HITFID6APFWFP6XR4UZWEDLGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

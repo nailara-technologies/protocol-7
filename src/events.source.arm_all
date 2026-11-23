@@ -1,25 +1,62 @@
 ## [:< ##
 
 # name  = events.source.arm_all
-# descr = arm every loaded source for the entries that wait on it
-# each source plugin gets the sorted ids of its entries as an array ref ;
-# the timetable source is armed even with none, as before the plugins
+# descr = arm loaded sources for static and bucket entry references
+# args   = optional entry references [ default : every waiting entry ]
+# numeric ids name static entries ; <owner>/<id> names bucket entries. each
+# source gets its references as an array ref ; with no arguments the timetable
+# source is armed even with none, as before the plugins
 
+my @only     = @ARG;
 my $registry = <[events.plugin.registry]>->();
 my $armed    = 0;
 
 foreach my $type ( sort keys %{ $registry->{'source'} } ) {
-    my @ev_ids = sort { $a <=> $b } grep {
-        grep { $ARG eq $type } @{ <events.entry.sources>->{$ARG} // [] }
-    } keys <events.setup>->%*;
+    my @ev_ids;
+    if (@only) {
+        @ev_ids = grep {
+            my $key = $ARG;
+            if ( $key =~ m{/} ) {
+                my ( $owner, $id ) = split m{/}, $key, 2;
+                my $e = <events.buckets>->{$owner}->{'entries'}{$id};
+                defined $e
+                    and ( $e->{'state'} // '' ) eq qw| waiting |
+                    and not $e->{'met'}
+                    and ( $type eq qw| timetable | && defined $e->{'at'}
+                    or $type eq qw| signal | && defined $e->{'on'}
+                    or $type eq qw| bucket-dependency |
+                    && @{ $e->{'depends'} // [] } );
+            } else {
+                grep { $ARG eq $type }
+                    @{ <events.entry.sources>->{$key} // [] };
+            }
+        } @only;
+    } else {
+        @ev_ids = sort { $a <=> $b } grep {
+            grep { $ARG eq $type } @{ <events.entry.sources>->{$ARG} // [] }
+        } keys <events.setup>->%*;
+        push @ev_ids, map {
+            my $owner = $ARG;
+            map {"$owner/$_"} grep {
+                my $e = <events.buckets>->{$owner}->{'entries'}{$_};
+                defined $e
+                    and ( $e->{'state'} // '' ) eq qw| waiting |
+                    and not $e->{'met'}
+                    and ( $type eq qw| timetable | && defined $e->{'at'}
+                    or $type eq qw| signal | && defined $e->{'on'}
+                    or $type eq qw| bucket-dependency |
+                    && @{ $e->{'depends'} // [] } )
+            } @{ <events.buckets>->{$owner}->{'order'} }
+        } sort keys %{ <events.buckets> // {} };
+    }
     $registry->{'source'}{$type}{'arm'}->( \@ev_ids );
     $armed++;
 }
 
 return $armed;
 
-#,,,.,,,.,.,.,,,,,.,,,,.,,.,.,,.,,,..,..,,,.,,..,,...,...,.,.,..,,,,.,,,,,,..,
-#ZGXEPY6MJMVSTSWZ5Q6GTEPDTM2CEYDGVCRQ3WMRCB7X5JCHDFYVKSSW6WFV23FHXYZCNFM5X7CWM
-#\\\|Q5OQPJRMWR5EVZOBU6UNOKD2VYHANL54ITQNVZDUZBVS23YNWW2 \ / AMOS7 \ YOURUM ::
-#\[7]FSZS63D3WWTFL5BL5Z7EUC4MIPMMXFK5VOJ345QMCHXIPDWNJQBI 7  DATA SIGNATURE ::
+#,,,.,...,,..,..,,.,.,.,,,,,,,..,,,,.,,.,,,..,..,,...,.,.,..,,,.,,,,,,..,,,,,,
+#CLC5FBNBQCJGOJVPLZZC4JXJLG6C6G5C4W3A3E53A2YCHOIUO3RSMQWEEYTLQWDWSWNGA44XUCEOU
+#\\\|EBNNGNELREZF5WWZ3TLKMBTNMX4V7GQ7ZMX7JMHWVN7FRM36IN5 \ / AMOS7 \ YOURUM ::
+#\[7]ZUIYCT2NASYRRNT4PQZ3LOR5AEFDBNVIJSX64WTMY3B6X7242GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

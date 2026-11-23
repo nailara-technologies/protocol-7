@@ -18,15 +18,15 @@ return { 'mode' => qw| false |, 'data' => "no entry '$id' in your bucket" }
     if not defined $e;
 return { 'mode' => qw| false |, 'data' => "entry '$id' is firing now" }
     if $e->{'state'} eq qw| due |;
-<[events.bucket.disarm]>->( $owner, $e );
+<[events.source.disarm]>->("$owner/$id");
 delete $bucket->{'entries'}{$id};
 @{ $bucket->{'order'} } = grep { $ARG ne $id } @{ $bucket->{'order'} };
 <[events.bucket.save]>->($owner);
 <[events.bucket.evaluate]>->($owner);
 return { 'mode' => qw| true |, 'data' => "entry '$id' removed" };
 
-#,,..,...,,,.,.,.,,,,,...,,..,,,.,,,.,...,.,.,..,,...,...,...,.,,,..,,,,,,,,.,
-#RPNGBWYMF3FM3XK45WQAT77QH5DPZXS33WFGINU7SZLNW7VJXIZ5VZDAUKC33366MVMPKPBLIILUI
-#\\\|56IVGPAZXUGQPPWBCLMLHZ273LLF66ED3DSW5IG3JPA6YALGWXW \ / AMOS7 \ YOURUM ::
-#\[7]SHXNEXYXY64JEJXGI52T5TNAUFOS64GCP3RAVF5XEYYFWWHQWUDA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,..,,,..,..,,,.,,,.,,.,,,,,,,..,,...,...,,,,,..,,,,.,..,,,,,,
+#SOCZRNZORTKBJQCQ3SQP7P6JOPZWENUGFDPJZKN5K3QSXOC6RRCNF66QILQ3FYNHWVI4QW6YAFA2K
+#\\\|ZCJX4VR5WGAUM2BYHRJJYO6OOGJ2TDTR2FCQXO23DK473EAFZAW \ / AMOS7 \ YOURUM ::
+#\[7]CJQCNIDIA27NG6FSHGPT7FNAYI5LJ6AA7DPW5F4M5ANERWDVDSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

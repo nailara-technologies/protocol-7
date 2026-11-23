@@ -54,18 +54,21 @@ foreach my $owner (@owners) {
     }
     <[events.bucket.save]>->($owner);
 }
+<[events.source.arm_all]>->(
+    map {
+        my $owner = $ARG;
+        map {"$owner/$_"} @{ <events.buckets>->{$owner}->{'order'} }
+    } grep { defined <events.buckets>->{$_} } @owners
+);
 foreach my $owner (@owners) {
-    my $bucket = <events.buckets>->{$owner} // next;
-    foreach my $id ( @{ $bucket->{'order'} } ) {
-        <[events.bucket.arm]>->( $owner, $bucket->{'entries'}{$id} );
-    }
-    <[events.bucket.evaluate]>->($owner);
+    <[events.bucket.evaluate]>->($owner)
+        if defined <events.buckets>->{$owner};
 }
 <[base.logs]>->( 1, "buckets loaded : %d", scalar @owners );
 return scalar @owners;
 
-#,,,.,,,,,,..,,,,,,..,.,.,.,,,..,,,.,,..,,.,.,..,,...,..,,,..,,,.,...,,.,,.,.,
-#WP3WN5P3SLVZZUODQE7ETHYHJFU7TPXG6HSR2QJXNCZ63QZCHIARWIB6G3VSGDMQKVGC7WH2I3EGO
-#\\\|QYIYI2TLMH7EWHYQEA4UYGKWF43NTTKJ4EWR5DVDZJXK7FLTKZ6 \ / AMOS7 \ YOURUM ::
-#\[7]YGJBQEXIKWE77HJRFITJVFW75IQBP66VN5UVRRF7ZKEGDV7N6ABI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,.,.,.,.,,.,,...,.,,,,..,,.,,..,,...,...,,,,,.,.,,,,,.,.,,.,,
+#C7VZGTAILXLSKF3VY4KDB7N5QM6ELGMDYMU4HEEQEKSKN2UDGL2DLR3KOG3VRX5LWERI4JZZV2TJY
+#\\\|4GXS44K4MGCKEAGR7OLSNRCXHHPLCQJFPH5WRJINYSVUJIHWIRQ \ / AMOS7 \ YOURUM ::
+#\[7]SGQY6DHHTDE4F6EPGVTXX22A3DC2T57A6X3IA3IV7YUHN5JAOWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

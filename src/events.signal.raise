@@ -6,67 +6,24 @@
 # return = array ref of the names of the entries woken
 #          [ bucket entries as '<owner>/<id>' ]
 #
-# an armed entry waits when its `on` is this name and every
-# `match.<key>` equals the value raised under <key> ; the entries wake in
-# id order, an action that dies is logged and does not stop the others
+# the signal source owns matching and waking for both entry kinds. an action
+# that dies is logged there and does not stop the others
 
 my ( $source, $name, $values ) = @ARG;
 $values //= {};
 
-<events.signal.armed> //= {};
-
-my @woken;
-foreach my $ev_id ( sort { $a <=> $b } keys <events.signal.armed>->%* ) {
-    next if not defined <events.setup>->{$ev_id};
-    my $cfg = <events.entry.source_cfg>->{$ev_id}->{'signal'} // next;
-    next if ( $cfg->{'on'} // '' ) ne $name;
-
-    my $match = ref $cfg->{'match'} eq qw| HASH | ? $cfg->{'match'} : {};
-    next if grep {
-        not defined $values->{$ARG}
-            or $values->{$ARG} ne $match->{$ARG}
-    } keys %{$match};
-
-    my $ev_name = <events.setup>->{$ev_id}->{'name'} // $ev_id;
-    my $ran     = eval {
-        <[events.fire]>->(
-            {   'ev_id'   => $ev_id,
-                'ev_type' => qw| signal |,
-                'signal'  => {
-                    'name'   => $name,
-                    'source' => $source,
-                    'values' => $values
-                }
-            }
-        );
-    };
-    if ($EVAL_ERROR) {
-        <[base.logs]>->(
-            0, "<< event '%s' woken by signal '%s' failed : %s >>",
-            $ev_name, $name, $EVAL_ERROR =~ s{\s+\z}{}r
-        );
-        next;
-    }
-    push @woken, $ev_name if $ran;
-}
-
-## the bucket entries waiting on it : own tables, entry names ##
-## '<owner>/<id>'                                             ##
-if ( defined $code{'events.bucket.wake_signal'} ) {
-    my $bucket_woken
-        = eval { <[events.bucket.wake_signal]>->( $source, $name, $values ); };
-    if ($EVAL_ERROR) {
-        <[base.logs]>->(
-            0,     "<< bucket entries woken by signal '%s' failed : %s >>",
-            $name, $EVAL_ERROR =~ s{\s+\z}{}r
-        );
-    } else {
-        push @woken, @{$bucket_woken};
-    }
+my $signal = <[events.plugin.registry]>->()->{'source'}{'signal'};
+my $woken  = [];
+if ( defined $signal and ref $signal->{'wake'} eq qw| CODE | ) {
+    $woken = eval { $signal->{'wake'}->( $source, $name, $values ) } // [];
+    <[base.logs]>->(
+        0,     "<< entries woken by signal '%s' failed : %s >>",
+        $name, $EVAL_ERROR =~ s{\s+\z}{}r
+    ) if $EVAL_ERROR;
 }
 <[base.logs]>->(
     1, "signal '%s' from '%s' [ %d woken ]",
-    $name, $source, scalar @woken
+    $name, $source, scalar @{$woken}
 );
 
 <[events.signal.journal_write]>->(
@@ -74,14 +31,14 @@ if ( defined $code{'events.bucket.wake_signal'} ) {
         'name'   => $name,
         'source' => $source,
         'values' => $values,
-        'woken'  => \@woken
+        'woken'  => $woken
     }
 );
 
-return \@woken;
+return $woken;
 
-#,,,,,,,,,...,,,,,,..,..,,.,,,,.,,,,,,..,,.,.,..,,...,...,...,...,,..,...,.,.,
-#UKBG2YF3CKEPYPLEHKYNUMBPVS6QU4GSATROY4UNL3LYYO6TFQ44PNBXHI2AZ4ZGXICEMRW2LSMRU
-#\\\|EC53SGMH3OXRWLOYGQPSOY7M335MJ6ENDR55DDCWJ2G2SNEXRTK \ / AMOS7 \ YOURUM ::
-#\[7]QYQ45WDUWKWBFQ5O55OUJMNNWDXIZIYEECQSYXQ2BUO3XAHPA6CQ 7  DATA SIGNATURE ::
+#,,..,,..,...,..,,..,,,..,.,,,,..,..,,.,,,.,,,..,,...,.,.,.,.,,,.,..,,,,.,..,,
+#7ZDE4FQVIRAHBKECGXLYIL3BYOHUGMDPGXXVF5LVCD4WBIPMMXVN5OAKSC3ZTI6VV75ZVPQGI7HXU
+#\\\|SQFSQVBZPBMZ4NSPAOSKZVNL2WCQ6UJZIHNIRZUODVCVNROYDKR \ / AMOS7 \ YOURUM ::
+#\[7]P75NEXBPOYL4Z7ZFKWMYL6CY7EACH6SN7IDBWQWAJ2QWTOW5XICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
