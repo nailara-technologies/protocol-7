@@ -131,6 +131,12 @@ my @P7_INSTALL_MODULES = qw|
 ## a redrawn progress line waits for its newline ##
 my $progress_drawn = FALSE;
 
+## access.from : sshd keys only [ a drop-in ] ##
+my $SSHD_DROP = qw| etc/ssh/sshd_config.d/p7-host-build.conf |;
+my $SSHD_TEXT
+    = "## written by p7-host-build : keys only\nPasswordAuthentication "
+    . "no\nKbdInteractiveAuthentication no\n";
+
 ## systemd-networkd files in the new system ##
 my $NETWORK_DIR = qw| etc/systemd/network |;
 
@@ -216,6 +222,9 @@ frame_error_exit( $TOOL, "layout $LAYOUT_PATH : $layout_error" )
 my $HOST      = $L->{'host'};
 my $MAIN_HOST = $HOST;          ## luks mapping names stay the main host's ##
 
+## the user password from p7-vault ; -password-fd wins over it ##
+my $PW_TITLE = defined $PASSWORD ? undef : $L->{'pw_vault'};
+
 my $TARGET = $opt{'target'}
     // File::Spec->catdir( length $TEST_ROOT ? $TEST_ROOT : '/',
     qw| mnt p7-host-build |, $HOST );
@@ -280,6 +289,7 @@ my @STEPS = (
     [ 'file systems',  \&step_filesystems ],
     [ 'debian base',   \&step_debian_base ],
     [ 'configuration', \&step_configuration ],
+    [ 'access',        \&step_access ],
     [ 'bootloader',    \&step_bootloader ],
     [ 'protocol-7',    \&step_protocol_7 ],
 );
@@ -532,6 +542,20 @@ sub parse_layout {
                 if $value !~ m|\A[a-z_][a-z0-9_\-]{0,30}\z|
                 or $value eq qw| root |;
             $l{'user'} = $value;
+        } elsif ( $key eq qw| user.password | ) {
+            return $err->("user.password not valid [ vault | vault:<title> ]")
+                if $value !~ m{\Avault(?::([\w.:\-\@]+))?\z};
+            $l{'pw_vault'} = $1 // TRUE;
+        } elsif ( $key eq qw| access.from | ) {
+            return $err->("access.from not valid [ installer ]")
+                if $value ne qw| installer |;
+            $l{'access'} = $value;
+        } elsif ( $key eq qw| access.alias | ) {
+            ## an ssh Host alias : no dots            ##
+            ## [ ::: takes a dotted word as no host ] ##
+            return $err->("access.alias not valid [ $value ]")
+                if $value !~ m|\A[A-Za-z0-9][\w\-]{0,62}\z|;
+            $l{'alias'} = $value;
         } else {
             return $err->("unknown key [ $key ]");
         }
@@ -612,6 +636,15 @@ sub parse_layout {
             qw| net |      => $s->{'net.backend'} // $l{'net'},
             };
     }
+    return $err->('user.password needs user.name')
+        if defined $l{'pw_vault'} and not defined $l{'user'};
+    return $err->('access.from needs user.name')
+        if defined $l{'access'} and not defined $l{'user'};
+    return $err->('access.alias needs access.from')
+        if defined $l{'alias'} and not defined $l{'access'};
+    ## the vault title by convention : host-build:<host>:<user> ##
+    $l{'pw_vault'} = "host-build:$l{'host'}:$l{'user'}"
+        if defined $l{'pw_vault'} and $l{'pw_vault'} eq TRUE;
     return $err->('further systems need system.bootloader = grub-efi')
         if @{ $l{'systems'} } and $l{'boot'} ne qw| grub-efi |;
     return $err->('grub-efi needs a vfat part at /boot/efi')
@@ -1602,7 +1635,14 @@ sub run_debootstrap {
     );
     return fail( 'debootstrap', "exit $exit", join "\n", @tail )
         if $exit != 0 or not base_present();
-    done( 'debian base', 'installed', $L->{'suite'} );
+    ## a fresh tree only ever holds the building host's resolv.conf : gone, ##
+    ## dhcpcd writes it from the first lease [ a later run never looks ]    ##
+    my $resolv = "$TARGET/etc/resolv.conf";
+    return fail( '/etc/resolv.conf', "cannot remove [ $OS_ERROR ]" )
+        if ( -e $resolv or -l $resolv )
+        and not CORE::unlink($resolv);
+    done( 'debian base', 'installed',
+        "$L->{'suite'} [ the host's resolv.conf removed ]" );
     return TRUE;
 }
 
@@ -1715,22 +1755,6 @@ sub wanted_links {
 
 sub pkg_present { return -e "$TARGET/var/lib/dpkg/info/$ARG[0].list" }
 
-## the building host's resolv.conf, as debootstrap copied it ##
-sub host_resolv {
-    return length $TEST_ROOT
-        ? $ENV{'P7_HOST_BUILD_TEST_HOST_RESOLV'}
-        : slurp('/etc/resolv.conf');
-}
-
-## a resolv.conf that is the building host's copy [ debootstrap ] ; one ##
-## dhcpcd wrote from a lease differs and stays                          ##
-sub host_resolv_left {
-    return FALSE if -l "$TARGET/etc/resolv.conf";
-    my $here = slurp("$TARGET/etc/resolv.conf") // return FALSE;
-    my $host = host_resolv()                    // return FALSE;
-    return $here eq $host ? TRUE : FALSE;
-}
-
 ## what the network set-up still needs : [ label, action ] ##
 sub net_todo {
     my @todo;
@@ -1741,8 +1765,6 @@ sub net_todo {
         CORE::push @todo, [ 'isc-dhcp-client', 'purge [ end of life ]' ]
             if pkg_present(qw| isc-dhcp-client |);
     }
-    CORE::push @todo, [ '/etc/resolv.conf', "remove [ the host's copy ]" ]
-        if host_resolv_left();
     return @todo;
 }
 
@@ -1764,17 +1786,6 @@ sub step_network_packages {
     return TRUE;
 }
 
-## no static resolv.conf : the dhcp client writes it from the lease ; the ##
-## building host's copy is removed, nothing written in its place          ##
-sub step_resolv_conf {
-    return TRUE if not host_resolv_left();
-    return fail( '/etc/resolv.conf', "cannot remove [ $OS_ERROR ]" )
-        if not CORE::unlink("$TARGET/etc/resolv.conf");
-    done( '/etc/resolv.conf', 'removed',
-        "the host's copy -- dhcp writes it" );
-    return TRUE;
-}
-
 sub link_ok {
     my ( $rel, $to ) = @ARG;
     my $now = readlink("$TARGET/$rel");
@@ -1787,7 +1798,7 @@ sub step_configuration {
         if ( not plan_tree_visible() or not base_present() ) {
             plan( $step, 'system files', 'if differing', FALSE );
             plan( $step, 'network', 'if missing', FALSE,
-                "$L->{'net'} [ packages, no host resolv.conf ]" )
+                "$L->{'net'} [ packages ]" )
                 if $L->{'net'} eq qw| ifupdown |;
             plan( $step, "user $L->{'user'}",
                 'if missing', FALSE, password_source() )
@@ -1842,8 +1853,6 @@ sub step_configuration {
         done( "/$rel", 'linked', $to );
     }
 
-    return FALSE if not step_resolv_conf();
-
     if ( $L->{'locale'} ne qw| C.UTF-8 | ) {
         my $gen = slurp("$TARGET/etc/locale.gen") // '';
         if ( $gen !~ m|^\Q$L->{'locale'}\E\s|m ) {
@@ -1869,6 +1878,7 @@ sub user_present {
 ## where the first user's password comes from [ the plan says it ] ##
 sub password_source {
     return "password from fd $opt{'password-fd'}" if defined $PASSWORD;
+    return "password from p7-vault [ $PW_TITLE ]" if defined $PW_TITLE;
     return 'password asked on the terminal'
         if not length $TEST_ROOT and -t STDIN;
     return 'locked, no password given';
@@ -1881,6 +1891,10 @@ sub user_password {
     state $asked = FALSE;
     return $PASSWORD if defined $PASSWORD or $asked;
     $asked = TRUE;
+    if ( defined $PW_TITLE ) {
+        $PASSWORD = vault_value( $PW_TITLE, qw| password | );
+        return $PASSWORD;
+    }
     return undef if length $TEST_ROOT or not -t STDIN;
     $PASSWORD = passphrase( "password for $name", TRUE );
     return $PASSWORD;
@@ -1905,6 +1919,16 @@ sub step_first_user {
         chroot_cmd( qw| useradd -m -s /bin/bash |, @groups, $name ) );
 
     my $pass = user_password($name);
+    if ( not defined $pass and defined $PW_TITLE ) {
+        done(
+            "user $name",
+            'created',
+            "locked -- no password in p7-vault [ $PW_TITLE ] : "
+                . "p7-vault add login [ title $PW_TITLE ], or p7-vault gen, "
+                . 'then passwd in the new system'
+        );
+        return TRUE;
+    }
     if ( not defined $pass ) {
         done(
             "user $name",
@@ -1921,6 +1945,288 @@ sub step_first_user {
     );
     return FALSE if not $ok;
     done( "user $name", 'created', 'password set' );
+    return TRUE;
+}
+
+##[ step 7b : access ]########################################################
+
+## the installer : the sudo caller, else the running user ##
+## [ ~/.ssh and p7-vault are theirs ]                     ##
+sub installer {
+    state $who;
+    return $who if defined $who;
+    my ( $uid, $gid, $home ) = ( $UID, ( split ' ', $GID )[0], $ENV{'HOME'} );
+    if ( not length $TEST_ROOT and defined $ENV{'SUDO_USER'} ) {
+        my @pw = getpwnam( $ENV{'SUDO_USER'} );
+        ( $uid, $gid, $home ) = @pw[ 2, 3, 7 ] if @pw;
+    }
+    $who = {
+        qw| uid |  => $uid,
+        qw| gid |  => $gid,
+        qw| home | => $home // '',
+        qw| ssh |  => ( $home // '' ) . '/.ssh'
+    };
+    return $who;
+}
+
+## a child as the installer [ p7-vault opens the installer's vault ] ##
+sub as_installer {
+    my $who = installer();
+    return TRUE if $EUID != 0      or $who->{'uid'} == 0;
+    POSIX::setgid( $who->{'gid'} ) or return FALSE;
+    POSIX::setuid( $who->{'uid'} ) or return FALSE;
+    $ENV{'HOME'} = $who->{'home'};
+    return TRUE;
+}
+
+## one value from p7-vault through a pipe : never argv, file or log ; undef ##
+## when there is none [ stderr passes : the unlock prompt shows ]           ##
+sub vault_value {
+    my ( $title, $field ) = @ARG;
+    my $pid = open( my $pipe, '-|' ) // return undef;
+    if ( $pid == 0 ) {
+        CORE::exit 126 if not as_installer();
+        CORE::exec {qw| p7-vault |} qw| p7-vault get |, $title, $field;
+        CORE::exit 127;
+    }
+    my $value = do { local $INPUT_RECORD_SEPARATOR = undef; <$pipe> };
+    close($pipe);
+    return undef if child_exit() != 0 or not defined $value;
+    $value =~ s|\r?\n\z||;
+    return length $value ? $value : undef;
+}
+
+## the installer's public keys : the vault file entry              ##
+## host-build:<host>:<user>:authorized_keys, else  ~/.ssh/*.pub -- ##
+## [ text, where from ]                                            ##
+sub installer_keys {
+    my $title = "host-build:$HOST:$L->{'user'}:authorized_keys";
+    my $dir   = File::Temp::tempdir(
+        qw| p7-host-build-XXXXXX |,
+        qw| TMPDIR |  => 1,
+        qw| CLEANUP | => 1
+    );
+    my $who = installer();
+    CORE::chown( $who->{'uid'}, $who->{'gid'}, $dir ) if $EUID == 0;
+    my $pid = fork() // return ( undef, 'no fork' );
+    if ( $pid == 0 ) {
+        open( STDOUT, '>', File::Spec->devnull );
+        open( STDERR, '>', File::Spec->devnull );
+        CORE::exit 126 if not as_installer();
+        CORE::exec {qw| p7-vault |} qw| p7-vault export |, $title,
+            "$dir/authorized_keys";
+        CORE::exit 127;
+    }
+    waitpid( $pid, 0 );
+    my $text = child_exit() == 0 ? slurp("$dir/authorized_keys") : undef;
+    return ( $text, "p7-vault [ $title ]" )
+        if defined $text and $text =~ m|\S|;
+
+    opendir( my $dh, $who->{'ssh'} )
+        or return ( undef, "no vault entry $title, no $who->{'ssh'}" );
+    my @pub
+        = sort grep { m|\.pub\z| and -f "$who->{'ssh'}/$ARG" } readdir($dh);
+    closedir($dh);
+    $text = join '', map {
+        my $k = slurp("$who->{'ssh'}/$ARG") // '';
+        $k =~ s|\n*\z|\n|;
+        $k
+    } @pub;
+    return ( undef, "no vault entry $title, no $who->{'ssh'}/*.pub" )
+        if $text !~ m|\S|;
+    return ( $text, join ' ', map {"~/.ssh/$ARG"} @pub );
+}
+
+## the new system's host keys : [ type, key ] from /etc/ssh/*.pub ##
+sub host_keys {
+    opendir( my $dh, "$TARGET/etc/ssh" ) or return ();
+    my @pub = sort grep {m|\Assh_host_\w+_key\.pub\z|} readdir($dh);
+    closedir($dh);
+    my @keys;
+    foreach my $file (@pub) {
+        my ( $type, $key ) = split ' ', slurp("$TARGET/etc/ssh/$file") // '';
+        CORE::push @keys, [ $type, $key ] if defined $key;
+    }
+    return @keys;
+}
+
+## the names a known_hosts line carries : the host [ + the alias ] ##
+sub known_names {
+    return join ',', $HOST, defined $L->{'alias'} ? $L->{'alias'} : ();
+}
+
+## the host keys not yet in the installer's known_hosts under each name ##
+sub known_missing {
+    my $known = slurp( installer()->{'ssh'} . '/known_hosts' ) // '';
+    my @missing;
+    foreach my $hk ( host_keys() ) {
+        my ( $type, $key ) = @{$hk};
+        my $have = grep {
+            my ( $names, $t, $k ) = split ' ';
+            my %n = map { $ARG => TRUE } split m|,|, $names // '';
+            ( $t // '' ) eq $type
+                and ( $k // '' ) eq $key
+                and not grep { not $n{$ARG} } split m|,|,
+                known_names()
+        } split m|\n|, $known;
+        CORE::push @missing, $hk if not $have;
+    }
+    return @missing;
+}
+
+## a Host block of that name in the installer's ~/.ssh/config ##
+sub config_has_host {
+    my ($alias) = @ARG;
+    my $config = slurp( installer()->{'ssh'} . '/config' ) // '';
+    foreach my $line ( split m|\n|, $config ) {
+        my ($names) = $line =~ m|\A\s*Host\s+(.*)|i or next;
+        return TRUE if grep { $ARG eq $alias } split ' ', $names;
+    }
+    return FALSE;
+}
+
+sub ssh_block {
+    return join "\n", '',
+        "## added by p7-host-build [ $HOST ]",
+        "Host $L->{'alias'}",
+        "    HostName $HOST",
+        "    User $L->{'user'}",
+        "    HostKeyAlias $L->{'alias'}", '';
+}
+
+sub user_home {
+    my $passwd = slurp("$TARGET/etc/passwd") // '';
+    my ( $uid, $gid, $home )
+        = $passwd =~ m|^\Q$L->{'user'}\E:[^:]*:(\d+):(\d+):[^:]*:([^:]*):|m;
+    return ( $uid, $gid,
+        length( $home // '' ) ? $home : "/home/$L->{'user'}" );
+}
+
+## an existing file of the installer gets lines added, never rewritten ##
+sub append_installer {
+    my ( $rel, $text ) = @ARG;
+    my $who = installer();
+    if ( not -d $who->{'ssh'} ) {
+        CORE::mkdir( $who->{'ssh'}, 0700 ) or return FALSE;
+        CORE::chown( $who->{'uid'}, $who->{'gid'}, $who->{'ssh'} )
+            if $EUID == 0;
+    }
+    my $path = "$who->{'ssh'}/$rel";
+    my $new  = not -e $path;
+    my $old  = slurp($path) // '';
+    open( my $fh, '>>:raw', $path ) or return FALSE;
+    print {$fh} "\n" if length $old and $old !~ m|\n\z|;
+    print {$fh} $text;
+    close($fh) or return FALSE;
+
+    if ($new) {
+        CORE::chmod( 0600, $path );
+        CORE::chown( $who->{'uid'}, $who->{'gid'}, $path ) if $EUID == 0;
+    }
+    return TRUE;
+}
+
+## access.from = installer : the installer's key into the user's         ##
+## authorized_keys, openssh-server keys only, the new host keys into the ##
+## installer's known_hosts [ no trust on first use ], a Host alias       ##
+sub step_access {
+    my ( $mode, $step ) = @ARG;
+    return TRUE if not defined $L->{'access'};
+    my $user  = $L->{'user'};
+    my $alias = $L->{'alias'};
+    my $ssh   = installer()->{'ssh'};
+    if ( $mode eq qw| plan | ) {
+        my $fresh = ( not plan_tree_visible() or not base_present() );
+        my ( undef, undef, $home ) = $fresh ? () : user_home();
+        plan( $step, 'openssh-server', 'install', FALSE, 'keys only' )
+            if $fresh
+            or not pkg_present(qw| openssh-server |);
+        plan( $step, "/$SSHD_DROP", 'write', FALSE )
+            if $fresh
+            or ( slurp("$TARGET/$SSHD_DROP") // '' ) ne $SSHD_TEXT;
+        plan( $step, 'authorized_keys', 'write', FALSE,
+            "$user : the installer's key" )
+            if $fresh or not -e "$TARGET$home/.ssh/authorized_keys";
+        plan( $step, 'known_hosts', 'append', FALSE,
+            "$ssh [ " . known_names() . ' ]' )
+            if $fresh
+            or not host_keys()
+            or known_missing();
+        plan( $step, 'ssh config', 'append', FALSE, "Host $alias" )
+            if defined $alias and not config_has_host($alias);
+        return TRUE;
+    }
+
+    my $reported = scalar @report;
+    if ( pkg_present(qw| openssh-server |) ) {
+        row( 'openssh-server', 'ok' );
+    } else {
+        return FALSE if not chroot_apt(qw| openssh-server |);
+    }
+    if ( not host_keys() ) {
+        return FALSE if not bind_mounts();
+        return FALSE
+            if not act( 'ssh host keys', chroot_cmd(qw| ssh-keygen -A |) );
+        return fail( 'ssh host keys', 'none after ssh-keygen -A' )
+            if not host_keys();
+        done( 'ssh host keys',
+            'generated', join ' ', map { $ARG->[0] } host_keys() );
+    }
+
+    if ( ( slurp("$TARGET/$SSHD_DROP") // '' ) eq $SSHD_TEXT ) {
+        row( "/$SSHD_DROP", 'ok' );
+    } else {
+        make_path("$TARGET/etc/ssh/sshd_config.d");
+        return fail( "/$SSHD_DROP", "cannot write [ $OS_ERROR ]" )
+            if not spew( "$TARGET/$SSHD_DROP", $SSHD_TEXT );
+        done( "/$SSHD_DROP", 'written', 'PasswordAuthentication no' );
+    }
+
+    my ( $uid, $gid, $home ) = user_home();
+    return fail( 'authorized_keys', "no user $user" ) if not defined $uid;
+    my $auth = "$TARGET$home/.ssh/authorized_keys";
+    if ( -e $auth ) {
+        row( 'authorized_keys', 'ok', 'present -- left as it is' );
+    } else {
+        my ( $keys, $from ) = installer_keys();
+        return fail( 'authorized_keys', $from ) if not defined $keys;
+        make_path("$TARGET$home/.ssh");
+        return fail( 'authorized_keys', "cannot write [ $OS_ERROR ]" )
+            if not spew( $auth, $keys );
+        CORE::chmod( 0700, "$TARGET$home/.ssh" );
+        CORE::chmod( 0600, $auth );
+        CORE::chown( $uid, $gid, "$TARGET$home/.ssh", $auth ) if $EUID == 0;
+        done( 'authorized_keys', 'written', "$user from $from" );
+    }
+
+    my @missing = known_missing();
+    if ( not @missing ) {
+        row( 'known_hosts', 'ok', known_names() );
+    } else {
+        my $names = known_names();
+        return fail( 'known_hosts', "cannot append [ $OS_ERROR ]" )
+            if not append_installer( qw| known_hosts |,
+            join '', map {"$names $ARG->[0] $ARG->[1]\n"} @missing );
+        done( 'known_hosts', 'added',
+                  "$ssh/known_hosts [ $names : "
+                . join( ' ', map { $ARG->[0] } @missing )
+                . ' ]' );
+    }
+
+    if ( defined $alias ) {
+        if ( config_has_host($alias) ) {
+            row( 'ssh config', 'ok', "Host $alias present -- left as it is" );
+        } else {
+            return fail( 'ssh config', "cannot append [ $OS_ERROR ]" )
+                if not append_installer( qw| config |, ssh_block() );
+            done( 'ssh config', 'added', "Host $alias [ HostKeyAlias ]" );
+        }
+    }
+    ## the report names it when this run set something up ##
+    my $first = defined $alias ? "ssh $alias" : "ssh $user\@$HOST";
+    @report > $reported
+        ? done( 'first connection', $first )
+        : row( 'first connection', $first );
     return TRUE;
 }
 
@@ -2580,7 +2886,8 @@ sub print_help {
      -no-p7 ..............  skip p7-install inside the new system
      -password-fd <n> ....  the first user's password, one line read
                             from file descriptor n [ never argv ;
-                            without it and a terminal : locked ]
+                            without it and a terminal : locked ;
+                            wins over user.password = vault ]
      -install-tools ......  missing host tools through the debian zenka
      -nc .................  no colours [ also with NO_COLOR, or no terminal ]
      -options ............  this option list [ -h resolves here ]
@@ -2601,8 +2908,8 @@ EOL
     return TRUE;
 }
 
-#,,,.,,.,,..,,,,.,.,.,,,.,,,,,,,,,.,.,...,..,,..,,...,...,,..,.,,,.,,,.,.,...,
-#QHORYN7N25JIDAP4KUALWK3WIUT4VZH4KECYBJCSMAVR7JL22SX3J4S54LCMFPZXDJE7YLUHLHW6A
-#\\\|76VEU6AFNSIUAJ2GSSJS2FO3ISU7TLOS6DVGAEXSRSVKRDSPMZG \ / AMOS7 \ YOURUM ::
-#\[7]6YESZE3MP5QENXAFNIJYYBOON6GPZVMUP63A3CL5UX4QEZHJI2DI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,.,,.,,,..,..,,.,,,,,,,,,.,..,,..,,...,...,.,.,,..,.,,,,.,,..,,
+#IDTIZJ7IVSFEPTLGS4LQ4VAFISA4RBSKDY7PEQ2QCFOSO3BOC4UVBHM7CL6O6OREH5N7KGPAIR3DW
+#\\\|VK67CDC4FBUQ4ZW5OP4TCSURM6U2ZNAM6IPQUTJFPYBCWWAEJFM \ / AMOS7 \ YOURUM ::
+#\[7]RCQNZ7TYOPWTDUGAOH4EWJ4Q5XNHCFPQOAPN5XY4ZMWX5BXXWOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

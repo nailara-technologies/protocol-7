@@ -216,9 +216,44 @@ files : bin/p7-host-build, cfg/host-build/layout.template, bin/test-scripts/test
 #\[7]MX4CC4K7UTZ5KQN5ZO724DVPUBSJGE64SQH57XBAV2KT7LHGQGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+## implementation notes [ 2026-11-23, stage 1b vault users \ access -- not signed, not committed ]
+
+- `user.password = vault | vault:<title>` [ default title host-build:<host>:<user> ] : read at
+  user creation through a pipe from `p7-vault get <title> password` [ run as the sudo caller
+  when root, stderr passes so the unlock prompt shows ] -> chpasswd stdin. not read in a dry
+  run [ the plan names the title ]. no value : the user is created locked, the report names
+  the title, `p7-vault add login` and `p7-vault gen`. -password-fd wins [ the vault is not
+  called ]. one read per run ; NOTE : the vault file entry for authorized_keys is a second
+  p7-vault process [ a second unlock unless the vault keeps it open ]
+- step 'access' [ main system only, after configuration ] with `access.from = installer` :
+  openssh-server in the chroot, ssh-keygen -A if no host key, sshd_config.d/p7-host-build.conf
+  [ PasswordAuthentication \ KbdInteractiveAuthentication no ] ; authorized_keys written once
+  [ an existing one is left as it is ] from `p7-vault export <title>:authorized_keys` into a
+  temp dir [ a public key ], else every ~/.ssh/*.pub of the installer -- the report lists the
+  source ; .ssh 0700, the file 0600, chown to the user's uid \ gid from the new passwd [ root ]
+- the installer = SUDO_USER's home [ getpwnam ], else HOME [ always HOME in a test root ].
+  known_hosts : one line per host key `<host>[,<alias>] <type> <key>`, appended only when no
+  line with that key carries every name ; ~/.ssh/config : the Host block [ HostName <host>,
+  User, HostKeyAlias <alias> ] appended only when no Host line names the alias. lines are
+  added, never rewritten ; a new file is 0600 and owned by the installer
+- first connection : `ssh <alias>` else `ssh <user>@<host>` -- in the report when the run set
+  something up, a plain row otherwise [ the second run stays 'changes none' ]
+- resolv.conf : removed right after a successful debootstrap, unconditionally ; the earlier
+  compare against the building host's file is gone [ P7_HOST_BUILD_TEST_HOST_RESOLV now only
+  feeds the fake debootstrap ] -- a later run never looks at resolv.conf
+- open : HostName = the layout host name [ needs dns \ mdns until stage 2 knows an address ] ;
+  further systems get no access set-up ; fingerprints are not printed [ ssh-keygen -l is sha ]
+- tests [ no root ] : a fake p7-vault in PATH. dry run : plan names the title \ access, no
+  write, ~/.ssh [ a test HOME ] byte-identical, the vault not called ; chain : password only
+  on chpasswd stdin, authorized_keys content \ 0700 \ 0600, sshd drop-in, known_hosts kept +
+  both keys once under host,alias, config kept + block once, the first connection in the
+  report ; second run : no write, changes none, ~/.ssh unchanged, a lease-written resolv.conf
+  stays ; missing entry : locked + title + commands, and the vault file entry wins over
+  ~/.ssh/*.pub ; -password-fd wins without a vault call
+
 ## next stages [ owner 2026-11-23 ]
 
-### stage 1b : vault users and remote access [ after the current follow-ups ]
+### stage 1b : vault users and remote access [ DONE 2026-11-23, see implementation notes ]
 
 - user passwords from p7-vault by naming convention : one 'login' entry per account,
   title `host-build:<host>:<user>` [ fields user, password ] ; layout `user.password = vault`
@@ -250,8 +285,8 @@ files : bin/p7-host-build, cfg/host-build/layout.template, bin/test-scripts/test
   mac for the power zenka ]. the target side : WakeOnLan=magic in a systemd .link file for the
   wired interface, and wol enabled in the firmware [ the report reminds of it ]
 
-#,,..,..,,.,.,.,.,.,,,.,,,,,.,..,,...,,..,.,.,..,,...,...,...,,,.,,,,,,.,,,..,
-#MD5RPFYHN2E2ANFD7JBZPPAK3MSAM222S2IDYH3YPWA7ULNKXJYOKV3CZQD6ASPVDLOTHDYZAWGPA
-#\\\|GIKBU2A6HFFMHD6X67DVPGAJ3QVFE3CVJ2XO4KEDSSP5IQWZ7MN \ / AMOS7 \ YOURUM ::
-#\[7]U5TFJTZTYNUYC5MNWOQPTKYK25XEJYNF4IKM4I6LISOMIFBNRYBI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,...,,,.,,,.,.,.,,..,,,.,,.,,,,.,..,,...,...,.,,,,.,,...,.,.,...,
+#JY2PEEPBSAMQSPV22SUW3W7QTX6MTE3TRULHGO37VUBENL2WPBPQ6VXQJZDSTMH7M3XDITKP2OEO2
+#\\\|Y54WBWHZ4H2NYLQRUHU46BILPYHVBU55SJM3WLRYJO3MR7CLZZD \ / AMOS7 \ YOURUM ::
+#\[7]I43WX676QNMRKBDGXINPSWOURDTSD4CFNDAT6EQKR6ANJYP5WGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

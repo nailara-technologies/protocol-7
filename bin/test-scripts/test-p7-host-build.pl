@@ -395,6 +395,7 @@ if ( $name eq 'chroot' ) {
     if ( $cmd eq 'update-grub' ) { touch( "$t/boot/grub/grub.cfg", 'menu' ); exit 0 }
     if ( $cmd eq 'useradd' ) { touch( "$t/etc/passwd", "$ARGV[-1]:x:1000:1000::/home/$ARGV[-1]:/bin/bash\n" ); exit 0 }
     if ( $cmd eq 'chpasswd' ) { my $in = do { local $/; <STDIN> }; ap( 'secrets', length $in ); open( my $f, '>>', "$S/chpasswd.in" ) or die; print {$f} $in; close $f; exit 0 }
+    if ( $cmd eq 'ssh-keygen' ) { make_path("$t/etc/ssh"); foreach my $k (qw| ed25519 rsa |) { touch( "$t/etc/ssh/ssh_host_${k}_key", 'secret' ); touch( "$t/etc/ssh/ssh_host_${k}_key.pub", "ssh-$k AAAAfake$k root\@build\n" ) } exit 0 }
     if ( $cmd eq 'locale-gen' ) { exit 0 }
     if ( $cmd eq '/usr/bin/perl' ) {
         exit 6 if not -f "$t$ARGV[0]" or not -f "$t/root/p7-host-build/AMOS7/TERM/Frame.pm";
@@ -1020,6 +1021,174 @@ EOL
         or print $out;
 }
 
+## stage 1b : the password from p7-vault, access for the installer ##
+{
+    my $vault_fake = <<'VAULT_EOF';
+my $S = $ENV{'FAKE_STATE'};
+open( my $log, '>>', "$S/vault.argv" ) or die; print {$log} "@ARGV\n"; close $log;
+my ( $cmd, $title, $arg ) = @ARGV;
+( my $e = $title ) =~ s|[^\w\-]|_|g;
+if ( $cmd eq 'get' ) { open( my $f, '<', "$S/vault/$e.$arg" ) or exit 1; local $/; print <$f>; exit 0 }
+if ( $cmd eq 'export' ) { open( my $f, '<', "$S/vault/$e.file" ) or exit 1; local $/; my $c = <$f>; open( my $o, '>', $arg ) or exit 2; print {$o} $c; exit 0 }
+exit 1;
+VAULT_EOF
+    my $world = sub {
+        my ( $extra, %vault ) = @ARG;
+        my $w = stub_world( qw| layout | => $LAYOUT . $extra );
+        spew( "$w->{'fake'}/p7-vault", "#!$EXECUTABLE_NAME\n$vault_fake" );
+        chmod 0755, "$w->{'fake'}/p7-vault";
+        foreach my $k ( keys %vault ) {
+            ( my $e = $k ) =~ s|[^\w\-.]|_|g;
+            spew( "$w->{'state'}/vault/$e", $vault{$k} );
+        }
+        my $home = "$w->{'base'}/home";
+        spew( "$home/.ssh/id_ed25519.pub",
+            "ssh-ed25519 AAAAinstaller me\@test\n" );
+        spew( "$home/.ssh/known_hosts", "other ssh-ed25519 AAAAother\n" );
+        spew( "$home/.ssh/config",
+            "Host other\n    HostName other.invalid\n" );
+        $w->{'env'}{'HOME'} = $home;
+        $w->{'home'} = $home;
+        return $w;
+    };
+    my $access = "user.password  = vault\naccess.from    "
+        . "= installer\naccess.alias   = testalias\n";
+    my $pw = 'vault-pw with spaces';
+    my $w  = $world->( $access,
+        'host-build_testhost_builder.password' => "$pw\n" );
+    my $root = "$w->{'state'}/store/_dev_mapper_test--vg-root";
+    my $ssh0 = tree_snapshot("$w->{'home'}/.ssh");
+
+    my ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -dry-run -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'} );
+    check(
+        'vault dry run : plan names the vault title and the access steps',
+        $exit == 0
+            && $out =~ m|p7-vault \[ host-build:testhost:builder \]|
+            && $out =~ m|known_hosts|
+            && $out =~ m|Host testalias|
+    ) or print $out;
+    check(
+        'vault dry run : nothing written, ~/.ssh untouched, no vault call',
+        !writes($w)
+            && same_snapshot( $ssh0, tree_snapshot("$w->{'home'}/.ssh") )
+            && !-e "$w->{'state'}/vault.argv"
+    );
+
+    ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -yes -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'} );
+    check( 'vault chain : exit 0', $exit == 0 ) or print $out;
+    check(
+        'vault chain : password on chpasswd stdin only',
+        ( slurp("$w->{'state'}/chpasswd.in") // '' ) eq "builder:$pw\n"
+            && !grep { index( $ARG, 'vault-pw' ) >= 0 } calls($w),
+        ( slurp("$w->{'state'}/vault.argv") // '' )
+    );
+    my $auth = "$root/home/builder/.ssh/authorized_keys";
+    check(
+        'access : authorized_keys = the installer key, 0700 \ 0600',
+        ( slurp($auth) // '' ) eq "ssh-ed25519 AAAAinstaller me\@test\n"
+            && ( ( stat("$root/home/builder/.ssh") )[2] & 07777 ) == 0700
+            && ( ( stat($auth) )[2] & 07777 ) == 0600
+            && $out =~ m|from ~/\.ssh/id_ed25519\.pub|
+    ) or print $out;
+    check(
+        'access : openssh-server, PasswordAuthentication no',
+        -e "$root/var/lib/dpkg/info/openssh-server.list"
+            && ( slurp("$root/etc/ssh/sshd_config.d/p7-host-build.conf")
+            // '' ) =~ m|^PasswordAuthentication no$|m
+    );
+    my $kh = slurp("$w->{'home'}/.ssh/known_hosts") // '';
+    check(
+        'access : known_hosts kept, host keys added under host + alias',
+        $kh =~ m|\Aother ssh-ed25519 AAAAother\n|
+            && 1 == (
+            () = $kh =~ m|^testhost,testalias ssh-ed25519 AAAAfakeed25519$|mg
+            )
+            && 1
+            == ( () = $kh =~ m|^testhost,testalias ssh-rsa AAAAfakersa$|mg )
+    ) or print $kh;
+    my $cfg = slurp("$w->{'home'}/.ssh/config") // '';
+    check(
+        'access : config kept, Host block once with HostKeyAlias',
+        $cfg =~ m|\AHost other\n|
+            && 1 == ( () = $cfg =~ m|^Host testalias$|mg )
+            && $cfg =~ m|^    HostKeyAlias testalias$|m
+    ) or print $cfg;
+    check(
+        'access : the report names the first connection',
+        $out =~ m|first connection .*ssh testalias|
+    ) or print $out;
+
+    ## a resolv.conf dhcpcd wrote stays ##
+    spew( "$root/etc/resolv.conf", "nameserver 198.51.100.7\n" );
+    my $ssh1   = tree_snapshot("$w->{'home'}/.ssh");
+    my $kh1    = $kh;
+    my $before = state_snap($w);
+    reset_calls($w);
+    ( $exit, $out ) = run_tool( $w->{'env'}, '-layout', $w->{'layout'} );
+    check(
+        'access second run : no write, changes none, ~/.ssh unchanged',
+        $exit == 0
+            && !writes($w)
+            && $out =~ m|changes \.+ none|
+            && slurp("$w->{'home'}/.ssh/known_hosts") eq $kh1
+            && slurp("$w->{'home'}/.ssh/config") eq $cfg
+    ) or print $out;
+    check(
+        'second run : a lease-written resolv.conf stays',
+        ( slurp("$root/etc/resolv.conf") // '' ) eq "nameserver "
+            . "198.51.100.7\n"
+    );
+
+    ## no password entry : locked, the title and the commands named ; the ##
+    ## vault file entry gives authorized_keys                             ##
+    $w = $world->(
+        $access,
+        'host-build_testhost_builder_authorized_keys.file' =>
+            "ssh-ed25519 AAAAfromvault vault\@test\n"
+    );
+    $root = "$w->{'state'}/store/_dev_mapper_test--vg-root";
+    ( $exit, $out )
+        = run_tool( $w->{'env'}, qw| -yes -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'} );
+    check(
+        'vault missing : locked, title and p7-vault add \ gen named',
+        $exit == 0
+            && !-e "$w->{'state'}/chpasswd.in"
+            && $out
+            =~ m|locked -- no password in p7-vault \[ host-build:testhost:builder \]|
+            && $out =~ m|p7-vault add login|
+            && $out =~ m|p7-vault gen|
+    ) or print $out;
+    check(
+        'access : the vault file entry wins over ~/.ssh/*.pub',
+        ( slurp("$root/home/builder/.ssh/authorized_keys") // '' ) eq
+            "ssh-ed25519 AAAAfromvault vault\@test\n"
+            && $out
+            =~ m|p7-vault \[ host-build:testhost:builder:authorized_keys \]|
+    ) or print $out;
+
+    ## -password-fd wins over the vault ##
+    $w = $world->(
+        "user.password = vault\n",
+        'host-build_testhost_builder.password' => "$pw\n"
+    );
+    ( $exit, $out )
+        = run_tool_pw( $w->{'env'}, 'fd-wins',
+        qw| -password-fd 3 -yes -wipe TESTSERIAL01 -layout |,
+        $w->{'layout'} );
+    check(
+        '-password-fd wins over the vault [ no vault call ]',
+        $exit == 0
+            && ( slurp("$w->{'state'}/chpasswd.in") // '' ) eq
+            "builder:fd-wins\n"
+            && !-e "$w->{'state'}/vault.argv"
+    ) or print $out;
+}
+
 ## -nc and NO_COLOR : no escape anywhere ##
 {
     my $w = stub_world();
@@ -1399,8 +1568,8 @@ sub root_loop_chain {
     return TRUE;
 }
 
-#,,,,,.,.,...,...,...,,,.,.,.,.,.,.,.,,,,,...,..,,...,...,,.,,,,,,,..,,.,,..,,
-#2L3ZWDFVGLKZRABAIZB3LTNJVHTV76NDQ6FO36DJ6NP75GYBDTIQXRFMD2XBSNCF2TC27QSLEHIRA
-#\\\|MD5SYGOK76NVKI7VJBCO6ABJWETKVR5K2VW52QVVVCEDEWVTRFS \ / AMOS7 \ YOURUM ::
-#\[7]ICBTJ4CVPUXISHZU7BVLTK3MGTYU3PY3NMTSRE6FYAIYEY2Z5UDI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,.,.,.,...,...,,.,,,.,,,.,,,,.,..,,...,...,,..,,,,,,,.,,..,,.,,
+#MC4LCKWKWWIGA2P5AB3V7IJKVRUZSYC5AJGXCRB2FMU3V3HIZ6CKXIVP4QPH7XNLFAYZNO642H2FC
+#\\\|A5AN5D5OMQTKVPO33XXYL6YLQBWBDK3R2COFYUAA6TSJGXNJUAV \ / AMOS7 \ YOURUM ::
+#\[7]JZAIZMXM7AYU5XPEQECNMD3SXDO4PDHK4PTVLLR5QVD6SOHWGKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

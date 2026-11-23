@@ -77,9 +77,20 @@ system.service   = no
 ## a first user [ the password : -password-fd <n>, else asked twice on the ##
 ## terminal ; never argv, never here. without either : locked ]            ##
 # user.name      = <name>
+#
+## its password from p7-vault : a login entry host-build:<host>:<user> ##
+## [ field password ], read through a pipe ; -password-fd wins over it ##
+# user.password  = vault                 [ or vault:<title> ]
 
-#,,.,,,.,,..,,,,.,...,...,.,,,,.,,,..,,.,,,,.,..,,...,...,..,,,,,,...,,,,,..,,
-#OPUG4I754PL6TITIUW6U4MAJGIVBZKGM7RZX52VVDZQXK6X7LKHHJ726RMCTCM7QV7QUAMOQX45BW
-#\\\|J7Y3Y3NZGP5UVLCHGXBZGC7BUQO3CSKDNMKU7Z26SOGJUQ7R2FW \ / AMOS7 \ YOURUM ::
-#\[7]3UJL2T3DWOVBGIGZV4XZ3VXHILUJ77RUSQ5S2JMLD63T4GNHEEBQ 7  DATA SIGNATURE ::
+## access for the installing user [ ssh, keys only ] : the installer's     ##
+## public key [ vault file entry host-build:<host>:<user>:authorized_keys  ##
+## else ~/.ssh/*.pub ] into the user's authorized_keys ; the new host keys ##
+## into the installer's ~/.ssh/known_hosts [ no trust on first use ]       ##
+# access.from    = installer
+# access.alias   = <alias>               [ a Host block in ~/.ssh/config, no dots ]
+
+#,,,,,...,.,,,,.,,..,,,.,,...,..,,,.,,,,,,.,,,..,,...,...,,..,..,,...,,.,,,,,,
+#JSSM2ACCA7ZT4XRC6HU3VQO3BWZ6T5KIYPYCT25B2YIUSVNYA6NWJTNIV7EOD6TGRMZB7XYQMCWHE
+#\\\|YKODFSFSIBUATM7MZDQGEVFJFRB4R45DSOT3TSN6OEV5C3JVAED \ / AMOS7 \ YOURUM ::
+#\[7]BQARDRXJXYARPF3SWQU3LJPVOT5MV2FK26CCDESZDQQTXVFRQ2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
