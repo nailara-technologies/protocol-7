@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = network.cmd.status
+# descr = default route, gateway, dns and the base network layer
+
+my $route   = <[network.status.default_route]>;
+my $dns     = <[network.status.dns_servers]>;
+my $backend = <[network.status.backend]>;
+my @rows;
+foreach my $family (qw| ipv4 ipv6 |) {
+    my $r = $route->{$family};
+    push @rows,
+        [
+        "default $family",
+        $r ? sprintf( '%s via %s', $r->{'iface'}, $r->{'gateway'} ) : qw| - |
+        ];
+}
+push @rows, [ qw| dns |,     $dns->@* ? join( ' ', $dns->@* ) : qw| - | ];
+push @rows, [ qw| backend |, $backend->{'backend'} ];
+push @rows,
+    [
+    qw| running |,
+    $backend->{'running'}->@*
+    ? join( ' ', $backend->{'running'}->@* )
+    : qw| - |
+    ];
+my $width = 0;
+foreach my $row (@rows) {
+    $width = length $row->[0] if length( $row->[0] ) > $width;
+}
+my $text = join '', map { sprintf( "%-${width}s : %s\n", $ARG->@* ) } @rows;
+return { qw| mode | => qw| size |, qw| data | => $text };
+
+#,,..,.,.,,,.,,..,.,.,,,,,,..,.,,,,.,,.,.,,,.,..,,...,..,,,.,,.,,,,,,,,,,,...,
+#EKVUY7UKVA3EML3UOJ6N7V2UZE4AHNGSL5VVRBCJIU5CSGRISSHJB5CNOHMC6JY2WA7XUJ3EOXPQM
+#\\\|BZUIIIZ5VZDCRETYMIGSDMY327OQVDRH57OOMZ626M3FCU6RKFS \ / AMOS7 \ YOURUM ::
+#\[7]TFQYWSVJCXUNO53YNQQT572GM4ZB3KH6RBQDBDOZVBG6SCWVJQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

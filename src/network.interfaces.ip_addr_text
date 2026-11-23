@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = network.interfaces.ip_addr_text
+# descr = output of 'ip -o addr show' [ empty when ip is not installed ]
+
+my $ip = <[file.which]>->(qw| ip |);
+$ip = ( grep { -x $ARG } qw| /usr/sbin/ip /sbin/ip /usr/bin/ip /bin/ip | )[0]
+    if not defined $ip or not length $ip;
+return '' if not defined $ip;
+open( my $fh, '-|', $ip, qw| -o addr show | ) or return '';
+local $INPUT_RECORD_SEPARATOR;
+my $text = readline($fh) // '';
+close($fh);
+return $text;
+
+#,,,,,..,,.,.,.,.,,,,,,,.,,..,.,.,,,,,...,..,,..,,...,...,,..,,.,,,.,,,..,,,,,
+#2WJPYG55EKRXHI6KVHQDTIUJNVXRUODJL3JFZRDZDQOV2ME56URZ2TCNQH7F2VRYAUWPDSMQK3HYY
+#\\\|D3GDJL72YBMCLHUAVEGEDBAHWQHJBDN4QXKDDXDMBOGWZ35A42D \ / AMOS7 \ YOURUM ::
+#\[7]TAOAYQIK67ROU5QTBMBLECL6AIC7LMHUHENK6MUA4ENPQL3EQYCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

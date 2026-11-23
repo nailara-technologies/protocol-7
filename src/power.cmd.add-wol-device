@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = power.cmd.add-wol-device
+# descr = add or replace a wake on lan device in the power config
+# param = <name> <mac> [iface] [:replace:]
+
+<power.cfg.devices> //= {};
+
+my @args    = split( m| +|, $call->{'args'} // '' );
+my $replace = @args && $args[-1] eq qw| :replace: | ? pop @args : FALSE;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'usage : power.add-wol-device <name> <mac> [iface] [:replace:]'
+    }
+    if @args < 2 or @args > 3;
+
+my ( $name, $mac, $iface ) = @args;
+
+return {
+    'mode' => qw| false |,
+    'data' => "invalid device name '$name' [ word chars and dash expected ]"
+    }
+    if $name !~ m|^[\w-]+$|;
+
+return {
+    'mode' => qw| false |,
+    'data' => "invalid mac address '$mac' [ aa:bb:cc:dd:ee:ff expected ]"
+    }
+    if $mac !~ m|^[0-9a-f]{2}(?::[0-9a-f]{2}){5}$|i;
+
+return {
+    'mode' => qw| false |,
+    'data' => "invalid interface '$iface' [ word chars expected ]"
+    }
+    if defined $iface and $iface !~ m|^\w+$|;
+
+$mac = lc $mac;
+
+if ( exists <power.cfg.devices>->{$name} ) {
+    return { 'mode' => qw| true |, 'data' => 'already present' }
+        if ( <power.cfg.devices>->{$name}->{'mac'} // '' ) eq $mac;
+
+    return {
+        'mode' => qw| false |,
+        'data' => "device '$name' has a different mac"
+            . ' [ append :replace: to replace it ]'
+        }
+        if not $replace;
+}
+
+<power.cfg.devices>->{$name} = {
+    'added'  => <[base.ntime]>,
+    'driver' => qw| wol |,
+    'mac'    => $mac,
+    defined $iface ? ( 'iface' => $iface ) : (),
+};
+
+<[base.log]>->(
+    1,
+    sprintf(
+        "%s wol device $name [ $mac%s ]",
+        $replace       ? 'replaced'   : 'added',
+        defined $iface ? " on $iface" : ''
+    )
+);
+
+<[power.save_config]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'wol device %s [name=%s]',
+        $replace ? 'replaced' : 'added', $name
+    )
+};
+
+#,,.,,,,,,.,,,..,,.,.,..,,,.,,,.,,,,,,...,,.,,..,,...,..,,...,..,,,..,,,,,...,
+#V46V42ZLPZLY7KTUVZFZDCGDZ5ATEGYD4TSU47HGSQBW3SGQ6UVK43OKJZF34L4EYLNULOEFER3KA
+#\\\|HL7WND4DRWYOOWX3N7YIENW2FDH3347YPTR42Z4OTOF5ZK7O6SZ \ / AMOS7 \ YOURUM ::
+#\[7]RYJMGI77TYP3C2WBWHZVXIXNDMJTXRLZ36ZP66KEIO6VJOP4RGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

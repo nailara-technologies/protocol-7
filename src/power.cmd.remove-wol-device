@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = power.cmd.remove-wol-device
+# descr = remove a wake on lan device from the power config
+# param = <name>
+
+my $name = $call->{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'device name expected' }
+    if not length $name;
+
+return {
+    'mode' => qw| false |,
+    'data' => "invalid device name '$name' [ word chars and dash expected ]"
+    }
+    if $name !~ m|^[\w-]+$|;
+
+return {
+    'mode' => qw| false |,
+    'data' => "wol device '$name' does not exist"
+    }
+    if not exists <power.cfg.devices>->{$name};
+
+delete <power.cfg.devices>->{$name};
+
+<[power.save_config]>;
+
+return { 'mode' => qw| true |, 'data' => "wol device '$name' removed" };
+
+#,,.,,.,.,.,.,.,.,,..,..,,,.,,,,.,,.,,,,,,...,..,,...,...,...,,,.,,,,,.,.,,,.,
+#33XHOKFL4K4DGF43YXT7HXHGCIV2LCKWHZZODP6VEB2J65P7HV4B244C33RB2ZY7K5NDH3NUWTWPQ
+#\\\|WWOSUEILG7444NLAF4N5ADWKFZHGEHNM32XYKYUO2A2HODJAPX2 \ / AMOS7 \ YOURUM ::
+#\[7]NHPO4HSM4GGH2MH6H7KPJLQJ6ZW5YE2TJPOQQ3XSFMZMJ3SHLGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

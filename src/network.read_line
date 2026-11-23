@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = network.read_line
+# param = <path>
+# descr = first line of a small sysfs \ proc file, undef when unreadable
+
+my $path = shift // return undef;
+open( my $fh, '<', $path ) or return undef;
+my $line = readline($fh);
+close($fh);
+return undef if not defined $line;
+chomp $line;
+return $line;
+
+#,,,,,...,...,.,,,,..,,,.,,..,.,.,,.,,.,,,,.,,..,,...,...,...,,..,,,,,,,,,..,,
+#DN6C7DUOUTFVJS53NCVOED5VKWMR3USWT4AS5IT3SA4XHLPCQPAGK6XV2QRNCXPSSWZW6TQKTXR7S
+#\\\|Y5AWAMVYSESNYHLLIVTQFZ2RGUOGBOMFYPXA2CNA6VMDFMHVZZ2 \ / AMOS7 \ YOURUM ::
+#\[7]VXQ37EMQND5GZE2CGQXPOAGX74RFZGVLPWZHCVEP2HABE2FVU2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,35 @@
+  .:[ 'net' network zenka : interfaces, routes, dns, base layer ]:.
+
+## piece 1 : read-only view [ data/tasks/net-zenka.md ]  modules live in   ##
+## the 'network' namespace : 'net' is the shared transport namespace every ##
+## zenka loads [ a net.cmd.* would leak ]                                  ##
+
+[load_config_file:'shared-params']
+
+buffer.session.log_cmd  = p7-log.append
+buffer.session.max_size = 795648
+
+system.zenka.verbosity.buffer = 1
+
+access.cmd.usr.cube = heart subname name commands reload verify-instance \
+                      list src-age src-ver show-buffer \
+                      buffer-erase buffer-erase-level \
+                      interfaces status
+
+modules.load = auth.client net protocol io.unix ui network
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,...,,.,,...,.,.,,.,,,,,,.,,,..,,,.,,.,.,..,,...,..,,,..,,..,,.,,,,.,,.,,
+#GUXEUPYFTOO3H3W2QKS3EO2OMTI273KMHMGSYJHS3UZBUH5GD7CNVALYBBC2JIDVGGH6SVYTETZNA
+#\\\|LUNWQTE3AIRWHXHGP5HJ556VMR4LIYKOV4JOIJR5726KN54D52J \ / AMOS7 \ YOURUM ::
+#\[7]MQGBMYXBGK62KMQSWC66MVGQYRGETLPEDAEN64GULDV6D3ELP4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

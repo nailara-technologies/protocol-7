@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = network.interfaces.ip_addr_parse
+# param = <ip -o addr text>
+# descr = interface -> ipv4 \ ipv6 address lists from 'ip -o addr show' output
+
+my $text = shift // '';
+my %addr;
+foreach my $line ( split m|\n|, $text ) {
+    ## 2: eth0    inet 192.0.2.7/24 brd 192.0.2.255 scope global eth0 ##
+    next
+        if $line !~ m{^\d+:\s+([^\s:@]+)(?:@\S+)?:?\s+(inet6?)\s+(\S+)(.*)$};
+    my ( $iface, $family, $cidr, $rest ) = @{^CAPTURE};
+    my $scope = $rest =~ m|\bscope\s+(\S+)| ? ${^CAPTURE}[0] : qw| - |;
+    push $addr{$iface}{ $family eq qw| inet | ? qw| ipv4 | : qw| ipv6 | }->@*,
+        { qw| addr | => $cidr, qw| scope | => $scope };
+}
+return \%addr;
+
+#,,.,,,.,,,,.,,..,...,.,.,.,,,,.,,,,.,,,,,.,,,..,,...,...,.,.,,..,,..,,,,,,,,,
+#D4KDNWGKIFEAXOJXIU5DRBYGIOACXKGFXFQ67FLECRU2KNPJ6U3JYEXOY47NUEJLVQFNF3OEIV3XC
+#\\\|LVOX656I7OZY4G3LZN4NN27VA3JF5ZRORA6TJDO7TRGYYEV5RFA \ / AMOS7 \ YOURUM ::
+#\[7]K745JPNRJUFZPVDFIVZ2FQAHWNUWX4WCM26NU6C4QTFWUO7M5WCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

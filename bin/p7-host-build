@@ -3016,11 +3016,15 @@ sub step_trust {
     }
 
     ## 4. wake on lan : the target side here ; the installer's power zenka ##
-    ## keeps its devices in set-up.json -- named, not written              ##
+    ## owns its set-up.json -- only register through its command           ##
     if ( not keys %{ $L->{'mac'} } ) {
         row( 'wake on lan', 'no net.mac',
             'the mac is learned at first boot' );
     }
+    my ( $power_exit, undef )
+        = keys %{ $L->{'mac'} }
+        ? run_installer_p7c(qw| power.commands |)
+        : ( 0, undef );
     foreach my $iface ( sort keys %{ $L->{'mac'} } ) {
         my ( $rel, $text ) = wol_link($iface);
         my $have = slurp("$TARGET/$rel");
@@ -3035,8 +3039,17 @@ sub step_trust {
                 if not spew( "$TARGET/$rel", $text );
             done( "wol $iface", 'written', "/$rel WakeOnLan=magic" );
         }
-        row( '..', "power : wol device mac $L->{'mac'}{$iface}",
-            undef, qw| value | );
+        my @add = (
+            qw| power.add-wol-device |, $HOST,
+            $L->{'mac'}{$iface},        $iface
+        );
+        my $add_cmd = join( ' ', qw| p7c |, @add );
+        my ($add_exit) = $power_exit == 0 ? run_installer_p7c(@add) : (1);
+        done(
+            "wol device $iface",
+            $add_exit == 0 ? 'registered' : 'not registered',
+            $add_exit == 0 ? $HOST        : $add_cmd
+        );
     }
     row( 'wake on lan', 'firmware', 'enable wake on lan in the firmware too' )
         if keys %{ $L->{'mac'} };
@@ -3300,6 +3313,24 @@ sub run_read {
     return ( child_exit(), $out );
 }
 
+## p7c as the installer ; [ exit, output ], stderr dropped [ non-fatal ] ##
+sub run_installer_p7c {
+    my (@args) = @ARG;
+    my $pid = open( my $pipe, '-|' ) // return ( 127, undef );
+    if ( $pid == 0 ) {
+        open( STDERR, '>', File::Spec->devnull );
+        open( STDIN,  '<', File::Spec->devnull );
+        CORE::exit 126 if not as_installer();
+        CORE::exec {qw| p7c |} qw| p7c |, @args;
+        CORE::exit 127;
+    }
+    my $out = do { local $INPUT_RECORD_SEPARATOR = undef; <$pipe> }
+        // '';
+    close($pipe);
+    $out =~ s|\n\z||;
+    return ( child_exit(), $out );
+}
+
 ## list form ; stdout + stderr captured, an optional stdin text       ##
 ## [ secrets travel here, never on argv ] -- [ exit, output ] in list ##
 ## context                                                            ##
@@ -3439,8 +3470,8 @@ EOL
     return TRUE;
 }
 
-#,,.,,...,...,.,,,..,,,,.,,..,,.,,,,.,.,.,,,.,..,,...,..,,,..,..,,,,,,,,.,,.,,
-#OJM3WZGYLXITXYO37PBVL6AGDHBBMFZCJSHYV5AZYCCCRLKIG7TLAOUPG2LF2WFRVPXLTBP4GTITM
-#\\\|5AFBSBRKY5OQOEWOLRT2MFBV6KCL3IRRN6KQDAHS6BDO4YN4PRD \ / AMOS7 \ YOURUM ::
-#\[7]XRDNQJBEG2BSCMKFSCCYFTCHGU25HMF5HBAVIQA7IRL2XI4JNCAQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,.,,...,,,.,,,.,..,,.,,,...,,,.,..,,...,..,,,,,,,,,,.,.,,,.,...,
+#GF5DJG7PSHMI5FWRHVHN7DV7LHF5WZPAWCKDMGFCY5KC4AIVOK7PWTJSOAXWMICNHAFKWTIEOW75Y
+#\\\|ZIGNPZG3GSTMYU5MB33DZXE4XWZEFNJLLTQIRNKUEKKNW3QINKF \ / AMOS7 \ YOURUM ::
+#\[7]ESTIFXIUUAXB2TSQ324BTZFOFA6HBAKQCIYXGZQUCU4BADKCXWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

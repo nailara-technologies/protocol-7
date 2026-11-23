@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = network.status.backend
+# descr = which base network layer runs : ifupdown + dhcpcd, networkd, NetworkManager, none
+
+my $proc = <network.cfg.proc_root>;
+my %running;
+if ( opendir( my $dh, $proc ) ) {
+    foreach my $pid ( grep {m|^\d+$|} readdir($dh) ) {
+        my $comm = <[network.read_line]>->("$proc/$pid/comm") // next;
+        ## comm is cut to 15 chars : systemd-networkd reads systemd-network ##
+        $running{'dhcpcd'}         = 1 if $comm eq qw| dhcpcd |;
+        $running{'networkd'}       = 1 if $comm =~ m|^systemd-network|;
+        $running{'NetworkManager'} = 1 if $comm eq qw| NetworkManager |;
+        $running{'wpa_supplicant'} = 1 if $comm eq qw| wpa_supplicant |;
+    }
+    closedir($dh);
+}
+my $ifupdown = -f <network.cfg.ifupdown_conf> ? 1 : 0;
+my @backend;
+push @backend, qw| NetworkManager | if $running{'NetworkManager'};
+push @backend, qw| networkd |       if $running{'networkd'};
+push @backend, $running{'dhcpcd'} ? qw| ifupdown+dhcpcd | : qw| ifupdown |
+    if $ifupdown;
+push @backend, qw| dhcpcd | if $running{'dhcpcd'} and not $ifupdown;
+return {
+    qw| backend |  => @backend ? join( ' ', @backend ) : qw| none |,
+    qw| running |  => [ sort keys %running ],
+    qw| ifupdown | => $ifupdown,
+};
+
+#,,.,,..,,..,,,..,,.,,.,.,,,,,..,,,..,.,,,,,,,..,,...,...,,,,,.,.,,..,,,.,,.,,
+#QCCGHG6LZXHOFHRRJ3RHCOJQCT7GS4LMBUK2TVR72FRHVDM5TWJXRXCJJHD2M23G5H3EWGPITDEDA
+#\\\|ZG4ROMJWVGMJAGH7N7MPTV6YZ7QDCWMEW25EV2KFZPAPLLXCCRI \ / AMOS7 \ YOURUM ::
+#\[7]GD5YQ6VEJIVPCCLUQ6HI6MY56CWBHEE24O4QX6DXXVQ7W3SGGKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

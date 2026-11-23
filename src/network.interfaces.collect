@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = network.interfaces.collect
+# param = [ { ip_addr_text => <text> } ]
+# descr = every interface of the sys class net tree with link state and addresses
+
+my $opt  = shift // {};
+my $root = <network.cfg.sys_class_net>;
+my $text = $opt->{'ip_addr_text'} // <[network.interfaces.ip_addr_text]>;
+my $addr = <[network.interfaces.ip_addr_parse]>->($text);
+my $read = $code{'network.read_line'};
+
+opendir( my $dh, $root ) or return {};
+my @names = sort grep { not m|^\.| } readdir($dh);
+closedir($dh);
+
+my %iface;
+foreach my $name (@names) {
+    my $dir = "$root/$name";
+    next if not -d $dir;
+    my $type_id = $read->("$dir/type") // '';
+    my $type
+        = $type_id eq '772'                            ? qw| loopback |
+        : ( -d "$dir/wireless" or -e "$dir/phy80211" ) ? qw| wlan |
+        : -e "$dir/device"                             ? qw| wired |
+        :                                                qw| virtual |;
+    my $carrier = $read->("$dir/carrier");
+    my $speed   = $read->("$dir/speed");
+    ## a down link refuses the speed read or reports -1 : both unknown ##
+    $speed = undef if defined $speed and $speed !~ m|^\d+$|;
+    $iface{$name} = {
+        qw| name |      => $name,
+        qw| type |      => $type,
+        qw| mac |       => $read->("$dir/address")   // qw| - |,
+        qw| operstate | => $read->("$dir/operstate") // qw| unknown |,
+        qw| carrier |   => $carrier,
+        qw| speed |     => $speed,
+        qw| ipv4 |      =>
+            [ map { $ARG->{'addr'} } ( $addr->{$name}{'ipv4'} // [] )->@* ],
+        qw| ipv6 | =>
+            [ map { $ARG->{'addr'} } ( $addr->{$name}{'ipv6'} // [] )->@* ],
+    };
+}
+return \%iface;
+
+#,,..,..,,.,,,.,,,,..,...,..,,,,.,...,,.,,,..,..,,...,...,...,,,.,.,.,.,.,,,,,
+#E6XXXONP4RUANNBOUGUUU2XH66KY6Q5BMS45LW6JNYITR6MWIZS4GTQ5ELHSLSUFLFSFGNT4JOSSQ
+#\\\|QXFW4NUILZSG5BHP4VXQ6CRDOSWTY4CFBUWPZAHPFJ5EEQAIXTN \ / AMOS7 \ YOURUM ::
+#\[7]2L5LUPEHAKKUWZ2IR5XHLZL5URSSCDFR2XCQ7UVPHEF2H7E5TODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

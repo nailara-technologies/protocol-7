@@ -368,6 +368,10 @@ if ( $name eq 'umount' ) {
     move_all( $dir, store_of( $m->[1] ) ) if $m->[1] =~ m{\A/dev/(loop|mapper)};
     exit 0;
 }
+if ( $name eq 'p7c' ) {
+    print "power commands\n" if ( $ARGV[0] // '' ) eq 'power.commands';
+    exit 0;
+}
 if ( $name eq 'debootstrap' ) {
     my ( undef, $suite, $target ) = @ARGV;
     print "I: Retrieving Release\nI: Retrieving Packages\nI: Validating Packages\nI: Retrieving libc6\nI: Extracting libc6\nI: Installing core packages\nI: Unpacking required packages\nI: Configuring required packages\nI: Base system installed successfully.\n";
@@ -1292,11 +1296,13 @@ VAULT_EOF
         ( slurp("$root/etc/protocol-7/host-config/cube.cfg") // '' )
             =~ m|^access\.cmd\.usr\.builder = \*\* \.\.\*\.\*\*$|m
     );
+    my $wol_cmd
+        = 'p7c power.add-wol-device testhost 02:00:5e:10:00:01 enp1s0';
     check(
-        'net.mac : a .link with the mac and WakeOnLan=magic',
+        'net.mac : a .link and the exact power command without p7c',
         ( slurp("$root/etc/systemd/network/50-p7-wol-enp1s0.link") // '' )
             =~ m|^MACAddress=02:00:5e:10:00:01\n.*^WakeOnLan=magic$|ms
-            && $out =~ m|wol device mac 02:00:5e:10:00:01|
+            && $out =~ m|report.*\Q$wol_cmd\E|s
     ) or print $out;
 
     ## the new tree and both installer pin stores ##
@@ -1311,16 +1317,39 @@ VAULT_EOF
     ( $exit, $out ) = run_tool( $w->{'env'}, '-layout', $w->{'layout'} );
     my $snap2 = $view->();
     check(
-        'trust second run : key once, no write, changes none',
+        'trust second run : key once, no write, fallback command',
         $exit == 0
             && !writes($w)
-            && $out =~ m|changes \.+ none|
+            && $out =~ m|report.*\Q$wol_cmd\E|s
             && ( slurp("$kd/host-root.secret") // '' ) eq $key{'secret'}
             && same_snapshot( $snap, $snap2 )
         )
         or print $out, map {"changed : $ARG\n"}
         grep { ( $snap->{$ARG} // "\0" ) ne ( $snap2->{$ARG} // "\0" ) }
         sort keys %{ { %{$snap}, %{$snap2} } };
+
+    symlink( "$w->{'fake'}/fake", "$w->{'fake'}/p7c" );
+    reset_calls($w);
+    ( $exit, $out ) = run_tool( $w->{'env'}, '-layout', $w->{'layout'} );
+    my @power_calls = grep {m|^p7c |} calls($w);
+    check(
+        'power zenka answers : probe once and register through p7c',
+        $exit == 0
+            && @power_calls == 2
+            && $power_calls[0] eq 'p7c power.commands'
+            && $power_calls[1] eq $wol_cmd
+            && $out =~ m|report.*wol device enp1s0 \.+ registered|s
+    ) or print $out, join( "\n", @power_calls ), "\n";
+
+    $w->{'env'}{'FAKE_FAIL'} = qw| p7c |;
+    reset_calls($w);
+    ( $exit, $out ) = run_tool( $w->{'env'}, '-layout', $w->{'layout'} );
+    check(
+        'power probe failure : non-fatal, exact command in the report',
+        $exit == 0 && !grep { $ARG eq $wol_cmd }
+            calls($w) && $out =~ m|report.*\Q$wol_cmd\E|s
+    ) or print $out;
+    delete $w->{'env'}{'FAKE_FAIL'};
 
     ## a conflicting pin [ the built tree ] : refused with the reason, ##
     ## nothing pinned -- a removed installer pin stays removed         ##
@@ -1750,8 +1779,8 @@ sub root_loop_chain {
     return TRUE;
 }
 
-#,,,,,,,.,...,..,,,,.,,..,,,,,,.,,,..,,,,,,..,..,,...,...,..,,,,.,..,,.,.,...,
-#SSUFUL6EOCKREVV5PZCYV57L7KUSGQZPWND52T5DGLG56MW56I7AAFC37BB5WY7UZJHPJTIVSCVNY
-#\\\|YNRNNWWLCOKHGH7Y53FOEYRCYYYBXIRR2XTDJGMEMQ5E2BZSUEZ \ / AMOS7 \ YOURUM ::
-#\[7]5HCVHQFBO26Z5XLS3NPW6VZ7PEK53ZL6U775YF6UAH62RZ4HE6CI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,...,,,.,.,.,,,.,,,,,..,,,,,,,,.,..,,...,...,...,,,,,,,.,,,.,...,
+#IAPTIMDBRQ6UIEO344T5HIFVR77E5HWKSPGWS2PUOI4TG77ONDFXLSCDGPIA2MZYYBQL5VMHKB3XA
+#\\\|XOHAVLF7ZPYQHHRFAJ33VP24LPRI7IVYTAPSM5EZZOOF4HR6QXL \ / AMOS7 \ YOURUM ::
+#\[7]HLUO36EFYMMQMBNR2UWXGONSIGR2ILJYEPODFJ4EITDFV6KFLSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = network.cmd.interfaces
+# descr = interfaces : type, mac, state, speed, addresses
+
+my $iface = <[network.interfaces.collect]>;
+my @names = sort keys $iface->%*;
+return {
+    qw| mode | => qw| size |,
+    qw| data | => "no network interfaces found\n"
+    }
+    if not @names;
+my $name_width = length qw| IFACE |;
+foreach my $name (@names) {
+    $name_width = length $name if length($name) > $name_width;
+}
+my $format = join( ' ', "%-${name_width}s", qw| %-8s %-17s %-9s %7s %9s %s | )
+    . "\n";
+my $table
+    = sprintf( $format, qw| IFACE TYPE MAC STATE CARRIER SPEED ADDRESSES | );
+foreach my $name (@names) {
+    my $i    = $iface->{$name};
+    my @addr = ( $i->{'ipv4'}->@*, $i->{'ipv6'}->@* );
+    $table .= sprintf( $format,
+        $name,
+        $i->{'type'},
+        $i->{'mac'},
+        $i->{'operstate'},
+        defined $i->{'carrier'}
+        ? ( $i->{'carrier'} ? qw| up | : qw| down | )
+        : qw| - |,
+        defined $i->{'speed'} ? sprintf( '%d Mb/s', $i->{'speed'} ) : qw| - |,
+        @addr                 ? join( ' ', @addr ) : qw| - | );
+}
+return { qw| mode | => qw| size |, qw| data | => $table };
+
+#,,.,,.,,,..,,,,,,,..,..,,,,.,,,,,,.,,.,.,.,,,..,,...,...,.,,,.,.,...,.,.,.,,,
+#TKGFIUJIMWUWWVT7QQED62KDHTVGQBLN25YRGYZWZO3FWYTRMR2L7OID4ANUPYA72WCDYGVNWAQV2
+#\\\|V3KZ32S7VRXK3MRBT7OXUE6PFFGAMO7EI6P4ZOMOGGMDZ7FCNGK \ / AMOS7 \ YOURUM ::
+#\[7]BZEA5EHWBZHF33I4J7RFFPYFCL4Q6NUEE273IWYJHNATYW7IYKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

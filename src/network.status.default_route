@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = network.status.default_route
+# descr = default route interface and gateway [ ipv4 from proc net route, ipv6 from ipv6_route ]
+
+my $proc = <network.cfg.proc_root>;
+my %route;
+if ( open( my $fh, '<', "$proc/net/route" ) ) {
+    while ( my $line = readline($fh) ) {
+        my @f = split m|\s+|, $line;
+        ## iface destination gateway flags ... metric mask ##
+        next if @f < 8 or $f[1] ne qw| 00000000 | or $f[7] ne qw| 00000000 |;
+        next if not hex( $f[3] ) & 1;    # [ RTF_UP ]
+        my $metric = $f[6] + 0;
+        next
+            if defined $route{'ipv4'} and $route{'ipv4'}{'metric'} <= $metric;
+        ## gateway is little-endian hex ##
+        my $gw = join qw| . |, reverse map {hex} $f[2] =~ m|(..)|g;
+        $route{'ipv4'} = {
+            qw| iface |   => $f[0],
+            qw| gateway | => $gw,
+            qw| metric |  => $metric
+        };
+    }
+    close($fh);
+}
+if ( open( my $fh, '<', "$proc/net/ipv6_route" ) ) {
+    while ( my $line = readline($fh) ) {
+        my @f = split m|\s+|, $line;
+        ## dest plen src splen nexthop metric refcnt use flags iface ##
+        next if @f < 10 or $f[0] !~ m|^0{32}$| or hex( $f[1] ) != 0;
+        next if $f[4] =~ m|^0{32}$|;    # [ no next hop : not a default ]
+        my $metric = hex( $f[5] );
+        next
+            if defined $route{'ipv6'} and $route{'ipv6'}{'metric'} <= $metric;
+        my $gw = join qw| : |, $f[4] =~ m|(....)|g;
+        $gw =~ s|(^\|:)0{1,3}|$1|g;
+        $route{'ipv6'} = {
+            qw| iface |   => $f[9],
+            qw| gateway | => $gw,
+            qw| metric |  => $metric
+        };
+    }
+    close($fh);
+}
+return \%route;
+
+#,,..,,..,,,.,...,.,,,..,,.,.,,..,.,.,..,,,,,,..,,...,...,...,..,,,,,,,.,,,.,,
+#6RHK45HY4BLEDPAT2YDBWE2LMJ4NZLTLT46PXIXZIN3Q4NROF37U4LWKZ54VXBLOAJZZOE2CMJHHW
+#\\\|L5UPBFARNMEWXEE5HEYMYZMDZBNL6O4UUWDUJUANFBHVLCGB7SA \ / AMOS7 \ YOURUM ::
+#\[7]BXUJW7Q6DVEQXVIWWGLOPWBN6OEJJLFMHKBIQHCYXILQZE3BDMBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

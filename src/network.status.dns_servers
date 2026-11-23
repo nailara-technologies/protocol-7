@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = network.status.dns_servers
+# descr = nameserver lines of resolv.conf, in order
+
+open( my $fh, '<', <network.cfg.resolv_conf> ) or return [];
+my @servers;
+while ( my $line = readline($fh) ) {
+    push @servers, ${^CAPTURE}[0] if $line =~ m|^\s*nameserver\s+(\S+)|;
+}
+close($fh);
+return \@servers;
+
+#,,,,,,,.,,,.,...,,,.,,.,,..,,.,,,,,,,,..,..,,..,,...,...,...,,,,,.,,,,.,,,,,,
+#QSFSDVNKEMQBVV66N4CKIUJGSCXTQ4O67HE3HZBCTRJPVUK7R7ZDXZ7DOWZNZBTUH5LKWWNU45O4E
+#\\\|HZPJXJXBPN3ZRRZRTPTWT3CMEDMWMFYFDS64W4FTUZM75F74QXL \ / AMOS7 \ YOURUM ::
+#\[7]74ANYNB4UFU7H5C22RHMCVZTCPXJEBX6QOYPKEIOAKVHL5EXZKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
