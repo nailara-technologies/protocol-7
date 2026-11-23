@@ -272,6 +272,25 @@ without leaving traces that go beyond security into profiling or surveillance :
   level ], countersigned by the installer, the install entry, and the installer keeps the pin
 - the report names the memory's first line key id next to the host-root pin
 
+## lineage [ owner ]
+
+the same structure as the deduplicating knowledge tree and the substrate's identity tree :
+
+- data/asc/what-AI-thinks/perl-form/knowledge-management/deduplicating-knowledge-tree.pl
+  [ trunks, branches, needles, cones = seeds that regenerate branches, redundant recovery
+  paths ], dynamic-tree-balancing.pl, holographic-systems/advanced-reconstruction-algorithms.pl,
+  data/md/protocol-7-knowledge/README.md -- knowledge surviving damage ; this brief adds who
+  may see which part and signed edges
+- data/md/design/SUBSTRATE-SYNTHESIS.md : two views over the same nodes -- the identity tree
+  [ timeless, rooted at the empty parent : lineage, version history, attribution ] and the
+  occupancy view [ dated, rooted at the epoch : who holds now, which references are alive ]
+- here : the identity strand and the chain are the identity tree ; presence signatures, sync
+  receipts and epoch buckets are the occupancy view. a hardware strand inherited by a new
+  identity changes occupancy, its identity [ content part, chain ] stays
+- one substrate : n7fs nodes as needles, references as edges, receipts and presence
+  signatures as the security layer -- a knowledge paragraph and a memory entry are the same
+  kind of node, deduplicated, signed, with a position
+
 ## open
 
 - storage : a sealed n7fs replica, so it survives a reinstall ; the local file under the
@@ -280,8 +299,8 @@ without leaving traces that go beyond security into profiling or surveillance :
 - size : rotation by checkpoint [ a publication can start a new file whose first line names the
   previous chain's checksum ]
 
-#,,.,,.,,,,.,,,,.,,,,,.,,,,,,,.,.,.,,,.,,,,.,,..,,...,...,,..,,,.,,.,,,,.,..,,
-#HUKG2DVCNUJPH56BVD6CWK7GAZQQUWDGOOL33Y5UBBTUJAEZ3Y3VQ4JYZCVNWRRR6G3L3YUZR7BDK
-#\\\|5PGO3GS2L2FRUR2B6LPUKQWMD6DK54EPQE7XIBSROSGU2LVPEJZ \ / AMOS7 \ YOURUM ::
-#\[7]BWYJX6ELD7QLUFK4M3TSUKPBYQJQ3O2WCJHKEWITEUXJYA6KHCCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,,,..,,.,.,,,,,,..,,.,,.,,,...,..,,...,...,...,,.,,,.,,.,,,.,.,
+#IKKDCCWBNOADR5VQNOACUH7PXKMISBQBC5AO5CJT6DO73T5U3LLWPSN2WZI7RCUJDOBV5L5BMIPL6
+#\\\|4C2YKW67W6MVAGZOKQKVTS7CUEASEIKTTO27MUNVSESDGFDM5QL \ / AMOS7 \ YOURUM ::
+#\[7]O7HAKRGQYWGFIMVUDEPPLJVNQTJR25VYFEJEYJN53SSIM7WYZ4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
