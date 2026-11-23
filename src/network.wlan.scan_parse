@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = network.wlan.scan_parse
+# param = <scan-results lines>
+# descr = scan results -> ssid, signal, freq, security
+
+## bssid \t freq \t signal \t flags \t ssid -- header line skipped ##
+my @net;
+foreach my $line (@ARG) {
+    my ( $bssid, $freq, $signal, $flags, $ssid ) = split m|\t|, $line, 5;
+    next if not defined $ssid or $bssid !~ m|^[0-9a-f]{2}(:[0-9a-f]{2}){5}$|i;
+    my $security
+        = $flags =~ m|SAE|  ? qw| wpa3 |
+        : $flags =~ m|EAP|  ? qw| wpa-eap |
+        : $flags =~ m|WPA2| ? qw| wpa2 |
+        : $flags =~ m|WPA|  ? qw| wpa |
+        : $flags =~ m|WEP|  ? qw| wep |
+        :                     qw| open |;
+    push @net,
+        {
+        qw| ssid |     => length $ssid ? $ssid : '[ hidden ]',
+        qw| bssid |    => $bssid,
+        qw| freq |     => $freq,
+        qw| signal |   => $signal,
+        qw| security | => $security
+        };
+}
+## strongest first ##
+return [ sort { $b->{'signal'} <=> $a->{'signal'} } @net ];
+
+#,,,.,,,,,,,.,...,,,.,..,,...,,.,,...,.,,,.,,,..,,...,...,..,,.,,,,,.,..,,.,.,
+#PM367IDEPZESHFGXFIG2EONCB7DW5A5NSCNT5HYUPMRZLQ7QX7TGVSU5TAJFALYX7H2OZZLZPRD5C
+#\\\|UCICYPO2YLPDHIYEZQAPIOMCWI2IZKFSE34QDLGZWW4FBZP6ZVZ \ / AMOS7 \ YOURUM ::
+#\[7]PE7MR4P2HE34IIIH5MRFERDRHKRJHWX6GVK74S4MD7ZL7EJQAUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

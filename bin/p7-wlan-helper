@@ -1,0 +1,257 @@
+#!/usr/bin/perl
+use v5.32.0;
+use strict;
+use English;
+use warnings;
+
+###                ###
+##  p7-wlan-helper  ##
+###                ###
+
+## the root half of the net zenka wlan commands. the zenka starts it once
+## before it drops privileges [ the system zenka 'term' child pattern ] and
+## talks to it over the pipe, one request per line :
+##
+##   <verb> <iface> [ <ssid as hex> ]
+##
+## verbs : status scan scan-results connect disconnect saved  connect reads
+## one more line : the secret [ empty = open network ]. the secret only ever
+## travels on this pipe -- never argv, env or a file.
+##
+## reply : 'ok <n>' then n lines, or 'err <reason>' [ one line ]
+##
+## the backend is wpa_supplicant through its control socket
+## [ <ctrl-dir>/<iface>, unix datagram ]. nothing is ever saved : SAVE_CONFIG
+## is never sent, wpa_supplicant.conf stays untouched.  another backend later
+## = another helper with the same verbs.
+##
+## p7-wlan-helper [ -ctrl-dir <dir> ]   default /run/wpa_supplicant
+
+use Socket     qw| AF_UNIX SOCK_DGRAM pack_sockaddr_un |;
+use IO::Select ();
+use File::Spec ();
+
+use constant TRUE  => 5;    ##  TRUE.  ##
+use constant FALSE => 0;    ##  false  ##
+
+my $ctrl_dir = qw| /run/wpa_supplicant |;
+my $timeout  = 3;
+while (@ARGV) {
+    my $opt = shift @ARGV;
+    if ( $opt eq qw| -ctrl-dir | and @ARGV ) {
+        $ctrl_dir = shift @ARGV;
+    } elsif ( $opt eq qw| -timeout | and @ARGV and $ARGV[0] =~ m|^\d{1,2}$| )
+    {
+        $timeout = shift @ARGV;
+    } else {
+        say STDERR "p7-wlan-helper : unknown option '$opt'";
+        exit 2;
+    }
+}
+die "p7-wlan-helper : ctrl dir must be an absolute path\n"
+    if $ctrl_dir !~ m|^/[\w./-]*$| or $ctrl_dir =~ m|/\.\.?(/\|$)|;
+
+$PROGRAM_NAME = qw| p7-wlan-helper |;
+$SIG{$ARG} = qw| IGNORE | foreach qw| INT QUIT HUP PIPE |;
+STDOUT->autoflush(1);
+umask 0077;
+
+my $seq = 0;
+
+## reply helpers : control characters never reach the zenka ##
+sub clean {
+    my $line = shift // '';
+    $line =~ s|[\x00-\x08\x0a-\x1f\x7f]|?|g;
+    return $line;
+}
+
+sub reply_ok {
+    my @lines = map { clean($ARG) } @ARG;
+    print 'ok ' . scalar(@lines) . "\n", map {"$ARG\n"} @lines;
+    return TRUE;
+}
+
+sub reply_err {
+    print 'err ' . clean(shift) . "\n";
+    return FALSE;
+}
+
+## one wpa_ctrl request : bind a private client socket, send, wait ##
+sub wpa_request {
+    my ( $iface, $command ) = @ARG;
+    my $server = File::Spec->catfile( $ctrl_dir, $iface );
+    return ( undef, 'no control socket for this interface' )
+        if not -S $server;
+    my $client = sprintf '%s/p7-wlan-%d-%d', File::Spec->tmpdir, $PID, ++$seq;
+    CORE::unlink($client);
+    socket( my $sock, AF_UNIX, SOCK_DGRAM, 0 )
+        or return ( undef, "socket : $OS_ERROR" );
+    if ( not bind( $sock, pack_sockaddr_un($client) ) ) {
+        return ( undef, "bind : $OS_ERROR" );
+    }
+    my @answer;
+    my $ok = eval {
+        connect( $sock, pack_sockaddr_un($server) )
+            or die "connect : $OS_ERROR\n";
+        defined send( $sock, $command, 0 ) or die "send : $OS_ERROR\n";
+        my $select = IO::Select->new($sock);
+        while (TRUE) {
+            $select->can_read($timeout)
+                or die "no answer from wpa_supplicant\n";
+            my $buffer = '';
+            defined recv( $sock, $buffer, 65536, 0 )
+                or die "recv : $OS_ERROR\n";
+            ## '<n>' prefixed lines are unsolicited events : not our answer ##
+            next if $buffer =~ m|^<\d>|;
+            @answer = ($buffer);
+            last;
+        }
+        TRUE;
+    };
+    my $error = $EVAL_ERROR;
+    close($sock);
+    CORE::unlink($client);
+    return ( undef,      $error =~ s|\n\z||r ) if not $ok;
+    return ( $answer[0], undef );
+}
+
+sub lines_of {
+    my $text = shift // '';
+    return grep {length} split m|\n|, $text;
+}
+
+## a command that answers OK \ FAIL ##
+sub simple {
+    my ( $iface,  $command ) = @ARG;
+    my ( $answer, $error )   = wpa_request( $iface, $command );
+    return reply_err($error) if defined $error;
+    return reply_err( 'wpa_supplicant : ' . ( $answer =~ s|\s+\z||r ) )
+        if $answer !~ m|^OK|;
+    return reply_ok();
+}
+
+sub listing {
+    my ( $iface,  $command ) = @ARG;
+    my ( $answer, $error )   = wpa_request( $iface, $command );
+    return reply_err($error)                   if defined $error;
+    return reply_err('wpa_supplicant refused') if $answer =~ m|^FAIL|;
+    return reply_ok( lines_of($answer) );
+}
+
+## secret : empty [ open ], 8-63 printable ascii, or a 64 hex psk ##
+sub secret_kind {
+    my $secret = shift;
+    return qw| open |       if not length $secret;
+    return qw| psk-hex |    if $secret =~ m|^[0-9a-fA-F]{64}$|;
+    return qw| passphrase | if $secret =~ m|^[\x20-\x7e]{8,63}$|;
+    return undef;
+}
+
+sub wipe {
+    my $ref = shift;
+    substr( $$ref, 0 ) = "\0" x length $$ref if defined $$ref;
+    $$ref = undef;
+}
+
+sub connect_network {
+    my ( $iface, $ssid_hex ) = @ARG;
+    my $secret = readline(STDIN);
+    return reply_err('secret line missing') if not defined $secret;
+    chomp $secret;
+    my $kind = secret_kind($secret);
+    if ( not defined $kind ) {
+        wipe( \$secret );
+        return reply_err('secret not valid [ 8-63 ascii or 64 hex ]');
+    }
+    my ( $id, $error ) = wpa_request( $iface, qw| ADD_NETWORK | );
+    if ( defined $error or $id !~ m|^(\d+)\s*$| ) {
+        wipe( \$secret );
+        return reply_err( $error // 'wpa_supplicant refused ADD_NETWORK' );
+    }
+    $id = ${^CAPTURE}[0];
+    my @set = ("SET_NETWORK $id ssid $ssid_hex");
+    push @set,
+          $kind eq qw| open |    ? "SET_NETWORK $id key_mgmt NONE"
+        : $kind eq qw| psk-hex | ? "SET_NETWORK $id psk $secret"
+        :                          qq|SET_NETWORK $id psk "$secret"|;
+    wipe( \$secret );
+    foreach my $command ( @set, "SELECT_NETWORK $id" ) {
+        my ( $answer, $err ) = wpa_request( $iface, $command );
+        my $word = ( split m| |, $command )[0];
+        if ( defined $err or $answer !~ m|^OK| ) {
+            wpa_request( $iface, "REMOVE_NETWORK $id" );
+            wipe( \$command );
+            return reply_err( $err // "wpa_supplicant refused $word" );
+        }
+        wipe( \$command );
+    }
+    @set = ();
+    return reply_ok("network $id");
+}
+
+## ssid forms : b32:<rfc 4648 base32> [ the zenka's default ], hex:<hex> or ##
+## bare hex ; the prefix is case-insensitive -> lowercase hex or undef      ##
+sub ssid_to_hex {
+    my ($word) = @ARG;
+    return undef if not defined $word;
+    my $hex;
+    if ( $word =~ m|^b32:([A-Za-z2-7]+)=*$|i ) {
+        my $bits = join '', map {
+            sprintf '%05b', index( 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567', $ARG )
+        } split //, uc ${^CAPTURE}[0];
+        $bits = substr( $bits, 0, length($bits) - length($bits) % 8 );
+        $hex  = unpack( 'H*', pack( 'B*', $bits ) );
+    } elsif ( $word =~ m|^(?:hex:)?([0-9A-Fa-f]+)$|i ) {
+        $hex = lc ${^CAPTURE}[0];
+    } else {
+        return undef;
+    }
+    return $hex =~ m|^(?:[0-9a-f]{2}){1,32}$| ? $hex : undef;
+}
+
+my %verb = (
+    qw| status |       => sub { listing( $ARG[0], qw| STATUS | ) },
+    qw| scan |         => sub { simple( $ARG[0], qw| SCAN | ) },
+    qw| scan-results | => sub { listing( $ARG[0], qw| SCAN_RESULTS | ) },
+    qw| disconnect |   => sub { simple( $ARG[0], qw| DISCONNECT | ) },
+    qw| saved |        => sub { listing( $ARG[0], qw| LIST_NETWORKS | ) },
+    qw| connect |      => \&connect_network,
+);
+
+while ( my $line = readline(STDIN) ) {
+    chomp $line;
+    my @word = split m| |, $line, -1;
+    my ( $verb, $iface, $ssid_hex ) = @word;
+    if ( not defined $verb or not exists $verb{$verb} ) {
+        reply_err('unknown verb');
+        next;
+    }
+    if ( not defined $iface or $iface !~ m|^[A-Za-z0-9][\w.-]{0,14}$| ) {
+        reply_err('interface name not valid');
+        next;
+    }
+    my $want = $verb eq qw| connect | ? 3 : 2;
+    if ( @word != $want ) {
+        reply_err('wrong number of arguments');
+        ## a connect without its ssid still sends a secret line : drop it ##
+        readline(STDIN) if $verb eq qw| connect |;
+        next;
+    }
+    if ( $verb eq qw| connect | ) {
+        $ssid_hex = ssid_to_hex($ssid_hex);
+        if ( not defined $ssid_hex ) {
+            reply_err('ssid must be 1-32 bytes as '
+                    . 'b32:<base32> or hex:<hex> [ bare = hex ]' );
+            readline(STDIN);
+            next;
+        }
+    }
+    $verb{$verb}->( $iface, $ssid_hex );
+}
+exit 0;
+
+#,,,.,...,.,,,,.,,.,,,,,.,,.,,...,,,.,.,,,,.,,..,,...,...,.,.,,,.,.,,,.,,,...,
+#M7VW5AJVJDTHNDEZJGFZ22OKIU5SPWSR3QREBTSERCVQMSEMUO4M2ZJXNHCB6OQJZUFMRBCYLCUIY
+#\\\|PVLWXKZGHFRK4JXUPSG45FCYDE3MCSQTUD3WJIDG5I2SJKNO53D \ / AMOS7 \ YOURUM ::
+#\[7]A5PAFAG6HP4UYE7FL5JCILAKAKL7XWKS2V2ZZFBBNMI5OV4X32AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

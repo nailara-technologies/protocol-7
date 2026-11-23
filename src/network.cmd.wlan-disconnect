@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = network.cmd.wlan-disconnect
+# param = [ <iface> ]
+# descr = disconnect a wlan interface
+
+my ( $iface, $error )
+    = <[network.wlan.iface]>->( $call->{'args'} =~ s|\s+||gr );
+return { qw| mode | => qw| false |, qw| data | => $error } if defined $error;
+my $r = <[network.wlan.request]>->( qw| disconnect |, $iface );
+return { qw| mode | => qw| false |, qw| data | => $r->{'error'} }
+    if defined $r->{'error'};
+<[base.logs]>->( 1, ': wlan-disconnect %s', $iface );
+return { qw| mode | => qw| true |, qw| data | => "$iface disconnected" };
+
+#,,.,,,..,..,,...,,,,,...,,..,.,.,,..,..,,,..,..,,...,..,,...,.,.,,,.,,,,,,.,,
+#4FKYS3RBQ5NHZMQOZ3FZA4BUJK6UULS2KZVVFRODUDFGYDXZSG5OYSNNDUMUI76NXGML2K7D2KGFI
+#\\\|ICLIH33ZF6KQY5ORETBMSWNXOGZUHEEJMY73DGX3JDRCOYJKEXF \ / AMOS7 \ YOURUM ::
+#\[7]HQKK5JRGE3HYB3TDHVECHLZBM7SQWNSV3VAHVMPBQZLJQ7BULYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

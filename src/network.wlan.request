@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = network.wlan.request
+# param = <verb> <iface> [ <ssid> [ <secret ref> ] ]
+# descr = one request to the wlan helper : ok lines or error
+
+## short blocking exchange : every helper verb answers at once, the helper ##
+## itself gives wpa_supplicant 3 s at most [ wait 5 s here ]               ##
+my ( $verb, $iface, $ssid, $secret_ref ) = @ARG;
+my $w_fh = <network.wlan.helper.w_fh>;
+my $r_fh = <network.wlan.helper.r_fh>;
+return { qw| error | => 'wlan helper not running [ '
+        . 'zenka started without root ? ]' }
+    if not defined $w_fh;
+my $line
+    = join ' ', $verb, $iface,
+    defined $ssid
+    ? 'b32:' . <[base32.encode]>->( Encode::encode( 'UTF-8', $ssid ) )
+    : ();
+my $ok = eval {
+    local $SIG{'PIPE'} = qw| IGNORE |;
+    print {$w_fh} "$line\n" or die "write : $OS_ERROR\n";
+    if ( $verb eq qw| connect | ) {
+        print {$w_fh} ( defined $secret_ref ? $$secret_ref : '' ), "\n"
+            or die "write : $OS_ERROR\n";
+    }
+    TRUE;
+};
+return { qw| error | => 'wlan helper gone' } if not $ok;
+<[base.perlmod.load]>->(qw| IO::Select |);
+<network.wlan.helper.buffer> //= '';
+## sysread with an own buffer : a buffered readline would hide lines from ##
+## select once perl has read them ahead                                   ##
+my $select = IO::Select->new($r_fh);
+my $read   = sub {
+    while ( <network.wlan.helper.buffer> !~ m|\n| ) {
+        $select->can_read(5) or return undef;
+        my $got = sysread( $r_fh, my $chunk, 65536 );
+        return undef if not $got;
+        <network.wlan.helper.buffer> .= $chunk;
+    }
+    <network.wlan.helper.buffer> =~ s|^([^\n]*)\n||;
+    return ${^CAPTURE}[0];
+};
+my $head = $read->()
+    // return { qw| error | => 'wlan helper did not answer' };
+return { qw| error | => ${^CAPTURE}[0] } if $head =~ m|^err (.*)$|;
+return { qw| error | => 'wlan helper answer not understood' }
+    if $head !~ m|^ok (\d+)$|;
+my @lines;
+foreach ( 1 .. ${^CAPTURE}[0] ) {
+    my $l = $read->()
+        // return { qw| error | => 'wlan helper answer cut short' };
+    push @lines, $l;
+}
+return { qw| lines | => \@lines };
+
+#,,..,.,,,,,,,,.,,.,,,.,.,,,.,,,,,,..,,..,,,,,..,,...,..,,...,,,.,,..,.,.,...,
+#FYZFCUS5O6G7W77NQP42D6TBPLJL5U3JAN5RG2VRSA5Z4233LLJWPAH3OXFFRKJ2Q67WYTWZ6ZGYK
+#\\\|ZAW5KTOVG7GQ2AROZJLFUFHRFOT35TGCTEWFTU52WV7LSEZDLNH \ / AMOS7 \ YOURUM ::
+#\[7]7JYIL6BOIAADM4UNMKPNLFSINW7CSWDVUFTIMZ6NNJ4NVPKGV6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

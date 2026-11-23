@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = network.wlan.iface
+# param = [ <iface> ]
+# descr = the named wlan iface, or the first one found
+
+my $want  = shift;
+my $iface = <[network.interfaces.collect]>->( { qw| ip_addr_text | => '' } );
+my @wlan = sort grep { $iface->{$ARG}{'type'} eq qw| wlan | } keys $iface->%*;
+if ( defined $want and length $want ) {
+    return ( undef, 'interface name not valid' )
+        if $want !~ m|^[A-Za-z0-9][\w.-]{0,14}$|;
+    return ( undef, "$want is not a wlan interface" )
+        if not grep { $ARG eq $want } @wlan;
+    return ( $want, undef );
+}
+return ( undef,    'no wlan interface found' ) if not @wlan;
+return ( $wlan[0], undef );
+
+#,,.,,,,.,.,,,,,.,,..,,..,...,,.,,,,.,,,,,,,,,..,,...,..,,...,..,,.,.,..,,.,,,
+#V3AVNANJOINPHQEILSQXQ4XG25L23OH3WMLYEFUOFFFKT6ZT47VHSM65MWY4P3KKPLSLF5NBARO6S
+#\\\|64O4RKSRNFHCLHKARNGW5L2JEBLBHVE2RRQXGYCT3BFO3SNHU7P \ / AMOS7 \ YOURUM ::
+#\[7]QVXR4P3QG5BTQF7JH3VGRNUIB2LE4HNMAXN3N5DBMMJG3BUOZOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = network.cmd.wlan-status
+# param = [ <iface> ]
+# descr = wlan link : ssid, bssid, freq, state, address
+
+my ( $iface, $error )
+    = <[network.wlan.iface]>->( $call->{'args'} =~ s|\s+||gr );
+return { qw| mode | => qw| false |, qw| data | => $error } if defined $error;
+my $r = <[network.wlan.request]>->( qw| status |, $iface );
+return { qw| mode | => qw| false |, qw| data | => $r->{'error'} }
+    if defined $r->{'error'};
+my %s    = map { split m|=|, $ARG, 2 } grep {m|=|} $r->{'lines'}->@*;
+my @rows = ( [ qw| iface |, $iface ] );
+push @rows, [ $ARG->[1], $s{ $ARG->[0] } // qw| - | ]
+    foreach [qw| wpa_state state |], [qw| ssid ssid |], [qw| bssid bssid |],
+    [qw| freq freq |], [qw| key_mgmt security |], [qw| ip_address address |];
+my $text = join '', map { sprintf( "%-8s : %s\n", $ARG->@* ) } @rows;
+return { qw| mode | => qw| size |, qw| data | => $text };
+
+#,,.,,,,,,.,,,,,.,,.,,,,,,,..,..,,..,,,,.,.,.,..,,...,...,,..,,.,,..,,,..,,..,
+#IW5JPTRZ5TLOVKVOA22KTG3ECAPPV7JKP6K7EPT2FCDKYHP6I7YYZLLRFEFRMSCSSWGU74ZS2OY72
+#\\\|AA3LFA3Z6RPSOEAHHIZPJUIFRYRQBQDE4CJKYO7R4J6M7DKUDE3 \ / AMOS7 \ YOURUM ::
+#\[7]EBJ3K7P6GPS7FXIBQAHJJIY6GNZE2RVHBM4VVFYHX2D3JD5Q66CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

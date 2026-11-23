@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = network.cmd.wlan-connect
+# param = <iface> <ssid>
+# descr = connect to a wlan, secret from vault wlan:<ssid>
+
+my ( $want, $ssid ) = split m|\s+|, ( $call->{'args'} // '' ) =~ s|^\s+||r, 2;
+my $refuse
+    = sub { return { qw| mode | => qw| false |, qw| data | => shift } };
+return $refuse->('expected <iface> <ssid>')
+    if not defined $ssid or not length $ssid;
+$ssid =~ s|\s+\z||;
+return $refuse->('ssid longer than 32 bytes')
+    if length( Encode::encode( 'UTF-8', $ssid ) ) > 32;
+return $refuse->('ssid holds control characters')
+    if $ssid =~ m|[\x00-\x1f\x7f]|;
+my ( $iface, $error ) = <[network.wlan.iface]>->($want);
+return $refuse->($error) if defined $error;
+my $secret = <[network.wlan.vault_secret]>->($ssid);
+return $refuse->(
+    "vault locked or no entry wlan:$ssid [ unlock, or p7-vault add ]")
+    if not defined $secret;
+my $r = <[network.wlan.request]>->( qw| connect |, $iface, $ssid, $secret );
+substr( $$secret, 0 ) = "\0" x length $$secret;
+undef $$secret;
+
+if ( defined $r->{'error'} ) {
+    <[base.logs]>->(
+        1, ': wlan-connect %s %s refused : %s',
+        $iface, $ssid, $r->{'error'}
+    );
+    return $refuse->( $r->{'error'} );
+}
+<[base.logs]>->( 1, ': wlan-connect %s %s', $iface, $ssid );
+return {
+    qw| mode | => qw| true |,
+    qw| data | => "connecting $iface to $ssid"
+};
+
+#,,..,,..,,,,,,,,,,..,,..,,..,,,,,,,.,.,.,,,,,..,,...,...,.,.,,,,,,..,,..,.,.,
+#LMEBMQAU2IQEZQCHQKDVHO5QMQQYX5DPWSTA3KBZJYSQZDBXYISY2LJ42CR256WANQICXN2DJSSQK
+#\\\|RICFNOKKPE3E3W2OJ7ZC4SGKOHXQMPY73BRFSDUIF2DUPKBS7ZC \ / AMOS7 \ YOURUM ::
+#\[7]VORDP3EF7U7BHOCETOHG37G4RLLGXZNIMY6TLJ3VPKSNYGL2GACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

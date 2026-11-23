@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = network.init_code
-# descr = net zenka defaults [ read-only view of interfaces, routes, dns ]
+# descr = net zenka defaults and the wlan helper start
 
 ## paths stay configurable so tests point them at a fake tree ##
 <network.cfg.sys_class_net>  //= qw| /sys/class/net |;
@@ -13,10 +13,18 @@
 ## last dhcpcd event per interface [ memory only, net.leases ] ##
 <network.lease> //= {};
 
+## wlan : the root helper [ bin/p7-wlan-helper ] and the vault tool ##
+<network.cfg.wlan_helper>  //= <system.root_path> . qw| /bin/p7-wlan-helper |;
+<network.cfg.wpa_ctrl_dir> //= qw| /run/wpa_supplicant |;
+<network.cfg.vault_bin>    //= <system.root_path> . qw| /bin/p7-vault |;
+
+## still root here : root.drop_privs comes after init_modules ##
+<[network.wlan.start_helper]>;
+
 0;
 
-#,,.,,..,,,.,,.,,,,,.,,..,,..,,,,,,.,,,.,,,.,,..,,...,...,...,...,,.,,.,,,.,,,
-#QEAA3T5K4CMTIUP7FLBGWULD5ORARYIK5YXH7SFWJYLSLVFAQBDLVZCQUPZ7XW7J6LSBOPGSNEEKE
-#\\\|DVGCNCHSQJQYPPNZVWUTBUR6FVLBCRO534WWUVPKB36ZEQXDRKW \ / AMOS7 \ YOURUM ::
-#\[7]JNR2V6Y2UVKBZIYZKOLN5JETKBOA33E22LJK4IQN4YQ5O3MFIUAY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,.,.,.,.,.,,,.,.,.,.,,,.,,,.,.,..,,...,...,...,,,.,...,,..,,,,,
+#UZGE2C7HUX727CWSEIBNOKOBRE43NNNZOD5RBZNNIOS7YS5KDMHCTPSNYYAU5PB3EJ4DZ6SBKFFHG
+#\\\|VAIIOOBO4C7GNQL4A2WMFXF2PZVPTLX7AFI4H6EH536WU4GMVPA \ / AMOS7 \ YOURUM ::
+#\[7]FWNIONPQ6N7UTTXP2QPCWZQFK3URXOZZT6A7KTU4KLHC3MUOR6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

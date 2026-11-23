@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = network.wlan.start_helper
+# descr = start the root wlan helper before drop_privs
+
+## runs from network.init_code, before root.drop_privs : the helper keeps  ##
+## root, the zenka talks to it over a pipe [ system 'term' child pattern ] ##
+return TRUE if defined <network.wlan.helper.pid>;
+if ( $EFFECTIVE_USER_ID != 0 ) {
+    <[base.log]>->( 1, ': wlan helper not started [ zenka not root ]' );
+    return FALSE;
+}
+my $bin = <network.cfg.wlan_helper>;
+if ( not -x $bin ) {
+    <[base.logs]>->( 1, ': wlan helper missing [ %s ]', $bin );
+    return FALSE;
+}
+<[base.perlmod.load]>->(qw| IPC::Open2 |);
+my ( $r_fh, $w_fh );
+my $pid = eval {
+    IPC::Open2::open2( $r_fh, $w_fh, <[base.get_path.perl_exec]>, $bin,
+        qw| -ctrl-dir |,
+        <network.cfg.wpa_ctrl_dir> );
+};
+if ( not $pid ) {
+    <[base.logs]>->( 0, ': wlan helper did not start [ %s ]', $EVAL_ERROR );
+    return FALSE;
+}
+$w_fh->autoflush(1);
+<network.wlan.helper.pid>  = $pid;
+<network.wlan.helper.r_fh> = $r_fh;
+<network.wlan.helper.w_fh> = $w_fh;
+<[base.logs]>->( 1, ': wlan helper started [PID=%d]', $pid );
+return TRUE;
+
+#,,..,...,,.,,,,.,.,,,,.,,.,.,...,..,,,..,..,,..,,...,...,.,.,...,.,,,.,.,,,,,
+#3FZXDENT2WB64DMLXPW4A4ZSVXTUI7HRWJP62IZWPUTKKN3SLWZFFP3EQFS7FQEO3Q36AI4S4DLHS
+#\\\|7DYHVZ3QVSNKPYSAVEXALNFANEIDDIWQJLAAVYIPYQ5SWRL6YLV \ / AMOS7 \ YOURUM ::
+#\[7]YYRNIGUTOGVDXADJ4MVIYGAC5EWJFD36MTCVKV4QSX64MLRIA4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

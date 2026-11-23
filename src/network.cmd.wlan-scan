@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = network.cmd.wlan-scan
+# param = [ <iface> ]
+# descr = start a wlan scan, show the last results
+
+## the results are those wpa_supplicant holds now : a fresh scan lands a ##
+## few seconds later [ waiting on the scan event is the next step ]      ##
+my ( $iface, $error )
+    = <[network.wlan.iface]>->( $call->{'args'} =~ s|\s+||gr );
+return { qw| mode | => qw| false |, qw| data | => $error } if defined $error;
+my $scan = <[network.wlan.request]>->( qw| scan |,         $iface );
+my $r    = <[network.wlan.request]>->( qw| scan-results |, $iface );
+return { qw| mode | => qw| false |, qw| data | => $r->{'error'} }
+    if defined $r->{'error'};
+my $net = <[network.wlan.scan_parse]>->( $r->{'lines'}->@* );
+my $note
+    = defined $scan->{'error'}
+    ? "scan not started : $scan->{'error'}\n"
+    : "scan started : run again for fresh results\n";
+return {
+    qw| mode | => qw| size |,
+    qw| data | => "${note}no networks seen\n"
+    }
+    if not $net->@*;
+my $width = length qw| SSID |;
+
+foreach my $n ( $net->@* ) {
+    $width = length $n->{'ssid'} if length( $n->{'ssid'} ) > $width;
+}
+my $format = "%-${width}s %6s %5s %-8s %s\n";
+my $table  = sprintf( $format, qw| SSID SIGNAL FREQ SECURITY BSSID | );
+$table .= sprintf( $format,
+    $ARG->{'ssid'}, "$ARG->{'signal'} dBm" =~ s| dBm$||r,
+    $ARG->{'freq'}, $ARG->{'security'}, $ARG->{'bssid'} )
+    foreach $net->@*;
+return { qw| mode | => qw| size |, qw| data | => $note . $table };
+
+#,,,.,,,,,,.,,..,,...,.,,,.,.,,.,,...,,,.,,,,,..,,...,..,,...,.,.,,..,.,.,.,,,
+#2N7RDJ5HBG2NPJNBGX672PCZHYS5ODJJ5QPHUMRKTHO3BTWHKEOSK764G37AKFH7ZCV2S34TQS45M
+#\\\|72GEOGY2V3VSEXYV3QRDQYLQMRPLPNIHIPQUS2ZNDUARGNUKH2B \ / AMOS7 \ YOURUM ::
+#\[7]XMQWDYZ2EJK3E56AXDIEBQACBL3ECIII6OHC2QFR4XIJXEUDH6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
