@@ -401,10 +401,13 @@ my @external_tools = (
             . 'reasoning. specify model=haiku for cheap mechanical work, '
             . 'model=sonnet [ 5.5 ] for general tasks, model=opus [ 5.5 '
             . '] (default) for maximum quality, model=fable [ 5.1 ], '
-            . 'model=fable5.2 [ in the plan until 2026-11-16 ]. the '
-            . 'result ends with "To resume this session: claude -r '
-            . '<uuid>" — pass that uuid to claude_continue to resume a '
-            . 'long-running task.',
+            . 'model=fable5.2 [ in the plan until 2026-11-16 ]. answers '
+            . 'at once with a run id : claude_wait [ completion or a '
+            . 'pattern, whichever first ] and claude_check_status [ '
+            . 'tail, search, the final result ] read it while other '
+            . 'tools keep working. the final result ends with "To resume '
+            . 'this session: claude -r <uuid>" — pass that uuid to '
+            . 'claude_continue to resume a long-running task.',
         'command' => 'claude -p %s --dangerously-skip-permissions '
             . '--output-format stream-json --model %s '
             . '--max-budget-usd %s',
@@ -475,6 +478,46 @@ my @external_tools = (
             ],
         ],
         'timeout' => 2400,    ## 40 minutes
+    },
+    {   'name'        => 'claude_check_status',
+        'description' =>
+            'state of a claude_dispatch \ claude_continue run [ they answer '
+            . 'at once with a run id ; the run is collected while other '
+            . 'tools work ]. no options : running -> status + the last '
+            . 'events, finished -> the final result [ auto_summarize as '
+            . 'the dispatch asked ]. tail=<n> : the last n events. '
+            . 'search=<regex> : matching events [ context=<n> around '
+            . 'each ]. events are one readable line each [ text \ tool \ '
+            . 'result ] ; raw=true for the stream-json lines. works for '
+            . 'runs of an earlier server too [ read from '
+            . 'data/state/claude-runs/ ].',
+        'params' => [
+            [ 'run_id', 'the run id from the dispatch reply', 1 ],
+            [ 'tail',   'last n events',                      0 ],
+            [   'search',
+                'perl regex over the events [ case-insensitive ]', 0
+            ],
+            [ 'context', 'events around each search match [ default 0 ]', 0 ],
+            [ 'raw',     'true : stream-json lines, not readable events', 0 ],
+        ],
+    },
+    {   'name'        => 'claude_wait',
+        'description' =>
+            'wait for a claude run : answers when the run finishes, when '
+            . 'pattern [ optional perl regex, case-insensitive ] matches '
+            . 'a new event, or at timeout -- whichever comes first. '
+            . 'other tools keep working meanwhile [ deferred reply ]. a '
+            . 'match returns the matching events and the run keeps '
+            . 'going.',
+        'params' => [
+            [ 'run_id',  'the run id from the dispatch reply', 1 ],
+            [ 'pattern', 'perl regex over new events',         0 ],
+            [   'timeout',
+                'seconds [ default 780 = 13 min, '
+                    . 'max 1500 ] ; then the status so far',
+                0
+            ],
+        ],
     },
     {   'name'        => 'claude_cloud_dispatch',
         'description' =>
@@ -733,6 +776,15 @@ my @external_tools = (
 
 my $cube_sock;    ## persistent connection to cube
 my $json = JSON->new->utf8->canonical;
+## claude runs collected by the main select loop [ run id -> run ] and the ##
+## claude_wait requests answered later [ deferred replies ]                ##
+my %claude_runs;
+my @claude_waiters;
+my $claude_run_count = 0;
+## summary children of finished runs [ pipe fileno -> finisher ] and the ##
+## flag that makes _external_finish return its result in such a child    ##
+my %claude_finishers;
+my $external_finish_capture = 0;
 ## one-shot focus for next  auto_summarize; clears on use : ##
 my $pending_summary_focus;
 ##
@@ -1490,14 +1542,46 @@ load_sticky_focus();
 log_msg( 'mcp-server-p7 starting [ auth=%s socket=%s ]',
     $auth_user, $socket_path );
 
-while ( my $line = <STDIN> ) {
-    chomp $line;
-    next unless length $line;
+## one select over stdin and the output handles of running claude runs : a ##
+## run's output is collected while other requests are answered [ was : a   ##
+## blocking <STDIN> loop, claude_dispatch held every other tool for the    ##
+## whole run ]. stdin is :raw, sysread keeps the select honest             ##
+## [ a buffered <STDIN> would hide lines from it ]                         ##
+my $stdin_buf = '';
+my $stdin_eof = 0;
+while ( not $stdin_eof ) {
+    my @open_fh = map { $ARG->{'fh'} // () } values %claude_runs;
+    push @open_fh, map { $ARG->{'fh'} } values %claude_finishers;
+    my @ready = IO::Select->new( \*STDIN, @open_fh )
+        ->can_read( ( @open_fh or @claude_waiters ) ? 1.3 : undef );
+    foreach my $fh (@ready) {
+        if ( fileno($fh) == fileno(STDIN) ) {
+            my $got = sysread( STDIN, $stdin_buf, 65536, length $stdin_buf );
+            next           if not defined $got and $OS_ERROR{'EINTR'};
+            $stdin_eof = 1 if not $got;
+            next;
+        }
+        exists $claude_finishers{ fileno($fh) }
+            ? _claude_finish_read($fh)
+            : _claude_run_read($fh);
+    }
+    _claude_run_deadlines();
+    while ( $stdin_buf =~ s|^([^\n]*)\n|| ) {
+        handle_request_line($1);
+    }
+    handle_request_line( substr( $stdin_buf, 0, length $stdin_buf, '' ) )
+        if $stdin_eof and length $stdin_buf;
+}
+
+sub handle_request_line {
+    my $line = shift;
+    $line =~ s|\r$||;
+    return if not length $line;
 
     my $msg = eval { $json->decode($line) };
     if ($EVAL_ERROR) {
         send_error( undef, -32700, 'parse error' );
-        next;
+        return;
     }
 
     my $id     = $msg->{'id'};
@@ -1507,7 +1591,7 @@ while ( my $line = <STDIN> ) {
     ## notifications [ no id ] — absorb silently
     if ( not defined $id ) {
         log_msg( 'notification: %s', $method );
-        next;
+        return;
     }
 
     if ( $method eq 'initialize' ) {
@@ -1526,6 +1610,8 @@ while ( my $line = <STDIN> ) {
 }
 
 log_msg('stdin closed, exiting');
+kill 'TERM',
+    map { defined $ARG->{'fh'} ? $ARG->{'pid'} : () } values %claude_runs;
 cube_disconnect();
 exit(0);
 
@@ -1639,6 +1725,10 @@ sub handle_tools_call {
         tool_p7_commit( $id, $args );
     } elsif ( $name eq 'p7_commit_status' ) {
         tool_p7_commit_status( $id, $args );
+    } elsif ( $name eq 'claude_check_status' ) {
+        tool_claude_check_status( $id, $args );
+    } elsif ( $name eq 'claude_wait' ) {
+        tool_claude_wait( $id, $args );
     } elsif ( $name eq 'claude_cloud_dispatch' ) {
         tool_claude_cloud_dispatch( $id, $args );
     } elsif ( $name eq 'claude_cloud_status' ) {
@@ -4563,6 +4653,13 @@ sub tool_external_command {
         }
     }
 
+    ## claude dispatch \ continue : started here, collected by the main    ##
+    ## select loop, answered at once with a run id [ claude_check_status \ ##
+    ## claude_wait read it back, the post-processing below runs there ]    ##
+    if ( $ext->{'name'} =~ m{^claude_(?:dispatch|continue)$} ) {
+        return _claude_run_start( $id, $args, $ext, $cmd );
+    }
+
     if ( $ext->{'name'} =~ m{^kimi_(?:dispatch|continue)$} ) {
         ## kimi dispatch/continue run DETACHED [ _kimi_fork_run ] : the     ##
         ## unconditional qx() below blocked this whole single-threaded      ##
@@ -4574,11 +4671,8 @@ sub tool_external_command {
         ## [ root-caused 2026-09-08 ]. kimi is the ONLY tool family on this ##
         ## path with a dedicated result-recovery tool                       ##
         ## [ kimi_check_status reads the session's wire.jsonl back ], which ##
-        ## is why returning early here is safe — doing the same for         ##
-        ## claude_* would be a regression                                   ##
-        ## [ no claude_check_status exists to ever retrieve the result ],   ##
-        ## so claude_dispatch / claude_continue / everything else keeps the ##
-        ## exact blocking qx() behavior in the else branch, deliberately    ##
+        ## is why returning early here is safe. claude_* runs are collected ##
+        ## by the main select loop since 2026-11-23 [ _claude_run_start ]   ##
         my $run = _kimi_fork_run( $cmd, $ext );
         if ( length( $run->{'error'} // '' ) ) {
             $error = $run->{'error'};
@@ -4610,9 +4704,19 @@ sub tool_external_command {
         }
     }
 
+    return _external_finish( $id, $args, $ext, $output, $error,
+        $kimi_thinking_note );
+}
+
+## the shared tail of an external tool : resume line, auto_summarize, ##
+## create_template, the reply                                         ##
+sub _external_finish {
+    my ( $id, $args, $ext, $output, $error, $kimi_thinking_note ) = @ARG;
+    $kimi_thinking_note //= '';
+
     ## claude session id extraction
     if (    not length($error)
-        and $ext->{'name'} eq 'claude_dispatch'
+        and $ext->{'name'} =~ m{^claude_(?:dispatch|continue)$}
         and $output =~ m|"session_id"\s*:\s*"([a-f0-9-]{36})"| ) {
         my $session_id = $1;
         $output .= "\nTo resume this session: claude -r $session_id\n";
@@ -4759,7 +4863,441 @@ sub tool_external_command {
         and $ext->{'name'} =~ m{^kimi_(?:dispatch|continue)$} ) {
         $result .= "\n$kimi_thinking_note";
     }
+    ## a forked summary child hands the result back instead of sending ##
+    return ( $result, length($error) ? 1 : 0 ) if $external_finish_capture;
     send_tool_result( $id, $result, length($error) ? 1 : 0 );
+}
+
+##[ claude runs : collected by the main select loop ]##
+
+sub _claude_run_dir {
+    my $dir = "$ROOT_PATH/data/state/claude-runs";
+    eval { make_path($dir) } if not -d $dir;
+    return $dir;
+}
+
+## start the run [ stderr merged into stdout, stdin /dev/null ] and answer ##
+## with its run id ; the output is appended to <run>.out as it arrives     ##
+sub _claude_run_start {
+    my ( $id, $args, $ext, $cmd ) = @ARG;
+    require IPC::Open3;
+    require Symbol;
+
+    my $run_id = sprintf 'cr-%s-%d-%d',
+        POSIX::strftime( '%m%d-%H%M%S', CORE::localtime ), $PID,
+        ++$claude_run_count;
+    my $path = sprintf '%s/%s.out', _claude_run_dir(), $run_id;
+
+    open( my $log_fh, '>>:raw', $path )
+        or
+        return send_tool_result( $id, "cannot write $path : $OS_ERROR", 1 );
+    $log_fh->autoflush(1);
+
+    local *CLAUDE_RUN_IN;
+    open( CLAUDE_RUN_IN, '<', '/dev/null' )
+        or return send_tool_result( $id, "/dev/null : $OS_ERROR", 1 );
+    my $out_fh = Symbol::gensym();
+    my $pid    = eval {
+        IPC::Open3::open3( '<&CLAUDE_RUN_IN', $out_fh, undef, '/bin/sh',
+            '-c', $cmd );
+    };
+    close CLAUDE_RUN_IN;
+    if ( not $pid ) {
+        close $log_fh;
+        return send_tool_result( $id,
+            'claude run not started : ' . ( $EVAL_ERROR || 'open3 failed' ),
+            1 );
+    }
+    binmode $out_fh, ':raw';
+
+    my $timeout = $ext->{'timeout'} // 2400;
+    $claude_runs{$run_id} = {
+        'id'       => $run_id,
+        'pid'      => $pid,
+        'fh'       => $out_fh,
+        'log'      => $log_fh,
+        'path'     => $path,
+        'ext'      => $ext,
+        'args'     => $args,
+        'started'  => time,
+        'deadline' => time + $timeout,
+        'status'   => qw| running |,
+        'pending'  => '',
+        'raw'      => [],
+        'events'   => [],
+    };
+    log_msg( 'claude run %s started [ pid %d, %s ]',
+        $run_id, $pid, $args->{'model'} // '' );
+
+    return send_tool_result(
+        $id,
+        sprintf "claude run started : %s [ %s, pid %d, timeout %ds ]\noutput "
+            . ": %s\nclaude_wait run_id=%s [ pattern=<regex> ] "
+            . "answers on the first match or completion ; "
+            . "claude_check_status run_id=%s [ tail=<n> | "
+            . "search=<regex> ] reads it any time\n",
+        $run_id,
+        $args->{'model'} // '',
+        $pid,
+        $timeout,
+        $path,
+        $run_id,
+        $run_id
+    );
+}
+
+## one stream-json line -> readable event lines ##
+sub _claude_stream_events {
+    my $line  = shift;
+    my $short = sub {
+        my ( $text, $max ) = @ARG;
+        $text //= '';
+        $text =~ s|\s*\n\s*| / |g;
+        return length $text > $max ? substr( $text, 0, $max ) . ' ..' : $text;
+    };
+    my $d = $line =~ m|^\{| ? eval { decode_json($line) } : undef;
+    return "out : $line" if ref $d ne qw| HASH |;
+
+    my $type = $d->{'type'} // '';
+    if ( $type eq 'system' ) {
+        return sprintf 'init : session %s model %s',
+            $d->{'session_id'} // '-', $d->{'model'} // '-'
+            if ( $d->{'subtype'} // '' ) eq 'init';
+        return 'system : ' . ( $d->{'subtype'} // '' );
+    }
+    if ( $type eq 'result' ) {
+        return sprintf 'final : %s%s : %s', $d->{'subtype'} // '',
+            defined $d->{'total_cost_usd'}
+            ? sprintf( ' [ %.2f usd ]', $d->{'total_cost_usd'} )
+            : '',
+            $short->( $d->{'result'}, 400 );
+    }
+    my @out;
+    foreach my $block ( @{ $d->{'message'}{'content'} // [] } ) {
+        next if ref $block ne qw| HASH |;
+        my $bt = $block->{'type'} // '';
+        if ( $bt eq 'text' ) {
+            push @out, 'text : ' . $short->( $block->{'text'}, 400 );
+        } elsif ( $bt eq 'tool_use' ) {
+            push @out, sprintf 'tool : %s %s', $block->{'name'} // '',
+                $short->( $json->encode( $block->{'input'} // {} ), 200 );
+        } elsif ( $bt eq 'tool_result' ) {
+            my $c = $block->{'content'};
+            $c = join ' ',
+                map { ref $ARG ? $ARG->{'text'} // '' : $ARG } @{$c}
+                if ref $c eq qw| ARRAY |;
+            push @out, sprintf 'result%s : %s',
+                $block->{'is_error'} ? ' [ error ]' : '',
+                $short->( $c, 200 );
+        }
+    }
+    return @out;
+}
+
+sub _claude_run_add_line {
+    my ( $run, $line ) = @ARG;
+    push @{ $run->{'raw'} },    $line;
+    push @{ $run->{'events'} }, _claude_stream_events($line);
+    $run->{'session'} //= $1
+        if $line =~ m|"session_id"\s*:\s*"([a-f0-9-]{36})"|;
+}
+
+## a run handle is readable : collect, or finish the run on eof ##
+sub _claude_run_read {
+    my $fh = shift;
+    my ($run)
+        = grep { defined $ARG->{'fh'} and $ARG->{'fh'} == $fh }
+        values %claude_runs;
+    return if not defined $run;
+
+    my $got = sysread( $fh, my $chunk, 65536 );
+    return if not defined $got and $OS_ERROR{'EINTR'};
+    if ($got) {
+        print { $run->{'log'} } $chunk;
+        $run->{'pending'} .= $chunk;
+        while ( $run->{'pending'} =~ s|^([^\n]*)\n|| ) {
+            _claude_run_add_line( $run, $1 );
+        }
+        return _claude_waiters_check();
+    }
+
+    ## eof : every writer is gone, the child exits now ##
+    _claude_run_add_line( $run, delete $run->{'pending'} )
+        if length $run->{'pending'};
+    close $fh;
+    $run->{'fh'} = undef;
+    waitpid( $run->{'pid'}, 0 );
+    $run->{'exit'}     = $CHILD_ERROR >> 8;
+    $run->{'signal'}   = $CHILD_ERROR & 127;
+    $run->{'finished'} = time;
+    $run->{'status'}
+        = $run->{'killed'}                                 ? qw| timeout |
+        : ( $run->{'exit'} == 0 and not $run->{'signal'} ) ? qw| done |
+        :                                                    qw| failed |;
+    close $run->{'log'};
+
+    if ( open( my $sfh, '>', "$run->{'path'}.exit" ) ) {
+        printf {$sfh} "status = %s\nexit = %d\nsignal = "
+            . "%d\nelapsed = %d\nsession = %s\n",
+            $run->{'status'}, $run->{'exit'}, $run->{'signal'},
+            $run->{'finished'} - $run->{'started'},
+            $run->{'session'} // '';
+        close $sfh;
+    }
+    log_msg( 'claude run %s %s [ exit %d ]',
+        $run->{'id'}, $run->{'status'}, $run->{'exit'} );
+    return _claude_waiters_check();
+}
+
+## run timeouts [ TERM, the eof finishes the run ] and waiter timeouts ##
+sub _claude_run_deadlines {
+    my $now = time;
+    foreach my $run ( values %claude_runs ) {
+        next if not defined $run->{'fh'} or $run->{'killed'};
+        next if $now < $run->{'deadline'};
+        $run->{'killed'} = 1;
+        push @{ $run->{'events'} },
+            sprintf 'timeout : %ds, TERM sent', $now - $run->{'started'};
+        kill 'TERM', $run->{'pid'};
+    }
+    return _claude_waiters_check() if @claude_waiters;
+}
+
+## a run from memory, or one an earlier server left in claude-runs/ ##
+sub _claude_run_get {
+    my $run_id = shift // '';
+    return undef                 if $run_id !~ m|^cr-[\d-]+$|;
+    return $claude_runs{$run_id} if exists $claude_runs{$run_id};
+
+    my $path = sprintf '%s/%s.out', _claude_run_dir(), $run_id;
+    return undef if not -f $path;
+    my $run = {
+        'id'     => $run_id,
+        'path'   => $path,
+        'status' => qw| orphaned |,
+        'raw'    => [],
+        'events' => [],
+        'old'    => 1,
+    };
+    if ( open( my $fh, '<:raw', $path ) ) {
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            _claude_run_add_line( $run, $line );
+        }
+        close $fh;
+    }
+    if ( open( my $sfh, '<', "$path.exit" ) ) {
+        while ( my $line = <$sfh> ) {
+            $run->{$1} = $2 if $line =~ m|^(\w+)\s*[=:]\s*(.*?)\s*$|;
+        }
+        close $sfh;
+    }
+    return $run;
+}
+
+sub _claude_run_header {
+    my $run = shift;
+    my $elapsed
+        = ( $run->{'finished'} // time ) - ( $run->{'started'} // time );
+    return sprintf "run %s : %s%s%s, %d events%s%s\n", $run->{'id'},
+        $run->{'status'},
+        defined $run->{'exit'} ? " [ exit $run->{'exit'} ]" : '',
+        $run->{'old'}          ? ''
+        : sprintf( ' %dm%02ds', $elapsed / 60, $elapsed % 60 ),
+        scalar @{ $run->{'events'} },
+        length( $run->{'session'} // '' ) ? ", session $run->{'session'}"
+        : '',
+        $run->{'old'} ? ', from an earlier server' : '';
+}
+
+## answer every waiter whose run finished, matched or timed out ##
+sub _claude_waiters_check {
+    my $now = time;
+    my @keep;
+    foreach my $w (@claude_waiters) {
+        my $run    = $claude_runs{ $w->{'run_id'} };
+        my $events = $run->{'events'};
+        my @hit;
+        if ( defined $w->{'re'} ) {
+            @hit = grep {m|$w->{'re'}|}
+                @{$events}[ $w->{'from'} .. $#{$events} ];
+        }
+        if (@hit) {
+            send_tool_result( $w->{'id'},
+                      _claude_run_header($run)
+                    . "pattern matched :\n"
+                    . join( "\n", @hit[ 0 .. ( $#hit < 12 ? $#hit : 12 ) ] )
+                    . "\n" );
+        } elsif ( $run->{'status'} ne qw| running | ) {
+            my $tail = $#{$events} < 7 ? 0 : $#{$events} - 7;
+            send_tool_result( $w->{'id'},
+                      _claude_run_header($run)
+                    . "finished -- claude_check_status "
+                    . "run_id=$run->{'id'} for the result\n"
+                    . join( "\n", @{$events}[ $tail .. $#{$events} ] )
+                    . "\n" );
+        } elsif ( $now >= $w->{'deadline'} ) {
+            my $tail = $#{$events} < 7 ? 0 : $#{$events} - 7;
+            send_tool_result( $w->{'id'},
+                      _claude_run_header($run)
+                    . "wait timed out, still running :\n"
+                    . join( "\n", @{$events}[ $tail .. $#{$events} ] )
+                    . "\n" );
+        } else {
+            push @keep, $w;
+        }
+    }
+    @claude_waiters = @keep;
+    return 1;
+}
+
+sub tool_claude_wait {
+    my ( $id, $args ) = @ARG;
+    my $run_id = $args->{'run_id'} // '';
+    return send_tool_result( $id, "unknown run '$run_id'", 1 )
+        if not exists $claude_runs{$run_id};
+    my $re;
+    if ( length( $args->{'pattern'} // '' ) ) {
+        $re = eval {qr|$args->{'pattern'}|i};
+        return send_tool_result( $id, "invalid pattern : $EVAL_ERROR", 1 )
+            if not defined $re;
+    }
+    my $timeout = $args->{'timeout'} // 780;
+    $timeout = 780  if $timeout !~ m|^\d+$| or $timeout < 1;
+    $timeout = 1500 if $timeout > 1500;
+    push @claude_waiters,
+        {
+        'id'       => $id,
+        'run_id'   => $run_id,
+        're'       => $re,
+        'from'     => scalar @{ $claude_runs{$run_id}{'events'} },
+        'deadline' => time + $timeout,
+        };
+    ## a finished run answers at once ; otherwise the main loop does ##
+    return _claude_waiters_check();
+}
+
+sub tool_claude_check_status {
+    my ( $id, $args ) = @ARG;
+    my $run = _claude_run_get( $args->{'run_id'} );
+    return send_tool_result( $id,
+        sprintf( "unknown run '%s'", $args->{'run_id'} // '' ), 1 )
+        if not defined $run;
+
+    my $raw   = lc( $args->{'raw'} // '' ) =~ m|^(?:1\|true\|yes)$|;
+    my $lines = $raw ? $run->{'raw'} : $run->{'events'};
+    my $head  = _claude_run_header($run);
+
+    if ( length( $args->{'search'} // '' ) ) {
+        my $re = eval {qr|$args->{'search'}|i};
+        return send_tool_result( $id, "invalid search : $EVAL_ERROR", 1 )
+            if not defined $re;
+        my $ctx = ( $args->{'context'} // 0 ) =~ m|^(\d+)$| ? $1 : 0;
+        my %show;
+        foreach my $i ( grep { $lines->[$ARG] =~ $re } 0 .. $#{$lines} ) {
+            $show{$ARG} = 1
+                for grep { $ARG >= 0 and $ARG <= $#{$lines} }
+                $i - $ctx .. $i + $ctx;
+        }
+        my @idx = sort { $a <=> $b } keys %show;
+        @idx = @idx[ -130 .. -1 ] if @idx > 130;
+        return send_tool_result( $id,
+                  $head
+                . sprintf( "%d lines match\n", scalar @idx )
+                . join( '', map {"$ARG : $lines->[$ARG]\n"} @idx ) );
+    }
+
+    my $want_tail = $args->{'tail'};
+    if ( defined $want_tail or $run->{'status'} eq qw| running | ) {
+        my $n    = ( $want_tail // 13 ) =~ m|^(\d+)$| ? $1             : 13;
+        my $from = @{$lines} > $n                     ? @{$lines} - $n : 0;
+        return send_tool_result( $id,
+            $head
+                . join( '', map {"$ARG\n"} @{$lines}[ $from .. $#{$lines} ] )
+        );
+    }
+
+    ## finished : the dispatch's own post-processing on the whole output ##
+    my $output = join( "\n", @{ $run->{'raw'} } ) . "\n";
+    my $error
+        = $run->{'status'} eq qw| done |
+        ? ''
+        : sprintf( "%s\n%s",
+        $head,
+        join( "\n", grep {defined} @{ $run->{'events'} }[ -13 .. -1 ] ) );
+    $error =~ s|\n(?:\n)+|\n|g;
+
+    ## asked before : the same answer, no second summary ##
+    return send_tool_result( $id, $run->{'final'}[1], $run->{'final'}[0] )
+        if defined $run->{'final'};
+
+    ## a summary already being made answers this request too ##
+    my ($busy) = grep { $ARG->{'run'} == $run } values %claude_finishers;
+    return push @{ $busy->{'ids'} }, $id if defined $busy;
+
+    ## the post-processing [ auto_summarize can take minutes ] runs in a ##
+    ## child ; the main loop answers when its pipe closes                ##
+    my $ext      = $run->{'ext'}  // { 'name' => 'claude_dispatch' };
+    my $args_run = $run->{'args'} // {};
+    pipe( my $rd, my $wr )
+        or return send_tool_result( $id, "pipe : $OS_ERROR", 1 );
+    my $pid = fork();
+    return send_tool_result( $id, "fork : $OS_ERROR", 1 ) if not defined $pid;
+    if ( $pid == 0 ) {
+        close $rd;
+        ## the inherited cube socket stays the parent's : dropped without a ##
+        ## 'close' line, the child connects on its own                      ##
+        $cube_sock               = undef;
+        $external_finish_capture = 1;
+        my ( $result, $is_err ) = eval {
+            _external_finish( 0, $args_run, $ext, $output, $error, '' );
+        };
+        ( $result, $is_err ) = ( "post-processing failed : $EVAL_ERROR", 1 )
+            if length $EVAL_ERROR;
+        $result //= '';
+        utf8::encode($result) if utf8::is_utf8($result);
+        binmode $wr, ':raw';
+        print {$wr} ( $is_err ? 1 : 0 ), ':', $result;
+        close $wr;
+        POSIX::_exit(0);
+    }
+    close $wr;
+    binmode $rd, ':raw';
+    ## the one-shot focus is spent in the child : clear it here as well ##
+    $pending_summary_focus = undef
+        if not $summary_focus_sticky and not $args_run->{'keep'};
+    $claude_finishers{ fileno($rd) } = {
+        'fh'  => $rd,
+        'pid' => $pid,
+        'run' => $run,
+        'ids' => [$id],
+        'buf' => '',
+    };
+    log_msg( 'claude run %s : post-processing in child %d',
+        $run->{'id'}, $pid );
+    return 1;
+}
+
+## a summary child's pipe is readable : collect, answer on eof ##
+sub _claude_finish_read {
+    my $fh  = shift;
+    my $fin = $claude_finishers{ fileno($fh) };
+    my $got = sysread( $fh, $fin->{'buf'}, 65536, length $fin->{'buf'} );
+    return   if not defined $got and $OS_ERROR{'EINTR'};
+    return 1 if $got;
+
+    delete $claude_finishers{ fileno($fh) };
+    close $fh;
+    waitpid( $fin->{'pid'}, 0 );
+    my ( $is_err, $result )
+        = $fin->{'buf'} =~ m|^([01]):(.*)\z|s
+        ? ( $1, $2 )
+        : ( 1, 'post-processing child ended without a result' );
+    ## kept : a later check_status answers from it ##
+    $fin->{'run'}{'final'} = [ $is_err, $result ]
+        if $result !~ m|^post-processing|;
+    send_tool_result( $ARG, $result, $is_err ) for @{ $fin->{'ids'} };
+    return 1;
 }
 
 ##[ claude cloud session tools ]##
@@ -6502,8 +7040,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,.,.,.,.,.,,,,,,,,,,,,.,,.,,,..,,.,.,,..,..,,...,...,..,,,,.,.,.,,,,,,,,,
-#GSKB6QZJQ36QRAMXGR33CMHKPD3JBLLISY2TV6RPT3I35HDVSKJGJVOGAJV42XKL7RWCGMZGXE6K2
-#\\\|PPGLDEYV7NNHKAHJXBET33D7IZ7LUEFE5JWC7RNLLPCEE4JWVYI \ / AMOS7 \ YOURUM ::
-#\[7]V2LZOOYD4QOW4KSRQB6VNVSNE4KGI2MMIUO2BR3XIPATVUT3FMDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,.,,.,,...,.,.,..,,,.,,,,,,..,,..,,...,...,...,..,,,.,,.,,,.,.,
+#WUMD3V63YFOHLDCCRCSRDZ3YDCKJ6EPS656XYMLXZSEMYOWXDNHPXQGYAXAEQ5JOGRE36HUKB5YSY
+#\\\|4NHNJ7O7RQQVKHPH4WWJL6XJV6SC4RTM22AUORWEGNFZR4MN4KW \ / AMOS7 \ YOURUM ::
+#\[7]SC5HJAOCV5S3PPVAQ2HJFMFGLY7N3S5V2SMESDHICEK7GR7THWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
