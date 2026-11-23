@@ -47,6 +47,26 @@ moving apart :
 - example : the W520 identity moves to the larger disk, the Intel disk's strand is inherited
   by the X220T data-disk role
 
+## secure reference bundle [ owner ]
+
+the strands of one host [ identity, hardware, zenki, security contexts ] form a bundle that
+protects itself :
+
+- each member signs, from its own level, the relative presence of the others : 'at <ntime>,
+  seen from here : strands A C D [ with checksums where my level may see them ]'
+- absence is noticed from inside : a missing or swapped disk, nic, zenka or context shows in
+  the next presence signatures -- no outside peer needed [ peers still hold the receipts ]
+- each level vouches only for what it can see : a low level signs presence, a higher level
+  also the checksums -- nobody signs or learns more than its level allows [ inward rule ]
+- relative, not absolute : 'together with, seen from here' ; the bundle's integrity is the web
+  of these statements, no central authority [ the rhizome ]
+- a planned detach is signed by both sides and the others record 'left, with handover' ; an
+  unannounced disappearance is 'missing' -- a disk swap and a theft look different
+- projected to hardware : measured boot [ extend-only registers per stage ], keys sealed to the
+  measured state [ the next level's key does not come out if a lower one changed ], a device
+  key [ tpm, secure element, self-encrypting disk ] as a hardware strand's own first line --
+  used where present, never required ; the software form works without
+
 ## the first line
 
   <ntime> <sign key, b32> [ <seal key, b32> ] [ <signature> ]
@@ -260,8 +280,8 @@ without leaving traces that go beyond security into profiling or surveillance :
 - size : rotation by checkpoint [ a publication can start a new file whose first line names the
   previous chain's checksum ]
 
-#,,..,.,.,...,,,.,,..,.,,,.,,,,.,,.,.,,..,,,.,..,,...,...,.,,,,.,,.,.,,.,,,,,,
-#POX2AAZJKAQPWTCB2LDIUWA2MLSQMI35NJM4BQMJXZLR7OHWS267EYZETD22CUV45XA2SKCR3DV5W
-#\\\|XK36Z4BT3GW7JPUQYIIEIE3EU7G37ZXBNOCY4OSJAZCK2XDZWJZ \ / AMOS7 \ YOURUM ::
-#\[7]IWBFLYPJIDGXLPH4DQZ7QEDZ6R7TG4MDKIK5PJJTDYGRNBUAGEAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,,,,,.,,,,,,,.,.,.,,,.,,,,.,,..,,...,...,,..,,,.,,.,,,,.,..,,
+#HUKG2DVCNUJPH56BVD6CWK7GAZQQUWDGOOL33Y5UBBTUJAEZ3Y3VQ4JYZCVNWRRR6G3L3YUZR7BDK
+#\\\|5PGO3GS2L2FRUR2B6LPUKQWMD6DK54EPQE7XIBSROSGU2LVPEJZ \ / AMOS7 \ YOURUM ::
+#\[7]BWYJX6ELD7QLUFK4M3TSUKPBYQJQ3O2WCJHKEWITEUXJYA6KHCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
