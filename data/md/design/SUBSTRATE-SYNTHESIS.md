@@ -535,6 +535,20 @@ what follows, and is not done :
    tracked [ on purpose, e.g. for variation or privacy ]. so 'equivalent' is
    a statement about the recipe's record, not about the process : a recipe
    names which entropy it tracks, and its re-creations are exact up to that.
+   three views in time [ owner 2026-11-23 ] : the identity tree [ timeless :
+   what it is, where it comes from ], the occupancy view [ now : who holds
+   it ], the **future cycle agreement view** [ ahead : who was assigned which
+   available slot in which cycle ]. a slot is a ledger unit [ storage,
+   compute, bandwidth, attention ] on a future cycle ; an agreement is signed
+   by both sides, a forward receipt. when the cycle comes it becomes
+   occupancy, or it is missed.
+   missed, in steps : several thresholds [ late, missed, forfeited ], each
+   may reassign the slot -- possibly as another resource type : an idle
+   compute slot is better used by a background task or a cold storage
+   transport than by nothing, unless a temperature \ utilisation policy for
+   that time bucket keeps it idle on purpose. today's instances of the same
+   view : system.disk-register, store shares with a ceiling, the timed dns
+   trust, base.interval rhythms.
 4. **pools.** must every pool name an accounting parent, or may a pool stand
    with none [ contradiction 1 ; the parent is already in the address where
    it is named ] ?
@@ -629,8 +643,8 @@ what the review asked for and is still open, on purpose : contradiction 8
 [ who signs weights ], the ring questions of 10, and membership. each is an
 owner question, and none is needed for the two ready steps.
 
-#,,.,,.,.,...,,,,,,,,,,,.,...,.,.,,,.,,..,,..,..,,...,...,.,.,,,,,,,,,.,,,,,.,
-#GF5HDYP3WUUEZS42XUHTWKYRRKRPDTZS5YE2KKBKAEV4UOTWIYH4ZQPL6XAMEZREAFB5C6W3IGGW2
-#\\\|LXANHHE4FIPA2QWG42GOX5XVVQJB4RXV2JZ4KYP2ZTHURC3A2SR \ / AMOS7 \ YOURUM ::
-#\[7]2JPAR5DZHRNJNPIBFNVYTF4NTD5FPU4C37MM3GWPSWSSZOHQ3SBY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,...,.,,,,,.,..,,.,,,.,.,...,..,,...,...,,,,,.,,,,,.,,,.,,.,,
+#LOAQ4P5T4GME76DSKX7ZGQUYYEQYPTH757HGTAPW2U7B47HCM77V5HLHOT7FYKEEBSAB24CG453XG
+#\\\|BJ6M36Q6IOBH6HFZMPXPV4NYRJ7CCAHY6S27Q6ON3KR423H3XES \ / AMOS7 \ YOURUM ::
+#\[7]ZGJKYJAWVZQAO773BNKTKBB4576CDZ6SINH5GZGTRVOPFEE7TGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
