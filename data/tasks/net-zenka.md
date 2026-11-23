@@ -108,8 +108,26 @@ it should be -- so it changes it when needed and restores it afterwards.
   - ipv6 : fingerprints and wake are ipv4 only
   - interface type [ wired \ wlan ] of a remote iface : announce it
 
-#,,.,,,,,,,,,,..,,,..,,..,.,.,,,.,.,,,.,.,,..,..,,...,...,,,.,,,.,.,,,,..,,,,,
-#MJ6LQOIBPU47N2D6Y6THGCM7FHPIDRNKOGTECZURBYPEMQOLJLBFVTTHY77CJSUC5KRPN22W2YQFE
-#\\\|AQQNRYV472OA5K3FJOZ2PMFBRLDQZB3EX5EIV62QVWX72ANZOLM \ / AMOS7 \ YOURUM ::
-#\[7]YDFZX4ZZKL4JBDGTQX4AFUNUDKY3TGJVNRCMHEMAN5LRHFSATECA 7  DATA SIGNATURE ::
+
+## dhcp dns by network role [ owner 2026-11-23 ]
+
+net hands dhcp dns servers to nameserv [ nameserv.set-upstreams dhcp:<iface> ]. a dhcp server
+on a foreign network must not silently become the resolver :
+
+- lan role : the dhcp dns servers are used as upstreams [ after the static ones ]
+- external \ unknown role : the servers are recorded and shown [ net.leases, nameserv.upstreams
+  marked 'held' ], not used ; the owner approves them per network fingerprint [ remembered ]
+- never without dns : protocol-7 keeps a working resolver path [ static upstreams, the
+  nameserv cache ] whatever a network offers, so holding back a dhcp server costs nothing
+- selective use : a held server can still be used for the network's own names only [ e.g. a
+  company lan : *.corp.example and its reverse zones over their dns, everything else over
+  ours ] -- per network a list of domains routed to its dns ; the domain from the lease
+  [ domain= ] is the suggested first entry, never applied without approval
+- the data is always collected [ servers, domain, network fingerprint ] : it feeds the
+  awareness of where the host is, also when nothing of it is used
+
+#,,,.,.,.,,,.,...,,..,,,,,.,.,..,,..,,.,,,.,.,..,,...,...,,..,,.,,,,,,.,.,,,,,
+#AQ2X5KNP35IYX44KUFZA45PR23TDHZWMD7CIOL6IY5HFMBLRDWIJ75SANNQ53JELKZ3ZX52E4UAC6
+#\\\|KVGXQ3V7OTMTBND2YJN256WC7XPXUR7FLRXP36IAXP3QWLENM33 \ / AMOS7 \ YOURUM ::
+#\[7]NWMJC3D47PGXKC2W4LTVRWVN45GF3IQJC52L4WGUR7GP47IGJ2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
