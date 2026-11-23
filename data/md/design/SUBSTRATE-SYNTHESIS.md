@@ -552,7 +552,15 @@ what follows, and is not done :
    journal shows -- a deadline frame passed without the due record ; the
    refund is exactly what is owed, no penalty, from the shadow, by the
    authority of the closed slot. so a missed threshold is a deadline frame,
-   and reassigning the slot follows the refund. today's instances of the same
+   and reassigning the slot follows the refund. the refund travels back on
+   the route it came [ owner : as the protocol was planned ] -- but a hop on
+   the way with an opportunity to spend it in the SAME intent may use it
+   there instead of returning it all the way to the source. it stays the
+   source's value : the re-spend is on the source's behalf, inside the
+   intent it was given for, recorded as such [ the source sees 'refund of
+   slot X re-spent at hop Y for intent Z' ], never a transfer to the hop --
+   otherwise the no-penalty rule [ question 39 ] would be broken by the back
+   door. a source may also say 'always return'. today's instances of the same
    view : system.disk-register, store shares with a ceiling, the timed dns
    trust, base.interval rhythms.
 4. **pools.** must every pool name an accounting parent, or may a pool stand
@@ -649,8 +657,8 @@ what the review asked for and is still open, on purpose : contradiction 8
 [ who signs weights ], the ring questions of 10, and membership. each is an
 owner question, and none is needed for the two ready steps.
 
-#,,.,,,,,,...,..,,,.,,...,...,,..,...,,,.,,,,,..,,...,...,.,.,...,,,,,.,.,...,
-#AIWBYUACBNFG2XJN6W6W5LZHIPEJQ2SAERGNDCN3MDQM77J4DEVO4HFZLAF2QENCT2D3GIUWLLZ7E
-#\\\|XZ7P4GR4XCA3WRMFT7GLJR7ABFXYGD5K3464KQPTRVLRLADNCTX \ / AMOS7 \ YOURUM ::
-#\[7]OS6NUAGUHEGWWZ37TV2ZI3NM5HAW6K5RFP47K3UXDO7KR6FIZGDQ 7  DATA SIGNATURE ::
+#,,..,..,,...,...,,,,,,,,,..,,.,.,...,.,,,,,,,..,,...,...,...,,.,,.,.,.,,,,,.,
+#C3ZJUDRIT54247M5G37AASO67W6II2G3YX66XCGCT4KOAOORA4M7OZUFDGWRAMENQB47J7XNKBDQY
+#\\\|JN3PRVCOYTJHJNJA3XHAL73BHL5APXPPLZY63XTVEYS5VLTGX2R \ / AMOS7 \ YOURUM ::
+#\[7]ZNHLANG6RKSNGQAQRVP565WK4QGCMEP4PHW6OCNGIANWB2L6UUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
