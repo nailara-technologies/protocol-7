@@ -8,9 +8,24 @@
 <process.table.top> = {};
 <process.poll.last> = <[base.ntime]>;
 
+## used memory from the kernel's MemAvailable : realfreeper counts only    ##
+## free + buffers + cached, reclaimable slab                               ##
+## [ dentries \ inodes of a tree walk, 8.6 GB on a 16 GB host ] read as    ##
+## used and the autokill killed an n7fs run at a real 35 % [ 2026-11-23 ]. ##
+## realfreeper stays the fallback for a kernel without the line            ##
 my $mem_statistics = <system.statistics>->get->memstats;
+my $mem_free_pct   = $mem_statistics->{'realfreeper'};
+if ( open( my $mi_fh, '<', '/proc/meminfo' ) ) {
+    my %mi;
+    while ( my $line = <$mi_fh> ) {
+        $mi{$1} = $2 if $line =~ m|^(MemTotal\|MemAvailable):\s+(\d+)|;
+    }
+    close $mi_fh;
+    $mem_free_pct = 100 * $mi{'MemAvailable'} / $mi{'MemTotal'}
+        if defined $mi{'MemAvailable'} and $mi{'MemTotal'};
+}
 <system.mem.used_percent> = my $mem_used_pct
-    = sprintf( '%.2f', 100 - $mem_statistics->{'realfreeper'} );
+    = sprintf( '%.2f', 100 - $mem_free_pct );
 
 ## $p->pctcpu averages over the process's whole life : a spinning old one ##
 ## barely moves it. cpu % is the cpu time used since the previous poll    ##
@@ -230,8 +245,8 @@ if (sprintf( '%.2f', <system.process.poll.current_interval> ) ne
     );
 }
 
-#,,.,,.,,,,,.,.,.,...,...,,..,.,,,,.,,,,,,..,,..,,...,..,,,..,...,,,,,,,,,,..,
-#PIOHXQ6S3Z5UMGXX3SGRCDG4LJONER5WO73DRAXNNCOVLCZKH66NFRCWUSREZBNQDPTTPNRVR2IVU
-#\\\|LHTIXQ6GSXLLYUGUPK6PWGYLGJ2B2CSHQVK25QG5LE5X57JODCH \ / AMOS7 \ YOURUM ::
-#\[7]I5VMUIX2IHECJXI5HKLRX2UTVK7VIAPP3JBRORTVK3IVOP36HYAA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,.,,.,,,..,,.,,,.,,...,,,,,,.,,..,,...,..,,.,.,...,.,.,,,.,,.,,
+#6A4GJBXZ6ZMS7VEYDVJO6WXTTP6PQN4ETB7UPKOKLKELJHGL5I2DI3YFLMGZLUMQVHXY7JJCLL7Z4
+#\\\|CIKV3HAORUCPGJSGZ3JNNWUOXO5GLP6LIGDG3Y4NMLC4FAMDHIR \ / AMOS7 \ YOURUM ::
+#\[7]3KACVPMB6BPX2MUYH5QBSOQ5CRO4ERSBPYHL6JAXZHZXS4FPZQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
