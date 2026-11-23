@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = nameserv.dns_probe.query
+# param = <query hash>
+# descr = send one udp probe query with io watcher and timeout
+
+require IO::Socket::IP;
+require Net::DNS;
+
+my $q      = shift // return FALSE;
+my $server = $q->{'server'};
+my ( $ip, $port ) = ( $server, 53 );
+if ( $server =~ m{^\[(.+)\]:(\d+)$} or $server =~ m{^([\d.]+):(\d+)$} ) {
+    ( $ip, $port ) = ( $1, $2 );
+}
+
+my $packet = eval { Net::DNS::Packet->new( $q->{'qname'}, $q->{'qtype'} ) }
+    // return FALSE;
+$q->{'query_id'} = unpack qw| n |, <[base.prng.bytes]>->(2);
+$packet->header->id( $q->{'query_id'} );
+$packet->header->rd(1);
+my $wire = $packet->data;
+
+my $local_host = index( $ip, qw| : | ) >= 0 ? qw| :: | : qw| 0.0.0.0 |;
+my $sock;
+for my $try ( 1 .. 13 ) {
+    $sock = IO::Socket::IP->new(
+        'LocalHost' => $local_host,
+        'LocalPort' => 49152
+            + unpack( qw| n |, <[base.prng.bytes]>->(2) ) % 16384,
+        'PeerHost' => $ip,
+        'PeerPort' => $port,
+        'Proto'    => qw| udp |,
+        'Blocking' => 0,
+    );
+    ## non-blocking : a failed bind [ port in use ] still returns an ##
+    ## object, without a local port -- treat it as a failed try      ##
+    last        if defined $sock and $sock->sockport;
+    close $sock if defined $sock;
+    $sock = undef;
+}
+return FALSE if not defined $sock;
+$q->{'sock'} = $sock;
+
+my $sent = send $sock, $wire, 0;
+return FALSE if not defined $sent or $sent != length $wire;
+
+my $delay = <[base.interval.next]>->(
+    {   qw| type | => qw| dns-probe-wait |,
+        qw| state | => $q->{'wait'} //= {}
+    }
+) // 2.1;
+$q->{'watcher'} = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'poll'    => qw| r |,
+        'handler' => qw| nameserv.dns_probe.handler.answer |,
+        'data'    => $q,
+        'desc'    => "dns probe [ $q->{'qname'} via $server ]"
+    }
+);
+$q->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| nameserv.dns_probe.handler.timeout |,
+        'data'    => $q,
+        'desc'    => "dns probe timeout [ $q->{'qname'} via $server ]"
+    }
+);
+return TRUE;
+
+#,,..,..,,,.,,,,,,..,,,,.,,..,,.,,..,,.,,,,,.,..,,...,...,,,.,.,.,.,.,.,,,..,,
+#ZFQPCRAJHIODWQRB7CGQB4SWB5UXUPTMDMBQGZSF7QR6RFTTRIE2ZGMLME6MBEZUSMDUP5BHQZZRA
+#\\\|UZIZ4KE3QN5KZUSMXO3JQPRJ2RMGXQNFRASDAGZ6VIVLIZIMKBN \ / AMOS7 \ YOURUM ::
+#\[7]GS2JDMENHO6M65H6YOB6HX2EJ42DSARK3I5ESQRCRGBQGQ4VOYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = network.dns_probe.handler.timer
+# descr = rare dns behaviour probe round for one network
+
+## stops when the lease is gone [ released, expired ] or the iface moved to ##
+## another network : a result is never stored under a network it was not    ##
+## measured on                                                              ##
+
+my $iface = shift->w->data                         // return;
+my $state = <network.dns_probe.by_iface>->{$iface} // return;
+delete $state->{'timer'};
+my $l = <network.lease>->{$iface};
+my $p = <[network.dns_policy.get]>->($iface);
+if (   not defined $l
+    or ( $l->{'reason'} // '' ) !~ m{^(BOUND|RENEW|REBIND|REBOOT)6?$}
+    or not defined $p
+    or $p->{'fingerprint'} ne ( $state->{'fingerprint'} // '' ) ) {
+    <[base.logs]>->( 2, ': dns behaviour probe for %s stopped', $iface );
+    delete <network.dns_probe.by_iface>->{$iface};
+    return;
+}
+<[network.dns_probe.run]>->($iface);
+
+my $delay = <[base.interval.next]>->(
+    {   qw| type | => qw| dns-probe |,
+        qw| state | => $state->{'interval'} //= {}
+    }
+) // return;
+$state->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| network.dns_probe.handler.timer |,
+        'data'    => $iface,
+        'desc'    => "dns behaviour probe [ $iface ]"
+    }
+);
+return;
+
+#,,,,,.,,,...,,,,,.,.,,..,.,,,,,,,,,.,..,,,..,..,,...,.,.,,.,,,..,,,.,,..,,,,,
+#BYWRFUS4JRMSBZQESIVJSGYGAR5DL747GYM4Z7ZVJWNRFFAISNQMFZF5KGU4BJUBUA7AD2TPR7DYG
+#\\\|RFQHOOKSDVXNT4GTOEJ2S5FIPMJUA7RCKIQWFE7TGGPDZYPQKOR \ / AMOS7 \ YOURUM ::
+#\[7]7MXIIGACI45UBRUA5S5SLJXHZXCNIQKDM3CFIGX2WB3SVSB2D2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

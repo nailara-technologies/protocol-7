@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = nameserv.dns_probe.address
+# param = <addr> | <a.b.c.d:port> | <[v6]:port>
+# descr = canonical probe server address with optional port
+
+my $server  = shift // return undef;
+my $address = $server;
+my $suffix  = '';
+if ( $server =~ m{^\[(.+)\](:\d+)$} ) {
+    ( $address, $suffix ) = ( $1, $2 );
+} elsif ( $server =~ m{^([\d.]+)(:\d+)$} ) {
+    ( $address, $suffix ) = ( $1, $2 );
+}
+my $canonical = <[nameserv.upstream_address]>->($address) // return undef;
+return $canonical if not length $suffix;
+return index( $canonical, qw| : | ) >= 0
+    ? "[$canonical]$suffix"
+    : "$canonical$suffix";
+
+#,,,.,,,,,.,.,..,,...,,,.,,,.,.,,,,,,,,.,,,,.,..,,...,...,..,,,,,,,,,,...,,,.,
+#3FWOSYQ2KYXLLXDVYM54Z2PZNZH4BC452VXZAA65XTROVHOALF2OX4YIEAMVXDOMX47NLARDKOVMG
+#\\\|OOP2ONNEOVVEMYYGRSSFZHCMEKVQ3NBIE33VWIGJ6ZGU5CV3MHG \ / AMOS7 \ YOURUM ::
+#\[7]AR3O772H6PDMCXDO6SIOSFHGSZ4665TRFK5TLTU62TQF2SCUGSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

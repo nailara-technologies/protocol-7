@@ -13,6 +13,7 @@ foreach my $fingerprint ( sort keys $all->%* ) {
         $fingerprint,
         $p->{'iface'},
         $p->{'policy'},
+        $p->{'behaviour'} // qw| unmeasured |,
         join( ',', $p->{'domains'}->@* ) || qw| - |,
         join( ',', $p->{'dhcp'}->@* )    || qw| - |,
         $p->{'until'} // qw| - | );
@@ -20,12 +21,12 @@ foreach my $fingerprint ( sort keys $all->%* ) {
 return {
     qw| mode | => qw| size |,
     qw| data | => join( "\n",
-        'FINGERPRINT  IFACE  POLICY  DOMAINS  DHCP SERVERS  UNTIL',
+        'FINGERPRINT  IFACE  POLICY  BEHAVIOUR  DOMAINS  DHCP SERVERS  UNTIL',
         @rows ? @rows : qw| - | )
 };
 
-#,,,,,,..,,.,,,,.,,.,,,,,,,,,,.,,,...,.,.,,,.,..,,...,...,..,,...,.,.,,,.,..,,
-#JDL7JPK3XBD4QIMZ3QQTY7CMUHEUBYCCZK2WFFO4QEZU43YDASUDHS7ETSOF4ZD35OET5HVPV45DW
-#\\\|ZUIOF6EPSLV6QUAVVJRJCN7GK7WEYVTUZDWSKH5G3PEAUF4HSUC \ / AMOS7 \ YOURUM ::
-#\[7]KDOXN2BBL4RFPAF467CIXG77GPOFVKTQNAXBZLQZSYOVM5B6FCCY 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,..,,,,,,,,,,..,,,,,,,..,,.,,..,,...,...,,.,,,..,,,.,.,,,..,,
+#LFQAS32TCBVO7RJEXBZGV37R3MDYBYR6J4DS7PL7VVLUIUFNVOSZPMEZ533NCMS5J6ENHRQCRVFVE
+#\\\|XMR7A2IJ3JTKOVB73EYOTU62PK2SBZ3VJS2YXTEGCC6XIABPABH \ / AMOS7 \ YOURUM ::
+#\[7]JHBYA55FKPMGRR7ZWKXGC46K7XJMDGDZXQJXJCT42MGX7POQZUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

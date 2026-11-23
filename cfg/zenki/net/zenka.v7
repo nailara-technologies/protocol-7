@@ -16,7 +16,15 @@ access.cmd.usr.cube = heart subname name commands reload verify-instance \
                       buffer-erase buffer-erase-level \
                       interfaces status event leases macs \
                       wlan-status wlan-scan wlan-connect wlan-disconnect roles \
-                      dns-policy dns-policy-set
+                      dns-policy dns-policy-set dns-behaviour
+
+## dns behaviour probe : once after a lease event, then rarely         ##
+## [ ~22 min, x1.6, up to ~8 h with jitter ] -- nameserv measures, net ##
+## records                                                             ##
+base.interval.cfg.type.dns-probe.start      = 1297
+base.interval.cfg.type.dns-probe.factor     = 1.6
+base.interval.cfg.type.dns-probe.cap        = 28657
+base.interval.cfg.type.dns-probe.cap_jitter = 4181
 
 modules.load = auth.client net protocol io.unix ui network netinfo
 [load_modules:<modules.load>]
@@ -30,8 +38,8 @@ modules.load = auth.client net protocol io.unix ui network netinfo
 
 [zenka.loop]
 
-#,,.,,...,,..,..,,.,.,.,.,,,,,,,,,.,.,,,,,,.,,..,,...,...,...,,,,,,,,,.,.,.,.,
-#E5HBQOKDZH32UK4LHJCWOQZQXKATDZ7CHNWG3FRBBGCLZKNPHTVTOROAIGJAGS45PFXPEL5KGY76E
-#\\\|3YTMQGTMMJBT43GSZUKMKPU2TYUCVVCKURR54MMRJK2CPWZA5NG \ / AMOS7 \ YOURUM ::
-#\[7]IE45VBK6K2OXXDKLCD3BRWQ43JRDWX3FTMWR4WJGBVJHGCWOUSAA 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,,,,.,,,.,,,..,,,.,,.,,,.,,..,,..,,...,...,.,.,...,,..,,,,,.,.,
+#EP3NLO5ERE7R2VLLW5IHBJ6C3FQ3VC5FLEVQW6K6TPS7FJIKM2N7UCGTQT5WZBGB63TN4J7ZBGYYO
+#\\\|IGA3HI4CKYBZWY2MGZHETJPTK3GX3JPUSOFIHPB3GXHHNILN6VM \ / AMOS7 \ YOURUM ::
+#\[7]7FKQKC4GI3HV4QAAYLW6BB335LERLL4HAYRT22MFOKUFKCUGYGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

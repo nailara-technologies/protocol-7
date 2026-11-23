@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = nameserv.cmd.dns-probe
+# param = <source> <fingerprint> <dhcp-addr> ..
+# descr = measure the dns behaviour of one network for net
+
+## net asks after a lease event and then rarely [ it owns the rhythm ] ; ##
+## the result goes back as net.dns-behaviour. only observes : no policy, ##
+## upstream or cache state is changed here                               ##
+
+my ( $source, $fingerprint, @dhcp ) = split m|\s+|, $call->{'args'} // '';
+my $usage = 'usage: dns-probe <source> <fingerprint> <dhcp-addr> ..';
+return { mode => 'false', data => $usage }
+    if ( $source // '' ) !~ m{^[a-z][a-z0-9_.-]*(?::[a-z0-9_.-]+)*$}
+    or ( $fingerprint // '' ) !~ m{^[\w.:/-]+$}
+    or not @dhcp;
+
+my @servers;
+foreach my $address (@dhcp) {
+    my $server = <[nameserv.dns_probe.address]>->($address);
+    return { mode => 'false', data => "invalid ip address: $address" }
+        if not defined $server;
+    push @servers, $server;
+}
+
+my $probe = <[nameserv.dns_probe.start]>->(
+    {   qw| source |      => $source,
+        qw| fingerprint | => $fingerprint,
+        qw| dhcp |        => \@servers
+    }
+);
+return {
+    mode => 'size',
+    data => sprintf 'dns probe %s for %s [ %s ] : %d queries',
+    $probe->{'done'} ? 'finished' : 'started',
+    $source, $fingerprint, scalar $probe->{'queries'}->@*
+};
+
+#,,,,,,,,,.,.,,..,,,,,.,,,..,,..,,,,,,,..,,,,,..,,...,..,,,.,,,,,,,..,...,,,,,
+#L6TOLR6Y435THRG7LPY2BOJUG6M2HF6MNTT6F4HKPUFLLNHJHNE3H5LBJMIS5G3YYG4IFNAP6BX3U
+#\\\|UL4MEB3A346R6FWGA3ES454BZKKIEUKGID5CJCWTHSESKWOUGBZ \ / AMOS7 \ YOURUM ::
+#\[7]E3XS2ZZT37ED4AZZOMSBDFDLXDZWVVDSWADKATPPXVJXKELTZUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

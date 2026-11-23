@@ -1,0 +1,119 @@
+## [:< ##
+
+# name  = nameserv.dns_probe.start
+# param = { source, fingerprint, dhcp => [ addr .. ] }
+# descr = plan and send the queries of one dns behaviour probe
+
+## static upstreams are the configured ones only : the resolv.conf fallback ##
+## is usually the dhcp server itself and would always look open             ##
+## -- reachability : the root soa [ no domain needed ] on every server      ##
+## -- known answer : one configured name, its fixed answer, statics only    ##
+## -- neutral : one configured name on every server, answers compared one   ##
+## name per list and round [ prng pick ] keeps the probe rare.  our own     ##
+## names never leave : they are dropped from both lists                     ##
+
+my $args  = shift;
+my $probe = {
+    qw| id |          => ++<nameserv.dns_probe.counter>,
+    qw| source |      => $args->{'source'},
+    qw| fingerprint | => $args->{'fingerprint'},
+    qw| dhcp |        => $args->{'dhcp'},
+    qw| static |      => [
+        grep {defined}
+            map  { <[nameserv.dns_probe.address]>->($ARG) }
+            grep {length} split m|\s+|,
+        <nameserv.cfg.cache.upstream> // ''
+    ],
+    qw| queries | => [],
+    qw| open |    => 0,
+    qw| notes |   => [],
+};
+<nameserv.dns_probe.active>->{ $probe->{'id'} } = $probe;
+
+my $pick = sub {
+    my @list = sort @ARG;
+    return undef if not @list;
+    return $list[ unpack( qw| n |, <[base.prng.bytes]>->(2) ) % @list ];
+};
+my $query = sub {
+    my ( $kind, $side, $server, $qname, $qtype, $expected ) = @ARG;
+    push $probe->{'queries'}->@*,
+        {
+        qw| kind |     => $kind,
+        qw| side |     => $side,
+        qw| server |   => $server,
+        qw| qname |    => $qname,
+        qw| qtype |    => $qtype,
+        qw| expected | => $expected // [],
+        qw| probe |    => $probe,
+        };
+};
+
+if ( $probe->{'static'}->@* ) {
+    $query->( qw| reach |, $ARG->[0], $ARG->[1], qw| . |, qw| SOA | )
+        for ( map { [ qw| static |, $ARG ] } $probe->{'static'}->@* ),
+        ( map { [ qw| dhcp |, $ARG ] } $probe->{'dhcp'}->@* );
+
+    ## known answer : name=addr[,addr] pairs ##
+    my %known;
+    foreach
+        my $pair ( split m|\s+|, <nameserv.cfg.dns_probe.known_answer> // '' )
+    {
+        my ( $name, $list ) = split m|[=:]|, $pair, 2;
+        next if not length( $name // '' ) or not length( $list // '' );
+        $name = lc $name =~ s|\.$||r;
+        next if <[nameserv.cache.own_name]>->($name);
+        my @expected = grep {defined}
+            map { <[nameserv.upstream_address]>->($ARG) } split m|,|, $list;
+        $known{$name} = \@expected if @expected;
+    }
+    my $known = $pick->( keys %known );
+    if ( defined $known ) {
+        my $qtype
+            = index( $known{$known}->[0], qw| : | ) >= 0
+            ? qw| AAAA |
+            : qw| A |;
+        $query->(
+            qw| known |, qw| static |, $ARG, $known, $qtype, $known{$known}
+        ) for $probe->{'static'}->@*;
+    } else {
+        push $probe->{'notes'}->@*, 'known-answer check skipped';
+        <[base.logs]>->(
+            2, ': dns probe %s : known-answer check skipped [ %s ]',
+            $probe->{'source'}, 'nameserv.cfg.dns_probe.known_answer empty'
+        );
+    }
+
+    my @neutral = grep { not <[nameserv.cache.own_name]>->($ARG) }
+        map { lc s|\.$||r }
+        grep {length} split m|\s+|, <nameserv.cfg.dns_probe.neutral> // '';
+    my $neutral = $pick->(@neutral);
+    if ( defined $neutral ) {
+        $query->( qw| neutral |, $ARG->[0], $ARG->[1], $neutral, qw| A | )
+            for ( map { [ qw| static |, $ARG ] } $probe->{'static'}->@* ),
+            ( map { [ qw| dhcp |, $ARG ] } $probe->{'dhcp'}->@* );
+    } else {
+        push $probe->{'notes'}->@*, 'filtering check skipped';
+        <[base.logs]>->(
+            2, ': dns probe %s : filtering check skipped [ %s ]',
+            $probe->{'source'}, 'nameserv.cfg.dns_probe.neutral empty'
+        );
+    }
+}
+
+## a send failure closes its query at once : finish waits for the loop ##
+$probe->{'starting'} = TRUE;
+$probe->{'open'}     = scalar $probe->{'queries'}->@*;
+foreach my $q ( $probe->{'queries'}->@* ) {
+    <[nameserv.dns_probe.done]>->($q)
+        if not <[nameserv.dns_probe.query]>->($q);
+}
+delete $probe->{'starting'};
+<[nameserv.dns_probe.finish]>->($probe) if $probe->{'open'} <= 0;
+return $probe;
+
+#,,,.,..,,.,.,...,...,,,.,..,,,.,,...,,,.,...,..,,...,...,..,,,,,,.,,,..,,...,
+#EITOVWP5FJSEYLP64N2Y2EVOVNCXTD77YMGVINW576YX7ZIHIUGG2GPCXLRKFJUOUXETMWM4RO7TG
+#\\\|S32ZVJMUWFE2MVLDMKKXEBJ55VNQV7GTHEDRXZZY4EAIN7EZBW4 \ / AMOS7 \ YOURUM ::
+#\[7]KE54SNALMPT2RCJ3TPO5GKOZR2HEH7KN5K4IVCFMBMW6YNO4JUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

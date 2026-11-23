@@ -12,7 +12,10 @@ foreach my $fingerprint ( sort keys $all->%* ) {
     $text .= sprintf "%d.fingerprint = %s\n", $index, $fingerprint;
     $text .= sprintf "%d.iface = %s\n",       $index, $p->{'iface'};
     $text .= sprintf "%d.policy = %s\n",      $index, $p->{'policy'};
-    $text .= sprintf "%d.domains = %s\n\n",   $index,
+    $text .= sprintf "%d.behaviour = %s\n%d.behaviour_at = %s\n",
+        $index, $p->{'behaviour'}, $index, $p->{'behaviour_at'} // 0
+        if defined $p->{'behaviour'};
+    $text .= sprintf "%d.domains = %s\n\n", $index,
         join( ' ', $p->{'domains'}->@* );
     $index++;
 }
@@ -21,8 +24,8 @@ my $written = <[file.zenka_dir.write]>->(
 );
 return defined $written ? TRUE : FALSE;
 
-#,,,,,,,,,,.,,,.,,...,..,,...,.,,,.,,,,,.,,,,,..,,...,...,...,...,,,,,...,,,,,
-#F4ZG7IK6EI6WQDM335FXSHQTZOTYBEA7HVPRAQVZ3M54ENA3UM7V7T7E2NTJ7MPEUZU4FTF3CPMI6
-#\\\|CDDRC4XSMGBI5RNBDZHANVZ2CMNEUU37BABZCCQ2ELTRXUMZ2AU \ / AMOS7 \ YOURUM ::
-#\[7]5E2PTQUU2QM3TQYSLMNQQU6KMHFCICWALDXEMVFXDFT2D2IGDOCQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,..,,,,.,,,,,.,.,...,.,.,..,,..,,...,...,..,,,,.,,.,,.,.,,,.,
+#S2WAWE72DP3EJDXDZSKCWPY3WY7YSVVQFVP6W5JYDTOHN4ICNPBU47DJG4BYJPIANCCVV42GI2NUC
+#\\\|A7J7ZUHKNTKAT2NRXGUYGSNMPOQW5AUTPEOFLXHGQJJ2KGMEI44 \ / AMOS7 \ YOURUM ::
+#\[7]H564CWHDBTGHT3OS7CGCNHRM2YDI6VHRXJB5FGF2ZEGA65KEXMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

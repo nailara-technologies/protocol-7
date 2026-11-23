@@ -59,7 +59,18 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       remove-zone restore-zone sync-pull sign-zone \
                       add-record apply-zone-source consistency \
                       ensure-challenge-alias upstreams set-upstreams \
-                      set-domain-upstreams set-held-upstreams
+                      set-domain-upstreams set-held-upstreams dns-probe
+
+## dns behaviour probe [ nameserv.dns-probe, asked by net ] : one name per ##
+## list and round. known_answer = name=addr[,addr] pairs whose real answer ##
+## is fixed ; neutral = names compared between our upstreams and the dhcp  ##
+## server. empty lists skip the check [ logged ]. examples only :          ##
+# nameserv.cfg.dns_probe.known_answer = fixed.example.test=192.0.2.77
+# nameserv.cfg.dns_probe.neutral      = neutral.example.test
+base.interval.cfg.type.dns-probe-wait.start      = 2.1
+base.interval.cfg.type.dns-probe-wait.factor     = 1.01
+base.interval.cfg.type.dns-probe-wait.cap        = 2.1
+base.interval.cfg.type.dns-probe-wait.cap_jitter = 0.34
 
 ## logging verbosity
 system.zenka.verbosity.buffer  = 2
@@ -95,8 +106,8 @@ modules.load = auth.client net protocol io.unix io.ip ui format.yaml \
 ## enter event loop (handles dns via io events)
 [zenka.loop]
 
-#,,..,,,,,,,.,.,.,,..,,,,,,,.,,,.,,,,,.,,,,.,,..,,...,...,,,,,,,,,..,,,,,,,..,
-#M2YTPTZF4NJPLSEIAJWMYFJ3LGEDWTJSFRLKB7RYVWGQAWF5OIMBMHYT5ZDX6ABBD6OUK3EAIPTXO
-#\\\|3F3B37U43WWH6AWGLDFQ76FDF7VPQNDGFFUVWRSUPPWUDZEXOUJ \ / AMOS7 \ YOURUM ::
-#\[7]UHNNCTBTYRPBVD33KQ5SLKMXEFAHKAASXJJOEULYLX2L2EM4SKCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,,..,.,,,,,,,..,,.,,,.,,,.,,,..,,...,..,,.,,,...,,..,..,,,..,
+#NZHHQAWKWDWZ2A4OYVZEC4RALUOIX2ZQSUACRVBV4DBAJ4CW35RSBD6MVL45ZNC54XW3E4YGN3SZ4
+#\\\|OU23AIQPJ7JFFH3JOZ3SPNIPMN2NVYC7E56III7LY67ST7BJVFA \ / AMOS7 \ YOURUM ::
+#\[7]UJF4CBAILA2TTYKT6T5DOSIYLCRKEBER5PEV4OJLBNQ7U3ERRODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

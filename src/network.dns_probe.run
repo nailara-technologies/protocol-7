@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = network.dns_probe.run
+# param = <iface>
+# descr = ask nameserv to probe the dns of one leased network
+
+my $iface = shift                                // return FALSE;
+my $l     = <network.lease>->{$iface}            // return FALSE;
+my $p     = <[network.dns_policy.get]>->($iface) // return FALSE;
+my @dns   = ( ( $l->{'dns'} // [] )->@*, ( $l->{'dns6'} // [] )->@* );
+return FALSE
+    if not @dns
+    or ( $l->{'reason'} // '' ) !~ m{^(BOUND|RENEW|REBIND|REBOOT)6?$};
+
+## blocked : the owner withheld every query to that server, probes too ##
+if ( $p->{'policy'} eq qw| blocked | ) {
+    <[base.logs]>->(
+        2, ': dns behaviour probe for %s skipped [ policy blocked ]', $iface
+    );
+    return FALSE;
+}
+
+<network.dns_probe.by_iface>->{$iface}{'probed_at'} = time;
+my $sent = <[protocol-7.command.send.local]>->(
+    {   qw| command |   => qw| nameserv.dns-probe |,
+        qw| call_args | => {
+            qw| args | => join ' ',
+            "dhcp:$iface", $p->{'fingerprint'}, @dns
+        }
+    }
+);
+<[base.logs]>->(
+    2,
+    ': dns behaviour probe for %s [ %s ] %s',
+    $iface,
+    $p->{'fingerprint'},
+    ( $sent // 0 ) > 0 ? 'sent' : 'not delivered [ nameserv not running ? ]'
+);
+return ( $sent // 0 ) > 0 ? TRUE : FALSE;
+
+#,,..,,.,,,.,,,,,,,,,,,.,,,.,,...,,,,,..,,,,.,..,,...,...,,.,,..,,,,,,,..,,,,,
+#SOEACZRPTNPX4YSQMDOKRFSZUDAICU6PWTXCN23Y4FJAZ7LNEWDTMXWI6DGYRHDAAVTPCWB33Q3LG
+#\\\|2MFHU53K42355RWLHKM5MSEMZ2PYBJ44L47CAZO4CHMG4E2DPPU \ / AMOS7 \ YOURUM ::
+#\[7]IMP5ZTVF6EDGHPF3JGKLJ6Y73H4SNAY6HL5JYJXRSZ5RK7CJGMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

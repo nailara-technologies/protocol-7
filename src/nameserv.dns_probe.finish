@@ -1,0 +1,115 @@
+## [:< ##
+
+# name  = nameserv.dns_probe.finish
+# param = <probe hash>
+# descr = judge a finished dns probe and send it to net
+
+## precedence : blocking-outside, intercepting, filtering, open ; nothing   ##
+## answering or no static upstream = unknown. only observed : net stores it ##
+## beside the policy and never changes the policy by it                     ##
+
+my $probe = shift // return FALSE;
+return FALSE if $probe->{'done'}++;
+delete <nameserv.dns_probe.active>->{ $probe->{'id'} };
+
+my @queries = $probe->{'queries'}->@*;
+my $pick    = sub {
+    my ( $kind, $side ) = @ARG;
+    return grep {
+                $ARG->{'kind'} eq $kind
+            and $ARG->{'side'} eq $side
+            and $ARG->{'answered'}
+    } @queries;
+};
+my $overlap = sub {
+    my ( $a, $b ) = @ARG;
+    my %in = map { lc $ARG => 1 } $a->@*;
+    return scalar grep { $in{ lc $ARG } } $b->@*;
+};
+
+my ( $behaviour, @detail );
+if ( not $probe->{'static'}->@* ) {
+    $behaviour = qw| unknown |;
+    push @detail, 'no static upstreams [ nameserv.cfg.cache.upstream ]';
+} elsif ( not $pick->( qw| reach |, qw| static | ) ) {
+    $behaviour
+        = $pick->( qw| reach |, qw| dhcp | )
+        ? qw| blocking-outside |
+        : qw| unknown |;
+    push @detail, $behaviour eq qw| unknown |
+        ? 'no server answered'
+        : 'static upstreams silent, dhcp server answers';
+} else {
+    my @forged = grep {
+        $ARG->{'rcode'} =~ m{^(NOERROR|NXDOMAIN)$}
+            and not $overlap->( $ARG->{'expected'}, $ARG->{'addresses'} )
+    } $pick->( qw| known |, qw| static | );
+    if (@forged) {
+        $behaviour = qw| intercepting |;
+        push @detail, sprintf '%s via %s : %s, expected %s',
+            $ARG->{'qname'}, $ARG->{'server'},
+            join( ',', $ARG->{'addresses'}->@* ) || $ARG->{'rcode'},
+            join( ',', $ARG->{'expected'}->@* )
+            for @forged;
+        push @detail, 'filtering undecided';
+    } else {
+        my @ours = grep { $ARG->{'rcode'} eq qw| NOERROR | }
+            $pick->( qw| neutral |, qw| static | );
+        my @seen = map { $ARG->{'addresses'}->@* } @ours;
+        my @differs;
+        if (@seen) {
+            @differs = grep {
+                       $ARG->{'rcode'} eq qw| NXDOMAIN |
+                    or $ARG->{'rcode'} eq qw| NOERROR |
+                    and $ARG->{'addresses'}->@*
+                    and not $overlap->( \@seen, $ARG->{'addresses'} )
+            } $pick->( qw| neutral |, qw| dhcp | );
+        }
+        if (@differs) {
+            $behaviour = qw| filtering |;
+            push @detail, sprintf '%s via %s : %s',
+                $ARG->{'qname'}, $ARG->{'server'},
+                $ARG->{'rcode'} eq qw| NXDOMAIN |
+                ? qw| NXDOMAIN |
+                : join( ',', $ARG->{'addresses'}->@* )
+                for @differs;
+        } else {
+            $behaviour = qw| open |;
+        }
+    }
+}
+push @detail, $probe->{'notes'}->@*;
+my $detail = join( ' ; ', @detail ) =~ s|\s+| |gr;
+$ARG->{'probe'} = undef for @queries;    ## no reference cycle ##
+
+<nameserv.dns_probe.last>->{ $probe->{'source'} } = {
+    qw| fingerprint | => $probe->{'fingerprint'},
+    qw| behaviour |   => $behaviour,
+    qw| detail |      => $detail,
+    qw| at |          => time,
+};
+my $sent = <[protocol-7.command.send.local]>->(
+    {   qw| command |   => qw| net.dns-behaviour |,
+        qw| call_args | => {
+            qw| args | => join ' ',
+            $probe->{'fingerprint'},
+            $behaviour, $detail
+        }
+    }
+);
+<[base.logs]>->(
+    2,
+    ': dns probe %s [ %s ] : %s%s%s',
+    $probe->{'source'},
+    $probe->{'fingerprint'},
+    $behaviour,
+    length $detail     ? " [ $detail ]" : '',
+    ( $sent // 0 ) > 0 ? ''             : ' -- not delivered to net'
+);
+return TRUE;
+
+#,,.,,,,,,...,,..,.,,,,.,,..,,,.,,,..,..,,,..,..,,...,...,.,.,,,,,,,.,..,,,,,,
+#UZJ2NUMQHEFEXTNEZ52CCZUQVWBPWNPYO2QZE54BXWNUHKCRTXE2JD4NZI5M3ZSSZPPMLHDCRGOCY
+#\\\|RAIJ55FHFYJ3G6V3LHAZQ5A3NFUX4KVILOXKFGXMRUVWWJ53T7R \ / AMOS7 \ YOURUM ::
+#\[7]D6EJYAXUDYLIR3GRFMGMUPCCCVFU45WB7WWQVEKEQNS5MYYIQ6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

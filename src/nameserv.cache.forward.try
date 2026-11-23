@@ -66,7 +66,11 @@ for my $try ( 1 .. 13 ) {
         'Proto'     => $protocol,
         'Blocking'  => 0,
     );
-    last if defined $sock;
+    ## non-blocking : a failed bind [ port in use ] still returns an ##
+    ## object, without a local port -- treat it as a failed try      ##
+    last        if defined $sock and $sock->sockport;
+    close $sock if defined $sock;
+    $sock = undef;
 }
 if ( not defined $sock ) {
     return <[nameserv.cache.forward.next]>->($state);
@@ -107,8 +111,8 @@ $state->{'timer'} = <[event.add_timer]>->(
 
 return TRUE;
 
-#,,,.,.,.,,.,,.,,,,,,,.,.,,,,,,.,,.,.,.,.,,..,..,,...,..,,,.,,.,.,,..,,,.,,.,,
-#BAKSR544YYEFWASVT35YOABNKQ5UQT6F6GMTEYO7WACPQ7ZQERH2F5ZUPINQOTI7K65QWMNJLB462
-#\\\|MGEYEKBJFDWWYCWDQMCHAFLWUXO5KGHPRPMOR5R3XDPT7PS6Z5S \ / AMOS7 \ YOURUM ::
-#\[7]QYBT2AISTLUKNIVPB46UIEZ7DHPHMMT7HHWHJF4HH3A6UVZWH2BA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,.,,,,,.,,,.,,..,,,.,...,...,..,,...,...,..,,,,.,...,.,.,,..,
+#UQZPXFX6HGYM35WXYLLD64P6RCXE6XQ3CJDTIZDJCSMO7L3NZVOJR5NLXVAMSDZG5MY5FSEVHS6DY
+#\\\|IGBX3JPM2H4PE5E5DK3TO7NJWEV5H5B5KHJVOTDUOLPR7DD3EMG \ / AMOS7 \ YOURUM ::
+#\[7]LYWMXCJ3VL5ZHVNWSLB34BC5ZMDNVARQEBGSFCCIRRLEZPD7UWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

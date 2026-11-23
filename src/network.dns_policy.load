@@ -7,12 +7,14 @@ my $sref
     = <[file.zenka_dir.load]>->( <network.cfg.dns_policy_file>, qw| :raw | );
 return FALSE if ref $sref ne qw| SCALAR |;
 
-my %valid = map { $ARG => 1 } qw| trusted split held blocked |;
+my %valid      = map { $ARG => 1 } qw| trusted split held blocked |;
+my %behaviours = map { $ARG => 1 }
+    qw| open filtering intercepting blocking-outside unknown |;
 my %entry;
 foreach my $line ( split m|\n|, $sref->$* ) {
     next
         if $line
-        !~ m{^(\d+)\.(fingerprint|iface|policy|domains)\s*[=:]\s*(.*?)\s*$};
+        !~ m{^(\d+)\.(fingerprint|iface|policy|domains|behaviour|behaviour_at)\s*[=:]\s*(.*?)\s*$};
     my ( $id, $key, $value ) = @{^CAPTURE};
     next if $value !~ m|^[\w.*:,/@-]*$|;
     $entry{$id}{$key} = $value;
@@ -31,12 +33,19 @@ foreach my $id ( keys %entry ) {
         qw| domains |     =>
             [ grep {length} split m|[\s,]+|, $p->{'domains'} // '' ],
         qw| dhcp | => [],
+        ## measured behaviour : observed only, never a policy input ##
+        $behaviours{ $p->{'behaviour'} // '' }
+        ? ( qw| behaviour |    => $p->{'behaviour'},
+            qw| behaviour_at | => ( $p->{'behaviour_at'} // 0 ) =~ s|\D||gr
+                || 0
+            )
+        : (),
     };
 }
 return TRUE;
 
-#,,..,.,,,,,.,,,.,.,.,,,.,.,,,.,.,.,.,,.,,..,,..,,...,...,...,...,...,,,.,,,,,
-#2ISIR6WKCYF3XRP62EH2I7HU5PHGNDHLL5OMESD2LZDWP553MGHVMS4NOMSDBGIII2G6FHQSGZRU2
-#\\\|CGKJKCAEDKHMEJYBJUBICNPZY3K7AX3XVK5WQJFLAKOGKMVJINU \ / AMOS7 \ YOURUM ::
-#\[7]T6JKUYLKU57IYRL5WPEU5ZCIAA37LG4ZGNFKPZXP7XISHPALI6CY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,..,,,,.,.,,,,,.,,,.,.,,,,,.,,..,..,,...,...,,.,,,,,,,..,.,,,,,.,
+#SS44NPWVBJIGK3S5DK55AZQAN7DDB4SNSQPBA3ZUNIGEVWOQZUDYPH2UGD7LD3DUEN2EJ4RPN6AWK
+#\\\|UAZULZ6F7UEQNWWYP36DTTN6ZFW4JQBRADJJUDR6PU4FDOHVN2P \ / AMOS7 \ YOURUM ::
+#\[7]CJDGLXJNHDOG4MGDAAHXZAQJIQWXMIXMT2G6LQIHO267WOGU6EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

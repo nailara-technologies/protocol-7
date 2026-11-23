@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = network.cmd.dns-behaviour
+# param = <fingerprint> <behaviour> [detail ..]
+# descr = record measured dns behaviour beside a network policy
+
+## sent by nameserv.dns-probe. only observed : the policy is never touched ##
+## by it [ a filtering network is never promoted to trusted ]              ##
+
+my ( $fingerprint, $behaviour, $detail ) = split m|\s+|,
+    $call->{'args'} // '', 3;
+my %valid = map { $ARG => 1 }
+    qw| open filtering intercepting blocking-outside unknown |;
+return {
+    mode => 'false',
+    data => 'usage: dns-behaviour <fingerprint> <behaviour> [detail ..]'
+    }
+    if ( $fingerprint // '' ) !~ m{^[\w.:/-]+$}
+    or not $valid{ $behaviour // '' };
+
+my $p = <network.dns_policy.by_fingerprint>->{$fingerprint}
+    // <[network.dns_policy.get]>->($fingerprint);
+if ( not defined $p or $p->{'fingerprint'} ne $fingerprint ) {
+    <[base.logs]>->(
+        1, ': dns behaviour for unknown network [ %s ] dropped : %s',
+        $fingerprint, $behaviour
+    );
+    return { mode => 'false', data => "unknown network: $fingerprint" };
+}
+
+my $old = $p->{'behaviour'} // qw| unmeasured |;
+$p->{'behaviour'}        = $behaviour;
+$p->{'behaviour_at'}     = time;
+$p->{'behaviour_detail'} = $detail // '';
+if ( $old ne $behaviour ) {
+    <[base.logs]>->(
+        1,
+        ': dns behaviour of %s [ %s ] : %s -> %s [ policy stays %s ]%s',
+        $fingerprint,
+        $p->{'iface'},
+        $old,
+        $behaviour,
+        $p->{'policy'},
+        length( $detail // '' ) ? " : $detail" : ''
+    );
+}
+<[network.dns_policy.save]>;
+return {
+    mode => 'size',
+    data => "dns behaviour of $fingerprint : $behaviour"
+};
+
+#,,..,,,,,.,,,,.,,.,.,,..,.,.,,.,,.,.,,..,,,.,..,,...,...,.,.,.,.,.,,,,.,,,.,,
+#NHKOTS7MJRHOHKL56Q3PC7PMR7LIKYYTOENVT4JTUERPBB5U5FAE4JBG7NU3GNZ3HKHDGKNXAWJRA
+#\\\|W5XQQZ4FEAQDJC4O7GW6F3ENV2NWRDJPYWO5PSJNHGEK6MXL3IN \ / AMOS7 \ YOURUM ::
+#\[7]YUJPBGAXHUE7CLRCU6VL2MRX6ZLB7JP6N4DGH2SKWBECRPXG2GDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

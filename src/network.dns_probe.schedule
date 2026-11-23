@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = network.dns_probe.schedule
+# param = <iface> <lease reason>
+# descr = probe network dns behaviour now and arm the slow rhythm
+
+## once after a lease event, then rarely                                   ##
+## [ base.interval.next type dns-probe ]. a new network [ fingerprint ] or ##
+## BOUND \ REBOOT restarts the rhythm ; RENEW \ REBIND probe only when the ##
+## current gap is over, so short leases do not turn the probe into a       ##
+## frequent one                                                            ##
+
+my ( $iface, $reason ) = @ARG;
+return FALSE if not defined $iface;
+my $p = <[network.dns_policy.get]>->($iface) // return FALSE;
+
+my $state = <network.dns_probe.by_iface>->{$iface} //= {};
+my $reset
+    = ( $state->{'fingerprint'} // '' ) ne $p->{'fingerprint'}
+    || ( $reason // '' ) =~ m{^(BOUND|REBOOT)6?$}
+    ? TRUE
+    : FALSE;
+return TRUE
+    if not $reset
+    and ref $state->{'timer'}
+    and time - ( $state->{'probed_at'} // 0 )
+    < ( $state->{'interval'}{'last'} // 0 );
+
+if ( ref $state->{'timer'} ) {
+    $state->{'timer'}->cancel
+        if $state->{'timer'}->can('is_active')
+        and $state->{'timer'}->is_active;
+    delete $state->{'timer'};
+}
+$state->{'fingerprint'} = $p->{'fingerprint'};
+<[network.dns_probe.run]>->($iface);
+
+my $delay = <[base.interval.next]>->(
+    {   qw| type |  => qw| dns-probe |,
+        qw| state | => $state->{'interval'} //= {},
+        qw| reset | => $reset
+    }
+) // return FALSE;
+$state->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| network.dns_probe.handler.timer |,
+        'data'    => $iface,
+        'desc'    => "dns behaviour probe [ $iface ]"
+    }
+);
+return TRUE;
+
+#,,..,...,.,.,,..,,..,,..,...,,.,,,.,,.,.,.,.,..,,...,...,..,,.,,,,,,,..,,...,
+#OYSNGBD2LD4YUGGVQ5FF4XTHRLOFX7YQNXNV62UI6T4YFGD6KNA5C73I72ML6RETNONL5QNKOKENK
+#\\\|7Z5QSWUX5NLQCWL7HLPP5M33EWNHPG5TI7H732EQNDSP6D3HGZM \ / AMOS7 \ YOURUM ::
+#\[7]SFJKENR7JQVYV3ZX22XSW5NSU5H727ZHX3FNMOKTTYRJL5UJAWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

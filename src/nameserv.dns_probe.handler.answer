@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = nameserv.dns_probe.handler.answer
+# descr = read one probe reply, check id and question
+
+## a reply with a wrong id or question is dropped [ the timeout stays ] ##
+
+require Net::DNS;
+
+my $q = shift->w->data;
+return if ref $q ne qw| HASH | or $q->{'done'};
+
+my $wire = '';
+my $got  = recv $q->{'sock'}, $wire, 65535, 0;
+return
+    if not defined $got and ( $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK} );
+if ( not defined $got ) {    ## refused \ unreachable : no answer ##
+    $q->{'answered'} = FALSE;
+    return <[nameserv.dns_probe.done]>->($q);
+}
+
+my $reply = eval { Net::DNS::Packet->new( \$wire ) } // return;
+return if $reply->header->id != $q->{'query_id'} or not $reply->header->qr;
+my ($question) = $reply->question;
+return
+       if not defined $question
+    or lc( $question->qname =~ s|\.$||r ) ne lc( $q->{'qname'} =~ s|\.$||r )
+    or $question->qtype ne $q->{'qtype'};
+
+$q->{'answered'}  = TRUE;
+$q->{'rcode'}     = $reply->header->rcode;
+$q->{'addresses'} = [
+    map  { <[nameserv.upstream_address]>->( $ARG->address ) // () }
+    grep { $ARG->type eq qw| A | or $ARG->type eq qw| AAAA | } $reply->answer
+];
+return <[nameserv.dns_probe.done]>->($q);
+
+#,,,.,,.,,,,,,,,,,...,,,.,,,.,...,..,,,,,,,,.,..,,...,...,.,,,,,.,.,,,.,,,.,.,
+#ZHUAP5HJD2MEEQNE2KTARPSVXSJ2X4ZSAXSTBK3W3SVGXSTGODHAHADBW5LOKXRQBAYSIP6HIFOHO
+#\\\|R3YOEZCC2FSYBMWEOIRAH7PTI7GTVCBKXY36QMJSCT66THHYOLB \ / AMOS7 \ YOURUM ::
+#\[7]DGLOHSROFY5GATLEVEPXFZELL76QKI7GA6LVJ7ZMFEYDPXRVGQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

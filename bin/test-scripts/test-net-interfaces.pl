@@ -16,7 +16,7 @@ our $call;
 
 sub translate_code {
     my $code = shift;
-    $code =~ s{<\[([A-Za-z][-\w.]*)\]>(?=->)}{chr(36).qq|code{'$1'}|}eg;
+    $code =~ s{<\[([A-Za-z][-\w.]*)\]>(?=\s*->)}{chr(36).qq|code{'$1'}|}eg;
     $code =~ s{<\[([A-Za-z][-\w.]*)\]>}{chr(36).qq|code{'$1'}->()|}eg;
     $code =~ s{<([a-z][-\w.]*)>}{
         my @keys = split m|\.|, ${^CAPTURE}[0];
@@ -174,10 +174,16 @@ $code{'netinfo.local_networks'} = sub {
         } qw| eth0 eth1 wlan0 br0 |
     ];
 };
+{
+
+    package NetTestTimer;
+    sub cancel    { $_[0]->{'active'} = 0 }
+    sub is_active { $_[0]->{'active'} }
+}
 my @policy_timers;
 $code{'base.interval.next'} = sub { return 780 };
 $code{'event.add_timer'}    = sub {
-    my $timer = { params => $ARG[0] };
+    my $timer = bless { params => $ARG[0], active => 1 }, 'NetTestTimer';
     push @policy_timers, $timer;
     return $timer;
 };
@@ -190,7 +196,8 @@ load_src($ARG) for qw| network.read_line network.interfaces.ip_addr_parse
     network.dns_policy.get network.dns_policy.save network.dns_policy.load
     network.dns_policy.expire network.dns_policy.handoff
     network.lease.reverse_zones network.lease.dns_handoff
-    network.cmd.dns-policy network.cmd.dns-policy-set |;
+    network.cmd.dns-policy network.cmd.dns-policy-set
+    network.dns_probe.schedule network.dns_probe.run |;
 
 my $i = $code{'network.interfaces.collect'}->();
 is_deeply [ sort keys %$i ], [qw| br0 eth0 eth1 lo wlan0 |],
@@ -346,7 +353,8 @@ ok(
 );
 is_deeply $data{'network'}{'dns'}{'upstreams'},
     [ '192.0.2.1', '192.0.2.53' ], 'upstreams kept';
-is_deeply \@sent_upstreams,
+is_deeply [ grep { $ARG->{'command'} =~ m|^nameserv\.set-| }
+        @sent_upstreams ],
     [
     {   command   => 'nameserv.set-upstreams',
         call_args => { args => 'dhcp:eth0 192.0.2.1 192.0.2.53' }
@@ -376,7 +384,7 @@ is $sent_upstreams[-1]{'command'}, 'nameserv.set-held-upstreams',
 $call = { args => 'eth0 split corp.example' };
 $code{'network.cmd.dns-policy-set'}->();
 like $code{'network.cmd.dns-policy'}->()->{'data'},
-    qr|eth0\s+split\s+corp\.example\s+192\.0\.2\.1,192\.0\.2\.53|,
+    qr|eth0\s+split\s+unmeasured\s+corp\.example\s+192\.0\.2\.1,192\.0\.2\.53|,
     'policy list includes iface domains and dhcp servers';
 
 ## temporary trust reverts by timer and is not persisted across restart ##
@@ -465,15 +473,20 @@ ok !( grep {m|dns hand-off|} @logged[ $n .. $#logged ] ),
     'no hand-off without dns';
 $call = { args => 'RENEW eth1 dns=192.0.2.1,192.0.2.53' };
 $code{'network.cmd.event'}->();
-is $sent_upstreams[-1]{'command'}, 'nameserv.set-held-upstreams',
-    'unknown network role defaults to held';
+is( ( grep { $ARG->{'command'} =~ m|^nameserv\.set-| } @sent_upstreams )
+        [-1]{'command'},
+    'nameserv.set-held-upstreams',
+    'unknown network role defaults to held'
+);
+is $sent_upstreams[-1]{'command'}, 'nameserv.dns-probe',
+    'lease event asks for a dns behaviour probe';
 is $code{'network.dns_policy.get'}->('eth1')->{'policy'}, 'held',
     'default held policy stored for the unknown network';
 
 done_testing;
 
-#,,.,,..,,,.,,.,.,,.,,,..,..,,,.,,,,,,,..,,,.,..,,...,...,,,.,,,,,,,.,..,,,,.,
-#ZIAHX7H5B66TIXVDZN5AQPSE3GOSMUEVWBCNQWFKOI37ZADWNU6CEHCYZ7P7O36VSXRRE2J4C2WHG
-#\\\|GXHLDL3GMWF6YK76PW4YYRZGD3OQQHHCFWK5NMYOW7QMKUORK6W \ / AMOS7 \ YOURUM ::
-#\[7]Z4PJ2T3CRDO3RIN5A6TCBZREUZW6VI7D25U2DXJQR2PEY7DHQ6BQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,..,.,,,,,,,..,,.,,,...,,.,,...,..,,...,...,.,,,.,.,.,,,,,,,,,.,
+#XCSO56UYLH677ZKIARMHTJKVECV4JUC5YX6AWWSL4VI22TSMB66FQ454ZUFEEPMUJCKNBOLQKCNEW
+#\\\|V3QIBXHRCNFQRG3JBJDEGI5WQJ2FXLHQL2ZAIZPUA2AUAX2AHMJ \ / AMOS7 \ YOURUM ::
+#\[7]GCEDWDO7PLMHZOSALTWA2TUHLGWBZIWGDDRNNS4VL6FDFZWPI6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = nameserv.dns_probe.done
+# param = <query hash>
+# descr = close one probe query, finish the probe after the last
+
+my $q = shift // return FALSE;
+return FALSE if $q->{'done'};
+$q->{'done'} = TRUE;
+$q->{'answered'} //= FALSE;
+for my $name (qw| watcher timer |) {
+    next if not ref $q->{$name};
+    $q->{$name}->cancel
+        if $q->{$name}->can('is_active')
+        and $q->{$name}->is_active;
+    delete $q->{$name};
+}
+close delete $q->{'sock'} if defined $q->{'sock'};
+
+my $probe = $q->{'probe'} // return FALSE;
+return TRUE if --$probe->{'open'} > 0 or $probe->{'starting'};
+return <[nameserv.dns_probe.finish]>->($probe);
+
+#,,..,,,,,,..,,..,,,.,,.,,,,,,...,..,,...,,,,,..,,...,...,.,,,,,,,,.,,..,,,,,,
+#GJRO4LM5PJXZWO4CHMJTDKATW7ET4PSV4DNPL7VFSMOOT2Q74UR5GUFS6KQJ7R4WEWSMDILZE7XWK
+#\\\|3QKHYH3O6EIKDHYBKPMBTZNJQUSGY46I5VFXAKXUPEWQXTVDICE \ / AMOS7 \ YOURUM ::
+#\[7]FHCB2QPRCZW6FMKN6L64AA7AXEBX5Y4ALNDG3BIUDBEAAIILESDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

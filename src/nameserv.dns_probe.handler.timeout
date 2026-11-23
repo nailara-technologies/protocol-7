@@ -1,0 +1,15 @@
+## [:< ##
+
+# name  = nameserv.dns_probe.handler.timeout
+# descr = mark one probe query as unanswered
+
+my $q = shift->w->data;
+return if ref $q ne qw| HASH | or $q->{'done'};
+$q->{'answered'} = FALSE;
+return <[nameserv.dns_probe.done]>->($q);
+
+#,,,,,,,.,.,,,,..,..,,..,,,.,,.,.,,..,.,,,...,..,,...,...,.,.,,,,,,,.,.,.,,,,,
+#HICEEOTHXBVZEP6HIK6E4YETMEKXFHTRDUUBVVCWGOSY4JME55IKZ4PVLOTUNQOPC6WDI5LKL7LOY
+#\\\|MP5C5HY7CAQ42HHNRY3VAFZLMTHAHAKTPFT34B43FUIBNHZSTNY \ / AMOS7 \ YOURUM ::
+#\[7]ZLWHXXCY3GSQFO6ED74H7BIX5BOTCJC62WBEK5VGDVFL3OWYH6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

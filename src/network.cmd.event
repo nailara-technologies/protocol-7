@@ -44,6 +44,8 @@ my %lease = (
 <network.lease>->{$iface} = \%lease;
 <[network.lease.save]>;
 <[network.lease.dns_handoff]>->($iface);
+<[network.dns_probe.schedule]>->( $iface, $reason )
+    if $reason =~ m{^(BOUND|RENEW|REBIND|REBOOT)6?$};
 <[network.lease.announce]>->( $reason, $iface );
 <[base.log]>->(
     1,
@@ -55,8 +57,8 @@ my %lease = (
 );
 return { qw| mode | => qw| true |, qw| data | => 'event recorded' };
 
-#,,.,,...,,.,,,.,,..,,...,,,,,..,,,..,..,,,.,,..,,...,..,,...,,,.,.,.,,..,...,
-#DFMXO5X56KOAIDG6BOHR2TWLZ5U5N2G5DCO72SFXVGCZXDZ3HUUPO3YQY7Z5NUOZQGHUOK2EPE24I
-#\\\|GGZZZMJY73BLSP6BTGKKN35NTBPIPU4KAW5NV7VMM36FLIDWFSH \ / AMOS7 \ YOURUM ::
-#\[7]NSXD2XMWJHJRRJIB7PIGRHRFR2JJYRW6DJICZAVLNEVBEMU7HUAI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,..,,,.,,..,,,..,,,.,,,.,.,,,..,,..,,...,...,.,,,...,...,,..,.,.,
+#RJ6FSWPHGX3Y7S4G77LRLMW5WTIPRZEHIP33H7WYEWYZETNK44ZNUV36B3SBXZSXNOO4NEXUVPCUS
+#\\\|42N5F2WS4UFGQITWHDQCVI5HIRBYVALSDIID6DUX5KI55PUCRQV \ / AMOS7 \ YOURUM ::
+#\[7]JZN7MKUWSNSJTMNZY3BJS2BK7MRH5X33HDN2ZRNZW5JJADZSKKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
