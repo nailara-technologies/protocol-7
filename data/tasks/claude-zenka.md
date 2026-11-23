@@ -191,8 +191,16 @@ send-command, tile-* ] and the only `when` is a timetable `at`.
 
 - the docs define only the auth line ; no reply is sent after it. probes with
   {"type":"message","text":..} and a plain text line were dropped silently
-- next : record a real SendMessage post with strace from a short second session, or ask
-  through /feedback
+- RECORDED [ strace of a real SendMessage, claude code 2.1.330 ] and CONFIRMED by a script
+  post : after the auth line, one json line [ external format, the claude code protocol ] :
+    {"msgV":1,"msg_id":"<uuid>","type":"user","priority":"next",
+     "from":"uds:<sender socket>",
+     "message":{"role":"user","content":"<cross-session-message from=\"uds:<sender
+       socket>\" from-name=\"<name>\" from-mode=\"prompting\">\n<text>\n</cross-session-message>"}}
+  the sender writes the tag itself ; from-name is shown as the sender. the receiving
+  session's own token [ CLAUDE_CODE_MESSAGING_TOKEN ] authenticates a local script.
+  no reply line. an undocumented protocol : keep the writer in one place, check it after
+  claude code upgrades [ msgV ]
 
 ### to verify before building
 
@@ -203,8 +211,8 @@ send-command, tile-* ] and the only `when` is a timetable `at`.
 - inbox socket inbound policy : crossSessionInbound accept | hold | refuse, defaults by
   permission mode -- a bypass session holds messages from a prompting sender
 
-#,,,.,.,.,.,.,,..,.,.,,,,,,.,,,,,,..,,...,,..,..,,...,...,,,,,...,,,,,,..,,,,,
-#UANSRSY5KMKCFDTUQ4KUP3BCFOFIRKLE2PZKXMFXGS2W65ZQDBAOL6KYZ5GTBJ3DHKOW2UIIT6546
-#\\\|S3LVRNF2S7UXXOV65POF6MHT23B3JPSIELAS3MYBVZFG7ZUTDUS \ / AMOS7 \ YOURUM ::
-#\[7]YWWEZCN7G5ZTPBKDGCZL7DOP4ZRAVBEOZ2AOH4T6UYJWXFZTB6AY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,,..,..,,,,.,,,.,,,,,,,.,,,,,..,,...,..,,..,,.,.,,..,,,,,.,,,
+#GX5SBUEVN6EURYYPJLONADDXOMZ7BRV4TA6WGEXG5AFVJFAMDRN3MNHYU2GIPDT3NL33RAVVVNIWW
+#\\\|SHAGMIEKJWZ2LMFSGZK24ABOT2R736M2BBRV6W3X3XWZH36HFSJ \ / AMOS7 \ YOURUM ::
+#\[7]ECAPA6UPVVPRJTIBMOOQHTWZXGO27X34RLCWQI43WZ5LV4WNYMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5046,6 +5046,18 @@ sub _claude_run_read {
     }
     log_msg( 'claude run %s %s [ exit %d ]',
         $run->{'id'}, $run->{'status'}, $run->{'exit'} );
+    ## wake the session : a run ended [ under claude code only ] ##
+    _session_inbox_post(
+        sprintf "claude run %s %s [ exit %d, "
+            . "%dm%02ds ] -- claude_check_status "
+            . 'run_id=%s for the result',
+        $run->{'id'},
+        $run->{'status'},
+        $run->{'exit'},
+        ( $run->{'finished'} - $run->{'started'} ) / 60,
+        ( $run->{'finished'} - $run->{'started'} ) % 60,
+        $run->{'id'}
+    );
     return _claude_waiters_check();
 }
 
@@ -5061,6 +5073,53 @@ sub _claude_run_deadlines {
         kill 'TERM', $run->{'pid'};
     }
     return _claude_waiters_check() if @claude_waiters;
+}
+
+## one line into the session through the claude code inbox socket [ msgV 1, ##
+## recorded from a real SendMessage 2026-11-23 -- an undocumented protocol, ##
+## kept in this one place ]. a quiet no-op without the socket env           ##
+## [ kimi, a plain shell ] ; never blocks                                   ##
+sub _session_inbox_post {
+    my $text      = shift                                // '';
+    my $sock_path = $ENV{'CLAUDE_CODE_MESSAGING_SOCKET'} // '';
+    my $token     = $ENV{'CLAUDE_CODE_MESSAGING_TOKEN'}  // '';
+    return 0
+        if not length $sock_path
+        or not length $token
+        or not -S $sock_path;
+
+    my $sock = IO::Socket::UNIX->new( 'Peer' => $sock_path, 'Timeout' => 2 );
+    if ( not defined $sock ) {
+        log_msg( 'inbox post : connect failed : %s', $OS_ERROR );
+        return 0;
+    }
+    my $from   = "uds:$sock_path";
+    my @hex    = map { sprintf '%04x', int rand 65536 } 1 .. 8;
+    my $msg_id = sprintf '%s%s-%s-4%s-a%s-%s%s%s', @hex[ 0, 1, 2 ],
+        substr( $hex[3], 1 ), substr( $hex[4], 1 ), @hex[ 5 .. 7 ];
+    ( my $body = $text ) =~ s|</cross-session-message>||g;
+    my $line = $json->encode(
+        {   'msgV'     => 1,
+            'msg_id'   => $msg_id,
+            'type'     => qw| user |,
+            'priority' => qw| next |,
+            'from'     => $from,
+            'message'  => {
+                'role'    => qw| user |,
+                'content' => sprintf(
+                    '<cross-session-message from="%s" from-name="%s" '
+                        . "from-mode=\"prompting\">\n%s\n"
+                        . '</cross-session-message>',
+                    $from, 'mcp-server-p7', $body
+                ),
+            },
+        }
+    );
+    my $auth = $json->encode( { 'type' => qw| auth |, 'token' => $token } );
+    my $ok   = defined syswrite( $sock, "$auth\n$line\n" );
+    close $sock;
+    log_msg( 'inbox post : %s', $ok ? 'sent' : "write failed : $OS_ERROR" );
+    return $ok ? 1 : 0;
 }
 
 ## a run from memory, or one an earlier server left in claude-runs/ ##
@@ -7040,8 +7099,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,..,,.,.,.,.,,.,,...,.,.,..,,,.,,,,,,..,,..,,...,...,...,..,,,.,,.,,,.,.,
-#WUMD3V63YFOHLDCCRCSRDZ3YDCKJ6EPS656XYMLXZSEMYOWXDNHPXQGYAXAEQ5JOGRE36HUKB5YSY
-#\\\|4NHNJ7O7RQQVKHPH4WWJL6XJV6SC4RTM22AUORWEGNFZR4MN4KW \ / AMOS7 \ YOURUM ::
-#\[7]SC5HJAOCV5S3PPVAQ2HJFMFGLY7N3S5V2SMESDHICEK7GR7THWDA 7  DATA SIGNATURE ::
+#,,..,,..,,..,.,.,,..,.,,,..,,.,.,.,.,.,,,.,.,..,,...,..,,..,,,..,.,,,.,.,..,,
+#JENN6OL3IA3QPBTS3GZ4N7E6BNX7ATK2GB3KZ45XZWLCJLYUPWDP6ZW2Q3ZFROAYDTX24XCCLW5PA
+#\\\|FRPP7OZHAV5FF2ZBX44EXJBWYL37IDKBOW6HGH6NG35XCZGPXRI \ / AMOS7 \ YOURUM ::
+#\[7]CN7Z7WUW7YDIHDP64PMO5CT7GDHIAHYO6EWWEX3U7EX6ABTBFSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
