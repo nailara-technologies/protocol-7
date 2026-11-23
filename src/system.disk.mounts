@@ -15,7 +15,7 @@ open( my $fh, '<', $mounts_path )
     or return
     <[base.logs]>->( 1, 'disk watch : cannot read mounts : %s', $OS_ERROR );
 while ( my $line = <$fh> ) {
-    my ( $device, $path, $type ) = split m|\s+|, $line;
+    my ( $device, $path, $type, $options ) = split m|\s+|, $line;
     next if not defined $type;
     next
         if $pseudo{$type}
@@ -24,16 +24,18 @@ while ( my $line = <$fh> ) {
     $path =~ s|\\([0-7]{3})|chr( oct $1 )|eg;
     push @mounts,
         {
-        qw| device | => $device,
-        qw| path |   => $path,
-        qw| type |   => $type
+        qw| device |    => $device,
+        qw| path |      => $path,
+        qw| type |      => $type,
+        qw| read_only | => scalar grep { $ARG eq qw| ro | } split m|,|,
+        $options // ''
         };
 }
 close $fh;
 return \@mounts;
 
-#,,,,,...,.,.,,,,,,..,.,.,..,,,..,.,,,.,.,,..,..,,...,..,,.,.,.,.,,.,,,..,,,,,
-#4SNWCA4MBU7ADVPGUH6MOZR6V5PHSUU7KPKHNRUXWQW2GZPK7EVCYOKKPJB6ENF4JBYYQANSQUN24
-#\\\|L5ZJLKXVBZRIEREKNSPPCTLZ6YZ6QYEQURFNSTRZZ7X2DJSONZC \ / AMOS7 \ YOURUM ::
-#\[7]NXBRFVJ2SU5GL2CPCQQJ4KEZRZY6LIRBLGUJN4CUZVG7O6EY6UAY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,..,,,.,,,,.,..,,,,,,...,...,..,,...,...,...,...,...,,,,,,,,,
+#OBLQELYU2Y3MFRJCPYTSSXJOEBLIWUOLXMTBQL3UMFYSITXDD3LZTP3EW2Z5BP7VSVOYV5O4MN2PA
+#\\\|UGUV7HUJYUG7V4V4BC47ORHX7Y3ELLLA3RSYX6GZPZWLWSV2FC7 \ / AMOS7 \ YOURUM ::
+#\[7]XLEBAHJIL4URVLMAG2HL6L5DYXNG33NPOE5PB4STKXIRZ5IQZUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

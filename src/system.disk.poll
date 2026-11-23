@@ -20,11 +20,12 @@ foreach my $mount ( @{$mounts} ) {
     $free = 0 if $free < 0;
     my $used = $size - $free;
     $used = 0 if $used < 0;
-    my $free_pct = 100 * $free / $size;
+    my $free_pct       = 100 * $free / $size;
+    my $inodes_counted = $stat->{'files'} ? TRUE : FALSE;
     my $inode_free_pct
-        = $stat->{'files'}
+        = $inodes_counted
         ? 100 * $stat->{'files_free'} / $stat->{'files'}
-        : 100;
+        : undef;
 
     my $cfg      = <disk.mount>->{$path}      // {};
     my $warn_pct = $cfg->{'warn_free'}        // <disk.warn_free>;
@@ -45,25 +46,31 @@ foreach my $mount ( @{$mounts} ) {
         ? $crit_pct
         : 100 * $crit_bytes / $size;
 
-    foreach my $available ( $free_pct, $inode_free_pct ) {
-        my $pressure
-            = $available <= $crit_limit
-            ? 1
-            : ( $warn_limit - $available )
-            / ( $warn_limit - $crit_limit || 1 );
-        $pressure     = 0         if $pressure < 0;
-        $max_pressure = $pressure if $pressure > $max_pressure;
+    my @available = ($free_pct);
+    push @available, $inode_free_pct if $inodes_counted;
+    if ( not $mount->{'read_only'} ) {
+        foreach my $available (@available) {
+            my $pressure
+                = $available <= $crit_limit
+                ? 1
+                : ( $warn_limit - $available )
+                / ( $warn_limit - $crit_limit || 1 );
+            $pressure     = 0         if $pressure < 0;
+            $max_pressure = $pressure if $pressure > $max_pressure;
+        }
     }
 
     my $level = 0;
-    $level = 1
-        if $free_pct <= $warn_pct
-        or $free <= $warn_bytes
-        or $inode_free_pct <= $warn_pct;
-    $level = 2
-        if $free_pct <= $crit_pct
-        or $free <= $crit_bytes
-        or $inode_free_pct <= $crit_pct;
+    if ( not $mount->{'read_only'} ) {
+        $level = 1
+            if $free_pct <= $warn_pct
+            or $free <= $warn_bytes
+            or ( $inodes_counted and $inode_free_pct <= $warn_pct );
+        $level = 2
+            if $free_pct <= $crit_pct
+            or $free <= $crit_bytes
+            or ( $inodes_counted and $inode_free_pct <= $crit_pct );
+    }
 
     my $previous   = $old->{$path};
     my $first_seen = not defined $previous;
@@ -98,6 +105,7 @@ foreach my $mount ( @{$mounts} ) {
         qw| inodes_used |         => $stat->{'files'} - $stat->{'files_free'},
         qw| inodes_free |         => $stat->{'files_free'},
         qw| inodes_free_percent | => $inode_free_pct,
+        qw| inodes_counted |      => $inodes_counted,
         qw| level |               => $level,
         qw| history |             => $history,
         qw| rate |                => $rate,
@@ -105,14 +113,15 @@ foreach my $mount ( @{$mounts} ) {
     };
 
     my $old_level = $first_seen ? 0 : $previous->{'level'};
-    next if not $first_seen and $level == $old_level;
+    next if $level == $old_level;
     my $kind
         = $level == 0 ? qw| recovered |
         : $level == 2 ? qw| critical |
         :               qw| warning |;
-    my $message = sprintf
-        '%s : %s [ %.1f %% bytes, %.1f %% inodes free ]',
-        $path, $kind, $free_pct, $inode_free_pct;
+    my $inode_text
+        = $inodes_counted ? sprintf( '%.1f %%', $inode_free_pct ) : qw| n/a |;
+    my $message = sprintf '%s : %s [ %.1f %% bytes, %s inodes free ]',
+        $path, $kind, $free_pct, $inode_text;
     <[base.logs]>->( 0, 'disk space : %s', $message );
     my $quoted = $message =~ s|'|\\'|gr;
     <[protocol-7.route-send]>->(
@@ -129,8 +138,8 @@ foreach my $mount ( @{$mounts} ) {
 <system.disk.interval_state> {'pressure'} = $max_pressure;
 return $current;
 
-#,,.,,...,,.,,,.,,..,,.,,,.,.,,..,,,.,.,.,,..,..,,...,...,..,,...,,,,,,,,,,,.,
-#ZFBVSZPVMVS443YPWAIMQNL7QTWGF4DNSOFXZ2LZTLQAVIOEGUDLHPUSZYJ6WR6POHQAGIBLTOPVM
-#\\\|TO6QW6VTX5IRHM4H2SOZ4DWWVVVWOCN524TQXTOVQLST2DSTOBN \ / AMOS7 \ YOURUM ::
-#\[7]UXCYNCX33GEEFTURZBTS3VBJAX3FIGFW6TVNYUGCZCO6FSRDLICI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,,,.,,.,,.,,,,,,,,,,,.,.,.,,,..,,...,...,...,.,.,.,,,...,.,,,
+#JCS5ESWJ7PKWQ7JX6JEKR4VRGFX7H2IUGEVNQE4ZL5PORWYKV4GUPNIDB4E5I3OWMBUKYJ6DWTYNU
+#\\\|QFFERRGULU5ZSSFWOGW636MLI4UZ4TRUFUSQJIKH4D2OQCLPRBN \ / AMOS7 \ YOURUM ::
+#\[7]MARSALUURQ26B7HCG5OL4JTKDIMV6ZQGYN5UX7RKMFLTXARWIAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

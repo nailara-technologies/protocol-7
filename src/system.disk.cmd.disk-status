@@ -33,9 +33,10 @@ foreach my $path (@paths) {
     $mount_width = length $path if length($path) > $mount_width;
 }
 my $format = join( ' ',
-    "%-${mount_width}s", qw| %12s %12s %12s %7s %21s %12s %12s %9s | ) . "\n";
+    "%-${mount_width}s", qw| %4s %12s %12s %12s %7s %21s %12s %12s %9s | )
+    . "\n";
 my $table = sprintf( $format,
-    qw| MOUNT SIZE USED FREE FREE% |,
+    qw| MOUNT MODE SIZE USED FREE FREE% |,
     qw| INODES_USED/TOTAL INODES_FREE TREND ETA | );
 foreach my $path (@paths) {
     my $m = <system.disk.mounts>->{$path};
@@ -45,19 +46,22 @@ foreach my $path (@paths) {
         : qw| - |;
     $table .= sprintf( $format,
         $path,
+        $m->{'read_only'} ? qw| ro | : qw| rw |,
         $bytes->( $m->{'size'} ),
         $bytes->( $m->{'used'} ),
         $bytes->( $m->{'free'} ),
         sprintf( '%.1f%%', $m->{'free_percent'} ),
-        sprintf( '%d/%d',  $m->{'inodes_used'}, $m->{'inodes'} ),
-        $m->{'inodes_free'},
+        $m->{'inodes_counted'}
+        ? sprintf( '%d/%d', $m->{'inodes_used'}, $m->{'inodes'} )
+        : qw| - |,
+        $m->{'inodes_counted'} ? $m->{'inodes_free'} : qw| - |,
         $trend,
         $duration->( $m->{'eta'} ) );
 }
 return { qw| mode | => qw| size |, qw| data | => $table };
 
-#,,,,,.,,,.,,,.,,,..,,,,,,.,,,,,,,.,,,,,,,,.,,..,,...,...,.,.,,,.,,,,,.,,,,..,
-#UYK6J35NIXXRPJDZA2T2DICWWGDN27XYAASQ24SAQDHGVOVOSGMODQQMIUNJWGOHTIQLW2G3UWV6C
-#\\\|BIYTO6GQ2S6NCYFSBGVCFOZP6NJSXNSJXW3W6RXLHEACZC4YEA4 \ / AMOS7 \ YOURUM ::
-#\[7]ZF23REI2JRDZQYXXV2LIPOFDS3DE3TDWG64LTORZPKN32WFMGEDI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,,.,,,.,..,,.,,,,.,,.,.,...,.,.,..,,...,...,.,.,,,.,,,,,,,.,..,,
+#AZLD33T6HL6E4P727GZSZNDI5V5DZIBQ6FUCVQAYHM74DBOHZQKKBL52MQPZC23E7FQTG5WVZLYGM
+#\\\|AYSU4BLT5JK32YRGZO3GICIRNFRRCJ7EUSISIFBVOIGLGTXRL7K \ / AMOS7 \ YOURUM ::
+#\[7]XEOEXKQ6RHABFAKBKRRFWOMG5Q6YSHMKNLF64BFLLC2VBULTOSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

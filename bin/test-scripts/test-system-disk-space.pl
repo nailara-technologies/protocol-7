@@ -44,6 +44,8 @@ sub load_src {
 my $now        = 100;
 my $free       = 900;
 my $files_free = 900;
+my $files      = 1000;
+my $read_only  = FALSE;
 my @events;
 my @log_levels;
 $data{'disk'}{'warn_free'}                  = 13;
@@ -54,14 +56,20 @@ $data{'disk'}{'absolute_floor_min_size_gb'} = 64;
 $data{'disk'}{'history_samples'}            = 13;
 $code{'base.time'}                          = sub { return $now };
 $code{'system.disk.mounts'}                 = sub {
-    return [ { device => '/dev/fake', path => '/fake', type => 'ext4' } ];
+    return [
+        {   device    => '/dev/fake',
+            path      => '/fake',
+            type      => 'ext4',
+            read_only => $read_only,
+        }
+    ];
 };
 $code{'system.disk.statvfs'} = sub {
     return {
         block_size  => 1,
         blocks      => 1000,
         blocks_free => $free,
-        files       => 1000,
+        files       => $files,
         files_free  => $files_free,
     };
 };
@@ -89,8 +97,35 @@ like $events[0]{'call_args'}{'args'}, qr|critical|,
 
 @events = ();
 delete $data{'system'}{'disk'}{'mounts'};
+$files      = 0;
+$files_free = 0;
+$code{'system.disk.poll'}->();
+is scalar @events, 0, 'healthy first poll emits no recovery';
+ok !$data{'system'}{'disk'}{'mounts'}{'/fake'}{'inodes_counted'},
+    'zero total inodes means inode data is unavailable';
+ok !defined $data{'system'}{'disk'}{'mounts'}{'/fake'}{'inodes_free_percent'},
+    'inode-less filesystem has no inode percentage';
+
+delete $data{'system'}{'disk'}{'mounts'};
+$files      = 1000;
+$files_free = 40;
+$free       = 40;
+$read_only  = TRUE;
+$code{'system.disk.poll'}->();
+is scalar @events, 0, 'read-only mount never warns at startup';
+is $data{'system'}{'disk'}{'interval_state'}{'pressure'}, 0,
+    'read-only mount does not accelerate polling';
+my $read_only_status = $code{'system.disk.cmd.disk-status'}->();
+like $read_only_status->{'data'}, qr|/fake\s+ro\s+|,
+    'read-only mount is marked in disk-status';
+
+@events = ();
+delete $data{'system'}{'disk'}{'mounts'};
+$read_only  = FALSE;
+$free       = 900;
 $files_free = 900;
 $code{'system.disk.poll'}->();
+is scalar @events, 0, 'healthy writable first poll stays silent';
 @events = ();
 $now    = 200;
 $free   = 700;
@@ -140,7 +175,7 @@ is $status_lines[-1],    '', 'status rows end with real newlines';
 is scalar @status_lines, 3,  'header and mount are on separate lines';
 is length( $status_lines[0] ), length( $status_lines[1] ),
     'status columns align with the header';
-like $status->{'data'}, qr|/fake\s+\d+ B\s+\d+ B\s+900 B|,
+like $status->{'data'}, qr|/fake\s+rw\s+\d+ B\s+\d+ B\s+900 B|,
     'disk-status reports aligned mount and byte columns';
 like $status->{'data'}, qr|\d+/\d+\s+\d+\s+.*B/s|,
     'disk-status reports inode counts and trend';
@@ -158,7 +193,7 @@ my @pseudo      = qw|
 open my $mounts_fh, '>', $mounts_file or die $OS_ERROR;
 print {$mounts_fh} "fake /fake/$ARG $ARG rw 0 0\n" for @pseudo;
 print {$mounts_fh} "efivarfs /sys/firmware/efi/efivars efivarfs rw 0 0\n";
-print {$mounts_fh} "/dev/fake /data ext4 rw 0 0\n";
+print {$mounts_fh} "/dev/fake /data ext4 ro,nosuid 0 0\n";
 print {$mounts_fh} "/dev/fake /space\\040dir xfs rw 0 0\n";
 close $mounts_fh;
 $code{'base.cfg_bool'} = sub { return FALSE };
@@ -167,6 +202,9 @@ my $local_mounts = $code{'system.disk.mounts'}->($mounts_file);
 is_deeply [ map { $ARG->{'path'} } @{$local_mounts} ],
     [ '/data', '/space dir' ],
     'pseudo and network mounts are skipped by type';
+is_deeply [ map { $ARG->{'read_only'} ? qw| ro | : qw| rw | }
+        @{$local_mounts} ],
+    [qw| ro rw |], 'read-only flag comes from mount options';
 $code{'system.disk.mounts'} = $fake_mounts;
 
 my $rhythm = $code{'base.interval.rhythm.disk'};
@@ -184,8 +222,8 @@ is $delays[2], 13, 'critical pressure reaches configured floor';
 
 done_testing();
 
-#,,..,.,,,,,.,.,,,..,,..,,..,,...,,,.,..,,.,,,..,,...,...,...,...,.,,,.,,,..,,
-#65VWLFQ3L5732AZPP3X5LPBGINRVWUVEBGVXBQJ2BL5E4XYZVGGVQKJ2QAEA4K4W5COPNKN7W4EMA
-#\\\|6X3FUEILQOZJ7LWLEFNCR5SOEHBAB6ZCYWICXRDMTTXPJGD7SLH \ / AMOS7 \ YOURUM ::
-#\[7]IQNJXOCR2CE33CYMSZCSH5W4XRFNB3326FIEES6STZG4NCMVPWDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,.,,...,,,,,..,,,..,,.,,,..,,,.,..,,...,...,..,,,..,,,,,.,,,,..,
+#OQ7EMKFS3R5IWAKOHDLGHIN4WNKVDM35DUYZKLCVRCO5EHXISBYWVLL4PUXEEO376LRXJYCK2T2WQ
+#\\\|5GMIP5VXN5PWTO4XL24CPHVKN5S3ELKA7XJOHAOJEGRLBZABJV7 \ / AMOS7 \ YOURUM ::
+#\[7]N6ZZDOBNUDDDPSHCDKD4OHPOP7UHVJ3KXS4JLOOWJFJQ654OZ2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,6 +3,7 @@
 ## assets
 ##
 ## usage:  bmw-manifest <directory>            ## generate manifest
+## -o <file.bmw> : the manifest at another path [ write or, with --verify, read ]
 ## (recursive) bmw-manifest --verify <directory>   ## verify against existing
 ## manifest bmw-manifest --verify <file.bmw>    ## verify specific manifest
 ## file
@@ -33,16 +34,23 @@ BEGIN {
 
 my $verify = 0;
 my $target = '';
+## -o : the manifest elsewhere [ a full or read-only source fs ] ##
+my $output;
 
 for ( my $i = 0; $i < @ARGV; $i++ ) {
     if ( $ARGV[$i] eq '--verify' or $ARGV[$i] eq '-v' ) {
         $verify = 1;
+    } elsif ( $ARGV[$i] eq '-o' ) {
+        $output = $ARGV[ ++$i ];
+        die ":\n: -o needs a manifest path\n:\n"
+            unless length( $output // '' );
     } else {
         $target = $ARGV[$i];
     }
 }
 
-die ":\n: usage: bmw-manifest [--verify] <directory|manifest.bmw>\n:\n"
+die ":\n: usage: bmw-manifest [--verify] [ -o "
+    . "<manifest.bmw> ] <directory|manifest.bmw>\n:\n"
     unless length $target;
 
 ## resolve target
@@ -57,6 +65,9 @@ if ( $target =~ m|\.bmw$| and -f $target ) {
     $dir = abs_path($target);
     my $dirname = basename($dir);
     $manifest_path = File::Spec->catfile( dirname($dir), "$dirname.bmw" );
+    ## -o names the manifest file : written there, or read from there with  ##
+    ## --verify -- the paths inside stay relative to dirname( <directory> ) ##
+    $manifest_path = File::Spec->rel2abs($output) if defined $output;
 } else {
     die ":\n: not found: $target\n:\n";
 }
@@ -162,8 +173,8 @@ if ($verify) {
     say ":";
 }
 
-#,,,.,,.,,.,.,,.,,..,,...,,,.,...,..,,..,,.,.,..,,...,...,...,,,.,,.,,.,.,.,.,
-#CLDDCNNL4AZSJEDXZN7KT7K5E5DTATGXOCGQCXFQ2Y2GSDTOLBSI245R4P7TOMALUF2NOU7AINU4M
-#\\\|PAQDWSGUEZGSCQFHJLII64WKQLWXOJJP2OXKN54ONUBHPY23ORD \ / AMOS7 \ YOURUM ::
-#\[7]RYY2KYIAKQ6SYR765VHYFLTMNF27AI7FRCEKBOW6O7QWMUFG5EDI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,..,,.,,...,.,.,..,,,,,,,..,,,,,..,,...,...,..,,..,,,..,..,,,.,,
+#L6HHXUWPNJGXVFL4C6MU2IFQGXGTMM7HAWTHOMXNHYOR45Q2ZDQHLSKBCGZFUTVYC3BJW4TDHG3M2
+#\\\|4F6TSHG4CAYGG5ZBRX3RCLCOYVCIVYSFISNLPZF3XNPPY4PMWCK \ / AMOS7 \ YOURUM ::
+#\[7]BZERD5FTZK7BDH2Z6L4QROZFTQDTG46XADSPBE7VRDMTEFPGDICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

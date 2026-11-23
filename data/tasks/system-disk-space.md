@@ -33,6 +33,12 @@ at the same moment, and nobody was warned before. the system zenka already watch
 - never deletes anything on its own ; a cleanup is a suggestion with candidates [ caches,
   temp dirs, old journals ] and a command the owner runs
 
+## follow-ups from the first live run [ 2026-11-23 ]
+
+- a 'recovered' event at the first poll for a mount that was never in warning [ /boot/efi :
+  vfat reports 0/0 inodes ] -- recovery only after a real warning, 0/0 inodes = not counted
+- read-only mounts [ ro in /proc/self/mounts ] are reported as read-only, never warned about
+
 ## fixed share for a store [ owner 2026-11-23 ]
 
 a store [ n7fs disk, download area, render cache ] may need a fixed share of a shared fs, so
@@ -68,8 +74,8 @@ that does not fit the share.
 - the power \ host-build tools read the same status [ a build refuses a target fs that is too
   small ] ; the net zenka brief's 'owned state' idea fits : the zenka knows what the space is FOR
 
-#,,.,,...,..,,.,.,.,.,,,,,.,,,.,,,..,,.,,,.,.,..,,...,...,.,.,.,.,,.,,.,,,...,
-#HRR3IF3MSL4XIRRLB2E2HZC2SPJI5P74XJHRKPIQW53WZK2MNLYLTES5OWVVRSRJU6U5EUJFJK53E
-#\\\|PATF36CUVD2TAFK7ANICNKI7APE6M6ZEPS3N4ESQ7KSSHTIG4FS \ / AMOS7 \ YOURUM ::
-#\[7]ALITSXFSUIEP24NQRM6MFF25J3GI2SR7BGMORKDVACWEKWOG7MDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,.,,.,,,,.,.,.,,,.,,..,..,,,.,,..,,...,..,,.,,,,.,,,,.,,,,,...,
+#ZMF44FWEQNJ46T53ZCKP6F5MRIVYBYC63WZZ2YVJY6HGBCRL33RZF3U6Y6FKL7VMQ6IQ3W36KYWZS
+#\\\|BL6QUAN4VU5YJCD63ZDZYYLKN2UQSR34D3A3V2MIJHYTOK4BNK7 \ / AMOS7 \ YOURUM ::
+#\[7]6CGCH5YRSB2PSJ57NTJJS4JHT7NX26SVKBNB4D3744XGHQJMA2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
