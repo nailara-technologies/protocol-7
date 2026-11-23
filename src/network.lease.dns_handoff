@@ -2,10 +2,8 @@
 
 # name  = network.lease.dns_handoff
 # param = <iface>
-# descr = hand the dhcp dns servers to nameserv [ log only ]
+# descr = hand the dhcp dns servers to nameserv upstream state
 
-## nameserv has no command to set its upstreams yet : the hand-off is ##
-## logged and kept in <network.dns.upstreams> until it has one        ##
 my $iface = shift                     // return FALSE;
 my $l     = <network.lease>->{$iface} // return FALSE;
 return FALSE if $l->{'reason'} !~ m{^(BOUND|RENEW|REBIND|REBOOT)6?$};
@@ -15,15 +13,24 @@ my $before = join ' ', ( <network.dns.upstreams> // [] )->@*;
 <network.dns.upstreams>       = \@dns;
 <network.dns.upstreams_iface> = $iface;
 return TRUE if $before eq join ' ', @dns;
+
+## fire and forget : a missing nameserv never makes the lease update fail ##
+my $sent = <[protocol-7.command.send.local]>->(
+    {   'command'   => qw| nameserv.set-upstreams |,
+        'call_args' => { 'args' => join( ' ', "dhcp:$iface", @dns ) }
+    }
+);
 <[base.logs]>->(
-    1,
-    ': dns hand-off [ nameserv upstreams, not sent yet ] : %s from %s',
-    join( ' ', @dns ), $iface
+    ( $sent // 0 ) > 0 ? 1 : 0,
+    ': dns hand-off [ nameserv upstreams ] : %s from %s : %s',
+    join( ' ', @dns ),
+    $iface,
+    ( $sent // 0 ) > 0 ? 'sent' : 'not delivered [ nameserv not running ? ]'
 );
 return TRUE;
 
-#,,,,,,.,,..,,.,.,,,,,...,.,,,.,,,,,,,.,,,.,.,..,,...,..,,,,.,.,.,.,,,,..,,,,,
-#FIQVET5LLB5VWVZLHPROJRAB3G4ALA2BYSC4QYRXIQRMI2KNOERUOFHCKQUKYQEE6BM4EHQ435GHI
-#\\\|XOMCYZWU4RFM3CSJ44KHTZDACTVHMRW3BR2XUUGQLG4BBO2HGS5 \ / AMOS7 \ YOURUM ::
-#\[7]W2QUULP7QRP2N7CPGPKT2WR5D2B6PUMSQE4NLBLIJM2IWEXZUYBY 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,..,.,.,,,.,,.,,,,,,,..,,,.,..,,...,...,,..,..,,..,,,.,,,,,,
+#35HHHJPEBNTVYCKZQP7GEKHMA2AT5FSYCBKSYTJS3YB5MAELRI5RQN2JR7EQJI27FDDEUQSTIUJL6
+#\\\|KGYVF2BC5MEMD4NRNF7KGSNOTT3GHNHOUI6EJYUY5JMDUPBMTXH \ / AMOS7 \ YOURUM ::
+#\[7]IORTGSS5JC57GVPFL5NFQCXO6Z4JEVOAPPCW63Y5MWYTNOJHSWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

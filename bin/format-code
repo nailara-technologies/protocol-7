@@ -344,7 +344,8 @@ while ( my $file_path = shift @files ) {
                     next;
                 }
             } else {
-                $final_text = $tidy_out;
+                $final_text = restore_named_unary_deref_space( $tidy_out,
+                    $orig_text );
             }
         }
 
@@ -377,7 +378,8 @@ while ( my $file_path = shift @files ) {
                 errorfile   => \$tidy_errfile,
                 argv        => [@perltidy_args],
             );
-            $final_text = $tidy_out
+            $final_text
+                = restore_named_unary_deref_space( $tidy_out, $orig_text )
                 if not $tidy_rc and defined $tidy_out;
         }
 
@@ -524,7 +526,8 @@ while ( my $file_path = shift @files ) {
             warn color_msg( perltidy_fail_reason($tidy_rc), $file_path );
             next;
         }
-        $final_text = $tidy_out;
+        $final_text
+            = restore_named_unary_deref_space( $tidy_out, $orig_text );
     }
 
     next if $final_text eq $orig_text;    ##  nothing changed , skip  ##
@@ -2743,6 +2746,95 @@ sub transform_regex_body {
     return $out;
 }
 
+## perltidy removes the separator in 'not ( $ref )->@*', changing the parse ##
+## from negating the dereference to dereferencing the negated value.        ##
+## restore only separators present in the source ; an originally tight call ##
+## must not acquire the opposite meaning either. token order pairs          ##
+## occurrences across reflow, including more than one named unary operator  ##
+## in the same file                                                         ##
+sub restore_named_unary_deref_space {
+    my ( $text, $orig_text ) = @ARG;
+    my $before = named_unary_deref_tokens($orig_text);
+    my $after  = named_unary_deref_tokens($text);
+    return $text if not @$before or @$before != @$after;
+
+    my @lines = split m{(?<=\n)}, $text;
+    my @line_offsets;
+    my $offset = 0;
+    for my $line (@lines) {
+        push @line_offsets, $offset;
+        $offset += length $line;
+    }
+
+    my @repairs;
+    for my $idx ( 0 .. $#$before ) {
+        my ( $old, $new ) = ( $before->[$idx], $after->[$idx] );
+        return $text
+            if $old->{'word'}->content ne $new->{'word'}->content;
+        next if not $old->{'spaced'};
+        my $word_loc  = $new->{'word'}->location;
+        my $paren_loc = $new->{'paren'}->location;
+        my $start
+            = $line_offsets[ $word_loc->[0] - 1 ]
+            + $word_loc->[1] - 1
+            + length $new->{'word'}->content;
+        my $end = $line_offsets[ $paren_loc->[0] - 1 ] + $paren_loc->[1] - 1;
+        push @repairs, [ $start, $end ];
+    }
+
+    substr( $text, $_->[0], $_->[1] - $_->[0], ' ' )
+        for reverse sort { $a->[0] <=> $b->[0] } @repairs;
+    return $text;
+}
+
+sub named_unary_deref_tokens {
+    my $text = shift;
+    my $doc  = PPI::Document->new( \$text );
+    return [] if not defined $doc;
+
+    my %named_unary = map { $ARG => 1 } qw|
+        abs alarm chdir chomp chop chr chroot cos defined delete do each eof
+        eval exists exit exp fc fileno getc getpgrp getppid getpwuid gmtime
+        goto hex int keys lc lcfirst length localtime lock log lstat not oct
+        ord pop pos prototype quotemeta rand read readdir readline readlink
+        readpipe ref require reset reverse rewinddir rmdir scalar sin sleep
+        sqrt srand stat study substr symlink syscall sysread sysseek tell
+        telldir tied truncate uc ucfirst umask undef unlink unpack untie
+        values vec wantarray
+        |;
+
+    my @found;
+    my @tokens = (
+        @{ $doc->find('PPI::Token::Word')     // [] },
+        @{ $doc->find('PPI::Token::Operator') // [] }
+    );
+    @tokens = sort {
+               $a->location->[0] <=> $b->location->[0]
+            || $a->location->[1] <=> $b->location->[1]
+    } @tokens;
+    for my $word (@tokens) {
+        next if not $named_unary{ $word->content };
+        my $paren = $word->snext_sibling;
+        next
+            if not $paren
+            or not $paren->isa('PPI::Structure::List');
+        my $arrow = $paren->snext_sibling;
+        next
+            if not $arrow
+            or not $arrow->isa('PPI::Token::Operator')
+            or $arrow->content ne '->';
+        my $next = $word->next_sibling;
+        push @found,
+            {
+            doc    => $doc,
+            word   => $word,
+            paren  => $paren,
+            spaced => $next->isa('PPI::Token::Whitespace') ? 1 : 0,
+            };
+    }
+    return \@found;
+}
+
 ##[ utilities ]##
 sub length_no_nl {
     my $s = shift;
@@ -3446,8 +3538,8 @@ sub show_progress {
     );
 }
 
-#,,.,,,,.,,.,,..,,..,,..,,...,..,,,.,,,,,,,,,,..,,...,...,...,,..,,..,.,,,,..,
-#7W3D7OMRKR3Q75U6SKXE4DS2NSVVO5BLK6RZETYYJ5BGPMB7LKJ2BQGM3XKBGV7AA4W6XZRB4NP5I
-#\\\|DP6LZI5XZ4VTDLZRVYD2W22KKU3UEY5OJJD7LCQRPR7W5XVU43B \ / AMOS7 \ YOURUM ::
-#\[7]AXVGUUDJ4QDC7BNGKBEDXFGXQTGFQVCEOONONSKJEUDFDZKMCUDI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,.,,.,.,..,,,.,,,,,,,..,..,,..,,...,..,,...,.,.,...,..,,,,,,
+#2QRT4CI5X4XTKLHYNZXKWH2UR2C2BMJXADQOJ4HIPXYYDCSFUIYHTLUNTURDKK245KP7NYBH2U4OO
+#\\\|3GJY3NFEVGFFT3ZRPXXK6NX7EIF3FOIU2MGXQAZPX3XMWTOU4IX \ / AMOS7 \ YOURUM ::
+#\[7]SRWDOTMJKJCFH67RQWQRLPGAQHREEUOBWZPOYVKV4E7OAT5S4KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

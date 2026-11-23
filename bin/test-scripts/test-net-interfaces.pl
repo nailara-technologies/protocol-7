@@ -151,6 +151,11 @@ put( "$root/run/network/ifstate", "lo=lo\neth0=eth0\n" );
 $code{'network.interfaces.ip_addr_text'} = sub { return $ip_text };
 ## test-net-nodes-power.pl ##
 $code{'network.lease.announce'} = sub { return 0 };
+my @sent_upstreams;
+$code{'protocol-7.command.send.local'} = sub {
+    push @sent_upstreams, $ARG[0];
+    return 0;
+};
 ## roles : real module in test-net-nodes-power.pl ##
 $code{'network.interfaces.roles'} = sub {
     return {
@@ -320,6 +325,15 @@ ok(
 );
 is_deeply $data{'network'}{'dns'}{'upstreams'},
     [ '192.0.2.1', '192.0.2.53' ], 'upstreams kept';
+is_deeply \@sent_upstreams,
+    [
+    {   command   => 'nameserv.set-upstreams',
+        call_args => { args => 'dhcp:eth0 192.0.2.1 192.0.2.53' }
+    }
+    ],
+    'upstreams routed to nameserv';
+ok( ( grep {m|not delivered \[ nameserv not running \? \]|} @logged ),
+    'missing nameserv is non-fatal' );
 
 ## restart : empty table, load from the state file ##
 $data{'network'}{'lease'} = {};
@@ -372,8 +386,8 @@ ok !( grep {m|dns hand-off|} @logged[ $n .. $#logged ] ),
 
 done_testing;
 
-#,,,,,,..,,..,.,.,..,,,,.,,..,...,,,,,,..,,..,..,,...,..,,,..,..,,,,.,,,,,.,.,
-#7ZT4QRXFH5JJKOVILZGHVHI2UDOP7FBRRGDJZ65JONOH7DFNJEG7X7IW3REQBDAOPOX7T3Z3VZX4G
-#\\\|4TK457O2BCDZXD5MQXYBEW2TABECC2N3VV6ZHPNHFHRVXBQJEZZ \ / AMOS7 \ YOURUM ::
-#\[7]FRI7JIPOSWQG5FVM3X6EGFQOZJFTOZZ2THCZ436UUE5VPYB2XWCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,...,...,...,...,,.,,,,.,,,,,...,..,,...,...,..,,..,,,.,,..,,,,,,
+#ENLOTCF5MJQ5N2Y3EMAO5PPNV3DZ3WS3P3SKTJI6SVPNQEPMTUN244P5ZGL7MXN24U5LCYFCDGMUU
+#\\\|3KCSNTCPW3O2CNGPQU6HD5MOVYGD3U6AIF3RU6IJ7TJCGJLSZAH \ / AMOS7 \ YOURUM ::
+#\[7]XMN5SEZLBNNCABOWHNY2ZC5VIPXMLYHAZCDXLXL6KC2ZREVFY6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = nameserv.cmd.set-upstreams
+# descr = replace the upstream addresses for one source
+
+my ( $source, @addresses ) = split m|\s+|, $call->{'args'} // '';
+$source //= '';
+
+return { mode => 'false', data => 'usage: set-upstreams <source> <addr> ..' }
+    if $source !~ m{^[a-z][a-z0-9_.-]*(?::[a-z0-9_.-]+)*$}
+    or not @addresses;
+
+my @canonical;
+my %seen;
+for my $address (@addresses) {
+    my $validated = <[nameserv.upstream_address]>->($address);
+    return { mode => 'false', data => "invalid ip address: $address" }
+        if not defined $validated;
+    push @canonical, $validated if not $seen{ lc $validated }++;
+}
+
+<nameserv.upstreams.by_source> //= {};
+<nameserv.upstreams.by_source>->{$source} = \@canonical;
+delete <nameserv.cache.upstream_list>;
+
+return {
+    mode => 'size',
+    data => sprintf(
+        "upstreams for %s:\n  %s", $source, join( ' ', @canonical )
+    )
+};
+
+#,,,.,,.,,,,,,...,...,,,.,,.,,,.,,.,,,...,...,..,,...,...,...,,,.,.,.,..,,.,,,
+#7TZI73G2XQXPZPLBRJ2SI2NYISMX33X57MGD3WRDGL2CVK246NMLU2MABHBCIWQ6KXYKMZ4XL4I56
+#\\\|2LJC7DMNHO27K4HBA55GV72PXRVUBGHZLVMXMQYKXDXDDM2YBRV \ / AMOS7 \ YOURUM ::
+#\[7]JMUIDFJEBHI2P2NQG5WHQ7RDSQKIR5JX66KQMAKPF24HZHFFQIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

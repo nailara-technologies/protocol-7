@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = nameserv.upstream_entries
+# descr = active upstream addresses in static then source order
+
+my @entries;
+my %seen;
+
+my $add_entry = sub {
+    my ( $server, $source ) = @ARG;
+    my $address = $server;
+    my $suffix  = '';
+    if ( $server =~ m{^\[(.+)\](:\d+)$} ) {
+        ( $address, $suffix ) = ( $1, $2 );
+    } elsif ( $server =~ m{^([\d.]+)(:\d+)$} ) {
+        ( $address, $suffix ) = ( $1, $2 );
+    }
+    my $canonical = <[nameserv.upstream_address]>->($address) // return;
+    my $value     = $canonical . $suffix;
+    return if $seen{ lc $value }++;
+    push @entries, { 'address' => $value, 'source' => $source };
+    return;
+};
+
+for my $server ( split m|\s+|, <nameserv.cfg.cache.upstream> // '' ) {
+    $add_entry->( $server, 'static' ) if length $server;
+}
+
+my $by_source = <nameserv.upstreams.by_source> // {};
+for my $source ( sort keys %$by_source ) {
+    $add_entry->( $ARG, $source ) for @{ $by_source->{$source} // [] };
+}
+
+return @entries;
+
+#,,,.,..,,.,.,,.,,..,,,.,,...,..,,,.,,.,,,,.,,..,,...,...,,,.,,,,,...,...,,.,,
+#FE7YWNEMDB2XYKKWDYPWIYFJCKBWDYPC44RPFOQ2PSSBILKHW6FVF7UTTXVUPR3JEQJJZ2K764ZCS
+#\\\|S4IP3U5Y4PLH4FWYV3TSWTXYCLRO35QF4ZQFFZRLKNOHBEKTSFB \ / AMOS7 \ YOURUM ::
+#\[7]GERZYGX6MWJF2T5AIDV232KNEY4R5CDNWGOYSIRQRF5LXUBYM4CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

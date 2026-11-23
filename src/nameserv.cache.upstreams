@@ -3,18 +3,15 @@
 # name  = nameserv.cache.upstreams
 # descr = upstream resolver list for the forwarding cache [ read once ]
 
-## configured ips win ; without them the nameserver lines of                ##
+## configured static ips come first, then per-source lists [ dhcp etc. ],   ##
+## deduplicated. without active entries the nameserver lines of             ##
 ## /etc/resolv.conf are used, loopback addresses excluded -- the cache must ##
 ## never ask itself. read once, the first time, then cached                 ##
 
 my $cached = <nameserv.cache.upstream_list>;
 return @$cached if ref $cached eq qw| ARRAY |;
 
-my @upstreams;
-my $configured = <nameserv.cfg.cache.upstream> // '';
-for my $server ( split m|\s+|, $configured ) {
-    push @upstreams, $server if length $server;
-}
+my @upstreams = map { $ARG->{'address'} } <[nameserv.upstream_entries]>;
 
 if ( not scalar @upstreams ) {
     if ( open my $fh, '<:encoding(UTF-8)', '/etc/resolv.conf' ) {
@@ -32,8 +29,8 @@ if ( not scalar @upstreams ) {
 
 return @upstreams;
 
-#,,..,,.,,...,,,.,.,.,.,.,,,.,...,.,,,...,,,.,..,,...,...,,.,,,,.,,..,.,,,,,,,
-#OR2HSV4R3364J4A4CAKLG5IA2IGUG3IVXMWAJK56YLISJXUF3CD3J4SHRXTHZQXZWLT5O2UCJQFJM
-#\\\|HTEFO4JPZV3NZUBTBABT6YALK3JZK3MWFAMGDHOZK2FXDAQH74Y \ / AMOS7 \ YOURUM ::
-#\[7]AINSBXFPIVAURIXD2IOICFSZKNSKLVK7DDP5RK3IHCGH7MEOZ2AA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,.,.,.,.,.,,,..,,,.,,,,.,.,.,..,,...,...,...,,,.,,..,,..,,.,,
+#DOEPKOQMBDSKLAALUCNBAVJ66LK6MSX3G5HFTJN7R7VKTJ3PREZIEP2LYQ5DAV2WB4ZERSAZWPH66
+#\\\|KKMTZBY3TWGORS5IFFHUPSN6WTI54PBDRRAFAJSEQWBROGHX3F7 \ / AMOS7 \ YOURUM ::
+#\[7]2Z3E3W4XEOA7VITOSRX5GDVZR5HA6WULTICRCWWODHKBXSNRH2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

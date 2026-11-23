@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = nameserv.cmd.upstreams
+# descr = show active upstream addresses and their sources
+
+my @entries = <[nameserv.upstream_entries]>;
+return { mode => 'size', data => "active upstreams:\n  [none]" }
+    if not @entries;
+
+return {
+    mode => 'size',
+    data => "active upstreams:\n"
+        . join( "\n",
+        map { sprintf '  %s [%s]', $ARG->{'address'}, $ARG->{'source'} }
+            @entries )
+};
+
+#,,,,,,..,..,,.,.,,..,,,,,..,,,,,,,.,,,..,.,.,..,,...,...,...,.,.,..,,,..,.,,,
+#NWORJJPS4JL5PSPGFRG5ASMIEFHKLSMGYCZFD4I5BF43IZKYOAQLBVVBZ5LBU5WR6XHCKDEVTDAN6
+#\\\|IZRMKRXFHZFQTLHBA3CNVZJUP5KZDDZKHJKM5YBRO3IQUFX7BN5 \ / AMOS7 \ YOURUM ::
+#\[7]XQ7Y3GNZ7EAGB3HZ7ZX6TOPNG4OEPUYPBN3OO26O45I3E37RL4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

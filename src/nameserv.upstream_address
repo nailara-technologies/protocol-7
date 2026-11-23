@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = nameserv.upstream_address
+# descr = validate and canonicalize one upstream ip address
+
+require Socket;
+
+my $ip = shift // return undef;
+for my $family ( Socket::AF_INET(), Socket::AF_INET6() ) {
+    my $packed = Socket::inet_pton( $family, $ip ) // next;
+    return Socket::inet_ntop( $family, $packed );
+}
+return undef;
+
+#,,..,...,,..,..,,.,.,,..,.,,,,.,,,,.,,,,,,,.,..,,...,...,..,,.,,,,,.,,,.,.,.,
+#NH2DBQ7QU4P3ENB6JPBCHS76BFMQCQIVKPXUEZL672TMM2NCF3ISXPZIXEZC22XHVVS6MZO2FX6EW
+#\\\|L5STRHMXXAUIPYJB44B6G5J2AT6XVOBZEKOSEM5PQOUDL42ZVUE \ / AMOS7 \ YOURUM ::
+#\[7]YP5VHGVAHBNSXVABO73GAZXIKXXVE3MK6R237QUNQPAFCPP5BCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

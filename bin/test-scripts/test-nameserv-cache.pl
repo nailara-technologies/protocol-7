@@ -119,7 +119,11 @@ for my $mod (
     nameserv.cache.key
     nameserv.cache.get
     nameserv.cache.put
+    nameserv.upstream_address
+    nameserv.upstream_entries
     nameserv.cache.upstreams
+    nameserv.cmd.set-upstreams
+    nameserv.cmd.upstreams
     nameserv.cache.forward
     nameserv.cache.forward.try
     nameserv.cache.forward.next
@@ -251,12 +255,13 @@ sub reset_state {
             'cache_servfail'  => 0,
         },
     };
-    $data{'nameserv'}{'dns_tcp'}{'conns'}   = {};
-    $data{'nameserv'}{'cache'}{'entries'}   = {};
-    $data{'nameserv'}{'cache'}{'in_flight'} = {};
-    @io_watchers                            = ();
-    @timers                                 = ();
-    @logs                                   = ();
+    $data{'nameserv'}{'dns_tcp'}{'conns'}       = {};
+    $data{'nameserv'}{'cache'}{'entries'}       = {};
+    $data{'nameserv'}{'cache'}{'in_flight'}     = {};
+    $data{'nameserv'}{'upstreams'}{'by_source'} = {};
+    @io_watchers                                = ();
+    @timers                                     = ();
+    @logs                                       = ();
     return;
 }
 
@@ -289,6 +294,38 @@ sub wait_readable {
     vec( $rin, fileno($sock), 1 ) = 1;
     return scalar select $rin, undef, undef, $timeout // 3;
 }
+
+## --- per-source upstream commands                       ##
+## ------------------------------------------------------ ##
+
+reset_state();
+set_upstreams( '192.0.2.53', '2001:0db8:0:0::53' );
+$call = { 'args' => 'dhcp:eth0 192.0.2.54 2001:db8::53 192.0.2.53' };
+my $set_upstream_result = $code{'nameserv.cmd.set-upstreams'}->();
+check 'set-upstreams : valid source and addresses accepted',
+    $set_upstream_result->{'mode'} eq 'size';
+check 'set-upstreams : static first, dhcp second, deduplicated',
+    join( ' ',
+    map { $ARG->{'address'} } $code{'nameserv.upstream_entries'}->() ) eq
+    '192.0.2.53 2001:db8::53 192.0.2.54';
+check 'upstreams : display includes each source',
+    $code{'nameserv.cmd.upstreams'}->()->{'data'}
+    =~ m{192\.0\.2\.54 \[dhcp:eth0\]};
+check 'cache upstreams : active per-source list feeds forwarding',
+    join( ' ', $code{'nameserv.cache.upstreams'}->() ) eq
+    '192.0.2.53 2001:db8::53 192.0.2.54';
+
+$call                = { 'args' => 'dhcp:eth0 999.1.1.1' };
+$set_upstream_result = $code{'nameserv.cmd.set-upstreams'}->();
+check 'set-upstreams : invalid ipv4 rejected',
+    $set_upstream_result->{'mode'} eq 'false';
+check 'set-upstreams : rejected update preserves the previous source',
+    join( ' ', $data{'nameserv'}{'upstreams'}{'by_source'}{'dhcp:eth0'}->@* )
+    eq '192.0.2.54 2001:db8::53 192.0.2.53';
+check 'upstream address : ipv6 canonicalized',
+    $code{'nameserv.upstream_address'}->('2001:0db8::0001') eq '2001:db8::1';
+check 'upstream address : non-address rejected',
+    not defined $code{'nameserv.upstream_address'}->('resolver.example');
 
 ## --- client_allowed                                     ##
 ## ------------------------------------------------------ ##
@@ -1154,8 +1191,8 @@ say '';
 say "passed : $pass_count  failed : $fail_count";
 exit( $fail_count ? 1 : 0 );
 
-#,,,.,..,,,,,,,,,,,,.,,..,..,,,,.,,,,,,..,...,..,,...,..,,.,.,...,.,,,...,..,,
-#3QPR6UV7CDSNBBRW6TXRFXW6R7SWUY2TGMQZFUOXOVKRAP4FFVONBBHSUFK3P5OFMTCGZRBIHKAZI
-#\\\|7L7DOAUDOID3EOSKOJT37RHUAR5RDAVUSCWVOS7N7ZIHGGM72BX \ / AMOS7 \ YOURUM ::
-#\[7]4ZJLHMYHDHOSUKSYUVQ7J3L5DKUEWGYS32Z7SXSAFUAFHX23LCBA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,,.,...,,.,,.,,,,..,,,.,...,,..,..,,...,...,..,,.,,,,,,,.,.,,.,,
+#ZDWBZJJW33LHQ75M3NQMCI3GSUQVOANQQNBJG4YBUSPHG54E46CLM65UTZVUI5ATWGU2BPBMERSI2
+#\\\|IW37EUJRUGOPSR4GJV3U626NSDQV4VVHVM4QBCTE2PY5XLXGPS6 \ / AMOS7 \ YOURUM ::
+#\[7]LLWEX7RBHXY3PEK2MV4TGWU7MZWDHLRBNZ76GDICBS7F5H2DIUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
