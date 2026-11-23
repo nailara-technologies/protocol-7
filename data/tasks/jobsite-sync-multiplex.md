@@ -1,5 +1,32 @@
 ## task: jobsite sync multiplexing — multi-endpoint + multi-jobsite coordination
 
+### regression [ owner 2026-11-23, fix later ]
+
+the jobsite ui shows 'Sync Fehler 429' [ too many requests ]. suspect first : the httpd \
+httpsd rate limiting that came with the signed files work [ the live test's disconnect \ rate
+limit checks, 2026-11-22 ] now limits the sync endpoint the ui polls or pushes to. check which
+limiter answers 429, whether the sync route should be exempt or have its own budget, and that
+the ui backs off on 429 [ Retry-After ] instead of showing an error per attempt.
+
+fix direction [ owner ] : the web zenka signs its sync requests, httpd accepts a known key
+for it and gives signed requests their own budget instead of the anonymous rate limit.
+- trust on first use : the first key seen for the web zenka is pinned [ like the 77-char host
+  pins ] ; a different key later is refused and reported, never silently re-pinned
+- the pin is best made over an authenticated path [ the cube session between the zenki, or
+  the owner confirming once ] -- a first use over the open web could pin an attacker's key
+- each signed request carries ntime + a nonce + the body checksum [ bmw ], so a captured
+  request cannot be replayed or altered ; httpd keeps a short replay window
+- unsigned requests keep the normal rate limit [ nothing else changes for visitors ]
+
+general rule for httpd [ owner agreed ] : sign the decision, not the volume. one mechanism
+in httpd that sync and streams share :
+- state-changing calls [ sync push, commands ] : every request signed [ ntime, nonce, body ]
+- long streams [ radio audio, mpv, file transfers ] : one signed handshake, then a short-lived
+  session token bound to that connection -- its own budget, no per-chunk signature
+- stream integrity where it matters [ untrusted hops, recordings that must be provable later ] :
+  a bmw checksum chain over the chunks with a signed checkpoint every few seconds
+- public read-only content : the signed files httpd serves already, no sender identity
+
 ### vision
 
 `jobsite.sync.push` currently targets one `jobsite.cfg.sync_url`. the
@@ -163,8 +190,8 @@ multi-jobsite reverse fan-out requires auth to be safe.
 
 ## dispatch
 
-#,,.,,,,.,...,,.,,..,,,,.,.,.,,..,.,.,,.,,,,.,..,,...,...,..,,.,.,,.,,,,,,,.,,
-#7MK6YJH4KCECLVY72MSLQZGM5ZZ4SGKWJ23IQ2IMDMTZMUYRE54FQATL3NBIHAQM4Q7KUYZZT3LO4
-#\\\|YDG6YC4WD2TJUXCWIQEFPRSW3BENDLZPVOPAYEJCGKPMPX6YAYA \ / AMOS7 \ YOURUM ::
-#\[7]RYQLDEROTRMYHV4QCTOK7SE5L2O2Z6H6A5QZSXXSRDM2AYE64KBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,..,,,,.,,..,...,,..,.,.,,..,,.,,..,,...,...,...,,,,,.,.,..,,..,,
+#TRW2FIJZDJSNFNNE2T5FLYBI5WKX2QERX3SNQ6EID3ML33JOZ5DLIGYWJKMID4C7XZPS6Z4FL2SZW
+#\\\|4G6RUEVPOMUEI62ZEGONJ6CZ3GTAILYMI3FUSEBNH4DG2EZDXTU \ / AMOS7 \ YOURUM ::
+#\[7]CJ3SR5K6SN4T3A5Z2VU5ACFOA2WOBU66EVZDLYTU6LIIRUSXGGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
