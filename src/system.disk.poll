@@ -65,8 +65,9 @@ foreach my $mount ( @{$mounts} ) {
         or $free <= $crit_bytes
         or $inode_free_pct <= $crit_pct;
 
-    my $previous = $old->{$path};
-    my $history  = $previous->{'history'} // [];
+    my $previous   = $old->{$path};
+    my $first_seen = not defined $previous;
+    my $history    = $previous->{'history'} // [];
     push @{$history}, { qw| at | => $now, qw| free | => $free };
     shift @{$history} while @{$history} > ( <disk.history_samples> // 13 );
     my ( $rate, $eta );
@@ -103,8 +104,8 @@ foreach my $mount ( @{$mounts} ) {
         qw| eta |                 => $eta,
     };
 
-    my $old_level = $previous->{'level'} // 0;
-    next if $level == $old_level;
+    my $old_level = $first_seen ? 0 : $previous->{'level'};
+    next if not $first_seen and $level == $old_level;
     my $kind
         = $level == 0 ? qw| recovered |
         : $level == 2 ? qw| critical |
@@ -112,7 +113,7 @@ foreach my $mount ( @{$mounts} ) {
     my $message = sprintf
         '%s : %s [ %.1f %% bytes, %.1f %% inodes free ]',
         $path, $kind, $free_pct, $inode_free_pct;
-    <[base.logs]>->( $level == 2 ? 0 : 1, 'disk space : %s', $message );
+    <[base.logs]>->( 0, 'disk space : %s', $message );
     my $quoted = $message =~ s|'|\\'|gr;
     <[protocol-7.route-send]>->(
         {     qw| command | => $level == 0
@@ -128,8 +129,8 @@ foreach my $mount ( @{$mounts} ) {
 <system.disk.interval_state> {'pressure'} = $max_pressure;
 return $current;
 
-#,,.,,,,.,.,,,.,.,,,,,,,,,,,.,...,,,,,.,.,.,,,..,,...,...,.,,,..,,,.,,,.,,,.,,
-#EQ3NPA5EC2BO3UCQ4NECCNXOQY3W3V7JIDEUYNTX7LYOFBPHI7ZOTFN42B7VVXFM7KKL47SA4AE7E
-#\\\|FXO6WC7YQVZ4MKAN6VRDYD6TCF2X7S3BYGONGSJQD7UKHMBD2R7 \ / AMOS7 \ YOURUM ::
-#\[7]EONGTOSLAPFJRYNRT6ULTLFG56TUABFUVUALB5F7ZGXA2MLJX4CY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,..,,.,,,.,.,,..,,,.,.,.,,..,..,,...,...,..,,...,,,,,,,,,,,.,
+#ZFBVSZPVMVS443YPWAIMQNL7QTWGF4DNSOFXZ2LZTLQAVIOEGUDLHPUSZYJ6WR6POHQAGIBLTOPVM
+#\\\|TO6QW6VTX5IRHM4H2SOZ4DWWVVVWOCN524TQXTOVQLST2DSTOBN \ / AMOS7 \ YOURUM ::
+#\[7]UXCYNCX33GEEFTURZBTS3VBJAX3FIGFW6TVNYUGCZCO6FSRDLICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

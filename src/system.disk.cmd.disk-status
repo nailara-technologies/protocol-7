@@ -22,30 +22,42 @@ my $duration = sub {
     return sprintf '%.1f h',   $seconds / 3600 if $seconds < 187200;
     return sprintf '%.1f d',   $seconds / 86400;
 };
-my @lines
-    = 'mount : size used free [ percent ] '
-    . '| inodes used/total free : trend eta';
-foreach my $path ( sort keys <system.disk.mounts>->%* ) {
+my @paths = sort keys <system.disk.mounts>->%*;
+return {
+    qw| mode | => qw| size |,
+    qw| data | => "no local file systems sampled\n"
+    }
+    if not @paths;
+my $mount_width = length qw| MOUNT |;
+foreach my $path (@paths) {
+    $mount_width = length $path if length($path) > $mount_width;
+}
+my $format = join( ' ',
+    "%-${mount_width}s", qw| %12s %12s %12s %7s %21s %12s %12s %9s | ) . "\n";
+my $table = sprintf( $format,
+    qw| MOUNT SIZE USED FREE FREE% |,
+    qw| INODES_USED/TOTAL INODES_FREE TREND ETA | );
+foreach my $path (@paths) {
     my $m = <system.disk.mounts>->{$path};
     my $trend
         = defined $m->{'rate'}
         ? sprintf( '%s/s', $bytes->( $m->{'rate'} ) )
         : qw| - |;
-    push @lines,
-        sprintf(
-        '%s : %s %s %s [ %.1f %% ] | %d/%d %d : %s %s',
-        $path,                    $bytes->( $m->{'size'} ),
-        $bytes->( $m->{'used'} ), $bytes->( $m->{'free'} ),
-        $m->{'free_percent'},     $m->{'inodes_used'},
-        $m->{'inodes'},           $m->{'inodes_free'},
-        $trend,                   $duration->( $m->{'eta'} )
-        );
+    $table .= sprintf( $format,
+        $path,
+        $bytes->( $m->{'size'} ),
+        $bytes->( $m->{'used'} ),
+        $bytes->( $m->{'free'} ),
+        sprintf( '%.1f%%', $m->{'free_percent'} ),
+        sprintf( '%d/%d',  $m->{'inodes_used'}, $m->{'inodes'} ),
+        $m->{'inodes_free'},
+        $trend,
+        $duration->( $m->{'eta'} ) );
 }
-push @lines, qw| no local file systems sampled | if @lines == 1;
-return { qw| mode | => qw| true |, qw| data | => join( "\n", @lines ) };
+return { qw| mode | => qw| size |, qw| data | => $table };
 
-#,,..,...,,,,,,..,,,,,,.,,,,.,,..,,,,,,.,,..,,..,,...,...,..,,,,.,,,.,,..,.,.,
-#XQWAWP5VRAIVHGCV6NJRA3IKAUCWMTCKAJE23PMQAN73CJJ2IMOHK4BMPQ2QAFWQC4MGNZFG3NWTC
-#\\\|F7KMU6BYA5AOSWXMEXTZNILXKXCH67EA4S5UFFZ5GT75XWHLH5J \ / AMOS7 \ YOURUM ::
-#\[7]E7Q7UMXP7KECZAU26RT4KVFNMVD2S3ORVHTQ7CLIWT3P6EQVMYDI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,,,..,,,,,,.,,,,,,,.,,,,,,,,.,,..,,...,...,.,.,,,.,,,,,.,,,,..,
+#UYK6J35NIXXRPJDZA2T2DICWWGDN27XYAASQ24SAQDHGVOVOSGMODQQMIUNJWGOHTIQLW2G3UWV6C
+#\\\|BIYTO6GQ2S6NCYFSBGVCFOZP6NJSXNSJXW3W6RXLHEACZC4YEA4 \ / AMOS7 \ YOURUM ::
+#\[7]ZF23REI2JRDZQYXXV2LIPOFDS3DE3TDWG64LTORZPKN32WFMGEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

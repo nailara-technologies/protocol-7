@@ -33,13 +33,43 @@ at the same moment, and nobody was warned before. the system zenka already watch
 - never deletes anything on its own ; a cleanup is a suggestion with candidates [ caches,
   temp dirs, old journals ] and a command the owner runs
 
+## fixed share for a store [ owner 2026-11-23 ]
+
+a store [ n7fs disk, download area, render cache ] may need a fixed share of a shared fs, so
+it can never fill the disk others write to. two ways :
+
+- xfs project quota on the store directory [ prjquota mount option, xfs_quota project + limit ] :
+  a hard size and inode limit for one tree, no extra layer, grown or shrunk at once by a new
+  limit -- the preferred way on xfs
+- a container file [ sparse file + loop + xfs ] : a movable \ sendable unit with its own fs ;
+  grows online [ truncate, losetup -c, xfs_growfs ] but never shrinks ; for stores that must
+  travel as one file [ a stick, a holder image ]
+
+the system zenka reports a store against its share as well as the fs ; n7fs refuses an import
+that does not fit the share.
+
+- auto-grow with a ceiling [ owner ] : a share starts small and grows in steps as its content
+  grows [ a project quota limit raised, or a container file extended + xfs_growfs ], never past
+  its configured maximum
+- shares on one fs know each other : before a step the system zenka checks the free space of
+  the fs against what the OTHER shares may still claim [ their ceilings minus their use ] and
+  a reserve for everything else ; a step that would let the promised ceilings exceed the fs is
+  refused or made smaller, with the numbers -- the shares are one ledger per fs, owned by the
+  system zenka, not by each store
+- the step size and the check rhythm come from base.interval [ no fixed steps ]
+- shrinking : a project quota limit is lowered at once [ down to the current use ]. a container
+  file never shrinks its fs [ xfs ] -- a smaller ceiling means a second, smaller container, a
+  copy, a swap [ room for both meanwhile ]. real space still comes back without that : fstrim
+  on the mounted container [ or the discard mount option ] punches the freed blocks out of the
+  sparse file
+
 ## ties
 
 - the power \ host-build tools read the same status [ a build refuses a target fs that is too
   small ] ; the net zenka brief's 'owned state' idea fits : the zenka knows what the space is FOR
 
-#,,,.,,..,,,,,.,,,...,,.,,,,.,...,.,.,,,.,,,,,..,,...,...,..,,.,.,.,,,..,,,.,,
-#NVXWNDGWBCHZALXNW2N24FKH7BLCNAP42Q6APQDMBADQUMYO4JIX255GJBKFNEOIVVDYSFZCFZWIO
-#\\\|A2UEU4GS7DDIG7BER2DE4DMQJJWE4EBKJZHWV3XMMWAYDKEJNEF \ / AMOS7 \ YOURUM ::
-#\[7]EIKOE4NTXWQP5NHQLTM2KVJ7ZV4MXPPQZVVGAPUXTFVXCNOISMBY 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,.,.,,,,,.,,,.,,,..,,.,,,.,.,..,,...,...,.,.,.,.,,.,,.,,,...,
+#HRR3IF3MSL4XIRRLB2E2HZC2SPJI5P74XJHRKPIQW53WZK2MNLYLTES5OWVVRSRJU6U5EUJFJK53E
+#\\\|PATF36CUVD2TAFK7ANICNKI7APE6M6ZEPS3N4ESQ7KSSHTIG4FS \ / AMOS7 \ YOURUM ::
+#\[7]ALITSXFSUIEP24NQRM6MFF25J3GI2SR7BGMORKDVACWEKWOG7MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
