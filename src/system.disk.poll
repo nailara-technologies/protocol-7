@@ -1,0 +1,135 @@
+## [:< ##
+
+# name  = system.disk.poll
+# descr = update space thresholds, trends and crossing notifications
+
+my $now          = <[base.time]>->(2);
+my $mounts       = <[system.disk.mounts]> // [];
+my $old          = <system.disk.mounts>   // {};
+my $current      = {};
+my $max_pressure = 0;
+my $gib          = 1024**3;
+
+foreach my $mount ( @{$mounts} ) {
+    my $path = $mount->{'path'};
+    my $stat = <[system.disk.statvfs]>->($path) // next;
+    next if not $stat->{'block_size'} or not $stat->{'blocks'};
+
+    my $size = $stat->{'blocks'} * $stat->{'block_size'};
+    my $free = $stat->{'blocks_free'} * $stat->{'block_size'};
+    $free = 0 if $free < 0;
+    my $used = $size - $free;
+    $used = 0 if $used < 0;
+    my $free_pct = 100 * $free / $size;
+    my $inode_free_pct
+        = $stat->{'files'}
+        ? 100 * $stat->{'files_free'} / $stat->{'files'}
+        : 100;
+
+    my $cfg      = <disk.mount>->{$path}      // {};
+    my $warn_pct = $cfg->{'warn_free'}        // <disk.warn_free>;
+    my $crit_pct = $cfg->{'critical_free'}    // <disk.critical_free>;
+    my $warn_min = $cfg->{'warn_min_free_gb'} // <disk.warn_min_free_gb>;
+    my $crit_min = $cfg->{'critical_min_free_gb'}
+        // <disk.critical_min_free_gb>;
+    my $floor_min = $cfg->{'absolute_floor_min_size_gb'}
+        // <disk.absolute_floor_min_size_gb>;
+    my $warn_bytes = $size >= $floor_min * $gib ? $warn_min * $gib : 0;
+    my $crit_bytes = $size >= $floor_min * $gib ? $crit_min * $gib : 0;
+    my $warn_limit
+        = $warn_pct > 100 * $warn_bytes / $size
+        ? $warn_pct
+        : 100 * $warn_bytes / $size;
+    my $crit_limit
+        = $crit_pct > 100 * $crit_bytes / $size
+        ? $crit_pct
+        : 100 * $crit_bytes / $size;
+
+    foreach my $available ( $free_pct, $inode_free_pct ) {
+        my $pressure
+            = $available <= $crit_limit
+            ? 1
+            : ( $warn_limit - $available )
+            / ( $warn_limit - $crit_limit || 1 );
+        $pressure     = 0         if $pressure < 0;
+        $max_pressure = $pressure if $pressure > $max_pressure;
+    }
+
+    my $level = 0;
+    $level = 1
+        if $free_pct <= $warn_pct
+        or $free <= $warn_bytes
+        or $inode_free_pct <= $warn_pct;
+    $level = 2
+        if $free_pct <= $crit_pct
+        or $free <= $crit_bytes
+        or $inode_free_pct <= $crit_pct;
+
+    my $previous = $old->{$path};
+    my $history  = $previous->{'history'} // [];
+    push @{$history}, { qw| at | => $now, qw| free | => $free };
+    shift @{$history} while @{$history} > ( <disk.history_samples> // 13 );
+    my ( $rate, $eta );
+    if ( @{$history} > 1 ) {
+        my ( $sum_x, $sum_y, $sum_xx, $sum_xy ) = ( 0, 0, 0, 0 );
+        my $first_at = $history->[0]{'at'};
+        foreach my $sample ( @{$history} ) {
+            my $x = $sample->{'at'} - $first_at;
+            $sum_x  += $x;
+            $sum_y  += $sample->{'free'};
+            $sum_xx += $x * $x;
+            $sum_xy += $x * $sample->{'free'};
+        }
+        my $n       = scalar @{$history};
+        my $divisor = $n * $sum_xx - $sum_x * $sum_x;
+        $rate = ( $n * $sum_xy - $sum_x * $sum_y ) / $divisor
+            if $divisor > 0;
+        $eta = $free / -$rate if defined $rate and $rate < 0;
+    }
+
+    $current->{$path} = {
+        %{$mount},
+        qw| size |                => $size,
+        qw| used |                => $used,
+        qw| free |                => $free,
+        qw| free_percent |        => $free_pct,
+        qw| inodes |              => $stat->{'files'},
+        qw| inodes_used |         => $stat->{'files'} - $stat->{'files_free'},
+        qw| inodes_free |         => $stat->{'files_free'},
+        qw| inodes_free_percent | => $inode_free_pct,
+        qw| level |               => $level,
+        qw| history |             => $history,
+        qw| rate |                => $rate,
+        qw| eta |                 => $eta,
+    };
+
+    my $old_level = $previous->{'level'} // 0;
+    next if $level == $old_level;
+    my $kind
+        = $level == 0 ? qw| recovered |
+        : $level == 2 ? qw| critical |
+        :               qw| warning |;
+    my $message = sprintf
+        '%s : %s [ %.1f %% bytes, %.1f %% inodes free ]',
+        $path, $kind, $free_pct, $inode_free_pct;
+    <[base.logs]>->( $level == 2 ? 0 : 1, 'disk space : %s', $message );
+    my $quoted = $message =~ s|'|\\'|gr;
+    <[protocol-7.route-send]>->(
+        {     qw| command | => $level == 0
+            ? qw| notify.info |
+            : qw| notify.warn |,
+            qw| call_args | =>
+                { qw| args | => sprintf( "'disk space' '%s'", $quoted ) },
+        }
+    );
+}
+
+<system.disk.mounts> = $current;
+<system.disk.interval_state> {'pressure'} = $max_pressure;
+return $current;
+
+#,,.,,,,.,.,,,.,.,,,,,,,,,,,.,...,,,,,.,.,.,,,..,,...,...,.,,,..,,,.,,,.,,,.,,
+#EQ3NPA5EC2BO3UCQ4NECCNXOQY3W3V7JIDEUYNTX7LYOFBPHI7ZOTFN42B7VVXFM7KKL47SA4AE7E
+#\\\|FXO6WC7YQVZ4MKAN6VRDYD6TCF2X7S3BYGONGSJQD7UKHMBD2R7 \ / AMOS7 \ YOURUM ::
+#\[7]EONGTOSLAPFJRYNRT6ULTLFG56TUABFUVUALB5F7ZGXA2MLJX4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

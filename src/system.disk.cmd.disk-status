@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = system.disk.cmd.disk-status
+# descr = size, free space, inodes and fill trend per local mount
+
+<[system.disk.poll]>;
+my $bytes = sub {
+    my $value = shift // 0;
+    my @unit  = qw| B KiB MiB GiB TiB PiB |;
+    my $unit  = 0;
+    while ( abs($value) >= 1024 and $unit < $#unit ) {
+        $value /= 1024;
+        $unit++;
+    }
+    return sprintf( $unit ? '%.2f %s' : '%.0f %s', $value, $unit[$unit] );
+};
+my $duration = sub {
+    my $seconds = shift;
+    return qw| - | if not defined $seconds;
+    return sprintf '%.0f s',   $seconds        if $seconds < 90;
+    return sprintf '%.1f min', $seconds / 60   if $seconds < 5400;
+    return sprintf '%.1f h',   $seconds / 3600 if $seconds < 187200;
+    return sprintf '%.1f d',   $seconds / 86400;
+};
+my @lines
+    = 'mount : size used free [ percent ] '
+    . '| inodes used/total free : trend eta';
+foreach my $path ( sort keys <system.disk.mounts>->%* ) {
+    my $m = <system.disk.mounts>->{$path};
+    my $trend
+        = defined $m->{'rate'}
+        ? sprintf( '%s/s', $bytes->( $m->{'rate'} ) )
+        : qw| - |;
+    push @lines,
+        sprintf(
+        '%s : %s %s %s [ %.1f %% ] | %d/%d %d : %s %s',
+        $path,                    $bytes->( $m->{'size'} ),
+        $bytes->( $m->{'used'} ), $bytes->( $m->{'free'} ),
+        $m->{'free_percent'},     $m->{'inodes_used'},
+        $m->{'inodes'},           $m->{'inodes_free'},
+        $trend,                   $duration->( $m->{'eta'} )
+        );
+}
+push @lines, qw| no local file systems sampled | if @lines == 1;
+return { qw| mode | => qw| true |, qw| data | => join( "\n", @lines ) };
+
+#,,..,...,,,,,,..,,,,,,.,,,,.,,..,,,,,,.,,..,,..,,...,...,..,,,,.,,,.,,..,.,.,
+#XQWAWP5VRAIVHGCV6NJRA3IKAUCWMTCKAJE23PMQAN73CJJ2IMOHK4BMPQ2QAFWQC4MGNZFG3NWTC
+#\\\|F7KMU6BYA5AOSWXMEXTZNILXKXCH67EA4S5UFFZ5GT75XWHLH5J \ / AMOS7 \ YOURUM ::
+#\[7]E7Q7UMXP7KECZAU26RT4KVFNMVD2S3ORVHTQ7CLIWT3P6EQVMYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

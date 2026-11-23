@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = system.disk.mounts
+# descr = mounted local file systems [ pseudo and network types excluded ]
+
+my @mounts;
+my %pseudo = map { $ARG => TRUE } qw|
+    proc sysfs devpts devtmpfs tmpfs securityfs cgroup cgroup2 pstore debugfs
+    tracefs configfs fusectl hugetlbfs mqueue binfmt_misc autofs overlay
+    rpc_pipefs nfs nfs4 cifs smbfs ceph fuse.sshfs
+    |;
+
+open( my $fh, '<', qw| /proc/mounts | )
+    or return
+    <[base.logs]>->( 1, 'disk watch : cannot read mounts : %s', $OS_ERROR );
+while ( my $line = <$fh> ) {
+    my ( $device, $path, $type ) = split m|\s+|, $line;
+    next if not defined $type;
+    next
+        if $pseudo{$type}
+        and not( $type eq qw| tmpfs |
+        and <[base.cfg_bool]>->(<disk.include_tmpfs>) );
+    $path =~ s|\\([0-7]{3})|chr( oct $1 )|eg;
+    push @mounts,
+        {
+        qw| device | => $device,
+        qw| path |   => $path,
+        qw| type |   => $type
+        };
+}
+close $fh;
+return \@mounts;
+
+#,,,.,,..,...,,,,,..,,.,.,...,...,,,.,,,,,.,,,..,,...,...,.,,,,.,,..,,,.,,,.,,
+#6WY7TBI6VY5FLQQJGFVD26TT2V5N3HIPMFB2A35KOJCXYSMNOE3MAZQY5SLYJRQTIC2GUAZXAQ5NA
+#\\\|362XDOMU2TNT6VUWWEHINS5HW4XU66H7SN5LUC3OCCAD35ZRH4O \ / AMOS7 \ YOURUM ::
+#\[7]H2DI2R6SDZR2R4NQ52L2SH5YZJOBO5EKY5XF6SHZEPHNNDZPIMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

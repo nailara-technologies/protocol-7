@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.EA6EIDA |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.IDGJZAQ |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -52,7 +52,8 @@ our $VERSION = qw| AMOS7::N7FS::Store-VERSION.EA6EIDA |;
     codec
     |;
 
-use Fcntl qw| O_RDONLY O_NOFOLLOW |;
+use Fcntl            qw| O_RDONLY O_NOFOLLOW |;
+use Filesys::Statvfs qw| statvfs |;
 use Digest::BMW;
 use Cwd           qw| abs_path |;
 use Sys::Hostname qw| hostname |;
@@ -1117,6 +1118,51 @@ sub _file_format {
 
 ##[ ASSIMILATE ]##############################################################
 
+our $STATVFS = sub { return [ statvfs( $ARG[0] ) ] };
+
+## unique source content absent from this epoch is the expected store growth
+sub assimilate_space_check {
+    my ( $opt, $id, $epoch, $items ) = @ARG;
+    my %new_nodes;
+    foreach my $item ( @{$items} ) {
+        my $path = $item->{'path'};
+        my ( $fh,     $st )   = _open_regular($path);
+        my ( $digest, $size ) = bmw384_fh($fh);
+        close $fh;
+        refuse( '%s : size changed while reading', $path )
+            if $size != $st->[7];
+        my $bmw  = bmw_b32($digest);
+        my $addr = {
+            qw| epoch | => $epoch,
+            qw| amos |  => amos_of_bmw($bmw),
+            qw| bmw |   => $bmw,
+        };
+        my $final = node_path( $id->{'path'}, $addr );
+        $new_nodes{$final} = $size if not -e $final;
+    }
+    my $expected = 0;
+    $expected += $ARG for values %new_nodes;
+    my $stat = $STATVFS->( $id->{'path'} );
+    refuse( 'assimilate : cannot stat store file system %s : %s',
+        $id->{'path'}, $OS_ERROR )
+        if ref $stat ne qw| ARRAY |
+        or not @{$stat};
+    my $free = $stat->[4] * $stat->[0];
+    refuse(
+        'assimilate : expected store growth %d bytes exceeds '
+            . 'free space %d bytes on %s [ %d new content nodes ]',
+        $expected,
+        $free,
+        $id->{'path'},
+        scalar keys %new_nodes
+    ) if $expected > $free;
+    return {
+        qw| expected_bytes | => $expected,
+        qw| free_bytes |     => $free,
+        qw| new_nodes |      => scalar keys %new_nodes,
+    };
+}
+
 ## %opt : disk, root, host_dir, host [ signer ], paths [ list ] or index
 ## [ db path ] + index_base [ dir ], remove, keep, dry_run, protect
 ## [ key file paths never taken ]. returns the report [ one entry per source ]
@@ -1146,8 +1192,7 @@ sub assimilate {
     my $id    = disk_require_attached(%opt);
     my $store = store_key_signer( %opt, qw| id | => $id );
     my $state = state_read( $id->{'path'}, $id->{'store_pub'} );
-    my $lock  = $opt{'dry_run'} ? undef : disk_lock($id);
-    $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+    my $lock;
     my $codec   = codec( $state->{'store_format'} );
     my $epoch   = write_epoch($state);
     my $context = { qw| id | => $id, qw| store | => $store };
@@ -1231,6 +1276,24 @@ sub assimilate {
             if defined $hit;
         not defined $hit;
     } @items;
+
+    if ( not $opt{'dry_run'} ) {
+        assimilate_space_check( \%opt, $id, $epoch, \@items );
+        $lock  = disk_lock($id);
+        $state = state_read( $id->{'path'}, $id->{'store_pub'} );
+        $codec = codec( $state->{'store_format'} );
+        my $locked_epoch = write_epoch($state);
+        if ( $locked_epoch != $epoch ) {
+            $epoch = $locked_epoch;
+            assimilate_space_check( \%opt, $id, $epoch, \@items );
+        }
+        $context = { qw| id | => $id, qw| store | => $store };
+        $replay = $state->{'store_format'} == 3 ? journal_replay($id) : undef;
+        $category_chooser
+            = AMOS7::N7FS::Category::category_assignment_plan( $id, $replay,
+            \%opt )
+            if $new_records;
+    }
 
     my %report = (
         qw| disk |    => $id->{'disk'},
@@ -1761,8 +1824,8 @@ sub _remove_source {
 
 1;
 
-#,,,,,.,,,,.,,,,.,,..,,,,,.,,,.,,,...,,.,,,..,..,,...,...,.,.,,,,,.,.,.,,,.,,,
-#XVWXGQDAM4LJLBON4MPXB4XRYIZ3LL34WWZQ4KU3SERYQMS5YO23HBNBCPR546QJURLE5Z272LKKS
-#\\\|ORBQYNMN5T2IQ3TUF3LM3HG2XTR246YTVTLDWUYY36ZQXSDT5D3 \ / AMOS7 \ YOURUM ::
-#\[7]NA6OHHNXWLFAP6MMZCIEU3HXYBI4MAHU7PQKC27ZKTWU6IYBMSCQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,.,.,,,,.,,...,,,.,,,,,,,,,..,,..,,...,...,.,.,,..,,,,,.,.,,,,,
+#NQAPJU6IVGG7ENYMGF73BPY5RRGZNKANNUGCX365OSVMYKU2PJHF2FELUZGQH3GO2MOO4MQ33UEOO
+#\\\|LV2MVJJJOBPYA3G2CUF2JEY4AFTMDZILC2GYFLA6ETCYBTVXE2O \ / AMOS7 \ YOURUM ::
+#\[7]UWSASLXMSUPCABXQT7HB7O6DMHC7LQEPZCJUZQEX3NFA7ZT6LWAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

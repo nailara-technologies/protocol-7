@@ -6,7 +6,7 @@
 access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       top cpu-load mem-used reload_gfx_module pid_autokill \
                       name cur-pid hostname report-X-11-error \
-                      abort-reboot reenable-reboot
+                      abort-reboot reenable-reboot disk-status
 
 ## devmod commands : only reachable while devmod is loaded on THIS zenka ##
 ## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
@@ -30,6 +30,23 @@ mem.accel_threshold = 77 # %[ poll acceleration starts : poll interval tightens
                          #   linearly down to mem.accel_min_interval at
                          #   mem.max_used , flat process.poll.interval below ]
 mem.accel_min_interval = 1 # [sec.] fastest allowed poll interval under pressure
+
+disk.warn_free = 13 # [ % bytes or inodes free ]
+disk.critical_free = 5 # [ % bytes or inodes free ]
+disk.warn_min_free_gb = 13 # [ absolute warning floor on big file systems ]
+disk.critical_min_free_gb = 5 # [ absolute critical floor on big file systems ]
+disk.absolute_floor_min_size_gb = 64 # [ apply floors at this size and above ]
+disk.include_tmpfs = no # [ yes opts tmpfs mounts into the same thresholds ]
+disk.history_samples = 13 # [ recent samples in the free-space trend ]
+base.interval.cfg.type.disk.rhythm = disk
+base.interval.cfg.type.disk.start = 377 # [ seconds with comfortable room ]
+base.interval.cfg.type.disk.cap = 13 # [ seconds under critical pressure ]
+
+## per-mount overrides use disk.mount.<path>.<key>, for example :          ##
+#disk.mount./data.warn_free = 8
+#disk.mount./data.critical_free = 3
+#disk.mount./data.warn_min_free_gb = 34
+#disk.mount./data.critical_min_free_gb = 13
 
 mem.oom_restart_window = 77 # [sec.] oom re-match within this window after a
                             #   restart request escalates to hard terminate
@@ -88,8 +105,8 @@ modules.load = auth.client net protocol io.unix ui system
 
 [zenka.loop]
 
-#,,..,...,...,...,,,,,,,.,.,,,..,,,,.,,,.,..,,..,,...,...,...,..,,,..,,.,,,,,,
-#VGLPLEVGSTHDTIE3N64757K47TJAGGJAZVZ2HQKQPH2D3EXFOK7TG2QUUZFJJ5LQGXG27VCMX3YOQ
-#\\\|IE7HMJVVMIGMKNCQ4ZBQ3LNHYK7D5MPP7KL7PFLOTZJ2YCTYQLE \ / AMOS7 \ YOURUM ::
-#\[7]VVS7UVNUCBDB3IO3SBSRYU4A3BFHLRGUMKMHS6K5NVFT5JJOOOCY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,,..,...,,,.,...,,,,,.,.,.,,,..,,...,...,,..,,,,,,,.,.,.,.,.,
+#UMMUECXNURRG5YH6EHBSXUA5KCWXQZMGQ3G2FLDDCR4M3VSFXWADFDCGG3ARQKD25W3KY3N63QLX4
+#\\\|JBVVI7IR6CWSANN5FXVVCERIG5DXMBN2NDD3NA6WBRJFD4LFUOY \ / AMOS7 \ YOURUM ::
+#\[7]TDUSODMGELTPIWYXIXEHJJCSYHWDLUQ5KSSPQDWQYQBYCMH7C6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

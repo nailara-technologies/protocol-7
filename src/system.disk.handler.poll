@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = system.disk.handler.poll
+# descr = sample mounted file systems and arm the next disk poll
+
+<[system.disk.poll]>;
+my $delay
+    = <[base.interval.next]>->(
+    { qw| type | => qw| disk |, qw| state | => <system.disk.interval_state> }
+    );
+return FALSE if not defined $delay or $delay <= 0;
+<system.disk.timer> = <[event.add_timer]>->(
+    {   qw| after |   => $delay,
+        qw| repeat |  => FALSE,
+        qw| handler | => qw| system.disk.handler.poll |,
+    }
+);
+return TRUE;
+
+#,,..,,,.,,,.,.,,,,..,,..,,,.,,,,,,.,,...,.,,,..,,...,...,...,,.,,,,.,.,,,,,,,
+#RLCZMPFTO23PF4DKY33O2ICQLLCGRQV2SHU2ULGT3MQ3Q7RXUDBYLXF4KIMKRJ5LZ3S53BXR3VZ4C
+#\\\|Z32VXFHQUEQK4MFHQK7LRV6XJJXO4VCNGJRCTW4LF3FZTGOQMZO \ / AMOS7 \ YOURUM ::
+#\[7]IBOJ4TOAYKI4Y4LJ5Y7ULNGANBETL6FZMIP6FOSKHG3MMLSNW4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = base.interval.rhythm.disk
+# descr = disk poll delay [ slow with room, faster under pressure ]
+
+my $ctx   = shift;
+my $state = $ctx->{'state'};
+my $cfg   = $ctx->{'cfg'};
+my $num   = sub {
+    my ( $key, $default ) = @ARG;
+    my $value = $cfg->{$key};
+    return
+        defined $value && $value =~ m|^\d+(\.\d+)?$| ? $value + 0 : $default;
+};
+my $start    = $num->( qw| start |, 377 );
+my $cap      = $num->( qw| cap |,   13 );
+my $pressure = $state->{'pressure'} // 0;
+$pressure = 0 if $pressure < 0;
+$pressure = 1 if $pressure > 1;
+my $delay = $cap * ( ( $start / $cap )**( 1 - $pressure ) );
+$state->{'current'} = $delay;
+return $ctx->{'harmonize'}->($delay);
+
+#,,..,..,,,,,,...,.,.,..,,,,,,.,,,,,.,.,.,..,,..,,...,...,..,,,,,,,..,,..,,..,
+#DNRHCUJ2FD5VUS7BL32AP4YPQBFRSVK5RBEWF26RUNRBFSKPSY55KYUID5YR2WX2K37F7WS6IEB5O
+#\\\|GMOAQV3D37X2MQW7JD7WBGJD6ENWJWWD6X24JAOXUWIWVRJKOQJ \ / AMOS7 \ YOURUM ::
+#\[7]2UZ2HD54WK3HP3H3BO5PR5WLJ4AWQMQXQV6STUZGERLYINNMD2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
