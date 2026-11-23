@@ -392,12 +392,16 @@ require Digest::SHA;
 my $sum_undef = FALSE;
 $code{'chk-sum.bmw.L13-str'} = sub {
     return undef if $sum_undef;
-    return uc substr( Digest::SHA::sha256_hex( $ARG[0] ), 0, 20 );
+    my $sum = uc substr( Digest::SHA::sha256_hex( $ARG[0] ), 0, 20 );
+    $sum =~ tr/0189/2345/;    ## keep stand-in tokens resolvable ##
+    return $sum;
 };
 $code{'p7-log.anon.classify'} = sub {
     my $at = index( $ARG[0], 'host-a' );
     return $at < 0 ? [] : [ [ $at, $at + 6, 'host' ] ];
 };
+my $epoch_num = '123.4567890123456';
+$code{'base.ntime.epoch_dec'} = sub { return $epoch_num };
 compile_module('p7-log.anon.replace');
 my $replace = $code{'p7-log.anon.replace'};
 
@@ -410,9 +414,66 @@ ok( defined $tok1 && $l1 !~ m|host-a| && $p1->[0][1] eq 'host-a',
 ok( $tok1 ne uc substr( Digest::SHA::sha256_hex('host-a'), 0, 13 ),
     '  :.. NOT the bare fragment checksum [ keyed ]' );
 my ($l2) = $replace->('again host-a');
-ok( index( $l2, "[L:$tok1]" ) != -1, '  :.. same key, same token' );
+ok( index( $l2, "[L:$tok1]" ) != -1,
+    'same fragment and window : same token' );
+
+$epoch_num = '123.4607890123456';
+my ($l_next)   = $replace->('again host-a');
+my ($tok_next) = $l_next =~ m|\[L:([A-Z0-9]+)\]|;
+ok( defined $tok_next && $tok_next ne $tok1,
+    'next default window : different token'
+);
+
+$data{'p7-log'}{'anon'}{'window_digits'} = 0;
+$epoch_num = '124.1111111111111';
+my ($l_whole)   = $replace->('again host-a');
+my ($tok_whole) = $l_whole =~ m|\[L:([A-Z0-9]+)\]|;
+$epoch_num = '125.9999999999999';
+my ($l_whole_next)   = $replace->('again host-a');
+my ($tok_whole_next) = $l_whole_next =~ m|\[L:([A-Z0-9]+)\]|;
+ok( defined $tok_whole_next && $tok_whole_next ne $tok_whole,
+    'window_digits 0 : the next epoch changes the token'
+);
+$epoch_num = '124.9999999999999';
+my ($l_whole_same) = $replace->('again host-a');
+ok( index( $l_whole_same, "[L:$tok_whole]" ) != -1,
+    'window_digits 0 : fractions share the whole-epoch token'
+);
+
+$data{'p7-log'}{'anon'}{'window_digits'} = 3;
+$epoch_num = '125.1234000000000';
+my ($l_three)   = $replace->('again host-a');
+my ($tok_three) = $l_three =~ m|\[L:([A-Z0-9]+)\]|;
+$epoch_num = '125.1239999999999';
+my ($l_three_same) = $replace->('again host-a');
+ok( index( $l_three_same, "[L:$tok_three]" ) != -1,
+    'window_digits 3 : the same three-digit window shares a token' );
+$epoch_num = '125.1240000000000';
+my ($l_three_next)   = $replace->('again host-a');
+my ($tok_three_next) = $l_three_next =~ m|\[L:([A-Z0-9]+)\]|;
+ok( defined $tok_three_next && $tok_three_next ne $tok_three,
+    'window_digits 3 : the next window changes the token'
+);
+
+## old and new derivations share the table and token syntax ##
+my $legacy_tok = substr(
+    $code{'chk-sum.bmw.L13-str'}
+        ->( $data{'p7-log'}{'anon'}{'token_key'} . ' : legacy-host' ),
+    0, 13
+);
+ok( $code{'p7-log.anon.store'}->( [ [ $legacy_tok, 'legacy-host' ], @{$p1} ] )
+        == 2,
+    'old-format and windowed tokens stored together'
+);
+compile_module('p7-log.anon.resolve-line');
+ok( $code{'p7-log.anon.resolve-line'}->("old [L:$legacy_tok] new [L:$tok1]")
+        eq 'old legacy-host new host-a',
+    'resolve-line resolves old-format and windowed tokens'
+);
 
 ## another key : another token ##
+delete $data{'p7-log'}{'anon'}{'window_digits'};
+$epoch_num = '123.4567890123456';
 put_key( 'svc.base', 0x77 );
 delete $data{'p7-log'}{'anon'}{$ARG} for qw| key32 token_key |;
 my ($l3)   = $replace->('host-a again');
@@ -442,8 +503,8 @@ say '';
 say sprintf ':: %d checks, %d failed', $test_count, $fail_count;
 exit( $fail_count ? 1 : 0 );
 
-#,,,,,,,.,...,,.,,,..,,,,,,,,,.,,,..,,..,,.,.,..,,...,...,.,.,.,,,,,,,...,,.,,
-#HKEFI75L4ZNYQ3YRVZRQT5KECDASEW3SEXF6ATGOUQ2GAONTH5LNR2NACNLT76WF5FA36PLIMXKYG
-#\\\|U5KR7IWMGSRLAWFJY3CTGAW6UH4EVQO6XU4U7BUUIYYZKCZCZWO \ / AMOS7 \ YOURUM ::
-#\[7]2LZCVJF4F75F35GY6QJZDTDB7327NOGNMYI2RB3J67FT3FM5RMAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,...,...,,.,,.,,,,,.,,..,,..,,,,,..,,...,...,.,.,,,.,,..,,.,,.,.,
+#RQ5TO4J2UCKAPP3IMDODAQMM7SO42HMPW5REEK75TR4UR46VUM6TTY33ZW2EHKC6QPYEP5G4XK3IK
+#\\\|2VC4WQBFGEBMVWSQZBTBRE5I53VFGLL47X4TKZ262DNTAGZSBJO \ / AMOS7 \ YOURUM ::
+#\[7]4MROTWZDBQPNGJ3WZLKGJJA3VKXPUME6WOUR7CRHOLTCOAXLHCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
