@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = coding.cmd.commit-plans
+# descr = list the commit plans and what each waits for
+
+my $all = <[coding.sign_queue.store]>;
+my @ids = sort keys %{ $all->{'plan'} };
+return { 'mode' => qw| true |, 'data' => "no commit plans\n" } if not @ids;
+return {
+    'mode' => qw| true |,
+    'data' => join( "\n\n",
+        map { <[coding.sign_queue.describe]>->( qw| plan |, $ARG ) } @ids )
+        . "\n"
+};
+
+#,,.,,.,.,...,..,,,.,,.,.,,.,,,,,,.,.,,,.,.,.,..,,...,...,...,..,,...,,,.,.,.,
+#DN2XL3YEA2EFRDEFKZ65IKBLWL7Z3MGSPANUZKQIBOA7KIXJRQV46KNNFC3YOJTJATXPXEYJ2HVNS
+#\\\|5JUJHWTIJI33DN2JGFEX7OSM7IBNYKL3CAVXZYQFXVG3MHHMPMS \ / AMOS7 \ YOURUM ::
+#\[7]RHZQYHSN245G5MMZI3DBJCSOCRFDBIK5HAWQFFF727QJTA7PE2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

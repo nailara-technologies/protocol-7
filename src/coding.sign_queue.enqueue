@@ -1,0 +1,26 @@
+## [:< ##
+
+# name   = coding.sign_queue.enqueue
+# descr  = add a sign queue entry [ not saved, not armed ]
+# args   = { paths => [ .. ], message, op, plan }
+# return = the entry id [ q<n> ]
+
+my $in  = shift // {};
+my $all = <[coding.sign_queue.store]>;
+my $id  = 'q' . $all->{'next'}++;
+$all->{'entry'}{$id} = {
+    'num'     => substr( $id, 1 ),
+    'paths'   => join( ' ', @{ $in->{'paths'} } ),
+    'message' => $in->{'message'},
+    'op'      => $in->{'op'} // qw| new |,
+    'status'  => qw| queued |,
+    'added'   => time,
+    defined $in->{'plan'} ? ( 'plan' => $in->{'plan'} ) : ()
+};
+return $id;
+
+#,,..,,..,,,.,.,.,.,.,,.,,.,.,,..,.,.,,.,,,.,,..,,...,..,,.,,,.,,,.,,,.,.,.,.,
+#NZJYL72MK6XPHR3FFHO7H4GF4VDUULS6I3MAGTALILAQXRRGP7JHTD3OZKAEBK7WLW22GDZH5H7TU
+#\\\|25LK4DNDBKTLXAWMOI7X3RHW5I3L6PKL34OSPCY6NDXT3CSJ6KN \ / AMOS7 \ YOURUM ::
+#\[7]NARNUBEAVQVFSGGIXFOJR525TNBSEXFVFP3FBHNISCLV24JKK4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

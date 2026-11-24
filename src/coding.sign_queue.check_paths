@@ -1,0 +1,22 @@
+## [:< ##
+
+# name   = coding.sign_queue.check_paths
+# descr  = validate repo-relative file paths for a sign
+# args   = repo root, array ref of paths
+# return = error text or undef
+
+my ( $root, $paths ) = @ARG;
+return 'paths required' if ref $paths ne qw| ARRAY | or not @{$paths};
+foreach my $path ( @{$paths} ) {
+    return "not a repo-relative file : $path"
+        if $path !~ m{\A[\w.+-][\w./+-]*\z}
+        or $path =~ m{(?:\A|/)\.\.(?:/|\z)}
+        or not -f "$root/$path";
+}
+return undef;
+
+#,,,.,..,,...,.,,,..,,.,,,,,,,...,.,.,..,,.,,,..,,...,...,.,.,,.,,...,.,.,.,,,
+#YRVDAZB6MXPLURMTFDD3Y5Q4CWXU3OLUWQNUVGL2ZIBSTOPFQ2ZTDZBLCPAEOYKBP6G6IXCX2EQQU
+#\\\|PHADH6ZWKRQAR2DFGFDWGJSWEEE4WXF7UVNLZE7OOIPKPGZJ7Q7 \ / AMOS7 \ YOURUM ::
+#\[7]RNO6N6QFCJWRWXB6VOEJVQYRWJH3LEJQ5TFPDN7XJ6RXPK5TTMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

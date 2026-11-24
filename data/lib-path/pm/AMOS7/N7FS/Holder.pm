@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.IPEKAGI |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.MJLZ4UI |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -481,7 +481,9 @@ sub _session_close {
     return;
 }
 
+## the session waitpid must not turn a failing exit status into 0 ##
 END {
+    local $CHILD_ERROR;
     _session_close($ARG)
         for grep { ( $SESSION{$ARG}{'owner'} // -1 ) == $PID } keys %SESSION;
 }
@@ -612,11 +614,13 @@ sub holder_read_many {
             %local   = map { _recv_name( $h, $ARG ) => $ARG } @part;
             $command = join ' ', 'get', sort keys %local;
         } else {
-            %local   = map { _path( $h, $ARG ) => $ARG } @part;
+            ## the reply names each blob by its bare name, not its path : a
+            ## path may read differently at the holder [ symlinks, rewrites ]
+            %local   = map { $ARG => $ARG } @part;
             $command = join ' ', 'for f in',
-                ( map { _quote($ARG) } sort keys %local ),
+                ( map { _quote( _path( $h, $ARG ) ) } sort @part ),
                 '; do [ -f "$f" ] || continue ; '
-                . q!printf '%s %s\n' "$f" "$(wc -c < "$f")" ; !
+                . q!printf '%s %s\n' "${f##*/}" "$(wc -c < "$f")" ; !
                 . 'cat -- "$f" ; done';
         }
         my ( $status, $out ) = _result( $h, $command );
@@ -1502,8 +1506,8 @@ sub holder_put {
 
 1;
 
-#,,.,,..,,,,,,.,,,...,.,.,,,.,...,,..,,,,,,,,,..,,...,..,,..,,.,,,,,.,,.,,.,.,
-#634X75LZIW75SWU5OP42HYNYTDI525TMWXHGL7ZUUNAGH2FARN3TU2BDZUPPUN7UMVFPOW36LIWOS
-#\\\|TFPYGAURZ3ZKFH3THBMAZTBVJFUSRIVMW5P65STKYM6WUE25GQM \ / AMOS7 \ YOURUM ::
-#\[7]2JR73AWA7ZI5HCLCADM43JVOY7SQ73GFNAKVBZSYYR3VGMOQ5QBY 7  DATA SIGNATURE ::
+#,,..,.,.,...,,.,,,,.,.,,,.,.,.,,,,..,,,,,,..,..,,...,...,...,,.,,.,,,.,.,,.,,
+#LFLMUUW7MFWAEHAH7B6Y25TIBX3HQ3XB5SUMAQYVSRJQWIYLFJKERB42HDEDDNRAZGQNGT3C4WDOS
+#\\\|ZE6CJSAAQZJJT7PRK4BYE2FOF75PGGJSR3LLMBSRBOZOVMPQSPU \ / AMOS7 \ YOURUM ::
+#\[7]423QVTJQTYWVWM3OW54RZTL2MR6MN5CPQHKLTQAVNMYJLVNQR4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

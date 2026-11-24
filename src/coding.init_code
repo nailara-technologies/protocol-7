@@ -783,10 +783,27 @@ eval { <coding.timer.thermal_tick>->cancel }
     }
 );
 
+## sign queue \ commit plans : the first look from a timer               ##
+## [ after the privileges dropped ] re-checks a job in flight before the ##
+## restart                                                               ##
+eval { <coding.sign_queue.timer>->cancel }
+    if defined <coding.sign_queue.timer>;
+<coding.sign_queue.interval> = {};
+<coding.sign_queue.timer>    = <[event.add_timer]>->(
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| coding-sign-resume |,
+                'state' => {}
+            }
+        ),
+        'handler' => qw| coding.sign_queue.tick |,
+        'desc'    => 'sign queue : resume after start'
+    }
+);
+
 return 0;
 
-#,,,,,...,,,,,...,..,,,,.,,..,,,,,,.,,.,.,,,.,.,.,...,..,,.,.,..,,..,,..,,,,.,
-#LCTHH4Q5G4LKPOR4CGRPDOFPVPCYFSSOZAEYZNMUNQMKW6HJO7J3AZ72ZRBBR4MLHCWMXKTIFDHCY
-#\\\|YBZSCHW4AOQL3RLUPLVJ5PQMRHNAKBYHQ4EM6OSV3WQ5ZB3DWRT \ / AMOS7 \ YOURUM ::
-#\[7]HH5E4ETSGTX3WVABGXEFQUJY4PIJEHTZUM3WBYJ2XUJN5ZLYZ2DA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,.,,..,,,.,,,.,..,,,.,,,.,,.,,,.,.,...,...,..,,,,.,..,,.,.,.,,,
+#KHELOX7SGWPHIR5ENQCKUQZX3ATLSLK7447RW6TKDKXH44OZXULPHTNT47V4TIWU6RRRJJ3JLXSSG
+#\\\|MTZ45DR3LC5567T5UXUGH7YATFVKMAHJSRUZ3BL6Q6EW2RXRBIE \ / AMOS7 \ YOURUM ::
+#\[7]DHD5E5G4DWORDMFRWRN664KSD6PRKAWY3AECA37E6MDHVVFJASCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

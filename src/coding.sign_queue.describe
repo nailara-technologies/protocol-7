@@ -1,0 +1,45 @@
+## [:< ##
+
+# name   = coding.sign_queue.describe
+# descr  = p7 config lines for a sign queue entry or a plan
+# args   = entry | plan, id
+# return = text
+
+my ( $kind, $id ) = @ARG;
+my $all = <[coding.sign_queue.store]>;
+my $r   = $all->{$kind}{$id} // return '';
+my $esc = sub { ( shift // '' ) =~ s{\\}{\\\\}gr =~ s{\n}{\\n}gr };
+my @keys
+    = $kind eq qw| entry |
+    ? qw| status paths op sign_job commit_id commit plan reason |
+    : qw| status waits paths tests after entry commit reason |;
+my @out;
+foreach my $k (@keys) {
+    my $v = $r->{$k};
+    if ( $k eq qw| waits | ) {
+        my $s = $r->{'status'};
+        $v
+            = $s eq qw| waiting |
+            ? join( ', ',
+            length( $r->{'after'} // '' )
+            ? "plan $r->{'after'} committed [ now "
+                . ( $all->{'plan'}{ $r->{'after'} }{'status'} // 'unknown' )
+                . ' ]'
+            : (),
+            'files unchanged' )
+            : $s eq qw| testing | ? "tests : $r->{'tests'}"
+            : $s eq qw| queued |  ? "sign queue $r->{'entry'}"
+            :                       undef;
+    }
+    next if not defined $v or not length $v;
+    push @out, "$kind.$id.$k = " . $esc->($v);
+}
+push @out, "$kind.$id.message = "
+    . $esc->( ( split m{\n}, $r->{'message'} // '' )[0] );
+return join "\n", @out;
+
+#,,.,,..,,,..,,,.,.,,,.,.,...,,,.,...,.,.,,..,..,,...,...,,..,,.,,,..,,.,,,..,
+#2TTYPUN3WC45FH675IY43RPC4ZOSU66D5ZKAO5RI2HH6SGGKH5IIBNKGHCPOUKJNGD44W5ZU5XJ6M
+#\\\|XBP34MMUHUEGFR32OIE2DLTNNL6LYIH47NWMBBJZQLGFJ656TKD \ / AMOS7 \ YOURUM ::
+#\[7]HBPZ5UZDRKIVNTZNDLAJ66XP7AJKV5ZUIIRVF6VFRY7EUYNEI6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

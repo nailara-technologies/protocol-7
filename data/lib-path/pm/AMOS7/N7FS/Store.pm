@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.L4B42QY |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.BVUK65Q |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -1170,11 +1170,16 @@ sub assimilate_space_check {
     my %new_nodes;
     foreach my $item ( @{$items} ) {
         my $path = $item->{'path'};
-        my ( $fh,     $st )   = _open_regular($path);
-        my ( $digest, $size ) = bmw384_fh($fh);
-        close $fh;
-        refuse( '%s : size changed while reading', $path )
-            if $size != $st->[7];
+        ## an estimate only : a source that cannot be read or changes while
+        ## read is left out here, the walk names it as a skipped entry
+        my ( $digest, $size );
+        my $readable = eval {
+            my ( $fh, $st ) = _open_regular($path);
+            ( $digest, $size ) = bmw384_fh($fh);
+            close $fh;
+            $size == $st->[7];
+        };
+        next if not $readable;
         my $bmw  = bmw_b32($digest);
         my $addr = {
             qw| epoch | => $epoch,
@@ -1872,8 +1877,8 @@ sub _remove_source {
 
 1;
 
-#,,.,,.,.,,,,,...,.,.,,.,,...,.,,,..,,.,.,,..,..,,...,...,,,.,..,,,,,,...,,,,,
-#5UU75AWOVNDGQ4II334S3CWXA7HAUFDRNEHAOAZWDI4BEOMQQYU6TBTKVJWZYHBDGSJNZO43ZPW2A
-#\\\|5RC2SPW4CX3PPDQ66ADKVGLFN6NWTT3TRPAXXREK7R5KGUQINCG \ / AMOS7 \ YOURUM ::
-#\[7]HBREKUFDLULV7FJ7XEM3DFLZDTMBI2PFDT47JPZNQ2LDI7LC6MCA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,,,.,,,.,,,.,,,...,.,.,,,.,.,,,..,,...,...,.,,,..,,.,.,,,,,.,.,
+#VNXXA3SWZOXL6L3MLGPWU3TTQQIFEODH6SGDV62I3WTI3IDXWC6APGWO7DGYIROHS72XVW45ULETI
+#\\\|JZUUDXZBHU245HTHLOA7RGUE4K6JY74WTDJHLEOHGCB6KC2BEBB \ / AMOS7 \ YOURUM ::
+#\[7]PHOJ3BITZC424J3ZQESQJOYZM4XBMFRQ4CQTCHUWPA76RVG6XGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

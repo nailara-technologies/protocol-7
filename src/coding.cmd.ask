@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = coding.cmd.ask
+# param = <question> [ choices=a,b,.. ] [ id=<id> ]
+# descr = open a decision [ a menu pending question ]
+#
+# the question goes to the protocol-7-menu pending questions with
+# decision=yes ; answering it [ coding.answer, the menu dialog ] raises
+# signal decision.answered id=<id> answer=<text> -- a task parked with
+# on=decision.answered match.id=<id> continues
+
+my $parsed = <[park.parse_args]>->( $call->{'args'} // '' );
+return { 'mode' => qw| false |, 'data' => $parsed->{'error'} }
+    if defined $parsed->{'error'};
+my $pairs = $parsed->{'pairs'};
+my @bad = grep { $ARG ne qw| choices | and $ARG ne qw| id | } keys %{$pairs};
+return { 'mode' => qw| false |, 'data' => "unknown key : @bad" } if @bad;
+my $question = join ' ', @{ $parsed->{'words'} };
+return { 'mode' => qw| false |, 'data' => 'question text required' }
+    if $question !~ m|\S|;
+return { 'mode' => qw| false |, 'data' => 'id : letters digits _ - [ 40 ]' }
+    if defined $pairs->{'id'} and $pairs->{'id'} !~ m|\A[\w-]{1,40}\z|;
+
+## a "double quoted" value for park.parse_args : \\ and \x22 escaped ##
+my $quote   = sub { "\x22" . ( shift =~ s{([\\\x22])}{\\$1}gr ) . "\x22" };
+my $choices = $pairs->{'choices'} // '';
+my $args    = join ' ',
+    'type=' . ( length $choices ? qw| choice | : qw| text | ),
+    'question=' . $quote->($question),
+    length $choices        ? 'options=' . $quote->($choices) : (),
+    defined $pairs->{'id'} ? "id=$pairs->{'id'}"             : (),
+    'decision=yes';
+return <[coding.decision.send]>->(
+    qw| pending-question-add |,
+    $args, $call->{'reply_id'}, qw| ask |
+);
+
+#,,..,.,.,..,,,,,,.,.,.,,,,..,.,,,,,.,,..,...,..,,...,..,,..,,.,,,..,,,.,,.,,,
+#2ZYG7KN2Z64A2TF5TBI3OUVJR5WNIICJTX7CWXQCFTAEXU76WDD565WMH4EHYECZBR232MB3YZE3M
+#\\\|YMW3CS5D7LV4EWJPUQ5II7ZT6Y272XHXMCJ5SVP3YJWGPAYVM6R \ / AMOS7 \ YOURUM ::
+#\[7]3DFLD5G7THX5QLDZAV54PAVZC4QGL3MYJXOCJU4TFJXQ5IGTEYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

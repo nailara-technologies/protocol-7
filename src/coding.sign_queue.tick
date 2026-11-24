@@ -1,0 +1,39 @@
+## [:< ##
+
+# name   = coding.sign_queue.tick
+# descr  = sign queue timer : plans and the head one step on
+# args   = the timer event
+#
+# re-arms itself while anything waits [ a stopped head waits for drop ] ;
+# the delay from base.interval.next type coding-sign-watch, reset after a
+# change. on start it re-checks a job that was in flight
+
+my $event = shift;
+$event->w->stop if defined $event and ref $event and defined $event->w;
+undef <coding.sign_queue.timer>;
+
+my $all     = <[coding.sign_queue.store]>;
+my $changed = FALSE;
+foreach my $round ( 1 .. 13 ) {
+    my $moved = FALSE;
+    foreach my $id ( sort keys %{ $all->{'plan'} } ) {
+        my $s = $all->{'plan'}{$id}{'status'};
+        next          if $s ne qw| waiting | and $s ne qw| testing |;
+        $moved = TRUE if <[coding.sign_queue.step_plan]>->($id);
+    }
+    my $head = <[coding.sign_queue.head]>;
+    $moved = TRUE
+        if defined $head and <[coding.sign_queue.step_entry]>->($head);
+    last if not $moved;
+    $changed = TRUE;
+}
+<[coding.sign_queue.prune]>;
+<[coding.sign_queue.store]>->(qw| save |) if $changed;
+<[coding.sign_queue.arm]>->($changed);
+return TRUE;
+
+#,,..,.,,,...,,,,,,.,,,..,.,.,,..,..,,.,,,..,,..,,...,...,,.,,.,.,,..,..,,,.,,
+#QTM6AH6FXDH4HT3F3G2RUPA27T5PXC7MGEODXN4UYKK4VPR4XOQY634KNFCJCFF73XIBWEXP2HKC2
+#\\\|PFAU7PSE4IU3QJOJKFZABT36EZYQIE4VOZMHTJWTFIO37335OEQ \ / AMOS7 \ YOURUM ::
+#\[7]NZ5L6YAJT7QAM5WTEKROLAJAM64QHLHDJOULRISF4IXTQCYWWOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

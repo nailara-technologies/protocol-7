@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = coding.cmd.sign-queue
+# param = [ list | add <paths> message= [ op= ] | drop <id> ]
+# descr = queue signs : one pending, approved -> commit
+#
+# the zenka requests each sign [ p7-sign-run, the owner approves in the
+# p7-sign-agent terminal ] and commits it with the queued message
+# [ p7-commit prepare + commit ], then the next. a stopped entry [ denied,
+# aborted, refused ] keeps its place with the reason : the queue waits
+# until it is dropped. op= new \ amend \ amend-message \ reset [ new ]
+
+my $parsed = <[park.parse_args]>->( $call->{'args'} // '' );
+my $fail   = sub { return { 'mode' => qw| false |, 'data' => shift } };
+return $fail->( $parsed->{'error'} ) if defined $parsed->{'error'};
+my @words = @{ $parsed->{'words'} };
+my $pairs = $parsed->{'pairs'};
+my $sub   = shift(@words) // qw| list |;
+my $all   = <[coding.sign_queue.store]>;
+
+if ( $sub eq qw| add | ) {
+    my @bad
+        = grep { $ARG ne qw| message | and $ARG ne qw| op | } keys %{$pairs};
+    return $fail->("unknown key : @bad") if @bad;
+    my $op = $pairs->{'op'} // qw| new |;
+    return $fail->('op : new \ amend \ amend-message \ reset')
+        if $op !~ m{\A(?:new|amend|amend-message|reset)\z};
+    return $fail->('message= required')
+        if ( $pairs->{'message'} // '' ) !~ m|\S|;
+    my $bad = <[coding.sign_queue.check_paths]>->(
+        <[coding.sign_queue.cfg]>->()->{'root'}, \@words
+    );
+    return $fail->($bad) if defined $bad;
+    my $id
+        = <[coding.sign_queue.enqueue]>->(
+        { 'paths' => \@words, 'message' => $pairs->{'message'}, 'op' => $op }
+        );
+    <[coding.sign_queue.store]>->(qw| save |)
+        or return $fail->('queue not saved');
+    <[coding.sign_queue.arm]>->(TRUE);
+    my $head = <[coding.sign_queue.head]>;
+    return {
+        'mode' => qw| true |,
+        'data' => $head eq $id
+        ? "$id queued : next to sign"
+        : "$id queued behind $head [ $all->{'entry'}{$head}{'status'} ]"
+    };
+}
+if ( $sub eq qw| drop | ) {
+    my $id    = shift(@words)        // '';
+    my $entry = $all->{'entry'}{$id} // return $fail->("no entry $id");
+    return $fail->( "$id is $entry->{'status'} : in flight "
+            . "-- deny the sign in the agent terminal" )
+        if $entry->{'status'} !~ m{\A(?:queued|stopped|committed)\z};
+    my $plan
+        = defined $entry->{'plan'}
+        ? $all->{'plan'}{ $entry->{'plan'} }
+        : undef;
+    if ( defined $plan and $plan->{'status'} eq qw| queued | ) {
+        $plan->{'status'} = qw| returned |;
+        $plan->{'reason'} = "sign queue $id dropped";
+    }
+    delete $all->{'entry'}{$id};
+    <[coding.sign_queue.store]>->(qw| save |)
+        or return $fail->('queue not saved');
+    <[coding.sign_queue.arm]>->(TRUE);
+    ## a stop after the approval leaves the signed files staged : the next ##
+    ## entry stops at the staged check until they are dealt with           ##
+    my $note
+        = $entry->{'status'} eq qw| stopped |
+        && length( $entry->{'signed_paths'} // '' )
+        ? " -- its signed files are still staged : $entry->{'signed_paths'}"
+        : '';
+    return { 'mode' => qw| true |, 'data' => "$id dropped$note" };
+}
+return $fail->('sign-queue [ list | add <paths> message= | drop <id> ]')
+    if $sub ne qw| list |;
+my @ids = sort { $all->{'entry'}{$a}{'num'} <=> $all->{'entry'}{$b}{'num'} }
+    keys %{ $all->{'entry'} };
+return { 'mode' => qw| true |, 'data' => "sign queue empty\n" } if not @ids;
+return {
+    'mode' => qw| true |,
+    'data' => join( "\n\n",
+        map { <[coding.sign_queue.describe]>->( qw| entry |, $ARG ) } @ids )
+        . "\n"
+};
+
+#,,,,,...,,..,,..,.,.,.,,,..,,...,.,,,..,,.,,,..,,...,...,.,,,.,.,,..,.,,,.,,,
+#QUTUH3WSKEHL347UD6OBJNGBIF4PXXMHGJHXDNHPN7UMWP6IAYXLAPCZZL44TWGDJUMHTAVSEO5JI
+#\\\|KAXX3YUN5FZVCPYNEYMRR323WQF7VS37PSVVLACSVJQLLWGMNSX \ / AMOS7 \ YOURUM ::
+#\[7]7PVWJ6VO6Z3TUPBJOCQAD6R2A2M6WXIJPEG5B57N5GI6XMB5FGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

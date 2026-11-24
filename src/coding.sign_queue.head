@@ -1,0 +1,20 @@
+## [:< ##
+
+# name   = coding.sign_queue.head
+# descr  = the sign queue entry in turn [ undef : none ]
+#
+# the oldest entry not committed : a stopped one keeps its place, the
+# queue waits until it is dropped
+
+my $all = <[coding.sign_queue.store]>;
+my ($head)
+    = sort { $all->{'entry'}{$a}{'num'} <=> $all->{'entry'}{$b}{'num'} }
+    grep   { $all->{'entry'}{$ARG}{'status'} ne qw| committed | }
+    keys %{ $all->{'entry'} };
+return $head;
+
+#,,,.,..,,,,.,,,,,,,.,.,,,,,.,,..,,.,,,.,,,..,..,,...,...,..,,..,,,,.,..,,,..,
+#LGLRBFAQBOGQFPSIQ4E3KSZJLI45J7DJ6SLQ7RMTEZB6PIVQNM63FEHQDJCSOQ5EQCARXWUBA2KE6
+#\\\|LR4KBUE72EXWYCTNAMYWSELRVK4RQAEXWYHHN7CDNJFYJ2I2YVO \ / AMOS7 \ YOURUM ::
+#\[7]BB25TL7P3J6ILWIKYEGTKUFW67BPRR5C2CIELH3HQOXNNQ5QM4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

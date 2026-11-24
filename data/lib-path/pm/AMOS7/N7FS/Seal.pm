@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.R6KARKQ |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.TZ2TFDI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -389,7 +389,11 @@ sub _upload_stop {
     return;
 }
 
-END { _upload_stop() }
+## the waitpid of the workers must not turn a failing exit status into 0 ##
+END {
+    local $CHILD_ERROR;
+    _upload_stop();
+}
 
 sub upload_start {
     my @specs = @_;
@@ -3744,8 +3748,8 @@ sub shred_node {
 
 1;
 
-#,,,.,,,,,,,,,,,,,,,.,,.,,,,,,,,.,,,,,.,.,,,,,..,,...,...,.,.,...,,,.,,.,,.,.,
-#SDOIXUJ5JGUDU7QDYQYVGB4M4LOBTZJ5JYVXA6Z744AOJ5COMUZTD2JJXJF5R5LZW533RLI6UIOVY
-#\\\|7OPKBPY6CFNSCRPRH5QRMPPVU4WBFHPBHKPFTGNEDWEHSIPZCNU \ / AMOS7 \ YOURUM ::
-#\[7]25XSIKEYKKGJNZAG544L7KMQCZWVYEU2NNAV4FHY6RMV5PEYHGCI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,.,,,..,,..,.,,,,,.,,.,,.,.,...,..,,...,...,.,,,...,...,..,,,.,,
+#6U427SG6EMSA4C46NZNWSYNLOQKNTWDR6LZYVOF6QEW632GJ2ZT6SSBTHKLCPYWWJMNXA6NV2UWUY
+#\\\|AQ36T3JF34JZGQFIOWQRJDQ2GIJEYHJNW53BR4DWV4QE4VUDHID \ / AMOS7 \ YOURUM ::
+#\[7]HZYKOXSRAS7DTJ65BT6ORKLPGI4USDUHKENWHJJQKYXEPNSGLODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

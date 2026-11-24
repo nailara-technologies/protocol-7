@@ -1,0 +1,100 @@
+## [:< ##
+
+# name   = coding.sign_queue.step_plan
+# descr  = check a commit plan's criteria one step on
+# args   = plan id
+# return = TRUE when its state changed
+#
+# waiting -> [ testing -> ] queued [ a sign queue entry ] -> committed ;
+# returned with the reason : after=<plan> returned \ unknown, a file
+# changed since the plan [ BMW checksums ], a test that failed. the
+# checksums are compared before the sign only : signing rewrites the files
+
+my $id   = shift;
+my $all  = <[coding.sign_queue.store]>;
+my $plan = $all->{'plan'}{$id} // return FALSE;
+my $cfg  = <[coding.sign_queue.cfg]>;
+my $back = sub {
+    $plan->{'status'} = qw| returned |;
+    $plan->{'reason'} = shift;
+    <[base.logs]>->(
+        0,   '<< commit plan %s returned : %s >>',
+        $id, $plan->{'reason'}
+    );
+    return TRUE;
+};
+my @paths   = split m{\s+}, $plan->{'paths'};
+my $changed = sub {
+    my $now = <[coding.sign_queue.file_sums]>->( $cfg->{'root'}, \@paths );
+    return grep { ( $plan->{'sums'}{$ARG} // '' ) ne $now->{$ARG} } @paths;
+};
+my @tests = split m{\s+}, $plan->{'tests'} // '';
+my $out = sub { sprintf '%s/coding-plan-%s-%s', $cfg->{'state'}, $id, shift };
+
+if ( $plan->{'status'} eq qw| waiting | ) {
+    if ( length( $plan->{'after'} // '' ) ) {
+        my $other = $all->{'plan'}{ $plan->{'after'} };
+        return $back->("after plan $plan->{'after'} : no such plan")
+            if not defined $other;
+        return $back->(
+            "after plan $plan->{'after'} returned : $other->{'reason'}")
+            if $other->{'status'} eq qw| returned |;
+        return FALSE if $other->{'status'} ne qw| committed |;
+    }
+    my @c = $changed->();
+    return $back->("file changed since the plan : @c") if @c;
+    if (@tests) {
+        CORE::mkdir( $cfg->{'state'} ) if not -d $cfg->{'state'};
+        foreach my $test (@tests) {
+            my $file = "$cfg->{'tests'}/$test";
+            $file .= '.pl' if not -f $file;
+            return $back->("test $test : not in $cfg->{'tests'}")
+                if not -f $file;
+            <[coding.sign_queue.detach]>->(
+                {   'cmd' => [ $EXECUTABLE_NAME, $file ],
+                    'out' => $out->("$test.out"),
+                    'rc'  => $out->("$test.rc"),
+                    'dir' => $cfg->{'root'}
+                }
+            ) or return $back->("test $test could not be started");
+        }
+        $plan->{'status'} = qw| testing |;
+        return TRUE;
+    }
+}
+if ( $plan->{'status'} eq qw| testing | ) {
+    my %rc
+        = map { $ARG => <[coding.sign_queue.read_rc]>->( $out->("$ARG.rc") ) }
+        @tests;
+    return FALSE if grep { not defined $rc{$ARG} } @tests;
+    foreach my $test (@tests) {
+        next if $rc{$test} == 0;
+        my $tail = <[coding.sign_queue.read_out]>->( $out->("$test.out"), 5 );
+        return $back->("test $test failed [ rc $rc{$test} ] : $tail");
+    }
+    my @c = $changed->();
+    return $back->("file changed since the plan : @c") if @c;
+}
+if (   $plan->{'status'} eq qw| waiting |
+    or $plan->{'status'} eq qw| testing | ) {
+    $plan->{'entry'} = <[coding.sign_queue.enqueue]>->(
+        {   'paths'   => \@paths,
+            'message' => $plan->{'message'},
+            'op'      => $plan->{'op'},
+            'plan'    => $id
+        }
+    );
+    $plan->{'status'} = qw| queued |;
+    <[base.logs]>->(
+        1,   ':. commit plan %s : criteria hold, sign queue %s',
+        $id, $plan->{'entry'}
+    );
+    return TRUE;
+}
+return FALSE;
+
+#,,.,,,.,,.,,,.,,,,,.,,..,...,...,,..,.,,,.,.,..,,...,..,,..,,,,,,,..,,.,,,,,,
+#IDIQ5HRUITLG4UGJRG72NUNXCU4YV3BB36VL4YCIG7NV4C3RLTDSAOPX3HAVGFHZAHSGBSSY66XEM
+#\\\|S42XQHAC4V2FRK6UAAB3ROAIJ62ICIIMKKCIH2426O4WVLBFZC5 \ / AMOS7 \ YOURUM ::
+#\[7]FLPNTORVSSCCG4CE27JC47ZRF2APKS5I52BV4PJTH2M3G46P3SBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

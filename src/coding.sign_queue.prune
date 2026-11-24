@@ -1,0 +1,22 @@
+## [:< ##
+
+# name   = coding.sign_queue.prune
+# descr  = keep the 13 newest committed entries and plans
+
+my $all = <[coding.sign_queue.store]>;
+foreach my $kind (qw| entry plan |) {
+    my @done = sort {
+        ( $all->{$kind}{$b}{'done'} // 0 )
+            <=> ( $all->{$kind}{$a}{'done'} // 0 )
+        }
+        grep { $all->{$kind}{$ARG}{'status'} eq qw| committed | }
+        keys %{ $all->{$kind} };
+    delete $all->{$kind}{$ARG} foreach @done[ 13 .. $#done ];
+}
+return TRUE;
+
+#,,,,,.,.,,..,...,,,.,.,.,,..,.,.,.,.,.,,,.,.,..,,...,...,...,...,,..,..,,...,
+#HPH7G3MCNTRES3WRBIKG3JHHH7ZFDK4NSCUDZGPWJ6CHD7HZ7UPNJAQIERCY3HW2E7U5ZOHDFJPGA
+#\\\|V3UXZK2L3RZGQ5PBUYZYDKYVMYMZTHWZTVGGSGJ5W2MJBN2ZLZO \ / AMOS7 \ YOURUM ::
+#\[7]WMVN3KM45A6AAZ5N2S7MW6EFV6FQ6ZY5UJL4LDNJFVBYIQY65KAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = coding.handler.decision_reply
+# descr = the menu answered a decision command : reply on
+
+my $reply = shift              // {};
+my $p     = $reply->{'params'} // {};
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+$text =~ s{\s+\z}{};
+$text = "protocol-7-menu not reachable [ $text ]"
+    if $text =~ m{\Aclient not present};
+my $answer = {
+    'mode' => $mode eq qw| true | ? qw| true | : qw| false |,
+    'data' => $mode eq qw| true |
+        && $p->{'label'} eq qw| ask | ? "decision $text open" : $text
+};
+<[base.logs]>->( 1, ':. decision %s : %s', $p->{'label'}, $answer->{'data'} );
+<[base.callback.cmd_reply]>->( $p->{'reply_id'}, $answer )
+    if ( $p->{'reply_id'} // '' ) =~ m{\A\d+\z};
+return $answer;
+
+#,,.,,..,,,,,,,,,,,,.,.,,,.,,,,..,,.,,,,.,,,,,..,,...,...,.,,,.,,,,,.,.,,,,.,,
+#MUIS4ENUKQBXUPLKGCAPN37R5XO6RJ5KUHW3HL7M4YGGCQTRSW4DX6J6MSOFX5GNIIIGGH7NPQG6I
+#\\\|NEZSBFKMQAZMVCZ4FNCAXH7GBJO4Y6ZRQKWIFWGMFIVDMJKYZ5D \ / AMOS7 \ YOURUM ::
+#\[7]MBSQNLJET64JL7PWE4CLBY7S4R4XB7R2HJD6KMXUWHLITP3UMCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

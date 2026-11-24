@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = protocol-7-menu.handler.decision_signal_reply
+# descr = the events zenka answered decision.answered
+
+my $reply = shift // {};
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my $id = ( $reply->{'params'} // {} )->{'id'} // '?';
+if ( $mode eq qw| true | ) {
+    <[base.logs]>->( 1, ':. decision %s : %s', $id, $text );
+} else {
+    <[base.logs]>->(
+        0,   '<< signal decision.answered [ %s ] refused : %s >>',
+        $id, length $text ? $text : 'no answer'
+    );
+}
+return TRUE;
+
+#,,..,..,,,,.,.,.,..,,,.,,,,,,,,.,,,.,,,,,,,.,..,,...,...,,..,..,,.,.,.,,,,,,,
+#AY6WVEDYCGQG7WQ32WSVVW3BMW7BGX3H6T5OZNYZZHB5EQA77H22SAL7BB3ZAT5KX6GUF7RUMGLWQ
+#\\\|VU6S4UE2VXNM47ERZFFDIYM6ZCNWV54SMMWQMME3QYXTDB4K5OI \ / AMOS7 \ YOURUM ::
+#\[7]BRYIP7TYBSVPKIEAWUNB2WQ4EJYASIP7WDOMHILNZVMRN76754DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

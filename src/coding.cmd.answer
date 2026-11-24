@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = coding.cmd.answer
+# param = <id> <text>
+# descr = answer an open decision : decision.answered
+#
+# the menu removes the question and raises the signal [ the one raise
+# point for this command and the menu dialog ]
+
+my ( $id, $text ) = ( $call->{'args'} // '' ) =~ m|\A\s*(\S*)\s*(.*?)\s*\z|s;
+return { 'mode' => qw| false |, 'data' => 'decision id required' }
+    if $id !~ m|\A[\w-]{1,40}\z|;
+return { 'mode' => qw| false |, 'data' => 'answer text required' }
+    if $text !~ m|\S|;
+return <[coding.decision.send]>->(
+    qw| pending-question-answer |,
+    "$id $text", $call->{'reply_id'}, qw| answer |
+);
+
+#,,,.,,..,,..,...,,..,.,,,,..,.,.,.,.,...,..,,..,,...,..,,.,.,...,.,.,.,.,.,.,
+#LSIQPAFFF42CFNGOR5R35PVM7MMKRQQ5VNJZRT75OJ6A2NWU2ASZCRLDAHSNQG4YCOI7AURW7D7IK
+#\\\|55NRPOPR6W2DINOCDFZOYBMH5TPNEYPZ4TRX4GSMEKIQQLWGODH \ / AMOS7 \ YOURUM ::
+#\[7]L3DVE6DTHNZAZUQKC6EKTTW5NZAZWGOSQYIT5RH5IZTWB5AKFADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

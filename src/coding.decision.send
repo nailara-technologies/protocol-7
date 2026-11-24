@@ -1,0 +1,31 @@
+## [:< ##
+
+# name   = coding.decision.send
+# descr  = send a menu pending-question command, reply deferred
+# args   = menu command, args, reply id, label
+# return = a command reply [ deferred for a network caller ]
+#
+# the open decisions are the menu's pending questions [ no second store ].
+# route-send only buffers : coding.handler.decision_reply answers the caller
+
+my ( $command, $args, $reply_id, $label ) = @ARG;
+$reply_id //= '';
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => "protocol-7-menu.$command",
+        'call_args' => { 'args' => $args },
+        'reply'     => {
+            'handler' => qw| coding.handler.decision_reply |,
+            'params'  => { 'reply_id' => $reply_id, 'label' => $label }
+        }
+    }
+);
+return { 'mode' => qw| false |, 'data' => 'protocol-7-menu not reachable' }
+    if not $sent;
+return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
+return { 'mode' => qw| true |, 'data' => "$label requested" };
+
+#,,.,,,..,.,.,,,,,,.,,.,.,..,,,.,,,.,,..,,,,.,..,,...,...,..,,,.,,,.,,,..,.,,,
+#CZ3UYCTVW5YNWMAXK2BVKSXOR5LPXYAHN5OYLBCBTPCWZWGJBZK5ZDF7MD4J3VTRUY5U6N2HKKBYA
+#\\\|XNOQGYVO52YYIK7VR3AFSJSRQ5UKVP4HYFPM4WRDY535NVQVHHK \ / AMOS7 \ YOURUM ::
+#\[7]2COI7B4ZILQC5GSVSUNTGN4VQSKSQPH4EQMICU2HLJ57EEZKSEDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,194 @@
+## [:< ##
+
+# name   = coding.sign_queue.step_entry
+# descr  = move the sign queue head one step on
+# args   = entry id
+# return = TRUE when its state changed
+#
+# queued -> signing [ p7-sign-run started, the owner approves ] ->
+# preparing [ p7-commit prepare ] -> committing [ p7-commit commit ] ->
+# committed. denied \ aborted \ failed signs, a refused prepare or commit,
+# a stale commit or staged files beyond the signed set stop the entry. the
+# zenka holds no key and never answers the sign prompt
+
+my $id    = shift;
+my $all   = <[coding.sign_queue.store]>;
+my $entry = $all->{'entry'}{$id} // return FALSE;
+my $cfg   = <[coding.sign_queue.cfg]>;
+my $dir   = $cfg->{'state'};
+my $st    = $entry->{'status'};
+my $stop  = sub { <[coding.sign_queue.stop]>->( $id, shift ); TRUE };
+my $tail  = sub {
+    my $t = <[coding.sign_queue.read_out]>->(shift);
+    length $t ? $t : 'no output';
+};
+
+if ( $st eq qw| queued | ) {
+    my @paths = split m{\s+}, $entry->{'paths'};
+    my $bad = <[coding.sign_queue.check_paths]>->( $cfg->{'root'}, \@paths );
+    return $stop->($bad) if defined $bad;
+    my $plan
+        = defined $entry->{'plan'}
+        ? $all->{'plan'}{ $entry->{'plan'} }
+        : undef;
+    ## the last check before the sign rewrites them ##
+    if ( defined $plan ) {
+        my $now
+            = <[coding.sign_queue.file_sums]>->( $cfg->{'root'}, \@paths );
+        my @changed
+            = grep { ( $plan->{'sums'}{$ARG} // '' ) ne $now->{$ARG} } @paths;
+        return $stop->("file changed since the plan : @changed") if @changed;
+    }
+    CORE::mkdir($dir) if not -d $dir;
+    ## a job id names its state file : never one an earlier job left ##
+    my $stamp = time;
+    $stamp++
+        while -e "$dir/p7-sign-$stamp-$PID.json"
+        or -e "$dir/p7-sign-$stamp-$PID.json.out";
+    my $job     = "p7-sign-$stamp-$PID";
+    my $state   = "$dir/$job.json";
+    my $started = <[coding.sign_queue.detach]>->(
+        {   'cmd' => [
+                "$cfg->{'bin'}/p7-sign-run", '-state',
+                $state,                      '-op',
+                $entry->{'op'},              @paths
+            ],
+            'out' => "$state.out",
+            'rc'  => "$state.rc",
+            'dir' => $cfg->{'root'}
+        }
+    );
+    return $stop->('sign run could not be started') if not $started;
+    $entry->{'status'}   = qw| signing |;
+    $entry->{'sign_job'} = $job;
+    $entry->{'since'}    = time;
+    <[base.logs]>->(
+        1,   ':. sign queue %s : sign requested [ %s ]',
+        $id, $job
+    );
+    return TRUE;
+}
+
+if ( $st eq qw| signing | ) {
+    my $state = "$dir/$entry->{'sign_job'}.json";
+    my $s     = <[coding.sign_queue.read_state]>->($state);
+    my $rc    = <[coding.sign_queue.read_rc]>->("$state.rc");
+    if ( not defined $s ) {
+        return FALSE if not defined $rc;
+        return $stop->(
+            "sign run ended without a state : " . $tail->("$state.out") );
+    }
+    my $status = $s->{'status'} // '';
+    if ( $status eq qw| approved | ) {
+        $entry->{'signed_paths'} = join ' ', @{ $s->{'paths'} // [] };
+        $entry->{'version'}      = $s->{'version'} if $s->{'version'};
+        $entry->{'status'}       = qw| prepare |;
+        <[base.logs]>->( 1, ':. sign queue %s : sign approved', $id );
+        return TRUE;
+    }
+    return $stop->(
+        'sign denied : ' . ( $s->{'denied_reason'} || 'no reason given' ) )
+        if $status eq qw| denied |;
+    return $stop->( 'sign aborted : '
+            . ( $s->{'end_reason'} || $s->{'report'} || 'no reason' ) )
+        if $status eq qw| aborted |;
+    return $stop->(
+        'sign failed : ' . ( $s->{'report'} || $tail->("$state.out") ) )
+        if $status eq qw| failed |;
+    ## not final : a job whose process is gone never ends by itself ##
+    return $stop->("sign job process gone [ status $status ]")
+        if defined $rc
+        or ( $s->{'pid'} and not CORE::kill( 0, $s->{'pid'} ) );
+    return FALSE;
+}
+
+my $base = "$dir/coding-$id";
+if ( $st eq qw| prepare | ) {
+    my $msg = "$base.msg";
+    CORE::open( my $fh, '>:encoding(UTF-8)', $msg )
+        or return $stop->("message file : $OS_ERROR");
+    print {$fh} $entry->{'message'};
+    CORE::close($fh);
+    my $started = <[coding.sign_queue.detach]>->(
+        {   'cmd' => [
+                "$cfg->{'bin'}/p7-commit", 'prepare',
+                '-op',                     $entry->{'op'}
+            ],
+            'stdin' => $msg,
+            'out'   => "$base.prepare.out",
+            'rc'    => "$base.prepare.rc",
+            'dir'   => $cfg->{'root'}
+        }
+    );
+    return $stop->('commit prepare could not be started') if not $started;
+    $entry->{'status'} = qw| preparing |;
+    return TRUE;
+}
+
+if ( $st eq qw| preparing | ) {
+    my $rc = <[coding.sign_queue.read_rc]>->("$base.prepare.rc");
+    return FALSE if not defined $rc;
+    CORE::unlink("$base.msg");
+    my $out = <[coding.sign_queue.read_out]>->("$base.prepare.out");
+    return $stop->("commit prepare refused : $out") if $rc != 0;
+    my ($commit) = $out =~ m{(p7-commit-\d+-\d+)};
+    return $stop->("commit prepare gave no id : $out") if not defined $commit;
+    my $c = <[coding.sign_queue.read_state]>->("$dir/$commit.json");
+    return $stop->("commit $commit : no state") if not defined $c;
+    ## never a commit of something else : only what was signed is staged ##
+    my %signed = map { $ARG => 1 } split m{\s+},
+        $entry->{'signed_paths'} // '';
+    my @extra = grep { not $signed{$ARG} } @{ $c->{'staged_files'} // [] };
+    return $stop->("staged files beyond the signed set : @extra") if @extra;
+    my $started = <[coding.sign_queue.detach]>->(
+        {   'cmd' => [ "$cfg->{'bin'}/p7-commit", 'commit', $commit ],
+            'out' => "$dir/$commit.out",
+            'rc'  => "$dir/$commit.rc",
+            'dir' => $cfg->{'root'}
+        }
+    );
+    return $stop->('commit could not be started') if not $started;
+    $entry->{'commit_id'} = $commit;
+    $entry->{'status'}    = qw| committing |;
+    return TRUE;
+}
+
+if ( $st eq qw| committing | ) {
+    my $commit = $entry->{'commit_id'};
+    my $c  = <[coding.sign_queue.read_state]>->("$dir/$commit.json") // {};
+    my $rc = <[coding.sign_queue.read_rc]>->("$dir/$commit.rc");
+    my $status = $c->{'status'} // '';
+    if ( $status eq qw| committed | ) {
+        $entry->{'status'} = qw| committed |;
+        $entry->{'commit'} = $c->{'commit'} // '';
+        $entry->{'done'}   = time;
+        <[base.logs]>->(
+            1,   ':. sign queue %s committed [ %s ]',
+            $id, $entry->{'commit'}
+        );
+        my $plan
+            = defined $entry->{'plan'}
+            ? $all->{'plan'}{ $entry->{'plan'} }
+            : undef;
+        if ( defined $plan ) {
+            $plan->{'status'} = qw| committed |;
+            $plan->{'commit'} = $entry->{'commit'};
+        }
+        return TRUE;
+    }
+    return $stop->( 'commit refused : '
+            . ( $c->{'report'} || $tail->("$dir/$commit.out") ) )
+        if $status eq qw| refused |;
+    return $stop->('commit stale : the staged content changed since prepare')
+        if $status eq qw| stale |;
+    return $stop->( 'commit run ended : ' . $tail->("$dir/$commit.out") )
+        if defined $rc;
+    return FALSE;
+}
+return FALSE;
+
+#,,..,.,.,.,,,,.,,,,.,,.,,..,,..,,,..,,,.,.,,,..,,...,...,,.,,,,.,,.,,,.,,,.,,
+#YP4HKSHU25OLPFIHWDLYM7T2QBNMFIOG6WULUNT2XQQDJ5EUCVYJLBXFP5AOMIWFJHY6EODFF5NXE
+#\\\|66VTQPGWZFPAYZQZUCZ7JPFIL554RURJXG2P2KAME3US52BTRIT \ / AMOS7 \ YOURUM ::
+#\[7]7CR3VGQN6JQADZVAVUQEWNLBPHVAW52WEWHHPCBVZQQ2W2ACCIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

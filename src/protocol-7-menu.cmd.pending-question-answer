@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = protocol-7-menu.cmd.pending-question-answer
-# param = <question_id> | { id, answer }
+# param = <question_id> [ answer ] | { id, answer }
 # descr = Mark a pending question answered, refresh indicator
 
 my $args = $call->{'args'} // '';
@@ -12,9 +12,8 @@ my ( $question_id, $answer );
 if ( ref $input eq qw| HASH | ) {
     $question_id = $input->{'id'}     // '';
     $answer      = $input->{'answer'} // '';
-} else {
-    $question_id = $input;
-    $answer      = '';
+} else {    ## <id> [ answer text ] ##
+    ( $question_id, $answer ) = $input =~ m|\A\s*(\S*)\s*(.*?)\s*\z|s;
 }
 
 return { 'mode' => qw| false |, 'data' => 'question id required' }
@@ -22,12 +21,16 @@ return { 'mode' => qw| false |, 'data' => 'question id required' }
 
 my $questions = <protocol-7-menu.pending-questions> // [];
 my $removed   = 0;
+my @answered;
 
 @$questions = grep {
     my $keep = ( $_->{'id'} // '' ) ne $question_id;
+    push @answered, $_ unless $keep;
     $removed++ unless $keep;
     $keep;
 } @$questions;
+
+<[protocol-7-menu.decision.raise]>->( $ARG, $answer ) foreach @answered;
 
 <[protocol-7-menu.pending-indicator-update]>;
 
@@ -41,8 +44,8 @@ if ($removed) {
     };
 }
 
-#,,.,,,,.,...,,,.,...,,,,,...,,,,,.,,,,,,,...,..,,...,...,,,.,,..,.,,,.,.,,..,
-#J7U5UZMVJYT7JTO4U6OM64BNJR6SX6ZLUZJ66R5J23LMNG4H5AEAMHENGXBY7PD6QFK5P6U753TJS
-#\\\|RULRE2AN633X4HJZUNLY2IYAUS4OY4QZPS7VG4SPCYDI3PCSBU6 \ / AMOS7 \ YOURUM ::
-#\[7]XIJ3AFLEE5365GY33WEMOXWGXD2FUHBU4E7QOGLHJAILSCOFT4CI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,..,.,,,.,,,,..,,,.,,,.,.,.,...,..,,...,...,.,.,,,,,,,,,,,.,.,,,
+#HNMKJ7DZBEZLZWOGUBQKHLZNUZOKMFJNVI4FQ6VKA7QOWZRQ6RTUBMQPAZPJFPW3466NVQZLQYOB4
+#\\\|YSSYUTZNYCQCDHCE4Q4MKHPBI6KKS655ES5OGK7LUBUI6ZSDJY6 \ / AMOS7 \ YOURUM ::
+#\[7]2JP5TZYSKWQ7UC75GIWKJH5FRZZHMVWL3AATQRPVBG4QRF3QMWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,42 @@
+## [:< ##
+
+# name   = protocol-7-menu.decision.raise
+# descr  = raise decision.answered for an answered decision
+# args   = question [ hash ], answer text
+# return = TRUE when sent, FALSE when not a decision
+#
+# only questions added with decision=yes [ coding.ask ] raise it, never a
+# password question : the values go to the signal journal. the signal line
+# splits on spaces : the answer goes with every space run as '_' and at
+# most 200 characters. route-send only buffers : refusals come to
+# protocol-7-menu.handler.decision_signal_reply
+
+my ( $question, $answer ) = @ARG;
+return FALSE
+    if ref $question ne qw| HASH |
+    or not $question->{'decision'}
+    or ( $question->{'type'} // '' ) eq qw| password |;
+
+my $id = $question->{'id'} // '';
+return FALSE if $id !~ m|\A[\w-]{1,40}\z|;
+$answer = ( $answer // '' ) =~ s{\A\s+|\s+\z}{}gr =~ s{\s+}{_}gr;
+$answer = substr( $answer, 0, 200 );
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| events.signal |,
+        'call_args' =>
+            { 'args' => "decision.answered id=$id answer=$answer" },
+        'reply' => {
+            'handler' => qw| protocol-7-menu.handler.decision_signal_reply |,
+            'params'  => { 'id' => $id }
+        }
+    }
+);
+<[base.logs]>->( 1, ':. decision %s answered : signal sent', $id );
+return TRUE;
+
+#,,,.,,,.,,.,,,..,,.,,,..,,,,,,,,,...,,..,,,,,..,,...,...,,,.,...,,.,,...,..,,
+#PRMURHYEK5QQTQQCNT5PY3D6CUMX6AH6NXAVJKFMK4D3QXKSMETG7VKLJSXX7DWG4IWLL32Q3FBEK
+#\\\|ZQ3FIUHWV33OVRU6END5EMZULOM4UP3AQBN7OYB5GHP5BRT3G5E \ / AMOS7 \ YOURUM ::
+#\[7]KR65GTBI55LJTOROSJJU7CYLXXNQ34TPWPMXR2MNO2MNPCKJAAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

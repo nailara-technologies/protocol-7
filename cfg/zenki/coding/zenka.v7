@@ -46,6 +46,18 @@ coding.cfg.context-auto-compact-threshold = 84
 # coding.cfg.summarize_model   = AMOS:ID   ## pin model for summarization ##
 # coding.cfg.summarize_backend = cpu        ## cpu = background, avoids blocking gpu task ##
 
+## sign queue \ commit plans : the watch rhythm [ seconds ] -- a sign waits ##
+## for the owner, a plan for its tests ; resume : the first look after a    ##
+## start                                                                    ##
+base.interval.cfg.type.coding-sign-watch.start       = 2
+base.interval.cfg.type.coding-sign-watch.factor      = 1.2
+base.interval.cfg.type.coding-sign-watch.cap         = 34
+base.interval.cfg.type.coding-sign-watch.cap_jitter  = 0.3
+base.interval.cfg.type.coding-sign-resume.start      = 13
+base.interval.cfg.type.coding-sign-resume.factor     = 1
+base.interval.cfg.type.coding-sign-resume.cap        = 13
+base.interval.cfg.type.coding-sign-resume.cap_jitter = 0.2
+
 [load_config_file:'shared-params']
 [zenka.load_sub_list]
 
@@ -82,7 +94,8 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       model-batch-resume model-batch-cancel \
                       model-batch-review \
                       idiom-check gpu-lease-yield gpu-lease-granted \
-                      list-backups show-backup subscribe-session
+                      list-backups show-backup subscribe-session \
+                      ask answer open sign-queue commit-plan commit-plans
 ##                    utf8-test-buffer utf8-stream-test \ ## <-- resolved =).
 ##                    test-strm test-strm-size            ## <-- resolved =).
 
@@ -618,8 +631,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,,,,,,,,,,,.,.,.,,,,..,...,.,,,...,...,...,.,.,...,...,...,.,.,,..,..,,.,,,
-#LPV3JJ2ECMPIOJICLKRCPSGQCVPZ5A635FNZNFVB4SBUGPIXR3SVD6XGMSPZ3MXV7RDFNTW4WCU72
-#\\\|MN2QXV2ESNQLHLBXWZUMV3HMTG52TDP6B43HLDYTG6PFPP5HOHZ \ / AMOS7 \ YOURUM ::
-#\[7]GW6IX6X55FOEZTELXQ4SMMHYYDOHT754QDMJ2HHHBXBRA7WBGMAA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,.,,...,.,.,.,.,,..,.,,,,,.,...,.,.,...,...,,.,,,,,,..,,..,,.,,,
+#IFUY2TDO7K4QJ2WMDBC6RDXLSXBIV4BD35D3JBGOPQZU2VFHDTG55WSYUG67GEXSHD65QM7CZHNWE
+#\\\|34F76T6VYK6GJXTUHV3EUMHELD75UQ2SVXO27G6OMLWPV5T2EIU \ / AMOS7 \ YOURUM ::
+#\[7]LHR3GKAPA4PNH3JYD6336ZUAMIDGUDWVZVROUJSOVS5GSM2EHKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

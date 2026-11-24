@@ -1,0 +1,23 @@
+## [:< ##
+
+# name   = coding.sign_queue.file_sums
+# descr  = BMW checksums of repo files [ path => sum ]
+# args   = repo root, array ref of repo-relative paths
+# return = hash ref [ a missing file : 'missing' ]
+
+my ( $root, $paths ) = @ARG;
+my %sums;
+foreach my $path ( @{$paths} ) {
+    my $file = "$root/$path";
+    $sums{$path}
+        = -f $file
+        ? <[chk-sum.bmw.filesum]>->( 256, $file ) // qw| unreadable |
+        : qw| missing |;
+}
+return \%sums;
+
+#,,..,.,.,...,..,,,,,,..,,.,.,,,.,.,.,..,,,.,,..,,...,.,.,,..,,,.,...,,.,,,,.,
+#HKAM7Y76QHS3HX7SP2HECZXNNUINHZXCPS63Y72YAMDGUGHQ5A4U5WNMAKWHJGCUDEGB6RP5IVCZW
+#\\\|4X43XYEPL5QI4R5F32JXLCSJVPHXFQH7TP2GA63VLOAZ4MIPLBM \ / AMOS7 \ YOURUM ::
+#\[7]HY3NMAUT3F2J2WZO4X7HJJGAGXARHAS5CWWDEBOXUL6AE2QCOEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

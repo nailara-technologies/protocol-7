@@ -1,0 +1,24 @@
+## [:< ##
+
+# name   = coding.sign_queue.read_state
+# descr  = read a p7-sign-run \ p7-commit json state file
+# args   = state file path
+# return = hash ref or undef [ missing, half written ]
+#
+# the edge : the sign and commit tools write json [ their own format ] ;
+# it is decoded here and nowhere else in the zenka
+
+my $path = shift // '';
+CORE::open( my $fh, '<:raw', $path ) or return undef;
+my $octets = do { local $INPUT_RECORD_SEPARATOR; <$fh> }
+    // '';
+CORE::close($fh);
+require JSON::PP;
+my $state = eval { JSON::PP->new->utf8->decode($octets) };
+return ref $state eq qw| HASH | ? $state : undef;
+
+#,,.,,.,.,.,,,,.,,,,,,.,.,,.,,...,...,..,,...,..,,...,.,.,.,,,..,,,..,,,,,...,
+#7PSUCQRP2UTAM3E2YIJGAAYSQB6BSV3SKXSA633V5N7EMVGFYMUVX4VZGNUREL6ZNTGMNU6XYV6GK
+#\\\|AQJW7JO547TWCWRHDO7KJFT42CDSGY7UKYVSBWIKWO5UJMGAHCG \ / AMOS7 \ YOURUM ::
+#\[7]FLPURAQ6CMCKSXMXMCEJQ2CUAW2LCNSDE7A25JZC7GC4SMXJNUCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

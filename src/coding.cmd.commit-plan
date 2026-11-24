@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = coding.cmd.commit-plan
+# param = <id> paths= message= [ when= tests= after= op= ]
+# descr = plan a commit : signs once its criteria hold
+#
+# criteria : the files unchanged since the plan [ BMW checksums now ],
+# tests=<names> pass [ bin/test-scripts ], after=<plan id> committed.
+# `when=` carries them as one quoted value too [ when="tests=a after=b" ].
+# when all hold the plan enters the sign queue ; a changed file, a failed
+# test or a returned after= plan returns it with the reason. a returned
+# plan is planned again with the same id
+
+my $parsed = <[park.parse_args]>->( $call->{'args'} // '' );
+my $fail   = sub { return { 'mode' => qw| false |, 'data' => shift } };
+return $fail->( $parsed->{'error'} ) if defined $parsed->{'error'};
+my $pairs = $parsed->{'pairs'};
+if ( defined $pairs->{'when'} ) {
+    my $when = <[park.parse_args]>->( delete $pairs->{'when'} );
+    return $fail->("when= : $when->{'error'}") if defined $when->{'error'};
+    return $fail->("when= : unknown @{ $when->{'words'} }")
+        if @{ $when->{'words'} };
+    foreach my $k ( keys %{ $when->{'pairs'} } ) {
+        return $fail->("$k given twice") if exists $pairs->{$k};
+        $pairs->{$k} = $when->{'pairs'}{$k};
+    }
+}
+my @bad = grep { not m{\A(?:paths|message|tests|after|op)\z} } keys %{$pairs};
+return $fail->("unknown key : @bad") if @bad;
+my ($id) = @{ $parsed->{'words'} };
+return $fail->('plan id : letters digits _ - [ 40 ]')
+    if @{ $parsed->{'words'} } != 1 or $id !~ m|\A[\w-]{1,40}\z|;
+my $all = <[coding.sign_queue.store]>;
+my $old = $all->{'plan'}{$id};
+return $fail->("plan $id is $old->{'status'}")
+    if defined $old and $old->{'status'} !~ m{\A(?:returned|committed)\z};
+my $op = $pairs->{'op'} // qw| new |;
+return $fail->('op : new \ amend \ amend-message \ reset')
+    if $op !~ m{\A(?:new|amend|amend-message|reset)\z};
+return $fail->('message= required') if ( $pairs->{'message'} // '' ) !~ m|\S|;
+my @paths = grep {length} split m{[\s,]+}, $pairs->{'paths'} // '';
+my $cfg   = <[coding.sign_queue.cfg]>;
+my $bad   = <[coding.sign_queue.check_paths]>->( $cfg->{'root'}, \@paths );
+return $fail->($bad) if defined $bad;
+my @tests = grep {length} split m{[\s,]+}, $pairs->{'tests'} // '';
+
+foreach my $test (@tests) {
+    return $fail->("test name : letters digits . _ - [ $test ]")
+        if $test !~ m{\A[\w-][\w.-]*\z};
+    return $fail->("test $test : not in $cfg->{'tests'}")
+        if not -f "$cfg->{'tests'}/$test"
+        and not -f "$cfg->{'tests'}/$test.pl";
+}
+my $after = $pairs->{'after'} // '';
+return $fail->("after= : no plan $after")
+    if length $after and not defined $all->{'plan'}{$after};
+return $fail->('after= : the plan itself') if $after eq $id;
+
+$all->{'plan'}{$id} = {
+    'paths'   => join( ' ', @paths ),
+    'message' => $pairs->{'message'},
+    'op'      => $op,
+    'tests'   => join( ' ', @tests ),
+    'after'   => $after,
+    'status'  => qw| waiting |,
+    'planned' => time,
+    'sums'    => <[coding.sign_queue.file_sums]>->( $cfg->{'root'}, \@paths )
+};
+<[coding.sign_queue.store]>->(qw| save |)
+    or return $fail->('plan not saved');
+<[coding.sign_queue.arm]>->(TRUE);
+return {
+    'mode' => qw| true |,
+    'data' => "plan $id waits : "
+        . join( ', ',
+        @tests        ? "tests @tests"          : (),
+        length $after ? "plan $after committed" : (),
+        'files unchanged' )
+};
+
+#,,,,,,,,,,,.,.,,,,,,,...,,.,,.,,,.,.,...,,,,,..,,...,...,..,,.,.,,,,,,,.,.,.,
+#I7NYXCGMOD3W5TLU7B7OJBXLHQYDSKHZOHQHZSU4ICAWB3C76BEQEHGL7WVUQ47YIHG2RLE4ELFJA
+#\\\|3YPUX5ULQCZORVRNMKZ3PM2WHAFJKOXMQL5D7ZH2YCP5RBMV6QT \ / AMOS7 \ YOURUM ::
+#\[7]NCWSPUWG3E4LZDXTDQ2I46LKJOUCJXOLNZ5L7HUYIVXQ2JVTICAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

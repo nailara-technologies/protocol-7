@@ -82,6 +82,7 @@ note.tree.view
 note.summarize
 jobqueue.count
 iteration.loop
+coding.cmd.ask
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -129,6 +130,7 @@ context.compose
 context.compact
 coding.end_code
 coding.cmd.park
+coding.cmd.open
 coding.cmd.bury
 base.zenka.push
 base.zenka.loop
@@ -221,6 +223,7 @@ coding.cmd.submit
 coding.cmd.status
 coding.cmd.failed
 coding.cmd.budget
+coding.cmd.answer
 coding.abort.list
 base.stream.close
 base.session.user
@@ -273,6 +276,7 @@ base.reload_values
 base.reload_config
 base.protocol.bind
 base.parser.config
+base.interval.next
 base.handler.write
 base.handler.input
 base.handler.hooks
@@ -378,6 +382,7 @@ coding.system_prompt
 coding.self_test.run
 coding.idiom.resolve
 coding.gpu_sparkline
+coding.decision.send
 coding.cmd.wait-done
 coding.cmd.tree-read
 coding.cmd.tree-list
@@ -455,10 +460,13 @@ context.compose.quick
 context.compact.turns
 coding.tools.dispatch
 coding.task.resurrect
+coding.sign_queue.cfg
+coding.sign_queue.arm
 coding.intake.process
 coding.gpu_lease.gate
 coding.cmd.tree-write
 coding.cmd.temp-boost
+coding.cmd.sign-queue
 coding.cmd.round-time
 coding.cmd.redo-round
 coding.cmd.pause-task
@@ -525,6 +533,9 @@ coding.validate.module
 coding.test.tool_write
 coding.task.queue_next
 coding.task.queue_fail
+coding.sign_queue.tick
+coding.sign_queue.stop
+coding.sign_queue.head
 coding.scratchpad.scan
 coding.prompt.assemble
 coding.mode.task_model
@@ -538,6 +549,7 @@ coding.cmd.round-regen
 coding.cmd.resume-task
 coding.cmd.lock-status
 coding.cmd.idiom-check
+coding.cmd.commit-plan
 coding.cmd.clear-cache
 coding.async.fail_task
 coding.analyze.process
@@ -585,6 +597,8 @@ coding.tool.detect_loop
 coding.task.queue_stats
 coding.task.queue_clear
 coding.task.failed.list
+coding.sign_queue.store
+coding.sign_queue.prune
 coding.lora_train_spawn
 coding.cmd.vision-model
 coding.cmd.switch-model
@@ -592,6 +606,7 @@ coding.cmd.staged-clear
 coding.cmd.rewind-round
 coding.cmd.list-backups
 coding.cmd.context-size
+coding.cmd.commit-plans
 coding.cmd.apply-staged
 coding.async.stream_tps
 coding.async.lock_token
@@ -665,6 +680,7 @@ coding.task.save_buffers
 coding.task.queue_status
 coding.task.analyze_full
 coding.start.chmod_child
+coding.sign_queue.detach
 coding.self_test.archive
 coding.init_dependencies
 coding.image.select_refs
@@ -726,6 +742,8 @@ coding.task.execute_round
 coding.task.enqueue_round
 coding.task.classify_type
 coding.task.check_history
+coding.sign_queue.read_rc
+coding.sign_queue.enqueue
 coding.self_test.evaluate
 coding.round_chain.rewind
 coding.round_chain.append
@@ -792,6 +810,8 @@ context.git.recent_changes
 context.diff.lines_similar
 context.compose.for_review
 coding.task.queue_complete
+coding.sign_queue.read_out
+coding.sign_queue.describe
 coding.self_test.follow_up
 coding.prompt.model_select
 coding.parser.query_prefix
@@ -867,6 +887,8 @@ context.module.dependencies
 context.compact.incremental
 coding.thermal.boost_active
 coding.task.estimate_tokens
+coding.sign_queue.step_plan
+coding.sign_queue.file_sums
 coding.self_test.multiplier
 coding.round_chain.restream
 coding.parser.str.is_vision
@@ -920,6 +942,8 @@ crypt.C25519.compare_keypair
 context.tree.checksum.stream
 context.conversation.history
 coding.tools.definitions.git
+coding.sign_queue.step_entry
+coding.sign_queue.read_state
 coding.self_test.tier2_judge
 coding.self_test.async_probe
 coding.self_test.apply_tier2
@@ -977,6 +1001,7 @@ coding.tools.handler.escalate
 coding.tools.handler.checksum
 coding.tools.definitions.tree
 coding.spawn_inference_server
+coding.sign_queue.check_paths
 coding.routing.select_backend
 coding.routing.decide_service
 coding.parser.model_selection
@@ -989,6 +1014,7 @@ coding.helper.log_transaction
 coding.helper.category_mapper
 coding.handler.restart_server
 coding.handler.deferred_reply
+coding.handler.decision_reply
 coding.event.on_task_complete
 coding.callback.retry_request
 coding.callback.http_complete
@@ -1120,6 +1146,7 @@ base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.interval.rhythm.non-linear
 base.handler.link-upgrade.input
 base.file.zenka_dir.unlink_file
 base.chk-sum.jha.b32.harmonized
@@ -1515,8 +1542,8 @@ llm.service.consensus_vote.encode_harmonic_certainty
 coding.vision-parser.handler.check_vision_completion
 coding.vision-parser.handler.check_extraction_completion
 
-#,,.,,,.,,,.,,...,,,,,,.,,.,,,..,,,..,,,,,,,,,..,,...,...,,,.,..,,...,,,.,,..,
-#L3XK7KZDSK6LVFF3MMY3WCOR25XZ36ZDGCFVS4UL3GYR5XHVJS2RE5FMDFUFNKIH5IEA7YGYXPWZY
-#\\\|VXC45VXS367OKOWSVNRIANJCYOYX3OT475HWZDD5XPPJBSHZ47F \ / AMOS7 \ YOURUM ::
-#\[7]C6S6YR2DWAQYOSUVB5QYGHD7CY2WENT5NSGOPVREVCIYEUEGSKBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,...,,..,...,,..,,.,,,..,,.,,,.,,..,,...,..,,...,,,.,,,.,,,.,.,,,
+#RPRD4OSPDJX2CWKT6HZX2ZA4LNV7XSYG2GWZ5J5EKINUAPYZ5VJALXC63AKRGLXN5GKIHUH5LSWOE
+#\\\|QUDEE2I6IFTOM5YDSVAM6XMDFLRPPX3VH7CHAAAKC2IFCASCYRU \ / AMOS7 \ YOURUM ::
+#\[7]BA6GODBABPZOWUERC332ZUXGZQXIN6EH55MFNBWHDNG4RB4ZCSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

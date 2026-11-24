@@ -37,6 +37,7 @@ if (    ref $result eq qw| HASH |
         "pending question answered via dialog : id=%s",
         $question->{'id'} // '?'
     );
+    <[protocol-7-menu.decision.raise]>->( $question, $result->{'data'} );
 } else {
     ## Return to queue if no selection ##
     unshift @$questions, $question;
@@ -46,8 +47,8 @@ if (    ref $result eq qw| HASH |
 
 return $result;
 
-#,,,,,,..,.,,,.,.,.,.,,.,,,,,,..,,,.,,...,,,,,..,,...,...,.,.,.,.,,,.,,.,,...,
-#BUZENBHNLTWDTCUYYQZ77PITYTEDOVH5J5B5DWQVKDPWHOBYXSWEKBBEDOW7DE22E6NSBMJY4YIV2
-#\\\|4H2FFCX5XYZXJFNLOWVMO2XHQRRZQA7LK6AM4IRCVDWVLP3WJDQ \ / AMOS7 \ YOURUM ::
-#\[7]5QOJYMB2S7II2GD6F6Q5OHVJN33VLRBDVYM7HBSFCXTNKQDU4SDA 7  DATA SIGNATURE ::
+#,,.,,...,...,,..,,,.,,,,,.,,,..,,..,,,,,,,,.,..,,...,...,...,.,.,,,,,...,,,.,
+#G63MWJZH522IPCMWJ6BNWFH6VGGAX6D35IH4VXOY2K4HLI5EY7YHECKAVMHBN57WZD7GEAUTCYYQG
+#\\\|QN6ZJVLCB2CG7YQ4HTWPFKYUDVC5BOSYRBBYGSZEEGIXM5R6ZWW \ / AMOS7 \ YOURUM ::
+#\[7]YEL24R67LJB3PHFBYK3TL3ZDXF65TRS5GLYYMGMJQZVQBOVZ2ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

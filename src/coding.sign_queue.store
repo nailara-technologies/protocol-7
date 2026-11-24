@@ -1,0 +1,66 @@
+## [:< ##
+
+# name   = coding.sign_queue.store
+# descr  = sign queue and commit plans, file `sign-queue`
+# args   = [ save ]
+# return = { entry => { id => .. }, plan => { .. }, next }
+#
+# p7 config style in the coding zenka's dir, one `entry.<id>.<key> =
+# value` \ `plan.<id>.<key> = value` line each and `next = n` [ the next
+# entry number ] ; read on first use after a start, written whole on
+# `save`. list values [ paths, tests ] are space separated, a plan's file
+# checksums are `plan.<id>.sum.<path>` lines
+
+my $op  = shift // '';
+my $all = <coding.sign_queue.records>;
+if ( ref $all ne qw| HASH | ) {
+    $all = { 'entry' => {}, 'plan' => {}, 'next' => 1 };
+    my $sref = <[file.zenka_dir.load]>->( 'sign-queue', ':encoding(UTF-8)' );
+    foreach my $line ( split m{\n}, ref $sref eq 'SCALAR' ? $sref->$* : '' ) {
+        if (
+            $line =~ m{\A(entry|plan)\.([\w-]+)\.(sum\.\S+|[\w-]+) = (.*)\z} )
+        {
+            my ( $kind, $id, $k, $v ) = ( $1, $2, $3, $4 );
+            $v =~ s{\\(.)}{$1 eq 'n' ? "\n" : $1}ge;
+            if ( $k =~ m{\Asum\.(\S+)\z} ) {
+                $all->{$kind}{$id}{'sums'}{$1} = $v;
+            } else {
+                $all->{$kind}{$id}{$k} = $v;
+            }
+        } elsif ( $line =~ m{\Anext = (\d+)\z} ) {
+            $all->{'next'} = $1;
+        }
+    }
+    <coding.sign_queue.records> = $all;
+}
+return $all if $op ne qw| save |;
+
+my $esc = sub { ( shift // '' ) =~ s{\\}{\\\\}gr =~ s{\n}{\\n}gr };
+my @out = (
+    ".:[ coding zenka : sign queue and commit plans ]:.\n",
+    "## written by the coding zenka : edit only while it is stopped ##\n",
+    "next = $all->{'next'}\n"
+);
+foreach my $kind (qw| entry plan |) {
+    foreach my $id ( sort keys %{ $all->{$kind} } ) {
+        my $r = $all->{$kind}{$id};
+        foreach my $k ( sort keys %{$r} ) {
+            if ( $k eq qw| sums | ) {
+                push @out, map {"$kind.$id.sum.$ARG = $r->{'sums'}{$ARG}\n"}
+                    sort keys %{ $r->{'sums'} };
+            } else {
+                push @out, "$kind.$id.$k = " . $esc->( $r->{$k} ) . "\n";
+            }
+        }
+    }
+}
+my $text = join '', @out;
+return <[file.zenka_dir.write]>->(
+    'sign-queue', \$text, '>', 0600, ':encoding(UTF-8)'
+) ? $all : undef;
+
+#,,,.,,,,,,,.,,.,,,,.,.,.,,,,,..,,,,,,,..,,,.,..,,...,...,,,,,,,,,.,.,,.,,..,,
+#PTVE2T3QGZ5EDRZTZU2KUT4U6KY4CRW6VQFSTEYT3HLSAYHPNDLPCCVNLAJM3HDGL3CTOEUEOL6EQ
+#\\\|EGSDJOAXO22IFVV7ITKGFHVCT2J4CAMPBY4GVEIVHRPVC4IZAZB \ / AMOS7 \ YOURUM ::
+#\[7]LVRW36NTRD6LNIO4DZVGU3QWRTC4YVIJ6LW6IBEAWPLI4SVFASBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

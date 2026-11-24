@@ -1,0 +1,40 @@
+## [:< ##
+
+# name   = coding.sign_queue.arm
+# descr  = arm the sign queue timer while anything waits
+# args   = [ reset : TRUE after a change, the short rhythm again ]
+# return = TRUE when a timer runs
+
+my $reset = shift // FALSE;
+my $all   = <[coding.sign_queue.store]>;
+my $head  = <[coding.sign_queue.head]>;
+my $busy
+    = ( defined $head and $all->{'entry'}{$head}{'status'} ne qw| stopped | )
+    || grep { $ARG->{'status'} =~ m{\A(?:waiting|testing)\z} }
+    values %{ $all->{'plan'} };
+my $timer = <coding.sign_queue.timer>;
+if ( not $busy ) {
+    $timer->cancel if defined $timer and ref $timer and $timer->can('cancel');
+    undef <coding.sign_queue.timer>;
+    return FALSE;
+}
+return TRUE if defined $timer and not $reset;
+$timer->cancel if defined $timer and ref $timer and $timer->can('cancel');
+<coding.sign_queue.interval> //= {};
+<coding.sign_queue.timer> = <[event.add_timer]>->(
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| coding-sign-watch |,
+                'state' => <coding.sign_queue.interval>,
+                'reset' => $reset ? TRUE : FALSE
+            }
+        ),
+        'handler' => qw| coding.sign_queue.tick |
+    }
+);
+return TRUE;
+
+#,,,.,...,,.,,,.,,...,,.,,...,.,,,,..,...,,.,,..,,...,...,,..,.,,,..,,,,.,,.,,
+#JWQFJ46LOB24Q3GYVGN3MOMMYSDCLDXGGPPZJ4MTAZZOE4WUMAQ4WQWUH5QVZC664XCY37JP4KHEW
+#\\\|PUW3AGG7VH74TPM3D3PDD2NWUHQP7A3BBBJAK4DB3UM3CPTQGN3 \ / AMOS7 \ YOURUM ::
+#\[7]SS7XSY4KRZCX2GWVA6PQB4H5JUUOOL2ZAYDUSHCEDQTHJFC5MIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

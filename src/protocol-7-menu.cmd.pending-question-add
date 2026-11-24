@@ -1,12 +1,31 @@
 ## [:< ##
 
 # name  = protocol-7-menu.cmd.pending-question-add
-# param = <question_json>
+# param = <question_json> | type= question= [ .. ]
 # descr = Add a pending question to the ambient indicator queue
 
 my $args = $call->{'args'} // '';
 
-my $question = eval { JSON::decode_json($args) } // {};
+## json [ cred-mesh ] or key=value [ park.parse_args grammar : type=
+## question="..." options=a,b id= decision=yes ] -- the coding zenka sends
+## key=value, no json between zenki
+my $question;
+if ( $args =~ m|\A\s*\{| ) {
+    $question = eval { JSON::decode_json($args) } // {};
+} else {
+    my $parsed = <[park.parse_args]>->($args);
+    return { 'mode' => qw| false |, 'data' => $parsed->{'error'} }
+        if defined $parsed->{'error'};
+    $question = $parsed->{'pairs'};
+    $question->{'options'}
+        = [ grep {length} split m|\s*,\s*|, $question->{'options'} ]
+        if defined $question->{'options'};
+    my $decision = delete $question->{'decision'} // '';
+    $question->{'decision'} = TRUE if $decision =~ m{\A(?:1|yes|true)\z}i;
+    return { 'mode' => qw| false |, 'data' => 'id : letters digits _ -' }
+        if defined $question->{'id'}
+        and $question->{'id'} !~ m|\A[\w-]{1,40}\z|;
+}
 
 return { 'mode' => qw| false |, 'data' => 'expected JSON question object' }
     unless ref $question eq qw| HASH |;
@@ -36,8 +55,8 @@ return {
     'data' => $question->{'id'}
 };
 
-#,,.,,,,,,,,.,,.,,.,,,,.,,,.,,.,.,...,,,,,.,,,..,,...,...,...,,.,,.,.,...,,,,,
-#SQALVRK4J3DPF5ZHFMNT3XPVYCVOR6DT3ZF3DNW25MOC6GPMKNJIGGILL6Y3RYHFY5RAZYSUJYA2E
-#\\\|MV642OMTDMNDMES6S5IIJ37V2CJQZG3WTAUOJZUXTUIA2V7DQQW \ / AMOS7 \ YOURUM ::
-#\[7]7XRPPZPZ6TZDEHJHCOXLCDYVXVB4JLJY67H6IFVNYPZJENC2JODI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,..,,,,,,,,.,.,,,,..,.,,,.,.,..,,...,...,.,.,,,,,,.,,...,,.,,
+#MFFURAXTYB4DFO2Y4OC5KU7JPPWRWHF34RZGNUU7TZJMZOOLLVJDZIAPLMKDFHGV7SD44FDIGNSKU
+#\\\|634NQ6PJNZPMJ7XXNJA3NO6AUJNTXCVXCWUPFTBDHWGNDFAYLKA \ / AMOS7 \ YOURUM ::
+#\[7]ZWFKKTY2QLWXGI7PSNTWYSQ6ACUXXJC2PF4REDWJEHFHQ4GUTQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

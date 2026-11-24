@@ -29,7 +29,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
-our $VERSION = qw| AMOS7::TERM-VERSION.IE4FC5Q |;
+our $VERSION = qw| AMOS7::TERM-VERSION.7ARA5FQ |;
 
 @EXPORT_OK = qw[
     terminal_title has_tty history_init history_add history_up
@@ -676,7 +676,24 @@ REREAD_PASSWORD:
     terminal_title($term_title) if length $term_title;
 
     if ( [ caller(1) ]->[3] ne qw| AMOS7::TERM::read_password_repeated | ) {
-        AMOS7::TERM::init_TTY_no_echo( $colored_prompt, $input_timeout );
+        ## no controlling terminal [ a pty on stdin, a detached run ] : the ##
+        ## console cannot be opened -- read stdin plainly, echo off when it ##
+        ## is a terminal, instead of going on with no termios handle        ##
+        if (not AMOS7::TERM::init_TTY_no_echo( $colored_prompt,
+                $input_timeout ) ) {
+            print {*STDERR} ": no console for the prompt : reading stdin\n";
+            print {*STDERR} $message_prompt . ' '
+                if length( $message_prompt // '' );
+            my $echo_off = -t *STDIN;
+            require Term::ReadKey                           if $echo_off;
+            Term::ReadKey::ReadMode( qw| noecho |, *STDIN ) if $echo_off;
+            my $password = <STDIN>;
+            Term::ReadKey::ReadMode( qw| restore |, *STDIN ) if $echo_off;
+            print {*STDERR} "\n";
+            return ( undef, TRUE ) if not defined $password;
+            $password =~ s{\r?\n\z}{};
+            return ( $password, FALSE );
+        }
     } else {
         ##[ flushing input again ]##
         AMOS7::TERM::discard_buffered_input();
@@ -2399,8 +2416,8 @@ sub pinned_row_print {
 
 return TRUE ##################################################################
 
-#,,,.,,.,,..,,,..,.,,,,..,,,.,,,,,,..,,,,,.,.,..,,...,...,...,.,,,.,,,,,,,.,.,
-#OTD5LWW5UR5GZ3UR5Y6HVELZCFC2M7STTR35JP4NMKJZL76H23BSRQUVGQEYDZHL44LXRI2234RAY
-#\\\|C3HVQGVMCJV2A7JAG7UCDWBKBGXMSCDLNANWYH4S3N5VL5BZBIQ \ / AMOS7 \ YOURUM ::
-#\[7]4H4KVTVSWZ5N6I6DSNHMLE5SJNL3JXNJYF6WCKMQJOCIO457RGDY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,...,,,,,..,,,,,,,,,,,,.,.,,,,,,,..,,...,...,.,,,,.,,.,,,,,.,...,
+#XFAGQ2H4K7R2HZTCR6RS6WBUCK2CQSXJFLYVKRYGVGPZFRCGJMP5NCN4RAWFV6XDS5LJZOQGC4WOO
+#\\\|ITL2IEB65G4RVWUGLGOBG4B2SWDM5WZEGKEA2ODUFP5VLLCYVRZ \ / AMOS7 \ YOURUM ::
+#\[7]W6W33PWUOAGUPEQ32DYH2LVQQGA7PVFW677Z5HTBP4JJMWCP64AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name   = coding.sign_queue.read_out
+# descr  = the last lines of a detached run's output
+# args   = output file path, [ max lines, default 13 ]
+
+my ( $path, $max ) = @ARG;
+$max //= 13;
+CORE::open( my $fh, '<:raw', $path // '' ) or return '';
+my @lines = <$fh>;
+CORE::close($fh);
+my $text = join '', @lines > $max ? @lines[ -$max .. -1 ] : @lines;
+$text = Encode::decode( 'UTF-8', $text );
+$text =~ s{\e\[[0-9;]*m}{}g;
+$text =~ s{\s+\z}{};
+return $text;
+
+#,,..,,,,,.,,,..,,,,.,...,,,.,,,,,.,,,.,,,,.,,..,,...,..,,,,.,,,,,,,.,,,,,,,,,
+#34HFMNRVRY4BTM5OYACANHMCP3S2YERMU7QJ3RPBWZWREEHIJA5DNMTZQ3F3SQ4BAEVXA727JCV76
+#\\\|VQLWXKPPUH2PYMBXJHEXZHXJJXXBQ56FBCS3L5B336RMZH4DBNS \ / AMOS7 \ YOURUM ::
+#\[7]7PK34YVATQLS3TXEHGPQCZ7PKXJ3RQMDDWM5EIIIV7YVRJ2RGODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

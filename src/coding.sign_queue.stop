@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = coding.sign_queue.stop
+# descr  = stop a sign queue entry with its reason
+# args   = entry id, reason
+#
+# the entry keeps its place [ the queue waits ] ; a plan behind it goes
+# back to its planner with the same reason
+
+my ( $id, $reason ) = @ARG;
+my $all   = <[coding.sign_queue.store]>;
+my $entry = $all->{'entry'}{$id} // return FALSE;
+$entry->{'status'}  = qw| stopped |;
+$entry->{'reason'}  = $reason;
+$entry->{'stopped'} = time;
+<[base.logs]>->( 0, '<< sign queue %s stopped : %s >>', $id, $reason );
+my $plan
+    = defined $entry->{'plan'} ? $all->{'plan'}{ $entry->{'plan'} } : undef;
+
+if ( defined $plan and $plan->{'status'} eq qw| queued | ) {
+    $plan->{'status'} = qw| returned |;
+    $plan->{'reason'} = "sign queue $id stopped : $reason";
+}
+return TRUE;
+
+#,,.,,,.,,,,.,.,,,...,.,,,..,,,..,,,.,,,,,,..,..,,...,...,...,.,.,,.,,.,,,.,.,
+#TKYCIHUYPIEYGM5BL2YOH3FHX3KXMDGEBIYU72RFQELBEGYIGLWKI6QFPIJFSTZYJFWBESR3YLYP2
+#\\\|T64IT3WQIKHNPYCSUDZMKGWZG5NK5K3D3B2OVHDBOTVGKV5RTVU \ / AMOS7 \ YOURUM ::
+#\[7]E4VKQOSS2O5AEANUHFFOG47WJ5D66AXRFPUPRHK6LDFUJ3LS6IDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

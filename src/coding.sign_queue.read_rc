@@ -1,0 +1,17 @@
+## [:< ##
+
+# name   = coding.sign_queue.read_rc
+# descr  = exit code of a detached run [ undef : still running ]
+# args   = rc file path
+
+my $path = shift // '';
+CORE::open( my $fh, '<:encoding(UTF-8)', $path ) or return undef;
+my $line = <$fh> // '';
+CORE::close($fh);
+return $line =~ m{\Arc = (\d+)} ? $1 + 0 : undef;
+
+#,,.,,...,...,,,,,.,,,,,,,,.,,,,.,,,.,,,.,,.,,..,,...,...,.,.,.,,,,,.,,.,,,,,,
+#XKHX3FCGDE2HYR475PZBWPKDWH2UGPGSWE5B7D7GUZ2KT7NYIW4OVBRVTEXB2X7NSDTBSWP3GRBIK
+#\\\|CULNOHBSSBLLSXHJFODDPLIUR7AAHPQJSE26KE6RFQMMNBARHQZ \ / AMOS7 \ YOURUM ::
+#\[7]52O6Y4QBWIQT7MSHE2TBPL4MSK5WTULBT3RJC62IZ3OWYS6ADABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
