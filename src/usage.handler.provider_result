@@ -30,6 +30,7 @@ $request->{'pending'}--;
 ## every reading feeds the watch : threshold \ reset signals, timers ##
 if ( $result->{'ok'} ) {
     eval { <[usage.watch.observe]>->( $provider, $result->{'result'} ) };
+    eval { <[usage.pace.observe]>->( $provider, $result->{'result'} ) };
     <[base.logs]>->(
         0,         '<< usage : watch of %s failed : %s >>',
         $provider, $EVAL_ERROR =~ s{\s+\z}{}r
@@ -46,8 +47,8 @@ return TRUE if $request->{'pending'} > 0;
 
 return <[usage.complete_query]>->($req_id);
 
-#,,..,.,.,.,,,,.,,..,,...,.,.,.,,,...,,,,,.,,,..,,...,..,,..,,,..,,.,,.,,,...,
-#A7VONUEL3V6QOCUM5TZ6DYSOA6JRHRRJHTJBZTNQMSF5A6SC5AE3AD4VWCJ3P5UEVAR2Z5CKOAD5I
-#\\\|F4ZMN2RC27DD3GLT5L35WBTKDGWHRIOHJGMICPQWG4E3QT5FCJX \ / AMOS7 \ YOURUM ::
-#\[7]HDM7G4DV5WYCKTWKESL6ZJFURIGDZIBSPCCOUQZ47GUI7K3YPWAA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,..,,,.,,.,,,.,,,...,,,.,,..,..,,...,...,,,,,,,.,,.,,,,.,,.,,
+#BKLIPIG7M5R3E535X3EXYYDEZQ6PCXYWTIRWZKXINQK32QT5LMXV6NU73P5YIC36HJLFQCAP5YILO
+#\\\|INWG2U4MZD3QX56JRDFXAAQ2KIIGQC7JRY7UHDBW5AAN6S276LS \ / AMOS7 \ YOURUM ::
+#\[7]VTARKOIIQS2A53USIJQJI2SJ736XHCWC3TREFIXRBSROCTCCPADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

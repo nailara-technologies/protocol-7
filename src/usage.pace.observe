@@ -1,0 +1,55 @@
+## [:< ##
+
+# name   = usage.pace.observe
+# descr  = note the 7d percent at the start of each 5h window
+# args   = provider, parsed result [ { rows => [ .. ] } ]
+# return = the provider's pace record [ or undef ]
+#
+# a record per provider : the 5h reset epoch of the running window, the 7d
+# percent and the time first seen in it. a new 5h reset epoch [ moved on by
+# more than 13 minutes : the api jitters a little ] or a 7d percent below
+# the start [ the week reset ] starts a new record. kept in pace.cfg of the
+# zenka dir, p7 config style, so a restart keeps the window start
+
+my ( $provider, $result ) = @ARG;
+return undef if not defined $provider or ref $result ne qw| HASH |;
+return undef if $provider !~ m|\A[0-9a-z_-]{1,40}\z|;
+my %win;
+foreach my $row ( @{ $result->{'rows'} // [] } ) {
+    my $w = $row->{'window'} // next;
+    $win{$w} = $row;
+}
+my ( $five, $week ) = @win{qw| 5h 7d |};
+return undef if not defined $five or not defined $week;
+my $epoch = $five->{'reset_epoch'};
+my $used  = $week->{'used_pct'};
+return undef if not defined $epoch or not defined $used;
+
+my $state = <[usage.pace.state]>;
+my $rec   = $state->{$provider};
+my $new
+    = !defined $rec
+    || abs( ( $rec->{'epoch5h'} // 0 ) - $epoch ) > 13 * 60
+    || $used < ( $rec->{'start7d'} // 0 );
+return $rec if not $new;
+
+$state->{$provider} = {
+    'epoch5h' => $epoch,
+    'start7d' => $used,
+    'start'   => time
+};
+my $text = "   .:[ usage : 7d percent at the start of the 5h window ]:.\n\n";
+foreach my $name ( sort keys %{$state} ) {
+    my $r = $state->{$name};
+    $text .= sprintf "   %s.%-8s = %s\n", $name, $ARG, $r->{$ARG}
+        foreach qw| epoch5h start7d start |;
+}
+eval { <[file.zenka_dir.write]>->( qw| pace.cfg |, \$text, '>', 0640 ); 1 }
+    or <[base.logs]>->( 0, '<< usage pace : pace.cfg not written >>' );
+return $state->{$provider};
+
+#,,,.,,,,,...,,.,,,,.,,,,,.,,,..,,,,.,,.,,,..,..,,...,..,,.,.,...,.,,,..,,.,,,
+#D5G7IZK6NGMU5WFER3IGDAAOKJ7QFIADM4N6RNYCALLI64JPQKXFESF7LSS5EV5PESZIWTWDT2GJK
+#\\\|FOQTAFST6OFVWR2EUG54CH72JARWQWHNX3TIQQZLEOGPLIIPJIG \ / AMOS7 \ YOURUM ::
+#\[7]5NDGL3HZ4F7JYQRU5LU6FVD3PD6W7F54FX546K4FRCS7EEKLR6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

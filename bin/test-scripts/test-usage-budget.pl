@@ -207,6 +207,7 @@ load_module($ARG) for qw|
     usage.handler.window_reset
     usage.handler.provider_result
     usage.format.plan
+    usage.pace.state
     base.interval.next
     base.interval.rhythm.non-linear
     |;
@@ -741,7 +742,7 @@ ok( $plan =~ m{5h  :  75\.0 % left : resets in 2\.0 h}
 ok( $plan        =~ m{5h windows before the 7d reset : 25}
         && $plan =~ m{share per 5h window : 2\.4 % of the 7d}
         && $plan =~ m{share per day : 12\.0 % of the 7d}
-        && $plan =~ m{last window is cut to 3\.0 h},
+        && $plan =~ m{last window is shortened to 3\.0 h},
     'plan : 5h windows left and the share per window and day'
 ) or say "# $plan";
 ## the owner's case : 16 h to the 7d reset, the 5h window resets in 4.7 h ##
@@ -770,6 +771,54 @@ ok( $plan2 =~ m{5h windows before the 7d reset : 4}
         && $plan2 =~ m{share per 5h window : 8\.8 % of the 7d},
     'plan : the running window counts once, then whole 5h slots'
 ) or say "# $plan2";
+## pace : 4 % of the 7d used in the first hour of a window, 4 h left ##
+my $t0 = time;
+$data{'usage'}{'pace'}{'records'} = {
+    'claude' => {
+        'epoch5h' => $t0 + 4 * 3600,
+        'start7d' => 61,
+        'start'   => $t0 - 3600
+    }
+};
+my $pace_req = sub {
+    my $used7d = shift;
+    return $code{'usage.format.plan'}->(
+        {   'order'   => ['claude'],
+            'now'     => $t0,
+            'results' => {
+                'claude' => {
+                    'ok'     => TRUE,
+                    'result' => {
+                        'rows' => [
+                            {   'window'    => '7d',
+                                'used_pct'  => $used7d,
+                                'resets_in' => 16 * 3600
+                            },
+                            {   'window'    => '5h',
+                                'used_pct'  => 40,
+                                'resets_in' => 4 * 3600
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    );
+};
+my $fast = $pace_req->(65);
+ok( $fast =~ m{this window : 4\.0 % of the 7d used in 1\.0 h}
+        && $fast
+        =~ m{pace : 4\.0 %/h now, 2\.2 %/h fits : slow down to about x0\.55},
+    'pace : too fast for the share -> slow down with the factor'
+) or say "# $fast";
+my $slow = $pace_req->(61.5);
+ok( $slow =~ m{pace : 0\.5 %/h now, .* : room to speed up x},
+    'pace : well under the share -> room to speed up'
+) or say "# $slow";
+delete $data{'usage'}{'pace'}{'records'}{'claude'};
+ok( $pace_req->(65) !~ m{pace :},
+    'pace : no window start record, no pace line' );
+
 ok( $plan =~ m{\.: kimi plan :\.\n :\n : token expired},
     'plan : a failed provider shows its error'
 );
@@ -778,8 +827,8 @@ ok( $plan !~ m|[{}]|, 'plan : no json' );
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,...,,..,,,,,,..,...,..,,..,,,,,,.,.,...,..,,...,..,,,..,.,.,,,.,.,,,,,,,
-#IVY3MMN6VQOGPAX6P55BZ4EAG3QDPHZWUXWSUZV6D6ZOUHIAVXEH4HR4MVXW4SVAMBKN666IHVLZO
-#\\\|GRIWUUDBY7SMZR5EKR5OD45KXH5AETNREPW3FEOGNSB54HHVWXZ \ / AMOS7 \ YOURUM ::
-#\[7]BUF2U7QOUDSCAUUXZIMALZAPAZX57PTEZMT2ESUMUGCSNJWTM6CQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,,,.,..,,...,,..,...,.,,,,.,,..,,...,...,...,,,,,.,.,,,.,,..,
+#SGFHQPGENUUN55UUVBKVCPQYIWSHV5K2YLEDH356L6S7UITGTYHBR365SAT5OV5IGLLKJECRJDTBS
+#\\\|YFNQ4CKFOAHONDSXK57A7D4B6AS4B2XFHTNPDNCYJLCEHS3ITYH \ / AMOS7 \ YOURUM ::
+#\[7]LWPSMCGW4ZPWAPIVISHQ5BO53DXLCBATPSQHNWC4HWC2NHTM3QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

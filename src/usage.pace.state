@@ -1,0 +1,26 @@
+## [:< ##
+
+# name   = usage.pace.state
+# descr  = the pace records, loaded once from pace.cfg
+# return = hash ref { provider => { epoch5h, start7d, start } }
+
+return <usage.pace.records> if defined <usage.pace.records>;
+my %state;
+my $sref
+    = eval { <[file.zenka_dir.load]>->( qw| pace.cfg |, ':encoding(UTF-8)' ) };
+if ( ref $sref eq qw| SCALAR | ) {
+    foreach my $line ( split m{\n}, ${$sref} ) {
+        next
+            if $line
+            !~ m{\A\s*([0-9a-z_-]{1,40})\.(epoch5h|start7d|start)\s*[=:]\s*(-?\d+(?:\.\d+)?)\s*\z};
+        $state{$1}{$2} = $3 + 0;
+    }
+}
+<usage.pace.records> = \%state;
+return \%state;
+
+#,,,,,.,,,.,.,,,.,,.,,,,,,.,,,.,.,,..,,.,,.,,,..,,...,...,...,,.,,,,.,.,.,..,,
+#IP3FTT7JMBLHVNOZT64IT5SI3HBTCY2X5VM25RFE23INBYN3OPOTUZLQHISKAK2JT26PMP7MF673E
+#\\\|NMLXOEMMBQIAUZQ6C3PDN7QGKEN2U6XZ46DZTZQOHJP436SIF3L \ / AMOS7 \ YOURUM ::
+#\[7]WQAEWPHBKEB56RLKYL6YUMRS2EIMNTUPNLYBTWCOFWSUE5VU26BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

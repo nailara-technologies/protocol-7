@@ -66,9 +66,38 @@ foreach my $name ( $request->{'order'}->@* ) {
         ## the last slot before the 7d reset may be cut short ##
         my $tail = defined $cur ? ( $secs - $cur ) % 18000 : 0;
         push @lines,
-            sprintf ' : the last window is cut to %s by the 7d reset',
+            sprintf ' : the last window is shortened to %s by the 7d reset',
             $hours->($tail)
             if $tail > 0 and $n5h > 1;
+
+        ## pace in the running window : the 7d used since its start against ##
+        ## the share spread over the hours it has left [ usage.pace.state ] ##
+        my $rec = ( <[usage.pace.state]> // {} )->{$name};
+        if ( defined $cur and defined $rec and defined $rec->{'start'} ) {
+            my $spent   = ( $week->{'used_pct'} // 0 ) - $rec->{'start7d'};
+            my $elapsed = ( $request->{'now'}   // time ) - $rec->{'start'};
+            my $share   = $rest / $n5h;
+            push @lines,
+                sprintf ' : this window : %.1f %% of the 7d used in %s',
+                $spent, $hours->($elapsed);
+            my $need = $cur > 0 ? $share / ( $cur / 3600 ) : undef;
+            if ( $elapsed < 13 * 60 or $spent <= 0 or not defined $need ) {
+                push @lines,
+                    sprintf ' : pace : up to %.1f %%/h fits the share',
+                    $need // 0;
+            } else {
+                my $rate  = $spent / ( $elapsed / 3600 );
+                my $ratio = $need / $rate;
+                push @lines,
+                    sprintf ' : pace : %.1f %%/h now, %.1f %%/h fits : %s',
+                    $rate, $need,
+                    $ratio < 0.87
+                    ? sprintf( 'slow down to about x%.2f', $ratio )
+                    : $ratio > 1.15
+                    ? sprintf( 'room to speed up x%.2f', $ratio )
+                    : 'on pace';
+            }
+        }
     } else {
         push @lines, ' :';
         push @lines, ' : no 7d window : no share';
@@ -77,8 +106,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 }
 return join "\n", @lines;
 
-#,,.,,,..,...,,..,.,,,,,,,,.,,,..,,,,,...,.,,,..,,...,...,..,,,,.,..,,,,.,,.,,
-#WNHFXPCVHJ66EHCAE7F435YHT26NCNENC6HKFEG4DDEE3C7237GJ4OX6WJJLDHACVWIFQYQTHDCZU
-#\\\|SWREBMQBTXSDA47IV6WUBKDUJYBKZRGNIDHPXLRHRNRZ5MRPWLH \ / AMOS7 \ YOURUM ::
-#\[7]2MAAVOUGE4JRLTZY7SP7UWSNYOTPPWYSG4E2VVEUYO2LNERFC6DI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,,..,.,,,,,,,..,,,,.,...,,,.,..,,...,...,...,...,..,,...,,.,,
+#ED2JJGHVF2FDYPBZF4RXTM2HEO3UMO3NKQRCPWQ2HVJLPWZ4MROQEALZYWEN367IVI2KNZNSQFVME
+#\\\|BLSKSTHFIB26J5QGDCIOSXKR7LLLJSUFQAYP6TX5IOGBZ2RDTNG \ / AMOS7 \ YOURUM ::
+#\[7]QG7QMN2FAJYFUZPGKNQBNNPYT7THJ5KYYJPC2VEGCF7XU2CXGOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
