@@ -838,6 +838,9 @@ ok( $capped =~ m{pace fits : 2\.5 %/h of the 5h} && $capped =~ m{slow down},
     'pace : the 5h percent left caps the fitting rate' )
     or say "# $capped";
 
+ok( $plan =~ m{ 7d  :.*\n.*\n : 5h  :},
+    'plan : the 7d window first, then the 5h window' )
+    or say "# $plan";
 ok( $plan =~ m{\.: kimi plan :\.\n :\n : token expired},
     'plan : a failed provider shows its error'
 );
@@ -846,8 +849,8 @@ ok( $plan !~ m|[{}]|, 'plan : no json' );
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,.,,,,.,,.,,,,,,.,.,,,.,,..,.,.,.,,,,,.,..,,...,...,.,,,.,.,,..,..,,,..,
-#TDZYE5SWUFGMRGOVOMZ6J6TIWTXI2DFAXLEZQDYRXKL2RVTRAXENRIW2ROB4VXXCEE3GBVQZH4BHQ
-#\\\|3TWNJ5DRIYO2C4ZKRHMF467FMW2GTVJQTG7XMVFVH5GJOYSZCBD \ / AMOS7 \ YOURUM ::
-#\[7]ZZ3FSU6LPT3W52WXCFBDV3O3Y4UI4WKWVFZODTAVXVLFXUDOPCCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,.,,,,,,,,.,..,,,..,,,.,.,,,,.,,..,,...,...,...,.,.,,,,,.,.,...,
+#25YL5IBKF3IF5D2XGVGVSJHGPXSWHV3WD4UUO5FHS3KD2ZQC24QD4A2WCVER7A7XEUDZJPEWEJHMM
+#\\\|52ETSJ3NZURIGLBHAUVAJVYKRSQDQFCZQDAUIHTRTUXPPBZ3GMP \ / AMOS7 \ YOURUM ::
+#\[7]SLSCDK733Y6Y2PKFUELUDOTGHDPEX6F36GLZQJ3R5LDLHHCDLGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

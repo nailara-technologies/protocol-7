@@ -44,7 +44,12 @@ foreach my $name ( $request->{'order'}->@* ) {
         my $w = $row->{'window'} // next;
         $win{$w} //= $row;
     }
-    foreach my $w ( sort keys %win ) {
+    ## the week first, then the 5h window the lines below are about ##
+    my %rank = ( '7d' => 0, '5h' => 1 );
+    foreach my $w (
+        sort { ( $rank{$a} // 2 ) <=> ( $rank{$b} // 2 ) or $a cmp $b }
+        keys %win
+    ) {
         my $row  = $win{$w};
         my $left = 100 - ( $row->{'used_pct'} // 0 );
         $left = 0 if $left < 0;
@@ -145,8 +150,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 }
 return join "\n", @lines;
 
-#,,,.,.,.,..,,,.,,...,.,,,.,.,...,,,,,,..,.,.,..,,...,.,.,...,,,.,.,,,,..,,..,
-#QXRFNCTDHQ7DXPSOG7U2X742FPFD6IPKUQRP4OGGCUWNDRIGSQFND4DQZXNVWMDGVPAHKG6LS2ZO2
-#\\\|P7ISU2AULBH74EKDLDA2MR7BSDJTQZJ65WJ7THTYHKNYGCIWAYQ \ / AMOS7 \ YOURUM ::
-#\[7]3QQX77CCI6QEEAPMOOUVGOOV4DXFG4D5LMROI23KF6V75EF6P2CA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,,.,,..,,.,.,..,,,.,,,,,,,,.,..,,...,...,.,.,,,.,,,,,..,,,,,,
+#EHG74CBTJKFK2C7DQ7IF33LE7SDHV2P3CNED6DONSXGHIVXKU2ER5UD2GAD3HJEPHL2OSLN6SH4UY
+#\\\|2ZLFQOVBKATVRPKNE7NLIQHMHPCCICC5NU3SUYUODRRNIUBZ66K \ / AMOS7 \ YOURUM ::
+#\[7]RZ54RV7WFMCMTLVG7EJMMRDVCD25L7SSYIY55JQ5CKOWD2PBVSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
