@@ -18,6 +18,17 @@ my $hours   = sub {
     $s = 0     if $s < 0;
     return sprintf '%.1f h', $s / 3600;
 };
+## a bar in the project's own look [ the sign agent's :::[::::   ]:: ] : ##
+## plain characters, no colour ; over 100 % the bar ends in a '!'        ##
+my $bar = sub {
+    my $pct   = shift // 0;
+    my $width = 26;
+    $pct = 0 if $pct < 0;
+    my $fill = int( ( $pct > 100 ? 100 : $pct ) * $width / 100 + 0.5 );
+    my $body = ( qw| : | x $fill ) . ( ' ' x ( $width - $fill ) );
+    substr( $body, -1, 1, qw| ! | ) if $pct > 100;
+    return "[$body]";
+};
 foreach my $name ( $request->{'order'}->@* ) {
     my $entry = $results->{$name} // {};
     push @lines, '' if @lines > 1;
@@ -39,6 +50,7 @@ foreach my $name ( $request->{'order'}->@* ) {
         $left = 0 if $left < 0;
         push @lines, sprintf ' : %-3s : %5.1f %% left : resets in %s', $w,
             $left, $hours->( $row->{'resets_in'} );
+        push @lines, sprintf ' :       %s used', $bar->( 100 - $left );
     }
     my $week = $win{'7d'};
     if ( defined $week and defined $week->{'resets_in'} ) {
@@ -119,6 +131,11 @@ foreach my $name ( $request->{'order'}->@* ) {
                     ? sprintf( 'room to speed up x%.2f', $ratio )
                     : 'on pace';
             }
+            ## how much of this window's share is spent, in 5h percent ##
+            push @lines, sprintf ' : share used : %s %3d %%',
+                $bar->( 100 * $spent5 / ( $spent5 + $fit5 ) ),
+                100 * $spent5 / ( $spent5 + $fit5 )
+                if $spent5 > 0 and $spent5 + $fit5 > 0;
         }
     } else {
         push @lines, ' :';
@@ -128,8 +145,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 }
 return join "\n", @lines;
 
-#,,,.,..,,..,,...,.,,,...,,,.,,.,,.,.,,,,,,.,,..,,...,..,,,,.,...,,.,,.,.,..,,
-#PLMVGOA32JUD5PO66AEGPLIDR5PGGICKDLIGMJQRM3JVKZHUZ44OGROIMFRDCFDGIG5SUBV3KT72K
-#\\\|PVLGJXIR6VZHES3PKFVOHGJCYNPH46NNBDBO2HBLSBLQVIHNCAM \ / AMOS7 \ YOURUM ::
-#\[7]F4E4DZHJWDRL7RMQXZIARLKV2U5XI6YA327LIBHPTPBLYNZDMGCI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,...,.,,,.,.,...,,,,,,..,.,.,..,,...,.,.,...,,,.,.,,,,..,,..,
+#QXRFNCTDHQ7DXPSOG7U2X742FPFD6IPKUQRP4OGGCUWNDRIGSQFND4DQZXNVWMDGVPAHKG6LS2ZO2
+#\\\|P7ISU2AULBH74EKDLDA2MR7BSDJTQZJ65WJ7THTYHKNYGCIWAYQ \ / AMOS7 \ YOURUM ::
+#\[7]3QQX77CCI6QEEAPMOOUVGOOV4DXFG4D5LMROI23KF6V75EF6P2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -814,6 +814,11 @@ ok( $fast
         =~ m{pace fits : 9\.8 %/h of the 5h \[ 2\.2 %/h of the 7d \] : slow down to about x0\.55},
     'pace : too fast for the share -> slow down with the factor'
 ) or say "# $fast";
+ok( $fast        =~ m|^ :       \[:{10} {16}\] used$|m
+        && $fast =~ m|^ : share used : \[:{8} {18}\]  31 %$|m
+        && $fast !~ m{\e},
+    'bars : window used and share used, plain characters'
+) or say "# $fast";
 my $slow = $pace_req->( 61.5, 24 );
 ok( $slow =~ m{pace now : 2\.0 %/h of the 5h}
         && $slow =~ m{: room to speed up x},
@@ -841,8 +846,8 @@ ok( $plan !~ m|[{}]|, 'plan : no json' );
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,..,.,.,,,.,,,,,..,,,,.,,,.,...,,..,.,.,..,,...,..,,.,,,.,,,,.,,.,.,.,.,
-#NCWAPJKIAEBKZSQBWHVXC5ZH2D5MHGYXZY7BSYZZLMOFFAID5CSYZGGH4G56V37HO3T5A6QUIBJCM
-#\\\|L7JZORVPP3S7FB3FXT3Y3JMY75PTSFBG2CFRJNERZWINTE72T5D \ / AMOS7 \ YOURUM ::
-#\[7]LM6SC5BSZJUP6FMIX2X5BIOBOMEWHRTGAZI5W6IUS7GFM7TSSMAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,.,,,,,,.,.,,,.,,..,.,.,.,,,,,.,..,,...,...,.,,,.,.,,..,..,,,..,
+#TDZYE5SWUFGMRGOVOMZ6J6TIWTXI2DFAXLEZQDYRXKL2RVTRAXENRIW2ROB4VXXCEE3GBVQZH4BHQ
+#\\\|3TWNJ5DRIYO2C4ZKRHMF467FMW2GTVJQTG7XMVFVH5GJOYSZCBD \ / AMOS7 \ YOURUM ::
+#\[7]ZZ3FSU6LPT3W52WXCFBDV3O3Y4UI4WKWVFZODTAVXVLFXUDOPCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
