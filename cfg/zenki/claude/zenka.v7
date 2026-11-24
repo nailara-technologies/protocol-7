@@ -2,6 +2,11 @@
 
 [load_config_file:'shared-params']
 
+## owner mode : the zenka runs as the admin user                         ##
+## [ the owner's claude login and mcp config ] ; init, still root, gives ##
+## the zenka dirs to this user                                           ##
+system.zenka-user.current = <system.admin-user>   ## <-- not 'protocol-7' ##
+
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       src-age src-ver subname name \
@@ -46,7 +51,7 @@ modules.load = auth.client net protocol io.unix ui stream_child claude
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.admin-user>]    ## owner mode ##
+[root.drop_privs:<system.zenka-user.current>]
 
 [base.net.connect:'unix']
 
@@ -54,8 +59,8 @@ modules.load = auth.client net protocol io.unix ui stream_child claude
 
 [zenka.loop]
 
-#,,.,,..,,,.,,.,.,,..,...,,,.,.,,,.,,,..,,..,,..,,...,.,.,,.,,.,,,,,.,,..,,,.,
-#HIKWD4W5WZ76EKMW366QAHKJN4FZOBBPSNI22SHSU75N5AE5MDORXWHRI5NXRU3AMRTSN3Z4VNCJG
-#\\\|CGLXMEC25T6DWZ6WSZHBCMIXKNAEY6JSG6YK7UITGEUBNC2ORU7 \ / AMOS7 \ YOURUM ::
-#\[7]4EIMN5BXHMCU52KZ6UDLV4BZWAB7VLKDASS7ZCX6A2URJJPY2SDY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,.,,,.,,,...,.,.,,,.,...,.,,,..,,...,...,,,,,...,..,,.,.,..,,
+#2IPGWM5XXSE564MN7JORRZLT2ZWU4K7I4BMQIOMNEM3POOCYX6US62SOMJ4WNUM65IG2VBBVV722Y
+#\\\|PWCB3ZCESOPFZPIC5W7BDV6DFIGC5HGHRO2TNNVG75YKPTIVABX \ / AMOS7 \ YOURUM ::
+#\[7]FC22XGD6D6R3SPOARM2ITSR2SEWCDTQRJBV2YJHLN3Y3LJ4PZQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

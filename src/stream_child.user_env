@@ -1,0 +1,27 @@
+## [:< ##
+
+# name   = stream_child.user_env
+# descr  = home, login names and user bin dirs for a child
+# args   = bin dirs relative to the home [ e.g. .local/bin ]
+# return = hash ref for stream_child.start's env
+#
+# a zenka drops to the user its child runs as [ owner mode : the admin
+# user ] ; %ENV still has the launching user's HOME. the child gets the
+# effective user's home, login names and the existing bin dirs in front
+
+my @dirs = @ARG;
+my @pw   = CORE::getpwuid($EUID);
+return {} if not @pw or not defined $pw[7] or not length $pw[7];
+my $home = $pw[7];
+my %env  = ( 'HOME' => $home, 'USER' => $pw[0], 'LOGNAME' => $pw[0] );
+my $path = $ENV{'PATH'} // '/usr/bin:/bin';
+my %on   = map  { $ARG => 1 } CORE::split( m{:}, $path );
+my @add  = grep { -d $ARG and not $on{$ARG} } map {"$home/$ARG"} @dirs;
+$env{'PATH'} = join( ':', @add, $path ) if @add;
+return \%env;
+
+#,,.,,,.,,,..,,,,,,,.,.,,,.,,,...,.,.,,.,,,,,,..,,...,...,...,.,,,.,,,,,,,..,,
+#5ZR6VH5POHYDDOEAUO7OELE3NUN4F3QPXI23FAH2EMYPNYPXE7WJS5Q5YN66AVHMN76RUE4DZJYMO
+#\\\|PZOCT2RVLJLVXMR4BXC4JORLQBI5UDY3RVXQ4GQ5JGUI5CHPTFN \ / AMOS7 \ YOURUM ::
+#\[7]SYKXVBI6ESU2C6RROOCGOXB6NKJ7XWOHB4WXOTDP2RRHRADCFIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

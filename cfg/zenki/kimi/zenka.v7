@@ -3,6 +3,11 @@
 
 [load_config_file:'shared-params']
 
+## owner mode : the zenka runs as the admin user                            ##
+## [ the acp child : the owner's kimi login ] ; init, still root, gives the ##
+## zenka dirs to this user                                                  ##
+system.zenka-user.current = <system.admin-user>   ## <-- not 'protocol-7' ##
+
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       ask-reply task-file status \
@@ -64,7 +69,7 @@ modules.load = auth.client net protocol io.unix ui websocket crypt.C25519 \
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>]
+[root.drop_privs:<system.zenka-user.current>]
 
 [base.net.connect:'unix']
 
@@ -72,8 +77,8 @@ modules.load = auth.client net protocol io.unix ui websocket crypt.C25519 \
 
 [zenka.loop]
 
-#,,..,.,,,.,.,,..,...,...,,..,..,,...,.,,,...,..,,...,...,...,...,,,.,.,,,,.,,
-#Y6NNHMVNXGNEMKS53DU6RPZX6BNOSTTCZALP76XSIV4H6EENGYBPFWHMD2NNDRSD7YVSM7335BK24
-#\\\|7ZKXTO3JMNR6XEK6IKOAM6GCCH5SJQUIBUSNSBSRMFMIK4INXWH \ / AMOS7 \ YOURUM ::
-#\[7]DEQ4WJPHQCD4ACZ5N3W4MIJQDS5RBOMZCDI4IEDKFFL6FU2XSIBA 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,,,,,,,,,.,,,...,,..,.,.,,,.,..,,...,...,.,.,,.,,,,,,...,.,.,
+#4D5GTKYYX67MKN6FZOJHJNWAQOLLRTWTD6UVNBAYKRWTDIQYGME3XLWEGSFKYBLKF6BTU4Q525K6Q
+#\\\|6IHQ53GVK6P7VPMSV3DINL3A5RZJ37BBIMK3DK25J7XSZVF5MED \ / AMOS7 \ YOURUM ::
+#\[7]236GWYUDLXIQWXFC5DA75PXAVJTFL6DTFWXSITGGRWZMMJLYCUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

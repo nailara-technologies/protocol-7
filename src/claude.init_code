@@ -8,6 +8,11 @@
 ## lines [ buffer + log file ] ; a result raises the signal claude.run.done ##
 ## through the events zenka                                                 ##
 
+## init runs as root, before the drop : the zenka dirs go to the user it    ##
+## runs as [ system.zenka-user.current, owner mode : the admin user ] -- an ##
+## existing dir of another owner is handed over too                         ##
+<[base.path-set-up.check-zenka-paths]>->(TRUE) if $EUID == 0;
+
 <claude.cfg.binary> //= qw| claude |;
 <claude.cfg.args>   //= '-p --input-format stream-json '
     . '--output-format stream-json --verbose';
@@ -33,8 +38,8 @@ push <callbacks.end_code>->@*, qw| claude.child.end_code |;
 
 0;
 
-#,,.,,.,.,..,,,..,.,.,...,..,,,..,,,.,.,,,,,.,..,,...,...,.,.,,..,.,,,...,.,.,
-#DDXMCEUUHDCX3J67HGSUE63X633TPFSPJR34F7QITQ4GYFLIWCFBLIESYINJTKZYLUNQ3S7XTKRLY
-#\\\|3KTSWYBQHMP7DP7ZZPOMKIBQ6NZZRBRHIQG3NJ257VJE5TVN4SK \ / AMOS7 \ YOURUM ::
-#\[7]4V4L3PTIOJT2DTMJKKMCNN5F2R3DW67Q7HH3QKT72EXYVP2KY4CQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,,,.,,,.,.,,,.,..,,,,.,.,.,,.,,..,,...,...,.,.,.,.,...,.,,,.,,,
+#MKD5FCN5NR4QZ6DJZVXDJS2NKKE4FHEDKAR4V6ZI2OFWCBANBFLXWKYV3DULZZA64GHIPDZOES6NS
+#\\\|3PTNHPHBAZO2RAHXIJRW2T3CKOGPFFYHGUYUXW7F6LARWFGAJR3 \ / AMOS7 \ YOURUM ::
+#\[7]NCWC6EUDALLZDSZ3SAPMETIOUJWWCGDKF6FUH3C2HTQGQQU6GUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

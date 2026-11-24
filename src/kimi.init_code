@@ -8,7 +8,12 @@ map { <[base.perlmod.load]>->($ARG) }
     IO::Socket::INET Protocol::WebSocket::Handshake::Client
     Errno Crypt::Misc IPC::Open2 |;
 
-## kimi-web endpoint configuration
+## kimi-web endpoint configuration  init runs as root, before the drop : ##
+## the zenka dirs go to the user it runs as                              ##
+## [ system.zenka-user.current, owner mode : the admin user ] -- an      ##
+## existing dir of another owner is handed over too                      ##
+<[base.path-set-up.check-zenka-paths]>->(TRUE) if $EUID == 0;
+
 <kimi.web.host> //= qw| 127.0.0.1 |;
 <kimi.web.port> //= 5494;
 <kimi.web.base_url>
@@ -116,8 +121,8 @@ if ( not keys <kimi.approval.responded>->%* ) {
 
 return TRUE;
 
-#,,..,,..,,,.,..,,.,.,,,.,.,,,.,.,,.,,...,.,.,..,,...,...,..,,,,.,,..,,.,,...,
-#GLJHQGAKHH5SHG4WINTLCZB3UYV55Z65C4LD6BZH6CGLPVGENLWAA5J6MTBPVWIVYHG4SWILK2AYO
-#\\\|WGSBSV6KZUW2IJTUT3NYQZY5Q46UROZV3EI562I4IBRZ2VN23Z2 \ / AMOS7 \ YOURUM ::
-#\[7]JX7YLQP2RGUALJ3EP2S73JZV3GKQXH3FCVHFJSBQMQTET62OHOBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,.,,,.,,.,,,,,,,,..,..,,,.,,,..,..,,...,...,...,,,,,.,.,,,,,...,
+#CYY3NDMF2FQTZBOJIZL3D2QRCRFMNC654APCJCWF2YB3MSWD6LFLJTXQSEEKQHOQD7YSBCEJAYBUI
+#\\\|KFOXE634ZKYCFI3QSS4RS45L7GN6QZT5567LAVBR7WFNWBUBMAF \ / AMOS7 \ YOURUM ::
+#\[7]T67TPMAH2Z5FCP7G2ZXU2MQPCVRI7LLY3KYQA5KCX56ABTPYCSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

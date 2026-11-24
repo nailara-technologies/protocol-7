@@ -24,7 +24,8 @@ return { 'success' => FALSE, 'error' => 'no acp command configured' }
 
 ## end of input first, then TERM, then KILL, then given up ##
 my $r = <[stream_child.start]>->(
-    {   'cmd'       => \@cmd,
+    {   'cmd' => \@cmd,
+        'env' => <[stream_child.user_env]>->(qw| .kimi-code/bin .local/bin |),
         'on_line'   => qw| kimi.handler.acp_stdout |,
         'on_stderr' => qw| kimi.handler.acp_stderr |,
         'on_gone'   => qw| kimi.acp.child_gone |,
@@ -85,8 +86,8 @@ my $pid = $r->{'handle'}{'pid'};
 
 return { 'success' => TRUE };
 
-#,,..,,.,,,,.,.,.,.,,,,,,,,,.,,,.,.,,,.,.,,..,..,,...,...,,..,.,,,.,.,...,...,
-#QXXSYPW7ODRNVTHRY3G2XPIENAKI45OMR2HTIQGG6KUXHJUBMLEXCJ6YCVA7GM7VY7GSX5MLI4QMW
-#\\\|QA3KPSKMWWSNPO3ZZ7M24EJZOY3XVUYK22NP2DUAYQLYQUG4PSE \ / AMOS7 \ YOURUM ::
-#\[7]Y3W3RIG63HW2LBLXDRSTCGPDATDTGFFA2LEDIKIPD7GL5QBZSGDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,,,,.,,,,.,,.,,,..,,..,,,.,...,..,,...,.,.,..,,.,,,,,.,,..,,,,,
+#227GLXFTWVFML4QQU4O344HPMOF3FNMTEZIJOV5BWGJCOXMXQR5K3GZWRCRGBV7FK2KO35AGTYWL4
+#\\\|JZ7UUQ7BGKYHCLCLHAJY5WYQEKVOJJDWRSMHI2YO2K7LHBDMECS \ / AMOS7 \ YOURUM ::
+#\[7]IUZT56TGOJXM35FQJC55O5JZJ5C32FMWTL2O734Y35JZJCA2ZQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
