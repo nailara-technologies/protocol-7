@@ -202,6 +202,40 @@ send-command, tile-* ] and the only `when` is a timetable `at`.
   no reply line. an undocumented protocol : keep the writer in one place, check it after
   claude code upgrades [ msgV ]
 
+### coding zenka : what sessions do by hand today [ owner agreed 2026-11-24 ]
+
+order : 5, then 1 + 3, 2 grows out of them, 4 on the relay.
+
+1. open decisions [ build on protocol-7-menu pending-question-add \ -answer \ -open, see
+   data/tasks/notifications.md ] : `coding.ask <question>`, `coding.answer <id> <text>`, `coding.open`. an
+   answer raises `decision.answered` [ id= ] -- a task parked on it continues ; open questions
+   on the dashboards \ touch panel, answerable there
+2. live handover : the state kept current from events [ running dispatches, pending signs,
+   commits not deployed, open decisions, parked tasks ] ; `coding.handover` writes it ; the next
+   session starts from it instead of transcripts
+3. sign queue + planned commits :
+   - `coding.sign-queue add <paths> message=<text>` : the next sign set ; one pending at a time ;
+     approved -> its commit -> the next sign. the owner approves, nobody watches
+   - planned commits [ owner idea ] : `coding.commit-plan <id> paths=.. message=..
+     when=<criteria>` -- criteria such as tests=<names> pass, sign approved, files unchanged since
+     the plan [ checksum ], a deploy step done ; when all hold the zenka prepares and commits
+     [ p7_commit_prepare \ p7_commit path ] ; a changed file or a failed test returns it to the
+     planner with the reason, never a commit of something else
+   - the commit messages of past commits kept searchable [ area, title, body ] -- the source for
+     new messages and for the handover
+4. reminders with a target : `coding.remind at=<time> | after=<span> <text> [ to=session \ panel ]`
+   -- a park whose action is a relay message
+5. context templates : data/yaml/context-templates/p7-dispatch-rules.yaml [ created 2026-11-24 ]
+   carries the hard rules ; task templates on top [ new zenka, n7fs change, fake-child tests ]
+
+signing stays with the owner in every step : the zenka REQUESTS signs [ the same detached
+bin/dev/p7-sign-run start as p7_sign, a job id back ] and commits only what was signed -- it holds
+no key and cannot answer the p7-sign-agent prompt [ y \ n \ d stays with the owner ]. a planned
+commit therefore runs : criteria hold -> sign request -> owner approves -> commit -> next sign.
+the commit itself is covered by the same mechanism : the commit hook refuses a commit without a
+signed version bump [ cfg/protocol-7.src-ver + the read-me version files ], and those are signed
+only on the owner's approval -- no commit without an approved sign, no extra rule needed.
+
 ### chat as the session relay [ next stage, owner 2026-11-24 ]
 
 bin/chat today : kimi through a blocking `kimi.ask-reply` ; claude through a file
@@ -269,8 +303,8 @@ per host [ never on the disk ], one host holds a session at a time [ a lease, li
 - inbox socket inbound policy : crossSessionInbound accept | hold | refuse, defaults by
   permission mode -- a bypass session holds messages from a prompting sender
 
-#,,.,,,,,,..,,.,.,,,,,,..,.,,,.,,,,,,,.,,,,.,,..,,...,...,,,.,,..,,,,,,,,,.,.,
-#5XAH2OZDHNAG7HRZG2P54ODVFESIOZAVH5GXHDRSGECJ5UAZUG56VJRLZ2JOCAEMAEVSMXOHLVHDM
-#\\\|RBTPMNPKRSJNHU42U6Q25IMM7YZNVYOD4WB3NQUDBR34JLMCN3I \ / AMOS7 \ YOURUM ::
-#\[7]VATRG7FXALBPQ47HTFMYIGN3R4M2XNSBE7QENLXOQSNEL2Z4VUCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,,,.,,.,,,,.,,.,,.,,,...,,..,..,,...,...,.,.,.,,,,.,,...,...,
+#5EL4C3EY6TJSSX3MYXFX3L3OCFO2NTZJHTW5372LHQMCRAOZXTKYM25MUM3HQ5IGFYW6VEKDYQFRE
+#\\\|O3UH4UQTHIY6ILJNRWZVLFAQLPB2NIAW74SN5ELIITSWKP7SIKK \ / AMOS7 \ YOURUM ::
+#\[7]BYXAYYGWHLX7RJ2WDZKGHMYZPAS7FMCAUGOA3AGZNBQZCDVUUUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

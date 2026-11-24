@@ -1,0 +1,33 @@
+---
+name: p7-dispatch-rules
+descr: the hard rules every claude \ kimi code dispatch carries [ style, safety, no sign ]
+budget: 1500
+sections:
+
+  - static: |
+      ## rules [ hard ]
+      
+      - read CLAUDE.md first.
+      - no sha, no json internally [ external wire formats are decoded at the edge only ] ; p7 config style for every file a person may read or edit.
+      - every plain open() in src/* has the :encoding(UTF-8) default layer ; :raw for octets.
+      - list-form builtins as CORE::<name> ; call event.*, never base.event.* ; event.add_timer handlers get the EVENT ; base.interval.next for every timer \ retry, no literal intervals ; route-send only buffers : reply handlers + deferred replies.
+      - a new command : zenka.v7 command list + regenerated sub whitelist [ bin/dev/gen-sub-whitelist <zenka> -- always with the zenka name, never bare ] + cube access.zenki ; signals : cfg/zenki/events/access.signals.
+      - descr \ param header lines at most 55 characters ; perl 5.32 floor ; module file format, lowercase comments, `[ word ]` annotations ; `bin/format-code -c` on every src file touched.
+      - tests : existing tests pass unchanged in their assertions, run them before and after ; new behaviour gets tests ; fakes instead of real processes, disks, vaults or hosts ; TMPDIR on a large disk for tests that make many files [ /tmp is a small tmpfs ].
+      - ncode-search existing callers first : reuse, never a second copy of the same path.
+      
+      ## do NOT
+      
+      - sign, commit, push, update-signatures \ p7-sign-* ; restart or reload live zenki ; ssh anywhere.
+      - touch, restore, checkout or delete any file you did not change yourself [ data/ai-mem, untracked files, cfg/zenki/*/deps, other agents' files ] -- not even to "clean up".
+      - copyright \ author \ license headers.
+      
+      ## report at the end
+      
+      files created \ modified \ removed [ one line each ], test runs before \ after with counts [ mark the ones failing already at HEAD ], what could not be verified without a real process, open decisions.
+
+#,,..,...,.,,,..,,,..,,,.,,..,,.,,,,,,,.,,,.,,..,,...,...,,.,,,,,,...,,..,.,,,
+#ZE4LBNMI3UWI35EKVKWU6AIGRA36YQUUWBACFYVJOEG3ZTV3NL3EC5Q4FJGKXAZLRTVSP6IU4IIL6
+#\\\|MDLZGNMUBFPHLGZXS2PVRBUSF3L3NHWFPYVFEMZ6HFK4AAXOM4T \ / AMOS7 \ YOURUM ::
+#\[7]P32Z32J7Q25QMK5GTOFQQEALNQBOKMWREF7S6ZFPBHICBKXGVSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
