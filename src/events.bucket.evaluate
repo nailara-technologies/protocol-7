@@ -13,7 +13,9 @@
 # the rest in the order they were added -- each exactly once : the state
 # is set to `due` and saved BEFORE the action runs, so a restart in the
 # middle finds `due` and records the entry as failed [ interrupted ]
-# rather than running it again. re-entered calls only ask for another pass
+# rather than running it again. re-entered calls only ask for another pass.
+# an entry with a budget gate is due only once the gate holds [ see
+# events.bucket.gate.check ] : before that it stays waiting
 
 my $owner  = shift;
 my $bucket = <[events.bucket.get]>->($owner) // return [];
@@ -56,6 +58,14 @@ while ( $passes++ < $limit ) {
             next;
         }
         next if @unmet or not $e->{'met'};
+        ## a budget gate is read first [ usage.status, deferred ] : the ##
+        ## answer passes it once or closes it, the entry stays waiting  ##
+        if ( length( $e->{'budget'} // '' ) and not delete $e->{'gate_pass'} )
+        {
+            <[events.bucket.gate.check]>->( $owner, $e )
+                if ( $e->{'gate'} // '' ) ne qw| closed |;
+            next;
+        }
         ## due : saved before the action runs [ exactly once ] ##
         $e->{'state'} = qw| due |;
         <[events.bucket.save]>->($owner);
@@ -100,8 +110,8 @@ delete <events.bucket_busy>->{$owner};
 <[events.bucket.save]>->($owner) if $changed;
 return \@fired;
 
-#,,,,,,,.,.,,,,.,,.,,,...,,.,,,,.,...,..,,,,,,..,,...,...,,..,,,.,...,,,,,.,,,
-#BG3RCHRA5YNLNPBYKX35QEO5RPL4WIU3CIWHHSFINS4YVNMRBXJJFWEFF4NHG2MNJ6I3M5MNCF2RM
-#\\\|VQDAVGK3OTHTRI3P4ELO6SS3JOW7P37HSDQKATWAG2CREQ5XXOB \ / AMOS7 \ YOURUM ::
-#\[7]EWJ354RLBOSOFKTTTHV5MAPRLUZJ5MU45NJBJ7SHFPDU4AAS4CDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,,,.,,,.,,,,.,,,,,,.,.,,,,,.,,,..,,...,...,.,,,,,,,,,,,...,,..,
+#ILMENCY5VJU56BUZSHTWPPS2LFRO23GI5UEKDWEIZCJVDRLCXBXRMW23OQQQWFBKUQJLMOZ4MY5X6
+#\\\|XRX6JFTJIGZIDIG23CANNXHOIBA5R3BBWKC5V4ZOAQENBRUILHK \ / AMOS7 \ YOURUM ::
+#\[7]5U4RI6KMSFME4E5DB5APDZQ2ONYFLBJQEKQP2U5Q35B6C262SSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

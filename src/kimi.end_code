@@ -3,40 +3,29 @@
 # name  = kimi.end_code
 # descr = zenka exit : end the acp child, never leave it behind
 
-## no event loop here : cancel, end of input, then a few short waits from ##
-## base.interval.next [ type kimi-acp-exit ] before TERM and KILL         ##
+## no event loop here : cancel, then the stream_child stop steps with short ##
+## waits from base.interval.next [ type kimi-acp-exit ]                     ##
 
 my $st = <kimi.acp.state>;
-return TRUE if ref $st ne qw| HASH | or not defined $st->{'pid'};
-my $pid = $st->{'pid'};
+return TRUE if ref $st ne qw| HASH | or not defined $st->{'child'};
+my $child = $st->{'child'};
 
 ## END also runs in a forked child that inherited this state : only the ##
 ## process that started the child ends it                               ##
-return TRUE if ( $st->{'owner'} // 0 ) != $PROCESS_ID;
+return TRUE if ( $child->{'owner'} // 0 ) != $PROCESS_ID;
 
-if ( $st->{'phase'} eq qw| prompting | and defined $st->{'in'} ) {
+if ( $st->{'phase'} eq qw| prompting | and defined $child->{'in'} ) {
     my $line
         = qq|{"jsonrpc":"2.0","method":"session/cancel","params":{"sessionId":"|
         . ( $st->{'session_id'} // '' )
         . qq|"}}\n|;
-    syswrite( $st->{'in'}, $line );
+    CORE::syswrite( $child->{'in'}, $line );
 }
-close $st->{'in'} if defined $st->{'in'};
-$st->{'in'} = undef;
-
-my %wait;
-for my $signal ( undef, qw| TERM KILL | ) {
-    kill $signal, $pid if defined $signal;
-    my $delay = <[base.interval.next]>
-        ->( { 'type' => qw| kimi-acp-exit |, 'state' => \%wait } );
-    select( undef, undef, undef, $delay ) if kill( 0, $pid );
-    waitpid( $pid, WNOHANG );
-    last if not kill( 0, $pid );
-}
+<[stream_child.end_code]>->($child);
 return TRUE;
 
-#,,,,,..,,,,,,,,,,,,,,...,.,.,.,.,,,,,.,.,,..,..,,...,...,...,.,.,,..,.,.,,,.,
-#PGX337DHSJHM7TMZQQUFZ4KP2Y4RIIOQQZ76XBDWG5F2FLRFLIGOBBNTJQ5OUJV5PUFXWQIIIPOFU
-#\\\|XIX3LCGP4FYGPRBLMFLMSZNAH5RQDGV6YVA7UG6DCBBBOAHVPEL \ / AMOS7 \ YOURUM ::
-#\[7]LWEBDFS52EAJVGZA2UQM6CHMUYQWUKUWLRQRWSH3VU24V44IFEDI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,...,..,,,,,,..,,,.,,,.,,.,.,..,,..,,...,...,..,,,,,,..,,.,,,,..,
+#77H4TYZWK4QPM3BQVBRDJH3CSMV3G637LIEFRVO2Z7I6GI3Z33YRFZEFXXMJSW54VZF2V6LRU2Z4O
+#\\\|LCDRZL7BL5YEDJUE5J4C3GPPTH6UAM4BVYS4HVN5ZQ4UAU2TAWU \ / AMOS7 \ YOURUM ::
+#\[7]TTR6ZEZW5GVKZJC4HXFVO5SPO2HFFU2M4SIIUG4A6LT3ZIQVZMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

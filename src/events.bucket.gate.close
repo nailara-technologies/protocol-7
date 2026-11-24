@@ -1,0 +1,43 @@
+## [:< ##
+
+# name   = events.bucket.gate.close
+# descr  = close an entry's gate : wait for usage or a re-check
+# args   = owner, entry, reading [, resets_in seconds ]
+#
+# the entry stays waiting with its own condition met. it is looked at
+# again on a usage.window.reset \ usage.threshold [ crossed=down ] signal
+# of its provider, or at gate_at : the window reset of the reading plus a
+# margin, or a rhythm step when the reset is not known [ the usage zenka
+# may be idle and raise nothing ]
+
+my ( $owner, $e, $reading, $resets_in ) = @ARG;
+my $key = "$owner/$e->{'id'}";
+<events.gate_state> //= {};
+my $state = <events.gate_state>->{$key} //= {};
+my $delay;
+if ( defined $resets_in and $resets_in > 0 ) {
+    $delay = $resets_in + (
+        <[base.interval.next]>->(
+            { 'type' => qw| budget-gate-margin |, 'state' => {} }
+        ) // 21
+    );
+} else {
+    $delay = <[base.interval.next]>
+        ->( { 'type' => qw| budget-gate |, 'state' => $state } ) // 89;
+}
+$e->{'gate'}         = qw| closed |;
+$e->{'gate_reading'} = substr( $reading // '', 0, 200 ) =~ s{[\r\n]+}{ }gr;
+$e->{'gate_at'}      = time + int( $delay + 0.5 );
+<[events.bucket.gate.arm]>->( $owner, $e );
+<[events.bucket.save]>->($owner);
+<[base.logs]>->(
+    1, "bucket '%s' entry '%s' gate closed : %s",
+    $owner, $e->{'id'}, $e->{'gate_reading'}
+);
+return TRUE;
+
+#,,..,,..,.,.,,..,...,,.,,,.,,.,,,.,,,,,.,,,,,..,,...,...,,..,...,,..,,.,,.,.,
+#KABNJLI64OBQ7DQN7MZEKO3V3KQECJU7UXV2SRZYTEHFEUUMVN4GFK5XBTRAODFSKFWW4MYEXQGV2
+#\\\|QEOJEZNO57ANL4VZ64ZQI227KI3F7N2AH6DB3B4A6PXTX55P5Z4 \ / AMOS7 \ YOURUM ::
+#\[7]QPB3VBFJWGSCO3KINLQUYCYK7FJ4345N7X54KEE5NYX3STXE4QBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

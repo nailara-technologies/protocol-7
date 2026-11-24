@@ -36,12 +36,29 @@
     }
 );
 
+## the watch poll [ opt-in : a claude read is a real api request, it spends ##
+## a little of the budget it measures ] : a first read soon, then the       ##
+## usage-watch rhythm. without it the reset timers and the thresholds run   ##
+## off the reads that happen anyway                                         ##
+## [ status, plan, the gate reads of the events zenka ]                     ##
+if ( ( <usage.cfg.watch_poll> // qw| no | ) =~ m{\A(?:yes|on|1|true)\z}i ) {
+    <usage.watch.tick_state> = {};
+    <usage.watch.tick_timer> = <[event.add_timer]>->(
+        {   'after' => <[base.interval.next]>->(
+                { 'type' => qw| usage-watch-first |, 'state' => {} }
+            ) // 21,
+            'handler' => qw| usage.handler.watch_tick |,
+            'data'    => {}
+        }
+    );
+}
+
 <[base.log]>->( 1, ': usage.startup : proactive refresh watchdogs armed' );
 
 0;
 
-#,,.,,,,,,...,,.,,,,,,,..,..,,.,,,...,,.,,.,,,..,,...,..,,,..,,..,..,,...,..,,
-#DB4IM4IHAPBTOTTLHH5NA7DJN3LIGK7BPYFLJ7COL6DP2RWHJK5BYEHC6QUJQ46AM3K7GTFCVHUO6
-#\\\|XQDBGVFFZIFBWEZI3QNNOS3VGYD4C7VT44ASOAQTIY4FZF2W6P6 \ / AMOS7 \ YOURUM ::
-#\[7]HA7UY777EF3PBQEPDM7UQZPC2GZWWV7YWZ6PPAHYWEJTBB7P7MCY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,,..,,..,,,.,,.,,,..,...,...,..,,...,...,..,,,..,.,.,,,,,,.,,
+#EX3NTGEOYSPZWXOJLMV7FTVC2ONUKQMP6WCBJJPG62VHOWBNI4Q5UF32KOL7WSKB3JO2FONMAAIJC
+#\\\|VLXMSIIJH4VK43QY4HA5XEISGCNOTOJKBFA5BUN2ECJXXI3JAFA \ / AMOS7 \ YOURUM ::
+#\[7]7R4TIAUHGRUKRJ4UKF64WAHMUFQ2W6UUVYKYDMT547FXUGUDCADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

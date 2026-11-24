@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = stream_child.close_in
+# descr = end of input : flush once, close the child's stdin
+# param = handle
+
+my $handle = shift;
+return FALSE if not defined $handle or not defined $handle->{'in'};
+<[stream_child.flush]>->($handle);
+my $watcher = delete $handle->{'w_in'};
+eval { $watcher->cancel } if ref $watcher;
+CORE::close( $handle->{'in'} );
+$handle->{'in'}      = undef;
+$handle->{'pend_in'} = '';
+return TRUE;
+
+#,,,,,,,,,,,,,,.,,.,.,,,,,,..,.,.,,,,,...,,.,,..,,...,...,,.,,,.,,,..,,,,,.,,,
+#EWSNFNQ3RBJMQPFQWC2GUTPPPKYK53KULPIDWFNQLGMIVM65NCD6FPLOPIOACOIGBTQTZR3SFC5JY
+#\\\|3RW4UZVDRBNRVYJIECI5OONDQMHAFGVO6Q6HY7JEMZRUIBM3V7C \ / AMOS7 \ YOURUM ::
+#\[7]EZFS33WRJEQYOZ4ZCH6S6QITY7FMY6GJ37OUFRMAZ4BW5LTBIOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,20 @@
+## [:< ##
+
+# name   = stream_child.signal
+# descr  = send a signal to the child [ or its group ]
+# param  = handle, signal name, quiet
+# return = TRUE when sent
+
+my ( $handle, $signal, $quiet ) = @ARG;
+return FALSE if not defined $handle or not defined $handle->{'pid'};
+my $target = $handle->{'group'} ? -$handle->{'pid'} : $handle->{'pid'};
+my $sent   = CORE::kill( $signal, $target ) ? TRUE  : FALSE;
+<[stream_child.note]>->( $handle, qw| signal |, { 'signal' => $signal } )
+    if $sent and not $quiet;
+return $sent;
+
+#,,.,,..,,..,,.,.,..,,.,.,,,.,,,.,.,.,,.,,,.,,..,,...,...,.,,,,,,,...,,,.,...,
+#BKTU6TKDOSZHCF4IUH4HOC3VKYF3SDLCZ2MSE5KVY3VUFTBOZWEPXKK2S6OAGMLVVJOVBLJFQ3FZA
+#\\\|K3MJYNRCIVSWN2NMLSRJQTO7IV5H4HLNSZ4YPYARUEN4HYNRCGH \ / AMOS7 \ YOURUM ::
+#\[7]THIPC2BUCSIQEFQJBRXNI6P2MNGURN2CGHS2PRXY5ON2ZSCWDKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

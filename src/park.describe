@@ -13,12 +13,13 @@ push @w, "signal $r->{'on'}" . join '',
     map {" $ARG=$r->{$ARG}"} grep {m{\Amatch\.}} sort keys %{$r}
     if defined $r->{'on'};
 push @w, "depends $r->{'depends'}" if length( $r->{'depends'} // '' );
+push @w, "budget $r->{'budget'}"   if length( $r->{'budget'}  // '' );
 my $text = join ' ; ', @w;
 $text .= "  # $r->{'reason'}" if length( $r->{'reason'} // '' );
 return $text;
 
-#,,,,,,..,,,.,...,,.,,...,...,.,.,..,,,,.,,,,,..,,...,...,,..,,.,,.,.,.,.,..,,
-#GBIMZV4N6FIVITIORPTKSQN7LXJYMLZICYPRIY55Z5SLZTGFBKUHTEOLMIAXKZ7LC5KPTIICPQ5KU
-#\\\|NCUWF3ACFAWPAN5Q5X5APR2YCXPMYY3HROOETU4AUPXHCDZQB3V \ / AMOS7 \ YOURUM ::
-#\[7]AECSTCU6FIHE3TCG4XY56S5AOIBPSA7HQRVIRFBGMDAA4J5WKKAI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,,,.,,,.,.,,,,.,,,.,,...,...,..,,...,...,,..,,..,,,,,...,..,,
+#RB74JV3S5OGJOS34LTDIJIM5PWHGZ3NUNJWAZ5UBVX2HJ7K3QGCCR6MRSISPWTJEGLIWA3SCYTNDS
+#\\\|TPB2PEBQ7RM7PGBRJCC7K2O54NBZPKZ45M6F2ZACUANXOSTOQZ7 \ / AMOS7 \ YOURUM ::
+#\[7]DCIUBEUTXBI4Q6BD4TW6Q7EH4ALQVS4YJDXKWATJZ7ZQMQQGRUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

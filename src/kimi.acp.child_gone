@@ -1,16 +1,20 @@
 ## [:< ##
 
 # name  = kimi.acp.child_gone
-# descr = the child's stdout ended : close the session state
+# descr = the child ended : close the session state
+# param = reason, handle
 
 ## a prompt that was running or waiting ends with kimi.run.done : state ##
 ## `stopped` after kimi.acp-stop, `crashed` otherwise                   ##
 
+my ( $reason, $child ) = @ARG;
 my $st = <[kimi.acp.state]>;
 return FALSE if $st->{'phase'} eq qw| stopped |;
+return FALSE
+    if defined $child
+    and defined $st->{'child'}
+    and $st->{'child'} != $child;
 
-my $pid = $st->{'pid'};
-waitpid( $pid, WNOHANG ) if defined $pid;
 <[kimi.acp.flush_chunk]>;
 
 my $was_stopping = $st->{'stopping'};
@@ -22,22 +26,11 @@ my $had_turn = defined $st->{'turn'}
     $was_stopping ? 'child ended' : 'child ended on its own'
 );
 
-for my $name ( keys %{ $st->{'watchers'} } ) {
-    my $watcher = delete $st->{'watchers'}{$name};
-    eval { $watcher->cancel };
-}
-my $timer = delete $st->{'stop_timer'};
-eval { $timer->cancel } if defined $timer;
-close $st->{$ARG} for grep { defined $st->{$ARG} } qw| in out err |;
-
 %{$st} = (
     %{$st},
     'phase'    => qw| stopped |,
     'pid'      => undef,
-    'in'       => undef,
-    'out'      => undef,
-    'err'      => undef,
-    'wbuf'     => '',
+    'child'    => undef,
     'pending'  => {},
     'turn'     => undef,
     'replay'   => FALSE,
@@ -48,8 +41,8 @@ close $st->{$ARG} for grep { defined $st->{$ARG} } qw| in out err |;
     if $had_turn;
 return TRUE;
 
-#,,,,,,.,,,.,,.,,,,..,.,.,.,,,..,,...,.,,,...,..,,...,...,,.,,..,,,,,,,,,,.,,,
-#VRABVUIJBAVDHEGMCTS52HGSYDB5LJOUT6SDZRXDBZSLM3B7HB2YM3YDBO7SCTSYYHUW4C6E22E74
-#\\\|4QDKXP6S2SQZWIAOOR7MZALMOFRPV76BPJHZAR574VZ4E3K7FVU \ / AMOS7 \ YOURUM ::
-#\[7]XTMWOAYYN2ODHX4DAR6T7RKVG6W2TRF44FR5F5EIYK2B5IVDMKDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,..,,,.,,.,.,,.,,,,,,,..,,..,.,,,..,,...,...,,,,,...,...,.,,,..,,
+#Y3UEEWWRBUM25CVEQ4FTY2T6BKSFRNXYEI3ZWLF2RVOBYQNZ6D7LAFNKNJHR7R3656FNGDXYLR6KK
+#\\\|X7KTAWFYBTZJSJGKN3C4GLQBWZVSNKTEZDST7APUSJDGH4VXYQ2 \ / AMOS7 \ YOURUM ::
+#\[7]5SW6EFMINBZNJ23HL4WHMETQBMYG3I6MX7BZZRTBVHJSCIW36GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

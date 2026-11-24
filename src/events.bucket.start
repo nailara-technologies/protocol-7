@@ -52,6 +52,13 @@ foreach my $owner (@owners) {
             }
         }
     }
+    ## closed budget gates : their re-check again [ passed : read now ] ##
+    foreach my $id ( @{ $bucket->{'order'} } ) {
+        my $e = $bucket->{'entries'}{$id};
+        <[events.bucket.gate.arm]>->( $owner, $e )
+            if length( $e->{'budget'} // '' )
+            and ( $e->{'state'} // '' ) eq qw| waiting |;
+    }
     <[events.bucket.save]>->($owner);
 }
 <[events.source.arm_all]>->(
@@ -67,8 +74,8 @@ foreach my $owner (@owners) {
 <[base.logs]>->( 1, "buckets loaded : %d", scalar @owners );
 return scalar @owners;
 
-#,,.,,.,.,,.,,.,,,.,.,.,.,,.,,...,.,,,,..,,.,,..,,...,...,,,,,.,.,,,,,.,.,,.,,
-#C7VZGTAILXLSKF3VY4KDB7N5QM6ELGMDYMU4HEEQEKSKN2UDGL2DLR3KOG3VRX5LWERI4JZZV2TJY
-#\\\|4GXS44K4MGCKEAGR7OLSNRCXHHPLCQJFPH5WRJINYSVUJIHWIRQ \ / AMOS7 \ YOURUM ::
-#\[7]SGQY6DHHTDE4F6EPGVTXX22A3DC2T57A6X3IA3IV7YUHN5JAOWBQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,.,.,.,,,.,,,,,,..,..,,..,,.,,,..,,...,...,..,,..,,.,,,..,,..,,
+#2BNHHV4L7BZFFWA663D47HXDHE42YCMY3Z7CGZSZJ6VWCDXGN4B5HHIOG4FDOVOIGVUDSONBZMGEK
+#\\\|J6LWIYEPEW5U7TYK6THA2HIH2MQSP367EMCD55VKU3V6CYIZJZH \ / AMOS7 \ YOURUM ::
+#\[7]UZLQ4U37APYXPPYKK6BNQIL4YJLKCASVYAOY7C3T26C2WLD4OGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

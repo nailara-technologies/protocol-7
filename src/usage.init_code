@@ -11,12 +11,19 @@
 ## and answered with whatever did arrive                                    ##
 <usage.cfg.query_grace> //= 10;
 
+## thresholds raised as usage.threshold [ percent used, crossed up \ down ] ##
+<usage.cfg.thresholds>  //= '50 75 90';
+<usage.cfg.watch_poll>  //= qw| no |;     ## periodic reads, opt-in ##
+<usage.cfg.requery_max> //= 5;            ## reads after a reset, at most ##
+<usage.watch.state>     //= {};    ##  last reading per provider, window  ##
+<usage.watch.timers>    //= {};    ##  reset timers per provider, window  ##
+
 <[base.log]>->( 1, ': usage zenka initialized' );
 
 0;
 
-#,,.,,..,,,,.,..,,,.,,..,,,,.,..,,.,,,,,.,,..,..,,...,...,,,.,,,.,.,.,..,,.,,,
-#JFJ32SK3WAHZOJKVEC3YLTUUAHZLLEF6PQDGSYKJ2TF244H3H4SRLZDD52B2FY3DAC2LGN7FB7KKK
-#\\\|Q4DFSXA5REC6SGPHWTPF7Q3Y6I27SQKBAV4HVWEGNALWMHIRQ5L \ / AMOS7 \ YOURUM ::
-#\[7]UDWEGWL5RV6O22ZEVNZEBEW2UMPRIYYL5BSWWJU3ZDK7QF4H3MDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,.,.,,,.,,,,,..,,,..,,,,,.,.,..,,...,..,,..,,...,.,.,,,,,,,.,
+#27PDJWSU7S4QYLHUSO7RQTDKDTSCVEWDDQU3CWKKXIX5S55POPH32JN773XRPRUZC24SNG3XAXJTK
+#\\\|JWEUT5UVNBMKFYV6AC5M24DVVGELYXJXUTK5MHLWE4L2ITY3Z72 \ / AMOS7 \ YOURUM ::
+#\[7]47CDUDHJYNUUUQPG527SVSAVHSJU23O7ONQHK2MJCBLE7DEFYCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

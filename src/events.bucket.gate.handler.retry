@@ -1,0 +1,26 @@
+## [:< ##
+
+# name   = events.bucket.gate.handler.retry
+# descr  = re-check timer of a closed gate : ask usage again
+#
+# a timer handler gets the event : the entry comes from its data
+
+my $event = shift;
+my $d     = eval { $event->w->data } // {};
+my ( $owner, $id ) = ( $d->{'owner'} // '', $d->{'id'} // '' );
+delete <events.gate_timers>->{"$owner/$id"} if <events.gate_timers>;
+my $bucket = <[events.bucket.get]>->($owner) // return FALSE;
+my $e      = $bucket->{'entries'}{$id}       // return FALSE;
+return FALSE
+    if ( $e->{'added'} // '' ) ne ( $d->{'added'} // '' )
+    or ( $e->{'state'} // '' ) ne qw| waiting |
+    or ( $e->{'gate'}  // '' ) ne qw| closed |;
+delete $e->{'gate'};
+<[events.bucket.evaluate]>->($owner);
+return TRUE;
+
+#,,..,...,,,,,...,,,.,,..,.,,,.,,,..,,,.,,..,,..,,...,...,...,...,,.,,,..,,,.,
+#5SOLKEGPPFH7B6NF45DB7EO2S4XYZDLZZTFMGP7T6PPUSNQTD4R7DN575IFJDBRDXGUPSRXO5MRQO
+#\\\|ZV6B4LDATARVYPM22VYSK2KGFXXQWY7JRJUNXTJV4LCSVED5NCJ \ / AMOS7 \ YOURUM ::
+#\[7]DV6VYJNYEVY3D5EINVHTYS2ZJ5ETEEEYBFVSOEKEDMXJIJFHWMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

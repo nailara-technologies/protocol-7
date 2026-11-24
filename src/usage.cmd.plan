@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = usage.cmd.plan
+# descr = forecast : percent left, resets, share per window
+# param = [ <provider> .. ]
+
+my @named     = grep {length} split m{ +}, $call->{'args'} // '';
+my @providers = @named ? @named : <[usage.provider_list]>;
+
+return { 'mode' => qw| false |, 'data' => 'no usage providers loaded' }
+    if not @providers;
+
+my $query = <[usage.query]>->( \@providers, $call->{'reply_id'}, qw| plan | );
+
+## a query that never started answers here, otherwise the reply travels ##
+## back through usage.complete_query                                    ##
+return $query if ref $query eq qw| HASH |;
+
+return { 'mode' => qw| deferred | };
+
+#,,,.,..,,,..,...,..,,..,,...,..,,...,..,,,,.,..,,...,...,.,.,.,,,.,.,...,,,,,
+#U33DMSKH6ULR45BGHPTO6D4KZHECZOM3M4OP6TJAQQAM5XDD5SKRXZDUYOKC4YF32VSRJHXNQINOC
+#\\\|AHEE74A7MS3M6F55DS5PWOKY7YR3BOMFDVOYWBVR52PEHWGK5PI \ / AMOS7 \ YOURUM ::
+#\[7]RHKU3OAJBZYW6GP5473T5W77H5RWKOOAME4IV3PMJL5PE3URDOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

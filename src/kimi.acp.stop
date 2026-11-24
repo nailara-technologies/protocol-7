@@ -4,10 +4,9 @@
 # descr  = end the child cleanly, escalate if it stays
 # return = TRUE | FALSE [ nothing running ]
 
-## session/cancel when a prompt runs, stdin closed                          ##
-## [ the child ends on end of input ], a timer from base.interval.next then ##
-## TERM, then KILL [ kimi.handler.acp_stop_timer ]. queued prompts are      ##
-## dropped                                                                  ##
+## session/cancel when a prompt runs, then the stream_child stop steps : ##
+## end of input [ the child ends on it ], TERM, KILL on kimi-acp-stop    ##
+## timers. queued prompts are dropped                                    ##
 
 my $st = <[kimi.acp.state]>;
 return FALSE if $st->{'phase'} eq qw| stopped |;
@@ -25,26 +24,11 @@ if ( $st->{'phase'} eq qw| prompting | and defined $st->{'session_id'} ) {
         }
     );
 }
-## the queued bytes first, then end of input ##
-<[kimi.acp.flush]>;
-my $watcher = delete $st->{'watchers'}{'in'};
-eval { $watcher->cancel } if defined $watcher;
-close $st->{'in'}         if defined $st->{'in'};
-$st->{'in'} = undef;
-
-my $delay = <[base.interval.next]>
-    ->( { 'type' => qw| kimi-acp-stop |, 'state' => $st->{'stop_state'} } );
-$st->{'stop_timer'} = <[event.add_timer]>->(
-    {   'after'   => $delay,
-        'handler' => qw| kimi.handler.acp_stop_timer |,
-        'data'    => {},
-        'desc'    => 'kimi acp child stop escalation'
-    }
-);
+<[stream_child.stop]>->( $st->{'child'} ) if defined $st->{'child'};
 return TRUE;
 
-#,,..,.,,,.,,,,.,,,.,,...,.,.,...,,,,,...,,.,,..,,...,...,,.,,.,,,..,,...,,,,,
-#4IIZPEQ6CPBI5IDUKJ7Y5DKB2RTIUDVCKRBC3KXNHW6KAYTYDYGJRCIYC42ZV7MPWUXB6AOOMNO7A
-#\\\|OD4XGZBAMFUHERPUF44EUZ5KAO4JCMJHFHHLSB5UXZWSMOFUAM5 \ / AMOS7 \ YOURUM ::
-#\[7]RRBUTNUKX4D4VNHAA6ZVKMVEWKBUVAMBK4LJ257KKP56ZMT6ZCDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,..,,..,,,..,,,,,,,,,,,,,,,,,,..,..,,...,..,,...,..,,,,.,.,.,.,,,
+#4DUKOFBTVJ7X7DKNB6JTHXU2R7LB6SJQ4POOD6MY5ASKSF3CBSQIMOG3ZDSSIYJDIMXM2MIZ2EY3O
+#\\\|LLV7ROAYRCWBQDM6DNOP26PMRG6F4JIB66QB6TWAZKD4M66KWGG \ / AMOS7 \ YOURUM ::
+#\[7]6GH3LTHTB6MB343FJLHHUYKPYZQMF45A3QG6ZAQWCTK43ZMRHYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

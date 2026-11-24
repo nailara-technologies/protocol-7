@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = stream_child.handler.stdout
+# descr = read the child's stdout, one on_line call per line
+
+## a read may end inside a line : the rest waits in pend_out. eof : the ##
+## last partial line, then the child is gone                            ##
+
+my $event  = shift->w;
+my $handle = ( $event->data // {} )->{'handle'};
+if ( not defined $handle or not defined $handle->{'out'} ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+
+my $got = CORE::sysread( $handle->{'out'}, my $chunk, 65536 );
+if ( not defined $got ) {
+    return if $OS_ERROR{'EAGAIN'} or $OS_ERROR{'EWOULDBLOCK'};
+    return if $OS_ERROR{'EINTR'};
+}
+my $on_line = $handle->{'on_line'};
+$on_line = undef if defined $on_line and not defined $code{$on_line};
+
+if ($got) {
+    $handle->{'pend_out'} .= $chunk;
+    if ( length $handle->{'pend_out'} > $handle->{'max_line'}
+        and $handle->{'pend_out'} !~ m{\n} ) {
+        <[stream_child.note]>->(
+            $handle,
+            qw| line_dropped |,
+            { 'bytes' => length $handle->{'pend_out'} }
+        );
+        $handle->{'pend_out'} = '';
+    }
+    while ( $handle->{'pend_out'} =~ s|\A([^\n]*)\n|| ) {
+        my $line = $1;
+        $code{$on_line}->( $line, $handle ) if defined $on_line;
+        ## the line may have ended the child ##
+        return if not defined $handle->{'out'};
+    }
+    return;
+}
+
+my $rest = $handle->{'pend_out'};
+$handle->{'pend_out'} = '';
+$code{$on_line}->( $rest, $handle ) if length $rest and defined $on_line;
+<[stream_child.gone]>->(
+    $handle, defined $got ? qw| eof | : "read : $OS_ERROR"
+);
+
+#,,.,,.,.,.,.,.,.,.,,,..,,.,,,.,.,,.,,..,,..,,..,,...,...,...,.,,,...,,..,,.,,
+#3FALKIEVZLOMRXNZXXO6F7B5VLATXX6GLT4AR22OAZBYCKNVQQJ5OAH5P2SWBB4H4WWJX7KT3OFUE
+#\\\|GO3YS5NPIBXCQA6TME3LLRLLAWURVLOD2O3ZAIGQFUHM2WUWNXC \ / AMOS7 \ YOURUM ::
+#\[7]RBOGB5Y5PJOUP657YA3QOTAIUG4FU3OGWB6TAXO5GXUSJI7U6IBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

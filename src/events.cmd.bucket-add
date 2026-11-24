@@ -14,6 +14,8 @@
 #            task-continue id=<task> message="text", zenka-present .. ]
 #   reason   text shown in bucket-show
 #   missed   fire [ default ] | keep : an `at` that passed while down
+#   budget   <provider>:<window><op><percent> [ claude:5h<60 ] : fires only
+#            while usage.status agrees, a closed gate waits for usage
 # values with spaces are "double quoted". an entry that has fired is final ;
 # any other state is replaced by the same id. the command must be one the
 # owner may send itself [ its access.zenki list ]
@@ -32,7 +34,7 @@ return $fail->('entry id : letters, digits, _ and -, 80 max')
 return $fail->('only <entry-id> and key=value are expected')
     if @{ $parsed->{'words'} } > 2;
 my %reserved
-    = map { $ARG => 1 } qw| at after on depends action reason missed |;
+    = map { $ARG => 1 } qw| at after on depends action reason missed budget |;
 my ( %match, %param );
 
 foreach my $key ( keys %kv ) {
@@ -102,6 +104,12 @@ return $fail->("'$owner' may not send '$route' [ access.zenki ]")
 my $missed = $kv{'missed'} // qw| fire |;
 return $fail->('missed : fire or keep') if $missed !~ m{\A(?:fire|keep)\z};
 $e->{'missed'} = $missed;
+
+if ( defined $kv{'budget'} ) {
+    my $gate = <[events.bucket.gate.parse]>->( $kv{'budget'} );
+    return $fail->( $gate->{'error'} ) if defined $gate->{'error'};
+    $e->{'budget'} = $gate->{'text'};
+}
 $e->{'reason'} = substr( $kv{'reason'} // '', 0, 200 ) =~ s{[\r\n]+}{ }gr;
 ## bucket, replace, limit, depends, cycle ##
 my $bucket = <[events.bucket.get]>->( $owner, TRUE );
@@ -147,6 +155,8 @@ if ( not defined $old and keys %{ $bucket->{'entries'} } >= $cap ) {
 ## in ##
 if ( defined $old ) {
     <[events.source.disarm]>->("$owner/$id");
+    <[events.bucket.gate.arm]>->( $owner, { %$old, 'gate' => '' } )
+        if length( $old->{'budget'} // '' );
     $e->{'added'} = $old->{'added'};
 } else {
     push @{ $bucket->{'order'} }, $id;
@@ -164,8 +174,8 @@ return {
     )
 };
 
-#,,..,,,,,,,,,.,.,,..,,..,,.,,..,,.,.,...,.,,,..,,...,..,,,..,.,,,.,,,...,.,,,
-#6P6KEINJTXOLYIJOSTQ37MO26QQBURVF4M24PWVBMRAY2XVRIHM4EMK2WENMYLOIBR3Y4DUPMI5A2
-#\\\|5XHGWP37RXZOGFOKM3OWH7RMFV4QHDLB3X3BO4RZOGEVWPD5QNC \ / AMOS7 \ YOURUM ::
-#\[7]L2XYRQUJ6KS7WWVMOYUTHRZXP7P3AZJUSJDVPNHWGCJNZV6QFODQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,.,..,,.,,,,,,,,..,,,.,.,,,,.,,..,,...,...,,..,..,,,,,,..,,,,,,
+#5SKTK3JIBSXVRH7TXODCGSN6Q2Z7EDZ275RZCJ7IX2BAOJSRLNZI5IMX4JQKLZCYGA3L6TITDYNRU
+#\\\|IKI6XYWS4Y6BK4EITKN5O3LKWDS6VLVJ6DB7DAND5UF3JTUMWJH \ / AMOS7 \ YOURUM ::
+#\[7]DVE6UILCEMIBSDHJ52QZSH5NGWDT5RHEUHWH6BADPB2Y6ZRKCMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

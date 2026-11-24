@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = claude.child.note
+# descr = stream_child notes as claude events
+# args  = kind, info hash, handle
+
+my ( $kind, $info, $child ) = @ARG;
+my $pid = $child->{'pid'} // '-';
+if ( $kind eq qw| signal | ) {
+    <[claude.event.add]>->( qw| stop |, "pid $pid : $info->{'signal'}" );
+} elsif ( $kind eq qw| exit | ) {
+    <[claude.event.add]>->(
+        qw| exit |, sprintf 'pid %d exit %d signal %d',
+        $pid, $info->{'exit'}, $info->{'signal'}
+    );
+} elsif ( $kind eq qw| error | ) {
+    <[claude.event.add]>->( qw| error |, $info->{'text'} );
+} elsif ( $kind eq qw| line_dropped | ) {
+    <[claude.event.add]>->(
+        qw| error |, "a line of $info->{'bytes'} bytes dropped"
+    );
+} elsif ( $kind eq qw| gave_up | ) {
+    <[claude.event.add]>->( qw| error |, "pid $pid did not end : given up" );
+}
+
+#,,..,,.,,...,.,.,..,,,.,,,..,,,.,..,,,.,,,,,,..,,...,...,...,.,.,..,,,.,,.,,,
+#FMXTVFW7WBZKRBLTE37UIYOXKTCXHTV3TSEZSXLSX5IIATVN5NX44Q3PAJFRYQD7ZP7RTZ2GUP63C
+#\\\|LN7XWYFZV5FSX6Q2AFPZTIWX3I43G7D7WNPKK6RS6Y6OZ6TTHOL \ / AMOS7 \ YOURUM ::
+#\[7]Q3UAOWMENXQQDDIK6QIXFFCA3YDX4FURAGC33BH4KDNS7EWVTIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

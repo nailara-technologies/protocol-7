@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = kimi.acp.child_note
+# descr = stream_child notes as acp events
+# param = kind, info hash, handle
+
+my ( $kind, $info ) = @ARG;
+if ( $kind eq qw| signal | ) {
+    <[kimi.acp.event]>->(
+        qw| stop |, "child still alive : $info->{'signal'}"
+    );
+} elsif ( $kind eq qw| gave_up | ) {
+    <[kimi.acp.event]>->( qw| error |, 'child did not end : given up' );
+} elsif ( $kind eq qw| line_dropped | ) {
+    <[kimi.acp.event]>->( qw| error |, 'a line over 8 MB dropped' );
+} elsif ( $kind eq qw| error | ) {
+    <[kimi.acp.event]>->(
+        qw| error |,
+        $info->{'text'} =~ m{\Astdin write}
+        ? 'write to the child failed'
+        : $info->{'text'}
+    );
+}
+return TRUE;
+
+#,,..,,,,,.,.,..,,,,,,...,,,.,,,,,,,.,,,.,,..,..,,...,...,.,.,..,,,,,,,,.,..,,
+#JC6PCTYTTL3576KQHB6GI7VAUATVX7OPDUZMPVW4QE3VF3LFGPTZTUQVRAGPDF3CBLOTTHKHA7YO2
+#\\\|64SLPDCXU6OO2TNKCT7NXT4DFOFMWPWR6LQLGGFEFUC7PAZQXD3 \ / AMOS7 \ YOURUM ::
+#\[7]6BVHJOXCJIIOWWXJ2HD2HXJGZBOA6GXUTNBTYEMJ2MGEO7UVV6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

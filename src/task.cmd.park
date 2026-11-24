@@ -1,12 +1,13 @@
 ## [:< ##
 
 # name  = task.cmd.park
-# param = <task_id> at=|after=|on= [ depends= message= ]
+# param = <task_id> at=|after=|on= [ depends= budget= ]
 # descr = park a done task : continued by an events entry
 #
 # the entry goes to the task zenka's own events bucket [ events.bucket-add,
 # action task-continue ] ; at=<time> after=<interval type> on=<signal>
-# [ match.<key>=<v> ], depends=<entry ids>, message=<text>, reason=<text>.
+# [ match.<key>=<v> ], depends=<entry ids>, message=<text>, reason=<text>,
+# budget=<provider>:<window><op><percent> [ e.g. claude:5h<60 ].
 # a task waits done or failed [ what task.continue accepts ]
 
 my $args = $call->{'args'} // '';
@@ -32,8 +33,8 @@ return <[park.start]>->(
     }
 );
 
-#,,,.,...,.,,,,,,,.,.,,.,,..,,,,.,.,,,,,,,,,.,..,,...,...,..,,..,,,,,,,,.,,.,,
-#GPYTE3XIXRXR74S3J4ZDRPGA6HDRF2SPMZLQGAA3UCSKCP6VXOLWWC6HWANYBQHKU7LACD35EHI74
-#\\\|KYKDTCBD5XKML5SILUDABRRFSFF5PGTB36OVLF2CVYYYTFYEHCH \ / AMOS7 \ YOURUM ::
-#\[7]S6GTRLCH6F7UARMDBUZ27EJSLY2Y5WW67NPLENUEY4Z23Z7JDICY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,,,..,,.,,,.,,,,..,...,..,,.,.,..,,...,...,..,,.,,,.,,,,..,,.,,
+#4OPTO74VS5XU2L6BOVU3AVMYJY7V4GULHVUZYYQHJDJ5TZASZWTMURNL5A3TDO6C3N3GDSQOAUAVU
+#\\\|U6Q2XJGJTWIZ2NX7JQ7UJIEAHOXKOLI6BMJ6FP5SNCSU7MKFBYP \ / AMOS7 \ YOURUM ::
+#\[7]I7VA53K2JOAXNHLAZ4XSY5HPZF6BXETIDFKEPMTMOOISGSW55UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,29 @@
+## [:< ##
+
+# name   = usage.handler.watch_tick
+# descr  = periodic usage read : thresholds and reset times
+#
+# a timer handler gets the event. every loaded provider is read [ quietly,
+# no waiting command ] on the usage-watch rhythm ; the numbers go through
+# usage.watch.observe like any other fetch
+
+my @providers = <[usage.provider_list]>;
+<[usage.query]>->( \@providers, '', qw| compact | ) if @providers;
+<usage.watch.tick_state> //= {};
+my $delay
+    = <[base.interval.next]>
+    ->( { 'type' => qw| usage-watch |, 'state' => <usage.watch.tick_state> } )
+    // 900;
+<usage.watch.tick_timer> = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| usage.handler.watch_tick |,
+        'data'    => {}
+    }
+);
+return TRUE;
+
+#,,,.,,.,,...,,..,,.,,.,,,,,,,...,,..,,,.,,.,,..,,...,..,,..,,...,,,.,,..,,..,
+#Q7OUJOTF2Z7HK24U3UD2BWTCMNWES3D7OW7KOBFHCK3RSL77KS3JOMZ3IVVM7GYGHIZA3AZWXGAGQ
+#\\\|3GJLKQA3T6SX7W45JVIRP2S5JVELQV2TIICVPHF2HPXII5G25UM \ / AMOS7 \ YOURUM ::
+#\[7]JQ3ZZ3MBN4XFTQ5PU7J5K2TP3W3RD4L5MPCKJXF4VVKLRRFDAWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

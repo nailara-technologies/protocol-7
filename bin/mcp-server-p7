@@ -45,6 +45,7 @@ BEGIN {
 use Digest::BMW;
 use AMOS7::Assert::Truth;
 use AMOS7::TEMPLATE;
+use AMOS7::Claude::Stream;
 use Time::HiRes;
 
 my $ROOT_PATH = abs_path( r2_abs( c_dir( $RealBin, File::Spec->updir ) ) );
@@ -5051,50 +5052,14 @@ sub _claude_run_start {
 
 ## one stream-json line -> readable event lines ##
 sub _claude_stream_events {
-    my $line  = shift;
-    my $short = sub {
-        my ( $text, $max ) = @ARG;
-        $text //= '';
-        $text =~ s|\s*\n\s*| / |g;
-        return length $text > $max ? substr( $text, 0, $max ) . ' ..' : $text;
-    };
-    my $d = $line =~ m|^\{| ? eval { decode_json($line) } : undef;
+    my $line = shift;
+    my $d    = $line =~ m|^\{| ? eval { decode_json($line) } : undef;
     return "out : $line" if ref $d ne qw| HASH |;
-
-    my $type = $d->{'type'} // '';
-    if ( $type eq 'system' ) {
-        return sprintf 'init : session %s model %s',
-            $d->{'session_id'} // '-', $d->{'model'} // '-'
-            if ( $d->{'subtype'} // '' ) eq 'init';
-        return 'system : ' . ( $d->{'subtype'} // '' );
-    }
-    if ( $type eq 'result' ) {
-        return sprintf 'final : %s%s : %s', $d->{'subtype'} // '',
-            defined $d->{'total_cost_usd'}
-            ? sprintf( ' [ %.2f usd ]', $d->{'total_cost_usd'} )
-            : '',
-            $short->( $d->{'result'}, 400 );
-    }
-    my @out;
-    foreach my $block ( @{ $d->{'message'}{'content'} // [] } ) {
-        next if ref $block ne qw| HASH |;
-        my $bt = $block->{'type'} // '';
-        if ( $bt eq 'text' ) {
-            push @out, 'text : ' . $short->( $block->{'text'}, 400 );
-        } elsif ( $bt eq 'tool_use' ) {
-            push @out, sprintf 'tool : %s %s', $block->{'name'} // '',
-                $short->( $json->encode( $block->{'input'} // {} ), 200 );
-        } elsif ( $bt eq 'tool_result' ) {
-            my $c = $block->{'content'};
-            $c = join ' ',
-                map { ref $ARG ? $ARG->{'text'} // '' : $ARG } @{$c}
-                if ref $c eq qw| ARRAY |;
-            push @out, sprintf 'result%s : %s',
-                $block->{'is_error'} ? ' [ error ]' : '',
-                $short->( $c, 200 );
-        }
-    }
-    return @out;
+    return AMOS7::Claude::Stream::describe(
+        $d,
+        'user_text' => 1,
+        'input'     => sub { $json->encode( $ARG[0] ) }
+    );
 }
 
 sub _claude_run_add_line {
@@ -7202,8 +7167,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,.,..,,,.,,...,,..,...,,,.,...,...,...,,,.,..,,...,...,.,.,,,.,,,.,,,.,,.,,
-#4ULA4EQYLYVDZGR5WJUBCDOR65NZVT5CAZSFNMHQN6FXBCAO7U2B4LAZUU4TIZHGN2O3BNN6CGJDQ
-#\\\|LLKEJDX56EHKBMV76A34FUN4IREZIRYFITX2OBH452HT2VJJOUD \ / AMOS7 \ YOURUM ::
-#\[7]R2Q6WOOSYGRX6S354YXKEB4MITOB3S65BA3YF4WSSNTSMM7T2GCA 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,,,..,,,.,,,..,,,,,.,.,.,,,...,..,,...,...,.,.,,,,,.,.,.,.,,,,,
+#QU7FMMZGJTN4P4QH7BNZ6IODBUERQPXI55LSWCKEHTPAI56SNH6SJDDTTR7WMOA2RSB67UXTODWUI
+#\\\|PIFIST2OPPCLIG4K7G76QOYTNXNCXPUBFWMXY2KSIDAVMGPYMJR \ / AMOS7 \ YOURUM ::
+#\[7]E7GBDFKMKH7WFBEEA3WV3YGU6OVWELGXXU2FW2N57US2W7JMXKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

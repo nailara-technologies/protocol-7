@@ -1,0 +1,35 @@
+## [:< ##
+
+# name   = stream_child.status
+# descr  = state of one child, or of every running one
+# param  = handle | undef
+# return = hash ref, or a list ref of them
+
+my $handle = shift;
+my $one    = sub {
+    my $h = shift;
+    return {
+        'id'    => $h->{'id'},
+        'pid'   => $h->{'pid'},
+        'state' => $h->{'gone'} ? qw| gone |
+        : $h->{'stopping'} ? qw| stopping |
+        : qw| running |,
+        'exit'    => $h->{'exit'},
+        'signal'  => $h->{'signal'},
+        'pend_in' => length( $h->{'pend_in'} // '' ),
+        'started' => $h->{'started'},
+        'group'   => $h->{'group'},
+    };
+};
+return $one->($handle) if defined $handle;
+return [
+    map  { $one->($ARG) }
+    sort { $a->{'id'} <=> $b->{'id'} }
+        values %{ <stream_child.handles> // {} }
+];
+
+#,,..,,..,..,,,.,,..,,.,,,...,...,.,.,,,.,,.,,..,,...,...,..,,,..,,..,...,.,.,
+#Y4YEQNN2SCEJKCFCHLRRJY5ZGA5MLL7FP7TUBALWPU222KNPEIQDDVYEXEKFHOUD5ZKSLHQV2ZQLU
+#\\\|PL6NSRFB5FSE254MSIN4JGSR4MFF26S52IRRKC2CSG4NJCRXJK6 \ / AMOS7 \ YOURUM ::
+#\[7]EQIXDB32ET3COHVW2IC3K3YDB7EPSORG6N4WAZKO6MXIQGCFB6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

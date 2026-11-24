@@ -10,6 +10,8 @@
 # task-continue action, the existing continue path of the task zenka.
 #   at=<time> | after=<interval type> | on=<signal> [ match.<key>=<v> ]
 #   depends=<entry ids>  message=<text>  reason=<text>
+#   budget=<provider>:<window><op><percent> [ the events gate, checked
+#   there : fires only while usage agrees ]
 #   action=task-continue [ default ] | claude-send [ the message as a turn
 #   into the claude session ]
 # no when and no depends is refused : a park waits for something
@@ -18,12 +20,14 @@ my $in    = shift // {};
 my %kv    = %{ $in->{'pairs'} // {} };
 my $id    = $in->{'task_id'} // '';
 my $fail  = sub { return { 'error' => shift } };
-my %known = map { $ARG => 1 } qw| at after on depends message reason action |;
-my @odd   = grep { not $known{$ARG} and $ARG !~ m{\Amatch\.[\w.-]+\z} }
+my %known = map { $ARG => 1 }
+    qw| at after on depends message reason action budget |;
+my @odd = grep { not $known{$ARG} and $ARG !~ m{\Amatch\.[\w.-]+\z} }
     sort keys %kv;
 return $fail->( 'unknown key '
         . join( ' ', @odd )
-        . ' [ at after on match.<key> depends message reason action ]' )
+        . ' [ at after on match.<key> depends '
+        . 'message reason action budget ]' )
     if @odd;
 my @when = grep { defined $kv{$ARG} } qw| at after on |;
 return $fail->('one of at, after, on only') if @when > 1;
@@ -60,7 +64,7 @@ my $record = {
     'action'  => $action,
     'parked'  => time
 };
-foreach my $key ( @when, qw| depends reason | ) {
+foreach my $key ( @when, qw| depends reason budget | ) {
     next if not defined $kv{$key};
     push @args, "$key=" . $quote->( $kv{$key} );
     $record->{$key} = $kv{$key};
@@ -71,8 +75,8 @@ foreach my $key ( sort keys %match ) {
 }
 return { 'args' => join( ' ', @args ), 'record' => $record };
 
-#,,..,,..,..,,,..,.,,,..,,,,,,.,.,.,.,...,...,..,,...,...,.,.,.,.,,,,,...,,,,,
-#NZMZQ3YGFRWXPPODEHYVINM5IOOA54AOSHFH5ZW2BZMTVNEKT7GA5FMBGREXWUH6PQWAWTUILZYU2
-#\\\|IHAR6FMTLDMFICHDXRB7DTLSFCP2CXHB4IUE7P4XAPP4E7GWWHG \ / AMOS7 \ YOURUM ::
-#\[7]MIMSDMBUWDGBVTZLJ4LUUH5IIY5Q2GQBL46A3PSRKYMCFZTHRWCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,..,,,,.,,.,,...,,,,,..,,,..,...,..,,...,...,...,...,,,,,,,.,,,,,
+#CTFMWP5SZM6UIEQ3DDYT2NN3DQCEUOV3LXWP4JNNIKSXRP4DNXPS6RIQOROR72LTABWBWAD6IPNWU
+#\\\|TF7SIHHJX6UHXK52LGURL7R2R5GC3FFK4C5KPGQRUST7NCOOTJY \ / AMOS7 \ YOURUM ::
+#\[7]UMRRGC7J4AFDBE2HTKKHPB23SXCTALILCRTTTDDQ7LQRLMPXDYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

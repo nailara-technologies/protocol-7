@@ -1,0 +1,45 @@
+## [:< ##
+
+# name   = stream_child.reap
+# descr  = collect the ended child's exit status
+# param  = handle
+# return = TRUE when collected [ or gone already ]
+
+## not exited yet : checked again on an interval.reap timer ##
+## [ when the handle has that type ], at most 13 times      ##
+
+my $handle = shift // return TRUE;
+return TRUE if defined $handle->{'exit'};
+my $got = CORE::waitpid( $handle->{'pid'}, POSIX::WNOHANG() );
+if ( $got == $handle->{'pid'} ) {
+    $handle->{'exit'}   = $CHILD_ERROR >> 8;
+    $handle->{'signal'} = $CHILD_ERROR & 127;
+    <[stream_child.note]>->(
+        $handle, qw| exit |,
+        { 'exit' => $handle->{'exit'}, 'signal' => $handle->{'signal'} }
+    );
+    return TRUE;
+}
+if ( $got < 0 ) {    ## reaped elsewhere ##
+    $handle->{'exit'} = qw| ? |;
+    return TRUE;
+}
+my $type = $handle->{'interval'}{'reap'} // return FALSE;
+return FALSE if $handle->{'reap_tries'}++ >= 13;
+my $delay = <[base.interval.next]>
+    ->( { 'type' => $type, 'state' => $handle->{'reap_state'} } );
+return FALSE if not defined $delay;
+<[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => $handle->{'reap_handler'},
+        'data'    => { 'handle' => $handle },
+        'desc'    => "stream child $handle->{'pid'} reap"
+    }
+);
+return FALSE;
+
+#,,,,,,.,,.,.,,,.,,..,,,,,,.,,..,,...,..,,,..,..,,...,...,..,,,,,,.,.,...,,,.,
+#5M47BWR3M6YIZT6PKMR45U2JT34JGAUJTPA5IKS76L4X5LNHTZRER5DAHOFV6D2YDXZVCXHLPUPVA
+#\\\|UFM7EP3B3YD2KYA6WTW5GGLBJOJABJ2SC2MBJJFL5U52AJC6EZB \ / AMOS7 \ YOURUM ::
+#\[7]J6ZYYLEW3SFV2ZZYE66ZCG3RU6Q3DHDNY2A6NAH2LEYO3NM4R6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

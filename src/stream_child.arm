@@ -1,0 +1,34 @@
+## [:< ##
+
+# name   = stream_child.arm
+# descr  = timer for the next stop step [ base.interval.next ]
+# param  = handle
+# return = TRUE when armed
+
+## a new serial makes every older timer of the handle a no-op ##
+
+my $handle = shift;
+<[stream_child.disarm]>->($handle);
+my $type  = $handle->{'interval'}{'stop'} // qw| stream-child-stop |;
+my $delay = <[base.interval.next]>
+    ->( { 'type' => $type, 'state' => $handle->{'stop_state'} } );
+if ( not defined $delay ) {
+    <[stream_child.note]>->(
+        $handle, qw| error |, { 'text' => "no delay for '$type'" }
+    );
+    return FALSE;
+}
+$handle->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => $handle->{'timer_handler'},
+        'data'    => { 'handle' => $handle, 'serial' => $handle->{'serial'} },
+        'desc'    => "stream child $handle->{'pid'} stop step"
+    }
+);
+return TRUE;
+
+#,,,,,,..,.,,,.,,,.,.,.,.,,..,,,.,,.,,...,..,,..,,...,...,,.,,,.,,.,.,,.,,...,
+#KPB7AO23WYZCLL7P7VAPXOW6H56W6BMUD3DMNUTN5ETUKWSZZY3XU2325CQZUUT6VN5V6MO2FGCF4
+#\\\|NRNSL6FFI2AXMVJBVJJ2634PNBOJDEVSJ6UFD5XIRLI25X25MUC \ / AMOS7 \ YOURUM ::
+#\[7]M47KFCIU6E7XFUXAN246VXY6RDKSBOMNMSXVYYVH5XIZI4M4GOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

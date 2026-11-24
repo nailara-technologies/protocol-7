@@ -1,0 +1,82 @@
+## [:< ##
+
+# name   = usage.watch.observe
+# descr  = compare fresh usage rows : thresholds, resets, timers
+# args   = provider, parsed result [ { rows => [ .. ] } ]
+# return = number of signals raised
+#
+# every fetch passes here [ a status, a plan, the gate reads of the events
+# zenka ]. per window [ rows with a window code and a used percent ] :
+#   usage.threshold  a configured percent crossed since the last reading
+#                    [ crossed=up | down, percent = the threshold, used ]
+#                    -- the first reading is the baseline, nothing raised
+#   usage.window.reset  the reset time of the last reading passed and the
+#                    window moved on [ when the reset timer did not see it ]
+# the reset timer of the window is armed from the new reset time
+
+my ( $provider, $result ) = @ARG;
+return 0 if not defined $provider or ref $result ne qw| HASH |;
+<usage.watch.state> //= {};
+my $now    = time;
+my $raised = 0;
+foreach my $row ( @{ $result->{'rows'} // [] } ) {
+    my $window = $row->{'window'} // next;
+    next if $window !~ m|\A[0-9a-z]{1,8}\z|;
+    my $used = $row->{'used_pct'};
+    my $prev = <usage.watch.state>->{$provider}{$window};
+    my $cur  = {
+        'used'    => $used,
+        'epoch'   => $row->{'reset_epoch'},
+        'raised'  => defined $prev ? $prev->{'raised'} : undef,
+        'requery' => defined $prev
+            && ( $prev->{'epoch'} // -1 ) == ( $row->{'reset_epoch'} // -2 )
+        ? $prev->{'requery'}
+        : undef,
+        'seen' => $now
+    };
+    if ( defined $prev and defined $prev->{'used'} and defined $used ) {
+        foreach my $t (<[usage.watch.thresholds]>) {
+            my $crossed
+                = $prev->{'used'} < $t && $used >= $t           ? qw| up |
+                : $used < $t           && $prev->{'used'} >= $t ? qw| down |
+                :                                                 undef;
+            next if not defined $crossed;
+            <[usage.signal.raise]>->(
+                qw| usage.threshold |,
+                {   'provider' => $provider,
+                    'window'   => $window,
+                    'percent'  => $t,
+                    'used'     => sprintf( '%.1f', $used ),
+                    'crossed'  => $crossed
+                }
+            );
+            $raised++;
+        }
+    }
+    if (    defined $prev
+        and defined $prev->{'epoch'}
+        and defined $cur->{'epoch'}
+        and $prev->{'epoch'} <= $now
+        and $cur->{'epoch'} > $prev->{'epoch'}
+        and ( $prev->{'raised'} // 0 ) != $prev->{'epoch'} ) {
+        <[usage.signal.raise]>->(
+            qw| usage.window.reset |,
+            { 'provider' => $provider, 'window' => $window }
+        );
+        $cur->{'raised'} = $prev->{'epoch'};
+        $raised++;
+    }
+    <usage.watch.state>->{$provider}{$window} = $cur;
+    <[usage.watch.arm]>->( $provider, $window, $cur->{'epoch'} )
+        if defined $cur->{'epoch'}
+        and ( not defined $prev
+        or ( $prev->{'epoch'} // 0 ) != $cur->{'epoch'}
+        or not defined <usage.watch.timers>->{$provider}{$window} );
+}
+return $raised;
+
+#,,..,..,,...,.,,,,.,,,..,,,,,,.,,..,,,.,,,..,..,,...,...,...,..,,..,,..,,,,.,
+#2CEKDQJZB4ZWIZH2VA5GYG5EJTYRMGV5CV64H7UEMY6KZVFJMNK2KC23FFGGFA2DJZ7AOHGDNAHMM
+#\\\|B42SYZPVLTHG6SEQ2DDCUDFAJJUCDYA75LDXTZFSKGQH35C4O4V \ / AMOS7 \ YOURUM ::
+#\[7]4CZOFAJIZ75QDAAIDZDDC2NQIU4WIOCMDE2UO5GDOQ6US4LHRCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

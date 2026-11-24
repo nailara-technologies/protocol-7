@@ -1,0 +1,39 @@
+## [:< ##
+
+# name   = events.bucket.gate.arm
+# descr  = arm the re-check timer of a closed gate
+# args   = owner, entry
+# return = TRUE when a timer is armed
+#
+# a gate_at that has passed [ e.g. while the zenka was down ] opens the
+# wait : the next evaluate asks usage again
+
+my ( $owner, $e ) = @ARG;
+my $key = "$owner/$e->{'id'}";
+<events.gate_timers> //= {};
+if ( my $old = delete <events.gate_timers>->{$key} ) {
+    eval { $old->cancel };
+}
+return FALSE if ( $e->{'gate'} // '' ) ne qw| closed |;
+my $after = ( $e->{'gate_at'} // 0 ) - time;
+if ( $after <= 0 ) {
+    delete $e->{'gate'};
+    return FALSE;
+}
+<events.gate_timers>->{$key} = <[event.add_timer]>->(
+    {   'after'   => $after,
+        'handler' => qw| events.bucket.gate.handler.retry |,
+        'data'    => {
+            'owner' => $owner,
+            'id'    => $e->{'id'},
+            'added' => $e->{'added'}
+        }
+    }
+);
+return TRUE;
+
+#,,.,,.,,,,,,,..,,.,.,.,.,...,,.,,,..,,,,,,,,,..,,...,...,.,.,..,,,,,,,.,,..,,
+#4LUBHEYHLHPLUQ63Q33J7FLV43OFMPHHWT3HNASNQLR5AGECFO4JGFESFAEOWEF7ENK2ND7YOHZE6
+#\\\|LMY4A6ZWROBDCLKTGMA6XMN4ZQUSABNJR7IGPN4SYIBVWPLB3CW \ / AMOS7 \ YOURUM ::
+#\[7]2JJZD3BGV2XZ233JPZLPL32WJGZXE24H6OIGNR3YWRE44ZNAV4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

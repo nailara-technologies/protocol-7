@@ -1,17 +1,14 @@
 ## [:< ##
 
 # name  = claude.handler.stop_kill
-# descr = timer : KILL a child group left after TERM
+# descr = timer : the next stop step [ KILL ] of the child
 
-my $data  = shift->w->data // {};
-my $child = <claude.child>;
-return if not defined $child or $child->{'pid'} != ( $data->{'pid'} // 0 );
-return if not CORE::kill( 0, -$child->{'pid'} );
-CORE::kill( 'KILL', -$child->{'pid'} );
-<[claude.event.add]>->( qw| stop |, "pid $child->{'pid'} : KILL" );
+## the stream_child step timer under the claude name ##
 
-#,,..,,,.,..,,...,.,.,...,,.,,...,,,,,.,.,,,,,..,,...,...,.,,,..,,.,,,,,.,,,,,
-#LJPZVWKPNPGJPYW2EQL4XFC545TQ63TJXC2TIWUEA3CBOQPHXNS4I7OQV52SPCSA6ZHJDVFG5F3KE
-#\\\|W332YAIKKD2XALKETZ4AGFTEQD5P6JG23FBPWMEJ3TPASK2DJ56 \ / AMOS7 \ YOURUM ::
-#\[7]YIPLTNWSGYOPGTX7I65X6UGD75FHBU35RM6AB57WM5MKPUBI7CBI 7  DATA SIGNATURE ::
+<[stream_child.handler.timer]>->(shift);
+
+#,,..,.,,,.,,,.,,,..,,.,.,.,,,,,.,,..,,,,,.,.,..,,...,...,..,,,,.,,..,,,.,...,
+#FL3S5SDO2ANINNSYHJX6YULKWUPBLEB46RUQ223P5HZXK7YN7V567UWJMBZJGUQZQC3CJD4MWLJ4W
+#\\\|ZZPTOZT5GAI56MMCDA5PEGLSTD7FVH4CVIH3PMHZNOC6NWBHMSW \ / AMOS7 \ YOURUM ::
+#\[7]2KMN3BMLAUMZENFJR55AW4JQJX5SYNK6OL3SLPWLT5WQTTRXF6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

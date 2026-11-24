@@ -1,0 +1,46 @@
+## [:< ##
+
+# name   = stream_child.flush
+# descr  = write what waits for the child's stdin
+# param  = handle
+# return = TRUE, or FALSE when the pipe is gone
+
+## never a blocking write : a full pipe leaves the rest queued and a `w` ##
+## watcher armed, the watcher goes once the queue is empty               ##
+
+my $handle = shift;
+return FALSE if not defined $handle or not defined $handle->{'in'};
+
+while ( length $handle->{'pend_in'} ) {
+    my $n = CORE::syswrite( $handle->{'in'}, $handle->{'pend_in'} );
+    if ( not defined $n ) {
+        last if $OS_ERROR{'EAGAIN'} or $OS_ERROR{'EWOULDBLOCK'};
+        next if $OS_ERROR{'EINTR'};
+        <[stream_child.note]>->(
+            $handle, qw| error |, { 'text' => "stdin write : $OS_ERROR" }
+        );
+        $handle->{'pend_in'} = '';
+        return FALSE;
+    }
+    CORE::substr( $handle->{'pend_in'}, 0, $n, '' );
+}
+
+if ( length $handle->{'pend_in'} ) {
+    $handle->{'w_in'} //= <[event.add_io]>->(
+        {   'fd'      => $handle->{'in'},
+            'handler' => qw| stream_child.handler.stdin |,
+            'data'    => { 'handle' => $handle },
+            'poll'    => qw| w |
+        }
+    );
+} elsif ( defined $handle->{'w_in'} ) {
+    my $watcher = delete $handle->{'w_in'};
+    eval { $watcher->cancel } if ref $watcher;
+}
+return TRUE;
+
+#,,,.,,.,,,.,,,..,,,,,,..,.,.,,,,,,,.,,,,,...,..,,...,...,...,.,.,,.,,,..,,,,,
+#ZRW52HPCFSCMODSQCU7ADZHZL6UZZGTPIPIZB27JJRDNTLJ7S4KNR4EKDJI3WYU4JXKHSHRMT3SLY
+#\\\|ER3BFYPJR3GU45OABNGUW6G74U5S42UB3S3HEEDJLVJKSQAVUHX \ / AMOS7 \ YOURUM ::
+#\[7]6PSXEKU3XMR767N4F3Z5FVCJLMMTHOZQRKBIHOBDDM77K2IKKACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

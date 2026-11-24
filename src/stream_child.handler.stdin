@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = stream_child.handler.stdin
+# descr = the child's stdin is writable : drain the queue
+
+my $event  = shift->w;
+my $handle = ( $event->data // {} )->{'handle'};
+if ( not defined $handle or not defined $handle->{'in'} ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+<[stream_child.flush]>->($handle);
+
+#,,..,,.,,,,.,.,.,.,,,.,.,...,..,,.,.,,..,..,,..,,...,...,,.,,...,,,.,...,.,.,
+#5ODZRDDZBEVXN7BYZ5MD4WRKQUFILLGCATBRQSCMVH6NRCBF63SCXZWAQPAA5FONCQVTXEDSGAJUS
+#\\\|GEUZLESTNN6EKLLRWIMF3WUI3PGER67GLBKWXHLBOPJRF3TKDWC \ / AMOS7 \ YOURUM ::
+#\[7]UT2NPUDXHXWDRVUUT5R6CIGDBPALSE5JRKONSBKHW6TWQ3GXJGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

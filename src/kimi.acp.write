@@ -10,15 +10,16 @@
 
 my $message = shift;
 my $st      = <[kimi.acp.state]>;
-return FALSE if not defined $st->{'in'};
+return FALSE
+    if not defined $st->{'child'}
+    or not defined $st->{'child'}{'in'};
 
 $st->{'json'} //= JSON::XS->new->utf8->canonical;
 my $line = $st->{'json'}->encode( { 'jsonrpc' => '2.0', %{$message} } );
-$st->{'wbuf'} .= "$line\n";
-return <[kimi.acp.flush]>;
+return <[stream_child.write]>->( $st->{'child'}, "$line\n" );
 
-#,,,,,.,,,.,,,,.,,...,,..,,.,,,..,,..,...,,..,..,,...,...,.,.,...,,,.,.,.,.,.,
-#FGGZAJP5W4NVYC5SV2TL3F2US527TAR3S3RU4FWHHPLZHG2Y7LI6NRCFMFHUQPKHZ3VZAQOCI25AS
-#\\\|M4VZEYYQRCSPEFDM3PMLTC44RKCKADUIGIR6L44IHWMVN6LAAMB \ / AMOS7 \ YOURUM ::
-#\[7]4BVA2GCYR26JNPVFN6A2XEZUIYLREFXV7YTT2T57TRX5HAOTSWAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,.,,,.,,.,.,,,,,.,.,.,,,,,,,,,,,..,,...,...,,,.,,.,,.,.,...,.,,,
+#AFT6FSTF4MTEVHKJ5XY3SOUJQPF2JNHTPWCPBODMUIRPKEX32FIIXGK2O22573MNFNRGFNV6PCFC4
+#\\\|KYFTI62ZZM6H54GPPHAP6GKCILTGXI262GOHN7UI4PXLN7NXAVR \ / AMOS7 \ YOURUM ::
+#\[7]SREJPO4DZZQTHATIOMR4WYVT5SY2RYAY4AGWNSWELDOJHV6JUQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

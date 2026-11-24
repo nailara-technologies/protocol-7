@@ -1,30 +1,16 @@
 ## [:< ##
 
 # name  = kimi.handler.acp_stderr
-# descr = log the child's stderr lines
+# descr = log one stderr line of the child
+# param = line [ octets ], handle
 
-my $event = shift;
-my $st    = <[kimi.acp.state]>;
-
-my $chunk = '';
-my $bytes = <[base.s_read]>->( $event->w->fd, \$chunk, 65536 );
-if ( $bytes <= 0 ) {
-    eval { $event->w->cancel };
-    delete $st->{'watchers'}{'err'};
-    return;
-}
-
-$st->{'ebuf'} .= $chunk;
-$st->{'ebuf'} = '' if length $st->{'ebuf'} > 1_000_000;
-while ( $st->{'ebuf'} =~ s{\A([^\n]*)\n}{} ) {
-    my $line = $1;
-    utf8::decode($line);
-    <[kimi.acp.event]>->( qw| stderr |, $line ) if $line =~ m{\S};
-}
+my $line = shift // return;
+utf8::decode($line);
+<[kimi.acp.event]>->( qw| stderr |, $line ) if $line =~ m{\S};
 return TRUE;
 
-#,,..,,..,.,.,,..,...,,,.,.,,,.,,,,..,.,.,..,,..,,...,...,..,,.,,,.,,,.,,,,.,,
-#B6DVLE7YJGGFT64ULSYOGUCV4PXKHCXG2MORYURFDGKQBN36ADUXW2XCJRLB237KDMRXGEF5IWLKE
-#\\\|JQSZXU5XL4KHAMSTVF265VSYZRPWWCE4DE7ZPYAK4YATQZ4V77B \ / AMOS7 \ YOURUM ::
-#\[7]QB3IDWV3NNAO75WEISG5YL62II65RL3RHFSYFNTHR55D5J5R4YDA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,.,,.,.,...,,.,,,,,,..,,,,.,,..,..,,...,..,,.,.,,,,,...,..,,,,,,
+#IKKX5N642IGPEROQZDIHHWXH6ZBW7JMFH7FGP3WTDSPFIDYFNRZIDPCLPW6OURZCE7XFBPAVCXXNW
+#\\\|ORKP5X2ZYBDTGKVIZSBTL2RBV5S3U3EW5XQPHY35HUUMVXAWF6E \ / AMOS7 \ YOURUM ::
+#\[7]EAZCLQ5GOVRYUGLGRWUCTSYITSWVLEDJVPESCFUDEWNMPZGGPUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

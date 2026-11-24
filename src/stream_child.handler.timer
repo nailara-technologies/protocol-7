@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = stream_child.handler.timer
+# descr = timer : the next stop step while the child is there
+
+my $data   = shift->w->data    // {};
+my $handle = $data->{'handle'} // return;
+return if ( $data->{'serial'} // -1 ) != $handle->{'serial'};
+delete $handle->{'timer'};
+
+if ( not <[stream_child.alive]>->($handle) ) {
+    ## ended without its stdout end seen yet ##
+    <[stream_child.gone]>->( $handle, qw| ended | ) if not $handle->{'gone'};
+    return;
+}
+<[stream_child.step]>->($handle);
+
+#,,..,,..,.,.,,..,...,.,.,..,,...,,..,,,.,,..,..,,...,...,...,,.,,.,,,..,,..,,
+#CZK6XF2F7ZYLGK6QCD3DPQLKV2DBMIYBVV6QX4QB2HLZ6SDAT7JU3IO6DNEWPNH7XHTMKOV6R6ULU
+#\\\|7U32R55JOOHBHGQZUGPS6OYPE7JGXXAOEM72T2KB4IVKI2IIHDB \ / AMOS7 \ YOURUM ::
+#\[7]WVCVCTASFWBKLROHJ3BVM2UORPFVC7RG6BW2YWQ4YTW7HPYJE6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

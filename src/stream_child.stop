@@ -1,0 +1,23 @@
+## [:< ##
+
+# name   = stream_child.stop
+# descr  = end the child : the stop steps, timers between
+# param  = handle
+# return = TRUE when asked to end [ or ending ], FALSE if gone
+
+## the first step runs now [ usually close : end of input ], every next one ##
+## after a base.interval.next delay while the child is still there          ##
+
+my $handle = shift;
+return FALSE if not defined $handle or $handle->{'gone'};
+return TRUE  if $handle->{'stopping'};
+$handle->{'stopping'} = TRUE;
+$handle->{'step'}     = 0;
+<[stream_child.step]>->($handle);
+return TRUE;
+
+#,,..,,,.,,,,,.,.,...,,.,,,,.,.,,,,..,..,,..,,..,,...,...,,,.,..,,...,,,.,.,,,
+#5XRCEAHHTRBAJKHRWD7S5OG74EJV3SXDJ7JCJBDARPLMC7DG3IXWLXYCICTD4VGCDKWHL2Q3AUQCM
+#\\\|OSSEH5OF7GZ4JN5SJNAPVUGCYGSCLUDWUW6R2E35SN72NGBF5RX \ / AMOS7 \ YOURUM ::
+#\[7]GU7VD6X7SOAKN47NNGQGPLLXDTP74W7JTFEOTZ5PV3A64AHIOEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

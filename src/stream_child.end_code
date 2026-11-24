@@ -1,0 +1,59 @@
+## [:< ##
+
+# name   = stream_child.end_code
+# descr  = zenka exit : end the child now [ no event loop ]
+# param  = handle
+# return = TRUE
+
+## the stop steps, synchronous : each one, then a short wait from          ##
+## base.interval.next [ interval.exit ] while the child is there. END also ##
+## runs in a forked copy of the zenka : only the owner ends it             ##
+
+my $handle = shift;
+return TRUE if not defined $handle or not defined $handle->{'pid'};
+return TRUE if $handle->{'ended'}  or defined $handle->{'exit'};
+return TRUE if ( $handle->{'owner'} // 0 ) != $PROCESS_ID;
+$handle->{'ended'} = TRUE;
+
+my $pid    = $handle->{'pid'};
+my $reaped = FALSE;
+my %wait;
+my $type = $handle->{'interval'}{'exit'} // qw| stream-child-stop |;
+
+foreach my $actions ( @{ $handle->{'steps'} } ) {
+    last if $reaped and not <[stream_child.alive]>->($handle);
+    foreach my $action (@$actions) {
+        if ( $action eq qw| close | ) {
+            CORE::close( $handle->{'in'} ) if defined $handle->{'in'};
+            $handle->{'in'} = undef;
+        } elsif ( $action ne qw| gone | ) {
+            CORE::kill( $action, $handle->{'group'} ? -$pid : $pid );
+        }
+    }
+    my $delay
+        = <[base.interval.next]>->( { 'type' => $type, 'state' => \%wait } )
+        // 0;
+    my $until = time + $delay;
+    while (TRUE) {
+        if ( not $reaped ) {
+            my $got = CORE::waitpid( $pid, POSIX::WNOHANG() );
+            $reaped = TRUE if $got == $pid or $got < 0;
+        }
+        last if $reaped and not <[stream_child.alive]>->($handle);
+        my $left = $until - time;
+        last if $left <= 0;
+        CORE::select( undef, undef, undef, $left < 0.13 ? $left : 0.13 );
+    }
+}
+## what is left of the group : KILL ##
+if ( $handle->{'group'} and <[stream_child.alive]>->($handle) ) {
+    CORE::kill( qw| KILL |, -$pid );
+}
+CORE::waitpid( $pid, POSIX::WNOHANG() ) if not $reaped;
+return TRUE;
+
+#,,,,,,.,,...,.,,,..,,,,.,..,,..,,.,.,.,.,,,.,..,,...,...,.,.,,..,..,,,..,,,,,
+#AR2ZRO6EX2KKRQCL2E7J5D7W2CQJTEUGZU2FH5Z534BKZGBHJV7MIR373US6JPCWLMYXCTETF2KH2
+#\\\|AVDATZIKZ7ICT6WYT2VQTVHSZ33XLCUQOAQNJFL763UDLJY27WV \ / AMOS7 \ YOURUM ::
+#\[7]Y5HJIRPDWMXH2HLEYNQDN3KLYOVPJOZ6IOA4OIOEFTYD6KAD7ECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

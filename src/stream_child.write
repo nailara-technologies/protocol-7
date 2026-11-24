@@ -1,0 +1,20 @@
+## [:< ##
+
+# name   = stream_child.write
+# descr  = queue octets for the child's stdin, write them
+# param  = handle, octets
+# return = TRUE, or FALSE when stdin is closed
+
+## what does not fit the pipe now waits in pend_in ; a write watcher drains ##
+## it and ends itself when it is empty                                      ##
+
+my ( $handle, $octets ) = @ARG;
+return FALSE if not defined $handle or not defined $handle->{'in'};
+$handle->{'pend_in'} .= $octets // '';
+return <[stream_child.flush]>->($handle);
+
+#,,,.,..,,...,,.,,..,,,.,,,,.,.,,,,,,,,,,,,,.,..,,...,...,...,,.,,..,,,,,,.,.,
+#K4AUHJCECL5OZ33LQTD2YD3FPMEGF266WE6NABL6P4LX67EKPSCU3SOSQPFVLYVHRYYPOBL6C5FV4
+#\\\|CWDPL2G2OJDMSYZE6V7RRPT6ZCTXUNVYPT6TCKXKOX5ABYUFYAD \ / AMOS7 \ YOURUM ::
+#\[7]QFDYVWN5I67IN5Z7LUIH4WECR7ZE4QIJNXJ5V7IZUUBRIFFW2GAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

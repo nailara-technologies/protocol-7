@@ -11,9 +11,11 @@ use warnings;
 
 ## wait for a p7_sign job [ bin/dev/p7-sign-run ] or a p7_commit
 ## [ bin/dev/ p7-commit ] to reach its final state,  then print it and exit --
-## 0 approved, 1 otherwise, 2 unknown job
-## [ no state file after 15 s, the newest job ids are listed ]. for callers
-## that get notified when a background command ends
+## 0 approved \ committed, 1 any other final state, 2 unknown job
+## [ no state file after 15 s, the newest job ids are listed ], 3 the timeout
+## ran out while the job was NOT final [ says so, names the last status ].
+## only a final state in the file ends the wait with 0. for callers that get
+## notified when a background command ends
 ## [ the p7_sign mcp tool itself never waits ] :
 ##
 ## p7-sign-wait <job> [ <timeout seconds, default 3600> ]
@@ -24,28 +26,51 @@ use JSON::PP ();
 
 my $job     = shift // '';
 my $timeout = shift // 3600;
+## tests point it at fake state files [ P7_STATE_DIR ] ##
+my $fast = $ENV{'P7_SIGN_WAIT_FAST'};
 die "p7-sign-wait <job> [ <timeout seconds> ]\n"
     if $job !~ m{^p7-(?:sign|commit)-\d+-\d+$} or $timeout !~ m|^\d+$|;
 
 my $root_path  = Cwd::abs_path("$FindBin::RealBin/../..");
-my $state_path = "$root_path/data/state/$job.json";
+my $state_dir  = $ENV{'P7_STATE_DIR'} // "$root_path/data/state";
+my $state_path = "$state_dir/$job.json";
+my $last       = 'no state yet';
+my $pause      = $fast ? 0.05 : 0.5;
 my $deadline   = time() + $timeout;
 
-while (1) {
-    my $state = eval {
+sub read_state {
+    return eval {
         open( my $fh, '<:raw', $state_path ) or die "$OS_ERROR\n";
         local $INPUT_RECORD_SEPARATOR;
         JSON::PP->new->decode(<$fh>);
     };
+}
+
+sub is_final {
+    return ( ( shift // '' )
+        =~ m{^(?:approved|denied|aborted|failed|committed|refused|stale)$} );
+}
+
+while (1) {
+    my $state = read_state();
     if ( ref $state eq 'HASH' ) {
         my $status = $state->{'status'} // '';
-        my $final
-            = $status
-            =~ m{^(?:approved|denied|aborted|failed|committed|refused|stale)$};
-        $status = 'failed [ job process gone ]'
-            if not $final
-            and $state->{'pid'}
-            and not kill 0, $state->{'pid'};
+        $last = $status if length $status;
+        my $final = is_final($status);
+        ## the job process is gone : it writes its final state BEFORE it ##
+        ## exits, so read the file again before calling it a crash       ##
+        if ( not $final and $state->{'pid'} and not kill 0, $state->{'pid'} )
+        {
+            select( undef, undef, undef, $fast ? 0.1 : 1 );
+            my $again = read_state();
+            if ( ref $again eq 'HASH' and is_final( $again->{'status'} ) ) {
+                $state  = $again;
+                $status = $again->{'status'};
+                $final  = 1;
+            } else {
+                $status = 'failed [ job process gone ]';
+            }
+        }
         if ( $final or $status =~ m|^failed| ) {
             say "$job : $status";
             say "run    : $state->{'run_id'}" if $state->{'run_id'};
@@ -63,25 +88,33 @@ while (1) {
     }
     ## unknown job : no state file after a short grace -- say so and name ##
     ## the newest jobs of that kind, instead of waiting the full timeout  ##
-    if ( not -e $state_path and time() > $deadline - $timeout + 15 ) {
+    if ( not -e $state_path
+        and time() > $deadline - $timeout + ( $fast ? 1 : 15 ) ) {
         my ($kind) = $job =~ m{^(p7-(?:sign|commit))-};
         my @recent
             = map { m{/([^/]+)\.json$} ? $1 : () }
-            ( sort { -M $a <=> -M $b }
-                glob("$root_path/data/state/$kind-*.json") )[ 0 .. 2 ];
+            ( sort { -M $a <=> -M $b } glob("$state_dir/$kind-*.json") )
+            [ 0 .. 2 ];
         say "$job : unknown job [ no state file ]";
         say "newest : $_" foreach grep {defined} @recent;
         exit 2;
     }
     if ( time() > $deadline ) {
-        say "$job : still waiting after $timeout s";
-        exit 1;
+        ## not a result : the job is still running, say so loudly ##
+        my $msg = "$job : TIMEOUT after $timeout s "
+            . "-- NOT final, last status : $last";
+        say $msg;
+        say {*STDERR} $msg;
+        exit 3;
     }
-    select( undef, undef, undef, 2 );
+    ## the pause grows [ x1.2, capped ] -- a long wait polls rarely ##
+    select( undef, undef, undef, $pause );
+    $pause = $pause * 1.2;
+    $pause = $fast ? 0.2 : 5 if $pause > ( $fast ? 0.2 : 5 );
 }
 
-#,,,,,,,,,.,,,,,,,,,.,..,,...,..,,,..,.,.,.,.,..,,...,...,.,,,,..,,,.,...,,,.,
-#V3PHGUHWKDYP6PJWREQEOFRXO5NOSBULVTU7PNZQJHK63TW3A5AHLAMVSZ5DBXF2TDYGUVY2TJYWC
-#\\\|WFEE6OT7HL744V7T4DRRAYWPT7ECKJNQHPTHECLGQJGO3GPRSVF \ / AMOS7 \ YOURUM ::
-#\[7]WAXSXQ7MVJ7YA2GHFFC3L3VNVKDQWPVIJIMACNFW4I6YMMP5MABA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,.,,,,..,..,,,,,,.,.,...,..,,..,,...,...,...,.,,,,..,,,.,...,
+#5BNIHYQMEI4NDIOTJPPI2SYMZEP6RJTHOBL75DEVBZNJOG7STAHRK5I7ASSZVEOQ7SOXHEX5ZOF3S
+#\\\|BCLUUBRBSBUY4CB6X7L7X446ULUBYHOUAQ6WP4WRTKO3NUJNALD \ / AMOS7 \ YOURUM ::
+#\[7]OED7XQOXSLTXAXKLEOI6QTQLTNUJYAXHRNT7LDOC4UYUDPZKYADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

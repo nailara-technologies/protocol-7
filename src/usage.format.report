@@ -13,6 +13,8 @@ my $results = $request->{'results'} // {};
 
 my @lines;
 
+return <[usage.format.plan]>->($request) if $format eq qw| plan |;
+
 if ( $format eq qw| compact | ) {
 
     ## one row per line : '<provider> <key> <used percent> <resets in ##
@@ -30,17 +32,13 @@ if ( $format eq qw| compact | ) {
             my $key = $row->{'window'} // $row->{'label'} // qw| usage |;
             $key = lc $key;
             $key =~ s{\s+}{-}g;
-            ## '?' would be technically more honest here [ the api genuinely
-            ## omitted used\limit for this row, most often right at a window's
-            ## own reset boundary ], but 0.0 reads far better for a human
-            ## scanning this line and the omission-vs-zero distinction, if it
-            ## ever matters for debugging, is still traceable from raw
-            ## responses \ logs -- this is display-only, the parsed number
-            ## itself is left genuinely undef
+            ## a missing used percent prints '?' : zenki read this format
+            ## [ the events budget gate ] and must never take an omitted
+            ## number for 0 % used -- the pretty format keeps 0.0 for people
             push @lines, sprintf '%s %s %s %s', $name, $key,
                 defined $row->{'used_pct'}
                 ? sprintf( '%.1f', $row->{'used_pct'} )
-                : qw| 0.0 |,
+                : qw| ? |,
                 $row->{'resets_in'} // '?';
         }
     }
@@ -205,8 +203,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 
 return join "\n", @lines;
 
-#,,..,.,,,.,,,..,,.,.,,,.,.,.,,..,,..,,,.,,,,,..,,...,...,...,,.,,,..,,,.,,.,,
-#RBLQ3RRTWX6ZRNVAI5STOK3P2PGLI7Y4PCA65ES37TBCSPJXV3D7R2OWFGMUW3ZG5TL7BR6YNKNH4
-#\\\|2NPP6TBQHTLDMEYQYNKIKLDY7PEMOZ5HW2XXZUWQOXJKGGFYE26 \ / AMOS7 \ YOURUM ::
-#\[7]A6B24ODAEIVOXCD2X3QB6MBDZ5QYAUJTMM6FHPGB67KHYCEHVGDY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,.,,..,,.,,,,..,...,,.,,,..,,..,..,,...,...,,,,,,.,,..,,,..,,,,,
+#E2PYC6QWCR5QH2L5S5O2C22C6QJELTLRC6SEOUWBNNFMH332VYUG7FLGJ6TPRGWKKJG4P4YJKG7HY
+#\\\|ZFUPFBQWXKWHHR2I7TAU545OZYM7ISRZYCQFERHUKR2HAQZRESD \ / AMOS7 \ YOURUM ::
+#\[7]QILEPPZV5KCC6BV2IQW2LWHG6SBWJPOHOYBC5MGFK5RK5X2NDYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

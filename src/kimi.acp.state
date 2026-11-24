@@ -7,7 +7,8 @@
 ## one `kimi acp` child per adapter session. phase : stopped, starting     ##
 ## [ handshake ], ready, prompting. the state lives under <kimi.acp.state> ##
 ## beside the config <kimi.acp.cfg.*>                                      ##
-## [ permission, autostart, command, buffer ]                              ##
+## [ permission, autostart, command, buffer ]  the child itself : a        ##
+## stream_child handle under 'child'                                       ##
 
 my $st = <kimi.acp.state>;
 return $st if ref $st eq qw| HASH |;
@@ -15,13 +16,7 @@ return $st if ref $st eq qw| HASH |;
 return <kimi.acp.state> = {
     'phase'      => qw| stopped |,
     'pid'        => undef,
-    'in'         => undef,
-    'out'        => undef,
-    'err'        => undef,
-    'watchers'   => {},
-    'rbuf'       => '',
-    'ebuf'       => '',
-    'wbuf'       => '',
+    'child'      => undef,
     'next_id'    => 0,
     'pending'    => {},
     'session_id' => undef,
@@ -33,16 +28,12 @@ return <kimi.acp.state> = {
     'chunk'      => undef,
     'replay'     => FALSE,
     'stopping'   => FALSE,
-    'stop_timer' => undef,
-    'stop_state' => {},
-    'stop_round' => 0,
     'started'    => undef,
-    'owner'      => undef,
     'json'       => undef
 };
 
-#,,.,,..,,.,,,...,,..,,,,,,,.,..,,.,,,..,,..,,..,,...,...,.,.,,..,,,,,,.,,,..,
-#KLJVN56TE4TEOA3E6MN6KUNO5ZGWMZCFDDSYPN4SBMOCHXNLDZ4VVTI2JZJ36H7LJLPZBTUGDRKVO
-#\\\|57JN3IKKOZVEV6J5WLQSALAEMNZS25OMLWCZWD2WSYPIYLB2BKF \ / AMOS7 \ YOURUM ::
-#\[7]2PJOFQERTJSUJA6JMYJ3XU2DIE52YVX3WX4BWSXS3AHXRS4UWGDA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,.,,,...,..,,..,,.,.,.,.,.,,,..,,...,...,.,,,,,.,...,...,...,
+#5MBAJ7HBUXT7GEW2LHDB3SVE2QX5PQWNGVL73Z6AOLJ3UA6E75MVRQZQ6H6V5ENGTLZGD3VEFD2GS
+#\\\|BBFZCJ44F27UPX52HUHRCNGV3W236M72HNWIG3XHLYFMOYEZB3H \ / AMOS7 \ YOURUM ::
+#\[7]FK36I32AO6WSRJ5O3WTU6SYPX2KEQOTIUCSPN5BREHMIFVBF6UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

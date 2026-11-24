@@ -1,0 +1,33 @@
+## [:< ##
+
+# name   = stream_child.step
+# descr  = run the next stop step, arm the timer for the one after
+# param  = handle
+
+## actions : close [ end of input ], gone                ##
+## [ give up : the child counts as gone ], a signal name ##
+## [ to the child or its group ]                         ##
+
+my $handle  = shift;
+my $actions = $handle->{'steps'}[ $handle->{'step'}++ ] // return FALSE;
+
+foreach my $action (@$actions) {
+    if ( $action eq qw| close | ) {
+        <[stream_child.close_in]>->($handle);
+    } elsif ( $action eq qw| gone | ) {
+        next if $handle->{'gone'};
+        <[stream_child.note]>->( $handle, qw| gave_up | );
+        <[stream_child.gone]>->( $handle, 'given up' );
+    } else {
+        <[stream_child.signal]>->( $handle, $action );
+    }
+}
+<[stream_child.arm]>->($handle)
+    if $handle->{'step'} < @{ $handle->{'steps'} };
+return TRUE;
+
+#,,,,,...,...,..,,,.,,...,.,.,...,.,,,,,,,.,.,..,,...,...,.,.,,,.,...,...,..,,
+#3M4JCXANZWAF6R4YKC6ERGDFFSNI3JHSNGQZNCF6ZO4KUVFF22WMKK32ERPYYDXXUJNRGEMVCLMFO
+#\\\|6V7AENMHEOIVW223DNC26IB74HBRKEXVYXMEAPZ4YUFPTCUU25A \ / AMOS7 \ YOURUM ::
+#\[7]I4TN2QZSHABQJOA2E3MARH73H4OWGDDCPFR5IKQC244O25BTP2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

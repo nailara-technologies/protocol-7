@@ -1,0 +1,19 @@
+## [:< ##
+
+# name   = usage.watch.thresholds
+# descr  = the configured threshold percents, sorted
+# return = list of numbers [ default 50 75 90 ]
+
+my $cfg = <usage.cfg.thresholds> // '50 75 90';
+my %seen;
+return sort { $a <=> $b }
+    grep { $ARG > 0 and $ARG <= 100 and not $seen{$ARG}++ }
+    map  { $ARG + 0 }
+    grep {m|\A\d{1,3}(?:\.\d+)?\z|}
+    split m{[\s,]+}, ref $cfg eq qw| ARRAY | ? join( ' ', @{$cfg} ) : $cfg;
+
+#,,,.,,,,,.,.,,..,.,,,...,,.,,,.,,...,..,,.,,,..,,...,...,...,,,.,,..,,,.,,..,
+#MNURMF4QUFSNWZCFOILFTYAMTM4RM3K6FNNU6QZ6P5A47M63QKOPBLWJPKYFA6AKOWYTC5JMYVEOM
+#\\\|DMEQUAZPHBYY5NGHOWNFW55DBVVYG73NDSMHAWFMIFNLCXVHLRA \ / AMOS7 \ YOURUM ::
+#\[7]5TI4CO2M2P4LVBXS5JYEH3EDBK54VNS37AX6PBZ6C5UQMBB4EQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

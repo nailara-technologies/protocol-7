@@ -1,0 +1,41 @@
+## [:< ##
+
+# name   = usage.watch.arm
+# descr  = arm the reset timer of one usage window
+# args   = provider, window, reset epoch
+# return = TRUE when armed
+#
+# the timer fires a margin after the reset [ base.interval.next type
+# usage-reset-margin ] ; an earlier timer of the window is cancelled
+
+my ( $provider, $window, $epoch ) = @ARG;
+<usage.watch.timers> //= {};
+if ( my $old = delete <usage.watch.timers>->{$provider}{$window} ) {
+    eval { $old->cancel };
+}
+return FALSE if not defined $epoch or $epoch !~ m{\A\d+\z};
+my $margin = <[base.interval.next]>
+    ->( { 'type' => qw| usage-reset-margin |, 'state' => {} } ) // 13;
+my $after = $epoch - time + $margin;
+$after = $margin if $after < $margin;
+<usage.watch.timers>->{$provider}{$window} = <[event.add_timer]>->(
+    {   'after'   => $after,
+        'handler' => qw| usage.handler.window_reset |,
+        'data'    => {
+            'provider' => $provider,
+            'window'   => $window,
+            'epoch'    => $epoch
+        }
+    }
+);
+<[base.logs]>->(
+    3, 'usage : %s %s reset timer in %ds',
+    $provider, $window, $after
+);
+return TRUE;
+
+#,,..,,.,,..,,,,.,...,...,,.,,.,,,,..,,.,,,..,..,,...,...,..,,,.,,.,.,,..,,,.,
+#7DHEU32MIGPIETDASNXVMFSHN7ZARHWQOP6EJMHL2RKA6V4R2646RNGDHDIND447LZW6LNVMOMDN2
+#\\\|QDNUF2JZ7SH5ARNH7HAHBCFUZ7JTYZBJP57LYPNVQBU6XBEJQBV \ / AMOS7 \ YOURUM ::
+#\[7]55KBJLKIDS6V4OD6C2QCFV7EOMBCH55XQCWO2MAXS7G2ZCYTTEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

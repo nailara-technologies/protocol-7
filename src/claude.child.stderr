@@ -1,0 +1,15 @@
+## [:< ##
+
+# name  = claude.child.stderr
+# descr = keep one stderr line of the child as an event
+# args  = line [ octets ], handle
+
+my $line = shift // return;
+utf8::decode($line);
+<[claude.event.add]>->( qw| stderr |, $line ) if $line =~ m{\S};
+
+#,,,.,,,.,,.,,,..,,,,,,,,,..,,,,,,,,,,.,.,,,,,..,,...,...,.,.,,.,,,,,,,,.,.,,,
+#BRIAQRWEVMRZM2JLAFQLGGDY2DSKEDA65JXC3BN62G47LE4WPXHQJHHEHBEKCNM3GS457ZC6KZQ3O
+#\\\|W6HH3A3SIVB6PFUEPZV66VYJWDJZ5EIF7E3NGTXWQCKRYCNTB2V \ / AMOS7 \ YOURUM ::
+#\[7]GEGIMDHAAHGZRF6HCXXNZ56OBC3OY65UHDY3LAP6HU43MQ4HKODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

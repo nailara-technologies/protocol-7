@@ -352,7 +352,7 @@ opendir my $dh, $src or die "cannot open src : $OS_ERROR";
 my @src = readdir $dh;
 closedir $dh;
 my @kimi_acp = sort grep {
-    m{\A(?:kimi\.acp\.|kimi\.cmd\.acp-|kimi\.handler\.acp_|kimi\.end_code\z|plugin\.events\.action\.kimi-send\z|base\.interval\.next\z|base\.interval\.rhythm\.)}
+    m{\A(?:stream_child\.|kimi\.acp\.|kimi\.cmd\.acp-|kimi\.handler\.acp_|kimi\.end_code\z|plugin\.events\.action\.kimi-send\z|base\.interval\.next\z|base\.interval\.rhythm\.)}
 } @src;
 ok( scalar(@kimi_acp) >= 30,
     'modules : the acp set is present [ ' . scalar(@kimi_acp) . ' ]' );
@@ -867,8 +867,8 @@ ok(
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,..,...,,..,...,,..,,,.,,,.,,,,,,.,,,..,.,,,..,,...,...,...,...,,,.,,..,,,.,
-#WC2GJVUTUGMB4E423DORYWUU76YYJWFLXCMDSLLTSRDUJLRO2RNFY4LJE2BMDUU3UNB4OTMU2TRF2
-#\\\|HJEH3P46DIVJBSKNOVZ2O76NSX6IOCBTUE5SE626XBBZUJKKKX2 \ / AMOS7 \ YOURUM ::
-#\[7]7JBAABGUI5R365XUNRCAWZB2LVN6J2DF7CUTTC4TSU53KPVRRQDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,.,,,..,,,,.,.,.,,.,,,..,...,..,,...,...,.,.,.,,,,,.,.,.,.,,,
+#OUK52Z5VX52JXWIALDZIBIAHWICJI5W4FTTMKJXDK5ZMH62SZ7NSUM3C6AVWKR5PJ3SVZEV3BNV4C
+#\\\|4VZFOQRSA23JC6RS6EY5KC5UITN4MLKJRGVJRZNBBVB3VN2UZUU \ / AMOS7 \ YOURUM ::
+#\[7]WUZV45FBUS7M6XZNYGBNEOWDQFZDB7IT3W4LOXTLLBJPCCGYWABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

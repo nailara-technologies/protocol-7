@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = stream_child.note
+# descr = tell the owner what the child did [ on_note ]
+# param = handle, kind, info hash
+
+## kinds : signal { signal }, exit { exit, signal }, error { text }, ##
+## gave_up, line_dropped { bytes } -- the zenka words them           ##
+
+my ( $handle, $kind, $info ) = @ARG;
+my $name = $handle->{'on_note'} // return FALSE;
+return FALSE if not defined $code{$name};
+$code{$name}->( $kind, $info // {}, $handle );
+return TRUE;
+
+#,,..,,.,,,..,,..,,..,,,.,,,,,,..,.,,,..,,.,,,..,,...,...,...,.,,,.,.,,.,,..,,
+#EYI7VIBF7U5532MTAO6U4IKT6AWA4WM5XKI7W7BLILLXO32YH3R2IRMO6GDXPMEDCVB3TX3ZHJ4V6
+#\\\|MMNUX3CJDO6RH7X4VFQTE55RRQFUGVYFZPI5QPO5Y2C6OXNRLFW \ / AMOS7 \ YOURUM ::
+#\[7]JMLLDZDCPVPCCKNF6XRNVYWNBKXAVJC5FWRJH4UOP7MQLTAL66AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

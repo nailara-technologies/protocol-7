@@ -1,0 +1,17 @@
+## [:< ##
+
+# name   = stream_child.alive
+# descr  = is the child [ or its process group ] still there
+# param  = handle
+# return = TRUE \ FALSE
+
+my $handle = shift;
+return FALSE if not defined $handle or not defined $handle->{'pid'};
+my $target = $handle->{'group'} ? -$handle->{'pid'} : $handle->{'pid'};
+return CORE::kill( 0, $target ) ? TRUE : FALSE;
+
+#,,..,..,,,,.,.,.,,..,.,,,,..,.,,,...,.,.,.,.,..,,...,...,..,,..,,,..,.,,,,..,
+#IV5HC2LBZACNEYR7GYPZM2RRKXATYND6KH7PZCHFL36IIBQQD7G5ZZPZXW3LQONS5QO3KJJC77N3Y
+#\\\|KQBRLH62ZVHYMHUCLVEKUFQSVSF5LMKPHZ7XHLYCEZ3WBJJO6IN \ / AMOS7 \ YOURUM ::
+#\[7]7MAFPLJQZF46AC2JAVXXCTASGUU3V5HWI46RV7TQGMT6RV2DH6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

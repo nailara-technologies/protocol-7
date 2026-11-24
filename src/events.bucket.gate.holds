@@ -1,0 +1,52 @@
+## [:< ##
+
+# name   = events.bucket.gate.holds
+# descr  = read a usage.status compact answer against a gate
+# args   = gate [ events.bucket.gate.parse ], answer text
+# return = { open => TRUE | FALSE, used, resets_in, reading }
+#
+# compact rows are `<provider> <window> <used percent> <resets in s>` ; a
+# provider error row, or no row for the window, is not readable : closed,
+# the reading says why
+
+my ( $gate, $text ) = @ARG;
+$text //= '';
+my $closed = sub {
+    return { 'open' => FALSE, 'reading' => shift };
+};
+my ( $used, $resets_in );
+foreach my $line ( split m{\n}, $text ) {
+    my ( $provider, $window, $pct, $resets ) = split m{\s+}, $line;
+    next if ( $provider // '' ) ne $gate->{'provider'};
+    return $closed->( 'usage : ' . ( $line =~ s{\A\S+\s+error\s+}{}r ) )
+        if ( $window // '' ) eq qw| error |;
+    next if ( $window // '' ) ne $gate->{'window'};
+    next if ( $pct    // '' ) !~ m{\A\d+(?:\.\d+)?\z};
+    $used      = $pct + 0;
+    $resets_in = $resets if ( $resets // '' ) =~ m{\A-?\d+\z};
+    last;
+}
+return $closed->("usage : no $gate->{'provider'} $gate->{'window'} row")
+    if not defined $used;
+my $op = $gate->{'op'};
+my $p  = $gate->{'percent'};
+my $open
+    = $op eq '<'  ? $used < $p
+    : $op eq '<=' ? $used <= $p
+    : $op eq '>'  ? $used > $p
+    :               $used >= $p;
+return {
+    'open'      => $open ? TRUE : FALSE,
+    'used'      => $used,
+    'resets_in' => $resets_in,
+    'reading'   => sprintf(
+        '%s %s %.1f %% used [ needs %s%s ]',
+        $gate->{'provider'}, $gate->{'window'}, $used, $op, $p
+    )
+};
+
+#,,,,,,..,,..,.,.,,..,..,,...,,,.,,.,,,,,,.,,,..,,...,...,,..,.,,,,,.,,,.,.,.,
+#OI6B36X6CSI544WCHHBY3TPQ2XUEX4XIOSMFY7ZCSOOZL4UVE5EUQVYNJGXARMRL4MJZI7DINVUAC
+#\\\|UNW5DNMXJARN4I4TWYJTUYTJOX4DPK7D3LGIQI2RJXAGLY2UBQ2 \ / AMOS7 \ YOURUM ::
+#\[7]VBZILSZW7M6PHXKFGCOASLG7UBGX3LJVUK72XAN5LE2YJ6ZA7UCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

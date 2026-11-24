@@ -1,0 +1,26 @@
+## [:< ##
+
+# name   = events.bucket.gate.describe
+# descr  = the budget gate of an entry, one line for bucket-show
+# args   = entry
+# return = text
+
+my $e    = shift // return '';
+my $text = "budget $e->{'budget'}";
+if ( defined $e->{'gate_check'} ) {
+    $text .= ' [ asking usage ]';
+} elsif ( ( $e->{'gate'} // '' ) eq qw| closed | ) {
+    $text .= sprintf ' [ closed : %s ; re-check %s ]',
+        $e->{'gate_reading'} // '?',
+        strftime( '%Y-%m-%d %H:%M:%S',
+        CORE::localtime( $e->{'gate_at'} // 0 ) );
+} elsif ( length( $e->{'gate_reading'} // '' ) ) {
+    $text .= " [ last : $e->{'gate_reading'} ]";
+}
+return $text;
+
+#,,.,,,.,,...,,,,,,,.,.,,,,,,,.,,,...,...,...,..,,...,...,..,,,.,,.,.,,.,,,.,,
+#LNUDP5DB4FEZ4K6YYN7OOOH5NAWGTEANBFISVD7E4V4UMMXMOUY3ZBZVL63HXBA5H4HHLD3ORNKZ2
+#\\\|WOHNXLQYCGKFE7WCESN4NJ2M6SYMETQDXG52O5LQI5B6HFCIBFX \ / AMOS7 \ YOURUM ::
+#\[7]6XIZ5RCKTYIJJIUJS5EIPL2YIVHMXXCRENWV5MCVF6LXNQUFZMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

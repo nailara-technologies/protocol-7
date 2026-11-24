@@ -1,0 +1,123 @@
+## [:< ##
+
+# name   = stream_child.start
+# descr  = start a line-framed child process [ open3 ]
+# param  = { cmd, env, cwd, group, on_line, .. } [ below ]
+# return = { ok => TRUE, handle } or { error => text }
+#
+# keys : cmd [ list ref ], env [ hash ref, added to %ENV ], cwd, group
+# [ TRUE : own process group, signals go to the group ], on_line \
+# on_stderr [ code names, called ( line octets, handle ) ], on_gone
+# [ ( reason, handle ) ], on_note [ ( kind, info hash, handle ) ], stop
+# [ steps, default 'close | TERM | KILL | gone' ], interval { stop, reap,
+# exit } [ base.interval types ], timer_handler, reap_handler [ code names
+# of the timers, default stream_child.handler.* ], report [ TRUE :
+# v7-zenki is told the reported pid is gone ], max_line [ bytes ], data
+# [ the caller's own ]
+
+## no wire format here : lines go out as octets, the zenka decodes them ##
+
+my $in = shift // {};
+
+my @cmd = ref $in->{'cmd'} eq qw| ARRAY | ? @{ $in->{'cmd'} } : ();
+return { 'error' => 'no command' } if not @cmd or not length $cmd[0];
+
+my $stop = $in->{'stop'} // 'close | TERM | KILL | gone';
+my @steps;
+foreach my $step ( CORE::split( m{\s*\|\s*}, $stop ) ) {
+    my @actions = grep {length} CORE::split( m{\s+}, $step );
+    return { 'error' => "stop step '$step' : close, gone, a signal" }
+        if grep { !m{\A(?:close|gone|[A-Z][A-Z0-9]{1,8})\z} } @actions;
+    push @steps, \@actions if @actions;
+}
+return { 'error' => 'stop : no steps' } if not @steps;
+
+require IPC::Open3;
+require Symbol;
+
+## its own process group : a stop ends the child and what it started ##
+## [ a perl shim, setpgrp then exec ]                                ##
+my @exec
+    = $in->{'group'}
+    ? (
+    $EXECUTABLE_NAME,                                                '-e',
+    'setpgrp( 0, 0 ); exec { $ARGV[0] } @ARGV or die "exec : $!\n"', @cmd
+    )
+    : @cmd;
+
+my $here = Cwd::getcwd();
+if ( defined $in->{'cwd'} and length $in->{'cwd'} ) {
+    CORE::chdir( $in->{'cwd'} )
+        or return { 'error' => "work dir '$in->{'cwd'}' : $OS_ERROR" };
+}
+my %env = ref $in->{'env'} eq qw| HASH | ? %{ $in->{'env'} } : ();
+my ( $to_child, $from_child, $err_child )
+    = ( undef, undef, Symbol::gensym() );
+my $pid = do {
+    local @ENV{ keys %env } = values %env;
+    eval { IPC::Open3::open3( $to_child, $from_child, $err_child, @exec ) };
+};
+my $spawn_error = $EVAL_ERROR;
+CORE::chdir($here) if defined $here and defined $in->{'cwd'};
+if ( not $pid ) {
+    $spawn_error =~ s{\s+\z}{};
+    return { 'error' => $spawn_error || 'no pid' };
+}
+
+foreach my $fh ( $to_child, $from_child, $err_child ) {
+    CORE::binmode( $fh, ':raw' );
+    $fh->blocking(0);
+}
+
+my $interval = ref $in->{'interval'} eq qw| HASH | ? $in->{'interval'} : {};
+my $handle   = {
+    'id'            => ++<stream_child.next_id>,
+    'pid'           => $pid,
+    'cmd'           => [@cmd],
+    'group'         => $in->{'group'} ? TRUE : FALSE,
+    'in'            => $to_child,
+    'out'           => $from_child,
+    'err'           => $err_child,
+    'pend_in'       => '',
+    'pend_out'      => '',
+    'pend_err'      => '',
+    'steps'         => \@steps,
+    'step'          => 0,
+    'serial'        => 0,
+    'stop_state'    => {},
+    'reap_state'    => {},
+    'reap_tries'    => 0,
+    'stopping'      => FALSE,
+    'gone'          => FALSE,
+    'started'       => time,
+    'owner'         => $PROCESS_ID,
+    'max_line'      => $in->{'max_line'} // 8_000_000,
+    'report'        => $in->{'report'},
+    'data'          => $in->{'data'} // {},
+    'interval'      => {%$interval},
+    'timer_handler' => $in->{'timer_handler'}
+        // qw| stream_child.handler.timer |,
+    'reap_handler' => $in->{'reap_handler'}
+        // qw| stream_child.handler.reap |,
+    map { $ARG => $in->{$ARG} } qw| on_line on_stderr on_gone on_note |,
+};
+$handle->{'interval'}{'exit'} //= $handle->{'interval'}{'stop'};
+
+foreach my $stream (qw| out err |) {
+    $handle->{"w_$stream"} = <[event.add_io]>->(
+        {   'fd'      => $handle->{$stream},
+            'handler' => "stream_child.handler.std$stream",
+            'data'    => { 'handle' => $handle },
+            'poll'    => qw| r |
+        }
+    );
+}
+<stream_child.handles>->{ $handle->{'id'} } = $handle;
+
+return { 'ok' => TRUE, 'handle' => $handle };
+
+#,,,.,...,,,,,,,,,,,.,..,,,,,,,.,,,,.,..,,,..,..,,...,..,,,,.,.,,,.,,,.,,,.,.,
+#62JXZFVDGIR2CQZLA43N3326ZEN5MDV7YGG4DC44HRNE4HGJPDELLCTAYTRJQWHQQ5SKTVMIZGK6M
+#\\\|IZC55QIH45W7ZFPJD37YUQ437X3KEYIZDK5NKC5NVQVRGB34O4M \ / AMOS7 \ YOURUM ::
+#\[7]2VBT2HEHF7M727INGLSKFIL6VSSWBVEWRCBTDJOBZCTT5K4NS2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

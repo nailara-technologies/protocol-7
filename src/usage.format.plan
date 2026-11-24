@@ -1,0 +1,84 @@
+## [:< ##
+
+# name   = usage.format.plan
+# descr  = render a usage query as a short pacing forecast
+# param  = $request [ the <usage.requests> entry ]
+#
+# per provider : percent left and hours to reset of each window, the 5h
+# windows left before the 7d reset [ the running 5h window plus the full
+# ones after its reset ] and an even share of the 7d rest per window and
+# per day : what each remaining window can use so the week ends spent
+
+my $request = shift                 // {};
+my $results = $request->{'results'} // {};
+my @lines   = ('');
+my $hours   = sub {
+    my $s = shift;
+    return '?' if not defined $s;
+    $s = 0     if $s < 0;
+    return sprintf '%.1f h', $s / 3600;
+};
+foreach my $name ( $request->{'order'}->@* ) {
+    my $entry = $results->{$name} // {};
+    push @lines, '' if @lines > 1;
+    push @lines, sprintf ' .: %s plan :.', $name;
+    push @lines, ' :';
+    if ( not $entry->{'ok'} ) {
+        push @lines, sprintf ' : %s', $entry->{'error'} // 'query failed';
+        push @lines, ' :.';
+        next;
+    }
+    my %win;
+    foreach my $row ( @{ $entry->{'result'}{'rows'} // [] } ) {
+        my $w = $row->{'window'} // next;
+        $win{$w} //= $row;
+    }
+    foreach my $w ( sort keys %win ) {
+        my $row  = $win{$w};
+        my $left = 100 - ( $row->{'used_pct'} // 0 );
+        $left = 0 if $left < 0;
+        push @lines, sprintf ' : %-3s : %5.1f %% left : resets in %s', $w,
+            $left, $hours->( $row->{'resets_in'} );
+    }
+    my $week = $win{'7d'};
+    if ( defined $week and defined $week->{'resets_in'} ) {
+        my $rest = 100 - ( $week->{'used_pct'} // 0 );
+        my $secs = $week->{'resets_in'} > 0 ? $week->{'resets_in'} : 0;
+        my $five = $win{'5h'};
+        my $cur
+            = defined $five && defined $five->{'resets_in'}
+            ? $five->{'resets_in'}
+            : undef;
+        $cur = 0 if defined $cur and $cur < 0;
+        ## the running window counts once, the rest are whole 5h slots ##
+        my $n5h
+            = defined $cur && $cur < $secs
+            ? 1 + int( ( $secs - $cur + 17999 ) / 18000 )
+            : int( ( $secs + 17999 ) / 18000 ) || 1;
+        my $days = $secs / 86400;
+        $rest = 0 if $rest < 0;
+        push @lines, ' :';
+        push @lines, sprintf ' : 5h windows before the 7d reset : %d', $n5h;
+        push @lines, sprintf ' : share per 5h window : %.1f %% of the 7d',
+            $rest / $n5h;
+        push @lines, sprintf ' : share per day : %.1f %% of the 7d',
+            $days >= 1 ? $rest / $days : $rest;
+        ## the last slot before the 7d reset may be cut short ##
+        my $tail = defined $cur ? ( $secs - $cur ) % 18000 : 0;
+        push @lines,
+            sprintf ' : the last window is cut to %s by the 7d reset',
+            $hours->($tail)
+            if $tail > 0 and $n5h > 1;
+    } else {
+        push @lines, ' :';
+        push @lines, ' : no 7d window : no share';
+    }
+    push @lines, ' :.';
+}
+return join "\n", @lines;
+
+#,,.,,,..,...,,..,.,,,,,,,,.,,,..,,,,,...,.,,,..,,...,...,..,,,,.,..,,,,.,,.,,
+#WNHFXPCVHJ66EHCAE7F435YHT26NCNENC6HKFEG4DDEE3C7237GJ4OX6WJJLDHACVWIFQYQTHDCZU
+#\\\|SWREBMQBTXSDA47IV6WUBKDUJYBKZRGNIDHPXLRHRNRZ5MRPWLH \ / AMOS7 \ YOURUM ::
+#\[7]2MAAVOUGE4JRLTZY7SP7UWSNYOTPPWYSG4E2VVEUYO2LNERFC6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

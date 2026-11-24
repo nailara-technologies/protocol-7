@@ -3,13 +3,12 @@
 # name  = claude.handler.reap
 # descr = timer : collect an ended child's exit status
 
-my $data  = shift->w->data // {};
-my $child = <claude.child>;
-return if not defined $child or $child->{'pid'} != ( $data->{'pid'} // 0 );
-<[claude.child.reap]>->($child);
+## the stream_child reap timer under the claude name ##
 
-#,,.,,..,,,,,,.,.,,..,.,.,,,,,,..,..,,.,,,,.,,..,,...,...,,.,,.,.,,,,,,.,,.,,,
-#M6DX2OTYIY3JPMFEJJXUOQQYCNUTGZPSOKAOBTGUNXIDNB35EHVBRZBII2ZUWO4FRPQEHLL6QPSB4
-#\\\|2B42YMAKXDVXGCHZX3VWOWVK3ZR4GG7O3W6K4BRTCRHOVF4YZ7Y \ / AMOS7 \ YOURUM ::
-#\[7]SQSEKBD5WO56EQYYFC6RJUQPWULLBW5ZTJGJKXGG5OBG6ROCLEAA 7  DATA SIGNATURE ::
+<[stream_child.handler.reap]>->(shift);
+
+#,,.,,.,.,...,..,,,,.,,,.,...,.,,,,,.,...,,..,..,,...,...,...,...,,,.,.,,,.,.,
+#J3YNBDL4OVXVC2N56UJNWPQOWOR26BDQ7HGUPCE3RO5FIY3WGBET5SY3JYJN5UBLLIIO34ABCL5RO
+#\\\|FMU2CWO6S3NCPEARCSENEGI56TV5LXGBKFTVKFYGHR5SCF7NBF3 \ / AMOS7 \ YOURUM ::
+#\[7]UWKS6KTQPT437X3QHQIIYMDA62D6XEYQGUJ2W4XRYAATFA4A66CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

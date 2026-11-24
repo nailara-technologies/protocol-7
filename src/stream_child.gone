@@ -1,0 +1,54 @@
+## [:< ##
+
+# name   = stream_child.gone
+# descr  = the child ended : close, reap, tell the owner
+# param  = handle, reason
+# return = TRUE the first time
+
+## stdout eof is the signal, the exit status is best effort                 ##
+## [ base.sig_chld may have reaped it already ]. what a group child started ##
+## may outlive it : the group gets TERM, KILL on the next step              ##
+
+my ( $handle, $reason ) = @ARG;
+return FALSE if not defined $handle or $handle->{'gone'};
+$handle->{'gone'}   = TRUE;
+$handle->{'reason'} = $reason // qw| eof |;
+
+foreach my $w (qw| w_out w_err w_in |) {
+    my $watcher = delete $handle->{$w};
+    eval { $watcher->cancel } if ref $watcher;
+}
+foreach my $fh (qw| in out err |) {
+    CORE::close( $handle->{$fh} ) if defined $handle->{$fh};
+    $handle->{$fh} = undef;
+}
+$handle->{'pend_in'} = '';
+<[stream_child.disarm]>->($handle);
+delete <stream_child.handles>->{ $handle->{'id'} };
+
+<[stream_child.reap]>->($handle);
+
+if ( $handle->{'group'} and <[stream_child.alive]>->($handle) ) {
+    <[stream_child.signal]>->( $handle, qw| TERM |, TRUE );
+    $handle->{'steps'} = [ [qw| KILL |] ];
+    $handle->{'step'}  = 0;
+    <[stream_child.arm]>->($handle);
+}
+
+## v7-zenki drops the reported child pid ##
+<[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.v7-zenki.gone_child |,
+        'call_args' => { 'args' => $handle->{'pid'} }
+    }
+) if $handle->{'report'};
+
+my $name = $handle->{'on_gone'};
+$code{$name}->( $handle->{'reason'}, $handle )
+    if defined $name and defined $code{$name};
+return TRUE;
+
+#,,,,,..,,,,,,.,,,.,,,,..,,..,,..,..,,..,,,..,..,,...,...,.,,,,,,,,.,,,..,..,,
+#MPWSUTIUXVAQV5YAP3GHGIZMP5RLELBCSIUPMEXEVFLF5AQGHWB74A4SGAPNOUKGZLYGAXMM4GWWQ
+#\\\|L6WR7FGID2CY5YHIHQXXK5ZVEVW3EEFH2PAXNEICW4TOIKAY2JN \ / AMOS7 \ YOURUM ::
+#\[7]6PS4EZWSWCS55AZEN6GJVA4KZ6OMMDJ3D4ABCOWFYZQPPNOGNWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

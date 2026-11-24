@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = stream_child.handler.stderr
+# descr = read the child's stderr, one on_stderr call per line
+
+## stderr eof only closes stderr : stdout eof ends the child ##
+
+my $event  = shift->w;
+my $handle = ( $event->data // {} )->{'handle'};
+if ( not defined $handle or not defined $handle->{'err'} ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+my $got = CORE::sysread( $handle->{'err'}, my $chunk, 65536 );
+if ( not defined $got ) {
+    return if $OS_ERROR{'EAGAIN'} or $OS_ERROR{'EWOULDBLOCK'};
+    return if $OS_ERROR{'EINTR'};
+}
+if ( not $got ) {
+    $event->cancel if $event->is_active;
+    delete $handle->{'w_err'};
+    CORE::close( $handle->{'err'} );
+    $handle->{'err'} = undef;
+    return;
+}
+$handle->{'pend_err'} .= $chunk;
+$handle->{'pend_err'} = '' if length $handle->{'pend_err'} > 1_000_000;
+my $name = $handle->{'on_stderr'};
+while ( $handle->{'pend_err'} =~ s|\A([^\n]*)\n|| ) {
+    my $line = $1;
+    $code{$name}->( $line, $handle )
+        if defined $name and defined $code{$name};
+}
+
+#,,..,..,,,.,,,..,,,.,,,.,.,,,.,.,,,.,.,.,,,.,..,,...,...,.,.,..,,,,,,,,,,,.,,
+#JVNFXZPWWP3UJZFX7WFNHJZAUFLF5Y2LOR7FU4HWJTPFLAYCT2JLVPV2C3FIDMQ4NSK757AQB6OSU
+#\\\|KKW6EAUVQUAC5FTJVSIAEIOCNQYUN7XXH5LSTEK46UAXXEJIHRW \ / AMOS7 \ YOURUM ::
+#\[7]6N52DFS5LLW43QVDM2LD4FDTKCSOYP2W6QURD6IY7LBBNIDJN6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

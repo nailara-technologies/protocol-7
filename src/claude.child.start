@@ -5,9 +5,10 @@
 # args   = { model, resume } [ resume : id \ new \ empty = saved ]
 # return = { ok => TRUE, pid } or { error => text }
 #
-# claude -p, stream-json in and out, through IPC::Open3 : stdout and stderr
-# are read in the event loop [ io watchers, line framed ], stdin is written
-# non-blocking [ claude.child.write ]. binary and flags from config
+# claude -p, stream-json in and out, a stream_child in its own process
+# group : stdout lines go to claude.stream.line, stderr lines become
+# events, stdin is written non-blocking [ claude.child.write ]. binary and
+# flags from config
 
 my $in = shift // {};
 
@@ -37,58 +38,30 @@ my @cmd  = (
     ( length $tool   ? ( '--permission-prompt-tool', $tool )   : () ),
 );
 
-require IPC::Open3;
-require Symbol;
-my $work_dir = <claude.cfg.work_dir> // <system.root_path> // '.';
-my $here     = Cwd::getcwd();
-CORE::chdir($work_dir)
-    or return { 'error' => "work dir '$work_dir' : $OS_ERROR" };
-my ( $to_child, $from_child, $err_child )
-    = ( undef, undef, Symbol::gensym() );
-## its own process group : a stop ends claude and what it started    ##
-## [ mcp servers, tool processes ] -- a perl shim, setpgrp then exec ##
-my @shim = (
-    $EXECUTABLE_NAME,                                                '-e',
-    'setpgrp( 0, 0 ); exec { $ARGV[0] } @ARGV or die "exec : $!\n"', @cmd
-);
-my $pid
-    = eval { IPC::Open3::open3( $to_child, $from_child, $err_child, @shim ); };
-my $spawn_error = $EVAL_ERROR;
-CORE::chdir($here) if defined $here;
-return { 'error' => 'spawn failed : ' . ( $spawn_error || 'no pid' ) }
-    if not $pid;
-
-foreach my $fh ( $to_child, $from_child, $err_child ) {
-    CORE::binmode( $fh, ':raw' );
-    $fh->blocking(0);
-}
-
-my $child = <claude.child> = {
-    'pid'      => $pid,
-    'in'       => $to_child,
-    'out'      => $from_child,
-    'err'      => $err_child,
-    'pend_in'  => '',
-    'pend_out' => '',
-    'pend_err' => '',
-    'started'  => time,
-    'model'    => $model,
-    'resume'   => $resume,
-};
-$child->{'w_out'} = <[event.add_io]>->(
-    {   'fd'      => $from_child,
-        'handler' => qw| claude.handler.stdout |,
-        'data'    => { 'pid' => $pid },
-        'poll'    => qw| r |
+## closing stdin ends a stream-json session by itself ; TERM is sent with ##
+## it, KILL after a claude-stop delay                                     ##
+my $r = <[stream_child.start]>->(
+    {   'cmd'       => \@cmd,
+        'cwd'       => <claude.cfg.work_dir> // <system.root_path> // '.',
+        'group'     => TRUE,
+        'on_line'   => qw| claude.stream.line |,
+        'on_stderr' => qw| claude.child.stderr |,
+        'on_gone'   => qw| claude.child.gone |,
+        'on_note'   => qw| claude.child.note |,
+        'stop'      => 'close TERM | KILL',
+        'interval'  =>
+            { 'stop' => qw| claude-stop |, 'reap' => qw| claude-reap | },
+        'timer_handler' => qw| claude.handler.stop_kill |,
+        'reap_handler'  => qw| claude.handler.reap |,
+        'report'        => TRUE,
     }
 );
-$child->{'w_err'} = <[event.add_io]>->(
-    {   'fd'      => $err_child,
-        'handler' => qw| claude.handler.stderr |,
-        'data'    => { 'pid' => $pid },
-        'poll'    => qw| r |
-    }
-);
+return { 'error' => 'spawn failed : ' . $r->{'error'} } if not $r->{'ok'};
+
+my $child = <claude.child> = $r->{'handle'};
+my $pid   = $child->{'pid'};
+$child->{'model'}  = $model;
+$child->{'resume'} = $resume;
 
 <claude.state>       = qw| running |;
 <claude.turn_active> = FALSE;
@@ -105,8 +78,8 @@ $child->{'w_err'} = <[event.add_io]>->(
 <[claude.turn.next]>;
 return { 'ok' => TRUE, 'pid' => $pid };
 
-#,,,.,.,,,.,.,.,.,,,,,,..,,,.,..,,,,,,.,.,.,.,..,,...,...,,.,,...,.,,,.,,,,..,
-#PWZQ5K3ZFIAMWK4GQ2BYOXZIKIHTCTOYSJCOEAUDHULXWW6Y7PMCKMNMETSRTGAC3XJKLM74FVGD2
-#\\\|DRCHFI4XEYGQCRFXNKI4HL72ZGMM45VFF7BPYOPCQMF6HMPXCIT \ / AMOS7 \ YOURUM ::
-#\[7]7KO6OS2AX7PCSX4OSXJSZQWE5JT76OYGXSJL6A3SIMCFCA6U4CDY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,.,,,..,,.,.,..,,.,,,,..,.,.,..,,...,...,...,,..,,.,,,..,.,,,
+#7QW7K5CC2BYDCMVEES7A2NPFKTKH6BODUN5G7DZKY23MXDD4MWUXVH77T4OKUF2MEHANWKPUNVJKS
+#\\\|DH6PUZXIPD7A3V3D6WEIS62YNQA7PSN3TS42FQCUOSSOOBIERTB \ / AMOS7 \ YOURUM ::
+#\[7]FHFW353X7GOFWIVVBPWIPBJBWONJQAWMNELTMSZCP7AIDD5SPKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

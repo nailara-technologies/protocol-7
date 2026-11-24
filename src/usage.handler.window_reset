@@ -1,0 +1,48 @@
+## [:< ##
+
+# name   = usage.handler.window_reset
+# descr  = a window's reset time passed : signal, query again
+#
+# a timer handler gets the event. usage.window.reset is raised once per
+# reset time ; the query that follows arms the timer of the next window
+# [ usage.watch.observe ]. while the reset time has not moved on, the
+# query is repeated on the usage-requery rhythm, usage.cfg.requery_max
+# times at most [ a failing provider : the next reading arms again ]
+
+my $event = shift;
+my $d     = eval { $event->w->data } // {};
+my ( $provider, $window, $epoch )
+    = ( $d->{'provider'} // '', $d->{'window'} // '', $d->{'epoch'} // 0 );
+delete <usage.watch.timers>->{$provider}{$window} if <usage.watch.timers>;
+my $st = <usage.watch.state>->{$provider}{$window} //= {};
+return FALSE if ( $st->{'epoch'} // 0 ) > $epoch;    ## moved on ##
+if ( ( $st->{'raised'} // 0 ) != $epoch ) {
+    <[usage.signal.raise]>->(
+        qw| usage.window.reset |,
+        { 'provider' => $provider, 'window' => $window }
+    );
+    $st->{'raised'} = $epoch;
+}
+$st->{'requery'} //= {};
+return FALSE
+    if ( $st->{'requery'}{'tries'} // 0 ) >= ( <usage.cfg.requery_max> // 5 );
+$st->{'requery'}{'tries'}++;
+<[usage.query]>->( [$provider], '', qw| compact | );
+## again until the reset time moved on [ observe re-arms then ] ##
+my $delay
+    = <[base.interval.next]>
+    ->( { 'type' => qw| usage-requery |, 'state' => $st->{'requery'} } )
+    // 89;
+<usage.watch.timers>->{$provider}{$window} = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| usage.handler.window_reset |,
+        'data'    => $d
+    }
+);
+return TRUE;
+
+#,,,.,,.,,...,,,.,,,.,,.,,...,,..,,,.,,,,,.,,,..,,...,...,...,...,.,.,...,,,,,
+#KQTLL2QLF4DTMDT2HLK3XKOURYLPUZT625APOWTWTCWXU22V2XQIUFI4WWK6JVIKAEMC2GP6DEVVQ
+#\\\|QCM6MPFTBOTGFI6TCE7XF6ITQYMJOTIMNHPZ6A2EEOSZVXUWF7O \ / AMOS7 \ YOURUM ::
+#\[7]UO5HLRS3GZYSXZ6YDFTTFJYV6WQXU5E7E7J3KYSSHQEUYGKPLADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

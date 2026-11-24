@@ -1,0 +1,27 @@
+## [:< ##
+
+# name   = events.bucket.gate.handler.guard
+# descr  = a gate read with no answer : close, re-check later
+#
+# a timer handler gets the event. only the read it was armed for : a later
+# read [ another seq ] or a replaced entry is left alone
+
+my $event = shift;
+my $d     = eval { $event->w->data } // {};
+my ( $owner, $id ) = ( $d->{'owner'} // '', $d->{'id'} // '' );
+delete <events.gate_guards>->{"$owner/$id"} if <events.gate_guards>;
+my $bucket = <[events.bucket.get]>->($owner) // return FALSE;
+my $e      = $bucket->{'entries'}{$id}       // return FALSE;
+return FALSE
+    if ( $e->{'gate_check'} // -1 ) != ( $d->{'seq'} // -2 )
+    or ( $e->{'added'} // '' ) ne ( $d->{'added'} // '' )
+    or ( $e->{'state'} // '' ) ne qw| waiting |;
+delete $e->{'gate_check'};
+<[events.bucket.gate.close]>->( $owner, $e, 'no answer from usage' );
+return TRUE;
+
+#,,.,,,,,,.,,,,..,..,,,..,,,.,,.,,,.,,,.,,,,,,..,,...,...,,..,,,,,...,.,,,.,,,
+#F3O3G6WW367NLY6ADV2GSB6ISSIZQTSXUIAQACRF2BWF6ARLYD4AIE27DFB72U6KY7YUH4RLSUMZC
+#\\\|TNJQOWQCRKWX7XZQ7WHIDSOVHR6DRL4SDPSW2GAE6GTPHUF2ZA6 \ / AMOS7 \ YOURUM ::
+#\[7]XYHD6LYR4PEKZJZMAVGZWNH6Z3LZSVLZETTWLD6SOV7IVFYIFEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

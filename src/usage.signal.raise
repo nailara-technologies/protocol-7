@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = usage.signal.raise
+# descr = raise a usage.* signal through the events zenka
+# args  = signal name, { key => value .. }
+
+## the cube puts this zenka's name first [ source_zenka alias ] : the ##
+## source is never declared here. the names are granted in            ##
+## cfg/zenki/events/access.signals by the owner ; refused until then  ##
+## [ logged by the events zenka ]                                     ##
+
+my ( $name, $values ) = @ARG;
+$values //= {};
+my @pairs;
+foreach my $key ( sort keys %{$values} ) {
+    my $v = $values->{$key} // '';
+    $v =~ s{\s+}{_}g;
+    push @pairs, "$key=" . CORE::substr( $v, 0, 200 );
+}
+my $args = join ' ', $name, @pairs;
+<[base.logs]>->( 2, 'usage : signal %s', $args );
+<[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.events.signal |,
+        'call_args' => { 'args' => $args }
+    }
+);
+return TRUE;
+
+#,,.,,,..,,.,,,.,,.,.,,,,,.,.,,,,,,..,.,.,...,..,,...,...,...,,,.,...,...,.,.,
+#RUADC62U6CA3SX26M6ZPSM4WGFFLFRMYZAKJWOOLTMRT75OQJE6QQD37CH3JOQG7F3YL3OMRZLDES
+#\\\|DZRP6H46X2JWKBH3GDQLUW4DU5MZQAYXFAJJCKG3Q67NFGPFUGE \ / AMOS7 \ YOURUM ::
+#\[7]W3ASTZZACUN6UFVMRUYO3VFUVXTDTC2U5UI4CHJLTYBK4XFMHGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

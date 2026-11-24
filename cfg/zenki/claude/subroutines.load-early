@@ -100,6 +100,7 @@ base.cmd.reload
 base.calc_gauss
 ui.estimate.cost
 trust.pin_decide
+stream_child.arm
 plugin.auth.unix
 jobqueue.add_job
 claude.turn.next
@@ -128,6 +129,11 @@ base.call_filter
 auth.pwd.success
 auth.auth_select
 ascii.frame.load
+stream_child.stop
+stream_child.step
+stream_child.reap
+stream_child.note
+stream_child.gone
 plugin.auth.zenka
 net.read_bytewise
 jobqueue.move_job
@@ -135,7 +141,7 @@ jobqueue.exec_job
 claude.parse_args
 claude.cmd.status
 claude.child.stop
-claude.child.reap
+claude.child.note
 claude.child.gone
 base.stream.close
 base.session.user
@@ -151,7 +157,6 @@ base.handler.read
 base.handler.auth
 base.get_warnings
 base.file.content
-base.event.del_io
 base.event.add_io
 base.context.list
 base.cmd.commands
@@ -159,13 +164,16 @@ base.chk-sum.amos
 ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
+stream_child.write
+stream_child.start
+stream_child.flush
+stream_child.alive
 claude.wire.encode
 claude.wire.decode
 claude.stream.line
 claude.signal.done
 claude.child.write
 claude.child.start
-claude.child.flush
 base.reload_values
 base.reload_config
 base.parser.config
@@ -183,11 +191,15 @@ base.clean_unicode
 base.clean_hashref
 base.base32.encode
 ascii.frame.render
+stream_child.status
+stream_child.signal
+stream_child.disarm
 plugin.auth.twofish
 io.ip.tcp.init_code
 claude.session.save
 claude.session.load
 claude.handler.reap
+claude.child.stderr
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -206,7 +218,6 @@ base.event.pre_init
 base.diff.hash_keys
 base.calc_unix_path
 io.ip.tcp.input.open
-claude.handler.stdin
 claude.cmd.interrupt
 base.route.init_code
 base.root.drop_privs
@@ -233,14 +244,14 @@ base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
+stream_child.end_code
+stream_child.close_in
 jobqueue.get_next_job
 jobqueue.get_job_data
 format.yaml.load_file
 crypt.C25519.key_vars
 crypt.C25519.key_path
 crypt.C25519.gen_keys
-claude.handler.stdout
-claude.handler.stderr
 claude.cmd.permission
 claude.child.end_code
 base.session.shutdown
@@ -321,6 +332,7 @@ base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 base.buffer.erase_secure
 ui.render.tree.invalidate
+stream_child.handler.reap
 jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.root_key_dir
@@ -342,6 +354,8 @@ base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 auth.client.distrust_list
+stream_child.handler.timer
+stream_child.handler.stdin
 protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
@@ -360,6 +374,8 @@ base.handler.session_error
 base.event.io_idle_restart
 base.devmod.process_signal
 base.check_dependency_dirs
+stream_child.handler.stdout
+stream_child.handler.stderr
 net.read_linewise_estimated
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
@@ -469,6 +485,7 @@ crypt.C25519.get_type_from_key_str
 base.zenki.resume_ondemand_timeout
 base.protocol-7.command.send.local
 base.path-set-up.zenka-directories
+base.path-set-up.check-zenka-paths
 base.handler.link-upgrade.response
 base.handler.command.process_reply
 base.format.inline-nested.pre_init
@@ -530,8 +547,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,.,.,,.,,,..,...,...,,..,...,...,.,.,,..,..,,...,...,..,,,,,,,,,,,.,,.,,,
-#33BY2W3A47XLDKSZA4GNWXVKPHTT6L7I7YKPMQ66E2J5WXYFKHFXM7HATURAIV3LFXCCTJ4B2ZTYE
-#\\\|PF7ILHJPSCRS44CWHUGHCNICUVPXOLO35KWHK7MZM4F5TLOVVYC \ / AMOS7 \ YOURUM ::
-#\[7]4EKBIPYQVXZRSA4W7WABFRMEN3O5ZYQZ64OROMZVHAD3B6C5ZSBY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,,.,,.,,,,..,,..,...,..,,...,..,,...,...,.,.,...,.,,,..,,,,.,
+#BPDBOR6OQSSK3LKGZIGQIM3XFBQ4J3U5554OJHX63GYC7EQZC3JD7TJPZY7ZIEKQ2QZN2H5AY5X64
+#\\\|PIWA6OW3GQGIYTAMMA57TXIMGZYHZ2JJLEDJRA4GW5VOR4TVAY6 \ / AMOS7 \ YOURUM ::
+#\[7]7WL54VMEJI3WEHESHHLQ7JEFLPLN6YKO2QJBQY7JCGPQKRVSRQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

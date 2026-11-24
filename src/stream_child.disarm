@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = stream_child.disarm
+# descr = cancel the pending stop step timer
+# param = handle
+
+my $handle = shift;
+$handle->{'serial'}++;
+my $timer = delete $handle->{'timer'};
+eval { $timer->cancel } if ref $timer and eval { $timer->can('cancel') };
+return TRUE;
+
+#,,.,,,,.,,,,,.,.,.,,,,,,,...,...,,,,,,,.,,,.,..,,...,...,,..,,..,,,,,,..,,,.,
+#AGT3AP6CU2B4QNZ3U4PO7OYGC5PZ4YWK5NRK5ZASYIWWSMP4OSWQAJOJPIM3GUQ2UNGZFUXI744WU
+#\\\|XGWL4YK54FUFQZOQHDYVRVAAJSW2SDZDPCIJ6Y6NCUXAR36YFS2 \ / AMOS7 \ YOURUM ::
+#\[7]IOIKIVR5C4DCOGTT54TURX2BEET7QERR3DBUTADG3P4D72KSGUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

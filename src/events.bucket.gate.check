@@ -1,0 +1,67 @@
+## [:< ##
+
+# name   = events.bucket.gate.check
+# descr  = ask usage.status whether an entry's gate holds
+# args   = owner, entry
+# return = TRUE when a check is on its way or already is
+#
+# route-send only buffers : the answer comes to the reply handler, which
+# fires the entry or closes the gate. one check per entry in flight [ the
+# seq is memory only : a restart asks again ]. no route : the gate closes
+# with the reason and waits for its re-check
+
+my ( $owner, $e ) = @ARG;
+return TRUE if defined $e->{'gate_check'};
+my $gate = <[events.bucket.gate.parse]>->( $e->{'budget'} );
+if ( defined $gate->{'error'} ) {
+    <[events.bucket.gate.close]>->( $owner, $e, $gate->{'error'} );
+    return FALSE;
+}
+<events.gate_seq> //= 0;
+my $seq = ++<events.gate_seq>;
+$e->{'gate_check'} = $seq;
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => qw| usage.status |,
+        'call_args' => { 'args' => "compact $gate->{'provider'}" },
+        'reply'     => {
+            'handler' => qw| events.bucket.gate.handler.reply |,
+            'params'  => {
+                'owner' => $owner,
+                'id'    => $e->{'id'},
+                'added' => $e->{'added'},
+                'seq'   => $seq
+            }
+        }
+    }
+);
+if ($sent) {
+    ## no answer at all [ usage died mid-read ] : the guard closes it ##
+    <events.gate_guards> //= {};
+    my $key = "$owner/$e->{'id'}";
+    if ( my $old = delete <events.gate_guards>->{$key} ) {
+        eval { $old->cancel };
+    }
+    <events.gate_guards>->{$key} = <[event.add_timer]>->(
+        {   'after' => <[base.interval.next]>->(
+                { 'type' => qw| budget-gate-answer |, 'state' => {} }
+            ) // 89,
+            'handler' => qw| events.bucket.gate.handler.guard |,
+            'data'    => {
+                'owner' => $owner,
+                'id'    => $e->{'id'},
+                'added' => $e->{'added'},
+                'seq'   => $seq
+            }
+        }
+    );
+    return TRUE;
+}
+delete $e->{'gate_check'};
+<[events.bucket.gate.close]>->( $owner, $e, 'usage zenka not reachable' );
+return FALSE;
+
+#,,.,,..,,,,.,.,.,...,,,.,...,.,.,.,.,...,,.,,..,,...,...,..,,...,.,.,.,,,.,,,
+#OVOTI4DHGXRQ3MYAADI3CE2TOKRSSLRZ5XOU5BSMQB3J4EOEMGM2QCDLLNUJQHQDCZOFYUA6YTAQE
+#\\\|FFW25S6D7W5UT4GJQCFU5SH62FNN4X5J6UFFBRQFB3LSM6TQSCG \ / AMOS7 \ YOURUM ::
+#\[7]C4VKNSJDGBYHYZX4GIUIL2VU4IBVM5SVVIKFCTJYPLGN4ILATKAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

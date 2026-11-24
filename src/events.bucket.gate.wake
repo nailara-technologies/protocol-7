@@ -1,0 +1,40 @@
+## [:< ##
+
+# name   = events.bucket.gate.wake
+# descr  = usage signals reopen the closed gates of a provider
+# args   = signal name, values
+# return = array ref of '<owner>/<id>' reopened
+#
+# usage.window.reset, or usage.threshold with crossed=down, of the gate's
+# provider : the closed gate opens again and the next evaluate asks usage.
+# never a direct fire -- the gate is read again first
+
+my ( $name, $values ) = @ARG;
+$values //= {};
+return []
+    if $name ne qw| usage.window.reset |
+    and not( $name eq qw| usage.threshold |
+    and ( $values->{'crossed'} // '' ) eq qw| down | );
+my $provider = $values->{'provider'} // return [];
+my @opened;
+foreach my $owner ( sort keys %{ <events.buckets> // {} } ) {
+    my $bucket = <events.buckets>->{$owner};
+    foreach my $id ( @{ $bucket->{'order'} } ) {
+        my $e = $bucket->{'entries'}{$id} // next;
+        next
+            if ( $e->{'state'} // '' ) ne qw| waiting |
+            or ( $e->{'gate'} // '' ) ne qw| closed |;
+        my $gate = <[events.bucket.gate.parse]>->( $e->{'budget'} );
+        next if ( $gate->{'provider'} // '' ) ne $provider;
+        delete $e->{'gate'};
+        <[events.bucket.gate.arm]>->( $owner, $e );    ## cancels ##
+        push @opened, "$owner/$id";
+    }
+}
+return \@opened;
+
+#,,,.,,..,,.,,.,,,.,,,...,,,,,.,.,...,.,,,...,..,,...,...,,,.,,,,,..,,,.,,.,.,
+#OPMROPA7AB5NT4MRLDTCNGXFICX24MAILAHFNV4F532WHVAWXHL32GR6XCJMHJSHQF3IBYQZEXGKK
+#\\\|DP6PBICFT52IIDPFUEO47EGRNYDJ4G2XKAFGEYFON3SSY4WDGNH \ / AMOS7 \ YOURUM ::
+#\[7]GTXSJ2EYSDEIJLUIWJNLVKWIEYDLV45OYLBCYDVK74B5GKCHXYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

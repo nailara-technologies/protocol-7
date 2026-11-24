@@ -33,7 +33,30 @@ system.zenka.verbosity.buffer = 2
 access.cmd.usr.cube = commands heart name subname verify-instance reload \
                       src-age src-ver list show-buffer \
                       buffer-erase buffer-erase-level \
-                      claude kimi status claude-refresh-test
+                      claude kimi status plan claude-refresh-test
+
+## the watch : usage.threshold at these used percents                     ##
+## [ crossed up \ down ], usage.window.reset a margin after each window's ##
+## reset time -- signals the owner grants in                              ##
+## cfg/zenki/events/access.signals                                        ##
+usage.cfg.thresholds = 50 75 90
+## a periodic read of every provider : off, a claude read is a real api ##
+## request [ spends budget ] -- yes turns it on                         ##
+usage.cfg.watch_poll = no
+usage.cfg.requery_max = 5
+base.interval.cfg.type.usage-watch.minutes             = 15
+base.interval.cfg.type.usage-watch-first.start         = 21
+base.interval.cfg.type.usage-watch-first.factor        = 1
+base.interval.cfg.type.usage-watch-first.cap           = 21
+base.interval.cfg.type.usage-watch-first.cap_jitter    = 8
+base.interval.cfg.type.usage-reset-margin.start        = 13
+base.interval.cfg.type.usage-reset-margin.factor       = 1
+base.interval.cfg.type.usage-reset-margin.cap          = 13
+base.interval.cfg.type.usage-reset-margin.cap_jitter   = 5
+base.interval.cfg.type.usage-requery.start             = 34
+base.interval.cfg.type.usage-requery.factor            = 1.6
+base.interval.cfg.type.usage-requery.cap               = 377
+base.interval.cfg.type.usage-requery.cap_jitter        = 34
 
 ## pty : plugin.usage.claude.refresh_token needs a real terminal [ IO::Pty ]
 ## to refresh claude code's own oauth token -- see that module's note on why
@@ -64,8 +87,8 @@ plugins.load = plugin.usage.claude plugin.usage.kimi
 
 [zenka.loop]
 
-#,,,.,,..,,,.,.,,,,,.,,,.,...,,,,,,,,,,,.,.,.,..,,...,..,,.,,,,,,,...,.,.,,,,,
-#FNOFMXNTSX3OBWJOCJ4ED2ZU3INZWFFYPMMUEMPGOKTQDHJNTXPRHTRZY6IIQ7KF56L57W3TVW7US
-#\\\|C7DTPQVED437LIZXO6YMINUOZUWUMVI74H5Z2MFDLU42ZUG7FAD \ / AMOS7 \ YOURUM ::
-#\[7]W4RF2MAEYAYT4NRSTIFOA5W5AKXI4OCWXTGJKECBTOWZ62VQBCBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,...,...,,,.,..,,,,.,..,,,..,,,.,..,,...,...,,.,,,.,,.,,,,.,,,,.,
+#G4ONFBWBMLQPZYWRW7SQP3D6PLRIDC47EJUEGNACPWSAERCLYBCZ7FZ3EHOELCVFV2KVYBU6CLNFC
+#\\\|U65D5GXEN5FR3BNMNT4RZPGQNNH5URZGQK3W4WZU6UWHMSIIPJX \ / AMOS7 \ YOURUM ::
+#\[7]ATZHCA5XPGWJOTRYGYUVE5ZBGSXA6MBLNZS2K7IDUGWWBX3KAYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

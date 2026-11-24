@@ -5,17 +5,13 @@
 # args   = hash ref [ the input message ]
 # return = TRUE, or FALSE without a running child
 
-## what does not fit the pipe now waits in pend_in ; a write watcher drains ##
-## it and ends itself when it is empty                                      ##
-
 my $message = shift;
 my $child   = <claude.child>;
 return FALSE if not defined $child or not defined $child->{'in'};
-$child->{'pend_in'} .= <[claude.wire.encode]>->($message);
-return <[claude.child.flush]>;
+return <[stream_child.write]>->( $child, <[claude.wire.encode]>->($message) );
 
-#,,,.,..,,,,,,,.,,..,,,,,,,.,,...,,..,,..,,.,,..,,...,...,,..,,.,,,,.,,,.,.,.,
-#RDKK3T4PRVEZ4IES5L7AHP2UZKQMKAWTLXV6CLLA2FFZYYCFPZ46V224ICCUJY2A5LQ4T56WAUQH4
-#\\\|UNPIWVT65BKGPSGZKW4IDOZC6AATPZR2FPMAJVKQL47WZKVCXJS \ / AMOS7 \ YOURUM ::
-#\[7]HIOG4MRHJW65KA2GJXX475QB7KMFRRXRORRZLY44ZFEXOEBIFUAA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,.,,..,,,,.,...,..,,.,,,...,.,,,..,,...,...,...,.,,,,,.,...,..,,
+#CVC3C7O223WY65EWINJGTTCOBWQWAWA24NL3G4FCFUL4PL5EGFLI36D62HLOMKEM7LLVKIOTITZUS
+#\\\|I6SY63EQX5TCIHZKCF4MWCCDNBQJXYPN5HGXAGPGTW5L343BXWO \ / AMOS7 \ YOURUM ::
+#\[7]XW2JWV7UMGLKGS5HQMTFTDPVW3JZLKAKCOX2DVPOIIGCWGQPCECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

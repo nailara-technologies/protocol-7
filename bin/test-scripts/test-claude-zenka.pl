@@ -170,7 +170,8 @@ sub pump {
 
 ## the real modules ##
 opendir my $dh, "$root_path/src" or die;
-my @mods = grep {m{\A(?:claude\.|base\.interval\.)}} readdir $dh;
+my @mods
+    = grep {m{\A(?:claude\.|stream_child\.|base\.interval\.)}} readdir $dh;
 closedir $dh;
 load_module($ARG) foreach @mods, qw| plugin.events.action.claude-send |;
 
@@ -457,8 +458,8 @@ ok( ( $pr->{'error'} // '' ) =~ m{task-continue or claude-send},
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,..,..,,.,.,,.,,,,,,,,.,,,.,,.,,,,,,.,,,..,,...,..,,...,,.,,.,,,,.,,,.,,
-#A2J65AAI2FR73L63TXGC6ITSEIRBCSPQ7IFDPZV6AAR3BZD3SES52NNFFVQS6YWURLWH55LRAOTV6
-#\\\|7HYVKMFZWQ53RMJJZA65NXTS55ECZCLYWNGJAFA3VEZQLFNWFER \ / AMOS7 \ YOURUM ::
-#\[7]XXIJYN2WMSVTWFE4GPRIBDHVY6TFLMSZ4KYCJI5SHIXLNHFSRCDY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,,.,,..,,.,,,..,,...,,.,,.,,,..,,...,...,.,,,.,,,,..,.,.,,,,,
+#2W6NXZT6RW3FT2ASBRW275BIZT6VGL374LKJUNPESQ7H67F2BYM5OFA7TFAOHOV3D7AAQBEPITMME
+#\\\|N3YC64KMG5Q2PVTOX5D6PEUC3JUEN5SLZZKWIVUU2RAVJXH7O6G \ / AMOS7 \ YOURUM ::
+#\[7]2HNAJHHSWDEZX5VXW74AGEJQY7UB5DBLWFMPBZSEHUM7U7SL2YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

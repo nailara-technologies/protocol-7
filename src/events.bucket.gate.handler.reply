@@ -1,0 +1,57 @@
+## [:< ##
+
+# name   = events.bucket.gate.handler.reply
+# descr  = usage.status answer : fire the entry or close it
+#
+# a stale answer [ the entry was removed, replaced or fired while asking ]
+# is dropped. open : one pass through events.bucket.evaluate fires it ;
+# closed or unreadable : events.bucket.gate.close
+
+my $reply = shift              // {};
+my $p     = $reply->{'params'} // {};
+my ( $owner, $id ) = ( $p->{'owner'} // '', $p->{'id'} // '' );
+my $bucket = <[events.bucket.get]>->($owner) // return FALSE;
+my $e      = $bucket->{'entries'}{$id}       // return FALSE;
+return FALSE
+    if ( $e->{'gate_check'} // -1 ) != ( $p->{'seq'} // -2 )
+    or ( $e->{'added'} // '' ) ne ( $p->{'added'} // '' )
+    or ( $e->{'state'} // '' ) ne qw| waiting |;
+delete $e->{'gate_check'};
+
+if ( my $guard = delete( ( <events.gate_guards> // {} )->{"$owner/$id"} ) ) {
+    eval { $guard->cancel };
+}
+my $gate = <[events.bucket.gate.parse]>->( $e->{'budget'} );
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my $holds;
+
+if ( defined $gate->{'error'} ) {
+    $holds = { 'open' => FALSE, 'reading' => $gate->{'error'} };
+} elsif ( $mode ne qw| size | and $mode ne qw| true | ) {
+    $text =~ s{\s+\z}{};
+    $holds = {
+        'open'    => FALSE,
+        'reading' => 'usage not readable'
+            . ( length $text ? " [ $text ]" : '' )
+    };
+} else {
+    $holds = <[events.bucket.gate.holds]>->( $gate, $text );
+}
+if ( not $holds->{'open'} ) {
+    <[events.bucket.gate.close]>->(
+        $owner, $e, $holds->{'reading'}, $holds->{'resets_in'}
+    );
+    return TRUE;
+}
+delete <events.gate_state>->{"$owner/$id"} if <events.gate_state>;
+delete $e->{$ARG} for qw| gate gate_at |;
+$e->{'gate_reading'} = "$holds->{'reading'} : open";
+$e->{'gate_pass'}    = TRUE;
+<[events.bucket.evaluate]>->($owner);
+return TRUE;
+
+#,,,.,...,,..,...,.,,,,,,,,,.,.,,,.,,,...,...,..,,...,...,.,.,,.,,..,,.,,,,.,,
+#5LO7MTLCAL62F3YBBII4KP6M763S3EV5LNQFHGB5PBHHUTTEE4TOEN7OI232Y5MG3UQWTBLOM37WQ
+#\\\|TNH3M5OYJ3KJCBNVNRJV6GBRHUBAKHV2PBUVOSSVS4W4UTCASNE \ / AMOS7 \ YOURUM ::
+#\[7]QWVQKSMJTDRWLKQD2WJYF4UIMFHEPAV3YFXCWQXUTYHXCN7KKYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
