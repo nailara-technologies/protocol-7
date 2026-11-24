@@ -412,7 +412,7 @@ $call = { 'args' => 'claude claude.run.done state=failed' };
 $data{'events'}{'signal'}{'access_file'} = $main::access_file;
 $data{'events'}{'signal'}{'grants_file'} = "$tmp/access.signals";
 open $afh, '>:encoding(UTF-8)', "$tmp/access.signals" or die $OS_ERROR;
-print {$afh} "   signal.claude = claude.*\n";
+print {$afh} "   events.signal.claude = claude.*\n";
 close $afh;
 my $res = $code{'events.cmd.signal'}->();
 ok( state_of( 'coding', 'sig' ) eq 'waiting' && !@sent,
@@ -939,8 +939,8 @@ ok( exists $reg->{'source'}{'bucket-dependency'}
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,...,,.,,,,.,,,.,.,,,,.,,...,,..,,,,,,.,,..,,...,...,..,,,.,,,,,,.,,,,,.,
-#O3DIKPQYUDEJOXLSEM3OFZYSP5QJSEIXHIVTHEKFA6E23OQEJ35BL3EDSAQXJTRERNBSWJG6W6ZMC
-#\\\|M3NQOH4LOQWFJ7RCC2KSRTWP54HLVXV7OB5GFVX6TEMXHWGNRXF \ / AMOS7 \ YOURUM ::
-#\[7]OUIL2XN4MMRGSY4EI6QWGCT2R6IKC36CWM5AVVY7MGEAM4VH7YBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,.,.,,,.,..,,,..,,..,,.,,.,.,,,,,..,,...,...,..,,,,,,,..,,..,,..,
+#NZLMV2HVB4LKOTGKNLAJ62VMWALDB5CQJVZBVDEKM2JQFRSCIGW2YEFBPVD35AYYZBW6YV5CK3BA4
+#\\\|TIBBAUHZK5IGSTIWYU34AGGGEIFN3RTHRFA6X6FATGY2WPQWUL7 \ / AMOS7 \ YOURUM ::
+#\[7]IT6W6DA2534PCFESSDM5QRPPNYA3RVIVJ25ZTNMEPJ3LRUEUWGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

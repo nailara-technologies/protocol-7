@@ -599,12 +599,12 @@ open my $afh, '>:encoding(UTF-8)', $grants_file or die;
 print {$afh} <<'EOF';
    .:[ test signal grants ]:.
 
-   signal.claude  =  claude.run.done \
+   events.signal.claude  =  claude.run.done \
                      claude.window.*  # a comment
-   signal.kimi    =  kimi.run.done
-   signal.*       =  net.changed
-   signal.sloppy  =  *
-   ## signal.ghost = ghost.done
+   events.signal.kimi    =  kimi.run.done
+   events.signal.*       =  net.changed
+   events.signal.sloppy  =  *
+   ## events.signal.ghost = ghost.done
 EOF
 close $afh;
 
@@ -827,8 +827,8 @@ ok( "@{$w}" eq 'on-claude-ok'
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,.,..,,,..,,,.,.,.,,..,,..,,.,,...,.,.,,..,..,,...,..,,.,,,...,...,,.,,,,,,
-#SAXYSTXYJVTQMXYCKLERAQZNXMGM7ENLJZCVBG6DKPTKCS3SO7M43JWECKDLHNJC7SDER2DY6WVXC
-#\\\|HBJ5YFSSQBZL5ZP7NNA3JX44SROPYHZTH43QS3WA6CKJCSWXAFZ \ / AMOS7 \ YOURUM ::
-#\[7]MGUPHM7PFGKWVHVH6G6BSEQDIF7A2PG6XFNAGHPW4VG4CBETZQDY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,..,,...,..,,..,,.,,,,.,,..,,..,,...,..,,,.,,..,,,.,,.,,,,,,,
+#HE2TRVEJJNX7VF7GY2U3OAKT5TNAKZ5XRUZ5X5HMIU7YDIAOEJXANGDJDUH6TXRBR4GUQ3QEFTTO2
+#\\\|XAEZPV5ZPSEBP6OKVXZK3FQ72G3MUTNMZ6HBXA34IXQFKOLOXOY \ / AMOS7 \ YOURUM ::
+#\[7]SAGT6L5QGIQMSZEYUIEIPGPBW36CMBIQU45ULTD2UDISSTD2YKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -250,7 +250,7 @@ ACC
 close $afh;
 my $grants_file = "$tmp/access.signals";
 open my $gfh, '>:encoding(UTF-8)', $grants_file or die $OS_ERROR;
-print {$gfh} "   signal.usage = usage.*\n";
+print {$gfh} "   events.signal.usage = usage.*\n";
 close $gfh;
 
 my $now = time;
@@ -677,8 +677,8 @@ ok( $replies{33}{'mode'} eq 'false'
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,,.,,,,,,,,,,,.,,,.,.,.,,,.,,,.,,.,,,,.,..,,...,...,,.,,.,,,,..,,,.,,,,,
-#HCT7L5WLEEJIJAPAHLKIK5ZBBWPAWOE4HLHH6SP272M7PFQVX5526TDQ63M5IFIPEMPFHF6AZ3HCY
-#\\\|HHFSVKSZDQSHYJ6TFI2MHX5ACDT4PTXDLJBY5C7W5JJVSCPKTMK \ / AMOS7 \ YOURUM ::
-#\[7]I32BJ2D7WY45VE5HDHWNIUKFAGFY2MVID5EI6H3ZDOAOR6Z7WCBI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,,..,,,.,,..,,,,,.,,,...,,..,..,,...,...,.,,,,.,,,,,,.,.,,,,,
+#GZGRQZ74W3OX32UN7PXIQ32MQEJHYWRSB3SSRJRACY5L7YUFE6BGFR2ISBSAT5XXXILZQQUVN5K5G
+#\\\|OWRYYM43T66SGMEVUQOTPBFGQSYOIV6W25NCXNYI2ZLEIAXVL76 \ / AMOS7 \ YOURUM ::
+#\[7]D5XPRTWGELJQIE4XXQVFC3WDZIQC6JDEQLM52UOW4S4MEFZYDOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
