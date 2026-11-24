@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = kimi.acp.child_gone
+# descr = the child's stdout ended : close the session state
+
+## a prompt that was running or waiting ends with kimi.run.done : state ##
+## `stopped` after kimi.acp-stop, `crashed` otherwise                   ##
+
+my $st = <[kimi.acp.state]>;
+return FALSE if $st->{'phase'} eq qw| stopped |;
+
+my $pid = $st->{'pid'};
+waitpid( $pid, WNOHANG ) if defined $pid;
+<[kimi.acp.flush_chunk]>;
+
+my $was_stopping = $st->{'stopping'};
+## a prompt was running, or texts were waiting for the handshake ##
+my $had_turn = defined $st->{'turn'}
+    || ( $st->{'phase'} eq qw| starting | && @{ $st->{'queue'} } );
+<[kimi.acp.event]>->(
+    $was_stopping ? qw| stop |    : qw| crash |,
+    $was_stopping ? 'child ended' : 'child ended on its own'
+);
+
+for my $name ( keys %{ $st->{'watchers'} } ) {
+    my $watcher = delete $st->{'watchers'}{$name};
+    eval { $watcher->cancel };
+}
+my $timer = delete $st->{'stop_timer'};
+eval { $timer->cancel } if defined $timer;
+close $st->{$ARG} for grep { defined $st->{$ARG} } qw| in out err |;
+
+%{$st} = (
+    %{$st},
+    'phase'    => qw| stopped |,
+    'pid'      => undef,
+    'in'       => undef,
+    'out'      => undef,
+    'err'      => undef,
+    'wbuf'     => '',
+    'pending'  => {},
+    'turn'     => undef,
+    'replay'   => FALSE,
+    'stopping' => FALSE
+);
+<[base.zenki.resume_ondemand_timeout]>;
+<[kimi.acp.raise_done]>->( $was_stopping ? qw| stopped | : qw| crashed | )
+    if $had_turn;
+return TRUE;
+
+#,,,,,,.,,,.,,.,,,,..,.,.,.,,,..,,...,.,,,...,..,,...,...,,.,,..,,,,,,,,,,.,,,
+#VRABVUIJBAVDHEGMCTS52HGSYDB5LJOUT6SDZRXDBZSLM3B7HB2YM3YDBO7SCTSYYHUW4C6E22E74
+#\\\|4QDKXP6S2SQZWIAOOR7MZALMOFRPV76BPJHZAR574VZ4E3K7FVU \ / AMOS7 \ YOURUM ::
+#\[7]XTMWOAYYN2ODHX4DAR6T7RKVG6W2TRF44FR5F5EIYK2B5IVDMKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

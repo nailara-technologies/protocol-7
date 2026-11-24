@@ -1,0 +1,50 @@
+## [:< ##
+
+# name   = kimi.acp.stop
+# descr  = end the child cleanly, escalate if it stays
+# return = TRUE | FALSE [ nothing running ]
+
+## session/cancel when a prompt runs, stdin closed                          ##
+## [ the child ends on end of input ], a timer from base.interval.next then ##
+## TERM, then KILL [ kimi.handler.acp_stop_timer ]. queued prompts are      ##
+## dropped                                                                  ##
+
+my $st = <[kimi.acp.state]>;
+return FALSE if $st->{'phase'} eq qw| stopped |;
+return TRUE  if $st->{'stopping'};
+
+$st->{'stopping'} = TRUE;
+my $dropped = scalar @{ $st->{'queue'} };
+$st->{'queue'} = [];
+<[kimi.acp.event]>->( qw| stop |, "stopping [ $dropped queued dropped ]" );
+
+if ( $st->{'phase'} eq qw| prompting | and defined $st->{'session_id'} ) {
+    <[kimi.acp.write]>->(
+        {   'method' => qw| session/cancel |,
+            'params' => { 'sessionId' => $st->{'session_id'} }
+        }
+    );
+}
+## the queued bytes first, then end of input ##
+<[kimi.acp.flush]>;
+my $watcher = delete $st->{'watchers'}{'in'};
+eval { $watcher->cancel } if defined $watcher;
+close $st->{'in'}         if defined $st->{'in'};
+$st->{'in'} = undef;
+
+my $delay = <[base.interval.next]>
+    ->( { 'type' => qw| kimi-acp-stop |, 'state' => $st->{'stop_state'} } );
+$st->{'stop_timer'} = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| kimi.handler.acp_stop_timer |,
+        'data'    => {},
+        'desc'    => 'kimi acp child stop escalation'
+    }
+);
+return TRUE;
+
+#,,..,.,,,.,,,,.,,,.,,...,.,.,...,,,,,...,,.,,..,,...,...,,.,,.,,,..,,...,,,,,
+#4IIZPEQ6CPBI5IDUKJ7Y5DKB2RTIUDVCKRBC3KXNHW6KAYTYDYGJRCIYC42ZV7MPWUXB6AOOMNO7A
+#\\\|OD4XGZBAMFUHERPUF44EUZ5KAO4JCMJHFHHLSB5UXZWSMOFUAM5 \ / AMOS7 \ YOURUM ::
+#\[7]RRBUTNUKX4D4VNHAA6ZVKMVEWKBUVAMBK4LJ257KKP56ZMT6ZCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

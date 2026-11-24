@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = kimi.cmd.acp-tail
+# param = [ <n> ]
+# descr = the last n event lines of the kimi acp session [ 30 ]
+
+my ($count) = ( $call->{'args'} // '' ) =~ m|\A\s*(\d{1,4})\s*\z|;
+$count ||= 30;
+my @events = @{ <[kimi.acp.state]>->()->{'events'} };
+@events = @events[ -$count .. -1 ] if @events > $count;
+
+return { 'mode' => qw| true |, 'data' => 'no events' } if not @events;
+return { 'mode' => qw| size |, 'data' => join( "\n", @events ) . "\n" };
+
+#,,,.,,.,,,..,,.,,,..,...,...,,,,,..,,,,.,,,.,..,,...,...,...,,,,,...,,.,,..,,
+#EFO4R4FYAAG5JDPVLXAKXX4QUX4TPHQAT55O6VGC7F44DBIPXJSGI274UAY6AJHZKRTTV4YUSNWL6
+#\\\|NEQHUKSQHLCQHYLDK2VNYOWFUJ3VZPZ7SVXY7POVKZ4AHW3BQZP \ / AMOS7 \ YOURUM ::
+#\[7]AVAYE7WKJO67TYTYFZ4AB664FYSWUF2H4H3AS2YU3MZ54KHIGACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

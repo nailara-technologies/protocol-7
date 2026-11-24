@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = kimi.handler.acp_stop_timer
+# descr = the child ignored the end of input : TERM, then KILL
+
+my $event = shift;
+my $st    = <[kimi.acp.state]>;
+delete $st->{'stop_timer'};
+my $pid = $st->{'pid'};
+return FALSE if not $st->{'stopping'} or not defined $pid;
+
+my $round = ++$st->{'stop_round'};
+if ( not kill( 0, $pid ) ) {    ## gone [ stdout end follows ] ##
+    <[kimi.acp.child_gone]>;
+    return TRUE;
+}
+if ( $round <= 2 ) {
+    my $signal = $round == 1 ? qw| TERM | : qw| KILL |;
+    <[kimi.acp.event]>->( qw| stop |, "child still alive : $signal" );
+    kill $signal, $pid;
+    my $delay = <[base.interval.next]>->(
+        { 'type' => qw| kimi-acp-stop |, 'state' => $st->{'stop_state'} } );
+    $st->{'stop_timer'} = <[event.add_timer]>->(
+        {   'after'   => $delay,
+            'handler' => qw| kimi.handler.acp_stop_timer |,
+            'data'    => {},
+            'desc'    => 'kimi acp child stop escalation'
+        }
+    );
+    return TRUE;
+}
+<[kimi.acp.event]>->( qw| error |, 'child did not end : given up' );
+<[kimi.acp.child_gone]>;
+return FALSE;
+
+#,,..,.,,,.,,,.,,,.,,,..,,.,.,..,,,,,,,,,,.,.,..,,...,...,..,,..,,,..,,,,,.,.,
+#7KTZ7HLZQHLXOZB76AZJM73OJYBGZUXE53T3IYXXQJT3ARQJYMAQ2HA6JOUBKR4LVCPFQX4BG4WIC
+#\\\|OWDED2S5EYMZAR5Y7O6TC2UEN6N2VPQUYEJLDPWPAZ7SE2MAPO4 \ / AMOS7 \ YOURUM ::
+#\[7]C3TK4LSP6DWBMY6JLNRZYNLV3EROVTLVLUGYGLW2O3N45RY4HWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

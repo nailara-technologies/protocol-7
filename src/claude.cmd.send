@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = claude.cmd.send
+# param = <text>
+# descr = a user turn : queued while a turn runs
+
+## no running child : it is started first [ the recorded session resumes ] ##
+
+my $text = $call->{'args'} // '';
+$text =~ s{\A\s+|\s+\z}{}g;
+return { 'mode' => qw| false |, 'data' => 'text expected' }
+    if not length $text;
+
+my $child = <claude.child>;
+if ( not defined $child or not defined $child->{'out'} ) {
+    CORE::push @{ <claude.queue> //= [] }, $text;
+    my $r = <[claude.child.start]>->( {} );
+    if ( defined $r->{'error'} ) {
+        CORE::pop @{<claude.queue>};
+        return { 'mode' => qw| false |, 'data' => $r->{'error'} };
+    }
+    return {
+        'mode' => qw| true |,
+        'data' => "claude started [ pid $r->{'pid'} ], turn sent"
+    };
+}
+
+my $busy = <claude.turn_active> ? TRUE : FALSE;
+CORE::push @{ <claude.queue> //= [] }, $text;
+<[claude.turn.next]> if not $busy;
+return {
+    'mode' => qw| true |,
+    'data' => $busy
+    ? sprintf( 'queued [ %d waiting ]', scalar @{<claude.queue>} )
+    : 'turn ' . <claude.turn> . ' sent'
+};
+
+#,,,.,,,.,...,.,.,..,,.,,,,.,,...,,..,,,,,,,,,..,,...,...,...,.,.,,,,,,,,,,..,
+#O5AGPT3RYHQW2IBOXDVWPYV4IUPZYVQU5AAXUAG6RFDMMTZUYUSH6EBNMGTPB4JB3HJEMKYLB6ESM
+#\\\|KXJZMTEAFXGO33JKGSM2K3THLIIGLBENFO7Q7LN625YNUN2CSAF \ / AMOS7 \ YOURUM ::
+#\[7]QHMHWGWPVB4SV2EYYAXO3UGC4EQ2O7FOX6S7DI6KB3ZTBT5BCICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

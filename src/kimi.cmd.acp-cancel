@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = kimi.cmd.acp-cancel
+# param = [ all ]
+# descr = cancel the running prompt [ all : the queue too ]
+
+## session/cancel is a notification : the prompt answers with stopReason ##
+## cancelled and kimi.run.done follows                                   ##
+
+my $all = ( $call->{'args'} // '' ) =~ m{\Aall\s*\z};
+my $st  = <[kimi.acp.state]>;
+
+my $dropped = 0;
+if ($all) {
+    $dropped = @{ $st->{'queue'} };
+    $st->{'queue'} = [];
+}
+return {
+    'mode' => qw| true |,
+    'data' => "nothing running [ $dropped queued dropped ]"
+    }
+    if $st->{'phase'} ne qw| prompting |;
+
+<[kimi.acp.write]>->(
+    {   'method' => qw| session/cancel |,
+        'params' => { 'sessionId' => $st->{'session_id'} }
+    }
+);
+<[kimi.acp.event]>->(
+    qw| cancel |, "cancel sent [ $dropped queued dropped ]"
+);
+return {
+    'mode' => qw| true |,
+    'data' => "cancel sent [ $dropped queued dropped ]"
+};
+
+#,,.,,,,.,.,.,.,,,,,,,,,.,,.,,,.,,,..,.,,,.,.,..,,...,...,...,..,,.,.,,.,,.,,,
+#3YTXBOGSUEY7NVTQLACSJYDUEUQKRJW5HGIQNJFNOYJMATJQW6DFOUNXNW7NCSNKUVYSLNIPQXHDQ
+#\\\|5KZH55AULTJR2MZG4DAEBPOUGL3FMEL5IVUDHOYCVEKMTTZPSOQ \ / AMOS7 \ YOURUM ::
+#\[7]JKF2HGQQUXK2FFV4M27JJ7KIOGMAI6AQUXJTIENE4NC3OIZLT2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -30,6 +30,7 @@ ui.summarise
 trust.verify
 trust.key_id
 kimi.connect
+kimi.acp.rpc
 base.waitpid
 base.tmp_dir
 base.sig_int
@@ -42,6 +43,8 @@ ui.layout.fit
 ui.budget.tty
 net.init_code
 net.calc_port
+kimi.end_code
+kimi.acp.stop
 base.timezone
 base.sprint_t
 base.sort-num
@@ -60,6 +63,11 @@ ui.render.tree
 kimi.wire.send
 kimi.task.fail
 kimi.init_code
+kimi.acp.write
+kimi.acp.state
+kimi.acp.spawn
+kimi.acp.flush
+kimi.acp.event
 base.wrap_text
 base.swap_subs
 base.ssl.write
@@ -112,6 +120,7 @@ kimi.wire.prompt
 kimi.task.status
 kimi.task.intake
 kimi.cmd.approve
+kimi.acp.respond
 jobqueue.add_job
 base.stream.push
 base.stream.open
@@ -139,6 +148,10 @@ plugin.auth.zenka
 net.read_bytewise
 kimi.task.execute
 kimi.task.enqueue
+kimi.cmd.acp-tail
+kimi.cmd.acp-stop
+kimi.cmd.acp-send
+kimi.acp.dispatch
 jobqueue.move_job
 jobqueue.exec_job
 base.stream.close
@@ -168,11 +181,14 @@ kimi.cmd.task-file
 kimi.cmd.set-model
 kimi.cmd.ask-reply
 kimi.cmd.approvals
+kimi.cmd.acp-start
+kimi.acp.on_update
 format.json.encode
 format.json.decode
 base.reload_values
 base.reload_config
 base.parser.config
+base.interval.next
 base.handler.write
 base.handler.input
 base.handler.hooks
@@ -190,6 +206,10 @@ websocket.init_code
 plugin.auth.twofish
 kimi.session.create
 kimi.intake.process
+kimi.cmd.acp-status
+kimi.cmd.acp-cancel
+kimi.acp.raise_done
+kimi.acp.child_gone
 io.ip.tcp.init_code
 base.utf8.clean_str
 base.str.eval_error
@@ -212,6 +232,9 @@ kimi.task.queue_next
 kimi.task.queue_fail
 kimi.cmd.new-session
 kimi.cmd.list-models
+kimi.acp.on_response
+kimi.acp.next_prompt
+kimi.acp.flush_chunk
 io.ip.tcp.input.open
 format.yaml.pre_init
 base.route.init_code
@@ -271,6 +294,9 @@ base.balanced-average
 websocket.handler.read
 kimi.watcher.ws_status
 kimi.task.queue_status
+kimi.handler.acp_stdin
+kimi.acp.session_store
+kimi.acp.agent_request
 crypt.C25519.sign_keys
 crypt.C25519.sign_data
 crypt.C25519.post_init
@@ -291,6 +317,8 @@ auth.client.owner_pins
 protocol.sftp.init_code
 kimi.task.queue_enqueue
 kimi.handler.ws_message
+kimi.handler.acp_stdout
+kimi.handler.acp_stderr
 jobqueue.queue_template
 io.unix.socket.end_code
 crypt.C25519.write_keys
@@ -395,6 +423,7 @@ base.event.io_idle_restart
 base.devmod.process_signal
 base.check_dependency_dirs
 net.read_linewise_estimated
+kimi.handler.acp_stop_timer
 kimi.event.on_task_complete
 kimi.connect.schedule_retry
 io.unix.socket.output.close
@@ -403,6 +432,7 @@ crypt.C25519.key_is_virtual
 crypt.C25519.get_remote_key
 crypt.C25519.gen_keys_typed
 crypt.C25519.compute_shared
+base.zenki.report_child_pid
 base.templates.register_add
 base.stream.record_emission
 base.session.calc_cmd_stats
@@ -437,6 +467,7 @@ base.access.special-user-map
 auth.client.server_pin.check
 protocol.protocol-7.init_code
 kimi.handler.approval_request
+kimi.handler.acp_signal_reply
 crypt.C25519.validate_keyname
 crypt.C25519.store_remote_key
 crypt.C25519.signature_exists
@@ -460,6 +491,7 @@ base.config.show_strack_trace
 base.chk-sum.bmw.template_L13
 base.chk-sum.bmw.B-32-56.TRUE
 base.callback.run_initialized
+base.callback.report_children
 auth.client.unix.authenticate
 ascii.frame.parse.border_line
 protocol.sftp.connect_callback
@@ -484,6 +516,7 @@ base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.interval.rhythm.non-linear
 base.handler.link-upgrade.input
 kimi.session.reset_and_reconnect
 kimi.handler.process-queued-task
@@ -536,6 +569,7 @@ base.handler.strm_size_idle_timeout
 base.handler.counter_overflow_reset
 base.event.callback.io-idle-restart
 base.callback.reset_strm_size_timer
+base.callback.report_children_reply
 protocol.amos-chksum.ext-cmd.version
 protocol.amos-chksum.command-handler
 kimi.handler.reconnect_grace_timeout
@@ -587,8 +621,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,...,...,,,,,..,,.,.,,.,,..,,,.,,..,,,,.,..,,...,...,..,,...,..,,,,,,..,,
-#DBHLSJAWBWTPTPFHTE74P5Z4MFSJYMDYF3SRWTTMXEAWYRXOLOZMF4GE57FL44LPNVK3LYH42KRRY
-#\\\|7HO6TOHUPRTARH7WISBOIAQ4XVYP45CMXOYVKGMV3FG4UILUGOP \ / AMOS7 \ YOURUM ::
-#\[7]SATYVFM3CBWU4D3XDAWTIFYUITQJGWTR4K3ANHIZZ5R72VBV44AQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,...,...,.,,,.,.,.,.,..,,..,,,,.,..,,...,...,..,,,,,,,..,,,.,...,
+#IWHMQ4XMENM7DWJFDKLE33PPELQIAZZLEWNPP2CAZX6CR5DXCXSUS5JHJHD3GC5IYUZJEBXCOTRFS
+#\\\|SVOYM5KBUI5WM6GPGN5I2WTUG4UWE4YD7HAM6BGMJSTOHDBF4OU \ / AMOS7 \ YOURUM ::
+#\[7]P5EVM6JT7GZWFYDQYZAPPN2M7DITV33BQ7AR37QT5OMVKCQEQEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

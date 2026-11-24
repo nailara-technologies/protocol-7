@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = claude.event.add
+# descr = keep one readable event line : buffer and log
+# args  = kind, text
+
+## the buffer is bounded [ claude.cfg.buffer_lines ] ; the log file in the ##
+## var dir keeps every line [ plain lines : time kind : text ]             ##
+
+my ( $kind, $text ) = @ARG;
+$text //= '';
+$text =~ s{[\r\n]+}{ / }g;
+my $line = sprintf '%s %s : %s', <[base.ntime]>, $kind // qw| out |, $text;
+
+my $events = <claude.events> //= [];
+push @{$events}, $line;
+my $keep = <claude.cfg.buffer_lines> // 377;
+CORE::splice( @{$events}, 0, @{$events} - $keep ) if @{$events} > $keep;
+
+my $dir = <[claude.var_dir]>->(TRUE);
+if ( defined $dir
+    and CORE::open( my $fh, '>>:encoding(UTF-8)', "$dir/events.log" ) ) {
+    print {$fh} "$line\n";
+    CORE::close($fh);
+}
+return $line;
+
+#,,,,,..,,,,,,,..,,.,,,,,,...,,,.,,..,,,.,.,.,..,,...,...,.,.,.,,,,..,,.,,...,
+#74RHX262AYQLRCTBEGA6ODV3MTG47T75CGPXLMA2VLYJKB7F66DHLQ4TXM575WAZ3VEJK5KTYH2JA
+#\\\|HQXB4ZKPUTA7RKVOPQV46QPI2S7CU5BO64BQW36RZJDEERS24BC \ / AMOS7 \ YOURUM ::
+#\[7]3IIBAP6P3JUTLHSEAJPNQQ63X5FPW73PZURVQTPDPFHTVS5S7YDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

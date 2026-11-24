@@ -1,0 +1,24 @@
+## [:< ##
+
+# name   = kimi.acp.write
+# descr  = send one json-rpc message to the child
+# param  = message [ hash ref ]
+# return = TRUE | FALSE [ no child ]
+
+## json is an EXTERNAL wire format : encoded here, at the edge, as utf-8 ##
+## octets, one message per line                                          ##
+
+my $message = shift;
+my $st      = <[kimi.acp.state]>;
+return FALSE if not defined $st->{'in'};
+
+$st->{'json'} //= JSON::XS->new->utf8->canonical;
+my $line = $st->{'json'}->encode( { 'jsonrpc' => '2.0', %{$message} } );
+$st->{'wbuf'} .= "$line\n";
+return <[kimi.acp.flush]>;
+
+#,,,,,.,,,.,,,,.,,...,,..,,.,,,..,,..,...,,..,..,,...,...,.,.,...,,,.,.,.,.,.,
+#FGGZAJP5W4NVYC5SV2TL3F2US527TAR3S3RU4FWHHPLZHG2Y7LI6NRCFMFHUQPKHZ3VZAQOCI25AS
+#\\\|M4VZEYYQRCSPEFDM3PMLTC44RKCKADUIGIR6L44IHWMVN6LAAMB \ / AMOS7 \ YOURUM ::
+#\[7]4BVA2GCYR26JNPVFN6A2XEZUIYLREFXV7YTT2T57TRX5HAOTSWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

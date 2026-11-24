@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = claude.child.gone
+# descr = the child's stdout ended : close, reap, state
+# args  = reason
+
+## a stop asked for it [ stopped ] or it ended by itself [ crashed ] ; a ##
+## turn that was running ends failed. stdout eof is the signal, the exit ##
+## status is best effort [ base.sig_chld may have reaped it already ]    ##
+
+my $reason = shift // qw| eof |;
+my $child  = <claude.child>;
+return if not defined $child;
+
+foreach my $w (qw| w_out w_err w_in |) {
+    <[event.del_io]>->( delete $child->{$w} ) if defined $child->{$w};
+}
+foreach my $fh (qw| in out err |) {
+    CORE::close( $child->{$fh} ) if defined $child->{$fh};
+    $child->{$fh} = undef;
+}
+$child->{'pend_in'} = '';
+
+my $stopping = $child->{'stopping'} ? TRUE : FALSE;
+<claude.state> = $stopping ? qw| stopped | : qw| crashed |;
+<[claude.event.add]>->(
+    qw| end |, sprintf 'pid %d %s [ %s ]',
+    $child->{'pid'}, <claude.state>, $reason
+);
+<[claude.child.reap]>->($child);
+
+## what claude started may outlive it : the group gets TERM, later KILL ##
+if ( CORE::kill( 0, -$child->{'pid'} ) ) {
+    CORE::kill( 'TERM', -$child->{'pid'} );
+    my $delay = <[base.interval.next]>->(
+        {   'type'  => qw| claude-stop |,
+            'state' => ( $child->{'stop_state'} //= {} )
+        }
+    );
+    <[event.add_timer]>->(
+        {   'after'   => $delay // 3,
+            'handler' => qw| claude.handler.stop_kill |,
+            'data'    => { 'pid' => $child->{'pid'} }
+        }
+    );
+}
+
+## v7-zenki drops the reported child pid ##
+<[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.v7-zenki.gone_child |,
+        'call_args' => { 'args' => $child->{'pid'} }
+    }
+);
+
+<[claude.turn.done]>->( { 'failed' => $stopping ? 'stopped' : 'crashed' } )
+    if <claude.turn_active>;
+<[base.zenki.resume_ondemand_timeout]>
+    if defined $code{'base.zenki.resume_ondemand_timeout'};
+
+#,,.,,,.,,,,.,...,,..,.,,,,,,,.,.,.,.,,,.,,..,..,,...,...,,,,,...,,,.,..,,,,,,
+#JSK6VO3EJZITUPGK3HRHTTS6J62B6X7O7PS7VEVRFRWOR2B4IJUK7PRXI2KIY7D5ZFRLYMH6DS4LU
+#\\\|2ZZSNRXCU7BUFYQT4CWCRS3WJ55VRYR75H2A72QSPI4D6RQ4I7Q \ / AMOS7 \ YOURUM ::
+#\[7]T4MPV4BBARWIKTEXBXTUFHYHKDV2GGEZX634UMZKNUF32MNAQCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

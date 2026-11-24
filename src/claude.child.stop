@@ -1,0 +1,37 @@
+## [:< ##
+
+# name   = claude.child.stop
+# descr  = end the child : stdin closed, TERM, KILL later
+# return = TRUE when a child was asked to end
+
+## closing stdin ends a stream-json session by itself ; TERM is sent too, a ##
+## claude-stop timer sends KILL when it is still there                      ##
+
+my $child = <claude.child>;
+return FALSE if not defined $child or not defined $child->{'out'};
+$child->{'stopping'} = TRUE;
+if ( defined $child->{'in'} ) {
+    <[event.del_io]>->( delete $child->{'w_in'} ) if defined $child->{'w_in'};
+    CORE::close( $child->{'in'} );
+    $child->{'in'} = undef;
+}
+CORE::kill( 'TERM', -$child->{'pid'} );
+<[claude.event.add]>->( qw| stop |, "pid $child->{'pid'} : TERM" );
+my $delay = <[base.interval.next]>->(
+    {   'type'  => qw| claude-stop |,
+        'state' => ( $child->{'stop_state'} //= {} )
+    }
+);
+<[event.add_timer]>->(
+    {   'after'   => $delay // 3,
+        'handler' => qw| claude.handler.stop_kill |,
+        'data'    => { 'pid' => $child->{'pid'} }
+    }
+);
+return TRUE;
+
+#,,..,..,,.,.,..,,,.,,,,.,,.,,...,..,,,,,,,,,,..,,...,...,,,.,.,,,,,,,,.,,,..,
+#BUABNQLSEOWWNH6WMPJMIHLAIRUWW4QPFEOM4PJEYZLNP4K4K3RK3NMQ3QNG3NDMZ4OTH3FYY4CGS
+#\\\|XMT5XJN5SNEVGLVJMJ66VKLC4SVOGR46NQP2K7KMYGE756IDKCU \ / AMOS7 \ YOURUM ::
+#\[7]FJWZAL4VRLU6PJIO47ZAA52BJUGYVFJQGMPTLX4K4H7VDXW6YMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

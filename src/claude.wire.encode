@@ -1,0 +1,23 @@
+## [:< ##
+
+# name   = claude.wire.encode
+# descr  = one stream-json input line [ external format ]
+# args   = hash ref
+# return = json octets with a newline
+
+## stream-json is the external wire format of claude code : encoded here at ##
+## the edge only, never stored. one line, utf-8 octets                      ##
+
+my $data = shift;
+state $json;
+if ( not defined $json ) {
+    require JSON::XS;
+    $json = JSON::XS->new->utf8->canonical;
+}
+return $json->encode($data) . "\n";
+
+#,,.,,...,,.,,.,,,.,.,.,,,,.,,...,,,,,.,,,,..,..,,...,...,,,,,,,.,,,.,,,,,,,,,
+#5YBWMN3UX6FCHAYG4PPXQBLM6KRYGGPQVP26GQNUYOAIBFSAUGCPA5GWQSTRL3OJWZWEMSL4R3UXU
+#\\\|WENMV7FFBMFHJZEISVHOGNSCGCXWV64GCZXM5UC2LOV4NZGBLMC \ / AMOS7 \ YOURUM ::
+#\[7]VORN3OOOKTLLVH3JW7DXJHJUQD55FVBIDR3I5T52GIRCIIYI62BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

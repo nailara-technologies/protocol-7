@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = kimi.acp.on_response
+# descr = a reply to one of our requests
+# param = pending request, result, error
+
+my ( $pending, $result, $error ) = @ARG;
+my $st       = <[kimi.acp.state]>;
+my $kind     = $pending->{'kind'};
+my $extra    = $pending->{'extra'};
+my $work_dir = <kimi.cfg.work_dir> // <system.root_path> // qw| . |;
+
+my $why
+    = ref $error eq qw| HASH |
+    ? ( $error->{'message'} // 'error' )
+    . " [ code "
+    . ( $error->{'code'} // '?' ) . " ]"
+    : undef;
+
+if ( $kind eq qw| initialize | ) {
+    if ( defined $why ) {
+        <[kimi.acp.event]>->( qw| error |, "initialize failed : $why" );
+        return <[kimi.acp.stop]>;
+    }
+    $st->{'caps'} = $result->{'agentCapabilities'} // {};
+    my $resume = $extra->{'resume'};
+    my $caps   = $st->{'caps'};
+    ## resume does not replay the history, load does [ replay = log only ] ##
+    my $how
+        = !defined $resume ? qw| new |
+        : ref $caps->{'sessionCapabilities'} eq qw| HASH |
+        && $caps->{'sessionCapabilities'}{'resume'} ? qw| resume |
+        : $caps->{'loadSession'}                    ? qw| load |
+        :                                             qw| new |;
+    <[kimi.acp.event]>->(
+        qw| note |, "the child cannot resume or load : a new session"
+    ) if defined $resume and $how eq qw| new |;
+    $st->{'replay'} = TRUE if $how eq qw| load |;
+    <[kimi.acp.rpc]>->(
+        "session/$how",
+        {   'cwd'        => $work_dir,
+            'mcpServers' => [],
+            $how eq qw| new | ? () : ( 'sessionId' => $resume )
+        },
+        qw| session |,
+        { 'how' => $how, 'id' => $resume }
+    );
+    return TRUE;
+}
+
+if ( $kind eq qw| session | ) {
+    $st->{'replay'} = FALSE;
+    <[kimi.acp.flush_chunk]>;
+    if ( defined $why ) {
+        <[kimi.acp.event]>->(
+            qw| error |, "session/$extra->{'how'} failed : $why"
+        );
+        if ( $extra->{'how'} ne qw| new | ) {
+            <[kimi.acp.event]>->( qw| note |, 'starting a new session' );
+            <[kimi.acp.rpc]>->(
+                qw| session/new |,
+                { 'cwd' => $work_dir, 'mcpServers' => [] },
+                qw| session |, { 'how' => qw| new | }
+            );
+            return TRUE;
+        }
+        return <[kimi.acp.stop]>;
+    }
+    $st->{'session_id'} = $result->{'sessionId'} // $extra->{'id'};
+    <[kimi.acp.session_store]>->( qw| save |, $st->{'session_id'} );
+    $st->{'phase'} = qw| ready |;
+    <[kimi.acp.event]>->(
+        qw| session |, "$st->{'session_id'} ready [ $extra->{'how'} ]"
+    );
+    <[kimi.acp.next_prompt]>;
+    return TRUE;
+}
+
+if ( $kind eq qw| prompt | ) {
+    <[kimi.acp.flush_chunk]>;
+    my $state = defined $why ? qw| error | : $result->{'stopReason'}
+        // qw| end_turn |;
+    $st->{'turn'}  = undef;
+    $st->{'phase'} = qw| ready | if $st->{'phase'} eq qw| prompting |;
+    <[kimi.acp.event]>->(
+        qw| done |,
+        defined $why ? "prompt failed : $why" : "prompt ended [ $state ]"
+    );
+    <[kimi.acp.raise_done]>->($state);
+    <[kimi.acp.next_prompt]>;
+    return TRUE;
+}
+
+return TRUE;
+
+#,,,.,,,,,,..,..,,,.,,,,.,..,,,.,,,,.,,.,,,.,,..,,...,...,.,,,.,,,..,,.,,,.,.,
+#EUYWFT7T7IYOMTELICHUYU52FH2KYORJMTRZYGB2STC2MVLCGI27EO7ZSFLFOQ7HW23CDAFWYEORY
+#\\\|HBW2ZPYEFTPMQO3HMLIZSNC2D2KSLAOHVWGAWRUSVR4LM2NTILF \ / AMOS7 \ YOURUM ::
+#\[7]YIER5URONXDN3UWNYL4YH6WLBD4OMJHUCCUSZVIT5EU653KEIIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

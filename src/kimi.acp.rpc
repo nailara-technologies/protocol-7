@@ -1,0 +1,22 @@
+## [:< ##
+
+# name   = kimi.acp.rpc
+# descr  = send a json-rpc request, remember what it was
+# param  = method, params, kind, extra
+# return = the request id
+
+my ( $method, $params, $kind, $extra ) = @ARG;
+my $st = <[kimi.acp.state]>;
+
+my $id = ++$st->{'next_id'};
+$st->{'pending'}{$id}
+    = { 'method' => $method, 'kind' => $kind, 'extra' => $extra // {} };
+<[kimi.acp.write]>
+    ->( { 'id' => 0 + $id, 'method' => $method, 'params' => $params // {} } );
+return $id;
+
+#,,..,,,.,.,.,.,.,.,,,.,,,,.,,.,,,,,,,..,,,.,,..,,...,..,,...,.,.,.,.,..,,,,.,
+#7CWUSAN3CNKSZXPXKH3NUGZTRY7LR7ED47TR27PVJENXQLDRCGP5I7EJUTZVRQQXYDM3DMZYZXVFI
+#\\\|BJXUPYOKBPMUZPZKR2CNMQGIYG5KWFKF42AW4VWDYZGTSBBHKJA \ / AMOS7 \ YOURUM ::
+#\[7]I7ESCPE3SVFRT66IFICEQU63YWSO6CZSAVPCAUOJLIYHDK5MV6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

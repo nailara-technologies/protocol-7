@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = claude.stream.line
+# descr = one stream event from the child
+# args  = line [ octets ]
+
+## decoded at the edge : readable lines are kept, the session id recorded ##
+## on init, a result ends the turn [ signal, the next queued turn ]       ##
+
+my $raw = shift // '';
+return if $raw !~ m{\S};
+my $d = <[claude.wire.decode]>->($raw);
+if ( not defined $d ) {
+    utf8::decode($raw);
+    <[claude.event.add]>->( qw| out |, $raw );
+    return;
+}
+
+foreach my $line ( <[claude.stream.describe]>->($d) ) {
+    my ( $kind, $text ) = $line =~ m{\A(\S+(?: \[ error \])?) : (.*)\z}s;
+    <[claude.event.add]>->( $kind // qw| out |, $text // $line );
+}
+
+my $session = $d->{'session_id'} // '';
+<[claude.session.save]>->($session)
+    if $session =~ m|\A[\w-]{8,80}\z|
+    and $session ne ( <claude.session> // '' );
+
+<[claude.turn.done]>->($d) if ( $d->{'type'} // '' ) eq qw| result |;
+
+#,,,,,...,.,,,..,,,.,,..,,...,..,,...,,,.,..,,..,,...,...,.,.,...,.,,,.,,,..,,
+#ECGOQB3HND5A2QNK526ICVNW7ISA2Q3BZFZPXMDCURIIS3AWCCJDB42PA4F2CQGHM6IRFVJIZD4NS
+#\\\|2AVGHVYXQ7WHIZACQZ5RRXTRDYV6HWFZEW43HXKA53EO5BZ5C2S \ / AMOS7 \ YOURUM ::
+#\[7]24WBKKPZGYDTKCUOROBSSPLQGKL6NPFBW4MFMD6VCI3S74C5UCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

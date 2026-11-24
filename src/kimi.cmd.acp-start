@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = kimi.cmd.acp-start
+# param = [ resume=<session id> | resume=none ]
+# descr = start the kimi acp session [ resumes the stored id ]
+
+## `kimi acp` as a child of this zenka : one session, prompts through ##
+## kimi.acp-send, events in kimi.acp-tail. the stored session id      ##
+## [ acp.session ] is resumed unless `resume=none` or another id      ##
+
+my $args = $call->{'args'} // '';
+my $st   = <[kimi.acp.state]>;
+
+my ($resume) = $args =~ m|\bresume\s*=\s*([\w.:-]{1,128})|;
+return { 'mode' => qw| false |, 'data' => "unknown parameter : $args" }
+    if $args =~ m{\S} and not defined $resume;
+
+return { 'mode' => qw| false |, 'data' => "already $st->{'phase'}" }
+    if $st->{'phase'} ne qw| stopped |;
+
+$resume = <[kimi.acp.session_store]>->(qw| load |) if not defined $resume;
+undef $resume if defined $resume and $resume eq qw| none |;
+
+my $started = <[kimi.acp.spawn]>->($resume);
+return { 'mode' => qw| false |, 'data' => $started->{'error'} }
+    if not $started->{'success'};
+
+return {
+    'mode' => qw| true |,
+    'data' => defined $resume
+    ? "starting [ resume $resume ]"
+    : 'starting [ new session ]'
+};
+
+#,,.,,.,.,.,.,,..,.,.,..,,...,.,.,,,,,,..,,,.,..,,...,...,,,.,.,,,..,,,.,,...,
+#MCMYJ2VCKWHLZJSCT6QCU4H7BCJQMVJ4LJJLQOP4XQGOWGY2DXIXVFFQ5NTLZ4JENDJBXY5RHAF7O
+#\\\|Z75CY5MB3BRJIFUUOUXYYQVVDQAHNJYXOP6HPERPGMOPJEPNGM7 \ / AMOS7 \ YOURUM ::
+#\[7]27NS24NGBNJY45SHLJOAEFIHT4WEBKN7UBCTFPLWXEC5X6AUXCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

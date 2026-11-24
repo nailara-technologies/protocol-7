@@ -1,0 +1,28 @@
+## [:< ##
+
+# name   = claude.var_dir
+# descr  = the zenka's var dir
+# args   = create [ TRUE : made when missing ]
+# return = path, or undef
+#
+# created on a write only : init_code runs before root.drop_privs, a dir
+# made there would belong to the launching user
+
+my $create = shift                // FALSE;
+my $dir    = <claude.cfg.var_dir> // <[file.zenka_dir.data_path]>;
+return undef                  if not defined $dir or not length $dir;
+return -d $dir ? $dir : undef if not $create      or -d $dir;
+## the zenka's own dir : made the way base.file.zenka_dir.write makes it ##
+## [ owner and group of the zenka user ] ; a configured dir : mkdir      ##
+if ( defined <claude.cfg.var_dir> ) {
+    CORE::mkdir( $dir, 0700 );
+} else {
+    <[base.path-set-up.check-zenka-paths]>->( TRUE, undef );
+}
+return -d $dir ? $dir : undef;
+
+#,,,,,,.,,..,,,,.,...,,.,,,.,,,,.,,..,..,,.,.,..,,...,...,,,.,.,.,,..,,..,...,
+#UYGZHQGGLIGMKRCX25S5M7CMKI3T2QQ3RC5ZQWHMXWIYIKD4GNGNBVXODCC35WSXLOD76CABFGV2G
+#\\\|ATBJ5ZX23V5ZUWYUS6MGPL454K22RMQIZ6OTUSY6V4ZVNSSRNHR \ / AMOS7 \ YOURUM ::
+#\[7]MXOKWEEZL2GZD4FHI5ODXUKFAYQBZFJWLU2ON5247WL6ZS62IYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

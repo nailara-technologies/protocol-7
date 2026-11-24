@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = claude.init_code
+# descr = claude code session zenka : state and defaults
+
+## one claude code process per instance                                     ##
+## [ claude -p, stream-json both ways ] its stream events become readable   ##
+## lines [ buffer + log file ] ; a result raises the signal claude.run.done ##
+## through the events zenka                                                 ##
+
+<claude.cfg.binary> //= qw| claude |;
+<claude.cfg.args>   //= '-p --input-format stream-json '
+    . '--output-format stream-json --verbose';
+<claude.cfg.interrupt>    //= qw| control |;
+<claude.cfg.buffer_lines> //= 377;
+<claude.cfg.buffer_lines> = 377 if <claude.cfg.buffer_lines> !~ m|\A\d+\z|;
+
+## idle starting running stopped crashed ##
+<claude.state>  //= qw| idle |;
+<claude.events> //= [];           ## readable event lines, bounded ##
+## user turns waiting for the running one ##
+<claude.queue> //= [];
+<claude.turn>  //= 0;
+<claude.cost>  //= 0;
+
+## the session of the last run : a start without resume= continues it ##
+<claude.session> //= <[claude.session.load]>;
+
+## no orphan : the child ends with the zenka, on every exit path ##
+push <callbacks.end_code>->@*, qw| claude.child.end_code |;
+
+<[base.log]>->( 1, ': claude zenka initialized' );
+
+0;
+
+#,,.,,.,.,..,,,..,.,.,...,..,,,..,,,.,.,,,,,.,..,,...,...,.,.,,..,.,,,...,.,.,
+#DDXMCEUUHDCX3J67HGSUE63X633TPFSPJR34F7QITQ4GYFLIWCFBLIESYINJTKZYLUNQ3S7XTKRLY
+#\\\|3KTSWYBQHMP7DP7ZZPOMKIBQ6NZZRBRHIQG3NJ257VJE5TVN4SK \ / AMOS7 \ YOURUM ::
+#\[7]4V4L3PTIOJT2DTMJKKMCNN5F2R3DW67Q7HH3QKT72EXYVP2KY4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

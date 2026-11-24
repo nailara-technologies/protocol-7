@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = claude.cmd.tail
+# param = [ n ]
+# descr = the last n readable event lines
+
+my $n = $call->{'args'} // '';
+$n =~ s{\s+}{}g;
+$n = 21 if not length $n;
+return { 'mode' => qw| false |, 'data' => 'n : a number expected' }
+    if $n !~ m|\A\d{1,5}\z|;
+my $events = <claude.events> // [];
+my $from   = @{$events} > $n ? @{$events} - $n : 0;
+return {
+    'mode' => qw| true |,
+    'data' => "no events yet\n"
+    }
+    if not @{$events};
+return {
+    'mode' => qw| true |,
+    'data' => join( "\n", @{$events}[ $from .. $#$events ] ) . "\n"
+};
+
+#,,,.,.,.,,.,,.,,,,,.,..,,,.,,,,,,,,.,..,,...,..,,...,...,.,,,...,,.,,..,,,.,,
+#EFLQBZJWF34VSCNHVGAPDYIVCVVY2C3JTE6AQSHS7NCCWYILT7ALAZNIRWNKCPCAJQZSSGK5A74TE
+#\\\|5GJVGSLMWYJYLOGBADEQ5PNBHHPLQAC2JMGT2RIP3HNMQTGBCYG \ / AMOS7 \ YOURUM ::
+#\[7]VUVTZKHKVNWB5D5WM2A3LSUPWA5NTZXX7VTM7PWE5Z5VWRBQCYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

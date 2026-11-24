@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = claude.handler.stop_kill
+# descr = timer : KILL a child group left after TERM
+
+my $data  = shift->w->data // {};
+my $child = <claude.child>;
+return if not defined $child or $child->{'pid'} != ( $data->{'pid'} // 0 );
+return if not CORE::kill( 0, -$child->{'pid'} );
+CORE::kill( 'KILL', -$child->{'pid'} );
+<[claude.event.add]>->( qw| stop |, "pid $child->{'pid'} : KILL" );
+
+#,,..,,,.,..,,...,.,.,...,,.,,...,,,,,.,.,,,,,..,,...,...,.,,,..,,.,,,,,.,,,,,
+#LJPZVWKPNPGJPYW2EQL4XFC545TQ63TJXC2TIWUEA3CBOQPHXNS4I7OQV52SPCSA6ZHJDVFG5F3KE
+#\\\|W332YAIKKD2XALKETZ4AGFTEQD5P6JG23FBPWMEJ3TPASK2DJ56 \ / AMOS7 \ YOURUM ::
+#\[7]YIPLTNWSGYOPGTX7I65X6UGD75FHBU35RM6AB57WM5MKPUBI7CBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

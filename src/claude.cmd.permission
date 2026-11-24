@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = claude.cmd.permission
+# param = <id> allow|deny
+# descr = answer a permission prompt [ later stage ]
+
+## stub. open decision : claude code asks through --permission-prompt-tool, ##
+## an mcp tool [ mcp-server-p7 ] that blocks until an answer ; it would     ##
+## forward the request here as an event and wait for this answer.  not      ##
+## decided : how the tool reaches the zenka [ cube route, deferred reply ], ##
+## who may answer [ owner only ], the timeout and its default [ deny ], and ##
+## whether allow-always rules are kept. until then the session runs with    ##
+## its configured permission mode                                           ##
+
+my ( $id, $answer ) = CORE::split m{\s+},
+    ( $call->{'args'} // '' ) =~ s{\A\s+}{}r;
+return { 'mode' => qw| false |, 'data' => 'expected : <id> allow|deny' }
+    if not defined $answer or $answer !~ m{\A(?:allow|deny)\z};
+return {
+    'mode' => qw| false |,
+    'data' => "no permission request '$id' : the permission tool "
+        . 'is a later stage'
+};
+
+#,,.,,.,.,,..,.,,,,..,...,,,,,.,.,,,.,,,.,.,.,..,,...,...,.,.,..,,...,.,,,,,.,
+#O6WP3JZOX67F6EH6ADRG4FQ5YTN4JI3NSLXGMHQEKRVPOIMISCJADJFUYM62DJTUTL3XI6R3RGGDO
+#\\\|7OSDCCSJIF6CQPPT4HVAYDQUK7YREHTDXM4AORRWTTOALFXRWEY \ / AMOS7 \ YOURUM ::
+#\[7]CW7JJ3JOGMALPUGBW2Y4GA4DGJRBFZEXN2AJEJCJ3M4TVFRFJABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

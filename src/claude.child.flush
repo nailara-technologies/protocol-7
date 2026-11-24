@@ -1,0 +1,39 @@
+## [:< ##
+
+# name   = claude.child.flush
+# descr  = write what waits for the child's stdin
+# return = TRUE, or FALSE when the pipe is gone
+
+my $child = <claude.child>;
+return FALSE if not defined $child or not defined $child->{'in'};
+
+while ( length $child->{'pend_in'} ) {
+    my $n = CORE::syswrite( $child->{'in'}, $child->{'pend_in'} );
+    if ( not defined $n ) {
+        last if $OS_ERROR{'EAGAIN'} or $OS_ERROR{'EWOULDBLOCK'};
+        next if $OS_ERROR{'EINTR'};
+        <[claude.event.add]>->( qw| error |, "stdin write : $OS_ERROR" );
+        $child->{'pend_in'} = '';
+        return FALSE;
+    }
+    CORE::substr( $child->{'pend_in'}, 0, $n, '' );
+}
+
+if ( length $child->{'pend_in'} ) {
+    $child->{'w_in'} //= <[event.add_io]>->(
+        {   'fd'      => $child->{'in'},
+            'handler' => qw| claude.handler.stdin |,
+            'data'    => { 'pid' => $child->{'pid'} },
+            'poll'    => qw| w |
+        }
+    );
+} elsif ( defined $child->{'w_in'} ) {
+    <[event.del_io]>->( delete $child->{'w_in'} );
+}
+return TRUE;
+
+#,,,.,,..,,,.,..,,,,,,,,.,,,.,,.,,.,.,,,.,,,,,..,,...,...,..,,,..,.,,,,.,,,..,
+#PWMNM62N2ABSXGNAKL2Z76WAN2PPZROTHGBR4UY6W7ZGDVSNPQ427OAWLZBD5BTLJHNP5PEW7Y5XK
+#\\\|SIN6H6DWNLYMTUVEBFGO6AP5BXPETDRP6WJRUZHXL4NOJTHZ34F \ / AMOS7 \ YOURUM ::
+#\[7]QN6EQSHTHZH3GDGUK5PPBEHGIQTVNDM2M6H7GJLVFTSDII7Z5SCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

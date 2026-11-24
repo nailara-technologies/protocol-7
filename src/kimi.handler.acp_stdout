@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = kimi.handler.acp_stdout
+# descr = read json-rpc lines from the child's stdout
+
+## the remainder of a partial last line stays in the state buffer : a read ##
+## [ 64k ] may end inside a message. end of file = the child is gone       ##
+
+my $event = shift;
+my $st    = <[kimi.acp.state]>;
+my $fh    = $event->w->fd;
+
+my $chunk = '';
+my $bytes = <[base.s_read]>->( $fh, \$chunk, 65536 );
+
+if ( $bytes <= 0 ) {
+    eval { $event->w->cancel };
+    delete $st->{'watchers'}{'out'};
+    <[kimi.acp.child_gone]>;
+    return;
+}
+
+$st->{'rbuf'} .= $chunk;
+if ( length $st->{'rbuf'} > 8_000_000 and $st->{'rbuf'} !~ m{\n} ) {
+    <[kimi.acp.event]>->( qw| error |, 'a line over 8 MB dropped' );
+    $st->{'rbuf'} = '';
+}
+
+$st->{'json'} //= JSON::XS->new->utf8->canonical;
+while ( $st->{'rbuf'} =~ s{\A([^\n]*)\n}{} ) {
+    my $line = $1;
+    next if $line !~ m{\S};
+    my $message = eval { $st->{'json'}->decode($line) };
+    if ( ref $message ne qw| HASH | ) {
+        <[kimi.acp.event]>->( qw| raw |, $line );
+        next;
+    }
+    eval { <[kimi.acp.dispatch]>->($message); 1 } or do {
+        my $why = $EVAL_ERROR =~ s{\s+\z}{}r;
+        <[base.logs]>->( 0, '<< kimi.acp dispatch failed : %s >>', $why );
+        <[kimi.acp.event]>->( qw| error |, "dispatch failed : $why" );
+    };
+}
+return TRUE;
+
+#,,,,,.,.,,,,,..,,.,.,,.,,.,.,...,.,,,.,.,..,,..,,...,...,,,,,.,.,,,.,,,.,,.,,
+#HLDZE4UASV3IPZ7WJRBGUIDYQDRP35J2YP5SEZ737O2J4JU32EQFQXBWZSJM2MTY7NN5H6I3JML3G
+#\\\|7ULPO3RJKWN7E3JPRO33OEKVRAMAN4XK4ACXJ5VFGCAGLFT7WWG \ / AMOS7 \ YOURUM ::
+#\[7]TBOYN7EVQCNXHX5TFLMVNLPAM7DBRTONTRVLFEKWS4QRRHEMIMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

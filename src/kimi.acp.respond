@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = kimi.acp.respond
+# descr = answer a request the child sent to us
+# param = id, result | undef, error code, error message
+
+my ( $id, $result, $code, $text ) = @ARG;
+
+<[kimi.acp.write]>->(
+    defined $code
+    ? { 'id' => $id, 'error'  => { 'code' => $code, 'message' => $text } }
+    : { 'id' => $id, 'result' => $result // {} }
+);
+return TRUE;
+
+#,,.,,,.,,...,,,.,,,.,,.,,,,.,,,.,,..,..,,...,..,,...,..,,,..,,..,,.,,.,,,.,.,
+#3SYJOMMGUOD5VCBU7DGLJSFERLP7DMU2PI2OVDDK7C2FO6GRVBYUKK3RHSITXHKUHALNBMMFH5W6O
+#\\\|5Y4OIK5WGLBQXUEH2NK3GBOVPNRVAZSLBLUFTVES24HLDCBAFRR \ / AMOS7 \ YOURUM ::
+#\[7]Z5OT7IW4U3HM227TU6JY64EBAIJHJ6Y65UZM4MM3YDCGP3LFRKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

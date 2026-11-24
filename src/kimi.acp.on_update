@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = kimi.acp.on_update
+# descr = a session/update notification becomes event lines
+# param = params [ hash ref ]
+
+## message and thought chunks are joined into one line group per run ; ##
+## history sent by session/load is logged as `replay-*` only           ##
+
+my $params = shift;
+my $st     = <[kimi.acp.state]>;
+my $update = $params->{'update'};
+return FALSE if ref $update ne qw| HASH |;
+
+my $type   = $update->{'sessionUpdate'} // qw| unknown |;
+my $prefix = $st->{'replay'} ? qw| replay- | : '';
+
+my %chunk_kind = (
+    'agent_message_chunk' => qw| agent |,
+    'agent_thought_chunk' => qw| thought |,
+    'user_message_chunk'  => qw| user |
+);
+if ( defined $chunk_kind{$type} ) {
+    my $kind = $prefix . $chunk_kind{$type};
+    my $text
+        = ref $update->{'content'} eq qw| HASH |
+        ? ( $update->{'content'}{'text'} // '' )
+        : '';
+    <[kimi.acp.flush_chunk]>
+        if defined $st->{'chunk'} and $st->{'chunk'}{'kind'} ne $kind;
+    $st->{'chunk'} //= { 'kind' => $kind, 'text' => '' };
+    $st->{'chunk'}{'text'} .= $text;
+    return TRUE;
+}
+
+<[kimi.acp.flush_chunk]>;
+my $line;
+if ( $type eq qw| tool_call | or $type eq qw| tool_call_update | ) {
+    $line = join ' ', grep { defined and length } $update->{'toolCallId'},
+        $update->{'title'},
+        defined $update->{'status'} ? "[ $update->{'status'} ]" : undef;
+    $type = qw| tool |;
+} elsif ( $type eq qw| plan | ) {
+    $line = sprintf( '%d entries',
+        ref $update->{'entries'} eq qw| ARRAY |
+        ? scalar @{ $update->{'entries'} }
+        : 0 );
+} elsif ( $type eq qw| usage_update | ) {
+    $line = sprintf( '%s of %s',
+        $update->{'used'} // '?',
+        $update->{'size'} // '?' );
+    $type = qw| usage |;
+} else {
+    $line = $type;
+    $type = qw| update |;
+}
+<[kimi.acp.event]>->( $prefix . $type, $line );
+return TRUE;
+
+#,,.,,,..,,.,,..,,,.,,,,,,,..,,.,,...,...,,,.,..,,...,...,,,,,.,,,.,.,...,...,
+#IPQFM4DL446E26CQSBXGFZCBICHQNDM6QVUI2B26BYZJ5T3EROJSEHBYV6WXPH267WHEDJQ3BNI2O
+#\\\|XEUOX5W46OAA2V3BHHIJK4ZRXBWCRI3IBFH2U4XUAIHD7LESW4H \ / AMOS7 \ YOURUM ::
+#\[7]KYAZWHSBRLP3U525WJMSFNNC2S2WQNYYV4Q7FUIOXQZ73AUHFGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

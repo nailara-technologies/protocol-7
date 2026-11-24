@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = claude.cmd.start
+# param = [ model=<model> ] [ resume=<id>|new ]
+# descr = start the claude code session process
+
+## without resume= the recorded session continues ; resume=new starts a ##
+## fresh one                                                            ##
+
+my $parsed = <[claude.parse_args]>->( $call->{'args'} );
+return { 'mode' => qw| false |, 'data' => $parsed->{'error'} }
+    if defined $parsed->{'error'};
+my $r = <[claude.child.start]>->( $parsed->{'pairs'} );
+return { 'mode' => qw| false |, 'data' => $r->{'error'} }
+    if defined $r->{'error'};
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'claude started [ pid %d%s ]',
+        $r->{'pid'},
+        length( <claude.child>->{'resume'} )
+        ? ', resume ' . <claude.child>->{'resume'}
+        : ', new session'
+    )
+};
+
+#,,.,,..,,,..,,,,,..,,.,,,,,.,,..,,.,,...,.,,,..,,...,..,,..,,,.,,.,,,...,.,,,
+#GLUNSXJPNTB5GBNZ2UWAN66T762RBFJVYLG365EXLQFA47J5BSJKFO3PIDJAABSN7P4AELTTUYHSI
+#\\\|AY76AWKPYDED7LXXJDZCIRSJLXQHW4Z5Z32Z5ZADLZJC2GPMX72 \ / AMOS7 \ YOURUM ::
+#\[7]NNOERYM3YTVQGDZF4MG2C35PF5NQZ3F2ZYDMH23XWE5SNAPKFACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

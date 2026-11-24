@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = kimi.cmd.acp-status
+# descr = show the kimi acp session state
+
+my $st    = <[kimi.acp.state]>;
+my @lines = (
+    sprintf( 'phase   : %s%s',
+        $st->{'phase'}, $st->{'stopping'} ? ' [ stopping ]' : '' ),
+    sprintf( 'pid     : %s', $st->{'pid'} // '-' ),
+    sprintf( 'session : %s',
+        $st->{'session_id'} // <[kimi.acp.session_store]>->(qw| load |)
+            // '-' ),
+    sprintf( 'queued  : %d', scalar @{ $st->{'queue'} } ),
+    sprintf(
+        'events  : %d [ %d seen ]',
+        scalar @{ $st->{'events'} },
+        $st->{'seq'}
+    ),
+    sprintf(
+        'policy  : permission %s, autostart %s',
+        <kimi.acp.cfg.permission> // qw| deny |,
+        <kimi.acp.cfg.autostart>  // qw| yes |
+    ),
+);
+push @lines,
+    sprintf( 'prompt  : running %ds', time - $st->{'turn'}{'started'} )
+    if defined $st->{'turn'};
+push @lines, sprintf( 'up      : %ds', time - $st->{'started'} )
+    if defined $st->{'pid'} and defined $st->{'started'};
+
+return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) . "\n" };
+
+#,,,,,.,,,,.,,,..,,,,,,..,...,.,,,,,,,...,,.,,..,,...,...,,,,,.,,,,,.,.,,,,,.,
+#3JHAI3XUBGDXMIKLJ2FNRZSDWOKQ56EO6NTO3K7PRRSGG6BFARB72QANV36Q26XJXGRXVL54PURIG
+#\\\|WILDNXG23U44G6SIHLA2OR5J6SPILHJ462LSLX5RRTSDN4CAFHO \ / AMOS7 \ YOURUM ::
+#\[7]QKFNLPTV7JP4VSOUT5TVTXM3DKQOQK5YZB3NWXORUMOU3LAOKAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

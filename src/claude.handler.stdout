@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = claude.handler.stdout
+# descr = read the child's stream events [ line framed ]
+
+## every complete line is one stream event ; eof : the child is gone ##
+
+my $event = shift->w;
+my $child = <claude.child>;
+if (   not defined $child
+    or not defined $child->{'out'}
+    or $child->{'pid'} != ( $event->data->{'pid'} // 0 ) ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+
+my $got = CORE::sysread( $child->{'out'}, my $chunk, 65536 );
+if ( not defined $got ) {
+    return if $OS_ERROR{'EAGAIN'} or $OS_ERROR{'EWOULDBLOCK'};
+    return if $OS_ERROR{'EINTR'};
+}
+if ($got) {
+    $child->{'pend_out'} .= $chunk;
+    while ( $child->{'pend_out'} =~ s|\A([^\n]*)\n|| ) {
+        <[claude.stream.line]>->($1);
+        ## a result may have ended the child [ stop on done ] ##
+        return if not defined <claude.child> or <claude.child> != $child;
+    }
+    return;
+}
+
+## eof [ or a read error ] : the last partial line, then gone ##
+my $rest = $child->{'pend_out'};
+$child->{'pend_out'} = '';
+<[claude.stream.line]>->($rest) if length $rest;
+<[claude.child.gone]>->( defined $got ? qw| eof | : "read : $OS_ERROR" );
+
+#,,..,,,.,.,,,,,,,.,.,..,,...,,,,,...,..,,.,,,..,,...,...,,,.,,..,,,,,,.,,,,,,
+#6GH7KRVBCPYXZ6HCIJGNZXE6YLJUICDDOCRJARIXY26JOT4HCN2PJMSSQBPUZIGWALZSAEMSPOUKC
+#\\\|5WOBSZT4L3P5QVJH4XQBVCBBLKANNNQQZ3NB7EYIZXE6KEGSCCY \ / AMOS7 \ YOURUM ::
+#\[7]4BGXJPQSMSN6PSK3KWGTQ7DOGWTQXTGOWVJNDIHF5C2NMPAWHUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

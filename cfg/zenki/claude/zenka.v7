@@ -1,0 +1,57 @@
+ .:[ protocol-7 claude code session zenka ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      src-age src-ver subname name \
+                      start send interrupt status tail stop permission
+
+system.zenka.verbosity.buffer  = 2
+system.zenka.verbosity.console = 2
+
+## the claude code process [ one session per instance ] : binary and flags ##
+## are config -- --model, --resume and --permission-prompt-tool are added  ##
+## from claude.start parameters \ the saved session \ the keys below       ##
+claude.cfg.binary = claude
+claude.cfg.args   = -p --input-format stream-json \
+                    --output-format stream-json --verbose
+# claude.cfg.model                  = sonnet
+# claude.cfg.permission_prompt_tool =      ## later stage [ claude.permission ]
+# claude.cfg.work_dir               =      ## default : <system.root_path>
+# claude.cfg.var_dir                =      ## default : the zenka data dir
+## interrupt : control [ a stream-json control_request ] or signal [ SIGINT ]
+claude.cfg.interrupt    = control
+## readable event lines kept in memory [ claude.status \ claude.tail ]
+claude.cfg.buffer_lines = 377
+
+## stop : TERM, then KILL when the child is still there after this delay ##
+base.interval.cfg.type.claude-stop.start      = 3
+base.interval.cfg.type.claude-stop.factor     = 1.6
+base.interval.cfg.type.claude-stop.cap        = 13
+base.interval.cfg.type.claude-stop.cap_jitter = 2
+
+## eof seen, exit status not yet there : reap checks ##
+base.interval.cfg.type.claude-reap.start      = 1
+base.interval.cfg.type.claude-reap.factor     = 1.6
+base.interval.cfg.type.claude-reap.cap        = 8
+base.interval.cfg.type.claude-reap.cap_jitter = 1
+
+modules.load = auth.client net protocol io.unix ui claude
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,...,,..,,,.,.,,,,,.,,..,.,.,..,,.,.,,,.,..,,...,...,...,,..,..,,,,,,,.,,
+#3USWNV7S6KNQFU6YFQ6Z76RSS55ZQA7BVQCBP5ABH3ZAEHLFW4MY5KYMBFU7TDCX655QMFBNS5XFO
+#\\\|AHGB7SVCX26PARFQYMEZQEFUJVJFMTH2HTUWX3ZCRHFWU22FFK3 \ / AMOS7 \ YOURUM ::
+#\[7]K4KL75LPHBYV5OP7JO5WRJX4VI5FXYG6HH2WWFE7SFR64G2JR2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

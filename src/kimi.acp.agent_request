@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = kimi.acp.agent_request
+# descr = the child asks us something : answer it
+# param = message [ hash ref ]
+
+## session/request_permission is answered by the config policy           ##
+## <kimi.acp.cfg.permission> : `deny` [ default ] or `allow-once`. every ##
+## decision is logged. any other request gets -32601                     ##
+## [ else the child waits for ever ]                                     ##
+
+my $message = shift;
+my $method  = $message->{'method'};
+my $id      = $message->{'id'};
+
+if ( $method ne qw| session/request_permission | ) {
+    <[kimi.acp.event]>->( qw| refused |, "request $method" );
+    return <[kimi.acp.respond]>->(
+        $id, undef, -32601, "method not found : $method"
+    );
+}
+
+my $params = $message->{'params'} // {};
+my $options
+    = ref $params->{'options'} eq qw| ARRAY | ? $params->{'options'} : [];
+my $policy = lc( <kimi.acp.cfg.permission> // qw| deny | );
+$policy = qw| deny | if $policy ne qw| allow-once |;
+my $tool
+    = ref $params->{'toolCall'} eq qw| HASH |
+    ? ( $params->{'toolCall'}{'title'} // $params->{'toolCall'}{'toolCallId'}
+        // 'tool' )
+    : 'tool';
+
+my ( $kind_re, $id_re )
+    = $policy eq qw| allow-once |
+    ? ( qr{\Aallow_once\z}, qr{\A(?:approve_once|allow_once)\z} )
+    : ( qr{\Areject}, qr{\Areject} );
+
+my ($pick) = grep {
+    ref($ARG) eq qw| HASH |
+        and ( $ARG->{'kind'} // '' )
+        =~ $kind_re
+} @{$options};
+($pick) = grep {
+    ref($ARG) eq qw| HASH | and ( $ARG->{'optionId'} // '' ) =~ $id_re
+} @{$options}
+    if not defined $pick;
+
+if ( defined $pick ) {
+    <[kimi.acp.event]>->(
+        qw| permission |,
+        "$tool : $policy [ $pick->{'optionId'} ]"
+    );
+    <[kimi.acp.respond]>->(
+        $id,
+        {   'outcome' => {
+                'outcome'  => qw| selected |,
+                'optionId' => $pick->{'optionId'}
+            }
+        }
+    );
+} else {
+    <[kimi.acp.event]>->(
+        qw| permission |,
+        "$tool : $policy [ no matching option, cancelled ]"
+    );
+    <[kimi.acp.respond]>->(
+        $id, { 'outcome' => { 'outcome' => qw| cancelled | } }
+    );
+}
+return TRUE;
+
+#,,.,,.,,,,.,,.,,,...,..,,..,,..,,,,.,..,,.,,,..,,...,...,.,,,,,,,.,,,,,.,..,,
+#7G5YPLDFEYDNMPFC7GFCTTOXUQHMXO2T2KEOWH4OY2GUQGCMSJ7P3A6OOXEKRUGFI2EDARCWR6RTG
+#\\\|KLRHHDDVDTSQBNHO6EDB4LBBAJU5HF2F6NU3SREUEADGK55AVTZ \ / AMOS7 \ YOURUM ::
+#\[7]ZTI7BO4IBKQZYXR4TWSZ5ILPCFP6DEN63O3WTB6ZXT2CZ5WRQKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

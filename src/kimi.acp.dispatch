@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = kimi.acp.dispatch
+# descr = route one decoded json-rpc message
+# param = message [ hash ref ]
+
+my $message = shift;
+my $st      = <[kimi.acp.state]>;
+
+if ( defined $message->{'method'} and defined $message->{'id'} ) {
+    return <[kimi.acp.agent_request]>->($message);    ## child asks us ##
+}
+
+if ( defined $message->{'method'} ) {    ## notification ##
+    if ( $message->{'method'} eq qw| session/update | ) {
+        return <[kimi.acp.on_update]>->( $message->{'params'} // {} );
+    }
+    <[kimi.acp.event]>->( qw| note |, $message->{'method'} );
+    return TRUE;
+}
+
+return FALSE if not defined $message->{'id'};    ## a response ##
+my $pending = delete $st->{'pending'}{ $message->{'id'} };
+if ( not defined $pending ) {
+    <[kimi.acp.event]>
+        ->( qw| note |, "reply to unknown id $message->{'id'}" );
+    return FALSE;
+}
+return <[kimi.acp.on_response]>->(
+    $pending, $message->{'result'}, $message->{'error'}
+);
+
+#,,.,,,,,,,,.,...,,,.,..,,,,,,,,.,,,.,...,,.,,..,,...,...,...,,..,.,.,..,,.,.,
+#TPCDEUY7BLYIL6DU6THNK7CJYUIG2XO7GBMSENMHCUQVYNHXJWIIGGUPW5N5YXCYWBL7D6GZ4ZDBE
+#\\\|246V77JGLDHO4XI76N576PODTWT2DPEAVXFCJNJEF52YY6UOPUI \ / AMOS7 \ YOURUM ::
+#\[7]GUX2JCDFDOCLLT2KVNHX6FKSXB5RN7PNV55FWEZE57PGVZ7QAEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

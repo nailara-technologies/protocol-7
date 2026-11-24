@@ -1,0 +1,73 @@
+## [:< ##
+
+# name   = claude.stream.describe
+# descr  = readable lines for one stream event
+# args   = decoded event hash
+# return = list of 'kind : text' lines
+#
+# the same shapes as _claude_stream_events in bin/mcp-server-p7 [ the
+# one-shot claude runs ] : init, system, text, tool, result, final
+
+my $d     = shift // {};
+my $short = sub {
+    my ( $text, $max ) = @ARG;
+    $text //= '';
+    $text =~ s|\s*\n\s*| / |g;
+    return length $text > $max ? substr( $text, 0, $max ) . ' ..' : $text;
+};
+my $flat = sub {
+    my $v = shift;
+    return $v if not ref $v;
+    return join ' ', map { "$ARG=" . ( $v->{$ARG} // '' ) } sort keys %{$v}
+        if ref $v eq qw| HASH |;
+    return join ' ', map { ref $ARG ? '..' : $ARG } @{$v}
+        if ref $v eq qw| ARRAY |;
+    return '..';
+};
+
+my $type = $d->{'type'} // '';
+if ( $type eq qw| system | ) {
+    return sprintf 'init : session %s model %s',
+        $d->{'session_id'} // '-', $d->{'model'} // '-'
+        if ( $d->{'subtype'} // '' ) eq qw| init |;
+    return 'system : ' . ( $d->{'subtype'} // '' );
+}
+if ( $type eq qw| result | ) {
+    return sprintf 'final : %s%s : %s', $d->{'subtype'} // '',
+        defined $d->{'total_cost_usd'}
+        ? sprintf( ' [ %.2f usd ]', $d->{'total_cost_usd'} )
+        : '',
+        $short->( $d->{'result'}, 400 );
+}
+if ( $type eq qw| control_response | ) {
+    return 'control : ' . ( $d->{'response'}{'subtype'} // '' );
+}
+my @out;
+my $content = $d->{'message'}{'content'};
+$content = [ { 'type' => qw| text |, 'text' => $content } ]
+    if defined $content and not ref $content;
+foreach my $block ( @{ $content // [] } ) {
+    next if ref $block ne qw| HASH |;
+    my $bt = $block->{'type'} // '';
+    if ( $bt eq qw| text | ) {
+        push @out, 'text : ' . $short->( $block->{'text'}, 400 )
+            if $type ne qw| user |;
+    } elsif ( $bt eq qw| tool_use | ) {
+        push @out, sprintf 'tool : %s %s', $block->{'name'} // '',
+            $short->( $flat->( $block->{'input'} // {} ), 200 );
+    } elsif ( $bt eq qw| tool_result | ) {
+        my $c = $block->{'content'};
+        $c = join ' ', map { ref $ARG ? $ARG->{'text'} // '' : $ARG } @{$c}
+            if ref $c eq qw| ARRAY |;
+        push @out, sprintf 'result%s : %s',
+            $block->{'is_error'} ? ' [ error ]' : '',
+            $short->( $c, 200 );
+    }
+}
+return @out;
+
+#,,,,,.,.,.,,,..,,,..,.,.,...,,,.,,,.,,,.,...,..,,...,...,..,,,,.,,,,,...,...,
+#BPDMHAWYMTPFSFBTT73JKTUDKD6WCMFET2TTTTXOR4EUX5OK7KWZMRCTC23BNXDIPNM2PE4IJ72OA
+#\\\|NVVVGB5L3GH34PH3ZFBUD2F252ZX663X4P7IZEMO66GQTXSWJPD \ / AMOS7 \ YOURUM ::
+#\[7]DPB72CEUON47W7MBOL5DCOAPKMQGI7KFHZ2JIODW3CQNQB3YV6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

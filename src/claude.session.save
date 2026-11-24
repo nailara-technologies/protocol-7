@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = claude.session.save
+# descr = record the session id [ a restart resumes it ]
+# args  = session id
+
+## p7 config style, one key per line ##
+
+my $session = shift // '';
+return FALSE if $session !~ m|\A[\w-]{8,80}\z|;
+<claude.session> = $session;
+my $dir = <[claude.var_dir]>->(TRUE);
+return FALSE if not defined $dir;
+my $tmp = "$dir/session.cfg.new";
+CORE::open( my $fh, '>:encoding(UTF-8)', $tmp ) or return FALSE;
+printf {$fh} "## claude zenka : the session a start resumes ##\n\nsession "
+    . "= %s\nsaved   = %s\n", $session, <[base.ntime]>;
+CORE::close($fh)                         or return FALSE;
+CORE::rename( $tmp, "$dir/session.cfg" ) or return FALSE;
+return TRUE;
+
+#,,..,...,,.,,..,,.,,,...,.,.,..,,,..,...,...,..,,...,...,.,.,,..,,.,,,.,,...,
+#NNZOEYO5J2REVCHKCAMTCSZ5GDYUZJ2Q6RWTLKEX4KYEEOMXJTESKVSIJD6JWM4GSNMRNWPZ467T2
+#\\\|OIF4VN3E6XPPQOGXNR4R2EEPKLCRV2VCR3F2GNKNLLYVCZ6RF6G \ / AMOS7 \ YOURUM ::
+#\[7]73XKYASRBI6JNMQERRFQGJE5RL2PEEDOYP6W2E5RKHPDFBGWMADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

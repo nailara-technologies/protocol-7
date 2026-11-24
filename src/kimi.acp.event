@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = kimi.acp.event
+# descr = add event lines to the buffer and the log
+# param = kind, text
+
+## readable lines in a bounded buffer [ <kimi.acp.cfg.buffer>, 500 ] and ##
+## appended to `acp.log` in the zenka var dir. a kind starting `replay`  ##
+## [ history sent by session/load ] goes to the log only                 ##
+
+my ( $kind, $text ) = @ARG;
+my $st = <[kimi.acp.state]>;
+$text //= '';
+
+my $limit = <kimi.acp.cfg.buffer> // 500;
+$limit = 500 if $limit !~ m{\A\d+\z} or $limit < 10;
+my $stamp = POSIX::strftime( '%H:%M:%S', localtime );
+
+my $log = '';
+for my $line ( grep {length} split m{\n}, $text ) {
+    $line = substr( $line, 0, 1000 ) . ' ..' if length $line > 1000;
+    my $entry = sprintf( '%s %s : %s', $stamp, $kind, $line );
+    $log .= "$entry\n";
+    next if $kind =~ m{\Areplay};
+    push @{ $st->{'events'} }, $entry;
+    $st->{'seq'}++;
+}
+shift @{ $st->{'events'} } while @{ $st->{'events'} } > $limit;
+
+## the real write defaults to :raw : the layer is named, the lines are ##
+## characters                                                          ##
+<[file.zenka_dir.write]>->(
+    'acp.log', \$log, qw| >> |, 0600, ':encoding(UTF-8)'
+) if length $log;
+return TRUE;
+
+#,,..,,,.,.,,,...,.,.,,,.,...,.,,,.,.,,..,,..,..,,...,...,,,,,..,,..,,.,,,,,.,
+#O375MTRGQ3QM5U44OXXSCPKNYYRDX36R4THTAF3XQHU3PVAFT5IPTXG5WS4ISAYRHRGTCTQDSWAR6
+#\\\|XP4P4R3DB4AMXVOVK3K45NOMOHJWIZMG4QEY3UW3ARSHQBBNWQG \ / AMOS7 \ YOURUM ::
+#\[7]RQT7H3HSD5LZJGN4DIGHVHVI4VOQMCOGS73TLHUTYJVMK4UVXGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

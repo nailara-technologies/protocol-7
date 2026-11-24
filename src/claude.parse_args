@@ -1,0 +1,25 @@
+## [:< ##
+
+# name   = claude.parse_args
+# descr  = key=value arguments of claude.start
+# args   = text
+# return = { pairs => { .. } } or { error }
+
+my $text  = shift // '';
+my %known = map { $ARG => 1 } qw| model resume |;
+my %pairs;
+foreach my $word ( grep {length} CORE::split m{\s+}, $text ) {
+    my ( $key, $value ) = $word =~ m{\A([a-z]+)=(\S*)\z};
+    return { 'error' => "'$word' : key=value expected [ model resume ]" }
+        if not defined $key
+        or not $known{$key};
+    return { 'error' => "key '$key' given twice" } if exists $pairs{$key};
+    $pairs{$key} = $value;
+}
+return { 'pairs' => \%pairs };
+
+#,,,.,,..,,,.,..,,,.,,.,,,,,.,.,,,,,.,,.,,.,.,..,,...,..,,...,,,,,,..,.,.,,..,
+#IJR5REAFKKEKUI2KKKHZVJFOHFWLOT6DLI6KW6IE5EQOU5BID7TDD66ZPXRD4VUSIZVEZGAUT3V6U
+#\\\|VBFQM67GI75MZ7RJF4N3SWAB7CTC7EJGOT5KXT7CR5NTLVREBEL \ / AMOS7 \ YOURUM ::
+#\[7]U4HUFHAYGOV5CMZ76IIVV4B4GU4OJYSTHZCEE3TY5XG65EIMAAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

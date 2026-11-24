@@ -1,0 +1,22 @@
+## [:< ##
+
+# name   = claude.wire.decode
+# descr  = one stream-json output line to a hash
+# args   = line [ utf-8 octets ]
+# return = hash ref, or undef for a line that is not one
+
+my $line = shift // '';
+return undef if $line !~ m|\A\s*\{|;
+state $json;
+if ( not defined $json ) {
+    require JSON::XS;
+    $json = JSON::XS->new->utf8;
+}
+my $d = eval { $json->decode($line) };
+return ref $d eq qw| HASH | ? $d : undef;
+
+#,,..,.,.,,..,..,,..,,.,,,,.,,.,,,.,,,.,,,,..,..,,...,...,.,,,,.,,,..,,..,,,.,
+#PSHZLOO7BDJ2YVR6LUGFMNBYATKHO6WDTPVYY6U2JW7EUDSGRGN6KWSOHKBWH24N4P53GDUVGMS4K
+#\\\|T5X7DDOWUWH4JTSW6K5THAH6WF6AJD3DFCXZOE4FLCGR6IT5KPA \ / AMOS7 \ YOURUM ::
+#\[7]TVICJ5XQ4VJDFKNJBODMQI2W5QX3GBZ5JBEG7GXQPMQXWEYC7CBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

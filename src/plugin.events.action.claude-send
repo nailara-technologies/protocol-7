@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = plugin.events.action.claude-send
+# descr = events action plugin : a turn into a claude session
+
+## a thin send-command : claude.send <message> through the cube -- a parked ##
+## task or a bucket entry continues a claude code session                   ##
+return {
+    'name'     => qw| claude-send |,
+    'kind'     => qw| action |,
+    'describe' => 'claude.send : message = <text> [ a user turn ]',
+    'run'      => sub {
+        my $fire    = shift;
+        my $ev_type = $fire->{'ev_type'};
+        my $action  = $fire->{'action'};
+        die "claude-send wakes on a time or a signal, not '$ev_type'"
+            if $ev_type ne qw| at | and $ev_type ne qw| signal |;
+        my $message = $action->{'message'} // '';
+        $message =~ s{\s+}{ }g;
+        die "'message' parameter is missing from 'claude-send'"
+            if $message !~ m{\S};
+        <[base.log]>->( 1, 'sending a turn to the claude session' );
+        <[protocol-7.command.send.local]>->(
+            {   'command'   => qw| cube.claude.send |,
+                'call_args' => { 'args' => $message }
+            }
+        );
+        return TRUE;
+    }
+};
+
+#,,.,,,,,,..,,,..,.,,,,,.,..,,..,,,,.,..,,.,,,..,,...,...,,..,.,,,.,.,.,,,,.,,
+#3IXUXFZ5ROECQXFOFHIXYEBPL3FAKS272CCMLPPW6KJSNTOVYMW5SWJNH3QMOUH6MVDVMMIMJJYCU
+#\\\|5S7JFGAQPXEPOGZEG5G3HAMA7LMBPS57XDQ5CRCHAJW7XGTQUI5 \ / AMOS7 \ YOURUM ::
+#\[7]3FNUPP2QL4M454EBXBZRQCFFTS42OTX23ZW6SGWPIF24BIY3AECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

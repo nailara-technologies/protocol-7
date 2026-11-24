@@ -1,0 +1,21 @@
+## [:< ##
+
+# name   = claude.session.load
+# descr  = the recorded session id of the last run
+# return = session id, or undef
+
+my $dir = <[claude.var_dir]>;
+return undef if not defined $dir;
+CORE::open( my $fh, '<:encoding(UTF-8)', "$dir/session.cfg" ) or return undef;
+my $session;
+while ( my $line = <$fh> ) {
+    $session = $1 if $line =~ m|\A\s*session\s*[=:]\s*([\w-]{8,80})\s*\z|;
+}
+CORE::close($fh);
+return $session;
+
+#,,..,,,.,,,,,..,,,,.,...,.,.,,.,,,,,,.,,,,,.,..,,...,...,.,,,.,.,,..,,..,,,,,
+#ZR7H3WZED5TVVTRZWXLNPY7F4MFE3LRDULZUYUTVZ2E4BMCDNUE6SQJ2YOKHEGYSR6YZ6Q3CZZ2UY
+#\\\|V2BZK4DKLVQGGBYC67XANQ7GHRKTPEZ3NT63PTEZCMSGHB654X6 \ / AMOS7 \ YOURUM ::
+#\[7]5KMY5P4MYIG7UMOROOQDLF3JJIOIQDWFKGBZI25XU64P35YI4AAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name   = kimi.acp.session_store
+# descr  = load or save the stored acp session id
+# param  = op [ load | save ], id
+# return = the id [ load ] | TRUE [ save ] | undef
+
+## its own file `acp.session`, p7 config style [ `session_id = <id>` ] :  ##
+## `session_id` of kimi.init_code is the kimi-web session, never mixed in ##
+
+my ( $op, $id ) = @ARG;
+
+if ( $op eq qw| save | ) {
+    return undef if not defined $id or $id !~ m|\A[\w.:-]{1,128}\z|;
+    my $text = "session_id = $id\n";
+    return <[file.zenka_dir.write]>->( 'acp.session', \$text ) ? TRUE : undef;
+}
+
+my $sref = <[file.zenka_dir.load]>->('acp.session');
+return undef if not defined $sref or not length $sref->$*;
+my ($saved) = $sref->$* =~ m|^session_id\s*[=:]\s*([\w.:-]{1,128})\s*$|m;
+return $saved;
+
+#,,,,,.,,,,,.,.,,,,..,.,.,..,,,.,,,,.,.,,,,,,,..,,...,...,...,,,.,..,,.,.,,,.,
+#TBZHDESTC6XMXPLBJ2JEPFHKOU2KKSDNUNHISFBWHOZOAKBR47DJYH7MN5AQJGU5K3AI7RUPSVOHE
+#\\\|AKKEFSTZIUMWE24YQCRN4Q3VO6B5XF74Z3ZZSDKLMGYTSZJFPRE \ / AMOS7 \ YOURUM ::
+#\[7]RYTCI65AEYE7IU6JO6ZNYA66UOCVT2NGZKLW52G7AOVBIUVYYOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

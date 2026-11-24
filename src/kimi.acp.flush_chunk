@@ -1,0 +1,16 @@
+## [:< ##
+
+# name  = kimi.acp.flush_chunk
+# descr = turn the collected message chunks into event lines
+
+my $st    = <[kimi.acp.state]>;
+my $chunk = delete $st->{'chunk'};
+return FALSE if not defined $chunk or not length $chunk->{'text'};
+<[kimi.acp.event]>->( $chunk->{'kind'}, $chunk->{'text'} );
+return TRUE;
+
+#,,..,,,.,,.,,.,.,,,.,,,,,,,,,...,.,.,...,.,.,..,,...,...,,.,,..,,,..,...,.,,,
+#XTYFIXM6655RRCTTG3BTQIULNHA75SRNQ65OWMNFXR2IYSAP2CC4KCD4PCN36YYBO6RF6NOD7M3GW
+#\\\|TWFLIBQAHYPVV67656VD7V2LAMXY6COLY5264B6WFDMCF6B3UMJ \ / AMOS7 \ YOURUM ::
+#\[7]V4ANQQKJKYHSR2KO7EX7LIRQK4FQCSPTV6XW7TC7AT5LHHZCDMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

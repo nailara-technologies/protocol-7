@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = claude.turn.done
+# descr = a turn ended : cost, signal, the next turn
+# args  = result event hash [ or { failed => reason } ]
+
+my $d = shift // {};
+my $state
+    = (     not $d->{'failed'}
+        and ( $d->{'subtype'} // '' ) eq qw| success |
+        and not $d->{'is_error'} )
+    ? qw| ok |
+    : qw| failed |;
+<claude.cost> = $d->{'total_cost_usd'} + 0
+    if ( $d->{'total_cost_usd'} // '' ) =~ m{\A[\d.eE+-]+\z};
+my $was = <claude.turn_active>;
+<claude.turn_active> = FALSE;
+<claude.last_result> = {
+    'state'   => $state,
+    'subtype' => $d->{'subtype'} // $d->{'failed'} // '',
+    'turn'    => <claude.turn>,
+    'ended'   => time
+};
+
+<[claude.signal.done]>->(
+    {   'state'   => $state,
+        'session' => <claude.session> // '-',
+        'turn'    => <claude.turn>,
+        'cost'    => sprintf( '%.4f', <claude.cost> // 0 ),
+        ( $d->{'failed'} ? ( 'reason' => $d->{'failed'} ) : () )
+    }
+    )
+    if $was
+    or not $d->{'failed'};
+
+<[base.zenki.resume_ondemand_timeout]>
+    if defined $code{'base.zenki.resume_ondemand_timeout'};
+<[claude.turn.next]>;
+
+#,,,.,.,,,...,,,,,.,,,,.,,,,,,..,,,,,,,,.,.,.,..,,...,...,,,,,.,.,.,,,..,,..,,
+#5F4SQUI23IUPYDGOWENI47WCPTA6U7NH2EJJIGH7WAH6GBSBVYMJQUIT6MJW4CXUW7RMKNBVUTKJE
+#\\\|2VVF6MWB5U6VKGTJ7QWO7GR7EDQNNYRZG34K2YFQTS2QZSPFQFL \ / AMOS7 \ YOURUM ::
+#\[7]YXENCGX44Y2YUF6CGD7DQLLS3VIMBFGNRERWBHG5XTK4R3FVGSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

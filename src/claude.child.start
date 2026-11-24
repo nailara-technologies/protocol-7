@@ -1,0 +1,112 @@
+## [:< ##
+
+# name   = claude.child.start
+# descr  = start the claude code process [ one session ]
+# args   = { model, resume } [ resume : id \ new \ empty = saved ]
+# return = { ok => TRUE, pid } or { error => text }
+#
+# claude -p, stream-json in and out, through IPC::Open3 : stdout and stderr
+# are read in the event loop [ io watchers, line framed ], stdin is written
+# non-blocking [ claude.child.write ]. binary and flags from config
+
+my $in = shift // {};
+
+return {
+    'error' => 'claude is running [ pid ' . <claude.child>->{'pid'} . ' ]' }
+    if defined <claude.child> and defined <claude.child>->{'out'};
+
+my $binary = <claude.cfg.binary> // '';
+return { 'error' => 'claude.cfg.binary is not set' } if not length $binary;
+
+my $model = $in->{'model'} // <claude.cfg.model> // '';
+return { 'error' => "model '$model' : letters, digits, . _ - [ ] only" }
+    if length $model and $model !~ m|\A[\w.\[\]-]{1,80}\z|;
+
+my $resume = $in->{'resume'} // '';
+$resume = <claude.session> // '' if not length $resume;
+$resume = '' if $resume eq qw| new |;
+return { 'error' => "resume '$resume' : not a session id" }
+    if length $resume and $resume !~ m|\A[\w-]{8,80}\z|;
+
+my $tool = <claude.cfg.permission_prompt_tool> // '';
+my @cmd  = (
+    $binary,
+    grep {length} CORE::split( m{\s+}, <claude.cfg.args> // '' ),
+    ( length $model  ? ( '--model',                  $model )  : () ),
+    ( length $resume ? ( '--resume',                 $resume ) : () ),
+    ( length $tool   ? ( '--permission-prompt-tool', $tool )   : () ),
+);
+
+require IPC::Open3;
+require Symbol;
+my $work_dir = <claude.cfg.work_dir> // <system.root_path> // '.';
+my $here     = Cwd::getcwd();
+CORE::chdir($work_dir)
+    or return { 'error' => "work dir '$work_dir' : $OS_ERROR" };
+my ( $to_child, $from_child, $err_child )
+    = ( undef, undef, Symbol::gensym() );
+## its own process group : a stop ends claude and what it started    ##
+## [ mcp servers, tool processes ] -- a perl shim, setpgrp then exec ##
+my @shim = (
+    $EXECUTABLE_NAME,                                                '-e',
+    'setpgrp( 0, 0 ); exec { $ARGV[0] } @ARGV or die "exec : $!\n"', @cmd
+);
+my $pid
+    = eval { IPC::Open3::open3( $to_child, $from_child, $err_child, @shim ); };
+my $spawn_error = $EVAL_ERROR;
+CORE::chdir($here) if defined $here;
+return { 'error' => 'spawn failed : ' . ( $spawn_error || 'no pid' ) }
+    if not $pid;
+
+foreach my $fh ( $to_child, $from_child, $err_child ) {
+    CORE::binmode( $fh, ':raw' );
+    $fh->blocking(0);
+}
+
+my $child = <claude.child> = {
+    'pid'      => $pid,
+    'in'       => $to_child,
+    'out'      => $from_child,
+    'err'      => $err_child,
+    'pend_in'  => '',
+    'pend_out' => '',
+    'pend_err' => '',
+    'started'  => time,
+    'model'    => $model,
+    'resume'   => $resume,
+};
+$child->{'w_out'} = <[event.add_io]>->(
+    {   'fd'      => $from_child,
+        'handler' => qw| claude.handler.stdout |,
+        'data'    => { 'pid' => $pid },
+        'poll'    => qw| r |
+    }
+);
+$child->{'w_err'} = <[event.add_io]>->(
+    {   'fd'      => $err_child,
+        'handler' => qw| claude.handler.stderr |,
+        'data'    => { 'pid' => $pid },
+        'poll'    => qw| r |
+    }
+);
+
+<claude.state>       = qw| running |;
+<claude.turn_active> = FALSE;
+<[base.zenki.report_child_pid]>->( $pid, qw| claude | )
+    if defined $code{'base.zenki.report_child_pid'};
+<[claude.event.add]>->(
+    qw| start |, sprintf '%s pid %d%s%s',
+    $binary,     $pid,
+    length $model  ? " model $model"   : '',
+    length $resume ? " resume $resume" : ' new session'
+);
+
+## turns sent before the start wait in the queue ##
+<[claude.turn.next]>;
+return { 'ok' => TRUE, 'pid' => $pid };
+
+#,,,.,.,,,.,.,.,.,,,,,,..,,,.,..,,,,,,.,.,.,.,..,,...,...,,.,,...,.,,,.,,,,..,
+#PWZQ5K3ZFIAMWK4GQ2BYOXZIKIHTCTOYSJCOEAUDHULXWW6Y7PMCKMNMETSRTGAC3XJKLM74FVGD2
+#\\\|DRCHFI4XEYGQCRFXNKI4HL72ZGMM45VFF7BPYOPCQMF6HMPXCIT \ / AMOS7 \ YOURUM ::
+#\[7]7KO6OS2AX7PCSX4OSXJSZQWE5JT76OYGXSJL6A3SIMCFCA6U4CDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

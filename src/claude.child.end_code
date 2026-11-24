@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = claude.child.end_code
+# descr = zenka exit : the child ends too [ no orphan ]
+
+## end_code runs on every exit path [ bin/Protocol-7 END ] : no event loop ##
+## any more -- stdin closed, TERM, a short wait, then KILL                 ##
+
+my $child = <claude.child>;
+return if not defined $child or not defined $child->{'pid'};
+return if defined $child->{'exit'};
+my $pid = $child->{'pid'};
+CORE::close( $child->{'in'} ) if defined $child->{'in'};
+CORE::kill( 'TERM', -$pid );
+my $state = {};
+my $wait  = <[base.interval.next]>
+    ->( { 'type' => qw| claude-stop |, 'state' => $state } ) // 3;
+my $until = time + $wait;
+
+while ( time <= $until ) {
+    my $got = CORE::waitpid( $pid, POSIX::WNOHANG() );
+    last if $got == $pid or $got < 0;
+    CORE::select( undef, undef, undef, 0.13 );
+}
+## what is left of the group [ claude or its children ] : KILL ##
+CORE::kill( 'KILL', -$pid ) if CORE::kill( 0, -$pid );
+CORE::waitpid( $pid, POSIX::WNOHANG() );
+
+#,,,.,...,.,.,..,,...,,..,,,,,.,,,..,,,..,,,,,..,,...,..,,,,,,.,,,,,.,,,,,,..,
+#DQV4AOHSYW7KQIUUCHSIHA5VHYWX7GXXLWDZB5ZCZP53DPHBWFI5SAG2JWBQEIKSO547HADUTRLRY
+#\\\|ZA3PD4CRZ74ANRCLARAYSNPSQCZPSHSGEKBDCW5OHAZOCM6G5DW \ / AMOS7 \ YOURUM ::
+#\[7]Q4XICPASOCHNDMERP275VMIMA57A7HONTBF7J47JX77PKSNM3GCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

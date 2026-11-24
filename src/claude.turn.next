@@ -1,0 +1,41 @@
+## [:< ##
+
+# name   = claude.turn.next
+# descr  = start the next queued user turn
+# return = TRUE when a turn was started
+
+## one turn at a time : a send while a turn runs waits in the queue ##
+
+my $child = <claude.child>;
+return FALSE if not defined $child or not defined $child->{'in'};
+return FALSE if <claude.turn_active>;
+my $text = CORE::shift( @{ <claude.queue> //= [] } );
+return FALSE if not defined $text;
+
+my $sent = <[claude.child.write]>->(
+    {   'type'    => qw| user |,
+        'message' => {
+            'role'    => qw| user |,
+            'content' => [ { 'type' => qw| text |, 'text' => $text } ]
+        }
+    }
+);
+if ( not $sent ) {
+    CORE::unshift( @{<claude.queue>}, $text );
+    return FALSE;
+}
+<claude.turn>++;
+<claude.turn_active>  = TRUE;
+<claude.turn_started> = time;
+<[claude.event.add]>->( qw| user |, $text );
+
+## a running turn is work : the idle timeout waits ##
+<[base.zenki.pause_ondemand_timeout]>
+    if defined $code{'base.zenki.pause_ondemand_timeout'};
+return TRUE;
+
+#,,,,,,..,,,.,...,.,,,.,.,,,,,,..,,,.,,,.,...,..,,...,...,...,..,,,.,,...,.,.,
+#7TYVM7VB5R5GRTUOKOHQZCRRL3KRI5SS37R4WH5ABWHLUY5YALJT6NPNFA5NOYVPIOYXGBPPTY64G
+#\\\|5V7PNEOCOHTZYGPKLSFEZPSOK4ZX6RTTNZ5AXOGA4PH3WRXAYXX \ / AMOS7 \ YOURUM ::
+#\[7]WSNGEVS66S736OSSNJW3U63JALJ62SRN3SNE22FC234NCEEFSICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

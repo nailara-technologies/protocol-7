@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = kimi.acp.raise_done
+# descr = raise signal kimi.run.done through the events zenka
+# param = state
+
+## values carry no spaces [ the signal line splits on them ]. route-send ##
+## only buffers : the answer comes to kimi.handler.acp_signal_reply      ##
+
+my $state = shift // qw| unknown |;
+my $st    = <[kimi.acp.state]>;
+s{[^\w.-]}{_}g for $state;
+my $session = ( $st->{'session_id'} // qw| none | ) =~ s{[^\w.:-]}{_}gr;
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| events.signal |,
+        'call_args' =>
+            { 'args' => "kimi.run.done state=$state session=$session" },
+        'reply' => {
+            'handler' => qw| kimi.handler.acp_signal_reply |,
+            'params'  => {}
+        }
+    }
+);
+return TRUE;
+
+#,,,,,,,.,...,,.,,...,,,,,...,..,,,.,,...,,,,,..,,...,...,.,.,,..,...,,..,..,,
+#Q5RH5DEHHCXF4EPUREJ6IAICZ6LBRFWDCAFQT2ELGPPIDYX5DDGXL5UZK6HPVY75R5RWMU5YS655A
+#\\\|F2BLHCZPOAYFRR5CTNJ7VLSLV4C3P33OYB6Q4TLHU4J3WN6YUOU \ / AMOS7 \ YOURUM ::
+#\[7]YXYKWE7T2YGM4UP4OMEBTBN4QSOGIYZTZ53OIXQYJJAFWPL2TCDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = kimi.acp.flush
+# descr = write the queued bytes to the child's stdin
+
+## a full pipe leaves the rest queued and a `w` watcher armed            ##
+## [ never a blocking write ] ; the watcher goes once the queue is empty ##
+
+my $st = <[kimi.acp.state]>;
+my $fh = $st->{'in'};
+return FALSE if not defined $fh;
+
+while ( length $st->{'wbuf'} ) {
+    my $len     = length $st->{'wbuf'};
+    my $written = <[base.s_write]>->( $fh, \$st->{'wbuf'}, $len );
+    if ( $written < 0 ) {
+        <[kimi.acp.event]>->( qw| error |, 'write to the child failed' );
+        $st->{'wbuf'} = '';
+        last;
+    }
+    if ( $written == 0 ) {
+        $st->{'watchers'}{'in'} //= <[event.add_io]>->(
+            {   'fd'      => $fh,
+                'poll'    => qw| w |,
+                'handler' => qw| kimi.handler.acp_stdin |,
+                'data'    => {}
+            }
+        );
+        return TRUE;
+    }
+    substr( $st->{'wbuf'}, 0, $written ) = '';
+}
+
+my $watcher = delete $st->{'watchers'}{'in'};
+eval { $watcher->cancel } if defined $watcher;
+return TRUE;
+
+#,,.,,.,.,,,,,,,.,...,.,,,.,.,..,,.,.,,.,,,,.,..,,...,...,.,,,,,,,,..,..,,,..,
+#EIWG3B2P76Q34JYVXQ5KAWNQTGKMMHIFQBXL2ZNVJWKILXNIMPLNLLQNEYCDSRVLPHGLQEGRSIYSU
+#\\\|4ME36GPXX4F654LW45MILHMNIOJ7EXUCIXBDO2OEQYIOCS44JRH \ / AMOS7 \ YOURUM ::
+#\[7]TJSG73UVV26YSBWDMURTP6L2ZI4ZDD37SPDFGC3GMLKEOLV35SCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

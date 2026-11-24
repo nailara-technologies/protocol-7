@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = claude.cmd.stop
+# descr = end the claude code process [ the session is kept ]
+
+CORE::splice( @{ <claude.queue> //= [] } );
+return { 'mode' => qw| false |, 'data' => 'claude is not running' }
+    if not <[claude.child.stop]>;
+return {
+    'mode' => qw| true |,
+    'data' => 'claude stopping [ session '
+        . ( <claude.session> // '-' ) . ' ]'
+};
+
+#,,..,.,,,.,,,,..,..,,.,.,...,..,,,.,,,,,,.,.,..,,...,...,..,,,..,.,.,.,.,..,,
+#ES3GH2XMVK6BHUI7OBE7EIZP22WCRVJT5TSWD2DIQI2B4TZNXY2HPSQIS7EVVRMEPNOVJUST34RTE
+#\\\|Z6BI4CRHA6TBUS7NEGR2NMUNPKIHBA2M7BV6DHXF4NWRNJV77EX \ / AMOS7 \ YOURUM ::
+#\[7]ANO35SQDKDTK475AURSO6MKIPYKECERLVF34YHXPZ7PPZQQTUEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

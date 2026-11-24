@@ -1,0 +1,21 @@
+## [:< ##
+
+# name   = claude.child.write
+# descr  = send one stream-json line to the child [ non-blocking ]
+# args   = hash ref [ the input message ]
+# return = TRUE, or FALSE without a running child
+
+## what does not fit the pipe now waits in pend_in ; a write watcher drains ##
+## it and ends itself when it is empty                                      ##
+
+my $message = shift;
+my $child   = <claude.child>;
+return FALSE if not defined $child or not defined $child->{'in'};
+$child->{'pend_in'} .= <[claude.wire.encode]>->($message);
+return <[claude.child.flush]>;
+
+#,,,.,..,,,,,,,.,,..,,,,,,,.,,...,,..,,..,,.,,..,,...,...,,..,,.,,,,.,,,.,.,.,
+#RDKK3T4PRVEZ4IES5L7AHP2UZKQMKAWTLXV6CLLA2FFZYYCFPZ46V224ICCUJY2A5LQ4T56WAUQH4
+#\\\|UNPIWVT65BKGPSGZKW4IDOZC6AATPZR2FPMAJVKQL47WZKVCXJS \ / AMOS7 \ YOURUM ::
+#\[7]HIOG4MRHJW65KA2GJXX475QB7KMFRRXRORRZLY44ZFEXOEBIFUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

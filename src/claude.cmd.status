@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = claude.cmd.status
+# descr = state, session, turn, cost, last events
+
+my $child = <claude.child>;
+my $last  = <claude.last_result> // {};
+my @lines = (
+    sprintf( 'state   : %s%s',
+        <claude.state> // qw| idle |,
+        <claude.turn_active> ? ' [ turn running ]' : '' ),
+    sprintf( 'pid     : %s',
+        defined $child && defined $child->{'out'} ? $child->{'pid'} : '-' ),
+    sprintf( 'session : %s', <claude.session> // '-' ),
+    sprintf( 'turn    : %d%s',
+        <claude.turn> // 0,
+        defined $last->{'state'}
+        ? " [ last $last->{'state'} $last->{'subtype'} ]"
+        : '' ),
+    sprintf( 'queued  : %d',       scalar @{ <claude.queue> // [] } ),
+    sprintf( 'cost    : %.4f usd', <claude.cost> // 0 ),
+);
+my $events = <claude.events> // [];
+my $from   = @{$events} > 7 ? @{$events} - 7 : 0;
+push @lines, '', 'last events :',
+    map {"  $ARG"} @{$events}[ $from .. $#$events ]
+    if @{$events};
+return { 'mode' => qw| true |, 'data' => join( "\n", @lines ) . "\n" };
+
+#,,,,,,.,,,..,,..,.,,,,,.,,.,,,.,,...,,,.,...,..,,...,..,,..,,.,,,,,.,...,...,
+#SHRYH2MDAHYOK6J4MEJNMA7NYDPV3U7NKBWSPQ2STG7NR7BW6ZEUUUXYTKKRRDRCI7FJW4HQDDHAM
+#\\\|MRH7PB5TWTIACFS35NZMRXDFMLK543IQDTPCBZQQVBWFAJUEFXD \ / AMOS7 \ YOURUM ::
+#\[7]UGQ6IJT6SNM6ESFRZYHGEIJBXUD4GY76WLYXT4XVI3LVUSWENSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

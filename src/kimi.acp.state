@@ -1,0 +1,48 @@
+## [:< ##
+
+# name   = kimi.acp.state
+# descr  = the acp adapter session state [ made on first use ]
+# return = hash ref
+
+## one `kimi acp` child per adapter session. phase : stopped, starting     ##
+## [ handshake ], ready, prompting. the state lives under <kimi.acp.state> ##
+## beside the config <kimi.acp.cfg.*>                                      ##
+## [ permission, autostart, command, buffer ]                              ##
+
+my $st = <kimi.acp.state>;
+return $st if ref $st eq qw| HASH |;
+
+return <kimi.acp.state> = {
+    'phase'      => qw| stopped |,
+    'pid'        => undef,
+    'in'         => undef,
+    'out'        => undef,
+    'err'        => undef,
+    'watchers'   => {},
+    'rbuf'       => '',
+    'ebuf'       => '',
+    'wbuf'       => '',
+    'next_id'    => 0,
+    'pending'    => {},
+    'session_id' => undef,
+    'caps'       => {},
+    'queue'      => [],
+    'events'     => [],
+    'seq'        => 0,
+    'turn'       => undef,
+    'chunk'      => undef,
+    'replay'     => FALSE,
+    'stopping'   => FALSE,
+    'stop_timer' => undef,
+    'stop_state' => {},
+    'stop_round' => 0,
+    'started'    => undef,
+    'owner'      => undef,
+    'json'       => undef
+};
+
+#,,.,,..,,.,,,...,,..,,,,,,,.,..,,.,,,..,,..,,..,,...,...,.,.,,..,,,,,,.,,,..,
+#KLJVN56TE4TEOA3E6MN6KUNO5ZGWMZCFDDSYPN4SBMOCHXNLDZ4VVTI2JZJ36H7LJLPZBTUGDRKVO
+#\\\|57JN3IKKOZVEV6J5WLQSALAEMNZS25OMLWCZWD2WSYPIYLB2BKF \ / AMOS7 \ YOURUM ::
+#\[7]2PJOFQERTJSUJA6JMYJ3XU2DIE52YVX3WX4BWSXS3AHXRS4UWGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

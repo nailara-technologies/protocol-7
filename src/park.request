@@ -10,18 +10,20 @@
 # task-continue action, the existing continue path of the task zenka.
 #   at=<time> | after=<interval type> | on=<signal> [ match.<key>=<v> ]
 #   depends=<entry ids>  message=<text>  reason=<text>
+#   action=task-continue [ default ] | claude-send [ the message as a turn
+#   into the claude session ]
 # no when and no depends is refused : a park waits for something
 
 my $in    = shift // {};
 my %kv    = %{ $in->{'pairs'} // {} };
 my $id    = $in->{'task_id'} // '';
 my $fail  = sub { return { 'error' => shift } };
-my %known = map  { $ARG => 1 } qw| at after on depends message reason |;
+my %known = map { $ARG => 1 } qw| at after on depends message reason action |;
 my @odd   = grep { not $known{$ARG} and $ARG !~ m{\Amatch\.[\w.-]+\z} }
     sort keys %kv;
 return $fail->( 'unknown key '
         . join( ' ', @odd )
-        . ' [ at after on match.<key> depends message reason ]' )
+        . ' [ at after on match.<key> depends message reason action ]' )
     if @odd;
 my @when = grep { defined $kv{$ARG} } qw| at after on |;
 return $fail->('one of at, after, on only') if @when > 1;
@@ -43,14 +45,19 @@ my $quote = sub {
     $v =~ s{([\\"])}{\\$1}g;
     return qq|"$v"|;
 };
+my $action = $kv{'action'} // qw| task-continue |;
+return $fail->("action '$action' : task-continue or claude-send")
+    if $action ne qw| task-continue | and $action ne qw| claude-send |;
 my @args = (
-    $entry,   'action=task-continue',
-    "id=$id", 'message=' . $quote->($message)
+    $entry, "action=$action",
+    ( $action eq qw| task-continue | ? "id=$id" : () ),
+    'message=' . $quote->($message)
 );
 my $record = {
     'entry'   => $entry,
     'when'    => $when[0] // qw| none |,
     'message' => $message,
+    'action'  => $action,
     'parked'  => time
 };
 foreach my $key ( @when, qw| depends reason | ) {
@@ -64,8 +71,8 @@ foreach my $key ( sort keys %match ) {
 }
 return { 'args' => join( ' ', @args ), 'record' => $record };
 
-#,,,.,.,,,..,,...,,,,,...,,..,,..,,,,,,,,,,.,,..,,...,...,..,,,,,,,,,,,.,,..,,
-#Y4XTY6JVHA6YIN2H5CIEPDJYNI6EC3SVGQKLHR6WDIAMR4NB5CE2OL6ADC3ZRRU6H4VJK54K7HBY2
-#\\\|SWVBI3CNQKU3KPFHDLZ4YCT3VSTA5LQH5A435JGWBF6ZLYKSAC7 \ / AMOS7 \ YOURUM ::
-#\[7]QWBLCAL6X5676EVHWRX5XKN6EBOY6EWQ6RR4NSXA6OOJPUFHO6CY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,.,,,..,,,,,,.,.,.,.,...,...,..,,...,...,.,.,.,.,,,,,...,,,,,
+#NZMZQ3YGFRWXPPODEHYVINM5IOOA54AOSHFH5ZW2BZMTVNEKT7GA5FMBGREXWUH6PQWAWTUILZYU2
+#\\\|IHAR6FMTLDMFICHDXRB7DTLSFCP2CXHB4IUE7P4XAPP4E7GWWHG \ / AMOS7 \ YOURUM ::
+#\[7]MIMSDMBUWDGBVTZLJ4LUUH5IIY5Q2GQBL46A3PSRKYMCFZTHRWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

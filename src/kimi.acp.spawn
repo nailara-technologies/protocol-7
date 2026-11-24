@@ -1,0 +1,108 @@
+## [:< ##
+
+# name   = kimi.acp.spawn
+# descr  = start the `kimi acp` child, begin the handshake
+# param  = resume session id | undef
+# return = { success, error }
+
+## IPC::Open3 child [ the pattern of coding.lora_train_spawn ] : stdout \  ##
+## stderr watched in the event loop, stdin written through kimi.acp.flush. ##
+## never called from init_code [ that runs before the privilege drop ]     ##
+
+my $resume = shift;
+my $st     = <[kimi.acp.state]>;
+
+return { 'success' => FALSE, 'error' => "session is $st->{'phase'}" }
+    if $st->{'phase'} ne qw| stopped |;
+
+<[base.perlmod.load]>->($ARG) for qw| JSON::XS IPC::Open3 Symbol |;
+
+my $command = <kimi.acp.cfg.command> // 'kimi acp';
+my @cmd     = split q{ }, $command;
+return { 'success' => FALSE, 'error' => 'no acp command configured' }
+    if not @cmd;
+
+my ( $child_in, $child_out, $child_err );
+$child_err = Symbol::gensym();
+my $pid
+    = eval { IPC::Open3::open3( $child_in, $child_out, $child_err, @cmd ) };
+if ( not $pid ) {
+    my $why = $EVAL_ERROR =~ s{\s+\z}{}r;
+    <[kimi.acp.event]>->( qw| error |, "cannot start the child : $why" );
+    return { 'success' => FALSE, 'error' => "cannot start : $why" };
+}
+
+for my $fh ( $child_in, $child_out, $child_err ) {
+    my $flags = fcntl( $fh, Fcntl::F_GETFL(), 0 );
+    fcntl( $fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+        if defined $flags;
+}
+
+%{$st} = (
+    %{$st},
+    'phase'      => qw| starting |,
+    'pid'        => $pid,
+    'in'         => $child_in,
+    'out'        => $child_out,
+    'err'        => $child_err,
+    'watchers'   => {},
+    'rbuf'       => '',
+    'ebuf'       => '',
+    'wbuf'       => '',
+    'next_id'    => 0,
+    'pending'    => {},
+    'session_id' => undef,
+    'caps'       => {},
+    'turn'       => undef,
+    'chunk'      => undef,
+    'replay'     => FALSE,
+    'stopping'   => FALSE,
+    'stop_state' => {},
+    'started'    => time,
+    'owner'      => $PROCESS_ID,
+);
+
+## idle shutdown would take the child with it : paused while it lives ##
+<[base.zenki.pause_ondemand_timeout]>;
+<[base.zenki.report_child_pid]>->($pid);
+
+for my $stream (qw| out err |) {
+    $st->{'watchers'}{$stream} = <[event.add_io]>->(
+        {   'fd'      => $st->{$stream},
+            'poll'    => qw| r |,
+            'handler' => $stream eq qw| out |
+            ? qw| kimi.handler.acp_stdout |
+            : qw| kimi.handler.acp_stderr |,
+            'data' => { 'stream' => $stream }
+        }
+    );
+}
+
+<[kimi.acp.event]>->(
+    qw| start |,
+    sprintf( 'child %d : %s%s',
+        $pid, $command, defined $resume ? " [ resume $resume ]" : '' )
+);
+
+<[kimi.acp.rpc]>->(
+    qw| initialize |,
+    {   'protocolVersion'    => 1,
+        'clientCapabilities' => {
+            'fs' => {
+                'readTextFile'  => JSON::XS::false(),
+                'writeTextFile' => JSON::XS::false()
+            },
+            'terminal' => JSON::XS::false()
+        }
+    },
+    qw| initialize |,
+    { 'resume' => $resume }
+);
+
+return { 'success' => TRUE };
+
+#,,,.,.,,,..,,,.,,,,.,.,.,,,,,,..,...,.,.,...,..,,...,...,..,,.,.,...,...,,,.,
+#IV4TPU3P6AXFB37MDLNFV7663ZO3U7I6YZDIPDOZNP6CPKXEVGIIOKDIJ6Q2HHR2X4QMOAV7JLZV4
+#\\\|DU53XVJIEJCQJMCLENSWHRT3FMMOB5WLBJNCWXKYWRYDZW3Y2NZ \ / AMOS7 \ YOURUM ::
+#\[7]ZFMESXGK4OEVBTQXF6SPVBCFOJXMPGTMR5GYOEFVCZKVHUBHXGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

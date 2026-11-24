@@ -1,0 +1,32 @@
+## [:< ##
+
+# name   = kimi.acp.next_prompt
+# descr  = send the next queued text as a session/prompt
+# return = TRUE when one went out
+
+## one active prompt per session : only from phase `ready` ##
+
+my $st = <[kimi.acp.state]>;
+return FALSE
+    if $st->{'phase'} ne qw| ready |
+    or $st->{'stopping'}
+    or not @{ $st->{'queue'} };
+
+my $text = shift @{ $st->{'queue'} };
+$st->{'phase'} = qw| prompting |;
+$st->{'turn'}  = { 'started' => time };
+<[kimi.acp.event]>->( qw| prompt |, $text );
+<[kimi.acp.rpc]>->(
+    qw| session/prompt |,
+    {   'sessionId' => $st->{'session_id'},
+        'prompt'    => [ { 'type' => qw| text |, 'text' => $text } ]
+    },
+    qw| prompt |
+);
+return TRUE;
+
+#,,.,,.,.,,..,.,,,,..,...,,..,.,.,..,,.,.,,,.,..,,...,...,.,.,,,.,,,.,..,,..,,
+#CE2VKESEALWJFSW3PANH24EAUBY7F5ER6CLDV63Q7GQNZQGSDPI5L6S3YB6FSTQYY2KRNGBRRINWG
+#\\\|5MQHE734UGLIDG2I5H65JUXJXDWJTTHAJV5STZRP4JXEGTYWQLV \ / AMOS7 \ YOURUM ::
+#\[7]ZTRY4Y7KKU2ERBGXYTJ4JXPFH3SREVAJ77TMNYVGDQHVQU2F7IBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

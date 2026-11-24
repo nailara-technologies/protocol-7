@@ -8,6 +8,8 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       ask-reply task-file status \
                       approve reject approvals new-session session-info \
                       list-models set-model \
+                      acp-start acp-send acp-cancel acp-status \
+                      acp-tail acp-stop \
                       src-age src-ver subname name
 
 ## devmod commands : only reachable while devmod is loaded on THIS zenka ##
@@ -37,6 +39,23 @@ system.zenka.verbosity.console = 2
 ## [ prepended to every task prompt — relative to root_path ]
 kimi.cfg.memory_path = data/ai-mem/kimi
 
+## acp adapter : one `kimi acp` child, started by kimi.acp-start
+## [ or by kimi.acp-send ] ; events in kimi.acp-tail and acp.log
+# kimi.acp.cfg.command    = kimi acp
+# kimi.acp.cfg.permission = deny           ## deny \ allow-once
+# kimi.acp.cfg.autostart  = yes            ## acp-send starts a session
+# kimi.acp.cfg.buffer     = 500            ## event lines kept
+
+## child stop escalation and the zenka exit waits [ seconds, non-linear ]
+base.interval.cfg.type.kimi-acp-stop.start      = 2
+base.interval.cfg.type.kimi-acp-stop.factor     = 1.5
+base.interval.cfg.type.kimi-acp-stop.cap        = 8
+base.interval.cfg.type.kimi-acp-stop.cap_jitter = 0.3
+base.interval.cfg.type.kimi-acp-exit.start      = 0.3
+base.interval.cfg.type.kimi-acp-exit.factor     = 1.6
+base.interval.cfg.type.kimi-acp-exit.cap        = 1.5
+base.interval.cfg.type.kimi-acp-exit.cap_jitter = 0.2
+
 crypt.C25519.autocreate-user-key = yes
 
 modules.load = auth.client net protocol io.unix ui websocket crypt.C25519 \
@@ -53,8 +72,8 @@ modules.load = auth.client net protocol io.unix ui websocket crypt.C25519 \
 
 [zenka.loop]
 
-#,,,,,.,,,,,.,.,.,..,,.,.,.,,,..,,.,.,..,,,,,,..,,...,...,...,.,.,,,.,.,.,..,,
-#HQMKV4OKVR4LNBKLNKQ27HJEY6B7TMKUJLNTNDBPHUG77HOWHEI7X6IS6LRZ3DCA3XXSOJZN4FYTM
-#\\\|JHNODD2GEMOUZTOGB7NOMU7VZSQ26HFBKAVJU6WIBTZNXF55PN3 \ / AMOS7 \ YOURUM ::
-#\[7]UQKH6NQ2QZ5CMDLABUAZUJR4N65INQTO7BE3TMMRVEAHWQTX5WDI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,,,,..,,,.,,,,.,,,,,,,,,.,,,..,,...,...,.,.,.,,,.,,,,..,,,.,
+#JK2YQVXOOPHCKWROMSQ7GEPCGMLMNSNO2OWEYL26OG7EVYMUGUYRSXITIZVKIN24HUP2R44GIUMNQ
+#\\\|RWQA3Q6IVIP2U4I2WZNH4FOU6PLMJNPMBPLCQWM2CI77B62PNFQ \ / AMOS7 \ YOURUM ::
+#\[7]53PHJENS4CAI2VFTDP3II7LE5EDMTEDGICZBOUCRPKXVWAB5XKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

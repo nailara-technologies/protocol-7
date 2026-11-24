@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = claude.cmd.interrupt
+# descr = interrupt the running turn
+
+## claude.cfg.interrupt : control                                 ##
+## [ a stream-json control_request, the session stays ] or signal ##
+## [ SIGINT to the process ]                                      ##
+
+my $child = <claude.child>;
+return { 'mode' => qw| false |, 'data' => 'claude is not running' }
+    if not defined $child
+    or not defined $child->{'out'};
+return { 'mode' => qw| false |, 'data' => 'no turn is running' }
+    if not <claude.turn_active>;
+
+if ( ( <claude.cfg.interrupt> // '' ) eq qw| signal | ) {
+    CORE::kill( 'INT', $child->{'pid'} );
+    <[claude.event.add]>->( qw| interrupt |, "pid $child->{'pid'} : INT" );
+    return { 'mode' => qw| true |, 'data' => 'interrupt sent [ SIGINT ]' };
+}
+my $id = sprintf 'interrupt-%d', ++<claude.control_id>;
+<[claude.child.write]>->(
+    {   'type'       => qw| control_request |,
+        'request_id' => $id,
+        'request'    => { 'subtype' => qw| interrupt | }
+    }
+) or return { 'mode' => qw| false |, 'data' => 'stdin is closed' };
+<[claude.event.add]>->( qw| interrupt |, $id );
+return { 'mode' => qw| true |, 'data' => "interrupt sent [ $id ]" };
+
+#,,..,..,,.,,,.,.,,.,,,,.,,,,,,,.,,,.,,,.,..,,..,,...,...,..,,.,.,,,,,,.,,,,,,
+#E6KUUERZUPQVUZ34QC245WUITICN2UYKNBJ2IRZYECLEO5OW6HFSGJE4N23IFWCHJ6NXJOSOJVAK6
+#\\\|HZGOBQ4WU2TRUA4YUUCGRYVPJYAGUN5G2RCL7ME7MAGECZ4V2AD \ / AMOS7 \ YOURUM ::
+#\[7]LIPB35XQPFS6PWHCIACGSW4ROSYWGIYGOXN6LCVTZJZK5TZB22BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

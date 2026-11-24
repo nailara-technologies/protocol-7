@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = plugin.events.action.kimi-send
+# descr = events action plugin : send text to kimi acp
+## a thin send-command : kimi.acp-send <message> through the cube, so    ##
+## parked work continues a kimi session [ it starts one when none runs ] ##
+return {
+    'name'     => qw| kimi-send |,
+    'kind'     => qw| action |,
+    'describe' => 'kimi.acp-send : message = <text>',
+    'run'      => sub {
+        my $fire    = shift;
+        my $ev_type = $fire->{'ev_type'};
+        my $action  = $fire->{'action'};
+        die "kimi-send wakes on a time or a signal, not '$ev_type'"
+            if $ev_type ne qw| at | and $ev_type ne qw| signal |;
+        my $message = $action->{'message'} // '';
+        $message =~ s{\s+}{ }g;
+        die "'message' parameter is missing from 'kimi-send'"
+            if !length $message;
+        <[base.log]>->( 1, 'sending a message to the kimi session' );
+        <[protocol-7.command.send.local]>->(
+            {   'command'   => qw| cube.kimi.acp-send |,
+                'call_args' => { 'args' => $message }
+            }
+        );
+        return TRUE;
+    }
+};
+
+#,,,.,..,,...,..,,,..,.,,,...,,,.,.,.,.,.,...,..,,...,..,,..,,.,,,..,,.,,,.,,,
+#KRMHBQMMCDTLSMV7NCFO32CAO4HMSWSZXB4UEZ4BHJ5PIU7YCMN6OMIPDTO5GAOYW7SOM5GHSV52K
+#\\\|5GA5XI4Y4OIJY6ZYPX6BPT7ARZKSQNJJPFIR7P55HGNN4RUKE6P \ / AMOS7 \ YOURUM ::
+#\[7]GO5MCYIK5XMHAYOPYOKQUK6MRHFMS2ZML6YX5NKBKBWBVIFFBEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

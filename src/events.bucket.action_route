@@ -11,6 +11,8 @@
 #   send-command   the first word of `command`
 #   task-continue  task.continue
 #   zenka-present  v7-zenki.start_once
+#   claude-send    claude.send
+#   kimi-send      kimi.acp-send
 
 my $action = shift;
 my $type   = $action->{'type'} // '';
@@ -20,10 +22,12 @@ if ( $type eq qw| send-command | ) {
 }
 return qw| task.continue |       if $type eq qw| task-continue |;
 return qw| v7-zenki.start_once | if $type eq qw| zenka-present |;
+return qw| claude.send |         if $type eq qw| claude-send |;
+return qw| kimi.acp-send |       if $type eq qw| kimi-send |;
 return undef;
 
-#,,..,,,.,.,.,,..,,,,,,..,,,.,.,.,,..,.,,,..,,..,,...,...,,,.,...,,,.,,,,,,..,
-#OINUCYK2CZTBDIMKOSZHMRNEEBIFFBNJ6GSXTGQK5V2UFGC2ILB2TYTRHMDSPAAY3I4UEG4SYKNQQ
-#\\\|JSPX5K5MBLSCBMMF6XKIOFZGJDHLTNWNNIIVBCTGSDNRCYNO5M5 \ / AMOS7 \ YOURUM ::
-#\[7]KBTYPHXSDBWDTKXWFQWT6WVYRRP363SOOOOP4YX6JEMZY7V4YKAI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,,.,,,,.,,,,,..,,...,,,,,,..,..,,...,..,,,.,,,..,..,,,..,,,,,
+#SSGGH2E2IFRQVDOFZZGLXSLS4KOCOBU7YGEEFDLW47DC5PRN6KJUY4LJNBFGRHILZUR53FMRBYUSY
+#\\\|AVYFU2VKFHAIRSM2AU3D5X57SEETH25KQ4KRXRHTFLY7G24QO5E \ / AMOS7 \ YOURUM ::
+#\[7]GB5WBORCRASLPPRGSNDXKOXVUAZVUMEIUNBWP7LX4EKXOCC6HICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

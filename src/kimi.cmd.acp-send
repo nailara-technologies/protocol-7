@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = kimi.cmd.acp-send
+# param = <text>
+# descr = send text to the kimi acp session [ queued while busy ]
+
+## one prompt at a time : a text sent while a prompt runs waits its turn. ##
+## with no child and <kimi.acp.cfg.autostart> yes [ default ] the session ##
+## is started first and resumes the stored id                             ##
+
+my $text = $call->{'args'} // '';
+## the command text arrives as utf-8 octets : characters from here on, so ##
+## the json encoder [ ->utf8 ] and the event lines see one kind           ##
+utf8::decode($text) if not utf8::is_utf8($text);
+$text =~ s{\A\s+|\s+\z}{}g;
+return { 'mode' => qw| false |, 'data' => 'text expected' }
+    if not length $text;
+
+my $st = <[kimi.acp.state]>;
+if ( $st->{'phase'} eq qw| stopped | ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'no session : kimi.acp-start first'
+        }
+        if lc( <kimi.acp.cfg.autostart> // qw| yes | )
+        !~ m{\A(?:yes|true|1|on)\z};
+    my $started
+        = <[kimi.acp.spawn]>->( <[kimi.acp.session_store]>->(qw| load |) );
+    return { 'mode' => qw| false |, 'data' => $started->{'error'} }
+        if not $started->{'success'};
+}
+
+return { 'mode' => qw| false |, 'data' => 'stopping' } if $st->{'stopping'};
+return { 'mode' => qw| false |, 'data' => 'queue full [ 64 ]' }
+    if @{ $st->{'queue'} } >= 64;
+
+my $ahead = @{ $st->{'queue'} } + ( $st->{'phase'} eq qw| ready | ? 0 : 1 );
+push @{ $st->{'queue'} }, $text;
+<[kimi.acp.next_prompt]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => $ahead ? "queued [ $ahead ahead ]" : 'sent'
+};
+
+#,,,,,,.,,...,.,,,,..,,..,.,,,,,,,,,.,..,,,.,,..,,...,...,...,,..,.,,,.,,,...,
+#6SJALENI5UNJCE5IQRWT2A4HL4GJRLA6YE7FVCZ57PJ7I2HMZX6B3MERL5UJOCGB5UYMHFCCG7ZMC
+#\\\|OAMLWAYIEF33E7VQB43KXKUVUS4JXJ3SQZAL7RURCMB6EIH6LSB \ / AMOS7 \ YOURUM ::
+#\[7]TGTD5U2JTKTXL4SPX23ZLXX67FAAPLWF3GPEG5IOY4P75MRDJCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
