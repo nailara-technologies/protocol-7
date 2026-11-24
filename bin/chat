@@ -7,8 +7,9 @@ use warnings;
 use utf8;
 use Getopt::Long;
 use open ':std', ':encoding(UTF-8)';
-use POSIX      qw| strftime |;
-use File::Path qw| make_path |;
+use POSIX       qw| strftime |;
+use Time::HiRes qw| sleep |;       ## fractional poll intervals ##
+use File::Path  qw| make_path |;
 use File::Spec;
 use Cwd                  qw| abs_path |;
 use FindBin              qw| $RealBin |;
@@ -59,6 +60,8 @@ my $CHAT_DIR  = File::Spec->catdir( $ROOT_PATH, qw| data development chat | );
 my $CHANNEL_DIR = File::Spec->catdir( $CHAT_DIR, qw| channel | );
 my $ARCHIVE_DIR = File::Spec->catdir( $CHAT_DIR, qw| archive channel | );
 my $MODEL_DIR   = File::Spec->catdir( $CHAT_DIR, qw| model | );
+my $RELAY_FILE  = File::Spec->catfile( $CHAT_DIR, qw| relay | );
+my $RELAY_CAP   = 13;
 my $STATE_DIR   = File::Spec->catfile( $ENV{'HOME'} // $ENV{'PWD'},
     qw| .config protocol-7 | );
 my $STATE_FILE       = File::Spec->catfile( $STATE_DIR, qw| chat-state | );
@@ -66,6 +69,7 @@ my $MAX_HISTORY      = 512 * 1024;   ## 512 KB auto-rotation threshold ##
 my $MAX_MEMORY_LINES = 500;          ## line-count trigger for model memory ##
 my $WAIT_INTERVAL    = 0.5;          ## poll interval for -wait-reply  ##
 my $WAIT_DEFAULT     = undef;        ## no timeout by default          ##
+my $SESSION_WAIT     = 1500;         ## a session turn : 25 min at most ##
 my @KNOWN_MODELS     = qw| kimi claude |;
 
 ##[ OPTION LIST ]#############################################################
@@ -91,6 +95,11 @@ my $option_list = <<'EOL';
     -grep        regex search in history        [ -grep <pattern> ]
     -summarize   trigger memory rotation for current channel
     -summary     show channel summary (lazy, via coding zenka)
+    -relay       show relay state, queued counts and expiry times
+    -relay off [ <target> ] [ -for <span> ] [ -drop ]
+                 pause delivery to claude, kimi or all [ history continues ]
+    -relay on [ <target> ]
+                 resume delivery and deliver pending messages
 
     keywords inside the message text :
 
@@ -119,7 +128,8 @@ GetOptions(
     'models',                'search=s',
     'grep=s',                'all-channels|all_channels',
     'summarize',             'summary',
-    'help|h',
+    'relay:s',               'for=s',
+    'drop',                  'help|h',
 ) or do { list_options(); exit(2) };
 
 if ( $option{'help'} ) {
@@ -130,6 +140,10 @@ if ( $option{'help'} ) {
 ##[ CALLER DETECTION ]########################################################
 
 my $CALLER = detect_caller();
+
+my $relay = load_relay_state();
+expire_relay($relay);
+handle_relay_option($relay) if exists $option{'relay'};
 
 ##[ EARLY-EXIT LISTING COMMANDS ]#############################################
 ## list_channels / list_models read only from filesystem — no state or  ##
@@ -286,7 +300,7 @@ if ( not $switches->{'note_only'} ) {
         broadcast_message( $state->{'active_channel'},
             $CALLER, $dispatch_text );
     } elsif ( $state->{'active_model'} ne 'user' ) {
-        dispatch_model(
+        deliver_or_queue(
             $state->{'active_channel'},
             $state->{'active_model'},
             $dispatch_text
@@ -578,6 +592,341 @@ sub trim_history {
         unless $option{'quiet'};
 }
 
+sub load_relay_state {
+    my $r = { 'sequence' => 0, 'targets' => {}, 'pending' => {} };
+    return $r if not -f $RELAY_FILE;
+    open my $fh, '<:encoding(UTF-8)', $RELAY_FILE or return $r;
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        next if $line =~ m{^\s*(?:#|$)} or $line !~ m{=};
+        my ( $key, $value ) = split m{=}, $line, 2;
+        $key   =~ s{^\s+|\s+$}{}g;
+        $value =~ s{^\s+|\s+$}{}g;
+        if ( $key eq 'relay.sequence' ) {
+            $r->{'sequence'} = $value =~ m{^\d+$} ? $value : 0;
+        } elsif ( $key =~ m{^relay\.(all|kimi|claude)\.(\w+)$} ) {
+            my ( $target, $field ) = ( $1, $2 );
+            $value = $value eq 'yes' ? 1 : 0
+                if $field eq 'enabled' or $field eq 'drop';
+            $r->{'targets'}{$target}{$field} = $value;
+        } elsif ( $key =~ m{^pending\.(kimi|claude)\.(\d+)$} ) {
+            my ( $target, $id ) = ( $1, $2 );
+            my ( $channel, $since, $text ) = split m{ \| }, $value, 3;
+            next if not defined $text;
+            $text =~ s{\\(.)}{
+                $1 eq 'n' ? "\n" : $1 eq 'r' ? "\r" : $1 eq 't' ? "\t" : $1
+            }ge;
+            push @{ $r->{'pending'}{$target} },
+                {
+                'id'      => $id,
+                'channel' => $channel,
+                'since'   => $since,
+                'text'    => $text
+                };
+        }
+    }
+    close $fh;
+    for my $target (@KNOWN_MODELS) {
+        next if not $r->{'pending'}{$target};
+        @{ $r->{'pending'}{$target} }
+            = sort { $a->{'id'} <=> $b->{'id'} }
+            @{ $r->{'pending'}{$target} };
+    }
+    return $r;
+}
+
+sub save_relay_state {
+    my $r = shift;
+    make_path($CHAT_DIR) unless -d $CHAT_DIR;
+    open my $fh, '>:encoding(UTF-8)', $RELAY_FILE
+        or die colored(": cannot write relay state : $!");
+    print {$fh} "# protocol-7 chat relay state\n";
+    print {$fh} "relay.sequence = $r->{'sequence'}\n";
+    for my $target ( 'all', @KNOWN_MODELS ) {
+        my $t = $r->{'targets'}{$target} // next;
+        print {$fh} "relay.$target.enabled = "
+            . ( $t->{'enabled'} ? 'yes' : 'no' ) . "\n";
+        print {$fh} "relay.$target.since = $t->{'since'}\n";
+        print {$fh} "relay.$target.until = " . ( $t->{'until'} // 0 ) . "\n";
+        print {$fh} "relay.$target.reason = $t->{'reason'}\n";
+        print {$fh} "relay.$target.drop = "
+            . ( $t->{'drop'} ? 'yes' : 'no' ) . "\n";
+    }
+    for my $target (@KNOWN_MODELS) {
+        for my $p ( @{ $r->{'pending'}{$target} // [] } ) {
+            my $text = $p->{'text'};
+            $text =~ s{\\}{\\\\}g;
+            $text =~ s{\n}{\\n}g;
+            $text =~ s{\r}{\\r}g;
+            $text =~ s{\t}{\\t}g;
+            print {$fh} "pending.$target.$p->{'id'} = "
+                . "$p->{'channel'} | $p->{'since'} | $text\n";
+        }
+    }
+    close $fh;
+}
+
+sub relay_enabled {
+    my ( $r, $target ) = @_;
+    my $t = $r->{'targets'}{$target} // $r->{'targets'}{'all'};
+    return TRUE if not defined $t;
+    return $t->{'enabled'} ? TRUE : FALSE;
+}
+
+sub parse_span {
+    my $span    = shift // '';
+    my $seconds = 0;
+    my $pos     = 0;
+    my %unit    = (
+        's' => 1,
+        'm' => 60,
+        'h' => 3600,
+        'd' => 86400,
+        'w' => 604800
+    );
+    while ( $span =~ m{\G(\d+)([smhdw])?}gc ) {
+        $seconds += $1 * $unit{ $2 // 's' };
+        $pos = pos $span;
+    }
+    return undef if $pos != length $span or $seconds < 1;
+    return $seconds;
+}
+
+sub handle_relay_option {
+    my $r      = shift;
+    my $action = $option{'relay'} // '';
+    if ( not length $action ) {
+        show_relay_state($r);
+        exit(0);
+    }
+    if ( $action !~ m{^(?:on|off)$} ) {
+        warn "chat: -relay expects on, off or no action\n";
+        exit(2);
+    }
+    my $target = @ARGV ? shift @ARGV : 'all';
+    if ( $target !~ m{^(?:all|kimi|claude)$} or @ARGV ) {
+        warn "chat: relay target is claude, kimi or all\n";
+        exit(2);
+    }
+    if ( $action eq 'on' and ( defined $option{'for'} or $option{'drop'} ) ) {
+        warn "chat: -for and -drop belong to -relay off\n";
+        exit(2);
+    }
+    my %drop_pending = map {
+        $ARG => $r->{'targets'}{$ARG}{'drop'}
+            // $r->{'targets'}{'all'}{'drop'} // 0
+    } @KNOWN_MODELS;
+    my $now = time;
+    if ( $target eq 'all' ) {
+        delete $r->{'targets'}{$ARG} for @KNOWN_MODELS;
+    }
+    my $t = $r->{'targets'}{$target} //= {};
+    $t->{'enabled'} = $action eq 'on' ? 1 : 0;
+    $t->{'since'}   = $now;
+    $t->{'until'}   = 0;
+    $t->{'reason'}  = 'command line';
+    $t->{'drop'}    = 0;
+    if ( $action eq 'off' ) {
+        if ( defined $option{'for'} ) {
+            my $span = parse_span( $option{'for'} );
+            if ( not defined $span ) {
+                warn "chat: -for expects a span like 90s, 13m or 1h30m\n";
+                exit(2);
+            }
+            $t->{'until'} = $now + $span;
+        }
+        $t->{'drop'} = $option{'drop'} ? 1 : 0;
+    }
+    save_relay_state($r);
+    if ( $action eq 'on' ) {
+        if ( $target eq 'all' ) {
+            deliver_pending( $r, $ARG, $drop_pending{$ARG} )
+                for @KNOWN_MODELS;
+        } else {
+            deliver_pending( $r, $target, $drop_pending{$target} );
+        }
+    }
+    show_relay_state($r);
+    exit(0);
+}
+
+sub show_relay_state {
+    my $r = shift;
+    for my $target ( 'all', @KNOWN_MODELS ) {
+        my $t = $r->{'targets'}{$target};
+        my $enabled
+            = $target eq 'all'
+            ? ( defined $t ? $t->{'enabled'} : 1 )
+            : relay_enabled( $r, $target );
+        my $queued = scalar @{ $r->{'pending'}{$target} // [] };
+        my $line   = sprintf 'relay %-6s : %s, queued %d',
+            $target, $enabled ? 'on' : 'off', $queued;
+        $line .= ', since ' . $t->{'since'} if defined $t;
+        $line .= ', until ' . $t->{'until'}
+            if defined $t and $t->{'until'};
+        $line .= ', drop' if defined $t and $t->{'drop'};
+        say $line;
+    }
+}
+
+sub queue_message {
+    my ( $r, $channel, $target, $text ) = @_;
+    my $id = ++$r->{'sequence'};
+    push @{ $r->{'pending'}{$target} },
+        {
+        'id'      => $id,
+        'channel' => $channel,
+        'since'   => timestamp(),
+        'text'    => $text
+        };
+    save_relay_state($r);
+    say ": relay $target paused, message $id queued"
+        unless $option{'quiet'};
+}
+
+sub deliver_or_queue {
+    my ( $channel, $target, $text ) = @_;
+    if ( relay_enabled( $relay, $target ) ) {
+        dispatch_model( $channel, $target, $text );
+    } else {
+        queue_message( $relay, $channel, $target, $text );
+    }
+}
+
+sub expire_relay {
+    my $r       = shift;
+    my $now     = time;
+    my $changed = 0;
+    for my $target ( 'all', @KNOWN_MODELS ) {
+        my $t = $r->{'targets'}{$target} // next;
+        next if $t->{'enabled'} or not $t->{'until'} or $t->{'until'} > $now;
+        $t->{'enabled'} = 1;
+        $t->{'until'}   = 0;
+        $changed        = 1;
+    }
+    save_relay_state($r) if $changed;
+    ## next step : an events bucket entry switches a timed pause back on ##
+    for my $target (@KNOWN_MODELS) {
+        deliver_pending( $r, $target )
+            if $changed and relay_enabled( $r, $target );
+    }
+}
+
+sub deliver_pending {
+    my ( $r, $target, $drop ) = @_;
+    my $pending = $r->{'pending'}{$target} // [];
+    return if not @{$pending};
+    $drop //= $r->{'targets'}{$target}{'drop'}
+        // $r->{'targets'}{'all'}{'drop'} // 0;
+    if ($drop) {
+        $r->{'pending'}{$target} = [];
+        save_relay_state($r);
+        say ": dropped $target pending delivery; history retained"
+            unless $option{'quiet'};
+        return;
+    }
+    my @deliver = @{$pending};
+    $r->{'pending'}{$target} = [];
+    save_relay_state($r);
+    my $last = @deliver > $RELAY_CAP ? $RELAY_CAP : scalar @deliver;
+    for my $i ( 0 .. $last - 1 ) {
+        my $p = $deliver[$i];
+        dispatch_model( $p->{'channel'}, $target, $p->{'text'} );
+    }
+    return if @deliver <= $RELAY_CAP;
+    my @rest = @deliver[ $RELAY_CAP .. $#deliver ];
+    my %channel;
+    $channel{ $ARG->{'channel'} }++ for @rest;
+    my $where = join ', ', map {"#$_ ($channel{$ARG})"} sort keys %channel;
+    my $first = $rest[0]{'channel'};
+    my $note
+        = scalar(@rest)
+        . " more in $where since $rest[0]{'since'}; history: "
+        . history_path($first);
+    dispatch_model( $first, $target, $note );
+}
+
+sub run_p7c {
+    my @command = @_;
+    CORE::open( my $fh, '-|', 'p7c', @command )
+        or return ( undef, FALSE );
+    my $output = do { local $/; <$fh> }
+        // '';
+    my $ok = CORE::close($fh) ? TRUE : FALSE;
+    $ok = FALSE
+        if $output =~ m{(?:^|:)\s*(?:error|false)\b}i
+        or $output =~ m{\b(?:no session|queue full|stopping)\b}i;
+    return ( $output, $ok );
+}
+
+sub session_reply {
+    my ( $send_command, $tail_command, $terminal, $kind, $text ) = @_;
+    ## claude.send \ kimi.acp-send take the text as it is                  ##
+    ## [ only ask-reply decodes base32 ] ; a turn that never ends gives up ##
+    ## after the limit                                                     ##
+    my $limit  = $SESSION_WAIT;
+    my $waited = 0;
+    my ( $before, $before_ok ) = run_p7c( $tail_command, 500 );
+    return undef if not $before_ok;
+    my @old = $before =~ m{^no events} ? () : split( m{\n}, $before );
+    my ( $sent, $send_ok ) = run_p7c( $send_command, $text );
+    return undef if not $send_ok;
+
+    while ( $waited <= $limit ) {
+        my ( $events, $tail_ok ) = run_p7c( $tail_command, 500 );
+        return undef if not $tail_ok;
+        my @new     = split m{\n}, $events;
+        my $overlap = 0;
+        if (@old) {
+            my $max = @old < @new ? scalar @old : scalar @new;
+            for my $n ( reverse 1 .. $max ) {
+                my $matches = TRUE;
+                for my $i ( 0 .. $n - 1 ) {
+                    $matches = FALSE, last
+                        if $old[ @old - $n + $i ] ne $new[$i];
+                }
+                $overlap = $n, last if $matches;
+            }
+        }
+        my $start = $overlap;
+        my @fresh = @new[ $start .. $#new ];
+        my $end   = $#fresh;
+        $end--
+            while $end >= 0
+            and $fresh[$end] !~ m{^\S+\s+\Q$terminal\E\s+:};
+        if ( $end >= 0 ) {
+            my @reply;
+            for my $line (@fresh) {
+                push @reply, $1
+                    if $line =~ m{^\S+\s+\Q$kind\E\s+:\s?(.*)$};
+            }
+            return join "\n", @reply;
+        }
+        sleep $WAIT_INTERVAL;
+        $waited += $WAIT_INTERVAL;
+    }
+    warn "chat: no reply from $send_command within $limit s\n";
+    return undef;
+}
+
+sub kimi_reply {
+    my $text  = shift;
+    my $reply = session_reply( 'kimi.acp-send', 'kimi.acp-tail',
+        'done', 'agent', $text );
+    return ( $reply, 'acp' ) if defined $reply;
+    my $encoded = encode_b32r( encode_utf8($text) );
+    my ( $fallback, $ok ) = run_p7c( 'kimi.ask-reply', $encoded );
+    chomp $fallback if defined $fallback;
+    return ( $ok ? $fallback : undef, 'ask-reply' );
+}
+
+sub claude_reply {
+    my $text  = shift;
+    my $reply = session_reply( 'claude.send', 'claude.tail',
+        'final', 'text', $text );
+    return ( $reply, 'zenka' );
+}
+
 sub dispatch_model {
     my ( $channel, $model, $text ) = @_;
 
@@ -598,26 +947,15 @@ sub dispatch_model {
         $text = "[ model memory: $memory ]\n\n$text" if length $memory;
     }
 
-    my $encoded = encode_b32r( encode_utf8($text) );
-
     if ( $model eq 'kimi' ) {
-        open( my $fh, '-|', 'p7c', 'kimi.ask-reply', $encoded )
-            or warn "chat: p7c kimi.ask-reply failed: $!\n";
-        my $reply = do { local $/; <$fh> } if $fh;
-        close $fh                          if $fh;
-        chomp $reply                       if defined $reply;
-        write_history( $channel, $model, $reply )
+        my ( $reply, $path ) = kimi_reply($text);
+        write_history( $channel, $model, "[$path] $reply" )
             if defined $reply and length $reply;
     } elsif ( $model eq 'claude' ) {
-        ## write to inbox file — claude polls ##
-        ## data/development/chat/inbox/claude ##
-        my $inbox_dir = File::Spec->catdir( $CHAT_DIR, qw| inbox | );
-        make_path($inbox_dir) unless -d $inbox_dir;
-        my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude' );
-        open( my $fh, '>:encoding(UTF-8)', $inbox_file )
-            or warn "chat: cannot write claude inbox: $!\n";
-        print $fh $text, "\n" if $fh;
-        close $fh if $fh;
+        ## live-session hook : registered inbox socket delivery goes here ##
+        my ( $reply, $path ) = claude_reply($text);
+        write_history( $channel, $model, "[$path] $reply" )
+            if defined $reply and length $reply;
     } else {
         warn "chat: unknown model '$model' — no dispatch configured\n";
     }
@@ -627,7 +965,7 @@ sub broadcast_message {
     my ( $channel, $caller_id, $text ) = @_;
     for my $m (@KNOWN_MODELS) {
         next if $m eq $caller_id;
-        dispatch_model( $channel, $m, $text );
+        deliver_or_queue( $channel, $m, $text );
     }
 }
 
@@ -914,51 +1252,11 @@ sub dispatch_summary {
     my ( $model, $prompt ) = @_;
 
     if ( $model eq 'kimi' ) {
-        my $encoded = encode_b32r( encode_utf8($prompt) );
-        open( my $fh, '-|', 'p7c', 'kimi.ask-reply', $encoded )
-            or warn "chat: p7c kimi.ask-reply failed: $!\n";
-        my $reply = do { local $/; <$fh> } if $fh;
-        close $fh                          if $fh;
-        chomp $reply                       if defined $reply;
+        my ( $reply, $path ) = kimi_reply($prompt);
         return $reply;
     } elsif ( $model eq 'claude' ) {
-        ## async inbox — write prompt and poll history for response ##
-        my $inbox_dir = File::Spec->catdir( $CHAT_DIR, qw| inbox | );
-        make_path($inbox_dir) unless -d $inbox_dir;
-        my $inbox_file = File::Spec->catfile( $inbox_dir, 'claude' );
-        open( my $fh, '>:encoding(UTF-8)', $inbox_file )
-            or warn "chat: cannot write claude inbox: $!\n";
-        print $fh $prompt, "\n" if $fh;
-        close $fh if $fh;
-
-        ## poll active channel history for claude reply ##
-        my $path      = history_path( $state->{'active_channel'} );
-        my $pre_count = 0;
-        if ( -f $path ) {
-            open my $cfh, '<', $path or return undef;
-            $pre_count++ while <$cfh>;
-            close $cfh;
-        }
-
-        my $timeout = 120;
-        my $elapsed = 0;
-        while ( $elapsed <= $timeout ) {
-            sleep $WAIT_INTERVAL;
-            $elapsed += $WAIT_INTERVAL;
-
-            open my $rfh, '<:encoding(UTF-8)', $path or next;
-            my @lines = <$rfh>;
-            close $rfh;
-
-            for my $i ( $pre_count .. $#lines ) {
-                if ( $lines[$i] =~ m{<claude>} ) {
-                    chomp $lines[$i];
-                    $lines[$i] =~ s{^\[[^\]]+\]\s*<claude>\s*}{};
-                    return $lines[$i];
-                }
-            }
-        }
-        return undef;
+        my ( $reply, $path ) = claude_reply($prompt);
+        return $reply;
     }
     return undef;
 }
@@ -1330,8 +1628,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
-#,,..,.,,,.,,,,,.,...,...,,,,,,..,,,,,,,.,,,.,..,,...,...,..,,,..,,..,...,..,,
-#C2RWAM3ZX2I3JFG3MCYVL36HQ7MX7G3TDPXDAJ5XDR6WASNGWBDEL6TZJMJ66UY5HGHCSY3GQVTUO
-#\\\|QZRYQSIIKVZH24MZYPJZHXV3U24R43ME4WLUOADXRHFTU5NXZDZ \ / AMOS7 \ YOURUM ::
-#\[7]RTHRLQOC7WOSAMFSQBQTINYYNF5FVIRAZVBZ5EYASP46XH4T6KBI 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,,.,,,,.,...,,,.,,,.,,..,,,,,..,,...,...,,.,,.,,,,,.,,,,,..,,
+#GLVDCMWCTEPMQSLLGTYEGIVLE4FBABYMKUUZOLB7ZWEYL6J4RNLMEZEQ23G3NXDB5RRNQ4A5KUWNQ
+#\\\|C7SDXO2CXIMD6O5ATX3LXR6FDVKOSICYUBUETLOOROFKOVTAV5V \ / AMOS7 \ YOURUM ::
+#\[7]TXWCFDEKQGQQZOT23GDRDC76N5575UMNOHR3XSJNUKJZ74WGHWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
