@@ -105,7 +105,9 @@ load_module($ARG)
     ),
     map( {"coding.cmd.$ARG"}
         qw| ask answer open sign-queue commit-plan commit-plans | ),
-    qw| coding.decision.send coding.handler.decision_reply park.parse_args
+    qw| coding.sign_queue.kill_run protocol-7-menu.pending-lines
+    protocol-7-menu.pending-save protocol-7-menu.pending-load
+    coding.decision.send coding.handler.decision_reply park.parse_args
     base.reply.mode_text base.chk-sum.bmw.filesum base.chk-sum.bmw.ctx
     events.cmd.signal
     events.signal.access events.signal.grants
@@ -162,13 +164,14 @@ $data{'events'}{'signal'}{'grants_file'}
     = "$root_path/cfg/zenki/" . "events/access.signals";
 
 $code{'file.zenka_dir.load'} = sub {
-    my $p = "$zdir/$zenka." . shift;
+    my $p = "$zdir/$zenka." . ( shift =~ s{/}{.}gr );
     return undef if !-f $p;
     my $t = read_file($p);
     return \$t;
 };
 $code{'file.zenka_dir.write'} = sub {
     my ( $name, $sref ) = @ARG;
+    $name =~ s{/}{.}g;
     write_file( "$zdir/$zenka.$name", $sref->$* );
     TRUE;
 };
@@ -224,6 +227,12 @@ if (\$cmd eq 'commit') {
 exit 2;
 PERL
 write_file( "$tests/test-pass.pl", "exit 0;\n" );
+write_file( "$tests/test-hang.pl",
+          "open my \$f, '>', '$ctl/hang.pid'; print "
+        . "{\$f} qq|\$\$\\n|; close \$f; sleep 600;\n" );
+write_file( "$tests/test-tmpdir.pl",
+          "open my \$f, '>', '$ctl/tmpdir'; print {\$f} "
+        . "\$ENV{TMPDIR} // q|none|; close \$f; exit 0;\n" );
 write_file( "$tests/test-fail.pl", "print qq|FAIL - broken\\n|; exit 1;\n" );
 
 sub cmd {
@@ -565,11 +574,96 @@ ok( scalar( grep( { $ARG eq 'coding-sign-watch' } @timers ) ),
     'timers from base.interval.next [ coding-sign-watch ]'
 );
 
+## ---- menu : the open questions survive a restart                       ##
+{
+    local $zenka = 'protocol-7-menu';
+    my $q = sub { $data{'protocol-7-menu'}{'pending-questions'} };
+    $data{'protocol-7-menu'}{'pending-questions'} = [];
+    unlink glob "$zdir/protocol-7-menu.*";
+    cmd( 'protocol-7-menu.cmd.pending-question-add',
+              '{"type":"choice","question":"line '
+            . 'one\\ntwo","options":["a","b"],"id":"keep1",'
+            . '"decision":1}' );
+    cmd('protocol-7-menu.cmd.pending-question-add',
+        'type=text question="plain" id=gone1'
+    );
+    cmd('protocol-7-menu.cmd.pending-question-add',
+        '{"type":"password","question":"key?","id":"pw9"}'
+    );
+    ok( -f "$zdir/protocol-7-menu.data.pending-questions.p7",
+        'menu : the queue is written on add' );
+    cmd( 'protocol-7-menu.cmd.pending-question-answer', 'gone1 yes' );
+    my $file = read_file("$zdir/protocol-7-menu.data.pending-questions.p7");
+    ok( $file !~ m{gone1} && $file =~ m{question\.keep1\.options = a, b},
+        'menu : an answered question is dropped from the file'
+    );
+    my @before = map {
+        { %{$ARG} }
+    } @{ $q->() };
+    $data{'protocol-7-menu'}{'pending-questions'} = [];    ## a restart ##
+    ok( $code{'protocol-7-menu.pending-load'}->() == 2,
+        'menu : load on start brings back the open ones'
+    );
+    my ( $k, $p ) = @{ $q->() };
+    ok( $k->{'id'} eq 'keep1'
+            && $k->{'decision'}
+            && $k->{'question'} eq "line one\ntwo"
+            && "@{ $k->{'options'} }" eq 'a b'
+            && $k->{'added'} eq $before[0]{'added'}
+            && $p->{'id'} eq 'pw9'
+            && $p->{'type'} eq 'password',
+        'menu : fields, order, decision flag and newlines come back'
+    );
+    ok( $code{'protocol-7-menu.pending-load'}->() == 0 && @{ $q->() } == 2,
+        'menu : loading twice adds nothing' );
+    cmd( 'protocol-7-menu.cmd.pending-question-answer', 'keep1 x' );
+    cmd( 'protocol-7-menu.cmd.pending-question-answer', 'pw9 x' );
+    ok( read_file("$zdir/protocol-7-menu.data.pending-questions.p7") eq '',
+        'menu : an empty queue writes an empty file' );
+    $data{'protocol-7-menu'}{'pending-questions'} = [];
+    ok( $code{'protocol-7-menu.pending-load'}->() == 0,
+        'menu : nothing to bring back after all are answered'
+    );
+}
+
+## ---- plan tests : the time limit, the TMPDIR                            ##
+{
+    local $data{'coding'}{'cfg'}{'sign_queue_test_limit'} = 1;
+    cmd( 'coding.cmd.commit-plan',
+        'ph paths=src/a message="area : hang" tests=test-hang' );
+    ok( wait_for( sub { plan('ph')->{'status'} eq 'testing' } ),
+        'limit : the hanging test is running' );
+    ok( wait_for( sub { -s "$ctl/hang.pid" } ), 'limit : it wrote its pid' );
+    my $pid = read_file("$ctl/hang.pid") + 0;
+    ok( CORE::kill( 0, $pid ), 'limit : the test process is alive' );
+    ok( wait_for( sub { plan('ph')->{'status'} eq 'returned' }, 15 ),
+        'limit : the plan returns after the limit' );
+    ok( plan('ph')->{'reason'} eq 'test test-hang exceeded 1 s',
+        'limit : the reason names the test and the limit'
+    );
+    my $gone = wait_for( sub { !CORE::kill( 0, $pid ) }, 5 );
+    ok( $gone, 'limit : the test process group is killed' );
+    ok( plan('ph')->{'status'} ne 'testing',
+        'limit : the plan is not held in testing'
+    );
+}
+{
+    cmd( 'coding.cmd.commit-plan',
+        'pt paths=src/a message="area : tmp" tests=test-tmpdir' );
+    wait_for( sub { plan('pt')->{'status'} ne 'waiting' } );
+    wait_for( sub { -s "$ctl/tmpdir" } );
+    ok( read_file("$ctl/tmpdir") eq "$state/test-tmp",
+        'tmpdir : the tests get the configured TMPDIR [ not /tmp ]' );
+    ok( -d "$state/test-tmp", 'tmpdir : the directory is made' );
+    my $limit = $code{'coding.sign_queue.cfg'}->()->{'limit'};
+    ok( $limit == 1800, 'limit : default 1800 s' );
+}
+
 say "# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,..,..,,,..,.,,,,.,,.,.,...,.,,,...,,,.,..,,...,...,...,.,.,,..,...,,,,,
-#DOZ5K4F4AJE34V3K2V246CMUM2Z7S3FM3P64LLH55GIMG54CLHSESR4E3O2ZVEH5VMQOI72LLB2FE
-#\\\|QP7ZPHMEUDLDHZBRWZKDOCEUQZ7CRZSN6UQNSTHCVHR6HFMB5VM \ / AMOS7 \ YOURUM ::
-#\[7]IYVWR4ZGM26WTS5IMETPLQBXHH3ZWU5227WJQUJOZIPNKPFK5ECA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,...,...,.,,,.,.,,.,,,,.,.,.,,,.,..,,...,..,,,..,,..,,.,,...,.,.,
+#CP6WIAJZHNQOGGCCWZHIUYRSEZFERCDPVJPC7TNYOLHHFULY6C4O7XBKTISEHUIOPRIZUZUTZM76E
+#\\\|NKQBTL4QYKDMFUDTYW55X7JA4NUXIVV2JMYUFRW56IHN3WIZH5U \ / AMOS7 \ YOURUM ::
+#\[7]PTWDOTTTZ7OMSU367ZP7FXPR3HD2ZNRLC4GHKHKZHANTRAV3I2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

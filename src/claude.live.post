@@ -1,0 +1,56 @@
+## [:< ##
+
+# name   = claude.live.post
+# descr  = one message into a registered live session
+# args   = { text from name [ default : newest ] }
+# return = { name } or { error }
+
+## a vanished socket path or a failed connect \ write drops the session ##
+## [ its token with it ] : the mcp server registers it again            ##
+
+my $arg      = shift // {};
+my $sessions = <[claude.live.sessions]>;
+my $name     = $arg->{'name'};
+if ( not defined $name ) {
+    ($name) = CORE::sort {
+               $sessions->{$b}{'since'} <=> $sessions->{$a}{'since'}
+            or $a cmp $b
+    } CORE::keys %{$sessions};
+}
+return { 'error' => 'no live session registered' } if not defined $name;
+my $session = $sessions->{$name}
+    // return { 'error' => "no live session '$name'" };
+
+my $drop = sub {
+    my $why = shift;
+    CORE::delete $sessions->{$name};
+    <[base.log]>->( 1, ": live session $name dropped [ $why ]" );
+    return { 'error' => "live session $name dropped [ $why ]" };
+};
+return $drop->('socket gone') if not -S $session->{'socket'};
+
+require IO::Socket::UNIX;
+my $sock = IO::Socket::UNIX->new(
+    'Peer'    => $session->{'socket'},
+    'Timeout' => 2
+) // return $drop->('connect failed');
+my $octets = <[claude.live.wire]>->(
+    {   'socket' => $session->{'socket'},
+        'token'  => $session->{'token'},
+        'text'   => $arg->{'text'},
+        'from'   => $arg->{'from'},
+    }
+);
+my $wrote = CORE::syswrite( $sock, $octets );
+CORE::close($sock);
+return $drop->('write failed')
+    if not defined $wrote
+    or $wrote != CORE::length $octets;
+<[base.log]>->( 1, ": live session $name : message posted" );
+return { 'name' => $name };
+
+#,,,.,,..,.,,,,.,,..,,..,,...,,,.,,..,,,,,,,.,..,,...,...,,,,,...,...,...,,..,
+#H7I5M7FSVEIH3GVQ3C6WY7EKDX6JM2ABTNESBMIM7MVNGCYRHBL2FBAA25KRQ6RKQXRUYHARMNPOG
+#\\\|5NTEFJRSEQREZ25I67LEDXOL7U63FZMWMFODW64DTLNPPG5ZMEQ \ / AMOS7 \ YOURUM ::
+#\[7]4HUCHRN46JBITTT5QTW36PEZPES6244PUL3FAR6FCN2SMNWF4GCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

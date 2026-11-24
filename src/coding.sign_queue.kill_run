@@ -1,0 +1,28 @@
+## [:< ##
+
+# name   = coding.sign_queue.kill_run
+# descr  = kill a detached run's process group
+# args   = the run's rc file path
+# return = TRUE when a group was killed
+#
+# only a run with a pid file and no rc file yet : a finished run's pid
+# may belong to someone else by now. the runner is the session leader,
+# so -pid reaches the test and everything it started
+
+my $rc = shift // '';
+return FALSE if not length $rc                       or -e $rc;
+CORE::open( my $fh, '<:encoding(UTF-8)', "$rc.pid" ) or return FALSE;
+my $line = <$fh> // '';
+CORE::close($fh);
+my ($pid) = $line =~ m{\A(\d+)\s*\z};
+return FALSE if not $pid or $pid < 2;
+return FALSE if not CORE::kill( 0, -$pid );
+my $hit = CORE::kill( 'KILL', -$pid );
+CORE::unlink("$rc.pid");
+return $hit ? TRUE : FALSE;
+
+#,,..,,,.,,..,..,,,.,,...,,.,,..,,,,.,.,,,,..,..,,...,...,,..,..,,...,,.,,,..,
+#PZA3RTNEKL35QWPH7WFVH6YIYLQMUBYBUX653AVRDPGN5CJ54VA2OCSTCYDRDENQIA6CCG7DCHSJU
+#\\\|65RHXEHUSXLY4TZII33ZVLGKKQRC6TDK4EPU3FYEMEC2TM6G3S4 \ / AMOS7 \ YOURUM ::
+#\[7]NGRUWXB2JCERD62R4WDRFRDVESVLGBGQQX7H7ENXMDLM57YVBECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

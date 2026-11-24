@@ -927,6 +927,23 @@ sub claude_reply {
     return ( $reply, 'zenka' );
 }
 
+## a registered live session : claude.sessions lists it, ##
+## claude.session-post writes into its inbox socket      ##
+## [ the zenka holds the token ]                         ##
+sub claude_live_post {
+    my $text = shift;
+    my ( $list, $list_ok ) = run_p7c('claude.sessions');
+    return FALSE
+        if not $list_ok
+        or not defined $list
+        or $list !~ m{^[\w.\-]+ : since }m;
+    my ( $posted, $post_ok )
+        = run_p7c( 'claude.session-post', "$text from=chat" );
+    return FALSE
+        if not $post_ok or $posted !~ m{\bposted into live session\b};
+    return TRUE;
+}
+
 sub dispatch_model {
     my ( $channel, $model, $text ) = @_;
 
@@ -952,7 +969,14 @@ sub dispatch_model {
         write_history( $channel, $model, "[$path] $reply" )
             if defined $reply and length $reply;
     } elsif ( $model eq 'claude' ) {
-        ## live-session hook : registered inbox socket delivery goes here ##
+        ## the live session first [ registered by its mcp server ] : no ##
+        ## reply awaited, it answers in its own channel                 ##
+        if ( claude_live_post($text) ) {
+            write_history( $channel, $model,
+                      '[live] posted into the live session -- no '
+                    . 'reply awaited, it answers in its own channel' );
+            return;
+        }
         my ( $reply, $path ) = claude_reply($text);
         write_history( $channel, $model, "[$path] $reply" )
             if defined $reply and length $reply;
@@ -1628,8 +1652,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
-#,,,.,.,.,..,,.,.,,.,,,,.,...,,,.,,,.,,..,,,,,..,,...,...,,.,,.,,,,,.,,,,,..,,
-#GLVDCMWCTEPMQSLLGTYEGIVLE4FBABYMKUUZOLB7ZWEYL6J4RNLMEZEQ23G3NXDB5RRNQ4A5KUWNQ
-#\\\|C7SDXO2CXIMD6O5ATX3LXR6FDVKOSICYUBUETLOOROFKOVTAV5V \ / AMOS7 \ YOURUM ::
-#\[7]TXWCFDEKQGQQZOT23GDRDC76N5575UMNOHR3XSJNUKJZ74WGHWDI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,.,,..,,.,.,,,.,,,,,,.,,.,.,.,,,..,,...,...,,.,,.,.,,,,,.,.,.,,,
+#7ZPGTKXO76DF2PUR6CQDGRARL4H27X7AKE7AU5RXGMZTUXVSRQMDJEUEGZC7NIUL5NM2PAKURYEV4
+#\\\|VG5LER3Z7RMJCKTXU64ID5E4VZXJL7UETBUBAHWA4VIAOVDLGJT \ / AMOS7 \ YOURUM ::
+#\[7]EF643LQHZRSFUJYVA3YIS74RPTZELVX5K2CMBGDGY46P47TADKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = claude.cmd.session-register
+# param = name=<name> socket=<path> [ token : body ]
+# descr = record a live session's inbox socket
+
+## the token comes in the body of a multi-line call [ token = <value> ], ##
+## never in the args : args reach command logs. kept in memory only      ##
+## [ claude.live.sessions ] ; the same name registered again replaces it ##
+
+my %pair;
+foreach my $text ( $call->{'args'} // '', $call->{'data'} // '' ) {
+    while ( $text =~ m{(?:\A|\s)(name|socket)\s*[=:]\s*(\S+)}g ) {
+        $pair{$1} = $2;
+    }
+}
+## the token from the body only : one in the args is refused ##
+( $pair{'token'} )
+    = ( $call->{'data'} // '' ) =~ m{^\s*token\s*[=:]\s*(\S+)}m;
+return { 'mode' => qw| false |, 'data' => 'token in the args refused' }
+    if ( $call->{'args'} // '' ) =~ m{(?:\A|\s)token\s*[=:]};
+if ( ref $call->{'param'} eq qw| HASH | ) {
+    $pair{$ARG} //= $call->{'param'}{$ARG} foreach qw| name socket |;
+}
+my ( $name, $socket, $token ) = @pair{qw| name socket token |};
+return { 'mode' => qw| false |, 'data' => 'name=<name> expected' }
+    if not defined $name or $name !~ m|\A[\w.\-]{1,64}\z|;
+return { 'mode' => qw| false |, 'data' => 'socket=<absolute path> expected' }
+    if not defined $socket or $socket !~ m{\A/\S+\z};
+return { 'mode' => qw| false |, 'data' => 'token expected in the body' }
+    if not defined $token
+    or not CORE::length $token;
+return { 'mode' => qw| false |, 'data' => "no socket at $socket" }
+    if not -S $socket;
+
+my $sessions = <[claude.live.sessions]>;
+$sessions->{$name} = {
+    'socket' => $socket,
+    'token'  => $token,
+    'since'  => CORE::time,
+};
+<[base.log]>->( 1, ": live session $name registered [ $socket ]" );
+return { 'mode' => qw| true |, 'data' => "live session $name registered" };
+
+#,,,,,,,,,..,,...,,..,,..,,.,,,,,,..,,...,.,.,..,,...,...,..,,,..,.,,,,..,...,
+#ABO5ALF4HS6CNAGJVVF36DVU6GRQJB73MQ7HRQCPXRNBPNN7POXFP3ECKDMA3OOSRZQHZUSFSNJAE
+#\\\|G7WLCTPHKDN3M3GVLZ4QNL7F7YBWXF6AY5P7X57VRL755HXWAWF \ / AMOS7 \ YOURUM ::
+#\[7]SP3KJUBQDPRLX5JS3INZLSICV4SWQ4VG4VSXIFQQHSV53AVZ42DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

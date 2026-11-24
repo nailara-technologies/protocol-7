@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = protocol-7-menu.pending-load
+# descr = read the open questions kept by pending-save
+# return = number of questions loaded
+#
+# the questions already in memory stay ; an id kept twice is loaded once
+
+return 0 if ref $code{'file.zenka_dir.load'} ne qw| CODE |;
+my $sref = <[file.zenka_dir.load]>->( 'data/pending-questions.p7', ':utf8' );
+return 0 if ref $sref ne qw| SCALAR | or not defined $sref->$*;
+
+my $unesc = sub {
+    ( shift // '' ) =~ s{\\(.)}{ $1 eq 'n' ? "\n" : $1 }gser;
+};
+my ( @order, %by_id );
+foreach my $line ( split m|\n|, $sref->$* ) {
+    next
+        unless $line
+        =~ m{\Aquestion\.(.+)\.(type|question|options|added|decision) = (.*)\z};
+    my ( $id, $key, $value ) = ( $1, $2, $3 );
+    push @order, $id unless $by_id{$id};
+    my $q = $by_id{$id} //= { 'id' => $id };
+    $value = $unesc->($value);
+    if ( $key eq qw| options | ) {
+        $q->{'options'} = [ grep {length} split m|\s*,\s*|, $value ];
+    } elsif ( $key eq qw| decision | ) {
+        $q->{'decision'} = TRUE if $value eq qw| yes |;
+    } else {
+        $q->{$key} = $value;
+    }
+}
+
+<protocol-7-menu.pending-questions> //= [];
+my %have = map { ( $ARG->{'id'} // '' ) => TRUE }
+    <protocol-7-menu.pending-questions>->@*;
+my $loaded = 0;
+foreach my $id (@order) {
+    my $q = $by_id{$id};
+    next if $have{$id};
+    next
+        unless length( $q->{'type'}  // '' )
+        and length( $q->{'question'} // '' );
+    push <protocol-7-menu.pending-questions>->@*, $q;
+    $loaded++;
+}
+<[base.logs]>->( 1, "pending questions loaded : %d", $loaded ) if $loaded;
+return $loaded;
+
+#,,..,,.,,.,.,.,,,,,.,,,.,,,,,,,,,.,,,,,.,,,.,..,,...,.,.,.,,,.,.,,.,,,,.,..,,
+#33IBAB4EYMXSDFVRQESDAW64ATCW33CE4MQXXMRWHH6J2XBQPJGC7GXIXPQJZZXB3457KPVLMOUJK
+#\\\|AALMGDLQYTQJILORJYFLU22YNLMRMK4C6NY43LH3P3PYBDMGOHQ \ / AMOS7 \ YOURUM ::
+#\[7]XRK6RE2C2VUC5CEK36UF7DDRITHMGJEKS7RJUG4F72L6SCNOB2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

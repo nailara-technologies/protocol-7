@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = claude.cmd.sessions
+# descr = registered live sessions and since when
+
+## names and times only : the token is never shown. a session whose socket ##
+## path is gone is dropped here [ its token with it ]                      ##
+
+my $sessions = <[claude.live.sessions]>;
+my @lines;
+foreach my $name ( CORE::sort CORE::keys %{$sessions} ) {
+    my $s = $sessions->{$name};
+    if ( not -S $s->{'socket'} ) {
+        CORE::delete $sessions->{$name};
+        <[base.log]>->( 1, ": live session $name dropped [ socket gone ]" );
+        next;
+    }
+    CORE::push @lines,
+        CORE::sprintf( '%s : since %s',
+        $name, CORE::scalar( CORE::localtime $s->{'since'} ) );
+}
+return { 'mode' => qw| true |, 'data' => 'no live session registered' }
+    if not @lines;
+return { 'mode' => qw| size |, 'data' => CORE::join( "\n", @lines ) . "\n" };
+
+#,,..,...,,.,,,.,,,,,,,,,,,,.,.,.,.,.,...,,,.,..,,...,...,..,,,..,.,,,.,,,..,,
+#U73XDBWPOX32LFKRJKN4LTHHN2EB4Z3VF5PEUGFFIXDJV2OP3SFO555WLGINRJEHDGLS5NY3JDTNE
+#\\\|PSPPZU7LMFHYKVORBGB42JFMBSPT2FFZIROE447USR6WMA5GURY \ / AMOS7 \ YOURUM ::
+#\[7]NQO6RFN2NYZKZZ7B73XCWIBU5Y3X7DD5BH3ZX3V44VCBLXHJPOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

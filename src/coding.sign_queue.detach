@@ -2,20 +2,23 @@
 
 # name   = coding.sign_queue.detach
 # descr  = run a command detached, its exit code to a file
-# args   = { cmd => [ .. ], out, rc, stdin, dir }
+# args   = { cmd => [ .. ], out, rc, stdin, dir, env => { NAME => value } }
 # return = TRUE when started
 #
 # double fork into its own session [ as p7_sign ] : the job outlives the
 # zenka, nothing here waits on it. the grandchild runs the command and
 # writes `rc = <code>` to the rc file when it ends [ tmp + rename, a
-# reader never sees half ] ; the sign queue timer reads it
+# reader never sees half ] ; the sign queue timer reads it. the runner is
+# the session leader : its pid, in `<rc>.pid`, is the process group to kill
 
 my $in = shift // {};
 return FALSE if ref $in->{'cmd'} ne qw| ARRAY | or not @{ $in->{'cmd'} };
-CORE::unlink( $in->{'rc'} );
+CORE::unlink( $in->{'rc'}, "$in->{'rc'}.pid" );
 <coding.sign_queue.runner> //= join "\n",
     'my $rc_path = shift;',
     '$SIG{CHLD} = q|DEFAULT|;',
+    'if ( open( my $pf, q|>|, qq|$rc_path.pid| '
+    . ') ) { print {$pf} qq|$$\n|; close $pf }',
     'my $rc = system { $ARGV[0] } @ARGV;',
     '$rc = $rc == -1 ? 127 : $rc & 127 ? 128 + ( $rc & 127 ) : $rc >> 8;',
     'open( my $fh, q|>:encoding(UTF-8)|, qq|$rc_path.tmp| ) or exit 1;',
@@ -39,6 +42,7 @@ if ( $pid == 0 ) {
     CORE::open( STDOUT, '>:raw', $in->{'out'} ) or POSIX::_exit(1);
     CORE::open( STDERR, '>&',    \*STDOUT );
     CORE::chdir( $in->{'dir'} ) if defined $in->{'dir'};
+    $ENV{$ARG} = $in->{'env'}{$ARG} foreach sort keys %{ $in->{'env'} // {} };
     ## exec a bare perl runner : the zenka image and its descriptors ##
     ## [ the cube socket .. close on exec ] do not wait hours for an ##
     ## approval                                                      ##
@@ -49,8 +53,8 @@ if ( $pid == 0 ) {
 CORE::waitpid( $pid, 0 );
 return TRUE;
 
-#,,.,,..,,,..,,..,...,,,,,,..,.,.,,,,,,..,,,,,..,,...,..,,..,,,.,,..,,,.,,,,,,
-#RRZEZN5RGIY5V4JYQCISSVEWGOJ7QMSOFZGC5V7YP2LRHG6E63YEMYR3RELLNFAR5K6D3S4OTCIHO
-#\\\|KAAFHI4PRRMHFVPLFXW3TJLESICJ422UOVPV3RJQFYJVN3DQ3PP \ / AMOS7 \ YOURUM ::
-#\[7]MBA6IH22NI367H3W6ZH4QHRAM2WL5MMJGV6UMGZ7ACHZSK4WHADY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,.,,,,,,,,,,,,.,,,.,,,,,,.,,,..,,...,...,.,,,..,,..,,.,.,,,.,
+#FA7QYV67LHSOUPC2OMXMPFEE42A5V7RM6AWKJTWW43TEDDCHPPC5CNAZ5XTXLHQ4O37IUEDOOXI2O
+#\\\|ZG6GBBKIGDJ2UY43R4D2RNXT4GW6F6BHGAMABOKDJSHCGW3Q3EJ \ / AMOS7 \ YOURUM ::
+#\[7]HKE5XKNBTL5V356FN6IKL275FBWPPW3J6J5TR2IJ6GUANWMFIACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

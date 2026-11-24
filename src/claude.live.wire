@@ -1,0 +1,46 @@
+## [:< ##
+
+# name   = claude.live.wire
+# descr  = auth + message line for an inbox socket
+# args   = { socket token text from }
+# return = octets [ two json lines ]
+
+## the claude code inbox protocol [ msgV 1, recorded 2026-11-23, see        ##
+## data/tasks/claude-zenka.md "inbox socket wire format" ] : json is the    ##
+## external wire format here, built at the edge only and never stored.  the ##
+## mcp server's _session_inbox_post writes the same two lines               ##
+
+my $arg  = shift // {};
+my $from = "uds:$arg->{'socket'}";
+my @hex  = map { CORE::sprintf '%04x', int rand 65536 } 1 .. 8;
+my $id   = CORE::sprintf '%s%s-%s-4%s-a%s-%s%s%s', @hex[ 0, 1, 2 ],
+    substr( $hex[3], 1 ), substr( $hex[4], 1 ), @hex[ 5 .. 7 ];
+( my $body = $arg->{'text'} // '' ) =~ s|</cross-session-message>||g;
+( my $name = $arg->{'from'} // qw| claude-zenka | ) =~ s|[\x22<>&]||g;
+
+my $auth = <[claude.wire.encode]>
+    ->( { 'type' => qw| auth |, 'token' => $arg->{'token'} } );
+my $line = <[claude.wire.encode]>->(
+    {   'msgV'     => 1,
+        'msg_id'   => $id,
+        'type'     => qw| user |,
+        'priority' => qw| next |,
+        'from'     => $from,
+        'message'  => {
+            'role'    => qw| user |,
+            'content' => CORE::sprintf(
+                '<cross-session-message from="%s" from-name="%s" '
+                    . "from-mode=\"prompting\">\n%s\n"
+                    . '</cross-session-message>',
+                $from, $name, $body
+            ),
+        },
+    }
+);
+return $auth . $line;
+
+#,,,.,...,,,,,.,,,,,.,,,,,..,,,,,,..,,.,,,.,,,..,,...,...,.,,,.,,,.,,,,,.,.,.,
+#MFZDCHJ7ZUKZT36254THKJPL6FES3NZE62C6EQZX4DGJNK6IQD4MH2XTBTO52DZCCBIMTHKEX7RJM
+#\\\|BE4VXPL3AAV7BPOXRTHVR57FW5RJWTMWCYHRMU3RY7O46CX63S2 \ / AMOS7 \ YOURUM ::
+#\[7]MT7KWRB5J2O64G5BMD7PW6IXQZNEXWD3JYT4Y6QQNLOQGCAMFOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

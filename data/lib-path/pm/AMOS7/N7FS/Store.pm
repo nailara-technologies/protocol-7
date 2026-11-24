@@ -34,7 +34,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION %CODEC |;
 
-our $VERSION = qw| AMOS7::N7FS::Store-VERSION.BVUK65Q |;
+our $VERSION = qw| AMOS7::N7FS::Store-VERSION.JYCLMIQ |;
 
 @EXPORT_OK = qw|
     assimilate
@@ -1164,33 +1164,28 @@ sub AMOS7::N7FS::Store::DiskJob::DESTROY {
     return;
 }
 
-## unique source content absent from this epoch is the expected store growth
+## the expected store growth, from the stat sizes of the sources : nothing is
+## read here, the walk hashes each source once and dedups by checksum. a
+## source repeated in the walk \ already stored counts again, so the estimate
+## may be high [ a hard linked inode counts once ]
 sub assimilate_space_check {
     my ( $opt, $id, $epoch, $items ) = @ARG;
-    my %new_nodes;
+    my ( %seen, $expected, $counted );
+    $expected = $counted = 0;
     foreach my $item ( @{$items} ) {
         my $path = $item->{'path'};
-        ## an estimate only : a source that cannot be read or changes while
-        ## read is left out here, the walk names it as a skipped entry
-        my ( $digest, $size );
-        my $readable = eval {
-            my ( $fh, $st ) = _open_regular($path);
-            ( $digest, $size ) = bmw384_fh($fh);
+        ## an estimate only : a source that cannot be opened \ is no regular
+        ## file or vanished is left out here, the walk names it as skipped
+        my $st = eval {
+            my ( $fh, $stat ) = _open_regular($path);
             close $fh;
-            $size == $st->[7];
+            $stat;
         };
-        next if not $readable;
-        my $bmw  = bmw_b32($digest);
-        my $addr = {
-            qw| epoch | => $epoch,
-            qw| amos |  => amos_of_bmw($bmw),
-            qw| bmw |   => $bmw,
-        };
-        my $final = node_path( $id->{'path'}, $addr );
-        $new_nodes{$final} = $size if not -e $final;
+        next if not $st;
+        next if $seen{"$st->[0]:$st->[1]"}++;
+        $expected += $st->[7];
+        $counted++;
     }
-    my $expected = 0;
-    $expected += $ARG for values %new_nodes;
     my $stat = $STATVFS->( $id->{'path'} );
     refuse( 'assimilate : cannot stat store file system %s : %s',
         $id->{'path'}, $OS_ERROR )
@@ -1198,18 +1193,16 @@ sub assimilate_space_check {
         or not @{$stat};
     my $free = $stat->[4] * $stat->[0];
     refuse(
-        'assimilate : expected store growth %d bytes exceeds '
-            . 'free space %d bytes on %s [ %d new content nodes ]',
-        $expected,
-        $free,
-        $id->{'path'},
-        scalar keys %new_nodes
-    ) if $expected > $free;
+        'assimilate : expected store growth %d bytes exceeds free space %d '
+            . 'bytes on %s [ estimate from the sizes of %d sources : may be '
+            . 'high when sources repeat or are already stored ]',
+        $expected, $free, $id->{'path'}, $counted )
+        if $expected > $free;
     my $disk_job = _disk_job_register( $opt, $id, $expected );
     return {
         qw| expected_bytes | => $expected,
         qw| free_bytes |     => $free,
-        qw| new_nodes |      => scalar keys %new_nodes,
+        qw| new_nodes |      => $counted,
         defined $disk_job ? ( qw| disk_job | => $disk_job ) : (),
     };
 }
@@ -1877,8 +1870,8 @@ sub _remove_source {
 
 1;
 
-#,,,.,...,.,.,.,,,.,,,.,,,.,,,...,.,.,,,.,.,,,..,,...,...,.,,,..,,.,.,,,,,.,.,
-#VNXXA3SWZOXL6L3MLGPWU3TTQQIFEODH6SGDV62I3WTI3IDXWC6APGWO7DGYIROHS72XVW45ULETI
-#\\\|JZUUDXZBHU245HTHLOA7RGUE4K6JY74WTDJHLEOHGCB6KC2BEBB \ / AMOS7 \ YOURUM ::
-#\[7]PHOJ3BITZC424J3ZQESQJOYZM4XBMFRQ4CQTCHUWPA76RVG6XGDA 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,.,,,,,.,.,.,,,.,.,,,.,.,,,.,..,,...,...,..,,.,,,.,.,,.,,.,,,
+#OMMUYTYGUTBX6BVY2IHDT4WO6M7K2HCSZNM2OHS7OSZOCILGFBCE34G3CKJK4FYLNP56TD7CBOXEE
+#\\\|ULG7X5VFQGI6CIMA2K3PPW5LQUPXCOYEL3G7ZR5X2LL5IWSGRQY \ / AMOS7 \ YOURUM ::
+#\[7]2O2IBR6HDPL24I3VNIA3EJM6OUOG6777GMZ67HYG3XHLFJABK4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

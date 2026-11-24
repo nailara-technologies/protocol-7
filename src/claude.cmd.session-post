@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = claude.cmd.session-post
+# param = <text> [ from=<name> ] [ to=<session> ]
+# descr = a message into the registered live session
+
+## no reply is awaited : the session answers in its own channel. without ##
+## to= the newest registration is used                                   ##
+
+my $text = $call->{'args'} // '';
+$text .= "\n" . $call->{'data'}
+    if defined $call->{'data'} and CORE::length $call->{'data'};
+my %opt;
+while ( $text =~ s{\s+(from|to)=([\w.\-]+)\s*\z}{} ) {
+    $opt{$1} //= $2;
+}
+$text =~ s{\A\s+|\s+\z}{}g;
+return { 'mode' => qw| false |, 'data' => 'text expected' }
+    if not CORE::length $text;
+
+my $r = <[claude.live.post]>
+    ->( { 'text' => $text, 'from' => $opt{'from'}, 'name' => $opt{'to'} } );
+return { 'mode' => qw| false |, 'data' => $r->{'error'} }
+    if defined $r->{'error'};
+return {
+    'mode' => qw| true |,
+    'data' => "posted into live session $r->{'name'} [ no reply awaited ]"
+};
+
+#,,,.,,..,,.,,...,.,.,,.,,,,,,,..,.,.,,,,,,..,..,,...,...,..,,,..,...,.,,,,..,
+#2BCWUSTACWFOSJMW32Z7N6TRPDJ52STIALIAS376NNY4E5XO6XLDUUWEZSHW4FHHGASCZLG2ERICC
+#\\\|DWRMQSZN4FN4LD3EG7E6IUMDYSNEATKQBMGLMAJZ5LDY2FTBTMD \ / AMOS7 \ YOURUM ::
+#\[7]A4MLQRTOARSVHRFGY2RFO7WDXYBJHFTJNEFYXRD4MVLNFO7LB4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

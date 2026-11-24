@@ -65,6 +65,15 @@ my $socket_path = $ENV{'PROTOCOL_7_UNIX_PATH'} // eval {
     length $p ? $p : undef;
 } // '/var/run/.7/UNIX/NIW7OAQ';
 
+## live session registration with the claude zenka [ _session_register ] ##
+my $session_register_due = 0;
+my $session_registered   = 0;
+## re-register now and then : a restarted claude zenka forgets sessions ##
+## while this server's cube link stays up                               ##
+## [ ~13 min, jittered, no round interval ]                             ##
+my $session_register_next  = 0;
+my $session_register_every = 13 * 60;
+
 my $auth_user = sprintf 'unix-%s',
     ( $ENV{'PROTOCOL_7_BIN_P7_USER'} // $ENV{'USER'} // $ENV{'LOGNAME'}
         // 'root' );
@@ -1608,11 +1617,20 @@ log_msg( 'mcp-server-p7 starting [ auth=%s socket=%s ]',
 ## [ a buffered <STDIN> would hide lines from it ]                         ##
 my $stdin_buf = '';
 my $stdin_eof = 0;
+$session_register_due = 1 if _session_live_env();
 while ( not $stdin_eof ) {
+    $session_register_due = 1
+        if $session_register_next and time >= $session_register_next;
+    _session_register() if $session_register_due;
     my @open_fh = map { $ARG->{'fh'} // () } values %claude_runs;
     push @open_fh, map { $ARG->{'fh'} } values %claude_finishers;
-    my @ready = IO::Select->new( \*STDIN, @open_fh )
-        ->can_read( ( @open_fh or @claude_waiters ) ? 1.3 : undef );
+    my $wait = ( @open_fh or @claude_waiters ) ? 1.3 : undef;
+    if ($session_register_next) {
+        my $left = $session_register_next - time;
+        $left = 1     if $left < 1;
+        $wait = $left if not defined $wait or $left < $wait;
+    }
+    my @ready = IO::Select->new( \*STDIN, @open_fh )->can_read($wait);
     foreach my $fh (@ready) {
         if ( fileno($fh) == fileno(STDIN) ) {
             my $got = sysread( STDIN, $stdin_buf, 65536, length $stdin_buf );
@@ -1631,6 +1649,7 @@ while ( not $stdin_eof ) {
     handle_request_line( substr( $stdin_buf, 0, length $stdin_buf, '' ) )
         if $stdin_eof and length $stdin_buf;
 }
+_session_unregister();
 
 sub handle_request_line {
     my $line = shift;
@@ -2327,6 +2346,8 @@ sub cube_connect {
     fcntl( $cube_sock, F_SETFD, $flags | FD_CLOEXEC );
 
     log_msg('connected and authenticated');
+    ## a fresh cube link : the live session registers again [ main loop ] ##
+    $session_register_due = 1;
     return $cube_sock;
 }
 
@@ -5190,6 +5211,56 @@ sub _session_inbox_post {
     return $ok ? 1 : 0;
 }
 
+## the live session [ claude code sets the inbox socket env ] is known to   ##
+## the claude zenka by name : claude.session-post \ bin/chat reach it.  the ##
+## token travels only in the body of the cube call [ never args, log ] kimi ##
+## runs this server without the env : no registration                       ##
+sub _session_live_env {
+    my $path  = $ENV{'CLAUDE_CODE_MESSAGING_SOCKET'} // '';
+    my $token = $ENV{'CLAUDE_CODE_MESSAGING_TOKEN'}  // '';
+    return if not length $path or not length $token or not -S $path;
+    return ( $path, $token );
+}
+
+sub _session_live_name {
+    my $name = $ENV{'P7_SESSION_NAME'} // '';
+    $name = sprintf 'claude-%d', getppid() if $name !~ m|\A[\w.\-]{1,64}\z|;
+    return $name;
+}
+
+sub _session_register {
+    my ( $path, $token ) = _session_live_env();
+    if ( not defined $path ) {
+        $session_register_due  = 0;
+        $session_register_next = 0;
+        return 0;
+    }
+    my ( $ok, $reply ) = cube_command_multiline(
+        'claude.session-register',
+        { 'name' => _session_live_name(), 'socket' => $path },
+        "token = $token"
+    );
+    ## its own connect set the flag again ##
+    $session_register_due = 0;
+    my $was = $session_registered;
+    $session_registered = $ok ? 1 : 0;
+    $session_register_next
+        = time + int( $session_register_every * ( 0.87 + rand(0.26) ) );
+    log_msg( 'live session register : %s', $ok ? 'done' : $reply // '-' )
+        if not $ok or not $was;
+    return $session_registered;
+}
+
+sub _session_unregister {
+    return 0 if not $session_registered;
+    $session_registered = 0;
+    my ( $ok, $reply )
+        = cube_command(
+        'claude.session-unregister name=' . _session_live_name() );
+    log_msg( 'live session unregister : %s', $ok ? 'done' : $reply // '-' );
+    return $ok;
+}
+
 ## a run from memory, or one an earlier server left in claude-runs/ ##
 sub _claude_run_get {
     my $run_id = shift // '';
@@ -7167,8 +7238,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,...,,,.,.,,,..,,,.,,,..,,,,,.,.,.,,,...,..,,...,...,.,.,,,,,.,.,.,.,,,,,
-#QU7FMMZGJTN4P4QH7BNZ6IODBUERQPXI55LSWCKEHTPAI56SNH6SJDDTTR7WMOA2RSB67UXTODWUI
-#\\\|PIFIST2OPPCLIG4K7G76QOYTNXNCXPUBFWMXY2KSIDAVMGPYMJR \ / AMOS7 \ YOURUM ::
-#\[7]E7GBDFKMKH7WFBEEA3WV3YGU6OVWELGXXU2FW2N57US2W7JMXKDA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,.,,...,...,,,.,..,,,,,,,..,.,.,..,,...,...,.,,,.,,,,,,,,.,,,,,,
+#J4VWS7F6DYN5SB2GY4QAGNZT6JJAQQ7JBBQ3Y6OWPAZZ7XXGZ3DJ3MQCIMFUMLC2HS2DWMT5QLEN2
+#\\\|TQSIXDNYP7ZDTAKCA7FWXV6TYBHSJM3BW6EMF6TAUVKVY4E6YOK \ / AMOS7 \ YOURUM ::
+#\[7]UXN3LAQYSXIHHYD3M7O7D6C3GHEXS2T2UNWTKAWT4SQMXBSRO4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

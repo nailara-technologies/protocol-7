@@ -8,7 +8,7 @@ use FindBin;
 use File::Temp qw| tempdir |;
 BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
 
-use AMOS7::N7FS::Disk  qw| disk_init disk_attach |;
+use AMOS7::N7FS::Disk  qw| disk_init disk_attach disk_require_attached |;
 use AMOS7::N7FS::Store qw| assimilate |;
 
 require "$FindBin::RealBin/fixtures/n7fs/helpers.pl";
@@ -31,6 +31,7 @@ my $disk = disk_init(
 );
 my %run = ( %base, disk => $disk, host => $host );
 disk_attach(%run);
+my $disk_id = disk_require_attached(%run);
 
 my $body = "test data : space check\n" x 13;
 write_file( "$src/one", $body );
@@ -70,8 +71,9 @@ ok( snap_equal( $before, snapshot($root) ),
     'refusal writes no store content'
 );
 
+## the estimate is the stat sizes : the duplicate source counts again
 local $AMOS7::N7FS::Store::STATVFS
-    = sub { return [ 1, 1, 1000, 1000, length($body), 1, 1, 1 ] };
+    = sub { return [ 1, 1, 1000, 1000, 2 * length($body), 1, 1, 1 ] };
 my $report = assimilate( %run, paths => [ "$src/one", "$src/two" ] );
 ok( $report->{'failed'} == 0, 'exactly enough room passes' );
 ok( scalar( grep { $ARG->{'status'} eq 'stored' } $report->{'entries'}->@* )
@@ -79,28 +81,53 @@ ok( scalar( grep { $ARG->{'status'} eq 'stored' } $report->{'entries'}->@* )
     'duplicate batch content is counted and stored once'
 );
 
+## already stored content : the estimate still counts it [ no hashing ]
 local $AMOS7::N7FS::Store::STATVFS
     = sub { return [ 1, 1, 1000, 1000, 0, 1, 1, 1 ] };
+refused(
+    sub { assimilate( %run, paths => ["$src/one"] ) },
+    qr|estimate from the sizes of 1 sources : may be high|,
+    'the refusal says the estimate comes from sizes and may be high'
+);
+local $AMOS7::N7FS::Store::STATVFS
+    = sub { return [ 1, 1, 1000, 1000, length($body), 1, 1, 1 ] };
 my $repeat = assimilate( %run, paths => ["$src/one"] );
 ok( $repeat->{'entries'}[0]{'status'} eq 'unchanged',
-    'already stored content needs no free data space'
-);
+    'already stored content passes when its size fits [ estimate ]' );
+## unreadable \ vanished \ non-regular sources add nothing to the estimate
+{
+    local $AMOS7::N7FS::Store::STATVFS
+        = sub { return [ 1, 1, 1000, 1000, length($body), 1, 1, 1 ] };
+    my @gone = ( "$src/vanished", $src );
+    my $check
+        = AMOS7::N7FS::Store::assimilate_space_check(
+        { %run, '_disk_job_attempted' => TRUE },
+        $disk_id, 1, [ map { { 'path' => $ARG } } @gone, "$src/one" ] );
+    ok( $check->{'expected_bytes'} == length($body)
+            && $check->{'new_nodes'} == 1,
+        'vanished file and directory left out of the estimate'
+    );
+    my $twice
+        = AMOS7::N7FS::Store::assimilate_space_check(
+        { %run, '_disk_job_attempted' => TRUE },
+        $disk_id, 1, [ map { { 'path' => $ARG } } "$src/one", "$src/one" ] );
+    ok( $twice->{'expected_bytes'} == length($body),
+        'one inode counts once' );
+}
 open my $calls_fh, '<', $p7c_log or die $OS_ERROR;
 my @calls = <$calls_fh>;
 close $calls_fh;
 chomp @calls;
-ok( $calls[0] =~ qr|\Asystem\.disk-register\tn7fs-.*\t${\( length $body )}\z|,
-    'assimilate registers expected unique store growth through p7c'
+ok( $calls[0]
+        =~ qr|\Asystem\.disk-register\tn7fs-.*\t${\( 2 * length $body )}\z|,
+    'assimilate registers the estimated store growth through p7c'
 );
 ok( $calls[1] =~ qr|\Asystem\.disk-done\tn7fs-.*\z|,
     'assimilate completes its registered writer'
 );
-ok( $calls[2] =~ qr|\Asystem\.disk-register\t.*\t0\z|,
-    'unchanged content registers zero expected growth'
-);
-ok( $calls[3] =~ qr|\Asystem\.disk-done\t|,
-    'zero-growth writer is also completed'
-);
+ok( $calls[2] =~ qr|\Asystem\.disk-register\t.*\t${\( length $body )}\z|,
+    'unchanged content registers its size [ estimate ]' );
+ok( $calls[3] =~ qr|\Asystem\.disk-done\t|, 'that writer is also completed' );
 
 {
     local $ENV{'P7C_TEST_FIT'} = 'does-not-fit';
@@ -130,8 +157,8 @@ ok( $calls[3] =~ qr|\Asystem\.disk-done\t|,
 
 done();
 
-#,,..,,..,,.,,...,..,,..,,,,.,,,,,,,.,..,,,,.,..,,...,..,,,..,...,..,,.,,,.,,,
-#5KTKTU7YBY562PQPARH2SFB5G6B3H6WRU7TZQLZCNIAI6TK3WLX4BJU3S74NVPCHWMCEU4TIWP6KI
-#\\\|SYJBZOT3ZPRTTR4VZ7GZ445ZUM25ALVYDLTU5MYKJTYB4UGQ2YT \ / AMOS7 \ YOURUM ::
-#\[7]LO6GDQ6HJDIY54RHPXP3GQSU4MB6XCDPCRFHWEMVMDB3HGWKJUCI 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,.,,,..,,...,...,,.,,..,,.,,,..,,...,...,.,.,,.,,.,.,..,,.,.,
+#XB7UP3ICLKWZ6IMSJKX2G7K5BOXNQKU2GEG5E3Q3ZA3AHQIT2TPS4QWFWOEYEUOJX6473SVK2NEG6
+#\\\|7NFKMUCSXSLIQFWNCY74UK4CCOBIZ4WKHZYMQ7GM4NNFKZZS5PY \ / AMOS7 \ YOURUM ::
+#\[7]TNU7TYPTIVGGMKOHTNKIASKGQG24RQUYPEF6JCK24H6ZXAIERUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

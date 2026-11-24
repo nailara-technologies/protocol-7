@@ -7,9 +7,11 @@
 #
 # waiting -> [ testing -> ] queued [ a sign queue entry ] -> committed ;
 # returned with the reason : after=<plan> returned \ unknown, a file
-# changed since the plan [ BMW checksums ], a test that failed. the
+# changed since the plan [ BMW checksums ], a test that failed or ran past
+# its limit [ cfg limit : the process group is killed ]. the
 # checksums are compared before the sign only : signing rewrites the files
 
+require File::Path;
 my $id   = shift;
 my $all  = <[coding.sign_queue.store]>;
 my $plan = $all->{'plan'}{$id} // return FALSE;
@@ -45,6 +47,8 @@ if ( $plan->{'status'} eq qw| waiting | ) {
     return $back->("file changed since the plan : @c") if @c;
     if (@tests) {
         CORE::mkdir( $cfg->{'state'} ) if not -d $cfg->{'state'};
+        ## tests make their files in TMPDIR : the large disk, not /tmp ##
+        File::Path::make_path( $cfg->{'tmpdir'} ) if not -d $cfg->{'tmpdir'};
         foreach my $test (@tests) {
             my $file = "$cfg->{'tests'}/$test";
             $file .= '.pl' if not -f $file;
@@ -54,11 +58,13 @@ if ( $plan->{'status'} eq qw| waiting | ) {
                 {   'cmd' => [ $EXECUTABLE_NAME, $file ],
                     'out' => $out->("$test.out"),
                     'rc'  => $out->("$test.rc"),
-                    'dir' => $cfg->{'root'}
+                    'dir' => $cfg->{'root'},
+                    'env' => { 'TMPDIR' => $cfg->{'tmpdir'} }
                 }
             ) or return $back->("test $test could not be started");
         }
         $plan->{'status'} = qw| testing |;
+        $plan->{'tested'} = time;
         return TRUE;
     }
 }
@@ -66,7 +72,18 @@ if ( $plan->{'status'} eq qw| testing | ) {
     my %rc
         = map { $ARG => <[coding.sign_queue.read_rc]>->( $out->("$ARG.rc") ) }
         @tests;
-    return FALSE if grep { not defined $rc{$ARG} } @tests;
+    my @running = grep { not defined $rc{$ARG} } @tests;
+    if (@running) {
+        ## a plan from before the limit : it counts from now ##
+        if ( not defined $plan->{'tested'} ) {
+            $plan->{'tested'} = time;
+            return TRUE;
+        }
+        return FALSE if time - $plan->{'tested'} <= $cfg->{'limit'};
+        <[coding.sign_queue.kill_run]>->( $out->("$ARG.rc") )
+            foreach @running;
+        return $back->("test $running[0] exceeded $cfg->{'limit'} s");
+    }
     foreach my $test (@tests) {
         next if $rc{$test} == 0;
         my $tail = <[coding.sign_queue.read_out]>->( $out->("$test.out"), 5 );
@@ -93,8 +110,8 @@ if (   $plan->{'status'} eq qw| waiting |
 }
 return FALSE;
 
-#,,.,,,.,,.,,,.,,,,,.,,..,...,...,,..,.,,,.,.,..,,...,..,,..,,,,,,,..,,.,,,,,,
-#IDIQ5HRUITLG4UGJRG72NUNXCU4YV3BB36VL4YCIG7NV4C3RLTDSAOPX3HAVGFHZAHSGBSSY66XEM
-#\\\|S42XQHAC4V2FRK6UAAB3ROAIJ62ICIIMKKCIH2426O4WVLBFZC5 \ / AMOS7 \ YOURUM ::
-#\[7]FLPNTORVSSCCG4CE27JC47ZRF2APKS5I52BV4PJTH2M3G46P3SBA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,,,,,.,,..,,,.,...,.,.,,.,,,..,..,,...,...,.,,,...,...,,.,,,..,
+#WQQGQMQRADFMIRJHUVJQNEJCEVLXIZSKZ5TDGFNP6RMPE7ZUWJ6XVEVU7BML56GFF4TXG2HBIOA4M
+#\\\|4VTOKX63XES26QYRBQEBKYS7WNMOY5Q3MJIXM5X7CBDLJ7XE47D \ / AMOS7 \ YOURUM ::
+#\[7]MFFXL2BV5UJYYPOIBSNR2FVI6VUHIJGQA2OMZ46O7VOLOAMQN6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = claude.cmd.session-unregister
+# param = name=<name>
+# descr = forget a live session and its token
+
+my ($name) = ( $call->{'args'} // '' ) =~ m{(?:\A|\s)name\s*[=:]\s*(\S+)};
+$name //= ( $call->{'args'} // '' ) =~ m{\A\s*([\w.\-]+)\s*\z} ? $1 : undef;
+return { 'mode' => qw| false |, 'data' => 'name=<name> expected' }
+    if not defined $name;
+my $sessions = <[claude.live.sessions]>;
+return { 'mode' => qw| false |, 'data' => "no live session '$name'" }
+    if not CORE::exists $sessions->{$name};
+CORE::delete $sessions->{$name};
+<[base.log]>->( 1, ": live session $name unregistered" );
+return { 'mode' => qw| true |, 'data' => "live session $name unregistered" };
+
+#,,..,,..,.,,,,.,,.,,,,.,,,..,,.,,.,,,,.,,,,.,..,,...,...,.,,,.,.,,..,.,.,,..,
+#56DHDLSAVSZEL3CGGTDVEP4ZS5PDBAJWDQ6EK3T4MLXBUSOGA5YLALETKACE7PXJA53FL62KWO2JY
+#\\\|Q4NBF3L4HAT2DFYVLR7LZ2ZEMBMDR6Z5GBOBHKZIHYSJIHDCPFI \ / AMOS7 \ YOURUM ::
+#\[7]JAB3EJJGYNMLIKNINGDS7GPSRL5AUX276JAZ22CZYMNDNIXTSWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

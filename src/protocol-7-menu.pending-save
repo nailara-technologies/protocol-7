@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = protocol-7-menu.pending-save
+# descr = keep the open questions in the zenka's dir
+# return = TRUE when written
+#
+# data/pending-questions.p7 in the zenka's var dir, p7 config lines, the
+# file replaced atomically [ tmp + rename, file.zenka_dir.write ]. an
+# empty queue writes an empty file : answered questions are dropped
+
+return FALSE if ref $code{'file.zenka_dir.write'} ne qw| CODE |;
+my $text = join '', map {"$ARG\n"} <[protocol-7-menu.pending-lines]>;
+my $ok   = <[file.zenka_dir.write]>->(
+    'data/pending-questions.p7', \$text, qw| > |, 0600, ':utf8'
+);
+<[base.logs]>->( 1, "pending questions not saved" ) unless $ok;
+return $ok ? TRUE : FALSE;
+
+#,,.,,.,.,,..,...,...,.,,,,..,.,,,...,,,,,,.,,..,,...,...,,.,,,,.,,,.,,..,...,
+#YFGRZE3SGXH2PUG6CLUQZ4IKYGM5TMRXRCVNQKK5ZV4QYPMK24HKAOJMQNYZJNP3XUH6OHLXGIM7G
+#\\\|6POKL6GLAQ5TXTEODEAWJZTDBT2AXWG56V27A3MMWWEFFEHD2X6 \ / AMOS7 \ YOURUM ::
+#\[7]WFOPCV7DE7MFB5PGFPSOLZXOKROBL3QV6NEADKKWCTSB5JBSPOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

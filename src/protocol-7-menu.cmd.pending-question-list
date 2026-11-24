@@ -8,28 +8,15 @@
 # options, added, decision ] ; `decisions` : only the coding.ask ones.
 # nothing is removed or opened
 
-my $only      = ( $call->{'args'} // '' ) =~ m|\bdecisions\b|;
-my $questions = <protocol-7-menu.pending-questions> // [];
-my $esc       = sub { ( shift // '' ) =~ s{\\}{\\\\}gr =~ s{\n}{\\n}gr };
-my @out;
-foreach my $q ( @{$questions} ) {
-    next if $only and not $q->{'decision'};
-    my $id = $q->{'id'} // '?';
-    push @out, "question.$id.type = " . $esc->( $q->{'type'} );
-    push @out, "question.$id.question = " . $esc->( $q->{'question'} );
-    push @out,
-        "question.$id.options = " . $esc->( join ', ', @{ $q->{'options'} } )
-        if ref $q->{'options'} eq qw| ARRAY | and @{ $q->{'options'} };
-    push @out, "question.$id.added = " . $esc->( $q->{'added'} );
-    push @out, "question.$id.decision = yes" if $q->{'decision'};
-}
+my $only = ( $call->{'args'} // '' ) =~ m|\bdecisions\b|;
+my @out  = <[protocol-7-menu.pending-lines]>->($only);
 return {
     'mode' => qw| true |,
     'data' => @out ? join( "\n", @out ) . "\n" : "no pending questions\n"
 };
 
-#,,..,,.,,,..,...,...,.,,,..,,.,.,,.,,...,,.,,..,,...,..,,...,.,,,,,.,,,,,,..,
-#TXKFDNHSMVBO43RCXCKMJFZQLFFXFJH7KGE55N2ONJ44CGUZIGA7A527RT3GX5TKD667NACZ6AKDK
-#\\\|FAPQZE6OTAWAE3U5FYGK2CHGDVWF3L54HLYP5MUI4CQMZYYIJLH \ / AMOS7 \ YOURUM ::
-#\[7]RKW73D3YFMIH33IABO6BM2Z4SV4Y4F44OGZ7GAWNBFSSTFFKEIBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,,.,,...,,,.,,,,,.,,,,,.,.,.,..,,...,...,,..,.,,,.,,,,,,,.,,,
+#FHFRIYVLGRFIPZAWGKTG757SNM2PMRP2JNUPKWQKBOXWARWMTAH24V5LQVZGZNORTW6OX42MSV2M2
+#\\\|HWXZLJ6OLA56WFJ54Z7QAMLCXNWNXUYAHD3OB72C674WUXIEQY7 \ / AMOS7 \ YOURUM ::
+#\[7]AKJRV7FGGQWMZFG4PWMXZCHGZ2O7RRVH7HT2IA4JUMNH5YCWFMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
