@@ -1,0 +1,83 @@
+## [:< ##
+
+# name   = events.notify.map
+# descr  = the signal -> notification map [ notify.map ]
+# return = hash ref { on => { key => spec }, by => { signal => [ keys ] },
+#          quiet => { from, to, sound } } of cfg/zenki/events/notify.map ;
+#          cached by path, mtime and size. no file : an empty map [ no
+#          notification from any signal ]
+#
+# lines [ p7 config, `=` and `:` equivalent, `#` comments, backslash
+# continues ] :
+#   notify.by.<signal>       = <value key> ..  [ the values that pick ]
+#   notify.on.<signal>[.<v>..] = level=<info|warn|loves|none> \
+#                              [ sound=<profile|none> ] [ ticker=set|clear ] \
+#                              [ key=<ticker key> ] [ text=<rest of line> ]
+#   notify.quiet.hours       = 22-7 [ HH[:MM]-HH[:MM], local time ]
+#   notify.quiet.sound       = soft | none
+
+my $path = <events.notify.map_file>
+    // sprintf qw| %s/zenki/events/notify.map |, <system.conf_path>;
+my @stat = CORE::stat($path);
+return { 'on' => {}, 'by' => {}, 'quiet' => {} } if !@stat;
+
+my $cache = <events.notify.map_cache> //= {};
+return $cache->{'map'}
+    if ( $cache->{'path'} // '' ) eq $path
+    and ( $cache->{'mtime'} // -1 ) == $stat[9]
+    and ( $cache->{'size'}  // -1 ) == $stat[7];
+
+my %map = ( 'on' => {}, 'by' => {}, 'quiet' => {} );
+my @raw;
+if ( open my $fh, '<:encoding(UTF-8)', $path ) {
+    @raw = <$fh>;
+    close $fh;
+} else {
+    <[base.logs]>->( 0, "<< notify map : '%s' unreadable >>", $path );
+}
+
+<[base.perlmod.load]>->('AMOS7::Config')
+    if not <[base.perlmod.loaded]>->('AMOS7::Config');
+
+foreach my $record ( AMOS7::Config::normalize_lines( \@raw )->@* ) {
+    my $line = $record->{'text'} // next;
+    next
+        if $line
+        !~ m{\Anotify\.(on|by|quiet)\.([a-z0-9][\w.-]*?)\s*[=:]\s*(.*)\z};
+    my ( $kind, $key, $value ) = ( $1, $2, $3 );
+    $value =~ s{\s+\z}{};
+    if ( $kind eq qw| by | ) {
+        $map{'by'}{$key} = [ grep {length} split m{[\s,]+}, $value ];
+    } elsif ( $kind eq qw| quiet | ) {
+        if (    $key eq qw| hours |
+            and $value
+            =~ m|\A(\d{1,2})(?::(\d\d))?\s*-\s*(\d{1,2})(?::(\d\d))?\z| ) {
+            $map{'quiet'}{'from'} = $1 * 60 + ( $2 // 0 );
+            $map{'quiet'}{'to'}   = $3 * 60 + ( $4 // 0 );
+        } elsif ( $key eq qw| sound | ) {
+            $map{'quiet'}{'sound'} = $value;
+        }
+    } else {
+        my %spec;
+        ## text= takes the rest of the line, the words before it are pairs ##
+        $spec{'text'} = $1 if $value =~ s{(?:\A|\s)text=(.*)\z}{};
+        foreach my $pair ( split m{\s+}, $value ) {
+            $spec{$1} = $2 if $pair =~ m{\A(\w+)=(\S+)\z};
+        }
+        $map{'on'}{$key} = \%spec;
+    }
+}
+
+%{$cache} = (
+    'path'  => $path,
+    'mtime' => $stat[9],
+    'size'  => $stat[7],
+    'map'   => \%map
+);
+return \%map;
+
+#,,.,,...,...,,,.,.,,,.,,,,,.,,,.,.,,,,.,,...,..,,...,...,,..,,.,,..,,,,.,,,,,
+#OLFJOGGXDWWOFXX4JH2PTR2CENIWO64C5TBMQOZWO4ZPIWLODR33AUZOJ6VAHA43K7WXXRDEZE6QY
+#\\\|RRU4FUGIVHQJHM4THKXA76PXSDPTZE5YRVHRXVU6KIWQHDJANM2 \ / AMOS7 \ YOURUM ::
+#\[7]NI7UJ2SWJ2ZQUB5HCE6XDY2WGL32JMEYPXZWNFH5YAGZKNMFCKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

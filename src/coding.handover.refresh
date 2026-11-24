@@ -1,0 +1,34 @@
+## [:< ##
+
+# name   = coding.handover.refresh
+# descr  = ask the handover sources again
+# args   = source names [ none : all ]
+# return = count of requests buffered
+#
+# route-send only buffers : coding.handler.handover_reply stores each
+# answer in <coding.handover.state> when the event loop has run
+
+my @names   = @ARG;
+my $sources = <[coding.handover.sources]>;
+@names = sort keys %{$sources} if not @names;
+my $sent = 0;
+foreach my $name (@names) {
+    my $src = $sources->{$name} // next;
+    $sent++
+        if <[protocol-7.route-send]>->(
+        {   'command'   => $src->[0],
+            'call_args' => { 'args' => $src->[1] },
+            'reply'     => {
+                'handler' => qw| coding.handler.handover_reply |,
+                'params'  => { 'source' => $name }
+            }
+        }
+        );
+}
+return $sent;
+
+#,,,.,,,.,,.,,..,,...,.,.,.,.,...,...,,.,,...,..,,...,...,...,,.,,,..,,..,.,,,
+#ACWLK7V6VPZX5IEVZGRSG52HKNKA26ND2SWGOVBJUJER2OCKCK6AAPYCQU7WREYGE77SM4JR52R6I
+#\\\|NYZGRT2MO3MU65SNPWCZNVPTGOGPON3DE56UW74I6NBRLMOZPAV \ / AMOS7 \ YOURUM ::
+#\[7]DFFCOA6NWU24FREIUQEJBVFMNCPELWLZVFGFNBLCL3YFKXVI64AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

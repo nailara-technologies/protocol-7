@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = coding.handover.arm
+# descr  = (re)arm the watch entry of one source
+# args   = source [ claude | kimi | decision ]
+# return = TRUE when both commands were buffered
+#
+# a fired entry is final under its id : it is removed, then added again.
+# route-send keeps the order, so the add comes after the remove [ a
+# missing entry makes the remove fail, nothing more ]
+
+my $source = shift                                    // '';
+my $signal = <[coding.handover.watch]>->()->{$source} // return FALSE;
+my $id     = "handover-watch-$source";
+<[park.send]>->( qw| bucket-remove |, $id );
+return <[park.send]>->(
+    qw| bucket-add |,
+    join( ' ',
+        $id, "on=$signal", 'action=send-command',
+        "command=\x22coding.handover-event $source\x22",
+        "reason=\x22handover : $signal\x22" ),
+    qw| coding.handler.handover_reply |,
+    { 'source' => "arm-$source" }
+);
+
+#,,,.,.,,,,..,,,,,,..,,,.,.,,,.,,,,,.,,..,.,.,..,,...,...,...,,..,,,,,,,,,,,,,
+#Y77QHFE76DQRVRDZWLKEIKAEUSXWDZJ6PJK36OYOGZCGKMNKN4C7MGUS2EOIIN53DST7GDAQUEVGE
+#\\\|CL6C4IMYUPAV7M7OQFDJ5HHU7BM56ZSKZZDOSAEDD76BTCKYM33 \ / AMOS7 \ YOURUM ::
+#\[7]JQP6UHYV6MPYF4Y3HNO27UFDVU677ODJUFUHXPAZUFZML4TC3ABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

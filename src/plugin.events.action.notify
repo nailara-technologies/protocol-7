@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = plugin.events.action.notify
+# descr = events action plugin : a notification
+## level = info | warn | loves, text = <text>, sound = <profile>            ##
+## [ optional, none by default ] -> notify.cue through the cube on any wake ##
+## : a time, a signal or a parked bucket entry                              ##
+return {
+    'name'     => qw| notify |,
+    'kind'     => qw| action |,
+    'describe' => 'notify.cue : level = info|warn|loves, text = <text>',
+    'run'      => sub {
+        my $fire   = shift;
+        my $action = $fire->{'action'}  // {};
+        my $level  = $action->{'level'} // qw| info |;
+        die "notify level '$level' : info, warn or loves"
+            if $level !~ m{\A(?:info|warn|loves)\z};
+        my $text = $action->{'text'} // $action->{'message'} // '';
+        $text =~ s{\s+}{ }g;
+        die "'text' parameter is missing from 'notify'" if $text !~ m{\S};
+        <[events.notify.send]>->(
+            {   'level' => $level,
+                'sound' => $action->{'sound'} // qw| none |,
+                'text'  => $text
+            }
+        );
+        return TRUE;
+    }
+};
+
+#,,,.,,..,.,.,.,.,.,.,,,.,,,,,.,,,,,,,...,..,,..,,...,...,,,.,,.,,.,.,.,.,,,,,
+#BAL56URITUPG7JEZ4MZTRVCHQUGE7YMBXPYKW4RV7CNDNDPBBVZLQM4LQDK44EBIWKE4OOV5J6PCI
+#\\\|A2SZMSSLP3VFARHKIDGNVXZ75SJOCZUKJSWC7JRW27R5OMWLVEP \ / AMOS7 \ YOURUM ::
+#\[7]ADO3VLWYIND256EH4DAPXDW5UNQHSY6THDPG57ZDECSWQOFWO4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

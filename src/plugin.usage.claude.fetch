@@ -1,8 +1,8 @@
 ## [:< ##
 
 # name  = plugin.usage.claude.fetch
-# descr = read the local claude oauth credential and start an async rate-limit
-#         probe against the anthropic api [ no generation, headers only ]
+# descr = claude oauth credential, async rate-limit probe
+# note  = no generation, rate-limit headers only
 # param = { on_result => '<handler name>', params => { .. } }
 # note  = the caller's on_result handler is invoked exactly once, either
 #         synchronously on a local failure or later from the io callback
@@ -32,13 +32,10 @@ my $report_failure = sub {
 return $report_failure->('claude usage provider is disabled')
     if not $provider->{'enabled'};
 
-##  home directory of the unix user this zenka runs as [ never hardcoded ]  ##
-my $home_dir = ( CORE::getpwuid($UID) )[7] // $ENV{'HOME'} // '';
+my ($cred_file) = <[plugin.usage.claude.credential_files]>;
 
 return $report_failure->('cannot resolve home directory')
-    if not length $home_dir;
-
-my $cred_file = catfile( $home_dir, $provider->{'cred_rel'} );
+    if not defined $cred_file;
 
 ##  plain synchronous local disk read : fast, not a blocking concern  ##
 my $cred_fh;
@@ -123,8 +120,8 @@ if ( not defined $state and exists $provider->{'pending'}->{$req_id} ) {
 
 return $req_id;
 
-#,,,,,.,,,,,.,.,.,,,,,,,.,.,,,..,,...,,.,,,,.,..,,...,...,,,.,,,.,...,.,.,,,.,
-#KIXPDZKKNP5P6XB2ZUV6CVV5WA3UU4IJ3AW4NMEDBU7GVDOVSUA445F7UP2DLMDJ77TVAOIXCKZLO
-#\\\|BOHJTU4GZH7XV4BHZAGE5TBEG5QAGO7LX4ALTLXEAXKYCYF4WUF \ / AMOS7 \ YOURUM ::
-#\[7]EQMXS4PCBHJWM2NNLRPDL4NFYI3ELPVG42KXQHRM6XG3CWDQ7WBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,...,,.,,.,,,.,.,,,.,,,,,.,.,,..,..,,...,...,,,,,..,,..,,.,.,.,,,
+#DWPA4NXIA3PIEI5NGD5E5MGQVXKQ2JK54355PS6JTROXBMQR6Q3UWNA7SHCYQGB4Y3D2K3F3C34OS
+#\\\|ZRZJY2HASO7XCULLZ4YOV2OLXZYDQSS2AOXZTMD274YCK56YPFP \ / AMOS7 \ YOURUM ::
+#\[7]Z53QRDVSLQXDMI4KVKMMJGRHXGFNWIQUAPHVEPIPZPVDCSWX4EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

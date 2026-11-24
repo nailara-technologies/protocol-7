@@ -13,6 +13,7 @@
 #   zenka-present  v7-zenki.start_once
 #   claude-send    claude.send
 #   kimi-send      kimi.acp-send
+#   notify         notify.cue
 
 my $action = shift;
 my $type   = $action->{'type'} // '';
@@ -24,10 +25,11 @@ return qw| task.continue |       if $type eq qw| task-continue |;
 return qw| v7-zenki.start_once | if $type eq qw| zenka-present |;
 return qw| claude.send |         if $type eq qw| claude-send |;
 return qw| kimi.acp-send |       if $type eq qw| kimi-send |;
+return qw| notify.cue |          if $type eq qw| notify |;
 return undef;
 
-#,,..,,..,,,.,..,,,.,,,,.,,,,,..,,...,,,,,,..,..,,...,..,,,.,,,..,..,,,..,,,,,
-#SSGGH2E2IFRQVDOFZZGLXSLS4KOCOBU7YGEEFDLW47DC5PRN6KJUY4LJNBFGRHILZUR53FMRBYUSY
-#\\\|AVYFU2VKFHAIRSM2AU3D5X57SEETH25KQ4KRXRHTFLY7G24QO5E \ / AMOS7 \ YOURUM ::
-#\[7]GB5WBORCRASLPPRGSNDXKOXVUAZVUMEIUNBWP7LX4EKXOCC6HICQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,,.,,,..,.,,,,.,,..,,..,,.,,,,.,,..,,...,..,,,.,,...,,,.,,,,,,.,,
+#I5W2X2RQDAOTC7PNHU4IIYIXHJ3ZKNKSM3AJLL7Z5CQRVN4UTI42EXFHZNOCCJ6TBU4BOQU7WWTZ4
+#\\\|NRQZSTNRPDLN32KLMEEDPORDD5R36E4K36BPKGADZBHJMDMIMZS \ / AMOS7 \ YOURUM ::
+#\[7]YP3LQFO56PI5T46R5TJLT75BS5635NWXRTF5RQFI3UMQ7KOYKSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

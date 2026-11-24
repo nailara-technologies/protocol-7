@@ -42,15 +42,50 @@ error_exit( 'audio file %s not found', $warning_sound_sample )
 
 ##[  PLAYER COMMAND  ]########################################################
 
+## profiles : the speed is the expression [ no pitch correction ] ; soft is ##
+## the night cue for something finished. alarm                              ##
+## [ a loop until the user reacts ] is a later stage                        ##
+my %profile = (
+    'soft'  => [qw| -speed=0.24 -volume=55 |],
+    'aware' => [qw| -speed=0.5  -volume=66 |],
+    'alert' => [qw| -speed=1.0  -volume=77 |]
+);
+
+my ( $profile_name, $print_only, @extra );
+while (@ARGV) {
+    my $arg = shift @ARGV;
+    if ( $arg =~ m{\A--?profile(?:=(.*))?\z} ) {
+        $profile_name = $1 // shift @ARGV // '';
+    } elsif ( $arg =~ m{\A--?print\z} ) {
+        $print_only = 1;    ## show the player command, play nothing ##
+    } else {
+        push @extra, $arg;
+    }
+}
+
+error_exit('alarm profile : not built yet [ a later stage ]')
+    if defined $profile_name and $profile_name eq 'alarm';
+error_exit( "profile '%s' : soft, aware or alert", $profile_name )
+    if defined $profile_name and not $profile{$profile_name};
+
+my $player = $ENV{'P7_WARNING_SOUND_PLAYER'} // qw| /usr/bin/mpv |;
 my @player_param
-    = qw| /usr/bin/mpv -really-quiet -audio-pitch-correction=no -volume=77 |;
+    = ( $player, qw| -really-quiet -audio-pitch-correction=no | );
+push @player_param,
+    defined $profile_name ? @{ $profile{$profile_name} } : qw| -volume=77 |;
+
+##[ RUNTIME CODE ]############################################################
+
+push @player_param, @extra if @extra;    ## additional player parameters ##
+
+if ($print_only) {
+    say join ' ', @player_param, $warning_sound_sample;
+    exit 0;
+}
 
 error_exit( 'command [ %s ] not found', $player_param[0] )
     if not -x $player_param[0];
 
-##[ RUNTIME CODE ]############################################################
-
-push @player_param, @ARGV if @ARGV;    ## additional player parameters ##
 my $mpv_status = system @player_param, $warning_sound_sample;
 
 if ($mpv_status) {
@@ -60,8 +95,8 @@ if ($mpv_status) {
 
 exit $mpv_status;
 
-#,,..,.,,,.,,,,..,,,.,,..,..,,.,,,,.,,,.,,,,.,..,,...,...,.,.,..,,..,,,,.,,.,,
-#PT2V3W2H2T4JH5OKTJNSJBLUSPXU3CVU2OVXSESMWDWTJT4XWRQSG7NSWZIDI7R6YBCLWDYMUUQYQ
-#\\\|POJCMII5BVTAB4E5TOE6Q3VLP6X56SXBTGONEYYHQISAYLS2GGT \ / AMOS7 \ YOURUM ::
-#\[7]UK4O7WRYWBT4JQGLXJ62G5L35IQ4VQ7UANFSA5WWJXYJP3JWYABQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,.,,,,.,,..,,.,.,...,..,,...,..,,...,...,,,,,,,.,.,,,,.,,,,.,
+#B44RPFMO2TVCXEXAQ2P2IXNX27B4AOSCCLRVUMK6H2G6T6HNUKPFGTX65ZOUQKFOEFDX6RFH7PQC2
+#\\\|IVO3CHOVCB7TNFYLYML4GEXFFIZ36W7UQFLKCY56LGZGYSVREMR \ / AMOS7 \ YOURUM ::
+#\[7]7NIBCBRDE2QTZ3VRM7UACCS53N4VH6XSSEEZ42BRFXQZIQANPKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

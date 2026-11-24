@@ -224,7 +224,7 @@ my @sources = sort keys %{ $reg->{'source'} };
 is_deeply_list(
     \@actions,
     [   sort qw|
-            send-command task-continue claude-send kimi-send zenka-present
+            send-command task-continue claude-send kimi-send notify zenka-present
             playlist-show-entry
             playlist-hide-entry playlist-exclusive-entry tile-show tile-hide
             overlay-show overlay-hide |
@@ -828,8 +828,8 @@ ok( "@{$w}" eq 'on-claude-ok'
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,.,,,.,,.,,,.,.,,..,,,.,.,,,.,.,,..,,.,,..,,...,..,,...,,,.,,,.,,.,,,..,
-#NGNJ6K7L5GHCS54YOL6EQSZRGTELT6SGQPEJFAK7U4WB24EQZP2I7TYZ3OQRDUH3SVKOXUIGR2IRS
-#\\\|6NUFZUYID3TGBWAPBHDGL46MYNU4J2PRAAGPRLNHVJICYOAURWD \ / AMOS7 \ YOURUM ::
-#\[7]WVW6YNRCW3FLPW4IO2L32NCR73V3X3OFQCTUNTUH44SNWPZYC2BA 7  DATA SIGNATURE ::
+#,,..,...,..,,...,.,,,.,,,.,.,.,,,...,,,.,,..,..,,...,...,,..,.,.,.,,,,.,,,.,,
+#B3SBTCCBD56UC6KHFZWL3C3WOV4JCWPOZ6HMKNZE5BXWLXSSFPU2G5JZUSIBFGK2IKHEZIVNLSQL4
+#\\\|KXPEPFKVEPGLI2VTQJF6BDHNXVT4CFODSDJODO43Q26OD5PEF35 \ / AMOS7 \ YOURUM ::
+#\[7]V7KKJSM3F3V55266OGJD675CD5JLGJXOFKLV6EOBC6LDVET7DADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

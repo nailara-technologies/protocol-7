@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = events.notify.ticker
+# descr  = set or clear a ticker status line
+# args   = status-set | status-clear, key, text [ set only ]
+# return = TRUE, FALSE for a bad operation or key
+
+my ( $op, $key, $text ) = @ARG;
+return FALSE if ( $op  // '' ) !~ m{\Astatus-(?:set|clear)\z};
+return FALSE if ( $key // '' ) !~ m|\A[\w.:-]{1,80}\z|;
+
+my $args = $key;
+if ( $op eq qw| status-set | ) {
+    $text //= '';
+    $text =~ s{\s+}{ }g;
+    return FALSE if !length $text;
+    $args .= " $text";
+}
+<[protocol-7.command.send.local]>->(
+    {   'command'   => "cube.ticker.$op",
+        'call_args' => { 'args' => $args }
+    }
+);
+return TRUE;
+
+#,,,.,,.,,.,.,..,,...,,,.,,.,,,,.,,.,,,.,,.,,,..,,...,...,..,,.,.,,..,,.,,..,,
+#HEGYHDFTRD6ZPMQDBNNUMDS5VTVNKNFICRMOOOWGHNVZE6KJRX37AUCYIMJNUATFDE66JZRIJBO5S
+#\\\|JPF65GRPZH4OG7NE2QEERVDPYWQVZW5452VCON4WUL7M3GRQXQF \ / AMOS7 \ YOURUM ::
+#\[7]JFRAFZI7WSXU3B5VQ2AJHKMIO6QN3BKZSVX55SZHC52NNCNRUQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

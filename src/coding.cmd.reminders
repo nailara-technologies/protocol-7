@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = coding.cmd.reminders
+# descr = the waiting reminders [ events bucket ]
+
+my $reply_id = $call->{'reply_id'} // '';
+<[park.send]>->(
+    qw| bucket-show |,
+    '',
+    qw| coding.handler.remind_reply |,
+    { 'reply_id' => $reply_id, 'label' => qw| list | }
+    )
+    or return {
+    'mode' => qw| false |,
+    'data' => 'events zenka not reachable'
+    };
+return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
+return { 'mode' => qw| true |, 'data' => 'reminders requested' };
+
+#,,..,,..,.,,,,,.,..,,...,..,,.,.,,.,,...,..,,..,,...,.,.,,..,.,.,,.,,,,.,,,.,
+#UUL6BSRFG5ZB3BEUUXMJ4KPFJ2QBPUOPDF3GFM5VPGXB62THLP3GXYI4L6V4DZAFUSTVEKYKO66LE
+#\\\|5N7TK2NIPNTLWAKHAUGQMK2XLIYM6XAWVYQX2BIYSLZ5E25HSZ3 \ / AMOS7 \ YOURUM ::
+#\[7]3SGEOQKEAROMKOKW72WLCEOVLRY52BRO3R6UXSKHIDMXWMM6TYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

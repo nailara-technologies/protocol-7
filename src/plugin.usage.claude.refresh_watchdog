@@ -1,8 +1,8 @@
 ## [:< ##
 
 # name  = plugin.usage.claude.refresh_watchdog
-# descr = proactively refresh the claude credential shortly before its
-#         locally-claimed expiry -- best-effort only, see note
+# descr = refresh the claude credential before it expires
+# note  = by its locally-claimed expiry : best-effort only
 # note  = claude's expiresAt is NOT fully trustworthy -- confirmed live
 #         2026-09-16 [ plugin.usage.claude.handler.response's own note ] :
 #         the credential file claimed ~97 minutes of validity left while
@@ -35,10 +35,9 @@ my $rearm_fallback = sub {
     return TRUE;
 };
 
-my $home_dir = ( CORE::getpwuid($UID) )[7] // $ENV{'HOME'} // '';
-return $rearm_fallback->() if not length $home_dir;
+my ($cred_file) = <[plugin.usage.claude.credential_files]>;
+return $rearm_fallback->() if not defined $cred_file;
 
-my $cred_file = catfile( $home_dir, $provider->{'cred_rel'} );
 my $cred_fh;
 return $rearm_fallback->() if not open( $cred_fh, '<', $cred_file );
 
@@ -87,8 +86,8 @@ if ( $remaining <= $margin ) {
 );
 return TRUE;
 
-#,,,,,,,,,,.,,,,,,.,,,,,.,,..,.,.,,,.,.,.,.,.,..,,...,...,..,,,..,.,.,,..,,,.,
-#5A57HEV5BOJ4JEX3WXWZ7AWUNDR53IKXWBBVL6FXRVTAICKE6JZFH5KBOETOW4ZGH4OS5CWARTLTE
-#\\\|AMMKIOWH65PUKOSBWG6JAZDJIJAP47F7MKOWQVDIWFMQQXRYGIA \ / AMOS7 \ YOURUM ::
-#\[7]6VM5XDIEFLCJM22PG4DZRSO4JFDWKUPKW5UP4PBKKNEBBTJXU2AA 7  DATA SIGNATURE ::
+#,,.,,..,,...,,..,.,,,...,.,.,,,.,,,.,.,.,..,,..,,...,...,.,.,,,.,,..,...,,.,,
+#IOFXA3KRXR5JLNDQQHWZ6I7ROWPSMEWWDTZIDE5X6IRNV7Q3VWUASJVDRMMPZYZCNDJPBTUOMOYA6
+#\\\|RIWPJ737HUYHLPWDLBMZLQBTHRX3XBWAFDA5URDUBQ4F6RIHE2D \ / AMOS7 \ YOURUM ::
+#\[7]OVSG3FCRTAZHKEAPMGG6DJJ44YIS5745W7UTBSM74QG2CXCYGSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

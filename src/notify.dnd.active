@@ -1,0 +1,24 @@
+## [:< ##
+
+# name   = notify.dnd.active
+# descr  = is do-not-disturb on now [ ends a timed one ]
+# return = TRUE or FALSE
+#
+# a timed switch [ notify.dnd on for=<span> ] ends when it is read after its
+# time, as the chat relay switch does : no timer of its own
+
+my $dnd = <notify.dnd.state> // return FALSE;
+return FALSE if !$dnd->{'on'};
+if ( $dnd->{'until'} and $dnd->{'until'} <= time ) {
+    $dnd->{'on'}    = FALSE;
+    $dnd->{'until'} = 0;
+    <[base.log]>->( 1, 'do not disturb ended [ timed ]' );
+    return FALSE;
+}
+return TRUE;
+
+#,,..,,,.,.,.,.,.,.,.,..,,,.,,,..,,.,,.,,,,..,..,,...,...,...,,,,,.,,,,..,,.,,
+#AQ4VRPBYMARLAPNM3D2WMCGD6NE6I7BRXS5TOIKBRDRU3PQ26W5MG6QDKKL256CYZTYVZ7HHLS7W4
+#\\\|52RPDWFUUAXYW5XEOXWY3WZ6DCB7E2GMW66AK7T6OFP4JO3BNIB \ / AMOS7 \ YOURUM ::
+#\[7]EFVKVDIZAPPCPWZZEWBKTZB4PUXLOV24RRSFFSLBGUZ6DL6GWWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = coding.cmd.remind-drop
+# param = <id> [ remind-.. ]
+# descr = remove a reminder before its time
+
+my ($id) = ( $call->{'args'} // '' ) =~ m{\A\s*(\S+)\s*\z};
+return { 'mode' => qw| false |, 'data' => 'reminder id : remind-<digits>' }
+    if not defined $id or $id !~ m{\Aremind-\d+\z};
+my $reply_id = $call->{'reply_id'} // '';
+<[park.send]>->(
+    qw| bucket-remove |,
+    $id,
+    qw| coding.handler.remind_reply |,
+    { 'reply_id' => $reply_id, 'label' => "drop $id" }
+    )
+    or return {
+    'mode' => qw| false |,
+    'data' => 'events zenka not reachable'
+    };
+return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
+return { 'mode' => qw| true |, 'data' => "drop of $id requested" };
+
+#,,,.,,..,,..,,,,,,..,.,,,,..,,..,,,.,,..,..,,..,,...,...,..,,,..,...,,,.,.,,,
+#5H42P3HLVFKQZCJUBCV5JTSBB6ZUZSMEGEQFOP7PAAZGU5MWA2HFPOBAUWANIMAZAYAPEUBZ5UULG
+#\\\|VPHNFPI4H6TGEVL2KNNCIT3UD534HLOPXLDFMSQYWZ5HWRQU2OK \ / AMOS7 \ YOURUM ::
+#\[7]GNUHHWTHE5MYA2JBWNJKB732WDUABJR7ZUZREFLZ3D6D6PT732DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

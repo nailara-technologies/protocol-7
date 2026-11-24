@@ -1,0 +1,144 @@
+## [:< ##
+
+# name   = coding.handover.render
+# descr  = the handover block : runs, signs, commits
+# args   = short [ TRUE : one line a section ]
+# return = text
+#
+# from <coding.handover.state> [ the source answers ], the sign queue and
+# the parks of this zenka, and git read now
+
+my $short = shift;
+my $state = <coding.handover.state> // {};
+my $src   = $state->{'source'}      // {};
+my $stamp = sub {
+    POSIX::strftime( '%Y-%m-%d %H:%M', CORE::localtime(shift) );
+};
+my $hm      = sub { POSIX::strftime( '%H:%M', CORE::localtime(shift) ) };
+my @out     = ( '.:[ coding handover : ' . $stamp->(time) . " ]:.\n" );
+my $section = sub {
+    push @out, "\n$ARG[0]\n", map {"  $ARG\n"} @ARG[ 1 .. $#ARG ];
+};
+my $pick = sub {    ## the `key : value` lines of a status answer ##
+    my ( $text, @keys ) = @ARG;
+    my %v = map { m{\A(\w+)\s+:\s+(.*)\z} ? ( $1 => $2 ) : () }
+        split m{\n}, $text // '';
+    return join ', ', map {"$ARG $v{$ARG}"} grep { defined $v{$ARG} } @keys;
+};
+my $source_line = sub {
+    my ( $name, @keys ) = @ARG;
+    my $s      = $src->{$name};
+    my $signal = $state->{'signal'}{$name};
+    my $tail   = defined $signal ? ' ; run.done ' . $hm->($signal) : '';
+    return sprintf '%-6s : not asked yet%s', $name, $tail if not defined $s;
+    return sprintf '%-6s : %s [ %s ]%s', $name,
+        $s->{'ok'}
+        ? $pick->( $s->{'text'}, @keys ) || '-'
+        : 'no answer : ' . $s->{'text'},
+        $hm->( $s->{'at'} ), $tail;
+};
+
+## running dispatches ##
+$section->(
+    'running',
+    $source_line->( qw| claude |, qw| state turn queued | ),
+    $source_line->( qw| kimi |,   qw| phase prompt queued | )
+);
+
+## sign queue \ commit plans ##
+my $all = <[coding.sign_queue.store]> // {};
+my @entries
+    = sort { $all->{'entry'}{$a}{'num'} <=> $all->{'entry'}{$b}{'num'} }
+    keys %{ $all->{'entry'} // {} };
+my @plans = sort keys %{ $all->{'plan'}           // {} };
+my $first = sub { ( split m{\n}, shift // '' )[0] // '' };
+my @queue;
+if ($short) {
+    my %n;
+    $n{ $all->{'entry'}{$ARG}{'status'} }++ foreach @entries;
+    push @queue,
+        @entries ? join( ', ', map {"$n{$ARG} $ARG"} sort keys %n ) : 'empty';
+    $queue[0] .= ' ; ' . scalar(@plans) . ' commit plans' if @plans;
+} else {
+    foreach my $id (@entries) {
+        my $e = $all->{'entry'}{$id};
+        push @queue,
+              "$id $e->{'status'} : "
+            . $first->( $e->{'message'} )
+            . ( length( $e->{'reason'} // '' ) ? " [ $e->{'reason'} ]" : '' );
+    }
+    foreach my $id (@plans) {
+        my $plan = $all->{'plan'}{$id};
+        push @queue,
+            "plan $id $plan->{'status'} : " . $first->( $plan->{'message'} );
+    }
+}
+@queue = (qw| empty |) if not @entries and not @plans;
+$section->( 'sign queue', @queue );
+
+## commits ##
+my $git  = <[coding.handover.git]>;
+my $list = sub {
+    my ( $label, $lines, $none ) = @ARG;
+    return "$label : $none"                  if not defined $lines;
+    return "$label : none"                   if not @{$lines};
+    return "$label : " . scalar( @{$lines} ) if $short;
+    return ( "$label : " . scalar( @{$lines} ), map {"  $ARG"} @{$lines} );
+};
+$section->(
+    "commits [ $git->{'branch'} ]",
+    $list->( 'not pushed', $git->{'pushed'}, 'unknown [ no upstream ]' ),
+    $list->(
+        'not deployed', $git->{'deployed'},
+        'unknown [ coding.cfg.handover_deployed_ref ]'
+    )
+);
+
+## open decisions \ parked tasks : the source text as it came ##
+my $block = sub {
+    my ( $label, $name, $keep ) = @ARG;
+    my $s = $src->{$name};
+    return $section->( $label, 'not asked yet' ) if not defined $s;
+    return $section->(
+        $label,
+        'no answer : ' . $s->{'text'} . ' [ ' . $hm->( $s->{'at'} ) . ' ]'
+    ) if not $s->{'ok'};
+    ## a true reply may arrive with its newlines escaped ##
+    my @lines = grep { m{\S} and m{$keep} } split m{\n|\\n}, $s->{'text'};
+    return $section->( $label, 'none' ) if not @lines;
+    return $section->(
+        $label, scalar(@lines) . ' [ ' . $hm->( $s->{'at'} ) . ' ]'
+    ) if $short;
+    return $section->( $label, @lines );
+};
+$block->(
+    'open decisions',
+    qw| decision |, qr{\Aquestion\.[\w-]+\.(?:question|options) = }
+);
+my $parked = <[coding.park.store]>->( qw| list |, '' );
+$section->(
+    'parked [ coding ]',
+    @{$parked}
+    ? ( $short
+        ? scalar( @{$parked} )
+        : map {
+                  "$ARG->[0] $ARG->[1]{'entry'} : "
+                . <[park.describe]>->( $ARG->[1] )
+        } @{$parked}
+        )
+    : 'none'
+);
+$block->( 'parked [ task ]', qw| task |, qr{\A[A-Z0-9]+\s+parked\s} );
+
+## watches the events zenka refused : the state is not kept current ##
+my @refused = map {"$ARG : $state->{'watch'}{$ARG}{'text'}"}
+    grep { not $state->{'watch'}{$ARG}{'ok'} }
+    sort keys %{ $state->{'watch'} // {} };
+$section->( 'not followed [ watch refused ]', @refused ) if @refused;
+return join '', @out;
+
+#,,,,,...,,.,,..,,,..,,..,,,,,,,,,,,,,..,,,,.,..,,...,...,.,,,...,.,.,.,,,.,,,
+#5V4DFXPAGRJ2V4WLDKL53FFPOZ6VM7FSBPP4CNSIMJQVMGG3KSTDO47UEJPMGEJ3P2HVLTGCKG5P6
+#\\\|46QWEVBJUQF2AMQV46LOCQLZRIYDFXLGLTQV6SFHFDUDADD32YI \ / AMOS7 \ YOURUM ::
+#\[7]OSD5SSC4DDKRLRCFYSQH2YQ7J7QUL2HVGJVMVNARVOXFC33GHKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

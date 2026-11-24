@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = coding.cmd.remind-fire
+# param = <id> <session | panel | notify> <text>
+# descr = a reminder is due : deliver it
+
+my ( $id, $to, $text )
+    = ( $call->{'args'} // '' )
+    =~ m{\A\s*(remind-\d+)\s+(session|panel|notify)\s+(\S.*?)\s*\z}s;
+return { 'mode' => qw| false |, 'data' => 'remind-fire <id> <to> <text>' }
+    if not defined $text;
+my $paths
+    = $to eq qw| session |
+    ? [ qw| session |, qw| notify | ]
+    : [ qw| notify |, qw| session | ];
+<[coding.remind.deliver]>
+    ->( { 'id' => $id, 'text' => $text, 'paths' => $paths } )
+    or return { 'mode' => qw| false |, 'data' => "reminder $id : no path" };
+return { 'mode' => qw| true |, 'data' => "reminder $id sent [ $to ]" };
+
+#,,,,,.,,,,..,,..,,,,,,..,,..,.,.,...,..,,...,..,,...,...,.,.,,,,,..,,,,,,,,,,
+#6KCZTUYZXCLTZQO5QYQLHIYLVEI6KT2MPTVCOUBRDZOCXMJBQU2NLNZ6KMMDVSIIYDQ2MSYAIVHFS
+#\\\|MB7REBSUEQSIWCDMVVKVJ3HJFV7V3IAOOPNYOMFQJQFJBJWNIAO \ / AMOS7 \ YOURUM ::
+#\[7]IQ6X7UAP676A5WZEQIT5M6LUE24U34VXMH5QKFMGBM4T36QKAKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

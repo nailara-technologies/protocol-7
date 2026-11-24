@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = ticker.cmd.status-set
+# param = <key> <text>
+# descr = set a persistent status line [ by key ]
+#
+# status lines scroll in front of the file content ; the same key replaces
+# its line, ticker.status-clear removes it
+
+my $args = $call->{'args'} // '';
+$args =~ s{\A\s+|\s+\z}{}g;
+my ( $key, $text ) = split m{\s+}, $args, 2;
+
+return { 'mode' => qw| false |, 'data' => 'key : letters, digits . _ : -' }
+    if ( $key // '' ) !~ m|\A[\w.:-]{1,80}\z|;
+$text //= '';
+$text =~ s{\s+}{ }g;
+return { 'mode' => qw| false |, 'data' => 'status text expected' }
+    if !length $text;
+
+my $lines = <ticker.status.lines> //= {};
+$lines->{$key} = { 'text' => CORE::substr( $text, 0, 300 ), 'time' => time };
+
+<[ticker.status.apply]>;
+return { 'mode' => qw| true |, 'data' => "status line '$key' set" };
+
+#,,,,,..,,,,.,,..,.,,,,,.,.,,,..,,.,,,..,,.,,,..,,...,...,...,..,,.,.,,.,,.,,,
+#DV6ZQHI2XD3MG5IIHQ5GVS554VAPQM2PAOONVHSLN2I26I22PZQBUGQYWRRE3TO52WUSV25XWVXHC
+#\\\|226XBIYVMFRXFZDNMZ52DMVDG4SEMXNN4Z4T2CIIZEH2BCSEXWU \ / AMOS7 \ YOURUM ::
+#\[7]EPBUTBH6TDLRR4EYCW3DTGSGRK5BSAR7YUXEC447OJOHXOUUJSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

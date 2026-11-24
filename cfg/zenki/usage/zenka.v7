@@ -33,7 +33,8 @@ system.zenka.verbosity.buffer = 2
 access.cmd.usr.cube = commands heart name subname verify-instance reload \
                       src-age src-ver list show-buffer \
                       buffer-erase buffer-erase-level \
-                      claude kimi status plan claude-refresh-test
+                      claude kimi status plan claude-refresh-test \
+                      token-leak-check
 
 ## the watch : usage.threshold at these used percents                     ##
 ## [ crossed up \ down ], usage.window.reset a margin after each window's ##
@@ -58,11 +59,21 @@ base.interval.cfg.type.usage-requery.factor            = 1.6
 base.interval.cfg.type.usage-requery.cap               = 377
 base.interval.cfg.type.usage-requery.cap_jitter        = 34
 
+## token-leak-check scan child : stop steps and exit status checks ##
+base.interval.cfg.type.usage-leak-stop.start           = 3
+base.interval.cfg.type.usage-leak-stop.factor          = 1.6
+base.interval.cfg.type.usage-leak-stop.cap             = 13
+base.interval.cfg.type.usage-leak-stop.cap_jitter      = 2
+base.interval.cfg.type.usage-leak-reap.start           = 1
+base.interval.cfg.type.usage-leak-reap.factor          = 1.6
+base.interval.cfg.type.usage-leak-reap.cap             = 8
+base.interval.cfg.type.usage-leak-reap.cap_jitter      = 1
+
 ## pty : plugin.usage.claude.refresh_token needs a real terminal [ IO::Pty ]
 ## to refresh claude code's own oauth token -- see that module's note on why
 ## a plain pipe doesn't work for it the way it does for kimi's refresh
 modules.load = auth.client net protocol.protocol-7 io.unix ui crypt.C25519 \
-               format.json clients.https usage pty
+               format.json clients.https stream_child usage pty
 [load_modules:<modules.load>]
 
 plugins.load = plugin.usage.claude plugin.usage.kimi
@@ -87,8 +98,8 @@ plugins.load = plugin.usage.claude plugin.usage.kimi
 
 [zenka.loop]
 
-#,,,,,,,,,,,.,...,...,,,.,..,,,,.,..,,,..,,,.,..,,...,...,,.,,,.,,.,,,,.,,,,.,
-#G4ONFBWBMLQPZYWRW7SQP3D6PLRIDC47EJUEGNACPWSAERCLYBCZ7FZ3EHOELCVFV2KVYBU6CLNFC
-#\\\|U65D5GXEN5FR3BNMNT4RZPGQNNH5URZGQK3W4WZU6UWHMSIIPJX \ / AMOS7 \ YOURUM ::
-#\[7]ATZHCA5XPGWJOTRYGYUVE5ZBGSXA6MBLNZS2K7IDUGWWBX3KAYAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,,,...,,.,,.,,,..,,...,,,.,,,.,..,,...,..,,,.,,.,.,,.,,,,,,..,,
+#BOTMI2JWWSCTFEGNTYJ3POV56TI7F3ZXGICGYPIEARXCTK3I6XTDCTPGAS4TXWTOYVTLGZKKF6OT6
+#\\\|FGDFKOCUGCPXBO2VMDFYBX6235XDW4RKBQRCAEDFH2CASPMZV7M \ / AMOS7 \ YOURUM ::
+#\[7]MOKYP65MGJ2ESY6KFLDZ3ALKLUG5BA6PV2HW5RLGAVFIIGWHPQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

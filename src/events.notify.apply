@@ -1,0 +1,65 @@
+## [:< ##
+
+# name   = events.notify.apply
+# descr  = notify for a raised signal as the map says
+# args   = source zenka, signal name, values [ hash ref ], time [ optional ]
+# return = hash ref of what was done { level, sound, text, ticker, key }
+#          or undef when the map names nothing for the signal
+#
+# called from events.signal.raise [ the one place ] ; the entry is the most
+# specific `notify.on.<signal>.<v1>.<v2>..` the `notify.by.<signal>` values
+# give, then shorter ones down to `notify.on.<signal>`. quiet hours and the
+# alarm fallback : events.notify.send
+
+my ( $source, $name, $values, $now ) = @ARG;
+$values //= {};
+$now    //= time;
+
+my $map  = <[events.notify.map]>;
+my @pick = map { $values->{$ARG} // '' } @{ $map->{'by'}{$name} // [] };
+my $spec;
+while (1) {
+    my $key = join '.', $name, grep {length} @pick;
+    $spec = $map->{'on'}{$key} and last;
+    last if !@pick;
+    pop @pick;
+}
+return undef if not defined $spec;
+
+my $level = $spec->{'level'} // qw| info |;
+my $sound = $spec->{'sound'} // qw| none |;
+
+my %fill = ( %{$values}, 'name' => $name, 'source' => $source );
+my $text = ( $spec->{'text'} // '{source} : {name}' )
+    =~ s|\{([\w.-]+)\}|$fill{$1} // ''|egr;
+$text =~ s{\s+}{ }g;
+$text =~ s{\A | \z}{}g;
+
+## the ticker line of a running thing : `<source>.<run>` unless named ##
+my $ticker = $spec->{'ticker'} // '';
+my $tkey   = $spec->{'key'}    // "$source.run";
+$tkey =~ s|\{([\w.-]+)\}|$fill{$1} // ''|eg;
+if ( $ticker eq qw| set | ) {
+    <[events.notify.ticker]>->( qw| status-set |, $tkey, $text );
+} elsif ( $ticker eq qw| clear | ) {
+    <[events.notify.ticker]>->( qw| status-clear |, $tkey );
+}
+
+$sound
+    = <[events.notify.send]>->(
+    { 'level' => $level, 'sound' => $sound, 'text' => $text, 'time' => $now }
+    ) if $level ne qw| none |;
+
+return {
+    'level'  => $level,
+    'sound'  => $sound,
+    'text'   => $text,
+    'ticker' => $ticker,
+    'key'    => $tkey
+};
+
+#,,,.,...,,.,,,,,,,,,,,.,,,..,,..,...,,,,,,,.,..,,...,...,...,,..,..,,.,.,.,.,
+#ZIPPCCPEB6QTDFFEA27U4KPZ33J56EW7G4QXLX5FGA6DU5HKHCQMVMZG7T2H7WNK4OPSWLAVLW4OU
+#\\\|675C72XXBMNFLW7TVAFUUL66DRC7MFMSGOLB55JAMHWXKIJ2XMF \ / AMOS7 \ YOURUM ::
+#\[7]MMGYBJPNDHRAFGEZW5S4VPDZTUKLVRR7DV5AWDOK5UAOTWNSOKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = coding.cmd.remind
+# param = at=<time> | after=<type> <text> [ to= ]
+# descr = a reminder : a bucket entry, a message
+#
+# to=session [ default ] : claude.session-post into the registered live
+# session, notify when none takes it ; to=panel \ notify : notify.message,
+# the session when the notify zenka is not there. the entry is the
+# reminder [ events bucket, kept over restarts ] : coding.reminders lists,
+# coding.remind-drop <id> removes
+
+my $parsed = <[park.parse_args]>->( $call->{'args'} // '' );
+my $fail   = sub { return { 'mode' => qw| false |, 'data' => shift } };
+return $fail->( $parsed->{'error'} ) if defined $parsed->{'error'};
+my $pairs = $parsed->{'pairs'};
+my @bad   = grep { not m{\A(?:at|after|to)\z} } sort keys %{$pairs};
+return $fail->("unknown key : @bad [ at after to ]") if @bad;
+my @when = grep { defined $pairs->{$ARG} } qw| at after |;
+return $fail->('one of at= or after=') if @when != 1;
+my $to = $pairs->{'to'} // qw| session |;
+return $fail->('to : session \ panel \ notify')
+    if $to !~ m{\A(?:session|panel|notify)\z};
+my $text = join ' ', @{ $parsed->{'words'} };
+$text =~ s{\s+}{ }g;
+return $fail->('reminder text required') if $text !~ m{\S};
+
+## the id : milliseconds and a counter -- a fired entry is final under its ##
+## id, so a new reminder after a restart must not meet an old one          ##
+my $seq = ++<coding.remind.seq>;
+my $id  = sprintf 'remind-%d%02d', int( Time::HiRes::time() * 1000 ),
+    $seq % 100;
+my $quote = sub { "\x22" . ( shift =~ s{([\\\x22])}{\\$1}gr ) . "\x22" };
+my $args  = join ' ',
+    $id,
+    "$when[0]=" . $quote->( $pairs->{ $when[0] } ),
+    'action=send-command',
+    'command=' . $quote->("coding.remind-fire $id $to $text"),
+    'reason=' . $quote->("$text [ to=$to ]");
+my $reply_id = $call->{'reply_id'} // '';
+<[park.send]>->(
+    qw| bucket-add |,
+    $args,
+    qw| coding.handler.remind_reply |,
+    { 'reply_id' => $reply_id, 'label' => "reminder $id" }
+) or return $fail->('events zenka not reachable : no reminder');
+return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
+return { 'mode' => qw| true |, 'data' => "reminder $id requested" };
+
+#,,,.,,..,.,.,,..,.,.,,,,,,..,,.,,...,.,,,.,,,..,,...,...,..,,,.,,.,.,.,.,,.,,
+#H5GWNTKKL2O4K53SOBUAJRWJLVVYT5SVXYYJ6J3NFECYOQYL3UDR7ICKSREI4EPJVP2ADUYRUF4XM
+#\\\|XL5TBQB6GHICUVLSDLQZJYCDMYNWROCSQARK3O55K7EAFAOX6DI \ / AMOS7 \ YOURUM ::
+#\[7]45UOVH2PVXF3MAE4IVSGUXBR4NM5NYY6T33UGRPS2WKOD5Q65AAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

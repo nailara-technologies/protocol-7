@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = usage.leak_check.gone
+# descr = the scan child ended : answer the command
+# args  = reason, handle
+
+my ( $reason, $handle ) = @ARG;
+my $run = <usage.leak_check.run> // return;
+return if $run->{'handle'} != $handle;
+<usage.leak_check.run> = undef;
+
+<[base.zenki.resume_ondemand_timeout]>
+    if defined $code{'base.zenki.resume_ondemand_timeout'};
+
+## without its last line the walk is incomplete : never read as clean ##
+my $complete = defined $run->{'seconds'};
+my $reply
+    = $complete
+    ? { 'mode' => qw| size |, 'data' => <[usage.leak_check.report]>->($run) }
+    : {
+    'mode' => qw| false |,
+    'data' => 'token leak check incomplete : the scan child ended early'
+    };
+
+<[base.logs]>->(
+    1,
+    'usage : token leak check %s, %d file(s) with a hit',
+    $complete ? qw| finished | : qw| incomplete |,
+    scalar $run->{'hits'}->@*
+);
+
+if ( length $run->{'reply_id'} ) {
+    <[base.callback.cmd_reply]>->( $run->{'reply_id'}, $reply );
+} else {
+    <[base.logs]>->( 1, "usage leak check :\n%s", $reply->{'data'} );
+}
+return;
+
+#,,.,,,,.,...,,..,...,.,,,.,.,.,,,,..,..,,.,.,..,,...,...,.,,,.,,,..,,,.,,.,,,
+#FAQKMAD7CINDAKGQ3VYFUN5J2GUBVCVU73X5ZE44U2LGKNSYIF3ALPUFCLCSYFYJVYVQWDCS3LG2I
+#\\\|ZOZJFSM4QUZ7CIOY2ABX7GUFSWXJODSG6G6HOOQY6Q2QPPP3KPE \ / AMOS7 \ YOURUM ::
+#\[7]MUITKLLIZPXU3ETZCCKSL2Z7OD5BLWHO7HCCBC6XQXP3C2ZTQYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

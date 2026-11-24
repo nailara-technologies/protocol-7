@@ -1,0 +1,53 @@
+## [:< ##
+
+# name   = events.notify.send
+# descr  = send one notification to the notify zenka
+# args   = { level => info|warn|loves, sound => <profile>|none, text,
+#          time [ optional, for the quiet hours ] }
+# return = the sound sent [ TRUE-ish ], FALSE for a bad level or no text
+#
+# the one send path of the events zenka : the notify action plugin and the
+# signal map both end here. quiet hours [ notify.map ] turn the sound into
+# notify.quiet.sound [ soft or none ]. the alarm loop [ a cue looping until
+# the user reacts ] is a later stage : sound=alarm is sent as alert and
+# logged. notify.cue decides popup or ticker [ dnd ]
+
+my $n     = shift         // {};
+my $level = $n->{'level'} // qw| info |;
+my $sound = $n->{'sound'} // qw| none |;
+my $text  = $n->{'text'}  // '';
+$text =~ s{\s+}{ }g;
+$text =~ s{\A | \z}{}g;
+
+return FALSE if $level !~ m{\A(?:info|warn|loves)\z} or !length $text;
+$sound = qw| none | if $sound !~ m|\A[a-z]{1,20}\z|;
+
+my $quiet = <[events.notify.map]>->()->{'quiet'};
+if ( defined $quiet->{'from'} and $sound ne qw| none | ) {
+    my @lt     = CORE::localtime( $n->{'time'} // time );
+    my $minute = $lt[2] * 60 + $lt[1];
+    my ( $from, $to ) = @{$quiet}{qw| from to |};
+    my $in
+        = $from <= $to
+        ? ( $from <= $minute && $minute < $to )
+        : ( $minute >= $from || $minute < $to );
+    $sound = $quiet->{'sound'} // qw| none | if $in;
+}
+if ( $sound eq qw| alarm | ) {
+    <[base.log]>
+        ->( 1, 'notify : alarm loop is not built yet, alert instead' );
+    $sound = qw| alert |;
+}
+
+<[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.notify.cue |,
+        'call_args' => { 'args' => "$level sound=$sound $text" }
+    }
+);
+return $sound;
+
+#,,,,,..,,..,,..,,...,...,,..,..,,...,,..,,,.,..,,...,..,,..,,,,.,..,,,,,,...,
+#TQTAMCJREGVDYLQXA6WBCDWWQWS7QZJQA36BCSH6QMVHTSGFHTLGNSEFGTA7AQD53A27OZCVKJRGY
+#\\\|QFPR36ND4GJVEUSRL2TJ2PCU3JY4HXVIPRJHZER5HOQZ73JACTP \ / AMOS7 \ YOURUM ::
+#\[7]R2PG2RR2X4DKCMHY257IEK4OIUT5OKXXSQOYXRMSGUCSVXZF7ODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

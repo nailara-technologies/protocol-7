@@ -1,0 +1,49 @@
+## [:< ##
+
+# name   = coding.handover.git
+# descr  = commits not pushed \ not deployed
+# return = { pushed => [ lines ] | undef, deployed => [ lines ] | undef,
+#            branch, deployed_ref }
+#
+# read when the block is rendered [ two short git log runs, no shell ].
+# not deployed : the commits after coding.cfg.handover_deployed_ref
+# [ a ref the deploy moves ] -- undef without one
+
+my $root = <coding.cfg.handover_root> // <system.root_path> // '';
+my $log  = sub {
+    my $range = shift;
+    CORE::open(
+        my $fh, '-|:encoding(UTF-8)', qw| git -C |, $root,
+        qw| -c color.ui=false log --no-color -n 40 |,
+        '--format=%h %s',
+        $range, '--'
+    ) or return undef;
+    my @lines = map { CORE::s{\s+\z}{}r } <$fh>;
+    CORE::close $fh or return undef;
+    return \@lines;
+};
+my $branch;
+if (CORE::open(
+        my $fh, '-|:encoding(UTF-8)', qw| git -C |, $root,
+        qw| rev-parse --abbrev-ref HEAD |
+    )
+) {
+    $branch = <$fh> // '';
+    CORE::close $fh;
+    $branch =~ s{\s+\z}{};
+}
+my $ref = <coding.cfg.handover_deployed_ref>;
+return {
+    'branch'       => $branch // '?',
+    'pushed'       => $log->('@{upstream}..HEAD'),
+    'deployed_ref' => $ref,
+    'deployed'     => defined $ref
+        && length $ref
+        && $ref =~ m{\A[\w./\@{}^~-]+\z} ? $log->("$ref..HEAD") : undef
+};
+
+#,,.,,.,,,,.,,,..,,,,,..,,...,,,,,,.,,,..,.,,,..,,...,...,,..,,.,,.,.,,.,,,,,,
+#VNOQIVJWD2NLNSYWSQ42KFHVGRMMNXTKG2RUAKGAES25QYYX2H57BJXPXFYD6ECC2D446F2JA4FHU
+#\\\|TPHT4F23NT5RJMA4I5PVTMOBOSV2KHS24IL7BLAPMTJNDBIXDKP \ / AMOS7 \ YOURUM ::
+#\[7]XN2L73I33YYN5F4U4W52NFLAVH72TXMSX5VZF6Y2LFIFGKHDO2BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

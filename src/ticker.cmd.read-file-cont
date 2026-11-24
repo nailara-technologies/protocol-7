@@ -45,9 +45,14 @@ if (<ticker.paused>) {
 my $window      = <ticker.obj.window>;
 my $was_visible = defined $window && $window->get_visible;
 
+## status lines [ ticker.status-set ] scroll in front of the content ##
+my $status_shown = keys %{ <ticker.status.lines> // {} }
+    && <[ticker.status.apply]>->( { 'no_start' => TRUE } );
+
 <[ticker.start_animation]>
     if !<ticker.animation_started>
     or $loaded->{'updated'}
+    or $status_shown
     or not $was_visible;
 
 ## restore the profile that was active before a notify-mode top-strip ##
@@ -71,8 +76,8 @@ if ( defined <ticker.notify.previous_profile> ) {
 
 return { 'mode' => qw| true |, 'data' => 'ticker display content updated' };
 
-#,,.,,.,,,,..,.,.,,,.,,,,,,..,,.,,..,,,,,,..,,.,.,...,..,,..,,...,,,.,.,,,.,,,
-#FDN7D4CXBQH3FQQQOVJ2DEWOLTP74B4WA2F4KIDYDVTH5TWPVZL2KWDXARCMQPJC6WXGEY377EHA2
-#\\\|H3V7FMK3TFRZR2X2BTY35CYB4IDMLLNMM3533A66XXNWORFNE4B \ / AMOS7 \ YOURUM ::
-#\[7]UB6ACMIFQWDH54GKBSWNGSN3MFD3RAAT5ZEVNFRBAKVWAHLKDQCA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,.,.,.,...,,.,,..,,..,,,,,,,,,,.,.,...,...,.,,,,..,.,.,,,.,.,.,
+#TLFLL4ZG4P7GWUEMR632V6JYDRBGQBSSLKI67BTHZG6IJESTE7OLV2VYQDCWY27KUZ2TDLHD75XPM
+#\\\|IKU62NBAOMJBYJHKOXKPJQVKUDAPAP5YR5QR37CY7GGMW7WEOGL \ / AMOS7 \ YOURUM ::
+#\[7]NKMVA75CRWED22ANWLLYTJDZW7GMTF23HVFXMKN3TOYQR6VFQ4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,6 +26,15 @@ if ( defined $signal and ref $signal->{'wake'} eq qw| CODE | ) {
     $name, $source, scalar @{$woken}
 );
 
+## the notification map [ notify.map ] : one place for every signal ##
+if ( defined $code{'events.notify.apply'} ) {
+    eval { <[events.notify.apply]>->( $source, $name, $values ) };
+    <[base.logs]>->(
+        0,     "<< notification for signal '%s' failed : %s >>",
+        $name, $EVAL_ERROR =~ s{\s+\z}{}r
+    ) if $EVAL_ERROR;
+}
+
 <[events.signal.journal_write]>->(
     {   'time'   => time,
         'name'   => $name,
@@ -37,8 +46,8 @@ if ( defined $signal and ref $signal->{'wake'} eq qw| CODE | ) {
 
 return $woken;
 
-#,,..,,..,...,..,,..,,,..,.,,,,..,..,,.,,,.,,,..,,...,.,.,.,.,,,.,..,,,,.,..,,
-#7ZDE4FQVIRAHBKECGXLYIL3BYOHUGMDPGXXVF5LVCD4WBIPMMXVN5OAKSC3ZTI6VV75ZVPQGI7HXU
-#\\\|SQFSQVBZPBMZ4NSPAOSKZVNL2WCQ6UJZIHNIRZUODVCVNROYDKR \ / AMOS7 \ YOURUM ::
-#\[7]P75NEXBPOYL4Z7ZFKWMYL6CY7EACH6SN7IDBWQWAJ2QWTOW5XICI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,,..,,,.,,..,.,.,..,,,.,,.,,,..,,...,...,,.,,,..,.,.,.,,,,,.,
+#MBG5QUQ5AHRIJAD2KRNNVQYAGPFTPR3JFKGQTF5GBHXPQ3XPJ4M24KW3QHOTF4RK4V5GLSKDXSBE2
+#\\\|NWHF6OINLV3O4CUDDRE3WJXJHTVG6J75VH6KXIBNFSRWG26TKSY \ / AMOS7 \ YOURUM ::
+#\[7]5L3OLO6TQHWRJ6IFPREFXAG3K237KRK73ZAEIONAVIZIVZEJREAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

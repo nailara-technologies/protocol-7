@@ -1,0 +1,21 @@
+## [:< ##
+
+# name   = notify.sound.play
+# descr  = play a cue through bin/warning-sound -profile
+# args   = profile [ soft | aware | alert ]
+# return = TRUE when started, FALSE for a bad profile name
+
+my $profile = shift // '';
+return FALSE if $profile !~ m|\A[a-z]{1,20}\z|;
+
+my $player = <notify.path.warning_sound>
+    // sprintf( qw| %s/bin/warning-sound |, <system.root_path> );
+## setsid -f returns at once : the cue plays without blocking the zenka ##
+CORE::system( qw| setsid -f |, $player, '-profile', $profile );
+return TRUE;
+
+#,,,.,,,.,.,.,.,,,...,,..,,,.,..,,,..,.,,,,.,,..,,...,...,,..,,,,,.,,,..,,,.,,
+#VCRQITP4CQSQ7TM6B754FVBM25KGQVI4DI7LOODZEK5VVFF2LVKCNUDXY6K24DPKJ7MEVEE6YN7ZE
+#\\\|HGMTPQII5IQKXS2RBDF7W3SIS2SXHSHI5W6E2KYTVUBH7CXNYUK \ / AMOS7 \ YOURUM ::
+#\[7]TAZGVMM73YF554PPKFXCYRKOPN6CGSD3ZOKS3PM276SOBIP7EOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

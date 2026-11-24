@@ -1,0 +1,119 @@
+## [:< ##
+
+# name  = usage.cmd.token-leak-check
+# descr = find account tokens in files that must not hold them
+# param = [ <path> .. ]
+
+## without paths : the protocol-7 var dir, data/state, the chat data and   ##
+## the repo working tree. a child walks, the reply is deferred, one run at ##
+## a time. no secret value is kept in %data, logged or replied             ##
+
+my $running = <usage.leak_check.run>;
+return {
+    'mode' => qw| false |,
+    'data' => 'running since ' . scalar CORE::localtime( $running->{'since'} )
+    }
+    if defined $running;
+
+my $home      = <[usage.home_dir]>;
+my $root_path = <system.root_path>;
+
+my @args = grep {length} CORE::split( m{\s+}, $call->{'args'} // '' );
+my @roots;
+my $number = 0;
+foreach my $path (@args) {
+    $number++;
+    $path =~ s{\A~(?=/|\z)}{$home};
+    $path = catfile( $root_path, $path ) if $path !~ m{\A/};
+    utf8::encode($path)                  if utf8::is_utf8($path);
+    ## the argument itself is not echoed : it could be anything ##
+    return {
+        'mode' => qw| false |,
+        'data' => "path argument $number : not found or not accessible"
+        }
+        if not -e $path;
+    push @roots, $path;
+}
+@roots = (
+    grep {defined} <system.path.zenka-dirs>->{'var_P7'},
+    "$root_path/data/state", "$root_path/data/development/chat", $root_path
+) if not @roots;
+
+## each provider names its secrets and its own credential files ##
+my ( @kinds, @own, @secrets, %known, %checked );
+foreach my $name (<[usage.provider_list]>) {
+    my $source = "plugin.usage.$name.secrets";
+    next if not defined $code{$source};
+    my $found = $code{$source}->();
+    push @kinds, $found->{'kinds'}->@*;
+    push @own,   $found->{'files'}->@*;
+    foreach my $pair ( $found->{'secrets'}->@* ) {
+        my ( $kind, $value ) = $pair->@*;
+        next                 if not defined $value or ref $value;
+        utf8::encode($value) if utf8::is_utf8($value);
+        ## a very short value would match everywhere : not checked ##
+        next if CORE::length($value) < 8 or $known{$value}++;
+        $checked{$kind}++;
+        push @secrets, [ $kind, $value ];
+    }
+}
+return {
+    'mode' => qw| false |,
+    'data' => 'no secrets could be read from the '
+        . 'credential files : nothing was checked'
+    }
+    if not @secrets;
+
+my $helper = <usage.cfg.leak_check_helper>
+    // "$root_path/bin/p7-token-leak-scan-helper.pl";
+my $r = <[stream_child.start]>->(
+    {   'cmd' => [
+            $EXECUTABLE_NAME, $helper,
+            <usage.cfg.leak_check_chunk> // 1048576
+        ],
+        'on_line'  => qw| usage.leak_check.line |,
+        'on_gone'  => qw| usage.leak_check.gone |,
+        'group'    => TRUE,
+        'interval' => {
+            'stop' => qw| usage-leak-stop |,
+            'reap' => qw| usage-leak-reap |
+        },
+    }
+);
+return { 'mode' => qw| false |, 'data' => 'scan child : ' . $r->{'error'} }
+    if not $r->{'ok'};
+
+<usage.leak_check.run> = {
+    'since'    => time,
+    'reply_id' => $call->{'reply_id'} // '',
+    'handle'   => $r->{'handle'},
+    'checked'  => \%checked,
+    'kinds'    => \@kinds,
+    'hits'     => [],
+    'skipped'  => [],
+};
+<[base.zenki.pause_ondemand_timeout]>
+    if defined $code{'base.zenki.pause_ondemand_timeout'};
+
+## the request travels on the child's stdin only. 'end' comes last : a cut ##
+## off request is refused by the child                                     ##
+my $hex = sub { return unpack 'H*', shift };
+my @request;
+push @request, 'secret ' . $hex->( $ARG->[0] ) . ' ' . $hex->( $ARG->[1] )
+    foreach @secrets;
+push @request, map { 'own ' . $hex->($ARG) } @own;
+push @request, 'prune ' . $hex->( catfile( $home, qw| .n private-notes | ) );
+push @request, map { 'root ' . $hex->($ARG) } @roots;
+my $request = join '', map {"$ARG\n"} @request, qw| end |;
+<[stream_child.write]>->( $r->{'handle'}, $request );
+<[stream_child.close_in]>->( $r->{'handle'} );
+
+<[base.logs]>->( 1, 'usage : token leak check started' );
+
+return { 'mode' => qw| deferred | };
+
+#,,.,,,.,,,..,.,.,.,.,..,,,.,,,.,,.,.,.,.,.,,,..,,...,...,.,,,,,.,...,,.,,,,.,
+#RNXMRINZ6UOHKR6VEJANHETU3PORAMYDHGG3MHWNFXWMDJNOAMKMV76EVPJ6JL4KD6ZF46YTHMVB2
+#\\\|UIGCJXII55QLZRBCPKVD2FMLWPDV64HWKUWKUUKOJEUQXTPTRLZ \ / AMOS7 \ YOURUM ::
+#\[7]NC5RLCGHTH4L3UCLFDYVC5VF2GUUXULMGIY6IIVXW7CIFZUZZ2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

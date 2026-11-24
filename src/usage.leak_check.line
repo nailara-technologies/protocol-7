@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = usage.leak_check.line
+# descr = one result line of the scan child
+# args  = line [ octets ], handle
+
+my ( $line, $handle ) = @ARG;
+my $run = <usage.leak_check.run> // return;
+return if $run->{'handle'} != $handle;
+
+utf8::decode($line);
+my ( $key, @field ) = CORE::split( m{\t}, $line );
+$key //= '';
+
+if ( $key eq qw| hit | and @field >= 3 ) {
+    push $run->{'hits'}->@*, [@field];
+} elsif ( $key eq qw| unreadable | and @field == 1 ) {
+    push $run->{'skipped'}->@*, $field[0];
+} elsif ( $key eq qw| done | and @field == 2 ) {
+    @{$run}{qw| unreadable seconds |} = @field;
+}
+return;
+
+#,,.,,,..,,,.,.,.,.,.,..,,,.,,.,,,,,.,...,..,,..,,...,...,.,.,.,,,...,,,.,,..,
+#LDZYDMQNXLRVEL2DJTCUK3E232TADVHL7HXOBWBI7H3FZPVHV4C73BLSXD4H6A3NAXLI2YHYHGWLM
+#\\\|KSPW34C3MU2BI25SBZRZJEVSC5C7DSSU3MPKIJ6V7GE4HJPERLF \ / AMOS7 \ YOURUM ::
+#\[7]K5M2EYYOKPILKDUH6VEIAR5IXR3EBRHXD2BVQZ2LCOI6GWND3GCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

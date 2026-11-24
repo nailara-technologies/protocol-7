@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = notify.cmd.dnd
+# param = [ on [ for=<span> ] | off | clear-held ]
+# descr = do-not-disturb : no popups, ticker keeps them
+#
+# span : 90s 13m 1h30m 2d .. ; no argument shows the state. off keeps the
+# held ticker lines [ nothing lost ] ; clear-held removes them
+
+my $args = $call->{'args'} // '';
+$args =~ s{\A\s+|\s+\z}{}g;
+my ( $word, @opt ) = split m{\s+}, $args;
+$word //= '';
+
+my $dnd  = <notify.dnd.state> //= { 'on' => FALSE, 'until' => 0 };
+my $held = <notify.dnd.held>  //= [];
+
+if ( $word eq qw| on | ) {
+    my $until = 0;
+    foreach my $o (@opt) {
+        my ($span) = $o =~ m{\Afor=(\S+)\z}
+            or return {
+            'mode' => qw| false |,
+            'data' => "'$o' : for=<span>"
+            };
+        my $seconds = <[notify.dnd.parse_span]>->($span);
+        return {
+            'mode' => qw| false |,
+            'data' => 'for= expects a span like 90s, 13m or 1h30m'
+            }
+            if not defined $seconds;
+        $until = time + $seconds;
+    }
+    %{$dnd} = ( 'on' => TRUE, 'until' => $until );
+} elsif ( $word eq qw| off | ) {
+    %{$dnd} = ( 'on' => FALSE, 'until' => 0 );
+} elsif ( $word eq qw| clear-held | ) {
+    foreach my $h ( @{$held} ) {
+        <[protocol-7.command.send.local]>->(
+            {   'command'   => qw| cube.ticker.status-clear |,
+                'call_args' => { 'args' => $h->{'key'} }
+            }
+        );
+    }
+    @{$held} = ();
+} elsif ( length $word ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'on [ for=<span> ], off, clear-held or nothing'
+    };
+}
+
+my $on   = <[notify.dnd.active]>;
+my $line = $on ? 'do not disturb : on' : 'do not disturb : off';
+$line .= sprintf ' until %s', scalar CORE::localtime( $dnd->{'until'} )
+    if $on and $dnd->{'until'};
+$line .= sprintf ' [ %d held on the ticker ]', scalar @{$held} if @{$held};
+return { 'mode' => qw| true |, 'data' => $line };
+
+#,,,,,,,.,,..,..,,...,.,.,,,.,..,,,..,...,,..,..,,...,...,,.,,.,,,.,.,.,.,.,.,
+#64XB6ZHWLAHZYY6YGAXAIZ73HMBN5RK2CQ2CUMKNS4UNV4MDHOGVGVNQRK54KQDEYHPDRKSMJWMHE
+#\\\|UEUXFDYDAV4EWRK3Z7JFK42MORWQTILNAVECE2AGWAS4KZFURUX \ / AMOS7 \ YOURUM ::
+#\[7]YKVYAMOT7ZDSKGI2PJ7V3XUART4GKDOIV5GUXEIXCBBPET62SOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

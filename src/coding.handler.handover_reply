@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = coding.handler.handover_reply
+# descr = a handover source answered : keep its text
+
+## arm-<source> : the events zenka answered a watch bucket-add -- kept as ##
+## the watch state [ a refused watch shows in the block ]                 ##
+
+my $reply  = shift              // {};
+my $p      = $reply->{'params'} // {};
+my $source = $p->{'source'}     // return FALSE;
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+$text =~ s{\s+\z}{};
+my $state = <coding.handover.state> //= {};
+if ( $source =~ m{\Aarm-(\w+)\z} ) {
+    $state->{'watch'}{$1} = {
+        'ok'   => ( $mode eq qw| true | ) ? TRUE : FALSE,
+        'text' => $text,
+        'at'   => time
+    };
+    <[base.logs]>->( 0, ':. handover watch %s refused : %s', $1, $text )
+        if $mode ne qw| true |;
+    return TRUE;
+}
+$text = 'not reachable' if $text =~ m{\Aclient not present};
+## task.queue : no task at all is an empty answer, not a failure ##
+$mode = qw| true |
+    if $source eq qw| task | and $text =~ m{\Ano tasks found\z};
+$state->{'source'}{$source} = {
+    'ok'   => ( $mode eq qw| true | or $mode eq qw| size | ) ? TRUE : FALSE,
+    'text' => $text,
+    'at'   => time
+};
+return TRUE;
+
+#,,.,,,,.,.,,,,..,...,.,,,.,.,,..,,,,,,,,,..,,..,,...,..,,.,,,,,.,..,,,..,,..,
+#UP5HQAOQ6NER6HLNDOIS3AXZTQD7SWKIXBUBGOBH35DF6U2ZGGDFMGDOD3JYTSGQ3LMMYT6XCXUZ6
+#\\\|W7HGYPQW67RD4Q6ZOGACUUL2A4KZ45AHURVWOC2D7I4IJKO6SYM \ / AMOS7 \ YOURUM ::
+#\[7]J6LBWOGY52II2E6B2IW4TFJHNVJXIHQCQQQLNTWCRRD2MXQEUKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

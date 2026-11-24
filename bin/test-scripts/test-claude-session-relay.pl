@@ -229,6 +229,32 @@ ok( ( join ',', sort keys %{ $msg->{'message'} // {} } ) eq 'content,role'
         . 'wrapper, from-name, closing tag stripped'
 );
 
+##[ post : from= \ to= before the text ]##
+
+foreach my $case (
+    [ 'from=relay-test hello first',        'relay-test', 'hello first' ],
+    [ 'to=main from=lead hello both',       'lead',       'hello both' ],
+    [ 'from=lead hello mixed to=main',      'lead',       'hello mixed' ],
+    [ 'from=first hello twice from=second', 'first',      'hello twice' ],
+) {
+    my ( $args, $name, $text ) = @{$case};
+    $r = $cmd->( 'session-post', $args );
+    my $sent = eval {
+        $json->decode( ( split m{\n}, inbox_read($inbox) // '' )[1] // '' );
+    } // {};
+    ok( $r->{'mode'} eq 'true'
+            && ( $sent->{'message'}{'content'} // '' )
+            =~ m{from-name="\Q$name\E" [^\n]*\n\Q$text\E\n</cross},
+        "session-post '$args' : from-name $name"
+    );
+}
+$r = $cmd->( 'session-post', 'to=nobody hello' );
+ok( $r->{'mode'} eq 'false' && $r->{'data'} =~ m{no live session 'nobody'},
+    'a leading to= selects the session' );
+$r = $cmd->( 'session-post', 'from=lead' );
+ok( $r->{'mode'} eq 'false' && $r->{'data'} eq 'text expected',
+    'from= without a text : text expected' );
+
 ##[ token never in output or files ]##
 
 my @files;
@@ -487,8 +513,8 @@ ok( $after == $posts && slurp($history) =~ m{held while off},
 say "\n$pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,.,,,..,,,.,,..,,.,,,...,.,,,,.,,..,,,..,..,,...,...,,.,,...,..,,,,,,..,,
-#GW5PLSIOPMDKEJ67SRTWL75RSTYMSOINBFJYT2VZ6JQDRIBL42EEURQXB4QMCQF4M4FOX3UK5NPAG
-#\\\|J62SHMZMRSJGXOTSXKGDTAU3ALSJDLH6JCUQOAHPASVH7O6LW5Q \ / AMOS7 \ YOURUM ::
-#\[7]YPW7AI7JZTTO4XGR2YP7G6LXJOT44BI2G6PCC7TM7GCM4AUBPABQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,,,..,,,,,,,.,,,,.,.,.,.,,,..,,..,,...,...,,..,,,,,.,.,...,.,,,
+#BSRKRNY2JZ4BJPSHETXKFM2Q5VTOGWQAQ7ZHAJHKVM3ZDJR5OBSPWRUUSSAJ72KVW2A2UFCI6H2RQ
+#\\\|2ML7G2D4JARKDBOOIZ2QS5GP7C2OZ3QFNPLQUIFO6EQ6AYDN7QV \ / AMOS7 \ YOURUM ::
+#\[7]4LX3ZY37MZ7LLLBF3FWOQMNFB3AOIXCYDXZGI74PVQIEXJAGXEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,19 @@
+## [:< ##
+
+# name   = ticker.status.compose
+# descr  = status lines in front of the given text
+# args   = text [ the file content, may be empty ]
+# return = the text to scroll [ lines in the order they were set ]
+
+my $base  = shift                 // '';
+my $lines = <ticker.status.lines> // {};
+my @set   = map { $lines->{$ARG}{'text'} }
+    sort { $lines->{$a}{'time'} <=> $lines->{$b}{'time'} or $a cmp $b }
+    keys %{$lines};
+return join ' :: ', @set, grep {length} $base;
+
+#,,,.,,.,,.,,,,,.,...,.,,,,..,...,...,..,,,,,,..,,...,..,,,..,.,.,..,,..,,,.,,
+#PS6CDWCSH4VAECRY45K6FU3QSTNASN5FE472N74PPIC6BG4XNGMHFP2ATJMINJLDFNYVNC6TAU6FA
+#\\\|RJ26ONN6B7R7T2QN6NKOC4NCLMDNQV7OTIYMA4JT3ZI6YDOAWY3 \ / AMOS7 \ YOURUM ::
+#\[7]CLCEV2XGOZFM6453BOGREN36JKQ7B2SVG6GQZGE4AUF2COHQBOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

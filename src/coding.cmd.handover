@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = coding.cmd.handover
+# param = [ short | write ]
+# descr = the live handover ; write : to a file
+#
+# write puts the full block into data/ai-mem/claude/handover-live.md
+# [ overwritten each time, the one file the next session reads first ] --
+# no other file. every call also asks the sources again for the next one
+
+my ($sub) = ( $call->{'args'} // '' ) =~ m{\A\s*(\S*)\s*\z};
+return { 'mode' => qw| false |, 'data' => 'handover [ short | write ]' }
+    if not defined $sub or $sub !~ m{\A(?:|short|write)\z};
+my $text = <[coding.handover.render]>->( $sub eq qw| short | ? TRUE : FALSE );
+<[coding.handover.refresh]>;
+return { 'mode' => qw| size |, 'data' => $text } if $sub ne qw| write |;
+
+my $root = <coding.cfg.handover_root> // <system.root_path> // '';
+my $path = "$root/data/ai-mem/claude/handover-live.md";
+my $tmp  = "$path.tmp-$PID";
+my $fail = sub {
+    CORE::unlink $tmp;
+    return { 'mode' => qw| false |, 'data' => "$path : " . shift };
+};
+return $fail->('directory missing') if not -d "$root/data/ai-mem/claude";
+CORE::open( my $fh, '>:encoding(UTF-8)', $tmp ) or return $fail->($OS_ERROR);
+CORE::print {$fh} "# handover live [ coding.handover write ]\n\n", $text
+    or return $fail->($OS_ERROR);
+CORE::close $fh             or return $fail->($OS_ERROR);
+CORE::rename( $tmp, $path ) or return $fail->($OS_ERROR);
+return { 'mode' => qw| true |, 'data' => "handover written : $path" };
+
+#,,,,,,,.,..,,,.,,.,.,.,,,,..,.,,,.,,,,,,,,.,,..,,...,..,,..,,.,,,,..,,..,...,
+#HL5ODFUX6CR2UFY2F6GUD4PRB5EAIVRQZGMDMRMRPSMZDGHOHGGM4OEZLAVT7EXTS6I3CZTQYZUNM
+#\\\|QLPNPOPRV64NCGGSDRWLG6AN5ID6TLLVOE44AERIQ3CU5OCI5RR \ / AMOS7 \ YOURUM ::
+#\[7]TWQ4XA3HMYS6GWQXZEBXKNQRNUFCG5OEI5E66XYWYQ6WDGZY4SBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

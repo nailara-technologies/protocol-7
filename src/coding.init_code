@@ -800,10 +800,25 @@ eval { <coding.sign_queue.timer>->cancel }
     }
 );
 
+## live handover : rebuilt from its sources after a start                 ##
+## [ watches armed, every source asked ] -- nothing of it is kept on disk ##
+eval { <coding.handover.timer>->cancel }
+    if defined <coding.handover.timer>;
+<coding.handover.timer> = <[event.add_timer]>->(
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| coding-handover-resume |,
+                'state' => {}
+            }
+        ),
+        'handler' => qw| coding.handover.start |,
+        'desc'    => 'handover : rebuild after start'
+    }
+);
+
 return 0;
 
-#,,..,,.,,.,,,.,.,,..,,,.,,,.,..,,,.,,,.,,.,,,.,.,...,...,..,,,,.,..,,.,.,.,,,
-#KHELOX7SGWPHIR5ENQCKUQZX3ATLSLK7447RW6TKDKXH44OZXULPHTNT47V4TIWU6RRRJJ3JLXSSG
-#\\\|MTZ45DR3LC5567T5UXUGH7YATFVKMAHJSRUZ3BL6Q6EW2RXRBIE \ / AMOS7 \ YOURUM ::
-#\[7]DHD5E5G4DWORDMFRWRN664KSD6PRKAWY3AECA37E6MDHVVFJASCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,.,.,,.,,,,.,,..,,,,,.,,,,,,,.,.,...,...,..,,.,.,,,,,..,,..,,
+#QK2VO5YCOZKFQDRMNK5RKGBP2DRKPBYW4Y36AVCF3NXA2VQLIFVX54IEAYF7TX3KFYBVLLLGQ4GZG
+#\\\|LK37Q7G2ARXCR6EFGDWMF3DGHIOFAS6SORXWL2EZVJHW4FGFGWD \ / AMOS7 \ YOURUM ::
+#\[7]BYGGOUQJ6PFBU23YEP2HYJSLSEJNCM6N5NEIGFWU4P3K2XZH5IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

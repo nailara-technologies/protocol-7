@@ -18,12 +18,17 @@
 <usage.watch.state>     //= {};    ##  last reading per provider, window  ##
 <usage.watch.timers>    //= {};    ##  reset timers per provider, window  ##
 
+## a running leak check child ends with the zenka ##
+push <callbacks.end_code>->@*, qw| usage.leak_check.end_code |
+    if not grep { $ARG eq qw| usage.leak_check.end_code | }
+    @{ <callbacks.end_code> // [] };
+
 <[base.log]>->( 1, ': usage zenka initialized' );
 
 0;
 
-#,,,,,.,,,,..,,.,,.,.,,,.,,,,,..,,,..,,,,,.,.,..,,...,..,,..,,...,.,.,,,,,,,.,
-#27PDJWSU7S4QYLHUSO7RQTDKDTSCVEWDDQU3CWKKXIX5S55POPH32JN773XRPRUZC24SNG3XAXJTK
-#\\\|JWEUT5UVNBMKFYV6AC5M24DVVGELYXJXUTK5MHLWE4L2ITY3Z72 \ / AMOS7 \ YOURUM ::
-#\[7]47CDUDHJYNUUUQPG527SVSAVHSJU23O7ONQHK2MJCBLE7DEFYCDY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,,,,,,.,,,..,,,.,..,,,,.,.,,,..,,...,..,,,,.,.,,,,,,,,,,,,,,,
+#LQN4LLGAAVSHMOQP2OQNYHNTUVJSQ6CKAWMJOIVRQCS4STB7TYP2ZCQO32HDLXVRFSC4W2CZX5O5G
+#\\\|U5UY6MTNPLBIN7LM7EV5AMGLDUOW47I45VYYKLYXDFW3FJDDTTM \ / AMOS7 \ YOURUM ::
+#\[7]SO4ZSAY5VTYIEQPXGO2BPJD2RKH5ITGLUUDE2UACVY244AHF7ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

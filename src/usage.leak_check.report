@@ -1,0 +1,41 @@
+## [:< ##
+
+# name   = usage.leak_check.report
+# descr  = the leak check reply text
+# args   = the finished run
+# return = text
+
+my $run     = shift;
+my $checked = $run->{'checked'};
+my $total   = 0;
+$total += $ARG foreach values %{$checked};
+
+my @out = sprintf 'secrets checked : %d [ %s ]', $total,
+    join ', ',
+    map { sprintf '%s %d', $ARG, $checked->{$ARG} // 0 } $run->{'kinds'}->@*;
+
+my @hits = $run->{'hits'}->@*;
+push @out, sprintf 'files with a hit : %d', scalar @hits;
+foreach my $hit (@hits) {
+    my ( $path, @pairs ) = $hit->@*;
+    my @found;
+    while ( my ( $kind, $count ) = splice @pairs, 0, 2 ) {
+        push @found, "$kind x$count";
+    }
+    push @out, sprintf '  %s : %s', $path, join ', ', @found;
+}
+
+push @out, sprintf 'skipped as unreadable : %d', $run->{'unreadable'};
+push @out, map {"  $ARG"} $run->{'skipped'}->@*;
+my $more = $run->{'unreadable'} - $run->{'skipped'}->@*;
+push @out, "  .. $more more" if $more > 0;
+
+push @out, sprintf 'time taken : %.1fs', $run->{'seconds'};
+
+return join "\n", @out, '';
+
+#,,.,,..,,,,.,,,.,,,.,.,,,,,.,,.,,..,,.,.,,.,,..,,...,...,,.,,..,,,..,..,,.,.,
+#ITUI3MIQ3TMNPSOMJGNNOQHAWLUBINMIUHRJ5K7324ANBT2JQBQOWDNR2T7JCUUAYRY25HLDABY3K
+#\\\|REY4GEFNDETHAJK2YXRAZ7DTDPY7QXXFDC7KTRR5CF452LAD54W \ / AMOS7 \ YOURUM ::
+#\[7]GPU7NLEYN5BNWLS2N4JKK4CYU5QEXPQXLFGONJ3Y5WGEC27MH2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

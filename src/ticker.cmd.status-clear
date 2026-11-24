@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = ticker.cmd.status-clear
+# param = <key>
+# descr = remove a status line [ by key ]
+
+my $key = $call->{'args'} // '';
+$key =~ s{\A\s+|\s+\z}{}g;
+return { 'mode' => qw| false |, 'data' => 'status line key expected' }
+    if $key !~ m|\A[\w.:-]{1,80}\z|;
+
+my $lines = <ticker.status.lines> //= {};
+return { 'mode' => qw| true |, 'data' => "no status line '$key'" }
+    if not exists $lines->{$key};
+delete $lines->{$key};
+
+<[ticker.status.apply]>;
+return { 'mode' => qw| true |, 'data' => "status line '$key' cleared" };
+
+#,,.,,,.,,...,..,,,.,,.,.,,,.,,,.,,,.,,,,,.,.,..,,...,...,,.,,,..,,,,,..,,.,,,
+#GQRXK33LZDQASHMS2Y77KEFKNLET5I2OLL6ZGNOX67TL66NSQ43NPYPAF4FGP527EZ4T6CWO6JBFS
+#\\\|J5PQCIHMJQSXHRMGTGOKHR6TMKQP3UMR5Z25DVAHHXQ6RPHKY6A \ / AMOS7 \ YOURUM ::
+#\[7]7GNK4GXF6YJFHUI64BIU3WT2TSWQY5N2EIGP3HRYEVS6TH4KB2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

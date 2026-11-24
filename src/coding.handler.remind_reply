@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = coding.handler.remind_reply
+# descr = the events zenka answered a reminder command
+
+## label `list` : only the remind- lines of bucket-show, waiting ones ##
+
+my $reply = shift              // {};
+my $p     = $reply->{'params'} // {};
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+$text =~ s{\s+\z}{};
+my $ok = ( $mode eq qw| true | or $mode eq qw| size | ) ? TRUE : FALSE;
+$text = 'events zenka not reachable' if $text =~ m{\Aclient not present};
+my $answer;
+if ( not $ok ) {
+    $answer = { 'mode' => qw| false |, 'data' => "$p->{'label'} : $text" };
+} elsif ( $p->{'label'} eq qw| list | ) {
+    my @lines = grep {m{\A: remind-\d+\s+waiting\s}} split m{\n}, $text;
+    $answer = {
+        'mode' => qw| size |,
+        'data' => @lines
+        ? join( "\n", map {s{\A: }{}r} @lines ) . "\n"
+        : "no reminders\n"
+    };
+} else {
+    $answer = { 'mode' => qw| true |, 'data' => "$p->{'label'} : $text" };
+}
+<[base.logs]>->( 2, ':. %s : %s', $p->{'label'}, $answer->{'data'} );
+<[base.callback.cmd_reply]>->( $p->{'reply_id'}, $answer )
+    if ( $p->{'reply_id'} // '' ) =~ m{\A\d+\z};
+return $answer;
+
+#,,..,,,,,...,,,,,.,,,,,,,...,.,.,.,.,.,.,.,.,..,,...,.,.,,,,,,.,,,,.,.,.,,..,
+#AO32DLQBVEKFMBNPZX5WMLSAVRRARNFKN74DZUS5HSBSMFMBQNYYQUIHOJQTY4OSAQZV3LOARKTJS
+#\\\|RB5D6T3EXOIDYWXR3JA3YCQWBHEA4FSP6SSXIQRWD242P4BZTPY \ / AMOS7 \ YOURUM ::
+#\[7]BJ3NLZHJXEKSA3JLENFQOFYWJD3HS4KFH3ZQXNAOLLONEEK334BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

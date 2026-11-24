@@ -58,6 +58,12 @@ base.interval.cfg.type.coding-sign-resume.factor     = 1
 base.interval.cfg.type.coding-sign-resume.cap        = 13
 base.interval.cfg.type.coding-sign-resume.cap_jitter = 0.2
 
+## live handover : the first look after a start [ seconds ] ##
+base.interval.cfg.type.coding-handover-resume.start      = 15
+base.interval.cfg.type.coding-handover-resume.factor     = 1
+base.interval.cfg.type.coding-handover-resume.cap        = 15
+base.interval.cfg.type.coding-handover-resume.cap_jitter = 0.2
+
 [load_config_file:'shared-params']
 [zenka.load_sub_list]
 
@@ -95,7 +101,9 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       model-batch-review \
                       idiom-check gpu-lease-yield gpu-lease-granted \
                       list-backups show-backup subscribe-session \
-                      ask answer open sign-queue commit-plan commit-plans
+                      ask answer open sign-queue commit-plan commit-plans \
+                      handover handover-event remind reminders \
+                      remind-drop remind-fire
 ##                    utf8-test-buffer utf8-stream-test \ ## <-- resolved =).
 ##                    test-strm test-strm-size            ## <-- resolved =).
 
@@ -631,8 +639,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,,.,,.,,,,.,,...,.,.,.,.,,..,.,,,,,.,...,.,.,...,...,,.,,,,,,..,,..,,.,,,
-#IFUY2TDO7K4QJ2WMDBC6RDXLSXBIV4BD35D3JBGOPQZU2VFHDTG55WSYUG67GEXSHD65QM7CZHNWE
-#\\\|34F76T6VYK6GJXTUHV3EUMHELD75UQ2SVXO27G6OMLWPV5T2EIU \ / AMOS7 \ YOURUM ::
-#\[7]LHR3GKAPA4PNH3JYD6336ZUAMIDGUDWVZVROUJSOVS5GSM2EHKDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,..,,,.,,.,.,.,.,.,.,...,,,,,.,.,...,...,...,.,.,,,,,.,,,.,.,
+#GL3YDUSS6CDUK3NRQTMZOZQ6G5VCA6DXZGSWR6COEMHSKTIUZDZUTBYSUQ5EN2YBUGTQPGMD3JSMO
+#\\\|UBXIGFEYQE6X526HYGK5PGZZNUEIOHQVO4BBEODQCLIHJ5LHD64 \ / AMOS7 \ YOURUM ::
+#\[7]TWNJFIR7L6DYCHCXCUAOTP225GWN7T72SC2CCT463IYW73TXVMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

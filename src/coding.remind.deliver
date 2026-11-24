@@ -1,0 +1,39 @@
+## [:< ##
+
+# name   = coding.remind.deliver
+# descr  = send a reminder one way, then the next
+# args   = { id, text, paths => [ session | notify .. ] }
+# return = TRUE when buffered
+#
+# the first path is tried ; a refused or unreachable one hands the rest
+# to coding.handler.remind_delivered, which tries the next
+
+my $in    = shift // {};
+my @paths = @{ $in->{'paths'} // [] };
+my $path  = shift @paths // return FALSE;
+my %send  = (
+    'session' =>
+        [ qw| claude.session-post |, "reminder : $in->{'text'} from=coding" ],
+    'notify' => [ qw| notify.message |, "reminder $in->{'text'}" ]
+);
+my $cmd  = $send{$path} // return FALSE;
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => $cmd->[0],
+        'call_args' => { 'args' => $cmd->[1] },
+        'reply'     => {
+            'handler' => qw| coding.handler.remind_delivered |,
+            'params'  => { %{$in}, 'path' => $path, 'paths' => \@paths }
+        }
+    }
+);
+return TRUE if $sent;
+<[base.logs]>->( 1, ':. reminder %s : %s not routable', $in->{'id'}, $path );
+return @paths
+    ? <[coding.remind.deliver]>->( { %{$in}, 'paths' => \@paths } )
+    : FALSE;
+
+#,,,,,...,..,,,,,,...,,,,,,.,,.,,,..,,,..,.,,,..,,...,...,,..,.,,,.,,,.,.,.,,,
+#B7AR6T7FALDL2PAQPYZD4VTPPU5OWX3RSKVCHV3UMJB4IB55R264IFNSTJ44FJ3U3HMRI3E2DSSOC
+#\\\|TQC6NYYCEWARPTOG2FXB2UVSS3OWFZGZUWTPSKNFR26PGZCNVUM \ / AMOS7 \ YOURUM ::
+#\[7]MTFLNSGTQNKX33RUXXLHR3YMXYVTLYQHPFCQDEDVUXHFPAZJXKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

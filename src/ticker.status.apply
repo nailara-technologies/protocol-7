@@ -1,0 +1,33 @@
+## [:< ##
+
+# name   = ticker.status.apply
+# descr  = show the status lines with the current content
+# args   = { no_start => TRUE } [ read-file-cont : it starts the animation ]
+# return = TRUE when shown, FALSE when kept for later
+#
+# only what the ticker already displays : the status lines are joined in
+# front of the continuous file text and parsed again. kept, not shown :
+# before the window is sized, while hidden [ dismissed ] and in the one-shot
+# notify mode -- read-file-cont shows them with its next content. no lines
+# and no content : the ticker is dismissed
+
+my $opt = shift // {};
+return FALSE if not <ticker.status.initialized>;
+return FALSE if <ticker.hidden>;
+return FALSE if ( <ticker.display.mode> // '' ) eq qw| notify |;
+
+my $text = <[ticker.status.compose]>->( <ticker.content.txt> // '' );
+if ( !length $text ) {
+    <[ticker.dismiss_now]>;
+    return FALSE;
+}
+
+<[ticker.parse_text]>->($text);
+<[ticker.start_animation]> if !$opt->{'no_start'};
+return TRUE;
+
+#,,,.,.,,,.,,,,.,,,..,,,.,,.,,.,.,,.,,.,.,,.,,..,,...,...,.,.,,,,,,,,,.,.,,,,,
+#A6ZA5VCRBIA4SPUH6UBAIGDSHMVRPLLQ57JQY2IEKURLP5IHOPUEFBKWENNDAT3O7QWQGG5QO5MPO
+#\\\|2W6ODESIFCKGEHXCCB5KR3OLHVQZ4WXV6WZ3VJO2FKGFL2OXE4I \ / AMOS7 \ YOURUM ::
+#\[7]6Y7WIWYVYF3E4CAM4FBWNK3N6EKOPBBYFV76RUYJVF7VYP6HJUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

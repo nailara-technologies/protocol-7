@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = coding.cmd.handover-event
+# param = <source> [ claude | kimi | decision ]
+# descr = a watched signal came : re-arm, ask again
+
+## sent by the events zenka from a handover-watch entry ##
+
+my ($source) = ( $call->{'args'} // '' ) =~ m{\A\s*(\w+)\s*\z};
+my $signal
+    = defined $source ? <[coding.handover.watch]>->()->{$source} : undef;
+return { 'mode' => qw| false |, 'data' => 'source : claude kimi decision' }
+    if not defined $signal;
+my $state = <coding.handover.state> //= {};
+$state->{'signal'}{$source} = time;
+<[coding.handover.arm]>->($source);
+<[coding.handover.refresh]>
+    ->( $source eq qw| claude | ? ( qw| claude |, qw| task | ) : $source );
+return { 'mode' => qw| true |, 'data' => "handover : $signal noted" };
+
+#,,.,,,..,..,,.,,,,,,,,,.,,.,,,,,,.,.,.,.,,,,,..,,...,...,.,.,,,.,,,.,...,,.,,
+#KMPQIBTIH7M3VC2MRZQYZZ64THPKFL6QWQQV5WEH45OWC77BRRWTNZSTUZBUYLORC74K4PB2ODLBW
+#\\\|L5G7BIDXCOYJBZZDPL3HGYD2AT2UFWDOXIOBSNI2G34CQAZDUWN \ / AMOS7 \ YOURUM ::
+#\[7]6W2P5PHMR6WOY7YYNIWLKJDGFNEZOJRYGVTLBYK2APNMJ4623WCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
