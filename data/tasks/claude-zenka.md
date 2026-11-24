@@ -202,6 +202,32 @@ send-command, tile-* ] and the only `when` is a timetable `at`.
   no reply line. an undocumented protocol : keep the writer in one place, check it after
   claude code upgrades [ msgV ]
 
+### run-as modes [ owner direction 2026-11-24 ]
+
+the zenka drops to the user the child runs as [ one instance per mode, `[root.drop_privs:..]` ] ;
+the child inherits it, its home, login names and ~/.local/bin are set at spawn [ claude.child.start ].
+`claude.cfg.mode` names the mode ; kimi acp follows the same modes.
+
+- owner [ built first, the wsl host ] : the admin user [ system.admin-user ], its claude \ kimi
+  login and mcp config, the owner's checkout. the dev host only.
+- dev : own users [ p7-claude, p7-kimi ] in a group p7-dev with the coding zenka, a shared
+  group-writable checkout [ setgid dirs ], each user with its own login. for the persistent
+  layer and servers. path open : servers have only /usr/local/protocol-7 today ; the generic plans
+  give /data/source/protocol-7 [ likely ] -- /data/projects may be retired there.
+- inspect : read the live tree and its logs, write nothing there -- for diagnosing a server.
+  a fix is made in a dev checkout and returned as a branch \ patch : review, owner sign, commit,
+  pull. never an edit of the live tree [ n7fs broke twice that way ].
+- zenka : the protocol-7 user, read-only answers \ summaries.
+
+signing stays with the owner in every mode ; agents only queue a sign.
+
+session continuity across hosts [ owner idea 2026-11-24 ] : the data a claude \ kimi session needs
+to continue [ claude : the session jsonl under ~/.claude/projects/<dir>/, the zenka's session.cfg
+and events log ; kimi : its session store + acp.session ] kept on an n7fs disk, so `claude.start
+resume=<id>` \ `kimi.acp-start resume=` on another host picks it up. open : the project dir name
+claude derives from the cwd [ same checkout path on both hosts, or a mapping ], credentials stay
+per host [ never on the disk ], one host holds a session at a time [ a lease, like task claims ].
+
 ### to verify before building
 
 - the stream-json input line shape, --input-format and --permission-prompt-tool against
@@ -211,8 +237,8 @@ send-command, tile-* ] and the only `when` is a timetable `at`.
 - inbox socket inbound policy : crossSessionInbound accept | hold | refuse, defaults by
   permission mode -- a bypass session holds messages from a prompting sender
 
-#,,..,...,,,,,,.,,,..,..,,,,.,,,.,,,,,,,.,,,,,..,,...,..,,..,,.,.,,..,,,,,.,,,
-#GX5SBUEVN6EURYYPJLONADDXOMZ7BRV4TA6WGEXG5AFVJFAMDRN3MNHYU2GIPDT3NL33RAVVVNIWW
-#\\\|SHAGMIEKJWZ2LMFSGZK24ABOT2R736M2BBRV6W3X3XWZH36HFSJ \ / AMOS7 \ YOURUM ::
-#\[7]ECAPA6UPVVPRJTIBMOOQHTWZXGO27X34RLCWQI43WZ5LV4WNYMCI 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,.,,,..,,...,,..,,..,..,,..,,..,,...,..,,,,.,.,.,,..,,,.,...,
+#VMKFRVWKEFALCV4XO6MV6AWP7VTCFI63IKQQ3H7AL3DBOII2ZJCLHGHNAJO7OVEOMIRF4OPJY2WAA
+#\\\|R6EDFBK6FLR3EFOVZGDMTWQJSL75Y2QQOONT3CFLOTINJZKDKKW \ / AMOS7 \ YOURUM ::
+#\[7]TQMOC5I5OV5XSGBPPY7B73KK2IJLLF3DSKRZKVMQGZIUBLMRIAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

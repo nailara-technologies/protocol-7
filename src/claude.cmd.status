@@ -25,10 +25,11 @@ my $from   = @{$events} > 7 ? @{$events} - 7 : 0;
 push @lines, '', 'last events :',
     map {"  $ARG"} @{$events}[ $from .. $#$events ]
     if @{$events};
-return { 'mode' => qw| true |, 'data' => join( "\n", @lines ) . "\n" };
+## size : true \ false replies get their newlines escaped ##
+return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) . "\n" };
 
-#,,,,,,.,,,..,,..,.,,,,,.,,.,,,.,,...,,,.,...,..,,...,..,,..,,.,,,,,.,...,...,
-#SHRYH2MDAHYOK6J4MEJNMA7NYDPV3U7NKBWSPQ2STG7NR7BW6ZEUUUXYTKKRRDRCI7FJW4HQDDHAM
-#\\\|MRH7PB5TWTIACFS35NZMRXDFMLK543IQDTPCBZQQVBWFAJUEFXD \ / AMOS7 \ YOURUM ::
-#\[7]UGQ6IJT6SNM6ESFRZYHGEIJBXUD4GY76WLYXT4XVI3LVUSWENSCA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,...,.,.,,..,,.,,.,.,...,.,,,..,,...,...,..,,...,,,,,,..,..,,
+#IQQ7F27STPK7QZWBXNHP5DPLGZJZRDT446DTIH72GSD2UOAU2EKB6MVITVQQ4M33C62LDP3FXZW7Y
+#\\\|SSL3BUOR22N6DX3CPX3YN4MKUNK6S5RMIB67L2WVAJVLJEWNRYC \ / AMOS7 \ YOURUM ::
+#\[7]6Q44K7EKDNBVJCWIAG3FV5NI47J6HZIHELRP35NTHKDY2OQD4CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

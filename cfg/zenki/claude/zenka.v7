@@ -10,9 +10,13 @@ access.cmd.usr.cube = commands heart reload verify-instance \
 system.zenka.verbosity.buffer  = 2
 system.zenka.verbosity.console = 2
 
-## the claude code process [ one session per instance ] : binary and flags ##
-## are config -- --model, --resume and --permission-prompt-tool are added  ##
-## from claude.start parameters \ the saved session \ the keys below       ##
+## the claude code process [ one session per instance ] : binary and flags  ##
+## are config -- --model, --resume and --permission-prompt-tool are added   ##
+## from claude.start parameters \ the saved session \ the keys below mode : ##
+## owner [ the admin user, its claude login and mcp config, the owner's     ##
+## checkout ] -- zenka \ dev \ inspect : data/tasks/claude-zenka.md "run-as ##
+## modes" [ planned ] ; the mode sets the drop_privs user below             ##
+claude.cfg.mode   = owner
 claude.cfg.binary = claude
 claude.cfg.args   = -p --input-format stream-json \
                     --output-format stream-json --verbose
@@ -42,7 +46,7 @@ modules.load = auth.client net protocol io.unix ui stream_child claude
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>]
+[root.drop_privs:<system.admin-user>]    ## owner mode ##
 
 [base.net.connect:'unix']
 
@@ -50,8 +54,8 @@ modules.load = auth.client net protocol io.unix ui stream_child claude
 
 [zenka.loop]
 
-#,,..,,,.,.,,,,,.,,,,,.,.,,..,.,.,,.,,,,,,,..,..,,...,...,,..,..,,,,.,.,,,,..,
-#2ZKCL6F7K4AKYVZQG2SRG5ZVG6FEK3KUX7NFCD4EUFJXJQFXOXYVG4OC5XE536BFFYLQVDF7CNELE
-#\\\|WA6IFTRIB4N4WWZF2DJPAPP6YNJWUDSXVBRXZA2QF5TD3CKWO2M \ / AMOS7 \ YOURUM ::
-#\[7]HYZXUWYTBYWI3UDIRP43ZFFX3ITBTXMVWMGHHMHSDFTQX5AU5OAY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,,..,...,,,.,.,,,.,,,..,,..,,..,,...,.,.,,.,,.,,,,,.,,..,,,.,
+#HIKWD4W5WZ76EKMW366QAHKJN4FZOBBPSNI22SHSU75N5AE5MDORXWHRI5NXRU3AMRTSN3Z4VNCJG
+#\\\|CGLXMEC25T6DWZ6WSZHBCMIXKNAEY6JSG6YK7UITGEUBNC2ORU7 \ / AMOS7 \ YOURUM ::
+#\[7]4EIMN5BXHMCU52KZ6UDLV4BZWAB7VLKDASS7ZCX6A2URJJPY2SDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

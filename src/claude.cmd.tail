@@ -13,16 +13,17 @@ my $events = <claude.events> // [];
 my $from   = @{$events} > $n ? @{$events} - $n : 0;
 return {
     'mode' => qw| true |,
-    'data' => "no events yet\n"
+    'data' => 'no events yet'
     }
     if not @{$events};
+## size : true \ false replies get their newlines escaped ##
 return {
-    'mode' => qw| true |,
+    'mode' => qw| size |,
     'data' => join( "\n", @{$events}[ $from .. $#$events ] ) . "\n"
 };
 
-#,,,.,.,.,,.,,.,,,,,.,..,,,.,,,,,,,,.,..,,...,..,,...,...,.,,,...,,.,,..,,,.,,
-#EFLQBZJWF34VSCNHVGAPDYIVCVVY2C3JTE6AQSHS7NCCWYILT7ALAZNIRWNKCPCAJQZSSGK5A74TE
-#\\\|5GJVGSLMWYJYLOGBADEQ5PNBHHPLQAC2JMGT2RIP3HNMQTGBCYG \ / AMOS7 \ YOURUM ::
-#\[7]VUVTZKHKVNWB5D5WM2A3LSUPWA5NTZXX7VTM7PWE5Z5VWRBQCYDA 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,...,,.,,,,.,.,,,..,,,,,,,..,..,,...,...,...,,,,,.,,,,,.,.,,,
+#7XLTJYRKJYN534NGR45GZ4KTI66MOIWRXLN2AD2AWRDF6WCDBWG5B3LC4FZ6UAJW3H4IH3P6STSL4
+#\\\|7PQLFLQL6HHKYKSN3XOEJ5DEEAWWDIES54PDTL43NHUDJSVXEYE \ / AMOS7 \ YOURUM ::
+#\[7]ZU3NI5TLKPFCU5U2G4MRRV4NMR2UZ7V5DM6MFEFWGSPM6EQ6IMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

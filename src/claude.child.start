@@ -38,10 +38,24 @@ my @cmd  = (
     ( length $tool   ? ( '--permission-prompt-tool', $tool )   : () ),
 );
 
+## the child runs as the zenka's user after the drop               ##
+## [ owner mode : the admin user ] : its own home, login names and ##
+## ~/.local/bin on the path                                        ##
+## [ claude's login, settings and mcp config live there ]          ##
+my @pw  = CORE::getpwuid($EUID);
+my %env = ();
+if ( @pw and defined $pw[7] and length $pw[7] ) {
+    %env = ( 'HOME' => $pw[7], 'USER' => $pw[0], 'LOGNAME' => $pw[0] );
+    $env{'PATH'} = "$pw[7]/.local/bin:" . ( $ENV{'PATH'} // '/usr/bin:/bin' )
+        if -d "$pw[7]/.local/bin"
+        and index( $ENV{'PATH'} // '', "$pw[7]/.local/bin" ) < 0;
+}
+
 ## closing stdin ends a stream-json session by itself ; TERM is sent with ##
 ## it, KILL after a claude-stop delay                                     ##
 my $r = <[stream_child.start]>->(
     {   'cmd'       => \@cmd,
+        'env'       => \%env,
         'cwd'       => <claude.cfg.work_dir> // <system.root_path> // '.',
         'group'     => TRUE,
         'on_line'   => qw| claude.stream.line |,
@@ -78,8 +92,8 @@ $child->{'resume'} = $resume;
 <[claude.turn.next]>;
 return { 'ok' => TRUE, 'pid' => $pid };
 
-#,,..,..,,,.,,,,,,.,,,..,,.,.,..,,.,,,,..,.,.,..,,...,...,...,,..,,.,,,..,.,,,
-#7QW7K5CC2BYDCMVEES7A2NPFKTKH6BODUN5G7DZKY23MXDD4MWUXVH77T4OKUF2MEHANWKPUNVJKS
-#\\\|DH6PUZXIPD7A3V3D6WEIS62YNQA7PSN3TS42FQCUOSSOOBIERTB \ / AMOS7 \ YOURUM ::
-#\[7]FHFW353X7GOFWIVVBPWIPBJBWONJQAWMNELTMSZCP7AIDD5SPKCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,,..,.,.,,..,..,,,.,,,,,,..,,..,,...,...,.,.,.,,,.,.,,..,..,,
+#EURDQTJBTAAQLBRNT5Z2WRODCIW5SU6CXOYHKR6OK6422YUQJRN5RK5V6K2N3BU47HJR6QZMUYZ3E
+#\\\|QEMKBVDY32XCXGIXRKR36LCUHRVW5QR4AJDFJ6D7BY5WXUKAFHT \ / AMOS7 \ YOURUM ::
+#\[7]KZCYMWNJKXR77BWR3IY3H6N72G2L4E32L46FHKIIHWR4OTEI7EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
