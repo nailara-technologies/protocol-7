@@ -174,6 +174,7 @@ load_module($ARG) for qw|
     events.set_up_timers
     events.recalc
     events.access.grants
+    events.signal.grants
     events.signal.access
     events.signal.raise
     events.signal.encode
@@ -204,12 +205,14 @@ sub reset_state {
     $data{'events'}{'timers'}                 = {};
     $data{'events'}{'signal'}{'journal_path'} = $main::journal;
     $data{'events'}{'signal'}{'access_file'}  = $main::access_file;
+    $data{'events'}{'signal'}{'grants_file'}  = $main::grants_file;
     return;
 }
 
 my $tmp = tempdir( 'events-plugins-XXXXXX', 'TMPDIR' => 1, 'CLEANUP' => 1 );
 our $journal     = "$tmp/var/signal.journal";
 our $access_file = "$tmp/access.zenki";
+our $grants_file = "$tmp/access.signals";
 
 ## registry and listing ##
 
@@ -592,16 +595,16 @@ ok( $code{'events.cmd.trigger_event'}->()->{'mode'} eq 'false',
 ## signals ##
 
 mkdir "$tmp/var";
-open my $afh, '>:encoding(UTF-8)', $access_file or die;
+open my $afh, '>:encoding(UTF-8)', $grants_file or die;
 print {$afh} <<'EOF';
-   .:[ test cube access ]:.
+   .:[ test signal grants ]:.
 
-   access.cmd.usr.claude  =  events.signal events.signal.claude.run.done \
-                             events.signal.claude.window.*  # a comment
-   access.cmd.usr.kimi    =  events.signal events.signal.kimi.run.done
-   access.cmd.usr.*       =  heart events.signal.net.changed
-   access.cmd.usr.sloppy  =  events.signal.*
-   ## access.cmd.usr.ghost = events.signal.ghost.done
+   signal.claude  =  claude.run.done \
+                     claude.window.*  # a comment
+   signal.kimi    =  kimi.run.done
+   signal.*       =  net.changed
+   signal.sloppy  =  *
+   ## signal.ghost = ghost.done
 EOF
 close $afh;
 
@@ -689,6 +692,17 @@ ok( $code{'events.cmd.signal'}->()->{'mode'} eq 'false',
 $call = { 'args' => 'stranger claude.run.done' };
 ok( $code{'events.cmd.signal'}->()->{'mode'} eq 'false',
     'access : an unlisted zenka is refused' );
+
+## names come from access.signals only : route-looking tokens in the cube ##
+## access file grant nothing                                              ##
+open my $ofh, '>:encoding(UTF-8)', $access_file or die;
+print {$ofh} "   access.cmd.usr.oldstyle = events.signal "
+    . "events.signal.old.done events.signal.*\n";
+close $ofh;
+$call = { 'args' => 'oldstyle old.done' };
+ok( $code{'events.cmd.signal'}->()->{'mode'} eq 'false',
+    'access : events.signal.<name> in access.zenki grants nothing'
+);
 
 ## the source is never a parameter : the first token is the cube session ##
 @sent = ();
@@ -813,8 +827,8 @@ ok( "@{$w}" eq 'on-claude-ok'
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,,,.,,,...,,,.,,.,,,..,,..,,,,,,..,,..,,,.,..,,...,...,...,,.,,,,.,,,.,...,
-#45QKRUJIA5DW35FMOX7GU4C4IVFIUZUHJRXK36QZGQEREK6X563EDUG45ZWZ2AFLQLTZHRAKDW47S
-#\\\|7JV2VILN7FOKQ3NXWK44MEW7KSKVFEJ6FZOLBSO4UUI5R2LLSRW \ / AMOS7 \ YOURUM ::
-#\[7]MG4FN4MNUHDOZAEUMKDNGHVLLKZDOFE3NL4DFCNIPRXKRW4I7CAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,.,.,,..,,..,,.,,...,.,.,,..,..,,...,..,,.,,,...,...,,.,,,,,,
+#SAXYSTXYJVTQMXYCKLERAQZNXMGM7ENLJZCVBG6DKPTKCS3SO7M43JWECKDLHNJC7SDER2DY6WVXC
+#\\\|HBJ5YFSSQBZL5ZP7NNA3JX44SROPYHZTH43QS3WA6CKJCSWXAFZ \ / AMOS7 \ YOURUM ::
+#\[7]MGUPHM7PFGKWVHVH6G6BSEQDIF7A2PG6XFNAGHPW4VG4CBETZQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

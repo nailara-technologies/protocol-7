@@ -245,9 +245,13 @@ print {$afh} <<'ACC';
                              events.bucket-show task.continue
    access.cmd.usr.task    =  events.bucket-add events.bucket-remove \
                              events.bucket-show task.continue
-   access.cmd.usr.usage   =  events.signal events.signal.usage.*
+   access.cmd.usr.usage   =  events.signal
 ACC
 close $afh;
+my $grants_file = "$tmp/access.signals";
+open my $gfh, '>:encoding(UTF-8)', $grants_file or die $OS_ERROR;
+print {$gfh} "   signal.usage = usage.*\n";
+close $gfh;
 
 my $now = time;
 
@@ -256,6 +260,7 @@ sub fresh_events {
         'bucket_dir' => "$tmp/var",
         'signal'     => {
             'access_file'  => $access_file,
+            'grants_file'  => $grants_file,
             'journal_path' => "$tmp/var/signal.journal"
         },
         'setup'   => {},
@@ -672,8 +677,8 @@ ok( $replies{33}{'mode'} eq 'false'
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,,,,,,,,,,,,.,,,,,.,..,,,.,,,,,,...,,.,,..,,...,...,..,,,,.,...,,,,,,.,,
-#OCDKZ26ALLQFF4Q4UOFD2F25FV6WLRNH7QK7BKLHY36GSJMOE3E7WNRTZG7EAUYJSVVDKQ2LAC46E
-#\\\|IT2ZIRE5G4OABOFI7EZPOOE2JXMOABF4SRISVX75CU6QU5MAO7B \ / AMOS7 \ YOURUM ::
-#\[7]PXYMTSDINW3REIIES4FUWYUV5FIHE4AF3WRUJFNDGEHOULCOVACA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,,,.,,,.,.,.,,,.,,,.,,.,,,,.,..,,...,...,,.,,.,,,,..,,,.,,,,,
+#HCT7L5WLEEJIJAPAHLKIK5ZBBWPAWOE4HLHH6SP272M7PFQVX5526TDQ63M5IFIPEMPFHF6AZ3HCY
+#\\\|HHFSVKSZDQSHYJ6TFI2MHX5ACDT4PTXDLJBY5C7W5JJVSCPKTMK \ / AMOS7 \ YOURUM ::
+#\[7]I32BJ2D7WY45VE5HDHWNIUKFAGFY2MVID5EI6H3ZDOAOR6Z7WCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

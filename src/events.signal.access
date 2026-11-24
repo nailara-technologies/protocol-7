@@ -1,15 +1,11 @@
 ## [:< ##
 
 # name  = events.signal.access
-# descr = may a zenka raise this signal [ access.zenki ]
-# a signal is granted like a command : in the raising zenka's list
-# [ access.cmd.usr.<zenka> ] of cfg/zenki/cube/access.zenki, as a token
-#   events.signal.<signal name>      exactly that signal
-#   events.signal.<prefix>.*         every signal under that prefix
-#   events.signal.*                  every signal
-# the generic `events.signal` token lets the cube route the call ; the
-# per-name tokens decide here which names pass. a zenka list under the
-# wildcard user [ access.cmd.usr.* ] applies to everyone.
+# descr = may a zenka raise this signal [ access.signals ]
+# the names come from cfg/zenki/events/access.signals [ events.signal.grants ]
+#   signal.<zenka> = <name> .. ; a name, <prefix>.* or * [ every name ]
+# the cube routes `events.signal` [ access.zenki ] ; this decides the names.
+# `signal.*` [ the wildcard zenka ] applies to everyone.
 #
 # args   = source zenka, signal name
 # return = TRUE \ FALSE
@@ -17,11 +13,9 @@
 my ( $source, $name ) = @ARG;
 return FALSE if not defined $source or not defined $name;
 
-my $grants = <[events.access.grants]>->() // return FALSE;
+my $grants = <[events.signal.grants]>->() // return FALSE;
 foreach my $who ( $source, qw| * | ) {
-    foreach my $token ( @{ $grants->{$who} // [] } ) {
-        next if $token !~ m{\Aevents\.signal\.(.+)\z};
-        my $grant = $1;
+    foreach my $grant ( @{ $grants->{$who} // [] } ) {
         return TRUE if $grant eq $name or $grant eq qw| * |;
         if ( $grant =~ m{\A(.+)\.\*\z} ) {
             my $prefix = $1;
@@ -32,8 +26,8 @@ foreach my $who ( $source, qw| * | ) {
 
 return FALSE;
 
-#,,,,,..,,.,.,...,,.,,.,,,,,.,,..,.,,,,,.,...,..,,...,.,.,.,.,,..,,,.,..,,.,.,
-#QVUFKR5GJYCE4T4OQWEGQAYDIWGQD7BPPEP7XDMZKF2U2CQOUESS6SXSABF3KYR7BFU22X6GAZ2TS
-#\\\|DMWX62I4SD2C6HC7UWCHPMAIQAIQWAQ47QK5M2UD773SWJ7SOOD \ / AMOS7 \ YOURUM ::
-#\[7]BTYV4H5ALXMI4JKEANAEFJGZBELGOLTHYFK23VLUZXFHBFYNDKDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,..,,..,,..,,,,,...,,..,,,.,...,..,,...,...,,..,,,,,..,,,..,..,,
+#MHODKAN47G67JTAQDT6FMYAVOWJXJPY5VL2VJAZGDLVRX2DTBD5IKVWIXQOG7WUHWM2KSH4BZA7IA
+#\\\|6IMAMP5MRJ45XCFK3LO26WFHLTNE27JZ7Q3BIOGMHOKIJ2TMKAS \ / AMOS7 \ YOURUM ::
+#\[7]MHEGKJIMZEHM5EWZFUV4XUZJMVOKTAK2S62GQUOYB6D6NJGRU6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

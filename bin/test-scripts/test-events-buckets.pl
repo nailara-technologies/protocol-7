@@ -156,6 +156,7 @@ load_module($ARG) for qw|
     events.action.tile_apply
     events.action.overlay_apply
     events.access.grants
+    events.signal.grants
     events.access.route_ok
     events.signal.access
     events.signal.raise
@@ -409,9 +410,9 @@ ok( state_of( 'coding', 'sig' ) eq 'waiting',
 );
 $call = { 'args' => 'claude claude.run.done state=failed' };
 $data{'events'}{'signal'}{'access_file'} = $main::access_file;
-open $afh, '>>:encoding(UTF-8)', $access_file or die $OS_ERROR;
-print {$afh} "   access.cmd.usr.claude = "
-    . "events.signal events.signal.claude.*\n";
+$data{'events'}{'signal'}{'grants_file'} = "$tmp/access.signals";
+open $afh, '>:encoding(UTF-8)', "$tmp/access.signals" or die $OS_ERROR;
+print {$afh} "   signal.claude = claude.*\n";
 close $afh;
 my $res = $code{'events.cmd.signal'}->();
 ok( state_of( 'coding', 'sig' ) eq 'waiting' && !@sent,
@@ -938,8 +939,8 @@ ok( exists $reg->{'source'}{'bucket-dependency'}
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,,,,,,.,,.,,,,.,,..,.,.,,,.,,..,.,,,.,.,..,,...,...,,..,,,.,,,,,,.,,.,,,
-#IKERZ5HSCX7BPAHELL45U7GAQEXGXEBRPPIIGJOANZS574YDVPKIJUX2PLTIZ7FHG4A6UCDXET4XS
-#\\\|QQBXECBK73JN3527UG3NK4RSGE7EQUUY2YO5MX2ZD73M36TWFOL \ / AMOS7 \ YOURUM ::
-#\[7]LDAD4VO7PNYG4UWZGL3ZIHGFRZQR3KUVXDPBPW3PULLEMRAFROBI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,.,,,.,.,,,,.,,...,,..,,,,,,.,,..,,...,...,..,,,.,,,,,,.,,,,,.,
+#O3DIKPQYUDEJOXLSEM3OFZYSP5QJSEIXHIVTHEKFA6E23OQEJ35BL3EDSAQXJTRERNBSWJG6W6ZMC
+#\\\|M3NQOH4LOQWFJ7RCC2KSRTWP54HLVXV7OB5GFVX6TEMXHWGNRXF \ / AMOS7 \ YOURUM ::
+#\[7]OUIL2XN4MMRGSY4EI6QWGCT2R6IKC36CWM5AVVY7MGEAM4VH7YBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

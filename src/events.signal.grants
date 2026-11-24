@@ -1,0 +1,57 @@
+## [:< ##
+
+# name   = events.signal.grants
+# descr  = signal names each zenka may raise [ access.signals ]
+# return = hash ref { <zenka or *> => [ name .. ] } of the lines
+#          `signal.<zenka> = name ..` in cfg/zenki/events/access.signals ;
+#          backslash continuations and '#' comments are handled, the parsed
+#          file is cached by path, mtime and size. no file : no grants
+#
+# a name is a signal name, `<prefix>.*` [ every name under the prefix ] or
+# `*` [ every name ]. these are names, not command routes : the cube only
+# routes `events.signal` [ access.zenki ], this file decides the names
+
+my $path = <events.signal.grants_file>
+    // sprintf qw| %s/zenki/events/access.signals |, <system.conf_path>;
+my @stat = CORE::stat($path);
+return {} if !@stat;
+
+my $cache = <events.signal.grants_cache> //= {};
+if (   ( $cache->{'path'} // '' ) ne $path
+    or ( $cache->{'mtime'} // -1 ) != $stat[9]
+    or ( $cache->{'size'}  // -1 ) != $stat[7] ) {
+    my %grants;
+    if ( open my $fh, '<:encoding(UTF-8)', $path ) {
+        my $cont = '';
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            $line =~ s{\s\#.*\z}{};
+            $line =~ s{\A\s*\#.*\z}{};
+            my $joined = $cont . $line;
+            if ( $joined =~ s{\\\s*\z}{} ) {
+                $cont = $joined . ' ';
+                next;
+            }
+            $cont = '';
+            next if $joined !~ m{\A\s*signal\.(\S+)\s*[=:]\s*(.*)\z};
+            my ( $who, $list ) = ( $1, $2 );
+            push @{ $grants{$who} }, grep {length} split m{[\s,]+}, $list;
+        }
+        close $fh;
+    } else {
+        <[base.logs]>->( 0, "<< signal grants : '%s' unreadable >>", $path );
+    }
+    %{$cache} = (
+        'path'   => $path,
+        'mtime'  => $stat[9],
+        'size'   => $stat[7],
+        'grants' => \%grants
+    );
+}
+return $cache->{'grants'};
+
+#,,.,,.,.,.,,,.,.,.,.,...,.,.,...,.,.,.,.,,.,,..,,...,...,.,,,.,,,.,,,.,,,,,.,
+#RCTUOGLCURMDEXH7HAQVTFOZZXSDWEEFEJSQFMP5QWWZ3S3XGA6BV7G6MHYND6UWXBPIXFPH2PISO
+#\\\|I7EJYRJWBY4DXEGFHDI3UDINXGEAIBCCNCXLWH7KVIM35CTMB57 \ / AMOS7 \ YOURUM ::
+#\[7]2FI3TO7CL5QEQTW7N7WYYKAZURIVYYARINJJSMMSHRDRAEGO76AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
