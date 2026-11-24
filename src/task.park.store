@@ -1,0 +1,33 @@
+## [:< ##
+
+# name   = task.park.store
+# descr  = park records of the task zenka, kept in the task itself
+# args   = get | set | del | count, task id [, record ]
+# return = get : the record or undef ; count : parks so far
+#
+# the record lives in the task [ queue.yaml or history.yaml : a done task
+# is archived ] and is saved with it, so it survives a restart
+
+my ( $op, $id, $record ) = @ARG;
+my $task = <task.queue>->{$id} // <task.history>->{$id};
+return $op eq qw| count | ? 0 : undef if not defined $task;
+if ( $op eq qw| get | ) {
+    return ref $task->{'park'} eq qw| HASH | ? $task->{'park'} : undef;
+} elsif ( $op eq qw| count | ) {
+    return ( $task->{'park_count'} // 0 ) + 0;
+} elsif ( $op eq qw| set | ) {
+    $task->{'park'}       = $record;
+    $task->{'park_count'} = ( $task->{'park_count'} // 0 ) + 1;
+} elsif ( $op eq qw| del | ) {
+    delete $task->{'park'};
+} else {
+    return undef;
+}
+<[task.persist.save]>;
+return TRUE;
+
+#,,,.,,,.,..,,..,,,.,,..,,,,.,..,,.,,,,..,.,.,..,,...,...,,,.,...,,..,...,,.,,
+#WEUOXRNDK5LK47WBFRWV4MXP5SP76MHBIWDQWL4FGZ2QQ3WWZJKBFRO5EMH6MGEYYIXDSSCKENN46
+#\\\|QXPDOZUOKFCVSOSAAUWHFPTVH24EWL4BJIFDBUL2KLI3FZ77OUV \ / AMOS7 \ YOURUM ::
+#\[7]ZA5CZLGAP6GIATHE3JRX57Q2M764HNSRDIM64PZLFOOS3FUJ2MBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

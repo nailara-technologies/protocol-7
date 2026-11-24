@@ -1,0 +1,35 @@
+## [:< ##
+
+# name   = park.clear
+# descr  = a parked task continues : drop its park
+# args   = store, task id
+# return = the entry id cleared, undef when the task was not parked
+#
+# the record goes at once, so a second continue never finds it. the entry
+# is removed only while it still waits [ a continue by hand ] : a fired
+# entry is final anyway, and removing it would block the entries that
+# depend on it. bucket-show tells the state, its reply handler removes.
+# while the events zenka is down the removal is lost : a time \ signal
+# entry could still wake the task later [ task.continue then needs it done
+# or failed again ]
+
+my ( $store, $id ) = @ARG;
+my $rec = <[$store]>->( qw| get |, $id ) // return undef;
+<[$store]>->( qw| del |, $id );
+<[park.send]>->(
+    qw| bucket-show |,
+    '',
+    qw| park.handler.clear-reply |,
+    { 'entry' => $rec->{'entry'} }
+    )
+    or <[base.logs]>->(
+    0,   ':. park : %s continued, entry %s not removed [ events down ]',
+    $id, $rec->{'entry'}
+    );
+return $rec->{'entry'};
+
+#,,..,.,,,,,.,.,.,,..,,,.,.,.,.,.,,,,,.,.,...,..,,...,..,,,..,,,,,..,,.,.,,..,
+#TRXTMPKBI4GP57PQCAJHNQMSPK5UW74MOUR4YDIGTEF3C6JPDLR3EER3QIT34UOPFL2G5JNVOHXOU
+#\\\|UAZT322H4GWH7BPHSPNT4TRHTL75HV75I6HOVC4OJBULQCBOBYL \ / AMOS7 \ YOURUM ::
+#\[7]ENC45B774OBKWANQYSDUU45FYLLBB6XSWSDPFJP2IFORRXD2C6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

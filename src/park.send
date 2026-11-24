@@ -1,0 +1,31 @@
+## [:< ##
+
+# name   = park.send
+# descr  = send an events bucket command with a reply handler
+# args   = command [ bucket-add .. ], args, handler, params
+# return = TRUE when buffered, FALSE when there is no route
+#
+# route-send only buffers : the answer comes to the handler once the event
+# loop runs [ never a blocking round trip ]
+
+my ( $command, $args, $handler, $params ) = @ARG;
+my $sent = <[protocol-7.route-send]>->(
+    {   'command'   => "events.$command",
+        'call_args' => { 'args' => $args },
+        defined $handler
+        ? ( 'reply' => { 'handler' => $handler, 'params' => $params // {} } )
+        : ()
+    }
+);
+<[base.logs]>->(
+    $sent ? 2 : 0,
+    ':. park : events.%s %s',
+    $command, $sent ? 'sent' : 'not delivered'
+);
+return $sent ? TRUE : FALSE;
+
+#,,,,,,,,,,..,,,,,,,.,,.,,..,,,,,,..,,,,.,,.,,..,,...,...,.,.,.,.,...,..,,,,,,
+#HGFEU6HNF5MYWNIK5QI23LWDF3L3UICEV5II2OIGUPHMQPL6SD5QQPP6ZQNHM7XPJDA4CDI5UNR4Q
+#\\\|BBW6DCIYRJ4UQFFCGLLUCUSWNJB2WEHXSYALPABTQDQUJ5KU63N \ / AMOS7 \ YOURUM ::
+#\[7]TZNSKVIK4MIAIUSM5GSXH5MAGTDBGDEJQCCXLUDZTXTYZBKCFOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

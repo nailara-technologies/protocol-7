@@ -991,6 +991,64 @@ our @tools = (
             'additionalProperties' => \0
         }
     },
+    {   'name'        => 'p7_task_park',
+        'description' => 'park a done task : the events zenka continues it '
+            . 'at a time, after a span, on a signal or '
+            . 'after entries',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => '7-character task identifier'
+                },
+                'at' => {
+                    'type'        => 'string',
+                    'description' => 'wake time [ date text or unix time ]'
+                },
+                'after' => {
+                    'type'        => 'string',
+                    'description' => 'interval type [ base.interval ]'
+                },
+                'on' => {
+                    'type'        => 'string',
+                    'description' => 'signal name [ events.signal ]'
+                },
+                'match' => {
+                    'type'        => 'object',
+                    'description' => 'signal values to match [ key: value ]'
+                },
+                'depends' => {
+                    'type'        => 'string',
+                    'description' => 'bucket entry ids, comma separated'
+                },
+                'message' => {
+                    'type'        => 'string',
+                    'description' => 'follow-up message for the wake'
+                },
+                'reason' => {
+                    'type'        => 'string',
+                    'description' => 'shown in listings'
+                }
+            },
+            'required'             => ['task_id'],
+            'additionalProperties' => \0
+        }
+    },
+    {   'name'        => 'p7_task_unpark',
+        'description' => 'unpark a task : its events entry is removed',
+        'inputSchema' => {
+            'type'       => 'object',
+            'properties' => {
+                'task_id' => {
+                    'type'        => 'string',
+                    'description' => '7-character task identifier'
+                }
+            },
+            'required'             => ['task_id'],
+            'additionalProperties' => \0
+        }
+    },
     {   'name'        => 'p7_task_stop',
         'description' => 'stop or abort a coding zenka task. default mode '
             . 'aborts the currently active inference '
@@ -1665,6 +1723,10 @@ sub handle_tools_call {
         tool_task_complete( $id, $args );
     } elsif ( $name eq 'p7_task_continue' ) {
         tool_task_continue( $id, $args );
+    } elsif ( $name eq 'p7_task_park' ) {
+        tool_task_park( $id, $args );
+    } elsif ( $name eq 'p7_task_unpark' ) {
+        tool_task_unpark( $id, $args );
     } elsif ( $name eq 'p7_task_stop' ) {
         tool_task_stop( $id, $args );
     } elsif ( $name eq 'p7_task_restart_round' ) {
@@ -2038,6 +2100,47 @@ sub tool_task_continue {
     } else {
         ( $ok, $response ) = cube_command("task.continue $task_id $message");
     }
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_task_park {
+    my ( $id, $args ) = @ARG;
+
+    my $task_id = $args->{'task_id'} // '';
+    return send_tool_result( $id, 'task_id is required', 1 )
+        if $task_id !~ m|\A[A-Za-z0-9]{1,7}\z|;
+
+    ## key=value pairs, values quoted the way task.park reads them ##
+    my $quote = sub {
+        my $v = shift // '';
+        $v =~ s{\s+}{ }g;
+        $v =~ s{([\\"])}{\\$1}g;
+        return qq|"$v"|;
+    };
+    my @pairs;
+    foreach my $key (qw| at after on depends message reason |) {
+        push @pairs, "$key=" . $quote->( $args->{$key} )
+            if defined $args->{$key} and length $args->{$key};
+    }
+    if ( ref $args->{'match'} eq 'HASH' ) {
+        foreach my $key ( sort keys %{ $args->{'match'} } ) {
+            return send_tool_result( $id, "match key '$key' not usable", 1 )
+                if $key !~ m|\A[\w.-]{1,50}\z|;
+            push @pairs, "match.$key=" . $quote->( $args->{'match'}{$key} );
+        }
+    }
+    my ( $ok, $response )
+        = cube_command( join ' ', 'task.park', $task_id, @pairs );
+    send_tool_result( $id, $response, $ok ? 0 : 1 );
+}
+
+sub tool_task_unpark {
+    my ( $id, $args ) = @ARG;
+
+    my $task_id = $args->{'task_id'} // '';
+    return send_tool_result( $id, 'task_id is required', 1 )
+        if $task_id !~ m|\A[A-Za-z0-9]{1,7}\z|;
+    my ( $ok, $response ) = cube_command("task.unpark $task_id");
     send_tool_result( $id, $response, $ok ? 0 : 1 );
 }
 
@@ -7099,8 +7202,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,..,,..,.,.,,..,.,,,..,,.,.,.,.,.,,,.,.,..,,...,..,,..,,,..,.,,,.,.,..,,
-#JENN6OL3IA3QPBTS3GZ4N7E6BNX7ATK2GB3KZ45XZWLCJLYUPWDP6ZW2Q3ZFROAYDTX24XCCLW5PA
-#\\\|FRPP7OZHAV5FF2ZBX44EXJBWYL37IDKBOW6HGH6NG35XCZGPXRI \ / AMOS7 \ YOURUM ::
-#\[7]CN7Z7WUW7YDIHDP64PMO5CT7GDHIAHYO6EWWEX3U7EX6ABTBFSAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,...,,..,...,,,.,...,...,...,,,.,..,,...,...,.,.,,,.,,,.,,,.,,.,,
+#4ULA4EQYLYVDZGR5WJUBCDOR65NZVT5CAZSFNMHQN6FXBCAO7U2B4LAZUU4TIZHGN2O3BNN6CGJDQ
+#\\\|LLKEJDX56EHKBMV76A34FUN4IREZIRYFITX2OBH452HT2VJJOUD \ / AMOS7 \ YOURUM ::
+#\[7]R2Q6WOOSYGRX6S354YXKEB4MITOB3S65BA3YF4WSSNTSMM7T2GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

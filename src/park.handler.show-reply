@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = park.handler.show-reply
+# descr = reply handler : parked tasks with their entry state
+
+my $reply = shift              // {};
+my $p     = $reply->{'params'} // {};
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my %live;
+if ( $mode eq qw| true | or $mode eq qw| size | ) {
+    foreach my $line ( split m{\n}, $text ) {
+        $live{$1} = "$2 $3" if $line =~ m{\A: (\S+)\s+(\S+)\s+(.*?)\s*\z};
+    }
+}
+my $note
+    = %live || $mode eq qw| true | || $mode eq qw| size |
+    ? ''
+    : ' [ events zenka not reachable : task file ]';
+my @lines;
+foreach my $pair ( @{ $p->{'parked'} // [] } ) {
+    my ( $id, $rec ) = @{$pair};
+    my $entry = $rec->{'entry'};
+    my $state = $live{$entry} // ( length $note ? 'waiting ' : 'gone ' )
+        . <[park.describe]>->($rec);
+    push @lines,
+        ( $p->{'style'} // '' ) eq qw| show |
+        ? "parked      : $entry $state$note\n"
+        : sprintf( "%-7s parked   %s %s%s\n", $id, $entry, $state, $note );
+}
+my $output = $p->{'output'} // '';
+$output .= "--- parked ---\n"
+    if @lines and ( $p->{'style'} // '' ) ne qw| show |;
+my $answer = { 'mode' => qw| size |, 'data' => $output . join '', @lines };
+<[base.callback.cmd_reply]>->( $p->{'reply_id'}, $answer )
+    if ( $p->{'reply_id'} // '' ) =~ m{\A\d+\z} and $mode ne qw| none |;
+return $answer;
+
+#,,,,,,..,,.,,.,.,.,,,.,,,,.,,.,.,,.,,.,.,.,.,..,,...,...,,,.,,..,,,.,,,.,.,.,
+#MP5WMQ43MQ5NEBN572VWGVREODXDBQQMSGFJMW5RQ5VAMBGIUCLH5ZHJ5TSYJZQCMU3EKACNTQIIW
+#\\\|VRWR6INNNB47ZSAFZNSMF5UTKJKT2GHV5XAEKIHZICBN7BHXKDR \ / AMOS7 \ YOURUM ::
+#\[7]BET3UGXKERLFTBKICYELGZFDEUOMUJB6F772SBKCNVDLILTXYCAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

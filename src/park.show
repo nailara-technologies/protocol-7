@@ -1,0 +1,27 @@
+## [:< ##
+
+# name   = park.show
+# descr  = add the parked tasks to a listing, live from events
+# args   = { output, parked => [ [ task id, record ] .. ], style, reply_id }
+# return = a command reply : deferred while bucket-show is asked
+#
+# style show : one `parked` line [ task.show ] ; style list : a section
+# [ task.queue, coding.park ]. without an answer the task file is used
+
+my $in       = shift             // {};
+my $reply_id = $in->{'reply_id'} // '';
+if ( $reply_id =~ m{\A\d+\z} ) {
+    my %p = ( %{$in}, 'reply_id' => $reply_id );
+    return { 'mode' => qw| deferred | }
+        if <[park.send]>->(
+        qw| bucket-show |,
+        '', qw| park.handler.show-reply |, \%p
+        );
+}
+return <[park.handler.show-reply]>->( { 'params' => $in, 'mode' => 'none' } );
+
+#,,..,.,.,,..,...,.,,,,,,,...,,..,..,,...,,,,,..,,...,...,..,,,,,,,..,.,.,...,
+#SKMUCJQUQRVH6GAYW4U5EF4QWBOL24GYPZCGHYOZSTNA434KVR4HHSX6JX6O5QAR46ZC4WZ6OFPBO
+#\\\|LNBUYMUYRFRA5ZNQSQM2ZJ6MX27WDPKHKVR4B75INNPXCERQ2XT \ / AMOS7 \ YOURUM ::
+#\[7]VBWMOCJZS2NNIYWXPHEOVQ5Y3TKAMASNPZNH6QT3D6QU4XFEFOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

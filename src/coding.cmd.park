@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = coding.cmd.park
+# param = [ <task_id> at=|after=|on= [ depends= message= ] ]
+# descr = park a task in the coding bucket ; none : list
+#
+# the same as task.park, in the coding zenka's own events bucket : the
+# entry wakes the task through task-continue [ task.continue, the one
+# continue path ]. without arguments : the tasks coding parked, live from
+# events.bucket-show [ the `parked` file when the events zenka is down ]
+
+my $args = $call->{'args'} // '';
+my ($task_id) = $args =~ m{\A\s*(\S+)};
+if ( not defined $task_id ) {
+    my $parked = <[coding.park.store]>->( qw| list |, '' );
+    return { 'mode' => qw| true |, 'data' => 'no parked tasks' }
+        if not @{$parked};
+    return <[park.show]>->(
+        {   'output'   => '',
+            'parked'   => $parked,
+            'style'    => qw| list |,
+            'reply_id' => $call->{'reply_id'}
+        }
+    );
+}
+$task_id = uc( substr( $task_id, 0, 7 ) );
+return { 'mode' => qw| false |, 'data' => 'task id : letters and digits' }
+    if $task_id !~ m{\A[A-Z0-9]+\z};
+$args =~ s{\A\s*\S+}{};
+return <[park.start]>->(
+    {   'prefix'   => qw| coding |,
+        'store'    => qw| coding.park.store |,
+        'task_id'  => $task_id,
+        'args'     => $args,
+        'reply_id' => $call->{'reply_id'}
+    }
+);
+
+#,,,,,,,,,,,.,..,,..,,.,.,,.,,..,,,.,,,..,..,,..,,...,...,...,...,..,,.,.,,,.,
+#ZPTCFWWCT4Z3NDIVGQSWKCVDW6GASY5SY7LDLMH72PAPQXKJFAQPTL4TJPO6BY5JTYHZZ2AHB3WB2
+#\\\|4S6IVZTM7T7FYXTS6UWQHGY4MZ474MUGNHM6LXPMIYYULCWA3X6 \ / AMOS7 \ YOURUM ::
+#\[7]5G4JCM5QGDE2A6S47DV77I24A33ATJXA2TRR4BJYILTUDM4QGSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

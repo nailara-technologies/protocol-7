@@ -79,10 +79,20 @@ if (@$turns) {
     }
 }
 
+## a parked task : what it waits for, live from its events entry ##
+my $park = <[task.park.store]>->( qw| get |, $task->{'id'} // $task_id );
+return <[park.show]>->(
+    {   'output'   => $output,
+        'parked'   => [ [ $task_id, $park ] ],
+        'style'    => qw| show |,
+        'reply_id' => $call->{'reply_id'}
+    }
+) if defined $park;
+
 return { 'mode' => 'size', 'data' => $output };
 
-#,,..,,..,..,,.,.,,.,,,..,,,.,,.,,,.,,,,.,.,.,..,,...,...,,.,,,,,,.,.,...,...,
-#EDXEWMBLXTVM772JJYN4N6B2E62PUS4ZC2GR2XSGBJHQRVDOJZZWL25MZPDVM56UGQX53WNK6USTI
-#\\\|QNBDYZMMUID32YIFJIVOFVEC4WZGIIUU7YEPTRDXAIPDQOH63E5 \ / AMOS7 \ YOURUM ::
-#\[7]EFOY4V76U7PMDWZ5Z6Z3YNDPT6ZWYJIMK73KYVQH4JUB2OWETECQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,.,,..,.,.,...,,,,,...,,.,,,,.,..,,...,...,...,,,,,,,.,,..,.,.,
+#UWWFC6YT4JDD3ADGZ56TFYKQWDIOJW63DO5D3KEKVHBES2TJVK76ANNPPDEVT7CTTFXNKCX2B7CJQ
+#\\\|Z7RYB6BWK7BQRBE7VOUV3X4HQY5N7D7WYBXZGOKQIEJRWJCZBGG \ / AMOS7 \ YOURUM ::
+#\[7]X4A43SN3VBRSVFUBCDT66YSWLG57O3KLFXDIFW5YLEWE3EOGEUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

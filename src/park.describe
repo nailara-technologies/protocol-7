@@ -1,0 +1,24 @@
+## [:< ##
+
+# name   = park.describe
+# descr  = what a park record waits for, one line
+# args   = park record
+# return = text
+
+my $r = shift // return '-';
+my @w;
+push @w, "time $r->{'at'}"     if defined $r->{'at'};
+push @w, "after $r->{'after'}" if defined $r->{'after'};
+push @w, "signal $r->{'on'}" . join '',
+    map {" $ARG=$r->{$ARG}"} grep {m{\Amatch\.}} sort keys %{$r}
+    if defined $r->{'on'};
+push @w, "depends $r->{'depends'}" if length( $r->{'depends'} // '' );
+my $text = join ' ; ', @w;
+$text .= "  # $r->{'reason'}" if length( $r->{'reason'} // '' );
+return $text;
+
+#,,,,,,..,,,.,...,,.,,...,...,.,.,..,,,,.,,,,,..,,...,...,,..,,.,,.,.,.,.,..,,
+#GBIMZV4N6FIVITIORPTKSQN7LXJYMLZICYPRIY55Z5SLZTGFBKUHTEOLMIAXKZ7LC5KPTIICPQ5KU
+#\\\|NCUWF3ACFAWPAN5Q5X5APR2YCXPMYY3HROOETU4AUPXHCDZQB3V \ / AMOS7 \ YOURUM ::
+#\[7]AECSTCU6FIHE3TCG4XY56S5AOIBPSA7HQRVIRFBGMDAA4J5WKKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

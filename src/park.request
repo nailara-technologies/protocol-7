@@ -1,0 +1,71 @@
+## [:< ##
+
+# name   = park.request
+# descr  = check a park request, build its bucket-add line
+# args   = { prefix, task_id, count, pairs }
+# return = { args => bucket-add line, record => { .. } } or { error }
+#
+# the entry id comes from the task id and the park count : stable, and a
+# new one per park [ a fired entry is final under its id ]. the wake is a
+# task-continue action, the existing continue path of the task zenka.
+#   at=<time> | after=<interval type> | on=<signal> [ match.<key>=<v> ]
+#   depends=<entry ids>  message=<text>  reason=<text>
+# no when and no depends is refused : a park waits for something
+
+my $in    = shift // {};
+my %kv    = %{ $in->{'pairs'} // {} };
+my $id    = $in->{'task_id'} // '';
+my $fail  = sub { return { 'error' => shift } };
+my %known = map  { $ARG => 1 } qw| at after on depends message reason |;
+my @odd   = grep { not $known{$ARG} and $ARG !~ m{\Amatch\.[\w.-]+\z} }
+    sort keys %kv;
+return $fail->( 'unknown key '
+        . join( ' ', @odd )
+        . ' [ at after on match.<key> depends message reason ]' )
+    if @odd;
+my @when = grep { defined $kv{$ARG} } qw| at after on |;
+return $fail->('one of at, after, on only') if @when > 1;
+return $fail->('a park waits for at=, after=, on= or depends=')
+    if not @when and not length( $kv{'depends'} // '' );
+my %match = map { substr( $ARG, 6 ) => $kv{$ARG} }
+    grep {m{\Amatch\.}} keys %kv;
+return $fail->('match.<key> needs on=<signal>')
+    if %match and ( $when[0] // '' ) ne qw| on |;
+my $count = $in->{'count'} // 1;
+my $entry = sprintf '%s-%s-%d', $in->{'prefix'} // 'park', $id, $count;
+return $fail->("entry id '$entry' : letters, digits, _ and -, 80 max")
+    if $entry !~ m|\A[A-Za-z0-9][\w-]{0,79}\z|;
+my $message = $kv{'message'} // "continue [ parked as $entry ]";
+$message =~ s{\s+}{ }g;
+return $fail->('message is empty') if $message !~ m{\S};
+my $quote = sub {
+    my $v = shift // '';
+    $v =~ s{([\\"])}{\\$1}g;
+    return qq|"$v"|;
+};
+my @args = (
+    $entry,   'action=task-continue',
+    "id=$id", 'message=' . $quote->($message)
+);
+my $record = {
+    'entry'   => $entry,
+    'when'    => $when[0] // qw| none |,
+    'message' => $message,
+    'parked'  => time
+};
+foreach my $key ( @when, qw| depends reason | ) {
+    next if not defined $kv{$key};
+    push @args, "$key=" . $quote->( $kv{$key} );
+    $record->{$key} = $kv{$key};
+}
+foreach my $key ( sort keys %match ) {
+    push @args, "match.$key=" . $quote->( $match{$key} );
+    $record->{"match.$key"} = $match{$key};
+}
+return { 'args' => join( ' ', @args ), 'record' => $record };
+
+#,,,.,.,,,..,,...,,,,,...,,..,,..,,,,,,,,,,.,,..,,...,...,..,,,,,,,,,,,.,,..,,
+#Y4XTY6JVHA6YIN2H5CIEPDJYNI6EC3SVGQKLHR6WDIAMR4NB5CE2OL6ADC3ZRRU6H4VJK54K7HBY2
+#\\\|SWVBI3CNQKU3KPFHDLZ4YCT3VSTA5LQH5A435JGWBF6ZLYKSAC7 \ / AMOS7 \ YOURUM ::
+#\[7]QWBLCAL6X5676EVHWRX5XKN6EBOY6EWQ6RR4NSXA6OOJPUFHO6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

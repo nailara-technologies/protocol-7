@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = park.handler.clear-reply
+# descr = reply handler : remove a waiting cleared entry
+
+my $reply = shift                                   // {};
+my $entry = ( $reply->{'params'} // {} )->{'entry'} // return FALSE;
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my ($state) = $text =~ m{^: \Q$entry\E\s+(\S+)}m;
+if ( $mode ne qw| size | and $mode ne qw| true | ) {
+    <[base.logs]>->(
+        0,      ':. park : entry %s not checked [ events : %s ]',
+        $entry, $text
+    );
+    return FALSE;
+}
+return TRUE if ( $state // '' ) ne qw| waiting |;
+<[park.send]>->( qw| bucket-remove |, $entry );
+return TRUE;
+
+#,,.,,,..,..,,...,.,.,,..,...,..,,...,,.,,...,..,,...,...,,,.,...,,,.,...,.,.,
+#3ALMYCXKP62YV5M5TCIUIJNLUHH7FJ36T7LYRCGFXHUOBWTFDD2NTWVYP6QO4Z7HFN3RGTUWFDHT4
+#\\\|RSJLVHD3VCCNO3XAMD5REMBB7D7OM3OOWYRS3SGEGINAYFWNVPC \ / AMOS7 \ YOURUM ::
+#\[7]2GUKOQXUR6UUIKSSCADEKQM5HA54NBDP6IWIHCOWMHNRJO7MRQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

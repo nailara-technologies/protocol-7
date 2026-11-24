@@ -32,6 +32,17 @@ return { 'mode' => 'false', 'data' => 'follow-up message required' }
 
 my $task = <task.queue>->{$task_id};
 
+## a done \ failed task is archived at once : continued from history, it ##
+## goes back into the queue [ a task still in the queue : unchanged ]    ##
+my $archived = <task.history>->{$task_id};
+if (    not defined $task
+    and defined $archived
+    and ( $archived->{'status'} // '' ) =~ m{\A(?:done|failed)\z} ) {
+    $task = delete <task.history>->{$task_id};
+    <task.queue>->{$task_id} = $task;
+    push <task.queue.order>->@*, $task_id;
+}
+
 return {
     'mode' => 'false',
     'data' => sprintf( 'task %s not found', $task_id )
@@ -48,6 +59,11 @@ if ( $task->{'status'} ne 'done' and $task->{'status'} ne 'failed' ) {
         )
     };
 }
+
+## a parked task continues once : the park and its entry go now ##
+my $unparked = <[park.clear]>->( qw| task.park.store |, $task_id );
+<[base.logs]>->( 1, ':. task %s : park %s cleared', $task_id, $unparked )
+    if defined $unparked;
 
 ## preserve previous result in history
 $task->{'history'} //= [];
@@ -107,8 +123,8 @@ my $sent = <[protocol-7.route-send]>->(
 
 return { 'mode' => 'true', 'data' => "continued $task_id" };
 
-#,,.,,...,,,,,,,.,,.,,,,.,..,,.,.,..,,,..,,..,.,.,...,...,,..,,,,,...,.,,,,,.,
-#RSK4D74N7Z3DEZLMNNDY7VUE4QADO5LR2PFIB25V3N2OPJYUAZAUUIBOW7W3NBEBR6UNH7S2OU46I
-#\\\|YKJ3LFYQUXMJD3D4KJQC4NUF7ERXFFTOFJI24OSSFTAFRL7OCBX \ / AMOS7 \ YOURUM ::
-#\[7]VVMHYMQFQWNQWDN352FBLGM6TAS75N4IXRMWTT3WCO3PCGV276AI 7  DATA SIGNATURE ::
+#,,,,,,,.,...,..,,...,,,,,,,.,,,.,,..,...,,,.,.,.,...,..,,..,,.,,,..,,,..,,,,,
+#JOQZ2KQV2XPIJRPMAWAYHXPPEH3CA6S2YYU6SZQ74G43WOQWHMMAHWA552RZNARPJ364OUXMXK4EE
+#\\\|E5JTFRMBZXTOXYBKQVMY2466CJ2FTABNRATCGV6IQGV2IIYCYDN \ / AMOS7 \ YOURUM ::
+#\[7]HUB3XZEMLRDOPABKSZU7L5SB4SYMFHNYC2P7UDKNHZRE4DBTEKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

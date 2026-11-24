@@ -1,0 +1,36 @@
+## [:< ##
+
+# name   = park.stop
+# descr  = unpark a task : bucket-remove, then drop the record
+# args   = { store, task_id, reply_id }
+# return = a command reply [ deferred for a network caller ]
+#
+# the record stays while the events zenka cannot be reached : the entry
+# may still fire, the listing has to say so
+
+my $in       = shift // {};
+my $id       = $in->{'task_id'};
+my $store    = $in->{'store'};
+my $reply_id = $in->{'reply_id'} // '';
+my $rec      = <[$store]>->( qw| get |, $id );
+return { 'mode' => qw| false |, 'data' => "task $id is not parked" }
+    if not defined $rec;
+my $sent = <[park.send]>->(
+    qw| bucket-remove |,
+    $rec->{'entry'},
+    qw| park.handler.remove-reply |,
+    { 'store' => $store, 'task_id' => $id, 'reply_id' => $reply_id }
+);
+return {
+    'mode' => qw| false |,
+    'data' => "events zenka not reachable : $id is still parked"
+    }
+    if not $sent;
+return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
+return { 'mode' => qw| true |, 'data' => "unpark of $id requested" };
+
+#,,.,,.,.,..,,,,.,...,...,,..,,,.,,,,,,..,,,,,..,,...,...,...,,,,,.,.,,..,,,,,
+#RKKV4FQEG7UBQG3VGM7CXIMCMSH6TWFMSEKSPZUO2CH4AGFEJAWDTWV3UJHZRFQ3DGBEURVJCRDQW
+#\\\|GKBEVP7UZPXT2KCQVIDKKSOKU6TKPU7W7C5MA2EVO57SKURS7QX \ / AMOS7 \ YOURUM ::
+#\[7]XOLEBIOWWKCELHO5V5WISDBDXV43HERDFF62BY5I7MVAGNTGEWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

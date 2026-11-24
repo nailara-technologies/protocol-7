@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = park.handler.remove-reply
+# descr = reply handler : drop the park record once removed
+
+my $reply = shift              // {};
+my $p     = $reply->{'params'} // {};
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my $id = $p->{'task_id'} // '';
+my $answer;
+## an entry already gone [ fired and dropped, removed by hand ] : unparked ##
+if ( $mode eq qw| true | or $text =~ m{\Ano entry } ) {
+    my $rec = $code{ $p->{'store'} }->( qw| get |, $id );
+    $code{ $p->{'store'} }->( qw| del |, $id );
+    $answer = {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            "task %s unparked [ '%s' removed ]",
+            $id, defined $rec ? $rec->{'entry'} : '-'
+        )
+    };
+} else {
+    $text =~ s{\s+\z}{};
+    $text = "events zenka not reachable [ $text ]"
+        if $text =~ m{\Aclient not present};
+    $answer = {
+        'mode' => qw| false |,
+        'data' => "unpark of $id refused, still parked : "
+            . ( length $text ? $text : 'no answer from the events zenka' )
+    };
+}
+<[base.logs]>->( 1, ':. %s', $answer->{'data'} );
+<[base.callback.cmd_reply]>->( $p->{'reply_id'}, $answer )
+    if ( $p->{'reply_id'} // '' ) =~ m{\A\d+\z};
+return $answer;
+
+#,,.,,,..,.,,,..,,.,,,,.,,.,,,,,,,...,...,,..,..,,...,...,...,,,.,,,,,..,,.,.,
+#JURPWB2LBZG7YD5PAAMTQOG2JAEVVI7DFLY73J4O4ZZLDFKVUOA5DGFVOJDHRSVFWQV7JTWJXLOME
+#\\\|JKRZ2R5V6HMMGXWB26M5GMJ56TZTQDZFZKK3MO3IXC77HIVX7X6 \ / AMOS7 \ YOURUM ::
+#\[7]KUJWTK422NFYUQNMUTIBH63XUOHCQWT3U343PYDPBHQJZWGCZIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

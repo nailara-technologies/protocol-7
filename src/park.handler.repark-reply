@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = park.handler.repark-reply
+# descr = reply handler : park again once the old entry is final
+
+my $reply = shift              // {};
+my $p     = $reply->{'params'} // {};
+my $in    = $p->{'in'}         // {};
+my $entry = $p->{'entry'}      // '';
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my $answer;
+if ( $mode ne qw| size | and $mode ne qw| true | ) {
+    $text =~ s{\s+\z}{};
+    $answer = {
+        'mode' => qw| false |,
+        'data' => "park of $in->{'task_id'} refused, nothing "
+            . "recorded : events zenka not reachable [ $text ]"
+    };
+} else {
+    my ($state) = $text =~ m{^: \Q$entry\E\s+(\S+)}m;
+    if ( defined $state and $state =~ m{\A(?:waiting|due)\z} ) {
+        $answer = {
+            'mode' => qw| false |,
+            'data' => "task $in->{'task_id'} is parked as "
+                . "'$entry' [ $state ] : unpark it first"
+        };
+    } else {
+        ## fired, failed, blocked, missed or gone : the record is stale ##
+        $code{ $in->{'store'} }->( qw| del |, $in->{'task_id'} );
+        $answer = <[park.start]>->($in);
+        return $answer if $answer->{'mode'} eq qw| deferred |;
+    }
+}
+<[base.callback.cmd_reply]>->( $in->{'reply_id'}, $answer )
+    if ( $in->{'reply_id'} // '' ) =~ m{\A\d+\z};
+return $answer;
+
+#,,,.,,,,,.,,,..,,,,,,...,.,.,..,,...,,..,.,,,..,,...,...,,,,,.,,,,,,,.,,,,..,
+#H7K2XQFVHMTWYJV6NQT3L5VYCWE3X57PLAHCDIB2C3K7L65TT7DBRHLDKNT354WDU3KKGEWTRP446
+#\\\|BTRES5RMWACAJEPS7GSZM3SFKXDWKM33J4KD2XYXH42VSMYBM7V \ / AMOS7 \ YOURUM ::
+#\[7]R6QQDRPCFYYRZA2BHINGO2RAR5RVHEWYTFTV5BD26HMX6FDBDWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = task.cmd.unpark
+# param = <task_id>
+# descr = unpark a task : its events entry is removed
+
+my ($task_id) = ( $call->{'args'} // '' ) =~ m{\A\s*(\S+)};
+$task_id = uc( substr( $task_id // '', 0, 7 ) );
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+return <[park.stop]>->(
+    {   'store'    => qw| task.park.store |,
+        'task_id'  => $task_id,
+        'reply_id' => $call->{'reply_id'}
+    }
+);
+
+#,,.,,,,,,.,.,.,.,,.,,,,,,,..,..,,,.,,,,.,...,..,,...,...,..,,,..,,,,,,.,,...,
+#B5UDGBJ6HLJZGMM2IN7EKPVCZJWNQSYQCQLJMT4PHMWGIGRBPK6JKFNTWCYQHDLTNKDQJQGFO4RBS
+#\\\|YERF5F76XTLFL5RZWQWK4M5X55HDIBV5ICOPBO22YNZ67KJV5YK \ / AMOS7 \ YOURUM ::
+#\[7]OUZIPHP5NMEFYVTWYOT3RJTRV5BUUGNBN2FG6USHCMOPF6KA7ABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

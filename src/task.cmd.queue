@@ -39,6 +39,24 @@ foreach my $task_id ( <task.queue.order>->@* ) {
         sprintf( '%-7s %-8s %s', $task_id, $task->{'status'}, $desc );
 }
 
+## parked tasks [ queue or history ] : a section of their own, live from ##
+## the events bucket. none parked : the listing is as it always was      ##
+my @parked;
+if ( not length $filter_status or $filter_status eq 'parked' ) {
+    foreach
+        my $task_id ( <task.queue.order>->@*, sort keys <task.history>->%* ) {
+        my $park = <[task.park.store]>->( qw| get |, $task_id );
+        push @parked, [ $task_id, $park ] if defined $park;
+    }
+}
+return <[park.show]>->(
+    {   'output'   => @lines ? join( "\n", @lines ) . "\n" : '',
+        'parked'   => \@parked,
+        'style'    => qw| list |,
+        'reply_id' => $call->{'reply_id'}
+    }
+) if @parked;
+
 my $output;
 return { mode => qw| false |, data => 'no tasks found' }
     unless @lines;
@@ -47,8 +65,8 @@ $output = join( "\n", @lines ) . "\n";
 
 return { 'mode' => 'size', 'data' => $output };
 
-#,,.,,,,,,,,.,,.,,...,,..,,..,,,,,..,,...,.,,,..,,...,...,,.,,,,,,.,.,.,.,,..,
-#EWMNEU7HA5RAPUSPKDQGW272EN6YMXOX5IVI2YBE234UB5FWNNHMNMUMNPAAMKYPACRMSOUBFUNIY
-#\\\|KA3335EUYVQVF4QMB3OGVEFBJQPWSVCVPI54UHBQXKZY54LNAAA \ / AMOS7 \ YOURUM ::
-#\[7]Y4O6JVAOYUODUOUWM5ZWES22WDGI5QEK5FWMSM3YBPZSAALDEADI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,,,.,,,,.,,...,,.,,,..,,..,.,,,..,,...,...,..,,,,.,.,.,.,.,,..,
+#U6N6BNROBXYV5YK6DT2J23HT6MCYBABCQHEC3IOZMPQ2FEOO2UTL4XMFFDVVC24OPBTYAVSYBMALE
+#\\\|HC5CC7XKSHEX2Q2WBNRAYEVEQYWNONRADMY5YQ2GX3SI3OQOZ45 \ / AMOS7 \ YOURUM ::
+#\[7]P365NRJT63VYMS24N45PPW54AXIAOUJT6CSUZHX5ABRHMOR2LSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

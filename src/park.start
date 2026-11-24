@@ -1,0 +1,70 @@
+## [:< ##
+
+# name   = park.start
+# descr  = park a task : bucket-add, recorded when events agrees
+# args   = { prefix, store, task_id, args, reply_id }
+# return = a command reply [ deferred for a network caller ]
+#
+# store is the owner's record sub [ task.park.store \ coding.park.store ] :
+# ( get | set | del | count, task id [, record ] ). nothing is recorded
+# before the events zenka has added the entry : a refused or unreachable
+# park leaves no trace [ no local queue ]
+
+my $in     = shift // {};
+my $id     = $in->{'task_id'};
+my $store  = $in->{'store'};
+my $parsed = <[park.parse_args]>->( $in->{'args'} );
+my $fail   = sub { return { 'mode' => qw| false |, 'data' => shift } };
+return $fail->( $parsed->{'error'} ) if defined $parsed->{'error'};
+return $fail->('only <task-id> and key=value are expected')
+    if @{ $parsed->{'words'} } > 1;
+my $old = <[$store]>->( qw| get |, $id );
+
+if ( defined $old ) {
+    ## a record whose entry has fired [ coding has no continue hook ] is ##
+    ## stale : bucket-show decides, the handler parks again or refuses   ##
+    my $sent = <[park.send]>->(
+        qw| bucket-show |,
+        '',
+        qw| park.handler.repark-reply |,
+        { 'in' => $in, 'entry' => $old->{'entry'} }
+    );
+    return $fail->(
+        'events zenka not reachable : park refused, nothing recorded')
+        if not $sent;
+    return { 'mode' => qw| deferred | }
+        if ( $in->{'reply_id'} // '' ) =~ m{\A\d+\z};
+    return { 'mode' => qw| true |, 'data' => "park of $id requested" };
+}
+my $req = <[park.request]>->(
+    {   'prefix'  => $in->{'prefix'},
+        'task_id' => $id,
+        'count'   => <[$store]>->( qw| count |, $id ) + 1,
+        'pairs'   => $parsed->{'pairs'}
+    }
+);
+return $fail->( $req->{'error'} ) if defined $req->{'error'};
+my $reply_id = $in->{'reply_id'} // '';
+my $sent     = <[park.send]>->(
+    qw| bucket-add |,
+    $req->{'args'},
+    qw| park.handler.add-reply |,
+    {   'store'    => $store,
+        'task_id'  => $id,
+        'record'   => $req->{'record'},
+        'reply_id' => $reply_id
+    }
+);
+return $fail->('events zenka not reachable : park refused, nothing recorded')
+    if not $sent;
+return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
+return {
+    'mode' => qw| true |,
+    'data' => "park of $id requested as '$req->{'record'}{'entry'}'"
+};
+
+#,,,,,...,..,,.,,,,,,,.,,,,.,,.,,,,,,,.,.,.,,,..,,...,...,,.,,..,,,,.,,,.,,..,
+#4XAAQSWPDME5QISASWFL52FEITKU5AIUWI65ZJBV3XDFQM32Z7KWJCU5CWW3T7B353R6OP7OQHMAI
+#\\\|M3HPLSWSVI2EW7WMTXSH4WQKL6KMJKVDGGGE3AWWKCRZAZB3VZQ \ / AMOS7 \ YOURUM ::
+#\[7]W346JUPP2O7PWZAC7B5BFMOFJAMQF54HYDWQU3MELOLDBU35F6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

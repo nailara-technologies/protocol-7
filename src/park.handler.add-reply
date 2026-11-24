@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = park.handler.add-reply
+# descr = reply handler : record the park once events added it
+
+my $reply = shift              // {};
+my $p     = $reply->{'params'} // {};
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my $id     = $p->{'task_id'} // '';
+my $record = $p->{'record'};
+my $answer;
+if ( $mode eq qw| true | and ref $record eq qw| HASH | ) {
+    $code{ $p->{'store'} }->( qw| set |, $id, $record );
+    $answer = {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            "task %s parked as '%s' : %s",
+            $id, $record->{'entry'}, <[park.describe]>->($record)
+        )
+    };
+} else {
+    $text =~ s{\s+\z}{};
+    $text = "events zenka not reachable [ $text ]"
+        if $text =~ m{\Aclient not present};
+    $answer = {
+        'mode' => qw| false |,
+        'data' => "park of $id refused, nothing recorded : "
+            . ( length $text ? $text : 'no answer from the events zenka' )
+    };
+}
+<[base.logs]>->( 1, ':. %s', $answer->{'data'} );
+<[base.callback.cmd_reply]>->( $p->{'reply_id'}, $answer )
+    if ( $p->{'reply_id'} // '' ) =~ m{\A\d+\z};
+return $answer;
+
+#,,..,,,,,,,.,...,.,.,,.,,,,,,,..,..,,.,.,,..,..,,...,..,,...,,,.,,,.,,,.,..,,
+#64C2ZISZAJKIIM7VNPIKPZOHAMOHCSLN6C3LDQFWYNYWL7GSRIZKBLCLP6MAZ5KDPNNNBJFLGDSNS
+#\\\|INW7N2Z24HIOVHF4VFYH6XF34ZTXXVF6KTV5ALFG4AYLFZT4IKT \ / AMOS7 \ YOURUM ::
+#\[7]EOK76VQ3RYJTPCFYXITM2X5GDFVTPUGTQQ2U6YOJXVQYTHXFYOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

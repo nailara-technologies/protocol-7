@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = coding.cmd.unpark
+# param = <task_id>
+# descr = unpark a task : its coding bucket entry is removed
+
+my ($task_id) = ( $call->{'args'} // '' ) =~ m{\A\s*(\S+)};
+$task_id = uc( substr( $task_id // '', 0, 7 ) );
+return { 'mode' => qw| false |, 'data' => 'task id required' }
+    unless length $task_id;
+return <[park.stop]>->(
+    {   'store'    => qw| coding.park.store |,
+        'task_id'  => $task_id,
+        'reply_id' => $call->{'reply_id'}
+    }
+);
+
+#,,,.,,.,,,..,,,,,,..,,,,,...,...,.,.,,..,.,,,..,,...,...,,.,,,..,...,...,..,,
+#CQBSOOAZDK2WUFUBFZRVPXTTH7JQORUQERFTL47IODF6E76QGE2WTRIZNKTT3HLBY7FXCLH7RZFLM
+#\\\|UNR5ARYUPA4RXEEZGXFHH2IBSI7NDEBRQUTHVBJ36KGU4Y7JXDA \ / AMOS7 \ YOURUM ::
+#\[7]E3ZR2MEJID725YBLMRIWNYH2DK7HXIEEFZFEO6ELF5QA5X4YZSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

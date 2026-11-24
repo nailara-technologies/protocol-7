@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = task.cmd.park
+# param = <task_id> at=|after=|on= [ depends= message= ]
+# descr = park a done task : continued by an events entry
+#
+# the entry goes to the task zenka's own events bucket [ events.bucket-add,
+# action task-continue ] ; at=<time> after=<interval type> on=<signal>
+# [ match.<key>=<v> ], depends=<entry ids>, message=<text>, reason=<text>.
+# a task waits done or failed [ what task.continue accepts ]
+
+my $args = $call->{'args'} // '';
+my ($task_id) = $args =~ m{\A\s*(\S+)};
+$task_id = uc( substr( $task_id // '', 0, 7 ) );
+return { 'mode' => 'false', 'data' => 'task id required' }
+    unless length $task_id;
+my $task = <task.queue>->{$task_id} // <task.history>->{$task_id};
+return { 'mode' => 'false', 'data' => "task $task_id not found" }
+    unless defined $task;
+return {
+    'mode' => 'false',
+    'data' => "task $task_id is $task->{'status'} [ expected done or failed ]"
+    }
+    if $task->{'status'} ne 'done' and $task->{'status'} ne 'failed';
+$args =~ s{\A\s*\S+}{};
+return <[park.start]>->(
+    {   'prefix'   => qw| task |,
+        'store'    => qw| task.park.store |,
+        'task_id'  => $task_id,
+        'args'     => $args,
+        'reply_id' => $call->{'reply_id'}
+    }
+);
+
+#,,,.,...,.,,,,,,,.,.,,.,,..,,,,.,.,,,,,,,,,.,..,,...,...,..,,..,,,,,,,,.,,.,,
+#GPYTE3XIXRXR74S3J4ZDRPGA6HDRF2SPMZLQGAA3UCSKCP6VXOLWWC6HWANYBQHKU7LACD35EHI74
+#\\\|KYKDTCBD5XKML5SILUDABRRFSFF5PGTB36OVLF2CVYYYTFYEHCH \ / AMOS7 \ YOURUM ::
+#\[7]S6GTRLCH6F7UARMDBUZ27EJSLY2Y5WW67NPLENUEY4Z23Z7JDICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

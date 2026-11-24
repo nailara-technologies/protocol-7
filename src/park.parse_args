@@ -1,0 +1,41 @@
+## [:< ##
+
+# name   = park.parse_args
+# descr  = split a park command line into words and key=value
+# args   = text
+# return = { words => [ .. ], pairs => { key => value }, error => text }
+#
+# the same grammar as events.bucket.parse_args [ the line goes on to it ] :
+# a word without '=' is positional, key=value with a run without spaces or
+# a "double quoted" value [ \" and \\ inside ] ; a repeated key or an
+# unclosed quote is an error
+
+my $text = shift // '';
+my ( @words, %pairs );
+pos($text) = 0;
+while ( $text =~ m{\G\s*}gc and pos($text) < length $text ) {
+    if ( $text =~ m|\G([A-Za-z0-9_.-]{1,60})=|cg ) {
+        my $key = $1;
+        my $value;
+        if ( $text =~ m{\G"((?:[^"\\]|\\.)*)"}gc ) {
+            $value = $1;
+            $value =~ s{\\(["\\])}{$1}g;
+        } elsif ( $text =~ m{\G"}gc ) {
+            return { 'error' => "value of '$key' : quote not closed" };
+        } else {
+            $text =~ m{\G(\S*)}gc;
+            $value = $1;
+        }
+        return { 'error' => "key '$key' given twice" } if exists $pairs{$key};
+        $pairs{$key} = $value;
+    } elsif ( $text =~ m{\G(\S+)}gc ) {
+        push @words, $1;
+    }
+}
+return { 'words' => \@words, 'pairs' => \%pairs };
+
+#,,.,,.,.,.,,,...,.,,,...,.,.,...,,,.,,..,,,.,..,,...,...,.,.,,..,...,..,,.,,,
+#DA6NDUFF4R43ED57DBUG3MT5PQPWJF55K2NA7G5P7OX64VJRJC23Z4FFHXSWB7BPEL5SKFIA3SXIW
+#\\\|LBH2KJ3NPVRJQ7PSK2S74L3FKF4U44YQYL565MTEJ45Z7VSBVNY \ / AMOS7 \ YOURUM ::
+#\[7]3JBRLXO2ZZ4COEYIJKBRILCXOX3ARLLNLRYGDF2AL3SS3RQIT2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

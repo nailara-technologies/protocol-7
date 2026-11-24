@@ -1,0 +1,66 @@
+## [:< ##
+
+# name   = coding.park.store
+# descr  = park records of the coding zenka, in its file `parked`
+# args   = get | set | del | count, task id [, record ]
+# return = get : the record or undef ; count : parks so far
+#
+# the parked tasks are task zenka tasks [ task.continue wakes them ] ; the
+# coding zenka keeps what it parked in p7 config style, one
+# `park.<task id>.<key> = value` line each and `count.<task id> = n`,
+# written whole on every change and read on first use after a start
+
+my ( $op, $id, $record ) = @ARG;
+my $all = <coding.park.records>;
+if ( ref $all ne qw| HASH | ) {
+    $all = { 'park' => {}, 'count' => {} };
+    my $sref = <[file.zenka_dir.load]>->( 'parked', ':encoding(UTF-8)' );
+    foreach my $line ( split m{\n}, ref $sref eq 'SCALAR' ? $sref->$* : '' ) {
+        if ( $line =~ m{\Apark\.(\w+)\.([\w.-]+) = (.*)\z} ) {
+            my ( $t, $k, $v ) = ( $1, $2, $3 );
+            $v =~ s{\\(.)}{$1 eq 'n' ? "\n" : $1}ge;
+            $all->{'park'}{$t}{$k} = $v;
+        } elsif ( $line =~ m{\Acount\.(\w+) = (\d+)\z} ) {
+            $all->{'count'}{$1} = $2;
+        }
+    }
+    <coding.park.records> = $all;
+}
+if ( $op eq qw| get | ) {
+    return $all->{'park'}{$id};
+} elsif ( $op eq qw| count | ) {
+    return ( $all->{'count'}{$id} // 0 ) + 0;
+} elsif ( $op eq qw| list | ) {
+    return [
+        map { [ $ARG, $all->{'park'}{$ARG} ] }
+        sort keys %{ $all->{'park'} }
+    ];
+} elsif ( $op eq qw| set | ) {
+    $all->{'park'}{$id} = $record;
+    $all->{'count'}{$id}++;
+} elsif ( $op eq qw| del | ) {
+    delete $all->{'park'}{$id};
+} else {
+    return undef;
+}
+my $esc = sub { ( shift // '' ) =~ s{\\}{\\\\}gr =~ s{\n}{\\n}gr };
+my @out = (
+    ".:[ coding zenka : parked tasks ]:.\n",
+    "## written by the coding zenka : edit only while it is stopped ##\n"
+);
+foreach my $t ( sort keys %{ $all->{'count'} } ) {
+    push @out, "count.$t = $all->{'count'}{$t}\n";
+    my $r = $all->{'park'}{$t} // next;
+    push @out, map { "park.$t.$ARG = " . $esc->( $r->{$ARG} ) . "\n" }
+        sort keys %{$r};
+}
+my $text = join '', @out;
+return <[file.zenka_dir.write]>->(
+    'parked', \$text, '>', 0600, ':encoding(UTF-8)'
+) ? TRUE : FALSE;
+
+#,,,,,,.,,.,,,,,.,,..,,..,..,,...,,,,,...,..,,..,,...,.,,,...,.,,,,.,,,,,,,.,,
+#F7NTF3UGAD44M2QKFNQFZKQSLLJENML5XQBOIWS4INYOGNCPISPONEKBMX33FV5DUVBREESDQ2APQ
+#\\\|4GNBKACPFL563EGD3BOBP4Q76V3JNM5YIUWIZSD4H4BOFEHAQT4 \ / AMOS7 \ YOURUM ::
+#\[7]QZAMA7LSNKXFIR5ELQWAI2PTCUXDGD6KTZJQUYFXCF4AWOPFJEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
