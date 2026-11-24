@@ -131,6 +131,18 @@ invoke-web image index [ invoke-web.index.backup_path ].
 - prerequisite : the pure-perl truth fallback must be BIT-IDENTICAL to
   the compiled one -- amos addresses differed between hosts with and
   without Inline::C [ the v1 collision fixture showed it ]
+- placement : `place` seals every under-replicated node to holders in
+  domains not yet holding it. one run may be limited with
+  `-only-category <a,b>` [ only nodes with one of those categories ] and
+  `-only-holder <a,b>` [ only those holders are written ]. targets and
+  policies stay as they are : a node's copies count on every holder, and
+  a holder left out of the run is never a reason to put an extra copy
+  elsewhere -- the node stays under-replicated until a run includes it.
+  unknown names refuse the run with the known ones listed ; the ending
+  holder-check covers the holders written. `placement` takes the same two
+  options and reports only what such a run would cover [ copies still
+  counted on every holder ]. a place run records no parameters of its
+  own : the filter shows in its output only [ 2026-11-24 ]
 
 ## open
 
@@ -138,8 +150,8 @@ invoke-web image index [ invoke-web.index.backup_path ].
 - an optional prefix level for very large `<amos>` directories
 - sub-bit distribution and group computation : later layers
 
-#,,..,,,.,,.,,.,,,,..,,,,,,,,,,..,..,,...,,.,,..,,...,...,.,.,,,.,.,.,,,,,,,,,
-#4ZOEILJ4AZQ773MCFQGFR5ZXTWOF7PATVBF7JIBBZ5DA2B3KR4DPERGGPEETSMKEESC4WI5ZKOLKC
-#\\\|IYQSNYA2NIMAMZPEQR2IVCI2BWAEQLSM7TDEZMW36HG535AD3MC \ / AMOS7 \ YOURUM ::
-#\[7]BJSKBVFSFXX7XUC32UKG7XZBTD7FN7N3Y5HGFIZVHZDP7RD24ABI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,..,,.,.,..,,.,,,,,.,...,.,,,..,,...,...,,..,.,.,..,,,,,,,,.,
+#QZATLNENWZQQQXXKC2JVGIHNHDXLKBJS7L4WQTY4W5DBGVKUVCID5W44BGXPCXEABOEUTXUAAC2AQ
+#\\\|AYCKTGN5EXPRZZRG3HLRXFBG7KZQC4JNG3HBFN7XIRRN3HGPZHL \ / AMOS7 \ YOURUM ::
+#\[7]VBDBUIVCGCEQQKGE6B2CBQN63ENFMY4K6WMM42B3HJDEA263K6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

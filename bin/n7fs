@@ -199,7 +199,9 @@ use warnings;
 ##                 -list : only write the blob list for n7fs-push on <from>
 ##                 -adopt : only map what a push delivered to <to>
 ## n7fs placement <disk> -root-key <key>    copies per category, report only
+##                 [ -only-category <a,b> ] [ -only-holder <a,b> ]
 ## n7fs place <disk> -root-key <key> [ -dry-run ] [ -no-check ]
+##                 [ -only-category <a,b> ] [ -only-holder <a,b> ]
 ##                 [ -check-full ] [ -unreachable-grace <n>Y<level> ]
 ##                 [ -commit-bytes <size> ] [ -commit-age <n>Y<level> ]
 ##                 seal what is missing ; a place ends with a holder-check
@@ -211,6 +213,12 @@ use warnings;
 ##                 fresh receipt keeps counting its covered entries for
 ##                 -unreachable-grace [ default 1Y2 ] : no re-placement
 ##                 -exclude <holder> : do not count it [ before draining it ]
+##                 -only-category <a,b> : only nodes of those categories
+##                 -only-holder <a,b> : write only those holders ; copies
+##                 still count on every holder, a holder left out is never
+##                 a reason for an extra copy elsewhere. unknown names
+##                 refuse the run ; placement takes both to report what
+##                 such a run covers
 ##
 ## -bwlimit <size>                      cap uploads to ssh holders, per second
 ##
@@ -292,6 +300,7 @@ GetOptionsFromArray(
         from=s@ pass-fd=i argon-m=i argon-t=i argon-p=i samples=i
         full scrub sizes-only nonce=s partial
         role=s domain=s owned quota=s reserve=s bwlimit=s only-root delete exclude=s@
+        only-category=s@ only-holder=s@
         categories=s min-priority=s spec=s grace=s all-since=s unreachable-grace=s
         no-check check-full repack threshold=f allow-stale min-version=i anchor
         list adopt seal-root=s also-root-key=s@ accept-clock show reset
@@ -2964,12 +2973,14 @@ sub _placement_opt {
         %common, _vault_opt(),
         qw| disk | => $disk,
         defined $o{'root'} ? ( qw| disk_root | => $o{'root'} ) : (),
-        qw| root |         => _seal_root(),
-        qw| host_dir |     => host_dir(%common),
-        qw| host_pub |     => host_signer()->public,
-        qw| exclude |      => $o{'exclude'} // [],
-        qw| accept_clock | => $o{'accept-clock'} ? TRUE : FALSE,
-        qw| allow_stale |  => $o{'allow-stale'}  ? TRUE : FALSE,
+        qw| root |          => _seal_root(),
+        qw| host_dir |      => host_dir(%common),
+        qw| host_pub |      => host_signer()->public,
+        qw| exclude |       => $o{'exclude'} // [],
+        qw| only_category | => $o{'only-category'},
+        qw| only_holder |   => $o{'only-holder'},
+        qw| accept_clock |  => $o{'accept-clock'} ? TRUE : FALSE,
+        qw| allow_stale |   => $o{'allow-stale'}  ? TRUE : FALSE,
     );
 }
 
@@ -2986,6 +2997,9 @@ sub cmd_placement {
         qw| unreachable_grace | => defined $o{'unreachable-grace'}
         ? AMOS7::N7FS::Placement::parse_age( $o{'unreachable-grace'} )
         : AMOS7::N7FS::Placement::parse_age('1Y2'), );
+    say_line( 'filter : ', $r->{'filter'},
+        ' [ copies count on every holder ]' )
+        if length $r->{'filter'};
     foreach my $name ( sort keys $r->{'holders'}->%* ) {
         my $h     = $r->{'holders'}{$name};
         my $state = $h->{'state'};
@@ -3063,6 +3077,15 @@ sub cmd_place {
         : (),
     );
     my $failed = 0;
+    say_line( 'filter : ', $r->{'filter'},
+        ' [ copies count on every holder ]' )
+        if length $r->{'filter'};
+    ## a holder the run names but writes nothing to still gets its line ##
+    foreach my $name ( grep { not $r->{'plan'}{$ARG} } $r->{'holders'}->@* ) {
+        my $why = $r->{'skipped'}{$name};
+        say_line( $o{'dry-run'} ? 'would place' : 'placed',
+            ' 0 nodes on ', $name, defined $why ? " [ $why ]" : '' );
+    }
     foreach my $name ( sort keys $r->{'plan'}->%* ) {
         if ( $o{'dry-run'} ) {
             say_line( 'would place ', $r->{'plan'}{$name},
@@ -3149,8 +3172,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,,,,,...,,,,,,,.,.,.,...,.,,,,.,,,,,,.,,,..,,...,...,.,,,...,,.,,,..,,..,
-#FPASQ5XU2R3FZTELT5COWW57EZ62NDIRMY2TES2JRJH7S2MSZV6RJ3HZPAKIYJLHESJRHOUI6M2XM
-#\\\|C6S4PVMSJ2GZ2Q5NMWW6LP6WE3LYM5GN5VMHAOREZ4YLWWNSCLZ \ / AMOS7 \ YOURUM ::
-#\[7]SPUQJJRTPNUXGQ22HYBIO7HJ6MKTMSTX73ZCMVH6VSONQCWCHAAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,,..,,.,,..,,.,,,,..,,..,,.,,..,,...,...,,,.,..,,,,.,,..,...,
+#SIKMURKIGL3JZHTA42QT4IY6ZOGBLCGJSTMN3SQDE5D726EDDB6AHHJIJWPGJ3SUP7CAYQPBIFJ6Y
+#\\\|BTHIJNPFNGJ336D5ADJQYTWEOD3OML7GHQ4CU3JP2FBZ7OJTGTJ \ / AMOS7 \ YOURUM ::
+#\[7]PF7RAT57EOAZPNXV2KNM2PKVS4E32EUBDMLLODJVCEWQX5M54QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

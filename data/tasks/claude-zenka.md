@@ -202,6 +202,38 @@ send-command, tile-* ] and the only `when` is a timetable `at`.
   no reply line. an undocumented protocol : keep the writer in one place, check it after
   claude code upgrades [ msgV ]
 
+### chat as the session relay [ next stage, owner 2026-11-24 ]
+
+bin/chat today : kimi through a blocking `kimi.ask-reply` ; claude through a file
+data/development/chat/inbox/claude that no session reads. the paths built since :
+
+- the live interactive session : the inbox socket [ wire format below ]. the mcp server inside
+  the session knows path and token [ its env ] ; it registers the session with the relay zenka
+  on start [ path, token, session name ] -- the token kept in memory only, never in a file \ log
+- a headless claude session : the claude zenka [ claude.send, claude.run.done ]
+- kimi : the kimi acp adapter [ kimi.acp-send, kimi.run.done ] instead of ask-reply
+
+`chat -to claude <text>` reaches the open session when one is registered, else the claude zenka ;
+`chat -to kimi <text>` the acp session. replies go to the channel history as now ; the run.done
+signals replace the polling in wait_reply. a kimi -> claude message is a chat message between two
+sessions : the session relay above.
+
+relay switch [ enabled by default ] :
+
+    chat.relay off [ <target> ] [ for=<span> ] [ drop ]
+    chat.relay on  [ <target> ]
+    chat.relay                         state, since, until, queued
+
+- the state in the zenka dir, p7 config [ relay.<target>.enabled = no, .until = <epoch>,
+  .reason ] -- bin/chat reads it too, so a pause holds without the zenka
+- for=<span> : an `at` entry in the zenka's events bucket switches it back on
+- per target [ claude \ kimi \ all ] : e.g. no input into the live session while the owner works
+  in it, kimi still served
+- nothing is lost : every message is written to the channel history as now, off only pauses the
+  DELIVERY into a session. the pending list holds message ids ; on `on` they are delivered,
+  beyond a cap as one note [ "N more in channel X since <time>" + the history pointer ]. `drop`
+  means not delivered after `on` -- the messages stay in the history
+
 ### run-as modes [ owner direction 2026-11-24 ]
 
 the zenka drops to the user the child runs as [ one instance per mode, `[root.drop_privs:..]` ] ;
@@ -237,8 +269,8 @@ per host [ never on the disk ], one host holds a session at a time [ a lease, li
 - inbox socket inbound policy : crossSessionInbound accept | hold | refuse, defaults by
   permission mode -- a bypass session holds messages from a prompting sender
 
-#,,..,,,,,.,,,,.,,.,,,..,,...,,..,,..,..,,..,,..,,...,..,,,,.,.,.,,..,,,.,...,
-#VMKFRVWKEFALCV4XO6MV6AWP7VTCFI63IKQQ3H7AL3DBOII2ZJCLHGHNAJO7OVEOMIRF4OPJY2WAA
-#\\\|R6EDFBK6FLR3EFOVZGDMTWQJSL75Y2QQOONT3CFLOTINJZKDKKW \ / AMOS7 \ YOURUM ::
-#\[7]TQMOC5I5OV5XSGBPPY7B73KK2IJLLF3DSKRZKVMQGZIUBLMRIAAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,,,,,,..,.,,,.,,,,,,,.,,,,.,,..,,...,...,,,.,,..,,,,,,,,,.,.,
+#5XAH2OZDHNAG7HRZG2P54ODVFESIOZAVH5GXHDRSGECJ5UAZUG56VJRLZ2JOCAEMAEVSMXOHLVHDM
+#\\\|RBTPMNPKRSJNHU42U6Q25IMM7YZNVYOD4WB3NQUDBR34JLMCN3I \ / AMOS7 \ YOURUM ::
+#\[7]VATRG7FXALBPQ47HTFMYIGN3R4M2XNSBE7QENLXOQSNEL2Z4VUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

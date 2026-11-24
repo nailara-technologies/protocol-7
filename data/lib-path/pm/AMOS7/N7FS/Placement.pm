@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.3O7Y5ZQ |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.ZRTWS2Q |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -833,13 +833,61 @@ sub _copies {
     return ( $holders, \%copies, \%status, \%proven );
 }
 
+## a run limited to some categories and some holders : undef = no limit.
+## unknown names refuse the run with the known ones listed
+sub run_filter {
+    my ( $opt, $holders, $definitions ) = @_;
+    my %filter;
+    foreach my $f (
+        [ qw| only_category | => qw| category | => $definitions ],
+        [ qw| only_holder |   => qw| holder |   => $holders ]
+    ) {
+        my ( $key, $label, $known ) = @{$f};
+        my @names = map {
+            grep {length}
+                split m|\s*,\s*|
+        } @{ ref $opt->{$key} ? $opt->{$key} : [ $opt->{$key} // () ] };
+        next if not @names and not defined $opt->{$key};
+        refuse( 'no %s named in -only-%s', $label, $label ) if not @names;
+        my @unknown = grep { not exists $known->{$ARG} } @names;
+        refuse(
+            'unknown %s %s ; known : %s',
+            $label,
+            join( ', ', @unknown ),
+            join( ', ', sort keys %{$known} )
+        ) if @unknown;
+        $filter{$label} = { map { $ARG => TRUE } @names };
+    }
+    return \%filter;
+}
+
+## the filter as one line for the run's output ; empty without one
+sub run_filter_text {
+    my $filter = shift;
+    return join ' ; ', map {
+        $filter->{$ARG}
+            ? "only $ARG " . join( ',', sort keys %{ $filter->{$ARG} } )
+            : ()
+    } qw| category holder |;
+}
+
+## does a node of these categories pass the category limit
+sub _category_passes {
+    my ( $filter, $categories ) = @_;
+    return TRUE if not $filter->{'category'};
+    return scalar grep { $filter->{'category'}{$ARG} } @{$categories};
+}
+
 sub placement_report {
     my %opt = @_;
-    my ( $id, $nodes ) = _disk_nodes(%opt);
+    my ( $id, $nodes, undef, $definitions ) = _disk_nodes(%opt);
     my ( $holders, $copies, $status, undef ) = _copies(%opt);
+    ## a limit narrows what is reported, never what counts as a copy ##
+    my $filter = run_filter( \%opt, $holders, $definitions );
     my %by;
     foreach my $address ( keys %{$nodes} ) {
-        my $n    = $nodes->{$address};
+        my $n = $nodes->{$address};
+        next if not _category_passes( $filter, $n->{'categories'} );
         my $have = scalar keys %{ $copies->{$address} // {} };
         my $c    = $n->{'categories'}[0];
         $by{$c}{'target'} = $n->{'target'}
@@ -853,6 +901,7 @@ sub placement_report {
         }
     }
     return {
+        qw| filter |     => run_filter_text($filter),
         qw| categories | => \%by,
         qw| holders |    => {
             map {
@@ -861,7 +910,8 @@ sub placement_report {
                     %{ $status->{$ARG} },
                     qw| nodes | => undef
                 }
-            } keys %{$holders}
+            } grep { not $filter->{'holder'} or $filter->{'holder'}{$ARG} }
+                keys %{$holders}
         },
     };
 }
@@ -906,13 +956,19 @@ sub holder_room {
 sub place_missing {
     my %opt     = @_;
     my $holders = holders_load(%opt);
-    require AMOS7::N7FS::Seal;
-    AMOS7::N7FS::Seal::upload_start(
-        map { $holders->{$ARG}{'spec'} }
-            keys %{$holders}
-    ) if not $opt{'dry_run'};
     my ( $id, $replay, $definitions, $cats, $manifests, $tree_of )
         = _disk_context(%opt);
+    ## -only-category \ -only-holder : which nodes this run considers and ##
+    ## which holders it writes. copies still count on every holder        ##
+    my $filter = run_filter( \%opt, $holders, $definitions );
+    my $writes = sub {
+        not $filter->{'holder'} or $filter->{'holder'}{ $ARG[0] };
+    };
+    require AMOS7::N7FS::Seal;
+    AMOS7::N7FS::Seal::upload_start(
+        map  { $holders->{$ARG}{'spec'} }
+        grep { $writes->($ARG) } keys %{$holders}
+    ) if not $opt{'dry_run'};
     $opt{'_compact_place'} = TRUE;
     $opt{'_cats'}          = $cats;
     my ( undef, undef, $status, undef )
@@ -920,13 +976,23 @@ sub place_missing {
     ## a holder that gets any file of a tree also gets its manifest ; the tree
     ## inventory says partial until every file is there
     my %left;
+    my %skipped;
     foreach my $name ( keys %{$holders} ) {
-        next if $holders->{$name}{'role'} ne qw| durable |;
-        ## a far holder is fed by relay from its hub, never sealed directly ##
-        next if defined $holders->{$name}{'via'};
-        next if $status->{$name}{'state'} =~ m|\Aunreachable|;
-        next if $status->{$name}{'state'} eq 'excluded';
-        next if $status->{$name}{'state'} eq 'rolled back';
+        my $state = $status->{$name}{'state'};
+        ## a named holder this run cannot write says why ##
+        my $why = $holders->{$name}{'role'} ne qw| durable |
+            ? $holders->{$name}{'role'}
+            ## a far holder is fed by relay from its hub, never sealed ##
+            : defined $holders->{$name}{'via'}
+            ? "via $holders->{$name}{'via'}"
+            : $state =~ m{\A(?:unreachable|excluded|rolled back)} ? $state
+            :                                                       undef;
+        if ( defined $why ) {
+            $skipped{$name} = $why
+                if $filter->{'holder'} and $filter->{'holder'}{$name};
+            next;
+        }
+        next if not $writes->($name);
         $left{$name}
             = holder_room( $holders->{$name}, $status->{$name}{'used'} );
     }
@@ -941,6 +1007,7 @@ sub place_missing {
         foreach my $address ( sort @{$addresses} ) {
             my @c = sort keys %{ $cats->{$address} // {} };
             @c = (qw| default |) if not @c;
+            next if not _category_passes( $filter, \@c );
             my $target = 0;
             foreach my $c (@c) {
                 my $copies = $definitions->{$c}{'copies'} // 1;
@@ -1099,6 +1166,10 @@ sub place_missing {
         }
     }
     return {
+        qw| filter |  => run_filter_text($filter),
+        qw| holders | =>
+            [ $filter->{'holder'} ? sort keys %{ $filter->{'holder'} } : () ],
+        qw| skipped |  => \%skipped,
         qw| plan |     => \%plan,
         qw| sealed |   => \%done,
         qw| results |  => \%results,
@@ -1352,8 +1423,8 @@ sub holder_prune {
 
 1;
 
-#,,,,,,..,,.,,,,,,.,.,.,.,.,.,.,,,..,,,..,...,..,,...,...,...,...,...,,,,,,.,,
-#52FN2XKQZQIKJAGGLUCOHC73UDNWPBMDOV3QVWFH76L5DKCLRVMIWBVEG32JNKEACVLJMPEAMPOKI
-#\\\|WULJAC4774OVSIXHSRIGW3F2LU5JXKFUD23BE3S66WRWO5RUCQ4 \ / AMOS7 \ YOURUM ::
-#\[7]47VRFMUEM37HED4WCNARXBLDOW7FEB3LE35QMMQJM6GUFLHVYYBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,,,..,,.,.,...,...,,.,,,,.,,..,..,,...,..,,...,.,,,...,.,,,,,,,
+#BHLMVBCDXHE3CYZO2BZQV445YRCULG4SB52ZBCFSEHQZPN5NGBRZLOFXTWD44QYXYQUF6GIHTMRCW
+#\\\|5KXPKL4ABTGG2HFN27PNXXTB7HHTXTI67ETEFRRQVW27URUO5HX \ / AMOS7 \ YOURUM ::
+#\[7]DCJ3E5IS7GDXM4F7DEXDHHNFCBM3DK4QE6H6UXXIIH5AODDFASAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
