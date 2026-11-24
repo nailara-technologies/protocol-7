@@ -777,11 +777,12 @@ $data{'usage'}{'pace'}{'records'} = {
     'claude' => {
         'epoch5h' => $t0 + 4 * 3600,
         'start7d' => 61,
+        'start5h' => 22,
         'start'   => $t0 - 3600
     }
 };
 my $pace_req = sub {
-    my $used7d = shift;
+    my ( $used7d, $used5h ) = @ARG;
     return $code{'usage.format.plan'}->(
         {   'order'   => ['claude'],
             'now'     => $t0,
@@ -795,7 +796,7 @@ my $pace_req = sub {
                                 'resets_in' => 16 * 3600
                             },
                             {   'window'    => '5h',
-                                'used_pct'  => 40,
+                                'used_pct'  => $used5h // 40,
                                 'resets_in' => 4 * 3600
                             }
                         ]
@@ -806,18 +807,31 @@ my $pace_req = sub {
     );
 };
 my $fast = $pace_req->(65);
-ok( $fast =~ m{this window : 4\.0 % of the 7d used in 1\.0 h}
+ok( $fast
+        =~ m{this window : 4\.0 % of the 7d, 18\.0 % of the 5h used in 1\.0 h}
+        && $fast =~ m{pace now : 18\.0 %/h of the 5h \[ 4\.0 %/h of the 7d \]}
         && $fast
-        =~ m{pace : 4\.0 %/h now, 2\.2 %/h fits : slow down to about x0\.55},
+        =~ m{pace fits : 9\.8 %/h of the 5h \[ 2\.2 %/h of the 7d \] : slow down to about x0\.55},
     'pace : too fast for the share -> slow down with the factor'
 ) or say "# $fast";
-my $slow = $pace_req->(61.5);
-ok( $slow =~ m{pace : 0\.5 %/h now, .* : room to speed up x},
+my $slow = $pace_req->( 61.5, 24 );
+ok( $slow =~ m{pace now : 2\.0 %/h of the 5h}
+        && $slow =~ m{: room to speed up x},
     'pace : well under the share -> room to speed up'
 ) or say "# $slow";
 delete $data{'usage'}{'pace'}{'records'}{'claude'};
-ok( $pace_req->(65) !~ m{pace :},
+ok( $pace_req->(65) !~ m{pace},
     'pace : no window start record, no pace line' );
+$data{'usage'}{'pace'}{'records'}{'claude'} = {
+    'epoch5h' => $t0 + 4 * 3600,
+    'start7d' => 61,
+    'start5h' => 30,
+    'start'   => $t0 - 3600
+};
+my $capped = $pace_req->( 63, 90 );
+ok( $capped =~ m{pace fits : 2\.5 %/h of the 5h} && $capped =~ m{slow down},
+    'pace : the 5h percent left caps the fitting rate' )
+    or say "# $capped";
 
 ok( $plan =~ m{\.: kimi plan :\.\n :\n : token expired},
     'plan : a failed provider shows its error'
@@ -827,8 +841,8 @@ ok( $plan !~ m|[{}]|, 'plan : no json' );
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,..,,.,,.,,,,,.,..,,...,,..,...,.,,,,.,,..,,...,...,...,,,,,.,.,,,.,,..,
-#SGFHQPGENUUN55UUVBKVCPQYIWSHV5K2YLEDH356L6S7UITGTYHBR365SAT5OV5IGLLKJECRJDTBS
-#\\\|YFNQ4CKFOAHONDSXK57A7D4B6AS4B2XFHTNPDNCYJLCEHS3ITYH \ / AMOS7 \ YOURUM ::
-#\[7]LWPSMCGW4ZPWAPIVISHQ5BO53DXLCBATPSQHNWC4HWC2NHTM3QBA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,,.,,,,,..,,,,.,,,.,...,,..,.,.,..,,...,..,,.,,,.,,,,.,,.,.,.,.,
+#NCWAPJKIAEBKZSQBWHVXC5ZH2D5MHGYXZY7BSYZZLMOFFAID5CSYZGGH4G56V37HO3T5A6QUIBJCM
+#\\\|L7JZORVPP3S7FB3FXT3Y3JMY75PTSFBG2CFRJNERZWINTE72T5D \ / AMOS7 \ YOURUM ::
+#\[7]LM6SC5BSZJUP6FMIX2X5BIOBOMEWHRTGAZI5W6IUS7GFM7TSSMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@
 # return = the provider's pace record [ or undef ]
 #
 # a record per provider : the 5h reset epoch of the running window, the 7d
-# percent and the time first seen in it. a new 5h reset epoch [ moved on by
+# and 5h percents and the time first seen in it. a new 5h reset epoch [ moved on by
 # more than 13 minutes : the api jitters a little ] or a 7d percent below
 # the start [ the week reset ] starts a new record. kept in pace.cfg of the
 # zenka dir, p7 config style, so a restart keeps the window start
@@ -30,26 +30,30 @@ my $rec   = $state->{$provider};
 my $new
     = !defined $rec
     || abs( ( $rec->{'epoch5h'} // 0 ) - $epoch ) > 13 * 60
-    || $used < ( $rec->{'start7d'} // 0 );
+    || $used < ( $rec->{'start7d'} // 0 )
+    || !defined $rec->{'start5h'};
 return $rec if not $new;
 
 $state->{$provider} = {
     'epoch5h' => $epoch,
     'start7d' => $used,
+    'start5h' => $five->{'used_pct'} // 0,
     'start'   => time
 };
-my $text = "   .:[ usage : 7d percent at the start of the 5h window ]:.\n\n";
+my $text = "   .:[ usage : 7d and 5h percent at "
+    . "the start of the 5h window ]:.\n\n";
+
 foreach my $name ( sort keys %{$state} ) {
     my $r = $state->{$name};
     $text .= sprintf "   %s.%-8s = %s\n", $name, $ARG, $r->{$ARG}
-        foreach qw| epoch5h start7d start |;
+        foreach qw| epoch5h start7d start5h start |;
 }
 eval { <[file.zenka_dir.write]>->( qw| pace.cfg |, \$text, '>', 0640 ); 1 }
     or <[base.logs]>->( 0, '<< usage pace : pace.cfg not written >>' );
 return $state->{$provider};
 
-#,,,.,,,,,...,,.,,,,.,,,,,.,,,..,,,,.,,.,,,..,..,,...,..,,.,.,...,.,,,..,,.,,,
-#D5G7IZK6NGMU5WFER3IGDAAOKJ7QFIADM4N6RNYCALLI64JPQKXFESF7LSS5EV5PESZIWTWDT2GJK
-#\\\|FOQTAFST6OFVWR2EUG54CH72JARWQWHNX3TIQQZLEOGPLIIPJIG \ / AMOS7 \ YOURUM ::
-#\[7]5NDGL3HZ4F7JYQRU5LU6FVD3PD6W7F54FX546K4FRCS7EEKLR6DQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,,,.,.,,,,,,..,,,.,,..,,,,,.,.,..,,...,..,,...,.,.,..,,,..,,,,,
+#3RZK7R25GR55RYOO7UWSIL6IU7E4EKZHT3GODLQKYLVIGNBWRW56CC23PH5GHJOB337LP73ORQLJ4
+#\\\|WNHP5WNMLDBSOMQTH46Q7LUYII6CZTWQFZNMP5MNA7IB2T3I64M \ / AMOS7 \ YOURUM ::
+#\[7]TWTR5EQWSX44GUIBLFWWGQ76QJC6TEAN43IHG6SW3KVLW5M4RMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

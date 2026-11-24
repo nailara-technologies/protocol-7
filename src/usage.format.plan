@@ -74,23 +74,45 @@ foreach my $name ( $request->{'order'}->@* ) {
         ## the share spread over the hours it has left [ usage.pace.state ] ##
         my $rec = ( <[usage.pace.state]> // {} )->{$name};
         if ( defined $cur and defined $rec and defined $rec->{'start'} ) {
-            my $spent   = ( $week->{'used_pct'} // 0 ) - $rec->{'start7d'};
-            my $elapsed = ( $request->{'now'}   // time ) - $rec->{'start'};
+            my $spent7 = ( $week->{'used_pct'} // 0 ) - $rec->{'start7d'};
+            my $spent5
+                = ( $five->{'used_pct'} // 0 ) - ( $rec->{'start5h'} // 0 );
+            my $left5   = 100 - ( $five->{'used_pct'} // 0 );
+            my $elapsed = ( $request->{'now'} // time ) - $rec->{'start'};
             my $share   = $rest / $n5h;
+            my $hleft   = $cur / 3600;
             push @lines,
-                sprintf ' : this window : %.1f %% of the 7d used in %s',
-                $spent, $hours->($elapsed);
-            my $need = $cur > 0 ? $share / ( $cur / 3600 ) : undef;
-            if ( $elapsed < 13 * 60 or $spent <= 0 or not defined $need ) {
+                sprintf ' : this window : %.1f %% of the '
+                . '7d, %.1f %% of the 5h used in %s',
+                $spent7, $spent5, $hours->($elapsed);
+            ## the share in 5h percent through the ratio seen so far ; the ##
+            ## 5h percent left caps it -- the tighter one decides the pace ##
+            my $k = $spent7 >= 1 && $spent5 > 0 ? $spent5 / $spent7 : undef;
+            my $fit5
+                = defined $k
+                ? ( $share * $k < $left5 ? $share * $k : $left5 )
+                : $left5;
+            my $need5 = $hleft > 0 ? $fit5 / $hleft  : undef;
+            my $need7 = $hleft > 0 ? $share / $hleft : undef;
+            if ( $elapsed < 13 * 60 or $spent5 <= 0 or not defined $need5 ) {
                 push @lines,
-                    sprintf ' : pace : up to %.1f %%/h fits the share',
-                    $need // 0;
+                    sprintf ' : pace : up to %.1f %%/h of the 7d%s fits',
+                    $need7 // 0,
+                    defined $need5
+                    ? sprintf( ' [ %.1f %%/h of the 5h ]', $need5 )
+                    : '';
             } else {
-                my $rate  = $spent / ( $elapsed / 3600 );
-                my $ratio = $need / $rate;
+                my $rate5 = $spent5 / ( $elapsed / 3600 );
+                my $rate7 = $spent7 / ( $elapsed / 3600 );
+                my $ratio = $need5 / $rate5;
                 push @lines,
-                    sprintf ' : pace : %.1f %%/h now, %.1f %%/h fits : %s',
-                    $rate, $need,
+                    sprintf ' : pace now : %.1f %%/h of '
+                    . 'the 5h [ %.1f %%/h of the 7d ]',
+                    $rate5, $rate7;
+                push @lines,
+                    sprintf ' : pace fits : %.1f %%/h of the '
+                    . '5h [ %.1f %%/h of the 7d ] : %s',
+                    $need5, $need7,
                     $ratio < 0.87
                     ? sprintf( 'slow down to about x%.2f', $ratio )
                     : $ratio > 1.15
@@ -106,8 +128,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 }
 return join "\n", @lines;
 
-#,,,,,,,.,...,,,.,,..,.,,,,,,,..,,,,.,...,,,.,..,,...,...,...,...,..,,...,,.,,
-#ED2JJGHVF2FDYPBZF4RXTM2HEO3UMO3NKQRCPWQ2HVJLPWZ4MROQEALZYWEN367IVI2KNZNSQFVME
-#\\\|BLSKSTHFIB26J5QGDCIOSXKR7LLLJSUFQAYP6TX5IOGBZ2RDTNG \ / AMOS7 \ YOURUM ::
-#\[7]QG7QMN2FAJYFUZPGKNQBNNPYT7THJ5KYYJPC2VEGCF7XU2CXGOAA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,...,.,,,...,,,.,,.,,.,.,,,,,,.,,..,,...,..,,,,.,...,,.,,.,.,..,,
+#PLMVGOA32JUD5PO66AEGPLIDR5PGGICKDLIGMJQRM3JVKZHUZ44OGROIMFRDCFDGIG5SUBV3KT72K
+#\\\|PVLGJXIR6VZHES3PKFVOHGJCYNPH46NNBDBO2HBLSBLQVIHNCAM \ / AMOS7 \ YOURUM ::
+#\[7]F4E4DZHJWDRL7RMQXZIARLKV2U5XI6YA327LIBHPTPBLYNZDMGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

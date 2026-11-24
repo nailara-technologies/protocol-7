@@ -2,7 +2,7 @@
 
 # name   = usage.pace.state
 # descr  = the pace records, loaded once from pace.cfg
-# return = hash ref { provider => { epoch5h, start7d, start } }
+# return = hash ref { provider => { epoch5h, start7d, start5h, start } }
 
 return <usage.pace.records> if defined <usage.pace.records>;
 my %state;
@@ -12,15 +12,15 @@ if ( ref $sref eq qw| SCALAR | ) {
     foreach my $line ( split m{\n}, ${$sref} ) {
         next
             if $line
-            !~ m{\A\s*([0-9a-z_-]{1,40})\.(epoch5h|start7d|start)\s*[=:]\s*(-?\d+(?:\.\d+)?)\s*\z};
+            !~ m{\A\s*([0-9a-z_-]{1,40})\.(epoch5h|start7d|start5h|start)\s*[=:]\s*(-?\d+(?:\.\d+)?)\s*\z};
         $state{$1}{$2} = $3 + 0;
     }
 }
 <usage.pace.records> = \%state;
 return \%state;
 
-#,,,,,.,,,.,.,,,.,,.,,,,,,.,,,.,.,,..,,.,,.,,,..,,...,...,...,,.,,,,.,.,.,..,,
-#IP3FTT7JMBLHVNOZT64IT5SI3HBTCY2X5VM25RFE23INBYN3OPOTUZLQHISKAK2JT26PMP7MF673E
-#\\\|NMLXOEMMBQIAUZQ6C3PDN7QGKEN2U6XZ46DZTZQOHJP436SIF3L \ / AMOS7 \ YOURUM ::
-#\[7]WQAEWPHBKEB56RLKYL6YUMRS2EIMNTUPNLYBTWCOFWSUE5VU26BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,.,,,,..,,..,...,.,,,...,,.,,...,..,,...,..,,,,,,..,,.,.,...,,.,,
+#I36NAXIACJ5CDW6PMTMM22VTBHT56DIROLXDP7KMB76KHCN64DC7KYMYLBN2U5P6ZJGF6WH767GEO
+#\\\|YPNUJLGBUXB4NVAGNM4CJAWW6VNWTXA4NAN3TZVMO5RWLH5LLE6 \ / AMOS7 \ YOURUM ::
+#\[7]Q2VAQUG4QE4ATRKJ7TDQM6V5QOCJMK226NPURAIFZWMIRX4H4KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
