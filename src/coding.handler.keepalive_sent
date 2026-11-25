@@ -12,7 +12,10 @@ my $p     = $reply->{'params'} // {};
 my $name  = $p->{'name'}       // return FALSE;
 my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 my $all = <[coding.sessions.store]>;
-my $r   = $all->{$name} // return FALSE;
+## renamed while the message was on its way ##
+$name = <[coding.sessions.resolve]>->( $name, $p->{'sid'} );
+my $r = $all->{$name} // return FALSE;
+
 if ( $mode ne qw| false | ) {
     $r->{'fail'} = 0;
     <[base.logs]>->( 1, ': keep-alive %s : delivered', $name );
@@ -45,8 +48,8 @@ $r->{'due'} = time + <[base.interval.next]>->(
 <[coding.keepalive.arm]>;
 return FALSE;
 
-#,,,,,,..,,..,,..,.,,,,,.,...,,,.,,..,.,,,..,,..,,...,...,.,,,..,,...,...,,..,
-#LGK4JJOZ64LQYHOODKUI46MPOTZ2I6WRAESAYPJ2LJR5JJO7KPPIJ7Q4KLYNGIELT24TFRX4C6VAC
-#\\\|AM3JWTW5QZOJNHEAD4OUMSRO76ON7ZPXP2Y63YYSCM5XBEXA2F2 \ / AMOS7 \ YOURUM ::
-#\[7]272LD5YV3FF4KQ6INKLJRSYWXE6ZE3YTIRLSNYRNHWS3S5ZKYIBA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,,,.,,,.,,.,,.,,,.,.,..,,,.,,..,,...,...,.,,,,..,.,,,,.,,.,,,
+#BAP4H4ERWWHD3ANHIKCPGRD7GSFTKHH5CIRZ5YJVVZ3G2ZVQH3DD72Y2J55KU45ZNHPPAGKEGXMCU
+#\\\|FRAYZXFX7DIRL6ZPRXMAWYXCS4GVWPS32GQ2ONESGC54QDVNFRG \ / AMOS7 \ YOURUM ::
+#\[7]HEQU2FDOVTEAGKYPUT2BPELOQSPQBJ2RAZHKFAQ6D5C5Y5JQBEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

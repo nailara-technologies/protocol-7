@@ -39,7 +39,10 @@ use JSON::XS ();
 use constant TRUE  => 5;
 use constant FALSE => 0;
 
-delete @ENV{qw| CLAUDE_CODE_MESSAGING_SOCKET CLAUDE_CODE_MESSAGING_TOKEN |};
+delete @ENV{
+    qw| CLAUDE_CODE_MESSAGING_SOCKET CLAUDE_CODE_MESSAGING_TOKEN
+        CLAUDE_CODE_SESSION_ID |
+};
 
 our %data;
 our %code;
@@ -367,6 +370,76 @@ close $in_1;
 unlink $sock_1;
 %{ $code{'claude.live.sessions'}->() } = ();
 
+##[ the stable session id ]##
+my $sid_1 = '11111111-2222-4333-8444-555555555555';
+my $sid_2 = '99999999-aaaa-4bbb-8ccc-dddddddddddd';
+( $in_1, $in_2 ) = ( fake_inbox($sock_1), fake_inbox($sock_2) );
+my $with_sid = sub {
+    my ( $name, $socket, $sid ) = @ARG;
+    return $cmd->(
+        'session-register', '',
+        { 'name' => $name, 'socket' => $socket, 'sid' => $sid },
+        "token = $token"
+    );
+};
+my $live_now = $code{'claude.live.sessions'}->();
+ok( $with_sid->( 'x', $sock_1, 'nope' )->{'mode'} eq 'false' && !%{$live_now},
+    'register : a sid is a uuid'
+);
+$with_sid->( 'claude-1446', $sock_1, $sid_1 );
+ok( $live_now->{'claude-1446'}{'sid'} eq $sid_1, 'register stores the sid' );
+$cmd->( 'session-unregister', 'name=claude-1446' );
+$with_sid->( 'claude-1292', $sock_2, $sid_1 );
+$r = $cmd->( 'session-post', 'to=claude-1446 to the old name' );
+ok( $r->{'mode'} eq 'true'
+        && $r->{'data'} =~ m{live session claude-1292 }
+        && ( inbox_read($in_2) // '' ) =~ m{to the old name},
+    'the old name resolves to the current one of its sid'
+);
+$with_sid->( 'claude-5', $sock_2, $sid_1 );
+ok( join( ' ', sort keys %{$live_now} ) eq 'claude-5',
+    'same sid, new name : the former entry is replaced'
+);
+$with_sid->( 'claude-1446', $sock_1, $sid_2 );
+$r = $cmd->( 'session-post', 'to=claude-1446 to the new holder' );
+ok( $r->{'mode'} eq 'true'
+        && ( inbox_read($in_1) // '' ) =~ m{to the new holder},
+    'another sid under an old name is its own session'
+);
+$r = $cmd->(
+    'session-post', "to=claude-1446 sid=$sid_1 reminder text from=coding"
+);
+$got = inbox_read($in_2) // '';
+ok( $r->{'mode'} eq 'true'
+        && $got =~ m{\\nreminder text\\n}
+        && $got !~ m{sid=}
+        && !IO::Select->new($in_1)->can_read(0),
+    'sid= reaches its session, not the holder of the name given'
+);
+delete $live_now->{'claude-5'};
+$r = $cmd->( 'session-post', "to=claude-1446 sid=$sid_1 gone" );
+ok( $r->{'mode'} eq 'false' && !IO::Select->new($in_1)->can_read(0),
+    'sid gone : another sid under that name gets nothing'
+);
+$r = $cmd->( 'session-post', "sid=$sid_1 unnamed" );
+ok( $r->{'mode'} eq 'false' && !IO::Select->new($in_1)->can_read(0),
+    'sid gone, unnamed : the single other one gets nothing'
+);
+$register->( 'claude-1446', $sock_1 );
+$r = $cmd->( 'session-post', "to=claude-1446 sid=$sid_1 older server" );
+ok( $r->{'mode'} eq 'true' && ( inbox_read($in_1) // '' ) =~ m{older server},
+    'a registration without sid takes a post by name as before'
+);
+$r = $cmd->( 'session-post', 'to=claude-1446 sid=free words' );
+ok( $r->{'mode'} eq 'true'
+        && ( inbox_read($in_1) // '' ) =~ m{sid=free words},
+    'sid= without a uuid stays text'
+);
+close $in_1;
+close $in_2;
+unlink $sock_1, $sock_2;
+%{$live_now} = ();
+
 ##[ mcp server : registers with a fake cube, unregisters on exit ]##
 
 sub fake_cube_run {
@@ -464,6 +537,22 @@ ok( $seen        =~ m{^claude\.session-register\+\n}m
 ok( $seen =~ m{^claude\.session-unregister name=test-session$}m,
     'mcp server unregisters on exit' );
 ok( index( $stderr, $token ) < 0, 'the token is not in the mcp server log' );
+ok( $seen !~ m{^\s*sid : }m,      'no session id : no sid header' );
+close $inbox_c;
+unlink $sock_c;
+
+$inbox_c = fake_inbox($sock_c);
+fake_cube_run(
+    "$tmp/cube-sid.sock", "$tmp/cube-record-sid",
+    'CLAUDE_CODE_MESSAGING_SOCKET' => $sock_c,
+    'CLAUDE_CODE_MESSAGING_TOKEN'  => $token,
+    'CLAUDE_CODE_SESSION_ID'       => '11111111-2222-4333-8444-555555555555',
+    'AI_AGENT'                     => 'claude-code',
+);
+ok( slurp("$tmp/cube-record-sid")
+        =~ m{^\s*sid : 11111111-2222-4333-8444-555555555555$}m,
+    'mcp server registers the session id'
+);
 close $inbox_c;
 unlink $sock_c;
 
@@ -665,8 +754,8 @@ ok( $after == $posts && slurp($history) =~ m{held while off},
 say "\n$pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,.,.,.,.,.,.,,..,.,.,,.,,,..,,.,,,,,,.,,,..,,...,...,,.,,,.,,,..,,.,,.,,,
-#YWGIREACDBISATJSLA44AD3S6NCUHSRVLM5BJYWNM5XV32AIMB4N7I5KHYZZ7FUCHFUV7MABGTOIO
-#\\\|YC5IQI5VCNASX45FBZEFOCY5THSIHCFPBKGICHZ72UPZTQDBRDJ \ / AMOS7 \ YOURUM ::
-#\[7]5ER6YYSWS7A7YWHUY6SDN5RZBLAIXVBKIP4BSYEZYYRA6E2RLWDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,.,...,,.,,,,.,,..,..,,,.,,..,,..,,...,..,,...,,..,...,.,.,,,.,
+#ARIZ5SPXFYOEUQ6IVE233S653UYUAWKZLQLBAHYOEMZXWK3LE543BBNGWJ4FMOOI5E5EBRYMX42J6
+#\\\|TDGKYPKDMGCJW2R2I44Y3QCZQ2LBJO57OMQNMDRTGFWCC632ASA \ / AMOS7 \ YOURUM ::
+#\[7]6NBT4QRSJ5GIUBOO4WKHOIC6KYMJG6W6IH6PUKJWP6WXX7XDCCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

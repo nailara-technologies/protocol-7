@@ -41,7 +41,7 @@ foreach my $id ( @{ $bucket->{'order'} } ) {
     my $p = "entry.$id";
     foreach my $key (
         qw| state when at after on missed met added result done reason
-        budget gate gate_at gate_reading |
+        budget unless gate gate_at gate_reading |
     ) {
         my $value = $e->{$key};
         $value = <[base.u2n_time]>->($value)
@@ -84,8 +84,8 @@ if ( open my $fh, '>:encoding(UTF-8)', $tmp ) {
 );
 return FALSE;
 
-#,,,,,,..,...,,.,,..,,,..,...,...,.,,,...,.,.,..,,...,..,,.,,,,,.,.,.,...,.,.,
-#TFW62XJJATDFBWJWTINM34VNWVDMU5EEFS7HIU7QLU5TFJWNISM2YS3EALZHBQXKYLGZ5CE7PJ4DC
-#\\\|EEKDKW73XGM3GFUR2ZBXHY3MYMC5EU4RSLCJKIHONJ3N3VKKCSO \ / AMOS7 \ YOURUM ::
-#\[7]RSBQQHRSUCM6ZI4IF5XGHNAQNXRET3SCO6DZ7I3CH2ZQDNKNPCBI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,.,,.,,,,.,,.,.,,,.,,,.,..,,.,,,..,,...,..,,,..,,..,,,.,,,.,,,.,
+#IMC44JCFEZWSBWI4ITF5BFGHIB2BWPXRWPUZXUX6NCVTBBBILBMWWD7ASMJGSI556VW57N3MSX4V6
+#\\\|JIW5LAAJ5HBP6IQ5QXPCXHIOYAMQFAJ2HNSQYROQR6CL523VNIU \ / AMOS7 \ YOURUM ::
+#\[7]JOOWYYVTEVYUCTSWPBWW4D6RC74KWBUVEP772TRKBTMUDOYBXWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

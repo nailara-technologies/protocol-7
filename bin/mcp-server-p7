@@ -1765,9 +1765,10 @@ sub handle_tools_call {
     $session_activity = 1;
 
     ## the registry has to know the session before it switches keep-alive ##
+    ## or records a reminder [ with its sid ]                             ##
     if ( $name eq 'p7_command'
         and ( $args->{'command'} // '' )
-        =~ m{\A\s*(?:cube\.)?coding\.keepalive(?:-pending)?\s} ) {
+        =~ m{\A\s*(?:cube\.)?coding\.(?:keepalive(?:-pending)?|remind)\s} ) {
         $session_report_next = 0;
         _session_report( 1, 1 );
     }
@@ -3040,8 +3041,14 @@ sub _checklist_instruction {
 ## reachable DIRECT from this host [ env -i run ok ] — so the children get  ##
 ## no proxy vars at all                                                     ##
 sub _sanitize_agent_env {
-    ## a spawned agent is a dispatched run : no session registry report ##
-    $ENV{'P7_SESSION_REPORT'} = qw| no |;
+    ## a spawned agent is a dispatched run : no session registry report, no ##
+    ## live session registration, and never the owner's inbox socket or its ##
+    ## token [ a kimi run inherited both and registered the owner session's ##
+    ## socket under its own name, 2026-11-25 ]                              ##
+    $ENV{'P7_SESSION_REPORT'}   = qw| no |;
+    $ENV{'P7_SESSION_REGISTER'} = qw| no |;
+    delete @ENV{
+        qw| CLAUDE_CODE_MESSAGING_SOCKET CLAUDE_CODE_MESSAGING_TOKEN |};
     for my $var ( keys %ENV ) {
         delete $ENV{$var} if $var =~ m{^(?:https?|all|no)_proxy$}i;
     }
@@ -5091,6 +5098,11 @@ sub _claude_run_start {
     ## a dispatched run is no live session : its own mcp server must not ##
     ## register [ a session-post would land in the run as a user turn ]  ##
     local $ENV{'P7_SESSION_REGISTER'} = qw| no |;
+    ## and never the owner's inbox socket or its token ##
+    local $ENV{'CLAUDE_CODE_MESSAGING_SOCKET'};
+    local $ENV{'CLAUDE_CODE_MESSAGING_TOKEN'};
+    delete @ENV{
+        qw| CLAUDE_CODE_MESSAGING_SOCKET CLAUDE_CODE_MESSAGING_TOKEN |};
     my $pid = eval {
         IPC::Open3::open3( '<&CLAUDE_RUN_IN', $out_fh, undef, '/bin/sh',
             '-c', $cmd );
@@ -5298,6 +5310,17 @@ sub _session_live_name {
     return $name;
 }
 
+## the claude code session id : the same after a crash or --resume, the   ##
+## name [ claude-<pid> ] is not. kimi sets none, and one inherited from a ##
+## claude shell is not its own                                            ##
+sub _session_sid {
+    my $sid = lc( $ENV{'CLAUDE_CODE_SESSION_ID'} // '' );
+    return if resolve_agent_auto('unknown') eq qw| kimi |;
+    return $sid =~ m|\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z|
+        ? $sid
+        : ();
+}
+
 ## a reminder to 'session' sent through this server means the caller's own ##
 ## session : named here, the zenka cannot tell the caller. unregistered    ##
 ## [ a dispatched run, kimi ] : sent as it is                              ##
@@ -5366,6 +5389,8 @@ sub _session_report {
     my $via     = $activity ? qw| tool | : qw| state |;
     my $command = "coding.session-touch name=$name "
         . "type=$type via=$via dispatches=$count";
+    my ($sid) = _session_sid();
+    $command .= " sid=$sid" if defined $sid and $type eq qw| claude-live |;
     my $ok;
     if ($forced) {
         ## the caller's own command starts the coding zenka anyway ##
@@ -5412,7 +5437,10 @@ sub _session_register {
     }
     my ( $ok, $reply ) = cube_command_multiline(
         'claude.session-register',
-        { 'name' => _session_live_name(), 'socket' => $path },
+        {   'name'   => _session_live_name(),
+            'socket' => $path,
+            map { ( 'sid' => $ARG ) } _session_sid()
+        },
         "token = $token"
     );
     ## its own connect set the flag again ##
@@ -7419,8 +7447,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,.,,,,.,,,.,,...,.,,,.,.,..,,.,.,.,,,,,,,..,,...,...,.,,,...,..,,...,..,,
-#QCG7ESXE5ITEHH4C4RI3BOBE3UFV6AIDLKHIN3FWH2W6RC7CKM7DWHSWQDJJMM4ZHDG7WD6QTZDBA
-#\\\|AODXFCYR7IDJD4ZRTXAYNG4LX2CCBVQOM2UTXH5EO4VGIXDMO5B \ / AMOS7 \ YOURUM ::
-#\[7]LZBVT2PTDG23JVU33LIBD472H6U7UUHZEBBJUAU6LNG4J5X6VOAI 7  DATA SIGNATURE ::
+#,,.,,...,...,,,,,,,.,,.,,...,...,,..,,.,,...,..,,...,...,,..,...,...,,,.,..,,
+#ZZLLNBXVXAYQXIMXEDI2FQD677LC7NVCVXY2FEJD3LOPPOZWLPXAJN2WISQQ47TU3UTMOJXBKMWPK
+#\\\|XQPUL43VAZLELUEASWRI3RF4BK4GI2IPECBXLSG7CKYYHKXXINA \ / AMOS7 \ YOURUM ::
+#\[7]WOXYVYXXZLCPRR5VJQ4XYND3TEDH2LHWKXGC6WLVO3752KMP6GCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

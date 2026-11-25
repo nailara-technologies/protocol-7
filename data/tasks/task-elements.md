@@ -63,6 +63,19 @@ a parser, extensions we decide ourselves ]. the converters are first-class : rou
 3. the element store in the coding zenka ; the task zenka executes elements [ its tasks become
    elements with state + history ] ; the todo list and the briefs become views
 
+writer migration list [ ncode-search, 2026-11-25 ] :
+- AMOS7::Switch::format_state and its callers : coding.sessions.store, notify.dnd.store
+- events.bucket.save, events.bucket.journal, events.signal.journal_write
+- usage.pace.observe
+- coding.sign_queue.store, coding.sign_queue.describe
+- coding.park.store, coding.remind.store
+- protocol-7-menu.pending-lines
+- network.lease.save, network.dns_policy.save, nodes.ifaces.save
+- session_move.export [ manifest ]
+
+first native extension needed : lossless multiline scalar values. the writer currently refuses
+multiline \ tabbed values and literal single quotes rather than inventing a syntax.
+
 ### perspective : thinking as content-addressed elements [ owner 2026-11-25 ]
 
 decision \ reasoning steps in a shared native form -- structure, not data -- get an identity
@@ -101,14 +114,59 @@ privacy by addressee [ owner ] : forward only what was meant for someone -- the 
 bowl or the door is addressed, the chatter at the birds outside stays home. local by default,
 out only with an addressee [ as network silence is a feature ] -- for people the same.
 
+### memory and contexts take the same shape [ owner 2026-11-25 ]
+
+data/md/design/ROUTING-CRYSTAL-HARMONIC-INFERENCE.md says it for routes : "new route traversal ->
+adds to harmonic memory", "accumulates until routing is near-instantaneous", branch.route.cache
+as its store, symmetric. the same for tasks, thinking and memory : what actual use leaves
+behind [ nodes weighted by traversal, current because derived, fading when unused ], not
+written snapshots. a CONTEXT is then a fresh selection of the nodes relevant to the task now
+[ open items, their conditions, the nodes they touch ] -- what a compaction does crudely today
+[ cut the old, summarise ] becomes a lookup in that structure.
+the mechanism exists : the dynamic context templates [ data/md/documentation/DYNAMIC-CONTEXT-
+TEMPLATES-USAGE.md, data/yaml/context-templates/ -- context assembled per request from provider
+commands ; p7-dispatch-rules is one ]. what is missing are PROVIDERS : context.handover [ the
+derived open state ], context.elements [ the task's elements, conditions, references ], later
+context.nodes. the thesis behind it : topic-dynamic-context-prep-vs-model-size [ prepared
+context turns model size into precision more cheaply than compute ] -- seen 2026-11-25 : sonnet
+runs with the rules template did work that would have needed opus and rounds of correction.
+compaction stays, targeted [ owner ] : per SECTION, not per conversation -- a provider offers
+levels [ full, compact, one line ] picked by space and relevance ; introductions to the current
+state are written from the RECEIVER's perspective [ the run building a fix reads the state
+differently than the one setting a reminder ] ; a compacted introduction is cached per node and
+reused while the node is unchanged [ checksum addressed ]. the local summariser
+[ coding_summarize ] fits : cheap, for sections, not whole contexts.
+compaction as a TOOL the model controls [ owner ] : `context.compact section=<x> level=<y>`,
+`context.keep <x>` -- a conscious decision backs the automatic one off for that section. and
+state aware : at natural breakpoints the system OFFERS it [ a debugging session reached its
+result -> condense the dead ends, keep the finding ; a commit went through -> its preparation
+becomes "committed as X because Y" ; a run reported -> keep the report, drop the waiting ] --
+an offer, the model may decline. the breakpoints are existing signals [ claude.run.done, the
+commit, the sign approval ] -- sections addressed RELATIVE to the current position [ owner ] :
+`-1`, `-3..-1` [ position ], `since:commit`, `since:run.done`, `until:result` [ event ],
+`topic:<word>` [ the nearest section on it, searched outward from here ], `last:debug`,
+`last:decision` [ kind ] -- `context.compact since:commit level=compact` needs no id. the
+observer is the model at its point in the context [ OBSERVER-CENTRIC-REFERENCE-SPACE.md ].
+and many to many again [ owner ] : a context BRANCHES [ 2026-11-25 ran the place, the C: cleanup,
+the kimi runs and the node ideas interleaved ] -- sections form a graph, one section can belong
+to several branches [ a sign carrying two tasks ]. relative addresses name the branch :
+`-1@place`, `since:commit@relay`, no `@` = the branch the model works on now [ as git's HEAD~1
+\ HEAD^2 ]. the finer level of data/tasks/branch-session-dag.md [ sessions as a DAG ].
+branches compact by their OWN state [ owner ] : a finished branch down to its result [ the C:
+cleanup -> "63 G free, 210 files verified" ], the active one keeps every detail, a parked one
+stays at a middle level until it wakes -- nothing relevant in another branch is lost, unlike
+today's global compaction that condenses the active strand together with the finished ones.
+the offer is one more bucket entry with an `offer-compaction`
+action. 2026-11-25 had many such points ; the context grew until automatic compaction took all.
+
 ### open
 
 - how far todo ids and task-zenka ids merge [ one scheme, or a mapping ]
 - migration of the existing todo list and task history
 - which views first : the dashboard [ portrait panel ], the handover, `coding.elements`
 
-#,,,,,.,,,,,.,...,...,.,.,,..,,,,,...,.,,,,,.,..,,...,...,..,,.,,,.,,,.,,,...,
-#U7VWC2542AYLTYMSESPNWOB7Y7MI5IKDKABOUF5EGWA3MF3SOAJG5CXKWALQKTHE6LTFPDWP6EDIC
-#\\\|S7NZ3QYNVM4WAQYX2ULEVSTN4UMUZBDECWN5H5EDQZLHGJSRDEN \ / AMOS7 \ YOURUM ::
-#\[7]E5BEFS47QO7JDNSV6Z553QLQOAT2ID3PDERFX236GFP47RF72GAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,..,,.,,...,.,.,,,.,,,.,.,,,,,,,..,,...,...,,..,...,...,,.,,,.,,
+#IHY2ZLLKO6PJZT4DNBJFH6INSKF427ZJNEZW6U252DLAPG2WZIB5QTOIXTVULPNIO3O5MLC6MPKOE
+#\\\|T2QVRRDO5YTPKEK75D3BBHMHHEATNCBFTPFAH3QVH2BCYEXMKKB \ / AMOS7 \ YOURUM ::
+#\[7]KB4KXOOCFB2NIHOBI4A5XSUOJH3G6TSFKLJBDWDPNC32AMO5S2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

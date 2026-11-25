@@ -2,16 +2,32 @@
 
 # name   = claude.live.post
 # descr  = one message into a registered live session
-# args   = { text from name [ needed when several ] }
+# args   = { text from name [ needed when several ] sid }
 # return = { name } or { error }
 
-## a vanished socket path or a failed connect \ write drops the session ##
-## [ its token with it ] : the mcp server registers it again. without a ##
-## name only a single registration is used, never picked by age         ##
+## a vanished socket path or a failed connect \ write drops the session     ##
+## [ its token with it ] : the mcp server registers it again. without a     ##
+## name only a single registration is used, never picked by age a sid finds ##
+## its session under any name, and never reaches another one ; an old name  ##
+## of a sid reaches the name that sid has now                               ##
 
 my $arg      = shift // {};
 my $sessions = <[claude.live.sessions]>;
 my $name     = $arg->{'name'};
+my $sid      = $arg->{'sid'};
+my $holds    = sub {
+    my $want = shift // return undef;
+    my ($key)
+        = CORE::grep { ( $sessions->{$ARG}{'sid'} // '' ) eq $want }
+        CORE::sort CORE::keys %{$sessions};
+    return $key;
+};
+if ( defined( my $current = $holds->($sid) ) ) {
+    $name = $current;
+} elsif ( defined $name and not CORE::exists $sessions->{$name} ) {
+    $name = $holds->( <[claude.live.sessions]>->(qw| names |)->{$name} )
+        // $name;
+}
 if ( not defined $name ) {
     ## among several a gone socket is no candidate [ claude.sessions ] ; a ##
     ## single one is dropped below, with its reason                        ##
@@ -35,6 +51,9 @@ if ( not defined $name ) {
 return { 'error' => 'no live session registered' } if not defined $name;
 my $session = $sessions->{$name}
     // return { 'error' => "no live session '$name'" };
+return { 'error' => "live session $name is another one [ sid ]" }
+    if defined $sid
+    and ( $session->{'sid'} // $sid ) ne $sid;
 
 my $drop = sub {
     my $why = shift;
@@ -64,8 +83,8 @@ return $drop->('write failed')
 <[base.log]>->( 1, ": live session $name : message posted" );
 return { 'name' => $name };
 
-#,,..,.,.,.,,,...,.,.,.,,,..,,,,.,,.,,..,,,,.,..,,...,..,,,..,..,,,,.,.,,,..,,
-#4A6HFL2YCJ5ERE6QXBHXGRFSQHRNIKFQJICKDKN5KZXNENE7K34AGZKUWWOL67GQCKJUZ4YYXN6QQ
-#\\\|B7DHCYLV5HW6WRWMPLPZYCDV6CKZ2ANREQ7UCPZLFPAEIAHELOP \ / AMOS7 \ YOURUM ::
-#\[7]VYE24FQCC4C7QBSASPBGMBV7YJ6XEFCLQBS7B6EQ6ASU2B6KDGCI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,..,,..,,...,,..,,..,.,.,,,.,,,.,..,,...,...,...,,..,,,.,.,,,,..,
+#NHVXFSQW3CKUVPVZAWTE7OXF6GPLT5DIIWD4Y642Q4KADQUL5KSXBBYXR5RW5KM3FXBXZMAL6QM6Y
+#\\\|M33QEDENMONXWV55WRG6M7AIAP62RFCATENTVTNK2JAXWJXGSGO \ / AMOS7 \ YOURUM ::
+#\[7]77IVHQS6ML4WRMGK5UF6FMOJRTXSEG2YFUMBS6VXUC7YRATMPWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

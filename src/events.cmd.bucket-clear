@@ -1,10 +1,9 @@
 ## [:< ##
 
 # name  = events.cmd.bucket-clear
-# descr = clear the caller's own bucket of entries not fired
-# descr = remove every entry that has not fired [ fired stay ]
+# descr = clear waiting entries [ fired and skipped stay ]
 # entries that wait for a removed one are removed with it unless they
-# fired already -- nothing is left blocked by a clear
+# ended already -- nothing is left blocked by a clear
 
 my $parsed = <[events.bucket.parse_args]>->( $call->{'args'} );
 my ($owner) = @{ $parsed->{'words'} // [] };
@@ -13,7 +12,8 @@ return { 'mode' => qw| false |, 'data' => 'no source zenka [ cube alias ]' }
 my $bucket = <[events.bucket.get]>->($owner);
 return { 'mode' => qw| true |, 'data' => 'nothing to clear' }
     if not defined $bucket;
-my @gone = grep { $bucket->{'entries'}{$ARG}{'state'} ne qw| fired | }
+my @gone
+    = grep { $bucket->{'entries'}{$ARG}{'state'} !~ m{\A(?:fired|skipped)\z} }
     @{ $bucket->{'order'} };
 return {
     'mode' => qw| false |,
@@ -33,8 +33,8 @@ return {
     'data' => sprintf( '%d entries cleared', scalar @gone )
 };
 
-#,,.,,,.,,,.,,...,,.,,,,.,..,,,.,,...,..,,,..,..,,...,...,.,,,,.,,,,,,.,.,,,.,
-#WBP2MEZQHYHFDLOMAP2ZHEJC6H2E7CY7SD7P6XPXZSWWO2C3GWX3EIYHNHTW5HZSQIQRIWXCEFLYO
-#\\\|63YFXLDVLNCAJ5MRCPYF4FILWOU7HAOTHE7TQMUNTILDR2XN2UQ \ / AMOS7 \ YOURUM ::
-#\[7]RCRPG5RYK3L66KAZVYPJUM7R4PEFMZY6USJDCL4CLVZDDZUA34CQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,.,.,...,...,,,.,,,,,..,,.,.,..,,...,...,..,,.,,,.,.,,,,,,,.,
+#EXEXXWBUFV6XHTOB4E7UUOPNBM73OUW2DVBYXA7L5HILOT2D6GBNVIH7MUD5TBZFXLWJOWE42SBFM
+#\\\|UHUPTJYVCP25S5L6QJCAAVHNZLGKHPXNYPW33FBZK6N4LZ7MIDD \ / AMOS7 \ YOURUM ::
+#\[7]LKXDQJ5TQIHUSGF3VRT5Q72HQK34DQHGOUEX7SHEAK5CEOSFNUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

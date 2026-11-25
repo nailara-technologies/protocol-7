@@ -2,7 +2,7 @@
 
 # name   = coding.remind.add
 # descr  = the events bucket entry of a new reminder
-# args   = { when time to text reply_id }
+# args   = { when time to text unless reply_id }
 # return = the command reply [ deferred \ true \ false ]
 
 my $in = shift // {};
@@ -14,13 +14,25 @@ my $reply_id = $in->{'reply_id'} // '';
 my $seq = ++<coding.remind.seq>;
 my $id  = sprintf 'remind-%d%02d', int( Time::HiRes::time() * 1000 ),
     $seq % 100;
+## a named session is recorded with its sid : `session:<name>@<sid>` in the ##
+## entry's command, the name may change before it fires                     ##
+my $target = $to;
+if ( $to =~ m{\Asession:([\w.\-]+)\z} ) {
+    my $name = <[coding.sessions.resolve]>->($1);
+    my $sid  = ( <[coding.sessions.store]>->()->{$name} // {} )->{'sid'};
+    $target = "session:$name\@$sid" if defined $sid;
+}
 my $quote = sub { "\x22" . ( shift =~ s{([\\\x22])}{\\$1}gr ) . "\x22" };
-my $args  = join ' ',
+my $args
+    = join ' ',
     $id,
     "$when=" . $quote->( $in->{'time'} ),
     'action=send-command',
-    'command=' . $quote->("coding.remind-fire $id $to $text"),
-    'reason=' . $quote->("$text [ to=$to ]");
+    'command=' . $quote->("coding.remind-fire $id $target $text"),
+    'reason=' . $quote->("$text [ to=$to ]"),
+    defined $in->{'unless'}
+    ? ( 'unless=' . $quote->( $in->{'unless'} ) )
+    : ();
 <[park.send]>->(
     qw| bucket-add |,
     $args,
@@ -34,8 +46,8 @@ my $args  = join ' ',
 return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
 return { 'mode' => qw| true |, 'data' => "reminder $id requested" };
 
-#,,..,,..,,..,,..,,..,,.,,.,.,,,,,,..,,..,,.,,..,,...,...,.,.,,.,,,..,,..,,..,
-#5ETVROYEUNZU7BJV6QCRDBGXTZALAQX24BFQK6KBWIL42EVMQONQWAINT64R6EUCI4C7OU65HZ3U2
-#\\\|N7GQUF5ZWNOK367IDCE6KOLSCT5YMLDABWEQIM5YQDTZIDOXQQG \ / AMOS7 \ YOURUM ::
-#\[7]4SN4SXYRO3ZWF4ZXCIQHQIUUBW4EUT2D7NQO6ZSYRI4OEKUVNWBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,..,,,,,,...,,.,,,.,,,.,,,..,,..,..,,...,...,...,.,,,,.,,,..,,,,,
+#4H7JMSJJVVUB2VLJPZPIW3G42DO7CSTZPQKXZ4CJYGFF4IURRSXS34I7HEKAGXXFZSADBEHYQJELI
+#\\\|ORL6E6CQXMJF4FGJF7OC2SIF6AAIHJWAU45UXWAVD2QYYQO4JOP \ / AMOS7 \ YOURUM ::
+#\[7]ASXEKVQ75ZYPSGUUZUWGECKMYN2W27XYHSHHLBCROU3H7MXQ44BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

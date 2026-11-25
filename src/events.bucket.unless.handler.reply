@@ -1,0 +1,60 @@
+## [:< ##
+
+# name   = events.bucket.unless.handler.reply
+# descr  = an unless source answered : skip or check the next
+#
+# stale answers are dropped. a source error is unreadable, never holding :
+# the note travels to the final bucket journal entry
+
+my $reply = shift              // {};
+my $p     = $reply->{'params'} // {};
+my ( $owner, $id ) = ( $p->{'owner'} // '', $p->{'id'} // '' );
+my $bucket = <[events.bucket.get]>->($owner) // return FALSE;
+my $e      = $bucket->{'entries'}{$id}       // return FALSE;
+return FALSE
+    if ( $e->{'unless_check'} // -1 ) != ( $p->{'seq'} // -2 )
+    or ( $e->{'unless_index'} // -1 ) != ( $p->{'index'} // -2 )
+    or ( $e->{'added'} // '' ) ne ( $p->{'added'} // '' )
+    or ( $e->{'state'} // '' ) ne qw| waiting |;
+if ( my $guard = delete( ( <events.unless_guards> // {} )->{"$owner/$id"} ) )
+{
+    eval { $guard->cancel };
+}
+my $cond = <[events.bucket.gate.parse]>->( $p->{'cond'} // '' );
+$cond->{'text'} = "budget:$cond->{'text'}"
+    if not defined $cond->{'error'} and $cond->{'kind'} eq qw| budget |;
+if ( defined $cond->{'error'} ) {
+    push @{ $e->{'unless_notes'} },
+        "unless $p->{'cond'} unreadable [ $cond->{'error'} ]";
+} else {
+    my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+    if ( $mode ne qw| size | and $mode ne qw| true | ) {
+        $text =~ s{\s+\z}{};
+        push @{ $e->{'unless_notes'} },
+            "unless $cond->{'text'} unreadable [ $text ]";
+    } else {
+        my $holds = <[events.bucket.gate.holds]>->( $cond, $text );
+        if ( not $holds->{'open'} and not $holds->{'readable'} ) {
+            push @{ $e->{'unless_notes'} },
+                "unless $cond->{'text'} unreadable [ $holds->{'reading'} ]";
+        } elsif ( $holds->{'open'} ) {
+            delete $e->{'unless_check'};
+            my $notes = join ' ; ', @{ $e->{'unless_notes'} // [] };
+            <[events.bucket.finish]>->(
+                $owner, $e, qw| skipped |,
+                ( length $notes ? "$notes ; " : '' )
+                    . "unless $cond->{'text'} holds : $holds->{'reading'}"
+            );
+            return TRUE;
+        }
+    }
+}
+$e->{'unless_index'}++;
+<[events.bucket.unless.check]>->( $owner, $e );
+return TRUE;
+
+#,,,.,,,,,,,.,..,,.,.,.,,,,,,,,.,,..,,,,.,,,.,..,,...,...,,,,,.,,,.,,,..,,..,,
+#V4IIVEQAWJWCXBDCCT54EJ5ICEGHYDJCQ64NVC7PFKUCY7GTTQFMCOX227HO5Z63FAIRTT422H4NS
+#\\\|7KBAFVVBTHGWXOGLI4T7F6YSUEULGOAA2NH7U2WIM6NI5MHOVQV \ / AMOS7 \ YOURUM ::
+#\[7]OL7OFP2W6RFF4CQ5YZ5BJGHSDEFSKKIXTUB2NGTD7LSZO7VF54DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

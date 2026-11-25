@@ -239,6 +239,17 @@ my $not_mine = sub {
     my $uid = shift;
     return ( $EUID != 0 and $uid != $EUID ) ? TRUE : FALSE;
 };
+## the ACL mask of a path with extended entries, else undef [ getfacl ] ##
+my $acl_mask = sub {
+    my $path = shift;
+    open( my $fh, '-|', qw| getfacl --skip-base --omit-header -p --|, $path )
+        or return undef;
+    ## read it whole : the script may run with another $/ ##
+    my $text = do { local $/; <$fh> }
+        // '';
+    close $fh;
+    return $text =~ m|^mask::([rwx-]{3})\s*$|m ? $1 : undef;
+};
 foreach my $key ( sort keys %want_mode ) {
     my @st = CORE::stat($key);
     next if not @st;
@@ -256,9 +267,14 @@ foreach my $key ( sort keys %want_mode ) {
         $mode, $want_mode{$key}, $key
         if $verbose or $check;
     next if $check;
+    ## an extended ACL : the group bits of the mode ARE its mask -- a plain ##
+    ## chmod cut user:protocol-7:rwx to r-x on data/ai-mem/claude           ##
+    ## [ every commit, 2026-11-25 ] : keep the mask the path had            ##
+    my $mask = $acl_mask->($key);
     chmod( $want_mode{$key}, $key )
         or warn sprintf "\n:: cannot chmod : %s  [ %s ]\n\n", $key,
         lcfirst($OS_ERROR);
+    system( qw| setfacl -m |, "m::$mask", $key ) if defined $mask;
 }
 foreach my $path ( sort keys %want_own ) {
     my ( $uid, $gid ) = @{ $want_own{$path} };
@@ -463,8 +479,8 @@ sub read_user_names {
 
 }
 
-#,,.,,.,,,,,,,,.,,.,.,.,.,.,,,.,.,,.,,..,,..,,..,,...,...,.,.,.,,,,,.,..,,.,.,
-#EVDLDURLYGLCWPHRIYRXZ3SB23JYSDCI3NVEX4AZREEQBZ75JGVCRTW6EIZ6UU7UQTU6JHVZVPOI4
-#\\\|TIDE24Q4GLI7L4DQWSSK2FC4MU53ICCNLYDUBCIZ4LNO7PQSYPB \ / AMOS7 \ YOURUM ::
-#\[7]A4WCMCCDDNFJLWBLU4HNLLOIGNWX5XVDNY7SMHE4KXISOQYS2WBA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,,,...,,,,,.,.,,..,,..,...,,..,..,,...,...,,..,,.,,...,,..,...,
+#X6EEJXX2RT7BJILFXZ62J36F3TIMMAWITMO7KLXENJS2VBZYX4ZHDMAHRRH3GWBFHTSSMCPP2HRQ4
+#\\\|TQMODDV4FKRBRQKQ3IEQDDIQKAG7O3DUABUGMMBK3UWMHEGLFV4 \ / AMOS7 \ YOURUM ::
+#\[7]FDDIOYQ6J3FPL2KFJIIY5FVWYPTK76F7RCVEEYC7DGJY6RV3V6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

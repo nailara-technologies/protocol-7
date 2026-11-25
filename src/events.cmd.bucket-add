@@ -16,6 +16,7 @@
 #   missed   fire [ default ] | keep : an `at` that passed while down
 #   budget   <provider>:<window><op><percent> [ claude:5h<60 ] : fires only
 #            while usage.status agrees, a closed gate waits for usage
+#   unless   condition,.. : skip before firing when any one holds
 # values with spaces are "double quoted". an entry that has fired is final ;
 # any other state is replaced by the same id. the command must be one the
 # owner may send itself [ its access.zenki list ]
@@ -33,8 +34,8 @@ return $fail->('entry id : letters, digits, _ and -, 80 max')
     if $id !~ m|\A[A-Za-z0-9][\w-]{0,79}\z|;
 return $fail->('only <entry-id> and key=value are expected')
     if @{ $parsed->{'words'} } > 2;
-my %reserved
-    = map { $ARG => 1 } qw| at after on depends action reason missed budget |;
+my %reserved = map { $ARG => 1 }
+    qw| at after on depends action reason missed budget unless |;
 my ( %match, %param );
 
 foreach my $key ( keys %kv ) {
@@ -108,14 +109,31 @@ $e->{'missed'} = $missed;
 if ( defined $kv{'budget'} ) {
     my $gate = <[events.bucket.gate.parse]>->( $kv{'budget'} );
     return $fail->( $gate->{'error'} ) if defined $gate->{'error'};
+    return $fail->('budget : a budget condition expected')
+        if $gate->{'kind'} ne qw| budget |;
     $e->{'budget'} = $gate->{'text'};
+}
+if ( defined $kv{'unless'} ) {
+    my @conditions = grep {length} split m{,}, $kv{'unless'};
+    return $fail->('unless : at least one condition expected')
+        if not @conditions;
+    my @parsed;
+    foreach my $condition (@conditions) {
+        my $gate = <[events.bucket.gate.parse]>->($condition);
+        return $fail->( $gate->{'error'} ) if defined $gate->{'error'};
+        push @parsed,
+            $gate->{'kind'} eq qw| budget |
+            ? "budget:$gate->{'text'}"
+            : $gate->{'text'};
+    }
+    $e->{'unless'} = join ',', @parsed;
 }
 $e->{'reason'} = substr( $kv{'reason'} // '', 0, 200 ) =~ s{[\r\n]+}{ }gr;
 ## bucket, replace, limit, depends, cycle ##
 my $bucket = <[events.bucket.get]>->( $owner, TRUE );
 my $old    = $bucket->{'entries'}{$id};
 return $fail->("entry '$id' has fired : it is final, add under another id")
-    if defined $old and $old->{'state'} eq qw| fired |;
+    if defined $old and $old->{'state'} =~ m{\A(?:fired|skipped)\z};
 return $fail->("entry '$id' is firing now")
     if defined $old and $old->{'state'} eq qw| due |;
 my @depends = grep {length} split m{,}, $kv{'depends'} // '';
@@ -174,8 +192,8 @@ return {
     )
 };
 
-#,,,,,..,,,,.,.,.,..,,.,,,,,,,,..,,,.,.,,,,.,,..,,...,...,,..,..,,,,,,..,,,,,,
-#5SKTK3JIBSXVRH7TXODCGSN6Q2Z7EDZ275RZCJ7IX2BAOJSRLNZI5IMX4JQKLZCYGA3L6TITDYNRU
-#\\\|IKI6XYWS4Y6BK4EITKN5O3LKWDS6VLVJ6DB7DAND5UF3JTUMWJH \ / AMOS7 \ YOURUM ::
-#\[7]DVE6UILCEMIBSDHJ52QZSH5NGWDT5RHEUHWH6BADPB2Y6ZRKCMBQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,.,..,,..,,,,,,.,,,,..,,,,,,,.,..,,...,...,,..,,.,,,,,,,.,,,,,,
+#WD4PTSVWGTFIP5RRXUTUGLWMOOBP72GTD54AQDH567ICGTZMGBMUFA2INSYFXHXK5ZWEEUZSS3A2G
+#\\\|2TBBERRIU7F25LHCXXR46GKKVCITVGLX7CI6PNSFHBDXO7P23SC \ / AMOS7 \ YOURUM ::
+#\[7]ZDMDPKXNCTIQOCLBWLWYWQGMFSWKDTHGD5BCHAV4CT5RZYFDEWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

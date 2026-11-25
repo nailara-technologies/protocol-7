@@ -25,7 +25,7 @@ my @due;
 my $changed;
 foreach my $name ( sort keys %{$all} ) {
     my $r = $all->{$name};
-    next if $r->{'switch'} ne qw| on |;
+    next if $r->{'switch'} ne qw| on | or $r->{'parked'};
     if ( AMOS7::Switch::expired( $r->{'until'}, time ) ) {
         $changed = <[coding.keepalive.off]>->( $name, 'its time ended' );
         next;
@@ -71,8 +71,8 @@ if ( not keys <coding.keepalive.round>->{'wait'}->%* ) {
 }
 return TRUE;
 
-#,,.,,,,,,,.,,.,.,...,...,.,,,...,,.,,,,.,,,,,..,,...,..,,...,,..,.,.,,..,,.,,
-#C357WRRAEJMIOO7VKGXPBPXKHHNJW6PU3JV7YQRGYO3I7PC6LSMAPK5YXLSHCQZDUAJUT2TX4D7JQ
-#\\\|PLWO6WP6DJCJDNSF3QEBVP4FH6PJVMVRVCFF42WPC4MP7YTZWKB \ / AMOS7 \ YOURUM ::
-#\[7]A4FFP63G3B6MMPYFMZNDIAHJRLINZAR2RFLOKZ5ARRPKG3VHY6BQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,...,.,.,...,...,..,,..,,.,.,..,,...,...,...,,,,,,,,,,,,,,,,,
+#2ENGAE4LTQ6HHO2B2FF3VINAMJIDONVDIBXUF26644MOAL3TRMM2FLFHPNHODD5QQX32LULPUONSA
+#\\\|T6DRK25FS4XT2U57HIE5S2BZUJ2BKBKLRBJ24RAX63QCHS5R2JY \ / AMOS7 \ YOURUM ::
+#\[7]AXAN22WE2LPDV6MMULTQBVXISBTMC7OKRTEUVL2OTUKDYNKAOWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

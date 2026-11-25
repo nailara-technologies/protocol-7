@@ -1,0 +1,29 @@
+## [:< ##
+
+# name   = coding.sessions.resolve
+# descr  = the current name of a session
+# args   = name [, sid ]
+# return = the name it has now, else the name given
+#
+# with a sid : the record holding it. without : a known name stays, an old
+# one follows its alias until that ran out
+
+my ( $name, $sid ) = @ARG;
+my $all = <[coding.sessions.store]>;
+if ( not defined $sid ) {
+    return $name if exists $all->{$name};
+    my $alias = <coding.sessions.aliases>->{$name} // return $name;
+    return $name if ( $alias->{'until'} // 0 ) <= time;
+    $sid = $alias->{'sid'};
+}
+my ($now) = grep {
+    ( $all->{$ARG}{'sid'} // '' ) eq $sid
+        and not $all->{$ARG}{'parked'}
+} sort keys %{$all};
+return $now // $name;
+
+#,,.,,,,.,.,,,,,,,.,.,.,,,.,.,..,,,,.,,,,,.,.,..,,...,...,..,,,,.,,..,,,.,..,,
+#C3HBTN7NB64MXFY7WFSUW5FYRGQJ3DWKPITW37NH7K4MKJACKKGTUFKPT5KCZPGGU53QFUR3QRUWY
+#\\\|E4DXVBGMAMVSZNTLHWAWDYLYHCRONEQFBVZ67JE4EQULBZA22JG \ / AMOS7 \ YOURUM ::
+#\[7]ILRFGUQUERTYVVPQTJV6GEZYGUFB5ZMJIMZZVPD2UV66ZIOPDGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.cmd.session-touch
-# param = name=<name> type=<type> [ via= ] [ dispatches= ]
+# param = name=<n> type=<t> [ via= dispatches= sid= ]
 # descr = a session reports activity
 #
 # types : claude-live claude-zenka kimi-acp kimi-tui
@@ -9,7 +9,7 @@
 my %in;
 foreach my $word ( split m{\s+}, $call->{'args'} // '' ) {
     next if not length $word;
-    my ( $key, $value ) = $word =~ m{\A(name|type|via|dispatches)=(.*)\z};
+    my ( $key, $value ) = $word =~ m{\A(name|type|via|dispatches|sid)=(.*)\z};
     return { 'mode' => qw| false |, 'data' => "unexpected '$word'" }
         if not defined $key;
     $in{$key} = $value;
@@ -26,6 +26,10 @@ return { 'mode' => qw| false |, 'data' => 'via : a short word' }
     if ( $in{'via'} // '' ) !~ m|\A[\w.\-]{0,64}\z|;
 return { 'mode' => qw| false |, 'data' => 'dispatches : a number' }
     if ( $in{'dispatches'} // 0 ) !~ m|\A\d{1,4}\z|;
+return { 'mode' => qw| false |, 'data' => 'sid : a uuid' }
+    if defined $in{'sid'}
+    and ( $in{'sid'} = lc $in{'sid'} )
+    !~ m|\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z|;
 
 my $r = <[coding.sessions.touch]>->( \%in );
 return {
@@ -33,8 +37,8 @@ return {
     'data' => defined $r ? "session $in{'name'} noted" : 'not registered'
 };
 
-#,,,.,,.,,,,.,.,,,.,,,.,,,..,,,,.,,.,,,..,,.,,..,,...,...,,,,,,,.,,.,,.,,,.,.,
-#RIN3F2LNY3RCE2DUNYJWIX6VPRYNBDFKZYJMAHMGLPSY3B6YTHQNTOOTU2ZTGR4XE2OTT3NRJNIAI
-#\\\|ZJO4Z3PS2PXYCDZDNFBHRSWHSOA3SMKGVRQ44ZU4Y32G7GDF3HT \ / AMOS7 \ YOURUM ::
-#\[7]FSMC24WO47BJCCZTI7Z3SWOQEMSS52RLHADCRKF4EQLZCDQLN2AQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,,,..,,,,,,,..,,..,.,.,...,,,,,..,,...,...,,..,.,,,,,,,.,,,,.,,
+#QAMRCF6N2CRMLPEBWF5GZLYZKDFU3ZRYUFOHN2JO2AOBFQG5PBSTMSUEH5ALFBQHDGPB733CI7YEO
+#\\\|X2WTZVYNWOXAXJCALNMJO5GPXNA4MT7KFAPX7FHEWCURSB472K3 \ / AMOS7 \ YOURUM ::
+#\[7]XBGU5WWCH5VHOHDD7VWGKB5P4CLJ76QQJVDNABL46RWGFMWV4QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

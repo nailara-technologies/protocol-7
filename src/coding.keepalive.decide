@@ -20,6 +20,7 @@ foreach my $name ( @{ $round->{'names'} } ) {
     my $r = $all->{$name} // next;
     next
         if $r->{'switch'} ne qw| on |
+        or $r->{'parked'}
         or ( $r->{'due'} // 0 ) > time;    ## active meanwhile ##
     my $own
         = $r->{'type'} eq qw| claude-zenka | ? $got->{'claude'}
@@ -54,6 +55,7 @@ foreach my $name ( @{ $round->{'names'} } ) {
         {
         'name'   => $name,
         'type'   => $r->{'type'},
+        'sid'    => $r->{'sid'},
         'text'   => $text,
         'sent'   => $r->{'sent'},
         'before' => $before,
@@ -66,8 +68,8 @@ $sent += <[coding.keepalive.send]>->($ARG) ? 1 : 0 foreach @send;
 <[coding.keepalive.arm]>;
 return $sent;
 
-#,,.,,,,,,,,,,,,,,,..,.,,,,,,,...,,..,.,,,..,,..,,...,..,,..,,..,,,,.,..,,,.,,
-#XCZWWF2IC6AEPRUITN2CRTQKKHFTYJU6GWJUXORZJO3H5LR6VDIDVAAUNMNPJIJSXBU3UBQPJFTX6
-#\\\|TXXSHAMBKK53TNKHONQRFXL3R6RG4MRFGVLNUR2DVW32QGTBYUR \ / AMOS7 \ YOURUM ::
-#\[7]XPZ6TYRLOK7H3HSLRMQBKRDCJPCECUM3XLMPVQ72MFNBHD5UT4BQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,..,,,,.,..,,.,,,...,,.,,,,,,..,,...,..,,.,,,.,,,...,,,.,.,.,
+#JF26HFYCGHMUIHRAALHQVXF662SYJHUT2M3KW56YSPK3ERYHWUL6PK72ADGQSJMTE473MKC5QNYGW
+#\\\|YLA4IUCC3DPJWIVDLY7HLQ4ZIQQKBTXIXBAUNDOKRCCUJDUSOUE \ / AMOS7 \ YOURUM ::
+#\[7]ZGL6S2T4ZV7FNCA5FNYF24TCXCLUSKN2OK2EYMPP5YGJJ6GMDICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,32 +1,60 @@
 ## [:< ##
 
 # name   = events.bucket.gate.parse
-# descr  = split a budget gate : provider, window, op, percent
-# args   = text [ e.g. claude:5h<60 ]
-# return = { provider, window, op, percent, text } or { error }
+# descr  = parse a budget gate or an unless condition
+# args   = text [ e.g. claude:5h<60, task:ABC1234=done ]
+# return = { kind, text, .. } or { error }
 #
-# the gate compares the used percent of one usage window : `<` `<=` `>`
-# `>=` against 0 .. 100. the text is kept as given [ normalised spaces ]
+# the budget gate compares the used percent of one usage window. unless
+# conditions name a budget, task state, signal or an empty coding sign queue
 
 my $text = shift // '';
 $text =~ s{\s+}{}g;
+my $prefixed = $text              =~ s{\Abudget:}{};
+my $budget   = $prefixed || $text !~ m{\A(?:task:|seen:|sign-queue:)};
 return {  'error' => 'budget : <provider>:<window><op><percent> '
         . '[ e.g. claude:5h<60 ]' }
-    if $text !~ m{\A([a-z][\w-]{0,31}):([0-9a-z][\w-]{0,15})(<=|>=|<|>)
+    if $budget
+    and $text !~ m{\A([a-z][\w-]{0,31}):([0-9a-z][\w-]{0,15})(<=|>=|<|>)
         (\d{1,3}(?:\.\d{1,2})?)\z}x;
-my ( $provider, $window, $op, $percent ) = ( $1, $2, $3, $4 + 0 );
-return { 'error' => "budget : percent $percent is over 100" }
-    if $percent > 100;
+if ($budget) {
+    my ( $provider, $window, $op, $percent ) = ( $1, $2, $3, $4 + 0 );
+    return { 'error' => "budget : percent $percent is over 100" }
+        if $percent > 100;
+    return {
+        'kind'     => qw| budget |,
+        'provider' => $provider,
+        'window'   => $window,
+        'op'       => $op,
+        'percent'  => $percent,
+        'text'     => "$provider:$window$op$percent"
+    };
+}
 return {
-    'provider' => $provider,
-    'window'   => $window,
-    'op'       => $op,
-    'percent'  => $percent,
-    'text'     => "$provider:$window$op$percent"
-};
+    'kind'  => qw| task |,
+    'id'    => uc $1,
+    'state' => $2,
+    'text'  => sprintf 'task:%s=%s',
+    uc($1), $2
+    }
+    if $text =~ m{\Atask:([a-z0-9-]{1,63})=(done|failed|parked)\z}i;
+return {
+    'kind'  => qw| seen |,
+    'name'  => $1,
+    'key'   => $2,
+    'value' => $3,
+    'text'  => $text
+    }
+    if $text =~ m{\Aseen:([a-z0-9][a-z0-9._-]{0,79})
+        (?::([\w.-]+)=([^,\s]*))?\z}x;
+return { 'kind' => qw| sign-queue |, 'text' => $text }
+    if $text eq qw| sign-queue:empty |;
+return {  'error' => 'unless : budget:<provider>:<window><op><pct>, '
+        . 'task:<id>=<state>, seen:<signal>[:<key>=<value>] '
+        . 'or sign-queue:empty' };
 
-#,,,.,.,,,.,,,,..,,,.,,,,,..,,,..,.,,,...,,,.,..,,...,...,...,.,.,,..,,,.,,..,
-#K7LQJRNY2GXE5LKXSGWV2PG7L67MWKQVAAXYXGC6M4NY23JWTRIKVSQVUVUNEVF4VUTBG66VQONAA
-#\\\|5G73IZFSBATESBOZXFP4QO2UNSH7CZDKSZMVXV27JXPGZTMTY4Y \ / AMOS7 \ YOURUM ::
-#\[7]GU76MWARIVGLOTFCHP4AHZJ6D5Q35VR2EBS2ZHCPHBP34Y6S7KBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,,.,,.,.,,.,,,,.,...,,,,,,.,,,..,..,,...,...,...,,,,,,.,,,,,,,..,
+#I4EFN2W3RCCJJJVU4NQNMUEUTWZKBZASNBFELGVRQ5755BZIJRMC5GD4XR4DTB7D7N7LH66IMSOAY
+#\\\|DUTE6ZGFUIBVFEBW4BX523PEI5PFLND3NU4CAF3GULS7RSOP6OZ \ / AMOS7 \ YOURUM ::
+#\[7]DC5ZVURVPA4ZIEZEFRQIVQIMK2TSUMWBQYD4QEUA7L4IW7SXOCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

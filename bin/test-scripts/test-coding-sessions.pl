@@ -689,7 +689,8 @@ sub mcp_run {
     local %ENV = %ENV;
     delete @ENV{
         qw| P7_SESSION_REGISTER P7_SESSION_REPORT P7_SESSION_NAME
-            CLAUDE_CODE_MESSAGING_SOCKET CLAUDE_CODE_MESSAGING_TOKEN |
+            CLAUDE_CODE_MESSAGING_SOCKET CLAUDE_CODE_MESSAGING_TOKEN
+            CLAUDE_CODE_SESSION_ID |
     };
     my $live = delete $env{'FAKE_LIVE'};
     %ENV = (
@@ -779,11 +780,185 @@ ok( scalar $seen
     'mcp : also with coding not running [ the command starts it ]'
 );
 
+## 11. the stable session id ##
+my $sid_1 = '11111111-2222-4333-8444-555555555555';
+my $sid_2 = '99999999-aaaa-4bbb-8ccc-dddddddddddd';
+
+sub touch {
+    my ( $name, $sid, $via ) = @ARG;
+    return cmd( 'session-touch',
+              "name=$name type=claude-live via="
+            . ( $via // 'tool' )
+            . ( defined $sid ? " sid=$sid" : '' ) );
+}
+reset_all();
+ok( touch( 'a', 'not-a-uuid' )->{'mode'} eq 'false', 'sid : a uuid only' );
+touch( 'claude-1446', $sid_1 );
+cmd( 'keepalive',         'claude-1446 on' );
+cmd( 'keepalive-pending', 'claude-1446 the review' );
+rec('claude-1446')->{'count'} = 3;
+rec('claude-1446')->{'sent'}  = time;         ## the next report is an echo ##
+rec('claude-1446')->{'last'}  = time - 500;
+my $last = rec('claude-1446')->{'last'};
+touch( 'claude-1292', $sid_1 );
+my $new = rec('claude-1292') // {};
+ok( !defined rec('claude-1446') && ( $new->{'switch'} // '' ) eq 'on',
+    'same sid, new name : one record, keep-alive still on'
+);
+ok( ( $new->{'count'} // 0 ) == 3
+        && ( $new->{'pending'} // '' ) eq 'the review'
+        && ( $new->{'last'}    // 0 ) == $last,
+    'same sid : count, pending marker, last activity carried over'
+);
+delete $data{'coding'}{'sessions'};           ## a restart ##
+$list = cmd('sessions')->{'data'};
+ok( scalar $list =~ m{^claude-1292 \[ was claude-1446 \]\s+claude-live}m,
+    'sessions : the former name is shown, after a restart too'
+);
+ok( cmd('sessions')->{'data'} !~ m{was claude-1446},
+    'sessions : shown once' );
+delete $data{'coding'}{'sessions'};
+ok( cmd( 'keepalive-pending', 'claude-1446 more' )->{'mode'} eq 'true'
+        && rec('claude-1292')->{'pending'} eq 'more',
+    'the old name resolves, also after a restart'
+);
+idle('claude-1292');
+tick();
+ok( ( $got{'claude.cmd.session-post'}[0] // '' )
+        =~ m{\Ato=claude-1292 sid=$sid_1 from=coding keep-alive},
+    'keep-alive : to the new name, with the sid'
+);
+
+## reminders : set for a name, delivered to the name of its sid ##
+reset_all();
+touch( 'claude-1446', $sid_1 );
+$data{'base'}{'interval'}{'cfg'}{'type'}{'bucket-wait'} = { 'minutes' => 13 };
+cmd( 'remind', 'after=bucket-wait to=session:claude-1446 look here' );
+my ($fire) = map {m{(remind-\d+ session:claude-1446\@$sid_1)}} @cube_log;
+ok( defined $fire, 'remind to=session : the sid is recorded with the name' );
+touch( 'claude-1292', $sid_1 );
+$fake{'refuse'}{'claude.cmd.session-post'}
+    = $fake{'refuse'}{'notify.cmd.message'} = 1;
+cmd( 'remind-fire', ( $fire // 'remind-1 session:x' ) . ' look here' );
+my ($kept) = values %{ $data{'coding'}{'remind'}{'records'} };
+ok( ( $kept->{'sid'} // '' ) eq $sid_1
+        && $kept->{'to'} eq 'session:claude-1446',
+    'reminder record : name and sid kept apart'
+);
+%{ $fake{'refuse'} } = ();
+$data{'coding'}{'remind'}   = {};    ## read from the file again ##
+$data{'coding'}{'sessions'} = {};
+cmd('remind-wake');
+ok( ( $got{'claude.cmd.session-post'}[-1] // '' ) eq
+        "to=claude-1292 sid=$sid_1 reminder : look here from=coding",
+    'a reminder for the old name arrives at the new one'
+);
+cmd( 'remind-fire', 'remind-77 session:claude-1446 by name only' );
+ok( ( $got{'claude.cmd.session-post'}[-1] // '' )
+        =~ m{\Ato=claude-1292 sid=$sid_1 reminder : by name only},
+    'one recorded by the old name only arrives too'
+);
+
+## another sid stays separate, also under a reused name ##
+reset_all();
+touch( 'claude-7', $sid_1 );
+cmd( 'keepalive',         'claude-7 on' );
+cmd( 'keepalive-pending', 'claude-7 first one' );
+rec('claude-7')->{'due'} = time - 1;
+touch( 'claude-7', $sid_2, 'state' );
+ok( rec('claude-7')->{'sid'} eq $sid_1,
+    'a state report of another sid takes no name' );
+touch( 'claude-7', $sid_2 );
+ok( rec('claude-7')->{'sid'} eq $sid_2
+        && rec('claude-7')->{'switch'} eq 'off'
+        && !defined rec('claude-7')->{'pending'},
+    'another sid under the same name : nothing taken over'
+);
+ok( ( rec("prev-$sid_1")->{'pending'} // '' ) eq 'first one'
+        && !defined timer(),
+    'the former one is parked with its state, not kept alive'
+);
+tick();
+ok( delivered() eq '', 'parked : nothing sent' );
+delete $data{'coding'}{'sessions'};
+touch( 'claude-9', $sid_1 );
+ok( rec('claude-9')->{'switch'} eq 'on'
+        && rec('claude-9')->{'pending'} eq 'first one'
+        && !rec('claude-9')->{'parked'}
+        && !defined rec("prev-$sid_1")
+        && rec('claude-7')->{'sid'} eq $sid_2,
+    'parked : back under a new name with its state'
+);
+ok( !defined $data{'coding'}{'sessions'}{'aliases'}{'claude-7'},
+    'a name in use by another sid is no alias' );
+touch( 'claude-7', $sid_1 );
+ok( rec('claude-7')->{'sid'} eq $sid_1
+        && rec("prev-$sid_2")->{'sid'} eq $sid_2
+        && !defined rec('claude-9'),
+    'a swapped name : both records stay'
+);
+
+## stale old names run out ; one used again points nowhere else ##
+reset_all();
+touch( 'old', $sid_1 );
+touch( 'new', $sid_1 );
+my $alias = $data{'coding'}{'sessions'}{'aliases'}{'old'};
+ok( $alias->{'until'} - time > 12 * 86400, 'old name : kept for long' );
+$alias->{'until'} = time - 1;
+ok( cmd( 'keepalive', 'old on' )->{'mode'} eq 'false',
+    'old name : not followed after its time'
+);
+touch( 'new', $sid_1 );
+ok( !exists $data{'coding'}{'sessions'}{'aliases'}{'old'}
+        && read_file("$tmp/zdir/coding.sessions") !~ m{^alias\.}m,
+    'old name : dropped from the file'
+);
+touch( 'newer', $sid_1 );
+touch('new');
+ok( !exists $data{'coding'}{'sessions'}{'aliases'}{'new'}
+        && !defined rec('new')->{'sid'}
+        && rec('newer')->{'sid'} eq $sid_1,
+    'no sid under an old name : a session of its own'
+);
+
+## without a sid : as before ##
+reset_all();
+touch('plain');
+cmd( 'keepalive-pending', 'plain x' );
+cmd( 'keepalive',         'plain on' );
+idle('plain');
+tick();
+ok( $got{'claude.cmd.session-post'}[0] =~ m{\Ato=plain from=coding }
+        && read_file("$tmp/zdir/coding.sessions") !~ m{sid|alias|was},
+    'no sid : no sid in the message or the file'
+);
+
+## the mcp reporter and its sid ##
+$seen = mcp_run(
+    'sid', 'coding.remind after=x look',
+    'FAKE_LIVE'              => 1,
+    'AI_AGENT'               => 'claude-code',
+    'CLAUDE_CODE_SESSION_ID' => $sid_1
+);
+ok( ( touches($seen)->[0] // '' ) =~ m{ dispatches=0 sid=$sid_1\z},
+    'mcp : a report carries the sid' );
+ok( $seen
+        =~ m{^coding\.session-touch .*?^coding\.remind to=session:mcp-test }ms,
+    'mcp : the session is known before a reminder records it'
+);
+$seen = mcp_run(
+    'kimi-sid', 'list sessions',
+    'AI_AGENT'               => 'kimi',
+    'CLAUDE_CODE_SESSION_ID' => $sid_1
+);
+ok( @{ touches($seen) } && $seen !~ m{sid=},
+    'mcp : under kimi an inherited claude id is not sent' );
+
 say "\n# pass $pass fail $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,.,,..,,...,.,.,...,,.,,,,,,,,,,,.,,,..,..,,...,...,..,,,,.,,..,,.,,..,,
-#CECDBKPARWELKTGJWRZRL65ZYDF4JO6H2TCHDSVI3RKSETL2NW47EF3S56XXQHR66XMQLVBI4LQO2
-#\\\|WLKHSONOMLBJEERPZVQNFMGBFHE3ANNTZH6NFUUG3ZBWDUN5DXZ \ / AMOS7 \ YOURUM ::
-#\[7]AUVTJEJA7M3FNAG2NWK6AVPK22LITEO7FBZGJ2OBNVDRZRB67QDA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,..,.,,,,..,.,,,,..,.,,,,..,,,.,..,,...,...,...,,,.,,..,..,,...,
+#BAYLPYWKE2F3GE3LRJUKEGVGTQ5PRUGYHBJT5VC3CYSMI5PHTA6Y3DTJQRKPZDPEYSQB6WK6RKLH2
+#\\\|ZSNV5W4FCXC3SULGJBI3OJ5WH5ULFUJQVTX7LMG6WDCXEUL7CFI \ / AMOS7 \ YOURUM ::
+#\[7]FOVY33TEVN7X7USYLBLISBBBBYF7KWQKOHQHRYNQHE3O3A2O5UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

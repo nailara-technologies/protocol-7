@@ -2,7 +2,8 @@
 
 # name  = events.bucket.finish
 # descr = record how an entry ended, wake dependants
-# args   = owner, entry, state [ fired | failed | blocked | missed ], result
+# args   = owner, entry, final state, result
+# states = fired | skipped | failed | blocked | missed
 # the result is kept in the entry, appended to the add-only journal, and
 # the bucket-dependency source is told so the dependants are looked at
 
@@ -27,8 +28,8 @@ $dependency->{'wake'}->( $owner, $e->{'id'}, $state )
     if defined $dependency and ref $dependency->{'wake'} eq qw| CODE |;
 return TRUE;
 
-#,,,.,...,.,.,,..,,,,,...,,.,,.,,,,,,,...,,,.,..,,...,..,,,,,,.,,,,,.,,..,,,.,
-#RYO3NTWVY2RTRKI7DOOFQT76MYO4CK32HSMWNIPBFB7HLJC4WCP676PLGYW4SIKTLBTA5TWFKBD7G
-#\\\|2WV5PDENMLWN3MZKGISIMH3EEOYDAVEUEPBAMQ75FNK2JEPVLEI \ / AMOS7 \ YOURUM ::
-#\[7]PZO7SEYFZC5F3PYWLWS6JGBVS4VFV2BYTRNFTJ5K7B2ZLQUEIKCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,,,,,.,,,,,,,,,.,,,,,,..,,,,,..,,...,...,,,,,,,.,,,.,,,.,..,,
+#CLMLZFBFGLHHF5NPACKHNQWLOBVGPIDEE3BFI4P5IMNRK6QUCCWJLVG7HV67DGWYSV6FKIRIONEUQ
+#\\\|2KZAUVFNPILOTA4R4JPWMRYHGTSGRAMS6K3XXKVGZQTWLKAS553 \ / AMOS7 \ YOURUM ::
+#\[7]52CWGKHYW5Q3VZIYOBBQTMRJK23TZR4Q3XD5D3ERSQKKRUXBBMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = events.bucket.unless.handler.guard
+# descr  = no unless answer : note it, check the next
+#
+# a timer handler gets the event. an absent answer is not a holding
+# condition : the reminder still fires when no other condition holds
+
+my $event = shift;
+my $d     = eval { $event->w->data } // {};
+my ( $owner, $id ) = ( $d->{'owner'} // '', $d->{'id'} // '' );
+delete <events.unless_guards>->{"$owner/$id"} if <events.unless_guards>;
+my $bucket = <[events.bucket.get]>->($owner) // return FALSE;
+my $e      = $bucket->{'entries'}{$id}       // return FALSE;
+return FALSE
+    if ( $e->{'unless_check'} // -1 ) != ( $d->{'seq'} // -2 )
+    or ( $e->{'unless_index'} // -1 ) != ( $d->{'index'} // -2 )
+    or ( $e->{'added'} // '' ) ne ( $d->{'added'} // '' )
+    or ( $e->{'state'} // '' ) ne qw| waiting |;
+push @{ $e->{'unless_notes'} },
+    "unless $d->{'cond'} unreadable [ no answer from $d->{'source'} ]";
+$e->{'unless_index'}++;
+<[events.bucket.unless.check]>->( $owner, $e );
+return TRUE;
+
+#,,,.,.,,,,.,,..,,,.,,,,,,.,,,.,.,,..,,,.,,..,..,,...,..,,.,.,,..,.,.,,,.,,,.,
+#OTUMYOWG7GOKVFQL33OPJKETRO3PFSHMSQBVKSFOOIU3GRTWPOZ5OXPQKPAL3T3HNYSP4A2QOFZPS
+#\\\|UZ4KESAQARUDZP2RTQ6675SURCOKGMXGY7G4KG73YDHO3S3G2EN \ / AMOS7 \ YOURUM ::
+#\[7]F4DEP6VDUWDEY5CMIL3KYA4Y537JPXQ5WPCGNDGH5A4FNN2DXGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

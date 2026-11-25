@@ -13,8 +13,13 @@ my $ago = sub {
 };
 my @lines
     = ( sprintf "%-24s %-12s %-10s %s\n", qw| name type active keep-alive | );
+my $shown;
 foreach my $name ( sort keys %{$all} ) {
-    my $r     = $all->{$name};
+    my $r = $all->{$name};
+    ## the former name is said once ##
+    my $was   = delete $r->{'was'};
+    my $label = defined $was ? "$name [ was $was ]" : $name;
+    $shown = TRUE if defined $was;
     my $on    = $r->{'switch'} eq qw| on |;
     my $ended = $on && AMOS7::Switch::expired( $r->{'until'}, time );
     my $state
@@ -35,13 +40,15 @@ foreach my $name ( sort keys %{$all} ) {
         );
     $state .= " # pending : $r->{'pending'}"
         if length( $r->{'pending'} // '' );
-    push @lines, sprintf "%-24s %-12s %-10s %s\n", $name, $r->{'type'},
+    $state .= ' [ parked : its name was taken ]' if $r->{'parked'};
+    push @lines, sprintf "%-24s %-12s %-10s %s\n", $label, $r->{'type'},
         $ago->( $r->{'last'} ), $state;
 }
+<[coding.sessions.store]>->(qw| save |) if $shown;
 return { 'mode' => qw| size |, 'data' => join '', @lines };
 
-#,,,,,...,.,,,,..,.,.,...,.,.,..,,.,,,,,.,.,,,..,,...,...,,.,,.,.,...,,.,,..,,
-#BXZBENTRA3XBG6QUCLM3YZIJZ2K7O6NVF2NBHHNQGBPIUXMA4O4SSDQLIZEP7BOUCZV5GILUYKGHE
-#\\\|SVVDJWTUI6WL23BM5R4VAICAILATL3BFW4NFDGS324CVVIKTLQ4 \ / AMOS7 \ YOURUM ::
-#\[7]B4JMLHEE42K4KZPER5YK4LOMHFBAULWJ2TS7FN344LGMVCEDCYCA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,,,,,,,,,.,.,.,,,,.,,,.,,,,,,..,,...,...,...,,.,,,,,,.,.,..,,
+#COEGW6NHSDJ3E5XE3BHN3F672SPUG64KDU6YKIG3QH77DL7GTVHWWAK7XPKJZ255AFCELUCZHGQFW
+#\\\|P2CXBPEUOND5HQSJGF56M4TGMNGO7BH4VEVVLSABSAV66DDJFL3 \ / AMOS7 \ YOURUM ::
+#\[7]5YQ4KZ5CESPVA333X3AUGPGTPL7UCDQKLUB2LQB2INKK5EHC2CCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

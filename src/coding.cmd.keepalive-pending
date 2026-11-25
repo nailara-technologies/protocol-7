@@ -11,6 +11,7 @@ return {
     'data' => 'keepalive-pending <session> <text> | -'
     }
     if not length( $text // '' );
+$name = <[coding.sessions.resolve]>->($name);    ## an old name ##
 my $r = <[coding.sessions.store]>->()->{$name} // return {
     'mode' => qw| false |,
     'data' => "no session '$name' [ coding.sessions ; session-touch first ]"
@@ -27,8 +28,8 @@ return {
     'data' => $text eq '-' ? "marker cleared : $name" : "marker set : $name"
 };
 
-#,,..,..,,,,.,,,.,,.,,..,,,.,,..,,.,.,.,.,,,,,..,,...,..,,,,,,,,.,,,.,..,,,.,,
-#7JAESRHOZ5NZHUJ4W5V6U7AJTIWYW6V3GJZWIONP6LSD3UU6I6XSYFVYLOCEGCYTYWION5VRPFKHG
-#\\\|IHPO5HZL3T4PAAQQLBPPGYAUFIKXUI5YCTV7JA2PDKOGELT7ESL \ / AMOS7 \ YOURUM ::
-#\[7]KAOHSMH6DZVI7RL5BRMOBPC6F7ONL5XR7VQKRPBMI5PAQQDMZIDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,..,,..,,,,,,..,,...,,.,,,,.,.,,,..,,...,...,.,.,...,.,,,,.,,..,,
+#4I7ROTY23FE2G52DH7RQVDNWUGMRMCQKYRBL74PSGYLTDHZBMHAOEWAZFH4WE435ESALVSCFOBLDO
+#\\\|R2DJ3TEWJU5EFHNOWFGI6JUDPUXDHGKGYOXORQ5KHRV32UBBNYK \ / AMOS7 \ YOURUM ::
+#\[7]CVX2IK64TQ7A2IZX66Y2SGWKRWXXQPJDSHRY7SAFDVIFRAWYVEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

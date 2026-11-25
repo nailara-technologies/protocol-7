@@ -2,25 +2,34 @@
 
 # name   = coding.sessions.touch
 # descr  = one activity report of a session
-# args   = { name type via dispatches }
+# args   = { name type via dispatches sid }
 # return = the record, undef : a state report of an unknown one
 #
 # via=keepalive, or any report within coding.cfg.keepalive_echo_seconds
 # of a keep-alive [ the session answering it ], refreshes the idle time
 # only : last activity and the count in a row stay. via=state carries the
-# dispatch count only, it is no activity
+# dispatch count only, it is no activity. a sid names the session : the
+# record follows it to a new name [ coding.sessions.carry ]
 
-my $in   = shift // {};
-my $all  = <[coding.sessions.store]>;
-my $via  = $in->{'via'} // '';
-my $name = $in->{'name'};
-my $now  = time;
-my $r    = $all->{$name};
+my $in    = shift // {};
+my $all   = <[coding.sessions.store]>;
+my $via   = $in->{'via'} // '';
+my $name  = $in->{'name'};
+my $now   = time;
+my $moved = <[coding.sessions.carry]>->( $name, $in->{'sid'}, $via );
+my $r     = $all->{$name};
+## a state report never takes another session's name ##
+return undef
+    if $via eq qw| state |
+    and defined $in->{'sid'}
+    and defined $r
+    and ( $r->{'sid'} // $in->{'sid'} ) ne $in->{'sid'};
 return undef if not defined $r and $via eq qw| state |;
 my $new = not defined $r;
 $r = $all->{$name}
     //= { 'since' => $now, 'switch' => qw| off |, 'count' => 0 };
 $r->{'type'}       = $in->{'type'};
+$r->{'sid'}        = $in->{'sid'}        if defined $in->{'sid'};
 $r->{'dispatches'} = $in->{'dispatches'} if defined $in->{'dispatches'};
 
 if ( $via ne qw| state | ) {
@@ -35,12 +44,14 @@ if ( $via ne qw| state | ) {
     }
     $r->{'due'} = $now + <[coding.keepalive.delay]>;
 }
+## a name in use again points nowhere else ##
+delete <coding.sessions.aliases>->{$name};
 <[coding.sessions.store]>->(qw| save |);
-<[coding.keepalive.arm]> if $r->{'switch'} eq qw| on |;
+<[coding.keepalive.arm]> if $moved or $r->{'switch'} eq qw| on |;
 return $r;
 
-#,,..,.,.,,..,.,,,...,...,.,,,,,,,.,,,,,.,.,.,..,,...,...,,..,.,.,,..,,,.,,..,
-#YAJVB7LNCNFWBAAWHNNTARJER3FS7BUWO3LH5H54CYHUOL6JHMPKIPEFGPY43LXYTIMLWDKJN34QM
-#\\\|3G4FC4K6BHPPFK2MR6RP2U5TM5E2FI2HU2LGWAEXXO5RYCCX7J2 \ / AMOS7 \ YOURUM ::
-#\[7]LICLO4BGAOYNHD4MWSEJGZINDS4A5BKDO3DYOXCJBFQGGFTFS6CY 7  DATA SIGNATURE ::
+#,,,,,.,.,...,...,..,,.,.,,,.,..,,,,,,...,,,,,..,,...,...,...,.,,,...,..,,...,
+#F5RFICBDEKYXGBVPV34QUNO7BMWYPTVOITKXNBDI4637AZH7T5QNOKA4GOU5TWFGJAXUBA6NCK4IW
+#\\\|3KPIH3QV32OJH7Q5VBTTL46SEQOV6TTQUVIKKKKQ2XY5F6LAN4W \ / AMOS7 \ YOURUM ::
+#\[7]FGPIQ44ZQ7S272OQ2NDDXT5EYDMWW7XMXXKTE5KHLA3FPYURZADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

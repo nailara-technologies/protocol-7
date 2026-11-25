@@ -1,0 +1,116 @@
+## [:< ##
+
+# name   = events.bucket.unless.check
+# descr  = evaluate unless conditions before an entry fires
+# args   = owner, entry
+# return = TRUE while checking or after ending the entry
+#
+# any holding condition ends the entry as skipped. an unreadable source does
+# not hold : its note is journaled and the remaining conditions are checked
+
+my ( $owner, $e ) = @ARG;
+return TRUE if $e->{'unless_pass'};
+if ( not defined $e->{'unless_check'} ) {
+    <events.unless_seq> //= 0;
+    $e->{'unless_check'} = ++<events.unless_seq>;
+    $e->{'unless_index'} = 0;
+    $e->{'unless_notes'} = [];
+}
+my @conditions = grep {length} split m{,}, $e->{'unless'} // '';
+while ( $e->{'unless_index'} < @conditions ) {
+    my $index = $e->{'unless_index'};
+    my $cond  = <[events.bucket.gate.parse]>->( $conditions[$index] );
+    if ( defined $cond->{'error'} ) {
+        push @{ $e->{'unless_notes'} },
+            "unless $conditions[$index] unreadable [ $cond->{'error'} ]";
+        $e->{'unless_index'}++;
+        next;
+    }
+    $cond->{'text'} = "budget:$cond->{'text'}"
+        if $cond->{'kind'} eq qw| budget |;
+    if ( $cond->{'kind'} eq qw| seen | ) {
+        my $records = eval { <[events.signal.journal_read]>->(500) };
+        if ($EVAL_ERROR) {
+            push @{ $e->{'unless_notes'} },
+                "unless $cond->{'text'} unreadable [ signal journal ]";
+            $e->{'unless_index'}++;
+            next;
+        }
+        my $holds
+            = <[events.bucket.gate.holds]>
+            ->( $cond, $records, $e->{'added'} );
+        if ( $holds->{'open'} ) {
+            delete $e->{'unless_check'};
+            my $notes = join ' ; ', @{ $e->{'unless_notes'} // [] };
+            <[events.bucket.finish]>->(
+                $owner, $e, qw| skipped |,
+                ( length $notes ? "$notes ; " : '' )
+                    . "unless $cond->{'text'} holds : $holds->{'reading'}"
+            );
+            return TRUE;
+        }
+        $e->{'unless_index'}++;
+        next;
+    }
+    my ( $command, $args, $source )
+        = $cond->{'kind'} eq qw| budget |
+        ? ( qw| usage.status |, "compact $cond->{'provider'}", qw| usage | )
+        : $cond->{'kind'} eq qw| task |
+        ? ( qw| task.show |, $cond->{'id'}, qw| task | )
+        : ( qw| coding.sign-queue |, '', qw| coding | );
+    my $sent = <[protocol-7.route-send]>->(
+        {   'command'   => $command,
+            'call_args' => { 'args' => $args },
+            'reply'     => {
+                'handler' => qw| events.bucket.unless.handler.reply |,
+                'params'  => {
+                    'owner'  => $owner,
+                    'id'     => $e->{'id'},
+                    'added'  => $e->{'added'},
+                    'seq'    => $e->{'unless_check'},
+                    'index'  => $index,
+                    'cond'   => $cond->{'text'},
+                    'source' => $source
+                }
+            }
+        }
+    );
+    if ($sent) {
+        <events.unless_guards> //= {};
+        my $key = "$owner/$e->{'id'}";
+        if ( my $old = delete <events.unless_guards>->{$key} ) {
+            eval { $old->cancel };
+        }
+        <events.unless_guards>->{$key} = <[event.add_timer]>->(
+            {   'after' => <[base.interval.next]>->(
+                    { 'type' => qw| budget-gate-answer |, 'state' => {} }
+                ),
+                'handler' => qw| events.bucket.unless.handler.guard |,
+                'data'    => {
+                    'owner'  => $owner,
+                    'id'     => $e->{'id'},
+                    'added'  => $e->{'added'},
+                    'seq'    => $e->{'unless_check'},
+                    'index'  => $index,
+                    'cond'   => $cond->{'text'},
+                    'source' => $source
+                }
+            }
+        );
+        return TRUE;
+    }
+    push @{ $e->{'unless_notes'} },
+        "unless $cond->{'text'} unreadable [ $source zenka not reachable ]";
+    $e->{'unless_index'}++;
+}
+delete $e->{'unless_check'};
+delete $e->{'unless_index'};
+$e->{'unless_pass'} = TRUE;
+<[events.bucket.evaluate]>->($owner);
+return TRUE;
+
+#,,,,,,,.,,.,,.,,,...,,..,...,,,.,,,,,...,.,,,..,,...,..,,..,,,,.,,,,,,,,,,.,,
+#42PWAUSUZ7HUE7LA2QWBVPN3OAXXXBJCIK2S7FXBDRXP6LAYUXKZ46KT7PQIA37JQEQR6Z4DMTJ4G
+#\\\|JR3D6VDHJSA6FKX6PJA7ZH5OYQMYZVNNI4ZWLV3B3GCVLGUYVRC \ / AMOS7 \ YOURUM ::
+#\[7]7TMPJ4MAB4LKKQHXKQC5SE5EX3S5P23SCESFVN3CQU3QKGA2OSAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

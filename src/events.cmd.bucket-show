@@ -44,6 +44,10 @@ foreach my $id ( defined $bucket ? @{ $bucket->{'order'} } : () ) {
         push @waits, 'depends ' . join( ',', @open ) if @open;
         push @waits, <[events.bucket.gate.describe]>->($e)
             if length( $e->{'budget'} // '' );
+        push @waits,
+            "unless $e->{'unless'}"
+            . ( defined $e->{'unless_check'} ? ' [ checking ]' : '' )
+            if length( $e->{'unless'} // '' );
     } elsif ( $e->{'result'} ne '' ) {
         push @waits, $e->{'result'};
     }
@@ -55,8 +59,8 @@ push @lines, "note : signals raised while the events zenka was down "
     . "are not replayed ; times that passed follow `missed`\n";
 return { 'mode' => qw| size |, 'data' => join( '', @lines ) };
 
-#,,,,,,.,,,..,.,.,...,,,.,...,,.,,.,,,,.,,.,,,..,,...,...,,,.,...,,..,.,,,.,,,
-#VGFLWXZWFEC77WVPQPPVNL7SASCOTV3XDVGU4WPGQLDIOKH2CSH23ZH7YSTFJCCW36W7TMSXD2F6W
-#\\\|EQWZRWKVVE7MQKY3DEY4TWNDW4FRCUZ3KUVLFSOCR23LE7UQUUF \ / AMOS7 \ YOURUM ::
-#\[7]LBVJPV3BZWSTFARISI3SVG635HW7LBCITMWEUUTID5X4ODAAWIDA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,,,.,.,,,,,...,..,,.,.,.,.,,,.,..,,...,...,,..,,.,,,,.,,.,,.,.,
+#4AFNDA6NJYYFPGP52SJUHHPQFEHHKGB7SMYOVWNK3C7JI4CEN4YIKZH4VN4QH2A4Q6VRJJF5QGXFG
+#\\\|DWEWYYUDNNKLVPITU5FD2XSD2YYFENPYWRQXHT3PSH4J2UU5H3C \ / AMOS7 \ YOURUM ::
+#\[7]LDCX2S54RILRK2Q5RM7RKUIZANSHDPVB7EAFLOJQF4RQ4ITCBEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

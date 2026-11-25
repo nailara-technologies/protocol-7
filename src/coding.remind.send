@@ -20,6 +20,13 @@ $r->{'since'}  = time;
 $r->{'round'}  = $round;
 <[coding.remind.store]>->( qw| set |, $id, $r );
 my ( $session, $target ) = $r->{'to'} =~ m{\A(session)(?::([\w.\-]+))?\z};
+## the name the session has now ; one recorded by name only too ##
+my $sid = $r->{'sid'};
+
+if ( defined $target ) {
+    $target = <[coding.sessions.resolve]>->( $target, $sid );
+    $sid //= ( <[coding.sessions.store]>->()->{$target} // {} )->{'sid'};
+}
 my $paths
     = defined $session
     ? [ qw| session |, qw| notify | ]
@@ -29,13 +36,14 @@ return <[coding.remind.deliver]>->(
         'text'    => $r->{'text'},
         'paths'   => $paths,
         'session' => $target,
+        'sid'     => $sid,
         'round'   => $round,
         'reasons' => []
     }
 );
 
-#,,,.,.,.,,,.,,..,,..,,.,,,,,,.,.,...,,,.,.,,,.,.,...,...,.,.,.,.,,,.,,,.,,,.,
-#24K7EEIBWBWTAR7UOFLQN4U2KEC5KH7IBH6UPNAAEKNBACXZIV6WZ5FTKIGOHKBFBCHEKOCFHWHUW
-#\\\|PXJANJ4L3TZVCVVWZZR4R7YNUTPEYFDHAJ3F7HNRHXEDTBEGYIW \ / AMOS7 \ YOURUM ::
-#\[7]JX2JUHYLMSHSYEZJZ5O344YVOWUG3DFRQ775WX3E5PJH7OHEO6BY 7  DATA SIGNATURE ::
+#,,..,,..,,,.,...,,.,,..,,,.,,..,,...,.,.,...,.,.,...,...,,..,,,.,.,.,.,.,...,
+#BFSWTUV4G5OAANY4SFPA5EIKR2DKNQSH76YWLDXSQ73ILZUBLGKU36KCZBQ72SNDWEVGLLUCGBO7Y
+#\\\|N4FR2Y23BQ677EXAZCKX6LGEVVHAH5SPQW27LGKFXAMGRGIHZME \ / AMOS7 \ YOURUM ::
+#\[7]MHBQRGVVJOSMX6HMUY6ISGSXBDIVDL6G6RLRLRXBOAPCOWQUW6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

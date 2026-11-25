@@ -2,7 +2,9 @@
 
 # name   = claude.live.sessions
 # descr  = registered live sessions [ memory only ]
-# return = hash ref : name -> { socket token since }
+# args   = [ names ]
+# return = name -> { socket token since sid } ; names :
+#          every name registered with a sid -> that sid
 
 ## the inbox tokens live in this closure, never in %data : %data is shown  ##
 ## by dump \ status paths and inherited by forked children. a restart of   ##
@@ -10,10 +12,12 @@
 ## again only after its own cube link reconnects [ open ]                  ##
 
 state %sessions = ();
-return \%sessions;
+## kept when a session goes : an old name still finds its sid ##
+state %names = ();
+return ( $ARG[0] // '' ) eq qw| names | ? \%names : \%sessions;
 
-#,,..,.,,,.,,,,,,,.,,,.,.,...,,,,,..,,,.,,.,.,..,,...,...,.,.,,,,,,,,,,,.,,.,,
-#C424HRAVUP257B3RWCYWOVSF3WNCMTNEPH4PETGKOADSP44HHWPQQUB4CXHJQU25MTBYMEBB64FTG
-#\\\|FSCBOTOYUAJX3GUMQLKMYMYUXXF6WZCJU6A4GM5DENWN2OONFG2 \ / AMOS7 \ YOURUM ::
-#\[7]NZ4LXQKXUBO72GOS3HUAPG6VHUQNEC2TQIXDDAUISMGS3S2KB6DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,,,.,,,.,,,,,.,,,.,,.,,,,,,..,,..,,...,...,,.,,...,,..,,,.,,.,,
+#CYSPRTSTTE6CGPFIQ7PWUNI4LRWW22H657NEQWPRDO22JZ2ZFS2OJ7UGZXSBVQ755J2YBUFIYVURA
+#\\\|RZUQP4B5PRSZQRG572QES4ZOUSXF224PC5O4K6AHJQFC2W7BHT6 \ / AMOS7 \ YOURUM ::
+#\[7]5QDR27R7SMLTQXEUBBWMCAMETS36OXJYYJKLDBDMKPVLB4BTXECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

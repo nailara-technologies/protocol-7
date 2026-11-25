@@ -1,0 +1,58 @@
+## [:< ##
+
+# name   = coding.sessions.carry
+# descr  = move a sid's record to the name reporting it
+# args   = name, sid, via
+# return = TRUE when a record moved or was parked [ the
+#          caller saves ]
+#
+# another sid's record under that name is parked as `prev-<its sid>`, its
+# state its own until it reports again. one without a sid is replaced by
+# the carried record. a state report parks nothing it cannot replace
+
+my ( $name, $sid, $via ) = @ARG;
+return FALSE if not defined $sid;
+my $all = <[coding.sessions.store]>;
+my ($from)
+    = grep { ( $all->{$ARG}{'sid'} // '' ) eq $sid } sort keys %{$all};
+return FALSE if defined $from     and $from eq $name;
+return FALSE if not defined $from and ( $via // '' ) eq qw| state |;
+
+my $aliases = <coding.sessions.aliases> //= {};
+my $holder  = $all->{$name};
+my $parked  = FALSE;
+if (    defined $holder
+    and defined $holder->{'sid'}
+    and $holder->{'sid'} ne $sid ) {
+    ## its key first free : the carried record may be moving off it ##
+    my $moved = delete $all->{$name};
+    delete $moved->{'was'};
+    $moved->{'parked'}             = 1;
+    $all->{"prev-$moved->{'sid'}"} = $moved;
+    delete $aliases->{$name};
+    $parked = TRUE;
+}
+return $parked if not defined $from;
+
+my $r = delete $all->{$from};
+$all->{$name} = $r;
+delete $aliases->{$name};
+## a parked key was never the session's name : no alias, nothing to say ##
+if ( delete $r->{'parked'} ) { return TRUE }
+$r->{'was'} = $from;
+$aliases->{$from} = {
+    'sid'   => $sid,
+    'until' => int(
+        time + <[base.interval.next]>->(
+            { 'type' => qw| coding-session-alias |, 'state' => {} }
+        )
+    )
+};
+<[base.logs]>->( 1, ':. session %s is now %s', $from, $name );
+return TRUE;
+
+#,,,.,,..,,,,,..,,.,,,.,.,,.,,...,..,,,,.,...,..,,...,...,...,..,,..,,,,,,,..,
+#5VFAHXKOCHUVMXZ227ZTXFRVXT77TPKN7VNXVV6YWR7MHBPYE3VAMPYHHWKR2EE2HQ3A63GLJ6GZQ
+#\\\|52ZLXNCXHCOUH7QHHSRFHVRG46UJKOMSTE6OOD7LUNB2JU65VY5 \ / AMOS7 \ YOURUM ::
+#\[7]34LJWUK3VFN67ALGSJHOJQIYRGBA6YWBE3SROSPYO7D5WOYUUQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

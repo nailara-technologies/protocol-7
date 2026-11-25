@@ -14,6 +14,7 @@ return { 'mode' => qw| false |, 'data' => $usage }
     or @rest > 1
     or ( @rest and ( $to eq qw| off | or $rest[0] !~ m{\Afor=} ) );
 
+$name = <[coding.sessions.resolve]>->($name);    ## an old name ##
 my $r = <[coding.sessions.store]>->()->{$name} // return {
     'mode' => qw| false |,
     'data' => "no session '$name' [ coding.sessions ; session-touch first ]"
@@ -51,8 +52,8 @@ return {
     'data' => "keep-alive $name on" . ( @rest ? ' ' . $rest[0] : '' ) . $note
 };
 
-#,,.,,,,.,,,.,,,.,.,.,..,,,.,,,.,,,,,,..,,.,,,..,,...,...,..,,,.,,.,.,..,,.,.,
-#MGMCMOVJPVK3KJORKQTXL2NW6NY4BBJZZAVCWBXOAV5YYUAXMDF7FNOQP3V7NPC5GQ4UZND5SHJK4
-#\\\|RUTZKW33DTF7UH33G2QY5ACIETI3NN7L2MRS7XKGR5QEZIJVK2Y \ / AMOS7 \ YOURUM ::
-#\[7]NA2FG2UIHWO33LL25JKSYHGRQJN772RDBY5AZ4JDQBEI4RXRRKDQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,.,,,,,,.,.,,,.,...,,.,,,.,,..,,..,,...,...,..,,,..,.,.,,..,,.,,
+#7Y4THQXVVNWOEOBBTLMKK3VJ6KPP3HFEN2UF54TFWJWLRWRDLRJEWOZM7G46ZUJIVQ54B3O6624FY
+#\\\|GNE3N5HURL54CPU66K3USM5A5RVJQATCHAYLKPOBCONZU64XMYS \ / AMOS7 \ YOURUM ::
+#\[7]U4ADNH63PHARCIDAVU75WNOUVLCW25UF2AUAHD2ZPFTZBX2A7WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

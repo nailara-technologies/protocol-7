@@ -1,0 +1,207 @@
+#!/usr/bin/env perl
+use v5.32.0;
+use strict;
+use English;
+use warnings;
+use Getopt::Long qw| GetOptions |;
+use FindBin      qw| $RealBin |;
+use JSON::PP     ();
+use Time::Local  qw| timegm_modern |;
+
+BEGIN { unshift @INC, "$RealBin/../data/lib-path/pm" }
+
+use AMOS7::NTIME qw| unix_to_ntime |;
+
+my $out_path;
+GetOptions( 'out=s' => \$out_path )
+    or die "usage : p7-session-normalize "
+    . "<transcript.jsonl> [ -out <file> ]\n";
+my $input_path = shift @ARGV // '';
+die "usage : p7-session-normalize <transcript.jsonl> [ -out <file> ]\n"
+    if not length $input_path or @ARGV;
+die "transcript not readable\n" if not -r $input_path or -d $input_path;
+
+my $json = JSON::PP->new->utf8->canonical;
+open my $input, '<:raw', $input_path
+    or die "cannot read transcript : $OS_ERROR\n";
+my ( @records, %count );
+my ( $session_id, $model, $first, $last ) = ( '', '', '', '' );
+my $line_number = 0;
+while ( my $wire = <$input> ) {
+    $line_number++;
+    my $event = eval { $json->decode($wire) };
+    die "invalid transcript json at line $line_number\n"
+        if $EVAL_ERROR
+        or ref $event ne qw| HASH |;
+
+    $session_id = $event->{'sessionId'} // $event->{'session_id'} // ''
+        if not length $session_id;
+    my $type = $event->{'type'} // 'event';
+    $count{$type}++;
+    $model = $event->{'message'}{'model'} // $model
+        if ref $event->{'message'} eq qw| HASH |;
+    my $ntime = event_ntime($event);
+    $first = $ntime if not length $first and length $ntime;
+    $last  = $ntime if length $ntime;
+    push @records, [ $line_number, $ntime, $event ];
+}
+close $input or die "cannot finish reading transcript : $OS_ERROR\n";
+
+my $out;
+if ( defined $out_path ) {
+    die "input and output must differ\n" if $out_path eq $input_path;
+    open $out, '>:encoding(UTF-8)', $out_path
+        or die "cannot write output : $OS_ERROR\n";
+} else {
+    open $out, '>&:encoding(UTF-8)', STDOUT
+        or die "cannot open output : $OS_ERROR\n";
+}
+
+print {$out} "archive.format = session-events-v1\n";
+print {$out} "session.id = " . mask($session_id) . "\n";
+print {$out} "session.agent = claude\n";
+print {$out} "session.model = "
+    . ( length $model ? mask($model) : '-' ) . "\n";
+print {$out} "session.first = " . ( length $first ? $first : '-' ) . "\n";
+print {$out} "session.last = " .  ( length $last  ? $last  : '-' ) . "\n";
+print {$out} "count.source-lines = $line_number\n";
+print {$out} "count.events = " . scalar(@records) . "\n";
+print {$out} "count.$_ = $count{$_}\n" foreach sort keys %count;
+print {$out} "\n";
+
+foreach my $record (@records) {
+    my ( $source_line, $ntime, $event ) = @{$record};
+    foreach my $item ( event_lines($event) ) {
+        my ( $speaker, $kind, $text ) = @{$item};
+        $text = single_line( mask($text) );
+        printf {$out} "%s %s %s [ source %d ] : %s\n",
+            length($ntime) ? $ntime : '-', $speaker, $kind, $source_line,
+            short( $text, 400 );
+    }
+}
+close $out or die "cannot finish output : $OS_ERROR\n";
+
+sub event_ntime {
+    my $event = shift;
+    my $stamp = $event->{'timestamp'} // $event->{'created_at'} // '';
+    return '' if not defined $stamp or ref $stamp;
+    if (
+        $stamp =~ m|\A(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(\.\d+)?Z\z| )
+    {
+        my $fraction = $7 // '';
+        my $unix     = timegm_modern( $6, $5, $4, $3, $2 - 1, $1 );
+        my $ntime    = unix_to_ntime( $unix, 0 );
+        return $ntime if not length $fraction;
+        my $units = int( substr( $fraction . '0000', 1, 4 ) * 0.42 );
+        return sprintf '%s.%04d', $ntime, $units;
+    }
+    return unix_to_ntime( $stamp, 4 ) if $stamp =~ m{\A\d+(?:\.\d+)?\z};
+    return '';
+}
+
+sub event_lines {
+    my $event  = shift;
+    my $type   = $event->{'type'} // 'event';
+    my $source = $type =~ m{\A(?:user|assistant)\z} ? $type : 'system';
+    my @lines;
+    my $content
+        = ref $event->{'message'} eq qw| HASH |
+        ? $event->{'message'}{'content'}
+        : undef;
+    $content = [ { 'type' => 'text', 'text' => $content } ]
+        if defined $content and not ref $content;
+    foreach my $block ( ref $content eq qw| ARRAY| ? @{$content} : () ) {
+        next if ref $block ne qw| HASH |;
+        my $kind = $block->{'type'} // 'event';
+        if ( $kind eq qw| text | ) {
+            push @lines, [ $source, 'text', $block->{'text'} // '' ];
+        } elsif ( $kind eq qw| thinking | ) {
+            push @lines, [ $source, 'thinking', $block->{'thinking'} // '' ];
+        } elsif ( $kind eq qw| tool_use | ) {
+            push @lines,
+                [
+                $source, 'tool_use',
+                ( $block->{'name'} // '-' ) . ' '
+                    . tool_args( $block->{'input'} )
+                ];
+        } elsif ( $kind eq qw| tool_result | ) {
+            my $text         = block_text( $block->{'content'} );
+            my ($first_line) = split m{\r?\n}, $text, 2;
+            push @lines,
+                [
+                $source, 'tool_result',
+                length($text) . ' chars : ' . ( $first_line // '' )
+                ];
+        } else {
+            push @lines,
+                [ $source, $kind, block_text( $block->{'text'} // '' ) ];
+        }
+    }
+    return @lines if @lines;
+    return [ $source, $type, $event->{'subtype'} // $type ];
+}
+
+sub block_text {
+    my $content = shift // return '';
+    return $content if not ref $content;
+    return join ' ',
+        map { ref $ARG eq qw| HASH| ? $ARG->{'text'} // '' : $ARG }
+        @{$content}
+        if ref $content eq qw| ARRAY|;
+    return $content->{'text'} // '' if ref $content eq qw| HASH|;
+    return '';
+}
+
+sub tool_args {
+    my $input = shift;
+    return '' if ref $input ne qw| HASH|;
+    return join ' ', map {
+        my $value = $input->{$ARG};
+        $value = block_text($value) if ref $value;
+        "$ARG=" . short( single_line( mask($value) ), 120 )
+    } sort keys %{$input};
+}
+
+sub single_line {
+    my $text = shift // '';
+    $text =~ s{\s*\r?\n\s*}{ / }g;
+    $text =~ s{[\t\r ]+}{ }g;
+    return $text;
+}
+
+sub short {
+    my ( $text, $limit ) = @ARG;
+    return $text if length($text) <= $limit;
+    return
+          substr( $text, 0, $limit )
+        . ' [ cut '
+        . ( length($text) - $limit )
+        . ' chars ]';
+}
+
+sub mask {
+    my $text = shift // '';
+    return $text if ref $text;
+    $text
+        =~ s{-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----}{[ masked private-key ]}gs;
+    $text =~ s{\bBearer\s+[A-Za-z0-9._~+/=-]+}{[ masked bearer ]}gi;
+    $text =~ s|\bsk-ant-[A-Za-z0-9_-]{8,}|[ masked claude-token ]|g;
+    $text =~ s{\b(?:sk|pk)-[A-Za-z0-9_-]{12,}}{[ masked api-token ]}g;
+    $text
+        =~ s{\b(?:gh[pousr]|github_pat)_[A-Za-z0-9_]{12,}}{[ masked github-token ]}g;
+    $text =~ s|\bxox[baprs]-[A-Za-z0-9-]{10,}|[ masked messaging-token ]|g;
+    $text =~ s|\bAKIA[0-9A-Z]{16}\b|[ masked account-key ]|g;
+    $text
+        =~ s|\b(?=[A-Za-z0-9+/]*[0-9])(?=[A-Za-z0-9+/]*[A-Z])(?=[A-Za-z0-9+/]*[a-z])[A-Za-z0-9+/]{32,}={0,2}|[ masked key ]|g;
+    $text
+        =~ s|\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b|[ masked jwt ]|g;
+    $text
+        =~ s{((?:access[_. -]?token|refresh[_. -]?token|api[_. -]?key|secret|password|account[_. -]?(?:id|uuid)|organization[_. -]?(?:id|uuid)|messaging[_. -]?token)\s*[:=]\s*["']?)[^\s,"']+}{$1 . '[ masked credential ]'}gie;
+    return $text;
+}
+
+#,,..,.,.,.,.,.,,,.,,,,..,.,,,..,,,,.,..,,,,.,..,,...,...,.,.,,,,,.,,,,,,,...,
+#IUP4S7XJVX63TLF6PPTMEYQDWS4H6CA45TZLQBB6RNUPNYDZNNCGPESTGC3B4S5VHWY3652V2GTXO
+#\\\|ZT6K74QNHGZQ3KLQIGDZJCBQYHNAS2KBDMDHNNX7KXSUAODVG4U \ / AMOS7 \ YOURUM ::
+#\[7]GRX7CAYTH5J3G6MTTN2GPP7GRJKAB7C33QU7SPOL5F5IVTHYEGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = coding.cmd.remind
-# param = at=<time> | after=<type> <text> [ to= ]
+# param = at=<time> | after=<type> <text> [ to= unless= ]
 # descr = a reminder : a bucket entry, a message
 #
 # to=session [ default ] : claude.session-post into the registered live
@@ -9,14 +9,15 @@
 # notify when none takes it ; to=panel \ notify : notify.message,
 # the session when the notify zenka is not there. the entry is the
 # reminder [ events bucket, kept over restarts ] : coding.reminders lists,
-# coding.remind-drop <id> removes
+# coding.remind-drop <id> removes. unless=condition,.. skips it when any
+# condition holds just before delivery ; an unreadable source does not hold
 
 my $parsed = <[park.parse_args]>->( $call->{'args'} // '' );
 my $fail   = sub { return { 'mode' => qw| false |, 'data' => shift } };
 return $fail->( $parsed->{'error'} ) if defined $parsed->{'error'};
 my $pairs = $parsed->{'pairs'};
-my @bad   = grep { not m{\A(?:at|after|to)\z} } sort keys %{$pairs};
-return $fail->("unknown key : @bad [ at after to ]") if @bad;
+my @bad   = grep { not m{\A(?:at|after|to|unless)\z} } sort keys %{$pairs};
+return $fail->("unknown key : @bad [ at after to unless ]") if @bad;
 my @when = grep { defined $pairs->{$ARG} } qw| at after |;
 return $fail->('one of at= or after=') if @when != 1;
 my $to = $pairs->{'to'} // qw| session |;
@@ -31,6 +32,7 @@ my $in = {
     'time'     => $pairs->{ $when[0] },
     'to'       => $to,
     'text'     => $text,
+    'unless'   => $pairs->{'unless'},
     'reply_id' => $call->{'reply_id'} // ''
 };
 ## to=session without a name : the claude zenka names the registered one. ##
@@ -51,8 +53,8 @@ if ( $to eq qw| session | ) {
 }
 return <[coding.remind.add]>->($in);
 
-#,,,,,,..,,.,,,,.,.,.,...,.,,,...,..,,,.,,...,..,,...,...,...,...,.,,,.,,,,..,
-#6MMTX2FKGQIHXC7UYRBCCYQOK23ZWM5XCPQQW4ZDYUMVCFU5CHKRASVG7ZGSWUMQWBJM5JPZINTEC
-#\\\|BDSIGTCDQP2FEOAAL33PW5CXYQXEZUSQV2Y434RJ7GUMCNGXJB4 \ / AMOS7 \ YOURUM ::
-#\[7]KWHSU5VVBXUEVUKD3EHFTXJKXJ376G4G3PEQXTR7VTF24CQBAABY 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,.,.,.,..,,,..,..,,,,,,,,,,,,,,..,,...,...,...,,,.,,..,..,,.,.,
+#SYKF2CKMG36TQUVIEPRQFMDZJKR7ZXITHQKZA24CKRXAH7CBQDZ7HFVWP5IEMX3UE7PN7XUA2755M
+#\\\|DVAH7LA7X2DFNAAADM2FFSQF7XSKE5U3A4L5WFSJPP6Q47GCVZD \ / AMOS7 \ YOURUM ::
+#\[7]BCSLEJJRYFBCK543SXCWVLIXA7KJRCR3E5BEU7NIDS4NTWSYESDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

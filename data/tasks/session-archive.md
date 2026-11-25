@@ -49,8 +49,20 @@ stays private : a query from a shared context never sees archive or private-note
   at the edge only ]
 - one host holds the writable archive ; others search a read-only copy
 
-#,,,.,,,,,,,.,.,.,,,.,.,.,,.,,,,.,.,.,...,..,,..,,...,...,.,,,,,.,..,,.,.,..,,
-#OUATTDNPBBE2NHNBDZ343XASPECQWGX4QRGWO2HOETSIW53N3EDRDVG5K7IPRSFMA5UJXNVP3T36Y
-#\\\|AS6UP25UIQHP4OQS2WBP4XWP2ZCVKHFM4AXYIOO557L5RMKVP3I \ / AMOS7 \ YOURUM ::
-#\[7]HL7NVFQAQVYEFNWWOTYTLR6BTHWWDCNSGXA7GK4TU53AMLOBPOAY 7  DATA SIGNATURE ::
+### kimi wire note [ kimi 2026-11-25, schema read only ]
+
+- `wire.jsonl` uses top-level `time`, `type`, `agentId` and `turnId` fields ; model
+  identity is on `llm.request` \ `usage.record`, not in a claude-style session init
+- `context.append_message` has `message.role`, `message.content` and `message.toolCalls` ;
+  `context.append_loop_event` nests `event.type` : `content.part`, `step.begin`, `step.end`,
+  `tool.call` \ `tool.result`, with tool name \ args \ result under the nested event
+- `turn.prompt` carries prompt input ; metadata, permission, profile, runtime, tools,
+  file-history, token-count and usage records are structural events. a kimi normalizer
+  must map these forms to speaker \ kind and use top-level `time`, not look for claude's
+  `timestamp`, `sessionId`, `message.model` or `tool_use` block names
+
+#,,..,,.,,,,.,,,.,,,,,..,,,,.,,..,...,...,.,,,..,,...,...,..,,,..,,..,.,,,...,
+#FRI7AZNV4W5RTLK5JUZYOLW6CIPFHD4KC2PEVATAT4NABE5ECV4JS2Z343M7KNZG6QRBH7DMF2YUC
+#\\\|FWZTBFGWZUDEYGNIQR4R2RGAVHQRGFFXLD5NYQGZPIPL3UANZE3 \ / AMOS7 \ YOURUM ::
+#\[7]5AJ5YLREWLNAXM4CTEYXBUU7BVQHCXNCFP6VOYDY5C5RYWWXQYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

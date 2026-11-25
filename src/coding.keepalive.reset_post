@@ -11,12 +11,14 @@ my $all = <[coding.sessions.store]>;
 my @to  = grep {
             $all->{$ARG}{'type'} eq qw| claude-live |
         and $all->{$ARG}{'switch'} eq qw| on |
+        and not $all->{$ARG}{'parked'}
         and not AMOS7::Switch::expired( $all->{$ARG}{'until'}, time )
 } sort keys %{$all};
 return 0 if not @to;
 
 my ($leader) = sort { $all->{$b}{'last'} <=> $all->{$a}{'last'} }
-    grep { $all->{$ARG}{'type'} =~ m{\Akimi-} } keys %{$all};
+    grep { $all->{$ARG}{'type'} =~ m{\Akimi-} and not $all->{$ARG}{'parked'} }
+    keys %{$all};
 my $who
     = defined $leader
     ? sprintf( 'kimi session %s is leading [ active %d min ago ]',
@@ -37,6 +39,7 @@ foreach my $name (@to) {
         if <[coding.keepalive.send]>->(
         {   'name'  => $name,
             'type'  => qw| claude-live |,
+            'sid'   => $all->{$name}{'sid'},
             'text'  => $line,
             'reset' => TRUE
         }
@@ -45,8 +48,8 @@ foreach my $name (@to) {
 <[coding.sessions.store]>->(qw| save |);
 return $count;
 
-#,,,,,...,..,,,,,,.,,,..,,.,.,...,,,,,...,,,.,..,,...,...,,..,,..,.,,,,.,,,.,,
-#Q6AC7LALP4S7JDRNDEGQ4C5IRMICFOCWL5RZTPNVSIFWYIKIA6TLG52KDD6ZPOLVT4HRIP5AVZ6LE
-#\\\|MEG67F4OJRMIDJOD6E2YQMTO5YOKMT7NDUFGLNBA2QEBOVSV246 \ / AMOS7 \ YOURUM ::
-#\[7]ENSXHLCTICUSCOG6ILHTGU67RXRNKIYFFGYV3EZYDW7ZTZJALWBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,...,...,..,,...,...,,..,.,,,..,,...,..,,.,,,...,,,.,.,,,.,.,
+#OAHNGL3GYJMLMJTZJKI2IB7SIRT5O5BL5ZUEKBPXVXU2TJPWF4RUVPRGMEDTBMVM6VPK4CNABBR2G
+#\\\|M44RTJRZH3WV4RLD3U3WBAO4QDJS4NCCMRGWUK63QWDHAZFMXGY \ / AMOS7 \ YOURUM ::
+#\[7]SLTOPKCJ4NX56K63UKWV7JNUGBASGHBGLLJLUJRVNESQD2Z4DSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

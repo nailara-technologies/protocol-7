@@ -1,17 +1,21 @@
 ## [:< ##
 
 # name  = claude.cmd.session-post
-# param = [ from=<name> ] [ to=<session> ] <text>
+# param = [ from= ] [ to=<session> ] [ sid= ] <text>
 # descr = a message into the registered live session
 
 ## no reply is awaited : the session answers in its own channel. without  ##
 ## to= the one registered session is used ; several : refused with the    ##
 ## names. from= \ to= are read before the text [ these win ] and after it ##
+## sid=<uuid> [ before the text only ] : that session, whatever its name  ##
 
 my $text = $call->{'args'} // '';
 my %opt;
-while ( $text =~ s{\A\s*(from|to)=([\w.\-]+)(?:\s+|\z)}{} ) {
-    $opt{$1} //= $2;
+while (
+    $text =~ s{\A\s*(?:(from|to)=([\w.\-]+)
+    |(sid)=([0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}))(?:\s+|\z)}{}x
+) {
+    $opt{ $1 // $3 } //= $2 // $4;
 }
 $text .= "\n" . $call->{'data'}
     if defined $call->{'data'} and CORE::length $call->{'data'};
@@ -22,8 +26,13 @@ $text =~ s{\A\s+|\s+\z}{}g;
 return { 'mode' => qw| false |, 'data' => 'text expected' }
     if not CORE::length $text;
 
-my $r = <[claude.live.post]>
-    ->( { 'text' => $text, 'from' => $opt{'from'}, 'name' => $opt{'to'} } );
+my $r = <[claude.live.post]>->(
+    {   'text' => $text,
+        'from' => $opt{'from'},
+        'name' => $opt{'to'},
+        'sid'  => $opt{'sid'}
+    }
+);
 return { 'mode' => qw| false |, 'data' => $r->{'error'} }
     if defined $r->{'error'};
 return {
@@ -31,8 +40,8 @@ return {
     'data' => "posted into live session $r->{'name'} [ no reply awaited ]"
 };
 
-#,,..,,,,,,.,,,,.,...,..,,,,,,.,,,,.,,...,.,,,..,,...,...,..,,,,,,.,.,,..,..,,
-#UCDXS3BTGGFL2FO3H62LKKQE2IKCPSLPGJ4YRK2M4VUF2XVOOJTY5Y24CQZNKY2JYSMHA3TDN75VQ
-#\\\|NYMZLNTKZOHW3PQVBXSL4WK5H2K42IOO6NBWWTPSE6TU3DQ26NO \ / AMOS7 \ YOURUM ::
-#\[7]HRCGNU66Z52MYBMY2A74RVKESIRK2Z73B7QPIABFJGO7YNABVWCA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,.,.,.,,..,,,,,.,,,,.,,...,..,,..,,...,...,.,.,,..,,..,,.,,,..,
+#LT37SQGIE7OAUX2TC7XL6INOO5IKP5ZQD3FNQIZGLKHOPXJNA4ICXYTBLNCZRPTX3XY32FIBSJNRQ
+#\\\|6HYIEFJBIQGPGBONVWGZ3RJX7QKGKIINTQIDY4FBI35GPPE27A3 \ / AMOS7 \ YOURUM ::
+#\[7]G7SKCQWZ634WTPWLK5TCN7HHWZL3ZMNIXO57GJHDZ7SJ2YPB3QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,5 +1,5 @@
 package AMOS7::Config;
-our $VERSION = qw| AMOS7::Config-VERSION.QX2VL6A |;
+our $VERSION = qw| AMOS7::Config-VERSION.6TLDRYI |;
 
 use v5.32;
 use strict;
@@ -92,7 +92,16 @@ sub normalize_lines {
 
         ## for key=value lines, preserve .: patterns [ may be literal values ]
         if ( $conf_line =~ m|^[^=]+=| ) {
-            $conf_line =~ s{^ +| *(#.*)$|[\r\n\t]+}{}g;
+            my $quoted = 0;
+            for my $pos ( 0 .. length($conf_line) - 1 ) {
+                my $char = substr $conf_line, $pos, 1;
+                $quoted = !$quoted if $char eq qw| ' |;
+                next if $char ne '#' or $quoted;
+                substr( $conf_line, $pos ) = '';
+                $conf_line =~ s| *$||;
+                last;
+            }
+            $conf_line =~ s{^ +|[\r\n\t]+}{}g;
         } else {
             $conf_line =~ s{^ +| *(#.*|\.:.*)$|[\r\n\t]+}{}g;
         }
@@ -131,8 +140,8 @@ sub normalize_lines {
 
 1;    ##  AMOS7::Config  ##
 
-#,,,.,,,,,..,,,.,,...,...,.,,,,,.,,,.,,.,,.,.,..,,...,...,.,,,,..,,,.,...,.,.,
-#47KXWETW5ZLOGMNX3W5XJT2H72GC44L26SCYXAUTIWUGM5325SGLTXNIVJ3V7ENTC4VPHLX7EEZIU
-#\\\|C3BYQMBLTEIC3THEDEXH3P3UGENUJTIS62WSEMTBZSKUH5QRUCP \ / AMOS7 \ YOURUM ::
-#\[7]US6AOXNRH6PTMN4YBEFBMOEFC4HIFF77GIWDI7ZQOPGQPNEQUIBI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,,,,,.,.,.,,.,,,,.,,,,,,,.,.,.,..,,...,...,..,,,,.,,..,.,,,...,
+#TZ652UBFXRNEKU3UYFUB5LFIWTPT6QGNPZ5YETG55XSZPIZMB4A4KQOWHQBQR7JLCJN2SLAPX3CVS
+#\\\|D3JO6PMOYOSCYFAJWE6P2AD3ETT7TYOY3MSIFLQR5X63IZ4DJ56 \ / AMOS7 \ YOURUM ::
+#\[7]OKAW5GJ5NGPTENZACKDEQDJQO7SBP2NAF7CORPKXMM5FDN7BCGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

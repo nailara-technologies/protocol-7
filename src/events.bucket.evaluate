@@ -43,7 +43,7 @@ while ( $passes++ < $limit ) {
             } elsif ( $de->{'state'} eq qw| fired | ) {
                 next;
             } elsif ( grep { $de->{'state'} eq $ARG }
-                qw| failed blocked missed | ) {
+                qw| failed blocked missed skipped | ) {
                 $blocked = "dependency '$dep' " . $de->{'state'};
                 $blocked .= ' : ' . $de->{'result'}
                     if length $de->{'result'} // '';
@@ -65,6 +65,13 @@ while ( $passes++ < $limit ) {
             <[events.bucket.gate.check]>->( $owner, $e )
                 if ( $e->{'gate'} // '' ) ne qw| closed |;
             next;
+        }
+        ## unless drops the entry when any condition holds. unreadable ##
+        ## sources only leave a note : the action still runs           ##
+        if ( length( $e->{'unless'} // '' )
+            and not delete $e->{'unless_pass'} ) {
+            <[events.bucket.unless.check]>->( $owner, $e );
+            next if not delete $e->{'unless_pass'};
         }
         ## due : saved before the action runs [ exactly once ] ##
         $e->{'state'} = qw| due |;
@@ -94,12 +101,13 @@ while ( $passes++ < $limit ) {
                 "action '$type' did not run [ no such action plugin ]"
             );
         } else {
-            <[events.bucket.finish]>->(
-                $owner, $e, qw| fired |,
-                ( $e->{'result'} // '' ) =~ m{\Amissed}
+            my $result
+                = ( $e->{'result'} // '' ) =~ m{\Amissed}
                 ? $e->{'result'}
-                : 'action ran'
-            );
+                : 'action ran';
+            my $notes = join ' ; ', @{ $e->{'unless_notes'} // [] };
+            $result = "$notes ; $result" if length $notes;
+            <[events.bucket.finish]>->( $owner, $e, qw| fired |, $result );
             push @fired, $id;
         }
         $moved = $changed = TRUE;
@@ -110,8 +118,8 @@ delete <events.bucket_busy>->{$owner};
 <[events.bucket.save]>->($owner) if $changed;
 return \@fired;
 
-#,,,,,,,,,,,.,.,,,.,,,.,,,,.,,,,,,.,.,,,,,.,,,..,,...,...,.,,,,,,,,,,,...,,..,
-#ILMENCY5VJU56BUZSHTWPPS2LFRO23GI5UEKDWEIZCJVDRLCXBXRMW23OQQQWFBKUQJLMOZ4MY5X6
-#\\\|XRX6JFTJIGZIDIG23CANNXHOIBA5R3BBWKC5V4ZOAQENBRUILHK \ / AMOS7 \ YOURUM ::
-#\[7]5U4RI6KMSFME4E5DB5APDZQ2ONYFLBJQEKQP2U5Q35B6C262SSBA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,,,,,...,.,.,,..,,,,,..,,.,.,..,,...,...,.,.,,..,,..,,.,,,,.,
+#BBIB7LHZSCUD3W47UFIXJDKTLTUFX6PLZG4IREYRHRZDTPOUEC7WKKET27EQWNTX3G2LGIOEKOD22
+#\\\|7WI2LEIVLLNWCGWE4LXE3X2VKFIWFMYWR3M5DQ6N6XE4PRZFJ2S \ / AMOS7 \ YOURUM ::
+#\[7]P2GYQPJKIBD7H6CMUY6UFQPRBSQ52NPSJMPUNGINRYRKD5Z4RMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

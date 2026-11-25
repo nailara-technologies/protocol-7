@@ -116,6 +116,9 @@ $code{'base.callback.cmd_reply'}
     = sub { $replies{ $ARG[0] } = $ARG[1]; TRUE };
 
 my $tmp = tempdir( 'coding-handover-XXXXXX', 'TMPDIR' => 1, 'CLEANUP' => 1 );
+## the session registry [ remind.add looks a session's sid up there ] ##
+$code{'base.perlmod.loaded'} = sub {0};
+$code{'base.perlmod.load'}   = sub { require AMOS7::Switch; 1 };
 $code{'file.zenka_dir.load'} = sub {
     my $path = "$tmp/zdir/$zenka." . shift;
     return undef if !-f $path;
@@ -218,7 +221,7 @@ opendir my $dh, $src or die "cannot open src : $OS_ERROR";
 my @src = readdir $dh;
 closedir $dh;
 load_module($ARG) for grep {
-    m{\A(?:park\.|events\.(?:plugin|source|fire|handler\.event_triggered|calc_unix|set_up_timers|action\.|access\.|signal\.|cmd\.signal\z|bucket\.|cmd\.bucket-)|plugin\.events\.(?:action|source)\.|base\.interval\.next\z|base\.interval\.rhythm\.|base\.reply\.mode_text\z|coding\.handover\.|coding\.remind\.|coding\.handler\.(?:handover|remind)_|coding\.cmd\.(?:handover|remind))}
+    m{\A(?:park\.|events\.(?:plugin|source|fire|handler\.event_triggered|calc_unix|set_up_timers|action\.|access\.|signal\.|cmd\.signal\z|bucket\.|cmd\.bucket-)|plugin\.events\.(?:action|source)\.|base\.interval\.next\z|base\.interval\.rhythm\.|base\.reply\.mode_text\z|coding\.handover\.|coding\.remind\.|coding\.sessions\.|coding\.handler\.(?:handover|remind)_|coding\.cmd\.(?:handover|remind))}
 } @src;
 load_module($ARG) for qw|
     coding.park.store coding.sign_queue.store
@@ -858,8 +861,8 @@ say "1..", $pass + $fail;
 say "# pass $pass fail $fail";
 exit( $fail ? 1 : 0 );
 
-#,,.,,.,.,...,.,,,,,,,.,,,..,,..,,,.,,,.,,,.,,..,,...,...,..,,,..,.,,,..,,..,,
-#UVBINVKMXFUPSSBNJCJGR6YUVX5ZILVI3MFZKCFHLNDXEV6ELQKSQD3WQEPS5V3B65U3JDJCTTS2U
-#\\\|VGGDQGRADFWK62AUOVEUO6WWWW4G27PQLT7QL3NRYG7P555YOL4 \ / AMOS7 \ YOURUM ::
-#\[7]X7BDJVYL3BTZVBAVA5C2HB2UAL5BRX46XHSZFFMVQX7HABXHG2BI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,..,,,,,,..,,,,,,,..,,,,,,,,,..,,..,,...,...,..,,.,,,...,...,...,
+#52CWK7OH6FMUODTMIC7PC6GPENHU7HPYYSJ67BVAGZWUKXFAO6WRWACKNDFNSXLXMQATAYQA4F5K4
+#\\\|JSEZKZ37YGAWQVCALSRQ5ISLXXE7VNSCOE2L5QCCQREIDK6QJPI \ / AMOS7 \ YOURUM ::
+#\[7]D2QTFZDSHYWBTXU7JMMXAK6SKT57HJIE4DTUIDKD4X4TAYUGJ6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

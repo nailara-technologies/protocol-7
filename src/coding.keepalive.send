@@ -9,11 +9,11 @@
 
 my $in = shift // {};
 my ( $name, $type, $text ) = @{$in}{qw| name type text |};
+my $to   = defined $in->{'sid'} ? "to=$name sid=$in->{'sid'}" : "to=$name";
 my %path = (
-    'claude-live' =>
-        [ qw| claude.session-post |, "to=$name from=coding $text" ],
-    'claude-zenka' => [ qw| claude.send |,   $text ],
-    'kimi-acp'     => [ qw| kimi.acp-send |, $text ],
+    'claude-live'  => [ qw| claude.session-post |, "$to from=coding $text" ],
+    'claude-zenka' => [ qw| claude.send |,         $text ],
+    'kimi-acp'     => [ qw| kimi.acp-send |,       $text ],
     'kimi-tui'     =>
         [ qw| notify.message |, "$name not reachable [ kimi tui ] : $text" ]
 );
@@ -37,8 +37,8 @@ return TRUE
 );
 return FALSE;
 
-#,,,.,...,,.,,...,,,,,...,..,,.,.,..,,.,,,.,.,..,,...,...,,,,,.,,,.,,,,,.,..,,
-#DLCQOM454JZFO2OJOM3ES7T374SQFVOWENCQWKVCVTMI4Q2TZLIR3OYJC2QTIIWBGGA75AFUG2KHO
-#\\\|UAUXPEYZAAXBWOWVQCSK7RCSRZ2LQ335AHD6HEHQWZZW6AAEHQE \ / AMOS7 \ YOURUM ::
-#\[7]Y57P26E6TRS5C6JYUDP6SGA54WH3A22HTXBESBEU3COAOWUSRCBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,.,,,.,,,,,,,.,,.,,..,,,.,,.,,,..,,...,...,.,.,,.,,,,.,..,,..,,
+#DDGEKCQWQN2EPIEABQHEIRDXZ54OIA56PTP5IRFDY6JBAZXNLMGWTM2PCC2WL7EBLB4EZW36PVDVO
+#\\\|J5YGEE7OVDCJME2CLI4MNF6H72YWFZAR5XPBN66HOZZU2DU2SID \ / AMOS7 \ YOURUM ::
+#\[7]JWIRCZQ4CJHUSF264SNAQRANCWAMOYQOGYZBUG2JYQOB3HXG2SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,166 @@
+#!/usr/bin/env perl
+use v5.32;
+use strict;
+use warnings;
+use English;
+
+use File::Spec;
+use FindBin qw| $RealBin |;
+
+BEGIN {
+    my $root = File::Spec->catdir( $RealBin, File::Spec->updir );
+    unshift @INC, File::Spec->catdir( $root, qw| data lib-path pm | );
+}
+
+use AMOS7::Config::Reader;
+use AMOS7::Config::Writer qw| write write_file |;
+
+my $usage = <<'END_USAGE';
+usage : p7-config-convert <direction> <input> [output]
+
+direction : native-to-yaml | yaml-to-native
+input     : native or yaml file, '-' for standard input
+output    : converted file, '-' or omitted for standard output
+
+native output files are written atomically. native scalars are strings;
+arrays, multiline values and literal single quotes need native extensions.
+END_USAGE
+
+my ( $yaml_load, $yaml_dump, $yaml_bytes );
+
+sub select_yaml_backend {
+    return if defined $yaml_load;
+    if ( eval { require YAML::XS; 1 } ) {
+        $yaml_load  = \&YAML::XS::Load;
+        $yaml_dump  = \&YAML::XS::Dump;
+        $yaml_bytes = 1;
+        return;
+    }
+    if ( eval { require YAML; 1 } ) {
+        $yaml_load  = \&YAML::Load;
+        $yaml_dump  = \&YAML::Dump;
+        $yaml_bytes = 0;
+        return;
+    }
+    die "no yaml parser available [ YAML::XS or YAML required ]\n";
+}
+
+sub read_text {
+    my ( $path, $bytes ) = @ARG;
+    my $layer = $bytes ? ':raw' : ':encoding(UTF-8)';
+    my $fh;
+    if ( $path eq '-' ) {
+        $fh = *STDIN;
+    } else {
+        CORE::open( $fh, "<$layer", $path )
+            or die "cannot read $path : $OS_ERROR\n";
+    }
+    CORE::binmode( $fh, $layer ) if $path eq '-';
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $text = <$fh>;
+    CORE::close($fh) if $path ne '-';
+    return $text // '';
+}
+
+sub write_yaml {
+    my ( $path, $text ) = @ARG;
+    utf8::encode($text) if utf8::is_utf8($text);
+    if ( $path eq '-' ) {
+        CORE::binmode( STDOUT, ':raw' );
+        CORE::print {*STDOUT} $text
+            or die "cannot write standard output : $OS_ERROR\n";
+        return;
+    }
+    CORE::open( my $fh, '>:raw', $path )
+        or die "cannot write $path : $OS_ERROR\n";
+    CORE::print {$fh} $text or die "cannot write $path : $OS_ERROR\n";
+    CORE::close($fh)        or die "cannot close $path : $OS_ERROR\n";
+}
+
+sub native_data {
+    my $text   = shift;
+    my $source = bless { 'text' => $text }, 'P7ConfigConvert::Source';
+    my $result = AMOS7::Config::Reader->read( 'convert',
+        { 'source' => $source, 'host_overlay' => 0 } );
+    my @calls = $result->calls;
+    die "native calls cannot be converted : $calls[0]{'text'}\n" if @calls;
+    my @warnings = $result->warnings;
+    die "native value warning : $warnings[0]{'text'}\n" if @warnings;
+    return _nest( scalar $result->all );
+}
+
+sub _nest {
+    my $flat = shift;
+    my $data = {};
+    foreach my $key ( sort keys $flat->%* ) {
+        my @parts = split m{\.}, $key, -1;
+        my $node  = $data;
+        for my $index ( 0 .. $#parts - 1 ) {
+            my $part = $parts[$index];
+            if ( exists $node->{$part} and ref $node->{$part} ne qw| HASH | )
+            {
+                die "native key collision at '$key'\n";
+            }
+            $node->{$part} //= {};
+            $node = $node->{$part};
+        }
+        my $last = $parts[-1];
+        die "native key collision at '$key'\n" if exists $node->{$last};
+        $node->{$last} = $flat->{$key};
+    }
+    return $data;
+}
+
+sub run {
+    my ( $direction, $input, $output ) = @ARG;
+    die $usage if not defined $input;
+    $output //= '-';
+    die $usage
+        if $direction ne 'native-to-yaml'
+        and $direction ne 'yaml-to-native';
+
+    select_yaml_backend();
+    if ( $direction eq 'native-to-yaml' ) {
+        my $data = native_data( read_text( $input, 0 ) );
+        write_yaml( $output, $yaml_dump->($data) );
+    } else {
+        my $data = $yaml_load->( read_text( $input, $yaml_bytes ) );
+        die "yaml root must be a mapping\n" if ref $data ne qw| HASH |;
+        if ( $output eq '-' ) {
+            my $text = write($data);
+            CORE::binmode( STDOUT, ':encoding(UTF-8)' );
+            CORE::print {*STDOUT} $text
+                or die "cannot write standard output : $OS_ERROR\n";
+        } else {
+            write_file( $output, $data );
+        }
+    }
+}
+
+if ( grep { ( $_ // '' ) eq '--help' } @ARGV ) {
+    CORE::print {*STDOUT} $usage;
+} else {
+    eval { run(@ARGV); 1 } or do {
+        my $err = $EVAL_ERROR // 'unknown error';
+        warn "p7-config-convert : $err";
+        CORE::exit(1);
+    };
+}
+
+package P7ConfigConvert::Source;
+
+sub exists { return 1 }
+sub trust  { return 1 }
+
+sub lines {
+    my $self = shift;
+    return [ split m{(?<=\n)}, $self->{'text'} // '' ];
+}
+
+1;
+
+#,,,.,,,.,.,.,,..,,,,,.,,,..,,..,,,,.,.,,,.,,,..,,...,...,.,,,,..,.,.,,,.,...,
+#5RBSYZCQLE4EFGNEU45IPQVIVP4YCFYUNXCSWGT3LPUEJW7QM355VDZQ7VGDKADTGDYSNTOIFKRRA
+#\\\|RVGTEN6PIHT3TWSDMR6FG3S463DUXHLU6FV2KXMOWNIEOEOHVGA \ / AMOS7 \ YOURUM ::
+#\[7]NFJ4V7PXLSF4MFVO3RZ6Y7O7RF2DCE4GSD5XHBBU62D47T2EAOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

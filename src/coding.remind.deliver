@@ -12,7 +12,8 @@ my $in    = shift // {};
 my @paths = @{ $in->{'paths'} // [] };
 my $path  = shift @paths // return <[coding.remind.failed]>->($in);
 ## the recorded target ; without one the claude zenka never picks ##
-my $to   = defined $in->{'session'} ? "to=$in->{'session'} " : '';
+my $to = defined $in->{'session'} ? "to=$in->{'session'} " : '';
+$to .= "sid=$in->{'sid'} " if defined $in->{'sid'};
 my %send = (
     'session' => [
         qw| claude.session-post |,
@@ -35,8 +36,8 @@ return TRUE if $sent;
 push @{ $in->{'reasons'} }, "$path : not routable";
 return <[coding.remind.deliver]>->( { %{$in}, 'paths' => \@paths } );
 
-#,,,,,,.,,,.,,..,,,,,,...,,,.,.,,,,.,,,.,,..,,..,,...,..,,...,.,.,,..,,.,,,..,
-#4OALH6KOETVQ25KBGUUXG3VMXU3OCP5ESBYZ3RBO4K3U4CGUXSPWOR3YWNDCM4CAOXV67LU2K6GL4
-#\\\|RDX47ZZCITJYJ4NI5ZEITSBAO2KGQRIVOYKP2THBMFT45BUBGQB \ / AMOS7 \ YOURUM ::
-#\[7]MOL6T2Q374OUV6PMOGBHMLETB4POSETKEPWNKA3CU4SUCBRK24DI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,.,,,,..,,.,,.,,,,,,,.,,,,,,,.,.,..,,...,...,,..,..,,...,,.,,..,,
+#BSE3QX4L3RD7GRGXJ6DYHTZID6BVSWPSQLLHLXNDWXQVAJRHLJ4LVN7HCJMJOQ7ZGQ3RPH7RJFN3O
+#\\\|6F7P4IDYZIIXS34V3NUCU6OOBGAERIECMNRKDBOZZJJ5T5CS5L3 \ / AMOS7 \ YOURUM ::
+#\[7]7NWPXCNXTL3NU4YQV3KWAGYW4EX62HRLERI5X2UU2WSRFXNZIWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

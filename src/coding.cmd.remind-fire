@@ -4,17 +4,23 @@
 # param = <id> <session | panel | notify> <text>
 # descr = a reminder is due : deliver it
 
-my ( $id, $to, $text )
-    = ( $call->{'args'} // '' )
-    =~ m{\A\s*(remind-\d+)\s+(session(?::[\w.\-]{1,64})?|panel|notify)
+my ( $id, $to, $text ) = ( $call->{'args'} // '' ) =~ m{\A\s*(remind-\d+)\s+
+    (session(?::[\w.\-]{1,64}(?:\@[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})?)?|panel|notify)
     \s+(\S.*?)\s*\z}xs;
 return { 'mode' => qw| false |, 'data' => 'remind-fire <id> <to> <text>' }
     if not defined $text;
+my $sid = $to =~ s|\@([0-9a-f\-]{36})\z|| ? $1 : undef;
 ## kept first : it leaves the store only when a path took it ##
 my $r = <[coding.remind.store]>->( qw| get |, $id );
 <[coding.remind.store]>->(
-    qw| set |, $id,
-    { 'text' => $text, 'to' => $to, 'status' => qw| new |, 'tries' => 0 }
+    qw| set |,
+    $id,
+    {   'text'   => $text,
+        'to'     => $to,
+        'status' => qw| new |,
+        'tries'  => 0,
+        defined $sid ? ( 'sid' => $sid ) : ()
+    }
 ) if not defined $r;
 <[coding.remind.arm]>;    ## covers an answer that never comes ##
 my $sent = <[coding.remind.send]>->($id);
@@ -25,8 +31,8 @@ return {
     : "reminder $id kept : not delivered yet"
 };
 
-#,,..,..,,,..,,.,,,,,,..,,.,,,,.,,,.,,...,,,.,..,,...,...,...,.,.,...,...,,,.,
-#OXRNEWQHY524QARVPPYSJ6G25LC4XTZTPAHIWZVO7NLFGLUD73FMP4SSNXYOOO2XYV7TIS4UY7ZD6
-#\\\|NCZXNQDUNNB6APHZP2BOUS3BPSOO562UKTI6WKLDJO3JRRJGRM7 \ / AMOS7 \ YOURUM ::
-#\[7]ACAVKAQNNCOID73P6TJF2555GF4Q75QIOX6FODVHW5OQ6PFNQCCI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,.,...,.,,,,.,,,..,,,.,,.,,,,,,..,,...,...,.,,,,.,,.,.,,,.,..,,
+#D6JUQTUFC3PF7NOJ7KATH7PS66BQGNYOF7TMDGYSKBEW243BPD57XKXAS5BT7EEULYTVSOM4WGTB6
+#\\\|4WAYUEDV7L3ELZIIWVZBD23YAPRPHSSCFCSNHHLJCXRYMNKCP3I \ / AMOS7 \ YOURUM ::
+#\[7]N2O2L46Z6U6BC7K7NTEFJFW34JBVZIKKIC5NERRALGSHEGDL64BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

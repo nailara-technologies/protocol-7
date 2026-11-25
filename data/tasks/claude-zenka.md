@@ -235,6 +235,20 @@ order : 5, then 1 + 3, 2 grows out of them, 4 on the relay.
    zenka can suggest which tasks fit one next session [ shared files, zenki, decisions ] and
    which session to resume for a task.
 
+7. persistence follows reality [ owner direction 2026-11-25 ] : an item persists only as long as
+   what it refers to is real -- a reminder carries the reality it was set in [ `valid-until=`,
+   the window \ task \ run \ session it belongs to ] and its `unless=` conditions are checked
+   against the CURRENT state, missed ones at start too. a bare timer is never carried over
+   unconditionally ; an item tied to something that was waited for anyway [ a signal, a run's
+   end, a sign, a budget window, a task state ] is. then a session can DETACH EARLY : nothing to
+   watch, no handover to write -- the open items wait for their conditions in the backend, the
+   next session [ claude or kimi ] sees only what holds now ; the handover is derived, not written.
+   written handovers go stale and pile up [ 2026-11-25 : one needed a supplement within half an
+   hour ; MEMORY.md carried seven "NEWEST, START HERE" entries ] -- a derived one is the current
+   state, rebuilt each time. what is still WRITTEN is only what cannot be derived : decisions
+   with their reasons, the owner's positions, lessons. handover memory files become a pointer to
+   `coding.handover` plus those, never a snapshot of the state.
+
 signing stays with the owner in every step : the zenka REQUESTS signs [ the same detached
 bin/dev/p7-sign-run start as p7_sign, a job id back ] and commits only what was signed -- it holds
 no key and cannot answer the p7-sign-agent prompt [ y \ n \ d stays with the owner ]. a planned
@@ -310,8 +324,8 @@ per host [ never on the disk ], one host holds a session at a time [ a lease, li
 - inbox socket inbound policy : crossSessionInbound accept | hold | refuse, defaults by
   permission mode -- a bypass session holds messages from a prompting sender
 
-#,,.,,...,,,,,.,.,,,,,.,.,,.,,...,...,..,,,..,..,,...,...,...,,.,,,,.,...,.,,,
-#AVRMVC5APUWGP2M2T754R5CFOSDKYPU3HW5H6SZB2N267P75Y2WUPOXJONDMYTBOOXFSIJXBJO2GI
-#\\\|BOTK3YSHST7PTCPQEG4NKW54NV2CRZOOOUJ2IB3JZT2XIHFO3HM \ / AMOS7 \ YOURUM ::
-#\[7]2DWB3UYMUMVSPDVN7PNZRDMLTPRRNXTGKL53J7ZHOH6HGDVKGUBI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,,,...,.,.,,,,,,,,,,.,,..,,.,.,..,,...,...,..,,.,.,,..,.,.,,,.,
+#PP7WS6S4SDJDSKPJYCW2VVSCO3DMIMKXJ76A6E7REGYNYM2H3MZP2P2GI5PLMFEWFFO3DLHKQ3EGU
+#\\\|DCBZ5BVJ5RBSQIJIAYP3OCBSS7CP4TQVPK6Q4RG3K4O7ECSZIJ2 \ / AMOS7 \ YOURUM ::
+#\[7]6JXEAMFNZWA5RRVKD7LIC5WEQ7WPUTXZZO2GZHJMB4GVEVPVYGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

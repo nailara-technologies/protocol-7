@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = claude.cmd.session-register
-# param = name=<name> socket=<path> [ token : body ]
+# param = name=<n> socket=<path> [ sid= ] [ token:body ]
 # descr = record a live session's inbox socket
 
 ## the token comes in the body of a multi-line call [ token = <value> ], ##
@@ -10,7 +10,7 @@
 
 my %pair;
 foreach my $text ( $call->{'args'} // '', $call->{'data'} // '' ) {
-    while ( $text =~ m{(?:\A|\s)(name|socket)\s*[=:]\s*(\S+)}g ) {
+    while ( $text =~ m{(?:\A|\s)(name|socket|sid)\s*[=:]\s*(\S+)}g ) {
         $pair{$1} = $2;
     }
 }
@@ -20,13 +20,17 @@ foreach my $text ( $call->{'args'} // '', $call->{'data'} // '' ) {
 return { 'mode' => qw| false |, 'data' => 'token in the args refused' }
     if ( $call->{'args'} // '' ) =~ m{(?:\A|\s)token\s*[=:]};
 if ( ref $call->{'param'} eq qw| HASH | ) {
-    $pair{$ARG} //= $call->{'param'}{$ARG} foreach qw| name socket |;
+    $pair{$ARG} //= $call->{'param'}{$ARG} foreach qw| name socket sid |;
 }
 my ( $name, $socket, $token ) = @pair{qw| name socket token |};
 return { 'mode' => qw| false |, 'data' => 'name=<name> expected' }
     if not defined $name or $name !~ m|\A[\w.\-]{1,64}\z|;
 return { 'mode' => qw| false |, 'data' => 'socket=<absolute path> expected' }
     if not defined $socket or $socket !~ m{\A/\S+\z};
+my $sid = defined $pair{'sid'} ? lc $pair{'sid'} : undef;
+return { 'mode' => qw| false |, 'data' => 'sid : a uuid' }
+    if defined $sid
+    and $sid !~ m|\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z|;
 return { 'mode' => qw| false |, 'data' => 'token expected in the body' }
     if not defined $token
     or not CORE::length $token;
@@ -39,7 +43,22 @@ my $is_new = (
     not CORE::exists $sessions->{$name}
         or $sessions->{$name}{'socket'} ne $socket
 );
+my $names = <[claude.live.sessions]>->(qw| names |);
+if ( defined $sid ) {
+    ## the same session under its former name [ crash, resume ] ##
+    foreach my $old ( CORE::keys %{$sessions} ) {
+        next
+            if $old eq $name
+            or ( $sessions->{$old}{'sid'} // '' ) ne $sid;
+        CORE::delete $sessions->{$old};
+        <[base.log]>->( 1, ": live session $old is now $name" );
+    }
+    $names->{$name} = $sid;
+} else {
+    CORE::delete $names->{$name};
+}
 $sessions->{$name} = {
+    defined $sid ? ( 'sid' => $sid ) : (),
     'socket' => $socket,
     'token'  => $token,
     'since'  => CORE::time,
@@ -55,8 +74,8 @@ $sessions->{$name} = {
 ) if $is_new;
 return { 'mode' => qw| true |, 'data' => "live session $name registered" };
 
-#,,,,,,,.,..,,.,,,,..,,,,,,..,,,.,...,,,.,.,,,..,,...,...,...,,,.,,..,..,,..,,
-#GTRX2DIL2RKY3PV6KLOOMD3RGU7RDBTGDWSDIRE2SDX5S2N4FEGNKPUCGFJXXCSC6EWE5C3GBAOXI
-#\\\|4RCKIH6WRYYDD663JEIW6MSCI6AHDDCMLLZQXM34ZWLOYLQSSD5 \ / AMOS7 \ YOURUM ::
-#\[7]5F64ITMQKL6P5MXAO5FA7TZVDRXSOKNEYH27LANZDNI6LFLTRGAY 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,..,.,.,.,.,,,.,,..,.,.,...,...,..,,...,...,.,.,.,.,.,.,,.,,..,,
+#LYQ3TEAM46WOCNQOUHABJEPZ5QZM5RQXGDM76RMAG2HKQWPCXEBCGEAKPBRDAL4MCUSWCEVJKJV26
+#\\\|HYTMP7OL7DRN6PEJBWXDJGNO4RW3CC4Z3W23QDDFRSH754PM6KM \ / AMOS7 \ YOURUM ::
+#\[7]WMMMAMHGHGN5FL5HUH5KUD4O5FKH4SJTLG4ANYTT6P5C4IOYEQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
