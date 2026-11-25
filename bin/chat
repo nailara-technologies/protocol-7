@@ -47,8 +47,9 @@ BEGIN {
 
 ##[ AMOS7 COLORS ]############################################################
 
-use AMOS7       qw| %C |;
-use AMOS7::TERM qw| terminal_size |;
+use AMOS7         qw| %C |;
+use AMOS7::TERM   qw| terminal_size |;
+use AMOS7::Switch ();
 
 ##[ CONSTANTS ]###############################################################
 
@@ -82,6 +83,7 @@ my $option_list = <<'EOL';
     -f  .......  read message from file        [ -file <path> ]
     -c  .......  specify channel               [ -channel <name> ]
     -m  .......  specify model                 [ -model <id> ]
+    -to-session  the live claude session by name [ needed when several ]
     -q  .......  quiet — no decorative output
 
     -clear       archive current channel and start fresh
@@ -130,6 +132,7 @@ GetOptions(
     'summarize',             'summary',
     'relay:s',               'for=s',
     'drop',                  'help|h',
+    'to-session=s',
 ) or do { list_options(); exit(2) };
 
 if ( $option{'help'} ) {
@@ -594,14 +597,8 @@ sub trim_history {
 
 sub load_relay_state {
     my $r = { 'sequence' => 0, 'targets' => {}, 'pending' => {} };
-    return $r if not -f $RELAY_FILE;
-    open my $fh, '<:encoding(UTF-8)', $RELAY_FILE or return $r;
-    while ( my $line = <$fh> ) {
-        chomp $line;
-        next if $line =~ m{^\s*(?:#|$)} or $line !~ m{=};
-        my ( $key, $value ) = split m{=}, $line, 2;
-        $key   =~ s{^\s+|\s+$}{}g;
-        $value =~ s{^\s+|\s+$}{}g;
+    for my $pair ( AMOS7::Switch::read_file($RELAY_FILE) ) {
+        my ( $key, $value ) = @{$pair};
         if ( $key eq 'relay.sequence' ) {
             $r->{'sequence'} = $value =~ m{^\d+$} ? $value : 0;
         } elsif ( $key =~ m{^relay\.(all|kimi|claude)\.(\w+)$} ) {
@@ -613,9 +610,7 @@ sub load_relay_state {
             my ( $target, $id ) = ( $1, $2 );
             my ( $channel, $since, $text ) = split m{ \| }, $value, 3;
             next if not defined $text;
-            $text =~ s{\\(.)}{
-                $1 eq 'n' ? "\n" : $1 eq 'r' ? "\r" : $1 eq 't' ? "\t" : $1
-            }ge;
+            $text = AMOS7::Switch::unescape_value($text);
             push @{ $r->{'pending'}{$target} },
                 {
                 'id'      => $id,
@@ -625,7 +620,6 @@ sub load_relay_state {
                 };
         }
     }
-    close $fh;
     for my $target (@KNOWN_MODELS) {
         next if not $r->{'pending'}{$target};
         @{ $r->{'pending'}{$target} }
@@ -638,32 +632,29 @@ sub load_relay_state {
 sub save_relay_state {
     my $r = shift;
     make_path($CHAT_DIR) unless -d $CHAT_DIR;
-    open my $fh, '>:encoding(UTF-8)', $RELAY_FILE
-        or die colored(": cannot write relay state : $!");
-    print {$fh} "# protocol-7 chat relay state\n";
-    print {$fh} "relay.sequence = $r->{'sequence'}\n";
+    my @pairs = ( [ 'relay.sequence', $r->{'sequence'} ] );
     for my $target ( 'all', @KNOWN_MODELS ) {
         my $t = $r->{'targets'}{$target} // next;
-        print {$fh} "relay.$target.enabled = "
-            . ( $t->{'enabled'} ? 'yes' : 'no' ) . "\n";
-        print {$fh} "relay.$target.since = $t->{'since'}\n";
-        print {$fh} "relay.$target.until = " . ( $t->{'until'} // 0 ) . "\n";
-        print {$fh} "relay.$target.reason = $t->{'reason'}\n";
-        print {$fh} "relay.$target.drop = "
-            . ( $t->{'drop'} ? 'yes' : 'no' ) . "\n";
+        push @pairs,
+            [ "relay.$target.enabled", $t->{'enabled'} ? 'yes' : 'no' ],
+            [ "relay.$target.since",   $t->{'since'} ],
+            [ "relay.$target.until",   $t->{'until'} // 0 ],
+            [ "relay.$target.reason",  $t->{'reason'} ],
+            [ "relay.$target.drop",    $t->{'drop'} ? 'yes' : 'no' ];
     }
     for my $target (@KNOWN_MODELS) {
         for my $p ( @{ $r->{'pending'}{$target} // [] } ) {
-            my $text = $p->{'text'};
-            $text =~ s{\\}{\\\\}g;
-            $text =~ s{\n}{\\n}g;
-            $text =~ s{\r}{\\r}g;
-            $text =~ s{\t}{\\t}g;
-            print {$fh} "pending.$target.$p->{'id'} = "
-                . "$p->{'channel'} | $p->{'since'} | $text\n";
+            my $text = AMOS7::Switch::escape_value( $p->{'text'} );
+            push @pairs,
+                [
+                "pending.$target.$p->{'id'}",
+                "$p->{'channel'} | $p->{'since'} | $text"
+                ];
         }
     }
-    close $fh;
+    AMOS7::Switch::write_file( $RELAY_FILE, 'protocol-7 chat relay state',
+        @pairs )
+        or die colored(": cannot write relay state : $!");
 }
 
 sub relay_enabled {
@@ -671,25 +662,6 @@ sub relay_enabled {
     my $t = $r->{'targets'}{$target} // $r->{'targets'}{'all'};
     return TRUE if not defined $t;
     return $t->{'enabled'} ? TRUE : FALSE;
-}
-
-sub parse_span {
-    my $span    = shift // '';
-    my $seconds = 0;
-    my $pos     = 0;
-    my %unit    = (
-        's' => 1,
-        'm' => 60,
-        'h' => 3600,
-        'd' => 86400,
-        'w' => 604800
-    );
-    while ( $span =~ m{\G(\d+)([smhdw])?}gc ) {
-        $seconds += $1 * $unit{ $2 // 's' };
-        $pos = pos $span;
-    }
-    return undef if $pos != length $span or $seconds < 1;
-    return $seconds;
 }
 
 sub handle_relay_option {
@@ -728,7 +700,7 @@ sub handle_relay_option {
     $t->{'drop'}    = 0;
     if ( $action eq 'off' ) {
         if ( defined $option{'for'} ) {
-            my $span = parse_span( $option{'for'} );
+            my $span = AMOS7::Switch::parse_span( $option{'for'} );
             if ( not defined $span ) {
                 warn "chat: -for expects a span like 90s, 13m or 1h30m\n";
                 exit(2);
@@ -799,7 +771,9 @@ sub expire_relay {
     my $changed = 0;
     for my $target ( 'all', @KNOWN_MODELS ) {
         my $t = $r->{'targets'}{$target} // next;
-        next if $t->{'enabled'} or not $t->{'until'} or $t->{'until'} > $now;
+        next
+            if $t->{'enabled'}
+            or not AMOS7::Switch::expired( $t->{'until'}, $now );
         $t->{'enabled'} = 1;
         $t->{'until'}   = 0;
         $changed        = 1;
@@ -927,21 +901,30 @@ sub claude_reply {
     return ( $reply, 'zenka' );
 }
 
-## a registered live session : claude.sessions lists it, ##
-## claude.session-post writes into its inbox socket      ##
-## [ the zenka holds the token ]                         ##
+## a registered live session : claude.sessions lists it,                ##
+## claude.session-post writes into its inbox socket                     ##
+## [ the zenka holds the token ]. several registered : only -to-session ##
+## names one. answers ( posted, why the zenka path was taken )          ##
 sub claude_live_post {
     my $text = shift;
     my ( $list, $list_ok ) = run_p7c('claude.sessions');
-    return FALSE
-        if not $list_ok
-        or not defined $list
-        or $list !~ m{^[\w.\-]+ : since }m;
+    my @names
+        = $list_ok && defined $list
+        ? $list =~ m{^([\w.\-]+) : since }mg
+        : ();
+    return ( FALSE, undef ) if not @names;
+    my $target = $option{'to-session'};
+    return ( FALSE,
+              'several live sessions [ '
+            . join( ', ', @names )
+            . ' ] : none named with -to-session <name>' )
+        if not defined $target and @names > 1;
+    my $to = defined $target ? "to=$target " : '';
     my ( $posted, $post_ok )
-        = run_p7c( 'claude.session-post', "$text from=chat" );
-    return FALSE
+        = run_p7c( 'claude.session-post', "$to$text from=chat" );
+    return ( FALSE, defined $target ? "not posted to $target" : undef )
         if not $post_ok or $posted !~ m{\bposted into live session\b};
-    return TRUE;
+    return ( TRUE, undef );
 }
 
 sub dispatch_model {
@@ -971,15 +954,19 @@ sub dispatch_model {
     } elsif ( $model eq 'claude' ) {
         ## the live session first [ registered by its mcp server ] : no ##
         ## reply awaited, it answers in its own channel                 ##
-        if ( claude_live_post($text) ) {
+        my ( $live, $why ) = claude_live_post($text);
+        if ($live) {
             write_history( $channel, $model,
                       '[live] posted into the live session -- no '
                     . 'reply awaited, it answers in its own channel' );
             return;
         }
         my ( $reply, $path ) = claude_reply($text);
-        write_history( $channel, $model, "[$path] $reply" )
-            if defined $reply and length $reply;
+        $path .= " : $why" if defined $why;
+        write_history( $channel, $model,
+            "[$path] " . ( $reply // 'no reply' ) )
+            if defined $why
+            or defined $reply and length $reply;
     } else {
         warn "chat: unknown model '$model' — no dispatch configured\n";
     }
@@ -1652,8 +1639,8 @@ sub colored {
     return "$C{0}:\n::$C{b} $C{T}$text$C{0} $C{R}\n$C{0}:$C{R}";
 }
 
-#,,..,,,.,.,,,,.,,..,,.,.,,,.,,,,,,.,,.,.,.,,,..,,...,...,,.,,.,.,,,,,.,.,.,,,
-#7ZPGTKXO76DF2PUR6CQDGRARL4H27X7AKE7AU5RXGMZTUXVSRQMDJEUEGZC7NIUL5NM2PAKURYEV4
-#\\\|VG5LER3Z7RMJCKTXU64ID5E4VZXJL7UETBUBAHWA4VIAOVDLGJT \ / AMOS7 \ YOURUM ::
-#\[7]EF643LQHZRSFUJYVA3YIS74RPTZELVX5K2CMBGDGY46P47TADKCA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,..,,.,.,,..,,,.,,,.,.,.,..,,,..,..,,...,.,,,..,,...,,,.,...,...,
+#4INOT77RK6E77EBS2U62FEZTDHQRTCPATWU4A3KKBBKRFPTY6WONUHGJQNK64USKR3WZOXEYHWA3O
+#\\\|GOI2RNN6QI6O32BHQF3XO47A6Y6LNKSIDUAGYVKBT4BESTTKTPC \ / AMOS7 \ YOURUM ::
+#\[7]OJ3WC5QVI3RFUJUG3EWFVMD7BVL6BCJ5YICUYBCG77UCQ2AS3WDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

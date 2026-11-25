@@ -1,17 +1,18 @@
 ## [:< ##
 
 # name  = kimi.handler.acp_signal_reply
-# descr = the events zenka answered kimi.run.done
+# descr = the events zenka answered a kimi.run signal
 
 my $reply = shift;
 return TRUE if ( $reply->{'cmd'} // '' ) !~ m{\AFALSE\z}i;
-my $why = $reply->{'call_args'}{'args'} // 'refused';
-<[base.logs]>->( 0, '<< signal kimi.run.done refused : %s >>', $why );
-<[kimi.acp.event]>->( qw| error |, "signal kimi.run.done refused : $why" );
+my $why    = $reply->{'call_args'}{'args'} // 'refused';
+my $signal = $reply->{'params'}{'signal'}  // qw| kimi.run.done |;
+<[base.logs]>->( 0, '<< signal %s refused : %s >>', $signal, $why );
+<[kimi.acp.event]>->( qw| error |, "signal $signal refused : $why" );
 return TRUE;
 
-#,,..,..,,,.,,,.,,...,,..,.,,,.,,,.,.,,,,,,..,..,,...,...,..,,.,,,,.,,...,..,,
-#CS2Q3FDCU4DSICNR7NCXSRWYKT3BSLDC73QOJGGAJOP47OE7NZIZIK4DZGFFH6FR7TJK7ZVHQHDLE
-#\\\|IJ7MME4BWHI4TCNP66G6VKASQI3SKGBGG4DWDHBIYGCD6MAUDZF \ / AMOS7 \ YOURUM ::
-#\[7]OFPSSBQGEN7URVWFEO2TCRQ3Z2UQMY4W6NORV6D54FKT67JPMQDI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,,,,.,,,,..,..,,.,.,,,.,.,,,..,,...,..,,.,,,,.,,.,.,,,,,,.,,
+#OEH7T5VGFZT3JRTSTPLQMA5BRHIDCFO7AQAANBGGKQEPUFWNTRB4BNSA4YOO4WMO6JLVOPLZ3XL4K
+#\\\|B5O2VEM67TTKELJOY7Z5E54SCZ2WDK23LND6GVUBKHCOGJYZHMI \ / AMOS7 \ YOURUM ::
+#\[7]5GE3KLUITCAT6DELOGS7RCNNU54RKYS3OWVH55CDSA7Q3RMLTCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

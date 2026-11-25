@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = coding.handler.remind_target
+# descr = claude.sessions answered : name the target
+
+## one registered : recorded as to=session:<name>. several : refused with  ##
+## the names, never picked. none \ no answer : kept unnamed, the post then ##
+## takes a single one only, else the notify path                           ##
+
+my $reply = shift              // {};
+my $in    = $reply->{'params'} // {};
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my @names = $mode eq qw| size | ? $text =~ m{^([\w.\-]+) : since }mg : ();
+
+my $answer;
+if ( @names > 1 ) {
+    my $list = join ', ', @names;
+    $answer = {
+        'mode' => qw| false |,
+        'data' => "several live sessions [ $list ] : to=session:<name>"
+    };
+    <[base.logs]>->( 1, ':. reminder not set : %s', $answer->{'data'} );
+} else {
+    $in->{'to'} = "session:$names[0]" if @names;
+    $answer = <[coding.remind.add]>->($in);
+    ## deferred : the events answer reaches the caller ##
+    return $answer if $answer->{'mode'} eq qw| deferred |;
+}
+<[base.callback.cmd_reply]>->( $in->{'reply_id'}, $answer )
+    if ( $in->{'reply_id'} // '' ) =~ m{\A\d+\z};
+return $answer;
+
+#,,..,...,...,,..,.,.,,,.,..,,.,,,.,.,,,,,.,.,..,,...,...,.,.,..,,.,.,,,.,,..,
+#MDJJNGZKM7SWGTYH5BRVEHFCYH57QXOEIW4VNA36A2BZIXNDDHDAVR3DQZVICPJYJBV4Q36XUOXMW
+#\\\|QQUGKOVZJZ45U4AWYQ5MHGI4DMVF6CNLOW5UFI3CDFLKP4UMVXI \ / AMOS7 \ YOURUM ::
+#\[7]OAIMUH3KTUFM4ZGEJGXUXU32HQRA3EKES22EWVOYJI4NP45WSYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

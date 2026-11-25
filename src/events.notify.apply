@@ -3,7 +3,8 @@
 # name   = events.notify.apply
 # descr  = notify for a raised signal as the map says
 # args   = source zenka, signal name, values [ hash ref ], time [ optional ]
-# return = hash ref of what was done { level, sound, text, ticker, key }
+# return = hash ref of what was done { level, sound, text, ticker, key,
+#          repeat [ cue held back by the rate limit ] }
 #          or undef when the map names nothing for the signal
 #
 # called from events.signal.raise [ the one place ] ; the entry is the most
@@ -45,21 +46,55 @@ if ( $ticker eq qw| set | ) {
     <[events.notify.ticker]>->( qw| status-clear |, $tkey );
 }
 
-$sound
-    = <[events.notify.send]>->(
-    { 'level' => $level, 'sound' => $sound, 'text' => $text, 'time' => $now }
-    ) if $level ne qw| none |;
+## rate limit of the cue only [ the ticker above always goes through ] :    ##
+## signal + identity values once per window, repeats counted. a time before ##
+## the last cue [ clock set back ] opens a new window                       ##
+my $repeat = FALSE;
+if ( $level ne qw| none | ) {
+    my $id = join "\0", $name,
+        map { "$ARG=" . ( $values->{$ARG} // '' ) }
+        @{ $map->{'same'}{$name} // $map->{'by'}{$name} // [] };
+    my $seen = <events.notify.repeat> //= {};
+    my $r    = $seen->{$id}           //= { 'interval' => {}, 'count' => 0 };
+    if (    defined $r->{'until'}
+        and $now >= $r->{'sent'}
+        and $now < $r->{'until'} ) {
+        $r->{'count'}++;
+        $repeat = TRUE;
+        $sound  = qw| none |;
+    } else {
+        ## quiet for a whole window after the last one : start short ##
+        my $calm = !defined $r->{'until'}
+            || $now - $r->{'until'} > $r->{'until'} - $r->{'sent'};
+        my $window = <[base.interval.next]>->(
+            {   'type'  => qw| notify-repeat |,
+                'state' => $r->{'interval'},
+                'reset' => $calm ? TRUE : FALSE
+            }
+        );
+        $text .= " [ +$r->{'count'} repeats ]" if $r->{'count'};
+        @{$r}{qw| sent until count |} = ( $now, $now + ( $window // 0 ), 0 );
+        $sound = <[events.notify.send]>->(
+            {   'level' => $level,
+                'sound' => $sound,
+                'text'  => $text,
+                'time'  => $now
+            }
+        );
+    }
+}
 
 return {
     'level'  => $level,
     'sound'  => $sound,
     'text'   => $text,
     'ticker' => $ticker,
-    'key'    => $tkey
+    'key'    => $tkey,
+    'repeat' => $repeat
 };
 
-#,,,.,...,,.,,,,,,,,,,,.,,,..,,..,...,,,,,,,.,..,,...,...,...,,..,..,,.,.,.,.,
-#ZIPPCCPEB6QTDFFEA27U4KPZ33J56EW7G4QXLX5FGA6DU5HKHCQMVMZG7T2H7WNK4OPSWLAVLW4OU
-#\\\|675C72XXBMNFLW7TVAFUUL66DRC7MFMSGOLB55JAMHWXKIJ2XMF \ / AMOS7 \ YOURUM ::
-#\[7]MMGYBJPNDHRAFGEZW5S4VPDZTUKLVRR7DV5AWDOK5UAOTWNSOKCY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,...,,,,,.,.,,.,,,,,,.,.,,..,..,,...,...,.,.,..,,.,.,.,,,.,,,
+#UUS2AZHVGKBLS4NDZNAZZVSRRBL5X3VKRMG47BK2S64WDM7HXQRD4PZDAEIMG57JNW7IMXSTKMCTI
+#\\\|QC3UUUQ53ZWPNP57YAQNHLEJKUNYTTTKGGKO4UUH26IOF7TI7I3 \ / AMOS7 \ YOURUM ::
+#\[7]SOTBP3HNGBUEUOTYORQTU6LBPH4YH57O2NDXOHDSQLSMHEXHUEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

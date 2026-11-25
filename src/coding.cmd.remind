@@ -5,7 +5,8 @@
 # descr = a reminder : a bucket entry, a message
 #
 # to=session [ default ] : claude.session-post into the registered live
-# session, notify when none takes it ; to=panel \ notify : notify.message,
+# session, its name recorded now ; several registered : to=session:<name>.
+# notify when none takes it ; to=panel \ notify : notify.message,
 # the session when the notify zenka is not there. the entry is the
 # reminder [ events bucket, kept over restarts ] : coding.reminders lists,
 # coding.remind-drop <id> removes
@@ -19,36 +20,39 @@ return $fail->("unknown key : @bad [ at after to ]") if @bad;
 my @when = grep { defined $pairs->{$ARG} } qw| at after |;
 return $fail->('one of at= or after=') if @when != 1;
 my $to = $pairs->{'to'} // qw| session |;
-return $fail->('to : session \ panel \ notify')
-    if $to !~ m{\A(?:session|panel|notify)\z};
+return $fail->('to : session[:<name>] \ panel \ notify')
+    if $to !~ m{\A(?:session(?::[\w.\-]{1,64})?|panel|notify)\z};
 my $text = join ' ', @{ $parsed->{'words'} };
 $text =~ s{\s+}{ }g;
 return $fail->('reminder text required') if $text !~ m{\S};
 
-## the id : milliseconds and a counter -- a fired entry is final under its ##
-## id, so a new reminder after a restart must not meet an old one          ##
-my $seq = ++<coding.remind.seq>;
-my $id  = sprintf 'remind-%d%02d', int( Time::HiRes::time() * 1000 ),
-    $seq % 100;
-my $quote = sub { "\x22" . ( shift =~ s{([\\\x22])}{\\$1}gr ) . "\x22" };
-my $args  = join ' ',
-    $id,
-    "$when[0]=" . $quote->( $pairs->{ $when[0] } ),
-    'action=send-command',
-    'command=' . $quote->("coding.remind-fire $id $to $text"),
-    'reason=' . $quote->("$text [ to=$to ]");
-my $reply_id = $call->{'reply_id'} // '';
-<[park.send]>->(
-    qw| bucket-add |,
-    $args,
-    qw| coding.handler.remind_reply |,
-    { 'reply_id' => $reply_id, 'label' => "reminder $id" }
-) or return $fail->('events zenka not reachable : no reminder');
-return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
-return { 'mode' => qw| true |, 'data' => "reminder $id requested" };
+my $in = {
+    'when'     => "$when[0]",
+    'time'     => $pairs->{ $when[0] },
+    'to'       => $to,
+    'text'     => $text,
+    'reply_id' => $call->{'reply_id'} // ''
+};
+## to=session without a name : the claude zenka names the registered one. ##
+## not routable : kept unnamed, the post then takes a single one only     ##
+if ( $to eq qw| session | ) {
+    my $asked = <[protocol-7.route-send]>->(
+        {   'command' => qw| claude.sessions |,
+            'reply'   => {
+                'handler' => qw| coding.handler.remind_target |,
+                'params'  => $in
+            }
+        }
+    );
+    return $in->{'reply_id'} =~ m{\A\d+\z}
+        ? { 'mode' => qw| deferred | }
+        : { 'mode' => qw| true |, 'data' => 'reminder requested' }
+        if $asked;
+}
+return <[coding.remind.add]>->($in);
 
-#,,,.,,..,.,.,,..,.,.,,,,,,..,,.,,...,.,,,.,,,..,,...,...,..,,,.,,.,.,.,.,,.,,
-#H5GWNTKKL2O4K53SOBUAJRWJLVVYT5SVXYYJ6J3NFECYOQYL3UDR7ICKSREI4EPJVP2ADUYRUF4XM
-#\\\|XL5TBQB6GHICUVLSDLQZJYCDMYNWROCSQARK3O55K7EAFAOX6DI \ / AMOS7 \ YOURUM ::
-#\[7]45UOVH2PVXF3MAE4IVSGUXBR4NM5NYY6T33UGRPS2WKOD5Q65AAI 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,.,.,.,...,.,,,...,..,,,.,,...,..,,...,...,...,...,.,,,.,,,,..,
+#6MMTX2FKGQIHXC7UYRBCCYQOK23ZWM5XCPQQW4ZDYUMVCFU5CHKRASVG7ZGSWUMQWBJM5JPZINTEC
+#\\\|BDSIGTCDQP2FEOAAL33PW5CXYQXEZUSQV2Y434RJ7GUMCNGXJB4 \ / AMOS7 \ YOURUM ::
+#\[7]KWHSU5VVBXUEVUKD3EHFTXJKXJ376G4G3PEQXTR7VTF24CQBAABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

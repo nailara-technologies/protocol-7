@@ -104,7 +104,14 @@ make_path($var_dir);
 my @log;
 $code{'base.log'}                 = sub { shift; push @log, join ' ', @ARG };
 $code{'file.zenka_dir.data_path'} = sub {$var_dir};
+my @raised;    ## what goes to the cube : the registration signal ##
+$code{'protocol-7.command.send.local'} = sub {
+    push @raised, "$_[0]{'command'} $_[0]{'call_args'}{'args'}";
+    return TRUE;
+};
+$code{'claude.event.add'} = sub {TRUE};
 load_module($ARG) foreach qw|
+    claude.signal.raise
     claude.wire.encode claude.live.sessions claude.live.wire claude.live.post
     claude.cmd.session-register claude.cmd.session-unregister
     claude.cmd.session-post claude.cmd.sessions
@@ -168,12 +175,17 @@ $r = $cmd->(
 );
 ok( $r->{'mode'} eq 'false' && $r->{'data'} =~ m{no socket},
     'register needs an existing socket' );
+ok( !@raised, 'refused registrations raise no signal' );
 $r = $cmd->(
     'session-register', '',
     { 'name' => 'main', 'socket' => $sock_a },
     "token = $token"
 );
 ok( $r->{'mode'} eq 'true', 'register with headers + token body' );
+ok( "@raised" eq 'cube.events.signal claude.session.registered name=main'
+        && !grep( { index( $ARG, $token ) >= 0 } @raised ),
+    'register raises claude.session.registered : the name, no token'
+);
 {
     require Data::Dumper;
     no warnings qw| once |;
@@ -313,6 +325,48 @@ ok( $r->{'mode'} eq 'false'
 );
 unlink $sock_b;
 
+##[ several sessions : never picked by age ; the signal on news only ]##
+my ( $sock_1, $sock_2 ) = ( "$tmp/inbox-1.sock", "$tmp/inbox-2.sock" );
+my ( $in_1, $in_2 ) = ( fake_inbox($sock_1), fake_inbox($sock_2) );
+my $register = sub {
+    my ( $name, $socket ) = @ARG;
+    return $cmd->(
+        'session-register', '',
+        { 'name' => $name, 'socket' => $socket },
+        "token = $token"
+    );
+};
+@raised = ();
+$register->( 'owner', $sock_1 );
+$register->( 'owner', $sock_1 );
+ok( @raised == 1, 're-register of the same socket raises no signal' );
+$register->( 'owner', $sock_2 );
+$register->( 'owner', $sock_1 );
+ok( @raised == 3, 'a changed socket raises it again' );
+$register->( 'run', $sock_2 );
+$code{'claude.live.sessions'}->()->{'run'}{'since'} = time + 13;
+$r = $cmd->( 'session-post', 'which one' );
+ok( $r->{'mode'} eq 'false'
+        && $r->{'data'} =~ m{several live sessions \[ owner, run \]}
+        && !IO::Select->new( $in_1, $in_2 )->can_read(0),
+    'several sessions without to= : refused with the names, nothing sent'
+);
+$r = $cmd->( 'session-post', 'to=owner for the owner' );
+ok( $r->{'mode'} eq 'true' && ( inbox_read($in_1) // '' ) =~ m{for the owner},
+    'to= selects among several'
+);
+close $in_2;
+unlink $sock_2;
+$r = $cmd->( 'session-post', 'only one left' );
+ok( $r->{'mode'} eq 'true'
+        && ( inbox_read($in_1) // '' ) =~ m{only one left}
+        && !exists $code{'claude.live.sessions'}->()->{'run'},
+    'a session with a gone socket does not count : the one left is used'
+);
+close $in_1;
+unlink $sock_1;
+%{ $code{'claude.live.sessions'}->() } = ();
+
 ##[ mcp server : registers with a fake cube, unregisters on exit ]##
 
 sub fake_cube_run {
@@ -344,7 +398,21 @@ sub fake_cube_run {
                     }
                     print {$c} "TRUE registered\n";
                     ## a cube restart : the link drops once ##
-                    last if $env{'FAKE_CUBE_DROP'} and not $dropped++;
+                    if ( $env{'FAKE_CUBE_DROP'} and not $dropped++ ) {
+                        select( undef, undef, undef, 0.3 );
+                        last if not $env{'FAKE_CUBE_DOWN'};
+                        ## gone for a while : connects fail ##
+                        close $c;
+                        close $cube;
+                        unlink $cube_path;
+                        sleep $env{'FAKE_CUBE_DOWN'};
+                        $cube = IO::Socket::UNIX->new(
+                            'Type'   => SOCK_STREAM,
+                            'Local'  => $cube_path,
+                            'Listen' => 5
+                        ) // die "fake cube : $OS_ERROR";
+                        last;
+                    }
                 } else {
                     print {$c} "TRUE done\n";
                 }
@@ -364,7 +432,7 @@ sub fake_cube_run {
     my $err = gensym;
     my $mcp = IPC::Open3::open3( my $in, my $out, $err, $EXECUTABLE_NAME,
         qw| -C31 |, "$root/bin/mcp-server-p7" );
-    sleep 2;
+    sleep 2 + ( $env{'FAKE_RUN_EXTRA'} // 0 );
     if ( $env{'FAKE_STDIN'} ) {
         syswrite( $in, "$env{'FAKE_STDIN'}\n" );
         sleep 2;
@@ -420,6 +488,70 @@ ok( $registers == 2 && slurp($record_r) =~ m{^list users$}m,
 close $inbox_c;
 unlink $sock_c;
 
+## no tool call : the dropped link is seen at once, no 13 min wait ##
+sub idle_drop_run {
+    my ( $label, %env ) = @ARG;
+    my $rec    = "$tmp/cube-record-$label";
+    my $server = fake_inbox($sock_c);
+    my $log    = fake_cube_run(
+        "$tmp/cube-$label.sock", $rec,
+        'CLAUDE_CODE_MESSAGING_SOCKET' => $sock_c,
+        'CLAUDE_CODE_MESSAGING_TOKEN'  => $token,
+        'P7_SESSION_NAME'              => 'test-session',
+        'FAKE_CUBE_DROP'               => 1,
+        %env
+    );
+    close $server;
+    unlink $sock_c;
+    my $count = () = slurp($rec) =~ m{^claude\.session-register\+$}mg;
+    return ( $count, $log );
+}
+my ( $idle_count, $idle_log ) = idle_drop_run('idle');
+ok( $idle_count == 2 && $idle_log =~ m{cube link broken},
+    'mcp server registers again at once when the cube link breaks [ idle ]' );
+( $idle_count, $idle_log )
+    = idle_drop_run( 'down', 'FAKE_CUBE_DOWN' => 4, 'FAKE_RUN_EXTRA' => 13 );
+ok( $idle_count == 2 && $idle_log =~ m{register : not connected},
+    'cube still down at the first try : short retries until it is back'
+);
+
+## coding.remind through p7_command : this server's session is named ##
+sub remind_run {
+    my ( $label, $command, %env ) = @ARG;
+    my $rec    = "$tmp/cube-record-$label";
+    my $server = fake_inbox($sock_c);
+    fake_cube_run( "$tmp/cube-$label.sock", $rec, %env,
+              'FAKE_STDIN' => '{"jsonrpc":"2.0","id":1,"method":"tools/call",'
+            . '"params":{"name":"p7_command",'
+            . '"arguments":{"command":"'
+            . $command
+            . '"}}}' );
+    close $server;
+    unlink $sock_c;
+    return slurp($rec);
+}
+my %live_env = (
+    'CLAUDE_CODE_MESSAGING_SOCKET' => $sock_c,
+    'CLAUDE_CODE_MESSAGING_TOKEN'  => $token,
+    'P7_SESSION_NAME'              => 'test-session',
+);
+ok( remind_run( 'rm1', 'coding.remind after=x look', %live_env )
+        =~ m{^coding\.remind to=session:test-session after=x look$}m,
+    'mcp server : coding.remind without to= names its own session'
+);
+ok( remind_run( 'rm2', 'coding.remind after=x to=session look', %live_env )
+        =~ m{^coding\.remind after=x to=session:test-session look$}m,
+    'mcp server : to=session becomes its own session'
+);
+ok( remind_run( 'rm3', 'coding.remind after=x to=panel look', %live_env )
+        =~ m{^coding\.remind after=x to=panel look$}m,
+    'mcp server : another target stays'
+);
+ok( remind_run( 'rm4', 'coding.remind after=x look' )
+        =~ m{^coding\.remind after=x look$}m,
+    'mcp server unregistered : the reminder goes as it is'
+);
+
 my $record_k = "$tmp/cube-record-kimi";
 fake_cube_run( "$tmp/cube-k.sock", $record_k );
 ok( slurp($record_k) !~ m{claude\.session-},
@@ -446,6 +578,7 @@ close $log;
 if ( $command eq 'claude.sessions' ) {
     print -f "$dir/live" ? "main : since Tue Nov 24 12:00:00 2026\n"
         : "no live session registered\n";
+    print "run : since Tue Nov 24 12:13:00 2026\n" if -f "$dir/live2";
 } elsif ( $command eq 'claude.session-post' ) {
     print "posted into live session main [ no reply awaited ]\n";
 } elsif ( $command eq 'claude.send' ) {
@@ -502,6 +635,25 @@ ok( slurp($history) =~ m{<claude>\s+\[zenka\] zenka reply},
 
 open $live, '>', "$tmp/live" or die $OS_ERROR;
 close $live;
+open my $live2, '>', "$tmp/live2" or die $OS_ERROR;
+close $live2;
+unlink "$tmp/calls", "$tmp/sent";
+run_chat( '-q', '-m', 'claude', 'which of the two' );
+$calls = slurp("$tmp/calls");
+ok( $calls =~ m{^claude\.send\twhich of the two}m
+        && $calls !~ m{^claude\.session-post\t}m,
+    'chat -m claude, several sessions : the zenka path, no post'
+);
+ok( slurp($history)
+        =~ m{<claude>\s+\[zenka : several live sessions \[ main, run \]},
+    'the history line says why'
+);
+run_chat( '-q', '-to-session', 'main', '-m', 'claude', 'for main' );
+ok( slurp("$tmp/calls")
+        =~ m{^claude\.session-post\tto=main for main from=chat$}m,
+    'chat -to-session names the live session'
+);
+unlink "$tmp/live2";
 run_chat( '-q', '-relay', 'off', 'claude' );
 my $posts = () = slurp("$tmp/calls") =~ m{^claude\.session-post\t}mg;
 run_chat( '-q', '-m', 'claude', 'held while off' );
@@ -513,8 +665,8 @@ ok( $after == $posts && slurp($history) =~ m{held while off},
 say "\n$pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,..,,.,,.,.,.,,,..,,,,,,,.,,,,.,.,.,.,,,..,,..,,...,...,,..,,,,,.,.,...,.,,,
-#BSRKRNY2JZ4BJPSHETXKFM2Q5VTOGWQAQ7ZHAJHKVM3ZDJR5OBSPWRUUSSAJ72KVW2A2UFCI6H2RQ
-#\\\|2ML7G2D4JARKDBOOIZ2QS5GP7C2OZ3QFNPLQUIFO6EQ6AYDN7QV \ / AMOS7 \ YOURUM ::
-#\[7]4LX3ZY37MZ7LLLBF3FWOQMNFB3AOIXCYDXZGI74PVQIEXJAGXEBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,,..,.,.,,.,,,..,,.,,,,,,.,,,..,,...,...,,.,,,.,,,..,,.,,.,,,
+#YWGIREACDBISATJSLA44AD3S6NCUHSRVLM5BJYWNM5XV32AIMB4N7I5KHYZZ7FUCHFUV7MABGTOIO
+#\\\|YC5IQI5VCNASX45FBZEFOCY5THSIHCFPBKGICHZ72UPZTQDBRDJ \ / AMOS7 \ YOURUM ::
+#\[7]5ER6YYSWS7A7YWHUY6SDN5RZBLAIXVBKIP4BSYEZYYRA6E2RLWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

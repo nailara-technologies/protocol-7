@@ -20,6 +20,13 @@ access.cmd.usr.cube  = verify-instance commands heart reload \
 ## entries per bucket, and the rhythms of `after=<type>` -- fresh state per ##
 ## add, so each type gives its start value ; minutes 13 \ 15 preferred      ##
 events.bucket_limit                          = 377
+## the same notification cue at most once per window ##
+## [ events.notify.apply ]                           ##
+base.interval.cfg.type.notify-repeat.start      = 55
+base.interval.cfg.type.notify-repeat.factor     = 1.2
+base.interval.cfg.type.notify-repeat.cap        = 233
+base.interval.cfg.type.notify-repeat.cap_jitter = 21
+
 base.interval.cfg.type.bucket-wait-short.start   = 34
 base.interval.cfg.type.bucket-wait-short.factor  = 1.2
 base.interval.cfg.type.bucket-wait-short.cap     = 89
@@ -59,8 +66,8 @@ plugins.load      = plugin.events
 
 [zenka.loop]
 
-#,,,,,..,,,,,,..,,...,.,.,...,,..,,.,,...,,.,,..,,...,...,..,,.,.,,,.,...,.,,,
-#ABYYH7QCXG3QEYYTQ3ZQFYCZ2KVUF5DVMB5S6X4XOJQ47OO3IPI73DC4N2J3IYVURU7SEOLQ3M7J4
-#\\\|6WJ2FTYADE4ZS6CNRHP3LP6XVSKAXHGQMJZSRAGAGSD5FHO6L57 \ / AMOS7 \ YOURUM ::
-#\[7]ATLBNM75DSTMEWMYK7F5QAFOIIX5TKGXE5XC3MGBQ7CYN7VHQGBI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,.,.,,,,,...,,.,,.,,,,..,,,,,..,,..,,...,...,.,.,,,.,,.,,...,...,
+#ZHZ74N5T2SQP2ASRJWCOI3675SNWTKMHUSJPOIODWEPFUZE44FSEIXPBLGBE3SEJYDC3NKIEI2W76
+#\\\|DTG2PCHRCYJVZH5MBCUISEGVQIYI2CHRVD5D2BWKYYSD7COKTGY \ / AMOS7 \ YOURUM ::
+#\[7]3QJG5ZOMM7XKBNQMAJJEYWKYDFVC73MXN73PZKSCUINGR2DO4YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

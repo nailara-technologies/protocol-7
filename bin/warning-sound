@@ -31,6 +31,9 @@ BEGIN {
 ##[ AMOS MODULE ]#############################################################
 
 use AMOS7;
+use AMOS7::Config::Reader ();
+use POSIX                 qw| WNOHANG |;
+use Time::HiRes           ();
 
 ##[  SOUND SET-UP  ]##########################################################
 
@@ -39,6 +42,34 @@ my $warning_sound_sample = catfile( $sounds_path, qw| yourum.warning.ogg | );
 
 error_exit( 'audio file %s not found', $warning_sound_sample )
     if not -f $warning_sound_sample;
+
+##[  CONFIG  ]################################################################
+
+## cfg/warning-sound [ p7 config style ] ; P7_WARNING_SOUND_CFG : another ##
+## file [ absolute path ]. unreadable \ not valid : the defaults, a sound ##
+## still plays                                                            ##
+my $config = eval {
+    AMOS7::Config::Reader->read(
+        $ENV{'P7_WARNING_SOUND_CFG'} // qw| warning-sound |,
+        { 'root' => $root_path, 'host_overlay' => 0 }
+    );
+};
+warn_err('config not readable : defaults') if not defined $config;
+
+sub cfg_value {
+    my ( $key, $default, $valid ) = @ARG;
+    my $value = defined $config ? $config->get("warning-sound.$key") : undef;
+    return $default if not defined $value;
+    return $value   if $value =~ $valid;
+    warn_err( 'config %s not valid : %s used', 0, $key, $default );
+    return $default;
+}
+
+my $sample_name = qw| yourum.warning |;
+my $audio_out   = cfg_value( qw| output |, qw| pulse |, qr{\A[\w,.-]*\z} );
+my $number      = qr{\A(?:\d+(?:\.\d+)?)\z};
+my $length      = cfg_value( "sample_length.$sample_name", 2.0, $number );
+my $margin      = cfg_value( qw| limit_margin |,           5,   $number );
 
 ##[  PLAYER COMMAND  ]########################################################
 
@@ -68,9 +99,10 @@ error_exit('alarm profile : not built yet [ a later stage ]')
 error_exit( "profile '%s' : soft, aware or alert", $profile_name )
     if defined $profile_name and not $profile{$profile_name};
 
-my $player = $ENV{'P7_WARNING_SOUND_PLAYER'} // qw| /usr/bin/mpv |;
-my @player_param
-    = ( $player, qw| -really-quiet -audio-pitch-correction=no | );
+my $player       = $ENV{'P7_WARNING_SOUND_PLAYER'} // qw| /usr/bin/mpv |;
+my @player_param = ( $player, qw| -really-quiet | );
+push @player_param, "--ao=$audio_out" if length $audio_out;
+push @player_param, qw| -audio-pitch-correction=no |;
 push @player_param,
     defined $profile_name ? @{ $profile{$profile_name} } : qw| -volume=77 |;
 
@@ -78,25 +110,73 @@ push @player_param,
 
 push @player_param, @extra if @extra;    ## additional player parameters ##
 
+## the limit : the last speed given wins, as in mpv ; a counted loop plays ##
+## that often, an endless one [ asked for ] has no limit                   ##
+my ( $speed, $plays ) = ( 1.0, 1 );
+foreach my $param (@player_param) {
+    $speed = $1 if $param =~ m{\A--?speed=(\d+(?:\.\d+)?)\z};
+    $plays = $1           =~ m{\A\d+\z} ? 1 + $1 : $1 eq qw| no | ? 1 : 0
+        if $param =~ m{\A--?loop(?:-file)?=(.+)\z};
+}
+$speed = 1.0 if $speed <= 0;
+my $limit = $plays ? $plays * $length / $speed + $margin : undef;
+
 if ($print_only) {
     say join ' ', @player_param, $warning_sound_sample;
+    say defined $limit
+        ? sprintf( 'time limit : %.1f s', $limit )
+        : 'time limit : none [ endless loop ]';
     exit 0;
 }
 
 error_exit( 'command [ %s ] not found', $player_param[0] )
     if not -x $player_param[0];
 
-my $mpv_status = system @player_param, $warning_sound_sample;
+## run the player, stop it at the limit : TERM, then KILL  returns ( wait ##
+## status, timed out )                                                    ##
+sub play {
+    my @command = @ARG;
+    my $pid     = fork // error_exit( 'fork : %s', $OS_ERROR );
+    if ( not $pid ) {
+        { exec { $command[0] } @command }
+        POSIX::_exit(127);
+    }
+    my $forward = sub { kill 'TERM', $pid };
+    local @SIG{qw| INT TERM HUP |} = ($forward) x 3;
+    my $deadline = defined $limit ? Time::HiRes::time() + $limit : undef;
+    my ( $timed_out, $kill_at ) = (0);
+    while (1) {
+        return ( $CHILD_ERROR, $timed_out )
+            if waitpid( $pid, WNOHANG ) == $pid;
+        my $now = Time::HiRes::time();
+        if ( not $timed_out and defined $deadline and $now >= $deadline ) {
+            $timed_out = 1;
+            $kill_at   = $now + 1.3;
+            kill 'TERM', $pid;
+        } elsif ( $timed_out and $now >= $kill_at ) {
+            kill 'KILL', $pid;
+        }
+        Time::HiRes::sleep(0.05);
+    }
+}
+
+my ( $mpv_status, $timed_out ) = play( @player_param, $warning_sound_sample );
+
+if ($timed_out) {    ## a second try would hang the same way ##
+    warn_err( 'playback stopped at the time limit [ %s s ]',
+        0, sprintf '%.1f', $limit );
+    exit 1;
+}
 
 if ($mpv_status) {
     warn_err( join ' ', @player_param, $warning_sound_sample, qw| <{NC}>| );
-    system grep { !m|quiet| } @player_param, $warning_sound_sample;
+    play( grep { !m|quiet| } @player_param, $warning_sound_sample );
 }
 
 exit $mpv_status;
 
-#,,.,,,.,,...,,,.,.,,,,.,,..,,.,.,...,..,,...,..,,...,...,,,,,,,.,.,,,,.,,,,.,
-#B44RPFMO2TVCXEXAQ2P2IXNX27B4AOSCCLRVUMK6H2G6T6HNUKPFGTX65ZOUQKFOEFDX6RFH7PQC2
-#\\\|IVO3CHOVCB7TNFYLYML4GEXFFIZ36W7UQFLKCY56LGZGYSVREMR \ / AMOS7 \ YOURUM ::
-#\[7]7NIBCBRDE2QTZ3VRM7UACCS53N4VH6XSSEEZ42BRFXQZIQANPKAQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,..,,...,...,,,,,,,,,,..,,..,..,,...,...,,,.,.,.,...,..,,.,,,
+#BHGVK6HT4KGKMIUCMFUIFELAUH3OHG3KGDMK2OOVQICCYGNUNJWI4MSQTBGJ3U5L5UXMYNSKCY6X4
+#\\\|6RK4VZ3YOPBEFFDEV3XGLMK3MYTF5JGSP3FD73WVRASWGITAW3A \ / AMOS7 \ YOURUM ::
+#\[7]CQPCT2ZZGJSQVNBW6V2TYENF3RVIKHYDC4KTBN2GK3IURDRMKWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,40 @@
+## [:< ##
+
+# name   = coding.remind.arm
+# descr  = the one retry timer of undelivered reminders
+# args   = reset [ TRUE : back to the short first delay ]
+
+## nothing kept : the timer and the session watch go                     ##
+
+my $reset = shift // FALSE;
+my $kept  = scalar keys <[coding.remind.store]>->(qw| all |)->%*;
+if ( $reset or not $kept ) {
+    eval { <coding.remind.timer>->cancel }
+        if defined <coding.remind.timer>;
+    undef <coding.remind.timer>;
+    <coding.remind.interval> = {};
+}
+if ( not $kept ) {
+    <[park.send]>->( qw| bucket-remove |, qw| reminder-wake | )
+        if delete <coding.remind.watching>;
+    return FALSE;
+}
+return TRUE if defined <coding.remind.timer>;
+<coding.remind.interval> //= {};
+<coding.remind.timer> = <[event.add_timer]>->(
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| coding-remind-retry |,
+                'state' => <coding.remind.interval>
+            }
+        ),
+        'handler' => qw| coding.remind.tick |,
+        'desc'    => 'reminders : retry the undelivered'
+    }
+);
+return TRUE;
+
+#,,,,,.,.,,.,,,,,,,,.,.,,,,,,,,..,..,,..,,..,,.,.,...,...,...,.,,,,,.,,..,..,,
+#BZRH24EW7HYBCKO6BDE55HDKSMNRKG5MKRRELQAVVF5EMEWLWZ73TBNOGQPDCBPS2GP5O7ICHVYME
+#\\\|DOJ3VJI4WIL5SYTPVHLBDI65LVBK2NO326W3JFHYKTLO5W5IDHR \ / AMOS7 \ YOURUM ::
+#\[7]6TLRPU3RPBBZI2MOSSIUOZL7G7VH3UUMNUNJUA3B6L2LMAFWZOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

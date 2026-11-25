@@ -15,7 +15,22 @@ return FALSE
 my $text = shift @{ $st->{'queue'} };
 $st->{'phase'} = qw| prompting |;
 $st->{'turn'}  = { 'started' => time };
+$st->{'turns'}++;
 <[kimi.acp.event]>->( qw| prompt |, $text );
+
+## route-send only buffers, and in order : start goes before done ##
+my $session = ( $st->{'session_id'} // qw| none | ) =~ s{[^\w.:-]}{_}gr;
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| events.signal |,
+        'call_args' => {
+            'args' => "kimi.run.start session=$session turn=$st->{'turns'}"
+        },
+        'reply' => {
+            'handler' => qw| kimi.handler.acp_signal_reply |,
+            'params'  => { 'signal' => qw| kimi.run.start | }
+        }
+    }
+);
 <[kimi.acp.rpc]>->(
     qw| session/prompt |,
     {   'sessionId' => $st->{'session_id'},
@@ -25,8 +40,8 @@ $st->{'turn'}  = { 'started' => time };
 );
 return TRUE;
 
-#,,.,,.,.,,..,.,,,,..,...,,..,.,.,..,,.,.,,,.,..,,...,...,.,.,,,.,,,.,..,,..,,
-#CE2VKESEALWJFSW3PANH24EAUBY7F5ER6CLDV63Q7GQNZQGSDPI5L6S3YB6FSTQYY2KRNGBRRINWG
-#\\\|5MQHE734UGLIDG2I5H65JUXJXDWJTTHAJV5STZRP4JXEGTYWQLV \ / AMOS7 \ YOURUM ::
-#\[7]ZTRY4Y7KKU2ERBGXYTJ4JXPFH3SREVAJ77TMNYVGDQHVQU2F7IBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,..,,...,,..,,..,,,,,...,...,..,,..,,...,...,.,.,..,,,,.,...,.,.,
+#QINAH7HI3UFBBEIVMI45EY7Q3BPTEMVSJO2TFOM44IHBVUA3LJW5LXDSGNAPFY7SMD2GFZRUN4TXW
+#\\\|GDGUOFVRIO6SYBR4HRMIYGY2VW2GXSZZQUQ3JELXFTYEOZT6WNF \ / AMOS7 \ YOURUM ::
+#\[7]LY7SE3T3FNNMG4GI2WF62XIKKRVLOLT7QUJRIN65FQ45H5CZ26AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

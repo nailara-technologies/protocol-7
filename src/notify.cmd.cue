@@ -26,6 +26,7 @@ if (<[notify.dnd.active]>) {
     ## time and count : a key a restarted zenka cannot hand out again ##
     my $n = sprintf '%d.%d', time, ++<notify.dnd.held_count>;
     push @{$held}, { 'key' => "notify.held.$n", 'text' => $rest };
+    <[notify.dnd.store]>->(qw| save |);
     <[protocol-7.command.send.local]>->(
         {   'command'   => qw| cube.ticker.status-set |,
             'call_args' => { 'args' => "notify.held.$n [ $level ] $rest" }
@@ -34,7 +35,7 @@ if (<[notify.dnd.active]>) {
     return { 'mode' => qw| true |, 'data' => 'held [ do not disturb ]' };
 }
 
-my $reply = $code{"notify.cmd.$level"}->(
+my $shown = $code{"notify.cmd.$level"}->(
     {   %{$call},
         'args' =>
             sprintf( "'%s' '%s'", <notify.cue.title> // 'protocol-7', $rest )
@@ -43,10 +44,10 @@ my $reply = $code{"notify.cmd.$level"}->(
 
 <[notify.sound.play]>->($sound) if $sound ne qw| none |;
 
-return $reply;
+return $shown;
 
-#,,.,,,.,,...,,..,.,,,,,.,.,.,,,.,,.,,...,,.,,..,,...,...,..,,,,.,,.,,.,,,,..,
-#LS5WIYU7F5YG64YDKHQ2XGC6JY2WTWBHO6Y62T777BBDSGAM5XGQCRQ7MXUFQYK5NDREFAEDCTWVS
-#\\\|T7YIO7KJVG5TZI37KWUA4KANA32AOVN54YSHFBZR4ORAFLMHNMK \ / AMOS7 \ YOURUM ::
-#\[7]UQI6QGZB56IDPTJIC6UQCCQW4OVKHWDPQAVLLRGMZ52YPJ6PJWAQ 7  DATA SIGNATURE ::
+#,,,,,...,,,.,..,,.,,,...,,,,,,,.,,.,,.,,,,,,,..,,...,...,,.,,,.,,,,.,...,...,
+#TMOAGFRMEJTZSVCU3I5ZP3ATRX522AF4YO5RV77LLQXD63TAF2V5F5Q2S4EAW3IAC7A3IKUJ5A2RE
+#\\\|Y4AANCJNSKCMZRQOCAJO67FMXPVQUUYGLSLFHGNXBH5WKMEN7GO \ / AMOS7 \ YOURUM ::
+#\[7]D7F3OOC3VDOQKWBYCW6VFT5QYJ6L3A6LFRSGTMEUS43HPW46GYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

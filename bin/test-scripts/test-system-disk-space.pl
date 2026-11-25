@@ -46,6 +46,7 @@ my $free       = 900;
 my $files_free = 900;
 my $files      = 1000;
 my $read_only  = FALSE;
+my $fs_type    = 'ext4';
 my @events;
 my @log_levels;
 $data{'disk'}{'warn_free'}                  = 13;
@@ -59,7 +60,7 @@ $code{'system.disk.mounts'}                 = sub {
     return [
         {   device    => '/dev/fake',
             path      => '/fake',
-            type      => 'ext4',
+            type      => $fs_type,
             read_only => $read_only,
         }
     ];
@@ -268,10 +269,47 @@ ok $delays[0] > $delays[1] && $delays[1] > $delays[2],
     'disk rhythm accelerates as free space falls';
 is $delays[2], 13, 'critical pressure reaches configured floor';
 
+## invented inode numbers [ drvfs \ 9p report windows made-up counts ] ##
+foreach my $case (
+    [ 'drvfs',       1000, 40,     'drvfs' ],
+    [ '9p',          999,  999999, '9p, free above total' ],
+    [ '9p',          1000, 40,     '9p' ],
+    [ 'fuse',        1000, 40,     'fuse' ],
+    [ 'fuse.rclone', 1000, 40,     'fuse.<name>' ],
+    [ 'fuseblk',     1000, 40,     'fuseblk' ],
+    [ 'ext4',        999,  999999, 'any type with free above total' ],
+    [ 'ext4',        0,    0,      'total zero' ],
+) {
+    my ( $type, $total, $left, $label ) = @{$case};
+    @events = ();
+    delete $data{'system'}{'disk'}{'mounts'};
+    ( $fs_type, $files, $files_free ) = ( $type, $total, $left );
+    $free      = 900;
+    $read_only = FALSE;
+    $code{'system.disk.poll'}->();
+    my $m = $data{'system'}{'disk'}{'mounts'}{'/fake'};
+    ok !$m->{'inodes_counted'} && !@events && !$m->{'level'},
+        "$label : inodes not checked, no warning";
+    @events = ();
+    $free   = 40;
+    $code{'system.disk.poll'}->();
+    like $events[0]{'call_args'}{'args'} // '',
+        qr|critical \[ 4\.0 % bytes, inodes n\\a \]|,
+        "$label : the byte check stays, says inodes n\\a";
+    like $code{'system.disk.cmd.disk-status'}->()->{'data'},
+        qr|n\\a\s+n\\a|, "$label : disk-status shows n\\a";
+}
+( $fs_type, $files, $files_free, $free ) = ( 'ext4', 1000, 40, 900 );
+@events = ();
+delete $data{'system'}{'disk'}{'mounts'};
+$code{'system.disk.poll'}->();
+like $events[0]{'call_args'}{'args'}, qr|4\.0 % inodes free|,
+    'a real inode count is still reported';
+
 done_testing();
 
-#,,,.,,,.,..,,,,,,.,.,,..,...,,.,,,,.,,..,,,.,..,,...,...,...,.,,,,,,,.,,,,,.,
-#6HNCBQ5OSMQL2HCC24N5R6AF3NASAXYHT5SKG4RLRYNI4PI3CEGJMP3DDNDLRLNA4NBHXQSAD3ILW
-#\\\|UNEVXNG3DRXCQ6QO2UJ2NTSQLJZTAGFXELQTDRKXPMBOE4S7DBJ \ / AMOS7 \ YOURUM ::
-#\[7]Z36ZWQ32NBJUNBQ2FQYCFQWYIAZLPWXIF6QCWYRCEJAH2BZD2SBQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,,,.,,,,,.,,,.,,,,,,,,..,,.,,,,.,..,,...,...,..,,...,,,,,,.,,,.,,
+#CBAMCQMTRYJ52FWKQNSX7YPYULLV2HGCGCFX5XERRDSAMHY3PLKTP6Y6U4OF4PHL6WYVSIQBLZYX6
+#\\\|JNYGS6NUM3G4R6C53SHMCW4QJ6GB5ZMMV33UJGFNMZPY3DKWWBT \ / AMOS7 \ YOURUM ::
+#\[7]5LDT3TXMFCLX3S5BDFCJF3QRU77UWZ6WV7JTNA27MH43IBFDR2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,6 +29,7 @@ BEGIN {
     unshift @INC, "$root/data/lib-path/pm";
 }
 use AMOS7::Config;
+use AMOS7::Switch;
 
 use constant TRUE    => 5;
 use constant FALSE   => 0;
@@ -97,6 +98,7 @@ load_module($ARG) for qw|
     events.notify.ticker events.signal.raise events.bucket.action_route
     plugin.events.action.notify
     notify.cmd.cue notify.cmd.dnd notify.dnd.active notify.dnd.parse_span
+    notify.dnd.store
     ticker.cmd.status-set ticker.cmd.status-clear ticker.status.compose
     ticker.status.apply |;
 
@@ -133,6 +135,23 @@ $code{'ticker.dismiss_now'}     = sub { $dismissed++; TRUE };
 my $tmp = tempdir( CLEANUP => 1 );
 $data{'system'}{'conf_path'} = "$root_path/cfg";
 sub reset_all { @sent = @logged = @popups = @sounds = @parsed = () }
+
+## the zenka dir : files in the temporary directory ##
+$code{'file.zenka_dir.load'} = sub {
+    open my $fh, '<:encoding(UTF-8)', "$tmp/$ARG[0]" or return undef;
+    local $INPUT_RECORD_SEPARATOR = undef;
+    my $text = <$fh>;
+    return \$text;
+};
+$code{'file.zenka_dir.write'} = sub {
+    open my $fh, '>:encoding(UTF-8)', "$tmp/$ARG[0]" or return FALSE;
+    print {$fh} ${ $ARG[1] };
+    return close($fh) ? TRUE : FALSE;
+};
+
+## a fixed repeat window [ the rhythm has its own tests ] ##
+my @intervals;
+$code{'base.interval.next'} = sub { push @intervals, $ARG[0]; 55 };
 
 ## the real map : defaults the spec names ##
 
@@ -346,6 +365,138 @@ ok( $dnd->( { 'args' => 'on for=soon' } )->{'mode'} eq 'false',
     'dnd : a bad span is refused' );
 ok( $code{'notify.dnd.parse_span'}->('1h30m') == 5400, 'dnd : span 1h30m' );
 
+## dnd survives a restart ##
+my $restart = sub { delete @{ $data{'notify'}{'dnd'} }{qw| state held |} };
+$dnd->( { 'args' => 'on for=1h' } );
+$cue->( { 'args' => 'warn kept  across \\ restart' } );
+my $kept = $data{'notify'}{'dnd'}{'state'}{'until'};
+my $key  = $data{'notify'}{'dnd'}{'held'}[-1]{'key'};
+$restart->();
+reset_all();
+ok( $dnd->( { 'args' => '' } )->{'data'}
+        =~ m{\Ado not disturb : on until .* \[ 1 held on the ticker \]\z}
+        && $data{'notify'}{'dnd'}{'state'}{'until'} == $kept
+        && $data{'notify'}{'dnd'}{'held'}[0]{'key'} eq $key,
+    'dnd restart : on, until and the held lines are kept'
+);
+$dnd->( { 'args' => 'clear-held' } );
+$restart->();
+ok( "@sent" eq "cube.ticker.status-clear | $key"
+        && $dnd->( { 'args' => '' } )->{'data'} !~ m{held},
+    'dnd restart : clear-held reaches kept lines and is saved'
+);
+{
+    local $INPUT_RECORD_SEPARATOR = undef;
+    open my $fh, '<:encoding(UTF-8)', "$tmp/dnd" or die;
+    ok( <$fh> =~ m{^dnd\.on = yes\ndnd\.until = $kept$}m,
+        'dnd file : p7 config style' );
+}
+## the time ran out while the zenka was down ##
+$data{'notify'}{'dnd'}{'state'}{'until'} = time - 1;
+$code{'notify.dnd.store'}->('save');
+$restart->();
+ok( !$code{'notify.dnd.active'}->(), 'dnd restart : a past until is off' );
+$restart->();
+$code{'notify.dnd.store'}->();
+ok( !$data{'notify'}{'dnd'}{'state'}{'on'},
+    'dnd restart : the timed end was saved'
+);
+
+## run.start sets the ticker line, run.done clears the same key ##
+$data{'events'}{'notify'}{'map_file'}
+    = "$root_path/cfg/zenk" . "i/events/notify.map";
+delete $data{'events'}{'notify'}{'repeat'};
+foreach my $who (qw| claude kimi |) {
+    reset_all();
+    $apply->(
+        $who, "$who.run.start", { 'session' => 's1', 'turn' => 1 }, $noon
+    );
+    ok( "@sent" eq "cube.ticker.status-set | $who.run $who running",
+        "run.start : $who ticker line set, no popup" );
+    reset_all();
+    $apply->( $who, "$who.run.done", { 'state' => 'stopped' }, $noon );
+    ok( grep( { $ARG eq "cube.ticker.status-clear | $who.run" } @sent ),
+        "run.done : $who ticker line cleared" );
+}
+
+## rate limit ##
+delete $data{'events'}{'notify'}{'repeat'};
+@intervals = ();
+reset_all();
+my $done = sub {
+    $apply->(
+        'claude', 'claude.run.done',
+        { 'state' => 'ok', 'turn' => $ARG[1] },
+        $noon + $ARG[0]
+    );
+};
+my @cues;
+$done->( 0, 1 );
+$done->( 5, 2 );
+$r    = $done->( 54, 3 );
+@cues = grep {m{\Acube\.notify\.cue }} @sent;
+ok( @cues == 1 && $r->{'repeat'} && $r->{'sound'} eq 'none',
+    'rate limit : the same cue once per window [ turn is no identity ]'
+);
+ok( 3 == grep( {m{\Acube\.ticker\.status-clear }} @sent ),
+    'rate limit : the ticker is never limited'
+);
+reset_all();
+$done->( 55, 4 );
+ok( "@sent" =~ m{claude run ok \[ \+2 repeats \]\z},
+    'rate limit : the next one shows the count'
+);
+ok( @intervals == 2 && $intervals[0]{'type'} eq 'notify-repeat',
+    'rate limit : one window per cue sent, from base.interval'
+);
+reset_all();
+$done->( 500, 5 );
+ok( "@sent" !~ m{repeats} && $intervals[-1]{'reset'},
+    'rate limit : count starts over, a calm time resets the rhythm' );
+reset_all();
+
+foreach my $p (qw| claude kimi |) {
+    $apply->(
+        'usage',                                'usage.window.reset',
+        { 'provider' => $p, 'window' => '5h' }, $noon
+    );
+}
+ok( 2 == grep( {m{\Acube\.notify\.cue }} @sent ),
+    'rate limit : notify.same keys keep the providers apart'
+);
+
+## the grants ##
+{
+    local $INPUT_RECORD_SEPARATOR = undef;
+    open my $fh, '<:encoding(UTF-8)',
+        "$root_path/cfg/zenk" . "i/events/access.signals"
+        or die;
+    my $joined = join "\n",
+        map { $ARG->{'text'} // '' }
+        AMOS7::Config::normalize_lines( [ split m{(?<=\n)}, <$fh> ] )->@*;
+    foreach my $who (qw| claude kimi |) {
+        ok( $joined
+                =~ m{^\s*events\.signal\.$who\s*=[^#\n]*\b$who\.run\.start\b}m,
+            "access.signals : $who may raise $who.run.start"
+        );
+    }
+}
+
+## and with the parser the events zenka uses ##
+load_module($ARG) for qw| events.signal.grants events.signal.access |;
+$data{'events'}{'signal'}{'grants_file'}
+    = "$root_path/cfg/zenk" . "i/events/access.signals";
+foreach my $case (
+    [qw| claude claude.run.start |],
+    [qw| claude claude.run.done |],
+    [qw| claude claude.session.registered |],
+    [qw| kimi kimi.run.start |],
+    [qw| kimi kimi.run.done |]
+) {
+    ok( $code{'events.signal.access'}->( @{$case} ),
+        "signal access : @{$case}" );
+}
+
 ## ticker status lines ##
 my ( $set, $clear )
     = @code{qw| ticker.cmd.status-set ticker.cmd.status-clear |};
@@ -416,11 +567,75 @@ ok( $out =~ m{-volume=77 -loop=2 },
 qx|$^X $ws -profile alarm -print 2>&1|;
 ok( $CHILD_ERROR != 0, 'warning-sound : alarm is reserved [ later stage ]' );
 
+## audio output and time limit : from the cfg, never the user's mpv.conf ##
+$out = qx|$^X $ws -profile soft -print 2>&1|;
+ok( $out =~ m{ --ao=pulse -audio-pitch-correction=no }
+        && $out =~ m{^time limit : 13\.3 s$}m,
+    'warning-sound : --ao=pulse by default, limit = length \ speed + margin'
+);
+$out = qx|$^X $ws -speed=0.5 -loop=2 -print 2>&1|;
+ok( $out =~ m{^time limit : 17\.0 s$}m,
+    'warning-sound : the last speed and a counted loop in the limit' );
+$out = qx|$^X $ws -loop=inf -print 2>&1|;
+ok( $out =~ m{^time limit : none}m,
+    'warning-sound : an endless loop asked for has no limit' );
+
+sub ws_file {
+    my ( $path, $text, $mode ) = @ARG;
+    open my $fh, '>', $path or die "$path : $OS_ERROR";
+    print {$fh} $text;
+    close $fh;
+    chmod $mode // 0600, $path;
+    return $path;
+}
+## not under /tmp : warning-sound reads no cfg below a world-writable dir ##
+my $ws_dir = File::Temp::tempdir(
+    'warning-sound-XXXXXX',
+    'DIR'     => ( $ENV{'HOME'} // $root_path ),
+    'CLEANUP' => 1
+);
+{
+    local $ENV{'P7_WARNING_SOUND_CFG'} = ws_file( "$ws_dir/cfg",
+              "warning-sound.output = alsa\nwarning-sound.limit_margin : "
+            . "0.5\nwarning-sound.sample_length.yourum.warning = "
+            . "0.5\n" );
+    $out = qx|$^X $ws -print 2>&1|;
+    ok( $out =~ m{ --ao=alsa } && $out =~ m{^time limit : 1\.0 s$}m,
+        'warning-sound : output, margin and length read from the cfg'
+    );
+
+    ## a fake player that hangs and ignores TERM : the pid is kept ##
+    local $ENV{'P7_WARNING_SOUND_PLAYER'} = ws_file(
+        "$ws_dir/hang",
+        "#!$^X\n\$SIG{TERM} = 'IGNORE';\nopen my \$f, '>>', '$ws_dir/pids' "
+            . "or die;\nprint {\$f} \"\$\$\\n\";\nclose \$f;\nsleep 60;\n",
+        0700
+    );
+    my $from = time;
+    $out = qx|$^X $ws 2>&1|;
+    my $status = $CHILD_ERROR;
+    my @pids   = do {
+        open my $fh, '<', "$ws_dir/pids" or die "pids : $OS_ERROR";
+        map { chomp; $ARG } <$fh>;
+    };
+    ok( $status != 0 && time - $from < 13 && $out =~ m{time limit},
+        'warning-sound : a hanging playback ends by itself'
+    );
+    ok( @pids == 1 && !kill( 0, $pids[0] ),
+        'warning-sound : the player is gone, no second try' );
+}
+{
+    local $ENV{'P7_WARNING_SOUND_CFG'} = "$ws_dir/missing";
+    $out = qx|$^X $ws -print 2>&1|;
+    ok( $out =~ m{ --ao=pulse } && $out =~ m{^time limit : 7\.0 s$}m,
+        'warning-sound : no cfg file : the defaults' );
+}
+
 say "\n$pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,.,,,,,,,,,,,,,.,,,,..,,,.,,,,,.,,,.,,,..,,..,,...,...,..,,,.,,.,.,.,.,...,
-#6DJQDHGMUCYMPZCR6CL4TAZQZRYIUY47YPFHPY5BDVG2LXXGOGUSHKBIJVSRZC64HQC32JRCLLHVS
-#\\\|OJPV75JIENZFPCJ3JLMBD4M67CSENMTIYHF7VPJRNMSZ2FSJBBZ \ / AMOS7 \ YOURUM ::
-#\[7]MOSDASU3FYUWOOUXM5N5MELM3PZ2LYVUIPDSCFRYRTOLFDUPBWBI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,,,,,,,,,,,..,,.,,,..,,,..,.,,,..,,...,,..,.,,,.,,,,..,,,,,,,.,
+#Y3GCWWEGNOG6ZTWMXUY76QOA24V2ULQLRZ2I2HFTUOOECAKV34BMSARYNOD5AHJTBRTNR2S3FK5M2
+#\\\|XJBO6QQ6GWG5XWJZYSLWBR2BGKLQ6JKV2WTYKBDOALRKXZKU6P7 \ / AMOS7 \ YOURUM ::
+#\[7]X65K7676BX7SBVGUEUDXEAIQAMWY6PMQXSCQPTUWDUVPMLRQ24BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

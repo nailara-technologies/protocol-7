@@ -4,19 +4,13 @@
 # descr  = a span like 90s 13m 1h30m 2d into seconds
 # return = seconds, undef when not a span [ or under one second ]
 
-my $span    = shift // '';
-my $seconds = 0;
-my $pos     = 0;
-my %unit = ( 's' => 1, 'm' => 60, 'h' => 3600, 'd' => 86400, 'w' => 604800 );
-while ( $span =~ m{\G(\d+)([smhdw])?}gc ) {
-    $seconds += $1 * $unit{ $2 // 's' };
-    $pos = pos $span;
-}
-return undef if $pos != length $span or $seconds < 1;
-return $seconds;
+<[base.perlmod.load]>->('AMOS7::Switch')
+    if not <[base.perlmod.loaded]>->('AMOS7::Switch');
 
-#,,,.,.,,,.,,,..,,.,,,...,.,,,..,,,.,,.,.,,,,,..,,...,...,...,,,.,..,,,,.,,.,,
-#7YT24VRWVWQY3Q33UJM6MHTGQEQRBWADPQ7GSZIFHX3FGHDRNIRZAU2W3MU4AHU4UZH3DVO45A3RW
-#\\\|JN53NIFVAYC3556RHQPOEHV5YINL7VICLUFKVP5KWIR4LWNCHEW \ / AMOS7 \ YOURUM ::
-#\[7]MZQZKJXV4XO23WK2JVW4DX3HYJKTO2ZCP7UVY5DUM25W2AIECGAI 7  DATA SIGNATURE ::
+return AMOS7::Switch::parse_span(shift);
+
+#,,,.,,..,,,,,..,,,.,,,,,,,.,,...,...,,..,.,.,..,,...,...,...,,,,,,..,...,.,,,
+#OWJHO7JTA3BROTLL54Q3Q7DZJT4TPGDRHALX3HIPVCFCJBJ4MTBUTJPG5CI7CIPVDW5QVKJVCP6C6
+#\\\|TQA764D3J3CEU72YDBDYJ2WOEGO6R2PAOYO4LBGQX3OFD24N432 \ / AMOS7 \ YOURUM ::
+#\[7]4O237POUG3RJYMCFQPZIBKIRBLJZ6JJEHPOH5JQFECILRYZ25YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

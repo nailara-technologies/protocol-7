@@ -1,0 +1,64 @@
+## [:< ##
+
+# name   = coding.remind.store
+# descr  = reminders on their way, in the file `reminders`
+# args   = get | set | del | all, id [, record ]
+# return = get : the record or undef ; all : id -> record
+
+## a reminder is kept from the moment it fires until a path took it :       ##
+## status sending \ undelivered. p7 config style, one  `reminder.<id>.<key> ##
+## = value` line each, written whole on every change, read on first use     ##
+## after a start. a record still 'sending' in the file never got its answer ##
+## : it is undelivered                                                      ##
+
+my ( $op, $id, $record ) = @ARG;
+my $all = <coding.remind.records>;
+if ( ref $all ne qw| HASH | ) {
+    $all = {};
+    my $sref = <[file.zenka_dir.load]>->( 'reminders', ':encoding(UTF-8)' );
+    foreach my $line ( split m{\n}, ref $sref eq 'SCALAR' ? $sref->$* : '' ) {
+        next
+            if $line !~ m{\Areminder\.(remind-\d+)\.(\w+) = (.*)\z};
+        my ( $r, $k, $v ) = ( $1, $2, $3 );
+        $v =~ s{\\(.)}{$1 eq 'n' ? "\n" : $1}ge;
+        $all->{$r}{$k} = $v;
+    }
+    foreach my $r ( values %{$all} ) {
+        next if ( $r->{'status'} // '' ) eq qw| undelivered |;
+        $r->{'status'} = qw| undelivered |;
+        $r->{'reason'} = 'no answer before a restart';
+    }
+    <coding.remind.records> = $all;
+}
+return $all        if $op eq qw| all |;
+return $all->{$id} if $op eq qw| get |;
+if ( $op eq qw| set | ) {
+    $all->{$id} = $record;
+} elsif ( $op eq qw| del | ) {
+    delete $all->{$id};
+} else {
+    return undef;
+}
+my $esc = sub { ( shift // '' ) =~ s{\\}{\\\\}gr =~ s{\n}{\\n}gr };
+my @out = (
+    ".:[ coding zenka : reminders not delivered yet ]:.\n",
+    "## written by the coding zenka : edit only while it is stopped ##\n"
+);
+foreach my $r ( sort keys %{$all} ) {
+    push @out,
+        map { "reminder.$r.$ARG = " . $esc->( $all->{$r}{$ARG} ) . "\n" }
+        sort keys %{ $all->{$r} };
+}
+my $text = join '', @out;
+my $ok   = <[file.zenka_dir.write]>->(
+    'reminders', \$text, '>', 0600, ':encoding(UTF-8)'
+);
+<[base.logs]>->( 0, '<< reminders file not written : kept in memory only >>' )
+    if not $ok;
+return $ok ? TRUE : FALSE;
+
+#,,,.,.,.,.,.,,.,,.,,,.,,,,,,,..,,.,,,...,,,,,.,.,...,...,..,,,..,...,,.,,,..,
+#TVSUROR5P2X6ZXQHOZOZUYT6ICUUJJEW3MGPRDVDYLTTFITUSD4Q6JVDXUZWSROR3ARC5SM5XTV2Y
+#\\\|BVW3BGBK7HZZ7PZ4ATBTZHSPUQ44RPJZQXYK3FWRMGV7DOFFV5E \ / AMOS7 \ YOURUM ::
+#\[7]EIY35XKJK2H6FA3RNDYVN6ERAEUCVGBRJVT3DL4QPHROF5F7E6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

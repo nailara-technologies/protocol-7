@@ -12,21 +12,19 @@ if ( $mode eq qw| true | or $mode eq qw| size | ) {
         1,          ':. reminder %s delivered [ %s ]',
         $p->{'id'}, $p->{'path'}
     );
+    <[coding.remind.store]>->( qw| del |, $p->{'id'} );
+    <[coding.remind.arm]>;
     return TRUE;
 }
 <[base.logs]>->(
     1, ':. reminder %s : %s refused [ %s ]',
     $p->{'id'}, $p->{'path'}, $text
 );
-return TRUE if <[coding.remind.deliver]>->($p);
-<[base.logs]>->(
-    0,          '<< reminder %s not delivered : %s >>',
-    $p->{'id'}, $p->{'text'}
-);
-return FALSE;
+push @{ $p->{'reasons'} }, "$p->{'path'} : " . ( $text =~ s{\s+}{ }gr );
+return <[coding.remind.deliver]>->($p);
 
-#,,,,,,..,...,,,,,,..,...,..,,,,.,,,,,...,...,..,,...,...,,..,.,,,,.,,,..,.,.,
-#EJF7FUO3AGGJDJIUZQIJQWYKS2JRMEJH3UC3G5HWYCHXUXC5W5HGANZVZVYXOGQS6DBZ5FPBVKSUQ
-#\\\|CTT4SARHYBKXLJJIAQ23OUMAW2YNPJBWS3IVSA4XEJJYLNU3XIK \ / AMOS7 \ YOURUM ::
-#\[7]ZFW6PKU7E3HGPJTVCRDVV6JAXSMYXP55MSWF75UN63AZKBJCD4CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,,,,,,,.,.,,..,..,,,,.,...,.,,,..,,...,...,,.,,.,,,...,.,,,,,.,
+#A67MGKLBGNNTY53DOOWGHITTTN3VGXMWYNDDL26X5DRV26SEJLBMCVXUTMKS7Q2CH2FQKIMAQNSFS
+#\\\|JXDYNEOK4Y2UL7WXAKBLOB47DKEEMI2KKZPDTZJHGGSQVFFSI2B \ / AMOS7 \ YOURUM ::
+#\[7]B7LAPTZ4R7JDMHTOO4FEEHELSGPW4EV7Z7LTWR7HCCEIRJXGWEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

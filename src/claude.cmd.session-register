@@ -34,16 +34,29 @@ return { 'mode' => qw| false |, 'data' => "no socket at $socket" }
     if not -S $socket;
 
 my $sessions = <[claude.live.sessions]>;
+## a periodic re-register of the same socket is not news ##
+my $is_new = (
+    not CORE::exists $sessions->{$name}
+        or $sessions->{$name}{'socket'} ne $socket
+);
 $sessions->{$name} = {
     'socket' => $socket,
     'token'  => $token,
     'since'  => CORE::time,
 };
-<[base.log]>->( 1, ": live session $name registered [ $socket ]" );
+<[base.log]>->(
+    $is_new ? 1 : 2,
+    ": live session $name registered [ $socket ]"
+);
+## what waits for a live session wakes [ the name only, never the token ] ##
+<[claude.signal.raise]>->(
+    qw| claude.session.registered |,
+    { 'name' => $name }
+) if $is_new;
 return { 'mode' => qw| true |, 'data' => "live session $name registered" };
 
-#,,,,,,,,,..,,...,,..,,..,,.,,,,,,..,,...,.,.,..,,...,...,..,,,..,.,,,,..,...,
-#ABO5ALF4HS6CNAGJVVF36DVU6GRQJB73MQ7HRQCPXRNBPNN7POXFP3ECKDMA3OOSRZQHZUSFSNJAE
-#\\\|G7WLCTPHKDN3M3GVLZ4QNL7F7YBWXF6AY5P7X57VRL755HXWAWF \ / AMOS7 \ YOURUM ::
-#\[7]SP3KJUBQDPRLX5JS3INZLSICV4SWQ4VG4VSXIFQQHSV53AVZ42DY 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,,,,..,,,,,,..,,,.,...,,,.,.,,,..,,...,...,...,,,.,,..,..,,..,,
+#GTRX2DIL2RKY3PV6KLOOMD3RGU7RDBTGDWSDIRE2SDX5S2N4FEGNKPUCGFJXXCSC6EWE5C3GBAOXI
+#\\\|4RCKIH6WRYYDD663JEIW6MSCI6AHDDCMLLZQXM34ZWLOYLQSSD5 \ / AMOS7 \ YOURUM ::
+#\[7]5F64ITMQKL6P5MXAO5FA7TZVDRXSOKNEYH27LANZDNI6LFLTRGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = system.disk.poll
-# descr = update space thresholds, trends and crossing notifications
+# descr = update space levels, trends and notifications
 
 my $now          = <[base.time]>->(2);
 my $mounts       = <[system.disk.mounts]> // [];
@@ -20,8 +20,15 @@ foreach my $mount ( @{$mounts} ) {
     $free = 0 if $free < 0;
     my $used = $size - $free;
     $used = 0 if $used < 0;
-    my $free_pct       = 100 * $free / $size;
-    my $inodes_counted = $stat->{'files'} ? TRUE : FALSE;
+    my $free_pct = 100 * $free / $size;
+    ## windows \ 9p \ fuse mounts report invented inode numbers ##
+    my $inodes_counted
+        = (     $stat->{'files'}
+            and $stat->{'files_free'} <= $stat->{'files'}
+            and ( $mount->{'type'} // '' )
+            !~ m{\A(?:drvfs|9p|fuse(?:blk|\..*)?)\z} )
+        ? TRUE
+        : FALSE;
     my $inode_free_pct
         = $inodes_counted
         ? 100 * $stat->{'files_free'} / $stat->{'files'}
@@ -130,13 +137,15 @@ foreach my $mount ( @{$mounts} ) {
         : $level == 2 ? qw| critical |
         :               qw| warning |;
     my $inode_text
-        = $inodes_counted ? sprintf( '%.1f %%', $inode_free_pct ) : qw| n/a |;
+        = $inodes_counted
+        ? sprintf( '%.1f %% inodes free', $inode_free_pct )
+        : 'inodes n\a';
     my $job_text
         = @jobs
         ? sprintf( ', registered jobs : %s',
         join( ', ', map { $ARG->{'name'} } @jobs ) )
         : '';
-    my $message = sprintf '%s : %s [ %.1f %% bytes, %s inodes free%s ]',
+    my $message = sprintf '%s : %s [ %.1f %% bytes, %s%s ]',
         $path, $kind, $free_pct, $inode_text, $job_text;
     <[base.logs]>->( 0, 'disk space : %s', $message );
     my $quoted = $message =~ s|'|\\'|gr;
@@ -154,8 +163,8 @@ foreach my $mount ( @{$mounts} ) {
 <system.disk.interval_state> {'pressure'} = $max_pressure;
 return $current;
 
-#,,,,,,.,,,.,,.,,,,,,,,,.,,.,,,.,,..,,,,.,,,,,..,,...,.,,,...,,,,,...,..,,.,.,
-#QUM3POIV5OLJEWKI7UUSHRXPV4GCUHHDBUNN7E5UXLC52MPMKCQERMKFWOYJQ7KYVM7JTQX7CLSNU
-#\\\|SDJ52ALEEP5YCGNRVCI5TWM4HMEO5VZ4YRJBKHIGXRBPGT4LWQC \ / AMOS7 \ YOURUM ::
-#\[7]GTGFNUMJCFC3JZHKBQUHYHEDJTLFKQIYX5GFGP7QHRGNGSHWVEAI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,,..,,..,..,,,..,,,.,..,,...,..,,...,...,,..,..,,,..,,,,,,,.,
+#MERJUWYCLLESSTWDRXDRCHUKDEZ5KTAPUILTRI4VADQFX2WWUHGTQRJDCTW2UJORVYVH3MJNAMMPO
+#\\\|PSAEMXCNQZKVNXD236S6KCNWTEYDEU6WASO3OUUS7Q2KL6ABR23 \ / AMOS7 \ YOURUM ::
+#\[7]RFW5NOYVOJDZDJOO5PCZXSSOAGNEZWO55WWBCETFCOVKPCYOFIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

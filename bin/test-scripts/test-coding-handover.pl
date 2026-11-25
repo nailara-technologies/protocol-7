@@ -244,6 +244,11 @@ $code{'task.cmd.queue'} = sub {
         if not defined $fake{'parked'};
     return { 'mode' => 'size', 'data' => $fake{'parked'} };
 };
+$code{'claude.cmd.sessions'} = sub {
+    return { 'mode' => 'true', 'data' => 'no live session registered' }
+        if not defined $fake{'sessions'};
+    return { 'mode' => 'size', 'data' => $fake{'sessions'} };
+};
 $code{'claude.cmd.session-post'} = sub {
     return { 'mode' => 'false', 'data' => 'no live session registered' }
         if not $fake{'live'};
@@ -309,6 +314,11 @@ sub reset_all {
     $data{'coding'}{'cfg'}{'handover_deployed_ref'} = 'deployed-test';
     $data{'base'}{'interval'}{'cfg'}{'type'}{'remind-test'}
         = { 'start' => 34, 'factor' => 1.2, 'cap' => 89, 'cap_jitter' => 13 };
+    ## the retry rhythm as the zenka is configured ##
+    $data{'base'}{'interval'}{'cfg'}{'type'}{'coding-remind-retry'}
+        = { read_file("$root_path/cfg/zenki/coding/zenka.v7")
+            =~ m{^base\.interval\.cfg\.type\.coding-remind-retry\.(\w+)\s*=\s*(\S+)}mg
+        };
 }
 
 sub entry { $data{'events'}{'buckets'}{ $_[0] }{'entries'}{ $_[1] } }
@@ -632,6 +642,126 @@ ok( run_cmd( 'coding', 'coding.cmd.remind-fire', 'remind-3 mail x' )->{'mode'}
         eq 'false',
     'remind-fire : a bad target refused'
 );
+
+## 9b. undelivered : kept, listed with the reason, retried, woken ##
+sub kept {
+    local $zenka = 'coding';
+    return $code{'coding.remind.store'}->( 'get', $_[0] );
+}
+
+sub list_now {
+    my $id = shift;
+    local $zenka = 'coding';
+    run_cmd( 'coding', 'coding.cmd.reminders', '', $id );
+    pump();
+    return $replies{$id}{'data'};
+}
+
+sub retry_tick {
+    local $zenka = 'coding';
+    $code{'coding.remind.tick'}->( FakeEvent->new( {} ) );
+    pump();
+}
+ok( ( kept('remind-3') // {} )->{'status'} eq 'undelivered'
+        && kept('remind-3')->{'reason'} eq
+        'notify : client not present ; session : no live session registered',
+    'undelivered : kept with the reason of every path'
+);
+ok( !kept('remind-1') && !kept('remind-2') && !kept($rid) && !kept($rid2),
+    'undelivered : delivered reminders left the store' );
+ok( scalar list_now(40)
+        =~ m{^remind-3\s+undelivered\s+tries 1 \[ notify : client not present ; .*\] \# nowhere \[ to=notify \]$}m,
+    'reminders : the undelivered one listed with its reason'
+);
+my @retry = grep { $ARG->{'handler'} eq 'coding.remind.tick' } @timers;
+ok( @retry && $retry[-1]{'after'} > 20 && $retry[-1]{'after'} < 50,
+    'undelivered : a retry timer armed [ short first delay ]'
+);
+ok( ( entry( 'coding', 'reminder-wake' ) // {} )->{'on'} eq
+        'claude.session.registered',
+    'undelivered : waits for a live session registration'
+);
+retry_tick();
+my @retry2 = grep { $ARG->{'handler'} eq 'coding.remind.tick' } @timers;
+ok( kept('remind-3')->{'tries'} == 2
+        && @retry2 > @retry
+        && !@posted
+        && !@notified,
+    'retry : paths still down, kept and the timer armed again'
+);
+restart_all();
+ok( ( kept('remind-3') // {} )->{'text'} eq 'nowhere'
+        && read_file("$tmp/zdir/coding.reminders")
+        =~ m{^reminder\.remind-3\.status = undelivered$}m,
+    'restart : the undelivered one is still there [ its file ]'
+);
+$fake{'live'} = 1;
+retry_tick();
+ok( "@posted" eq 'reminder : nowhere from=coding' && !kept('remind-3'),
+    'retry : delivered once a path is back, then gone' );
+ok( !entry( 'coding', 'reminder-wake' ),
+    'nothing kept : the session watch removed'
+);
+
+## woken by the registration signal [ real grants ] ##
+@posted = ();
+$fake{'live'} = 0;
+run_cmd( 'coding', 'coding.cmd.remind-fire', 'remind-4 session wake me' );
+pump();
+$fake{'live'} = 1;
+my $woke = signal( 'claude', 'claude.session.registered name=main' );
+ok( $woke->{'mode'} eq 'true'
+        && "@posted" eq 'reminder : wake me from=coding'
+        && !kept('remind-4'),
+    'claude.session.registered : the undelivered reminder is delivered'
+);
+
+## the registration comes while a round is still on its way ##
+@posted = ();
+$fake{'live'} = 0;
+run_cmd( 'coding', 'coding.cmd.remind-fire', 'remind-5 session in flight' );
+run_cmd( 'coding', 'coding.cmd.remind-wake', '' );
+ok( @pending && kept('remind-5')->{'status'} eq 'sending',
+    'wake while sending : no second round beside the first'
+);
+{
+    ## the first answer says no session, then it is there ##
+    my $post = $code{'claude.cmd.session-post'};
+    my $n    = 0;
+    local $code{'claude.cmd.session-post'} = sub {
+        local $fake{'live'} = $n++ ? 1 : 0;
+        return $post->();
+    };
+    local $down{'notify'} = 1;
+    pump();
+}
+ok( "@posted" eq 'reminder : in flight from=coding' && !kept('remind-5'),
+    'wake while sending : repeated once after it failed, one delivery'
+);
+
+## no route at all, then drop ##
+{
+    local $code{'protocol-7.route-send'} = sub {0};
+    $rv = run_cmd( 'coding', 'coding.cmd.remind-fire',
+        'remind-6 session no route' );
+}
+ok( $rv->{'mode'} eq 'true'
+        && $rv->{'data'} =~ m{kept : not delivered}
+        && kept('remind-6')->{'reason'} eq
+        'session : not routable ; notify : not routable',
+    'not routable : kept with the reason'
+);
+$down{'events'} = 1;
+ok( scalar list_now(41) =~ m{^remind-6\s+undelivered}m,
+    'reminders : events down, the kept ones still listed'
+);
+$rv = run_cmd( 'coding', 'coding.cmd.remind-drop', 'remind-6', 42 );
+pump();
+ok( $rv->{'mode'} eq 'true' && !kept('remind-6'),
+    'remind-drop : an undelivered one dropped, events not needed' );
+delete $down{'events'};
+@posted = ();
+
 delete $down{'notify'};
 $fake{'live'} = 1;
 
@@ -662,12 +792,73 @@ ok( $replies{34}{'mode'} eq 'false'
     'remind : events down -> refused'
 );
 
+## 10. the target of to=session : recorded when set ##
+delete $down{'events'};
+
+sub new_reminders {
+    my %seen = map { $ARG => 1 } @{ $_[0] };
+    return
+        grep { m{\Aremind-} and not $seen{$ARG} }
+        @{ $data{'events'}{'buckets'}{'coding'}{'order'} };
+}
+
+sub set_reminder {
+    my ( $args, $reply_id ) = @ARG;
+    my @before = new_reminders( [] );
+    run_cmd( 'coding', 'coding.cmd.remind', $args, $reply_id );
+    pump();
+    my ($new) = new_reminders( \@before );
+    return ( $new, defined $new ? entry( 'coding', $new ) : {} );
+}
+
+$fake{'sessions'} = "owner : since Tue Nov 24 12:00:00 2026\n";
+my ( $t1, $e1 ) = set_reminder( "at=$at to the owner", 41 );
+ok( defined $t1
+        && $e1->{'action'}{'command'} eq
+        "coding.remind-fire $t1 session:owner to the owner"
+        && $replies{41}{'mode'} eq 'true',
+    'remind : one session -> its name is recorded'
+);
+$fake{'sessions'} .= "run : since Tue Nov 24 12:13:00 2026\n";
+my ($t2) = set_reminder( "at=$at who gets it", 42 );
+ok( !defined $t2
+        && $replies{42}{'mode'} eq 'false'
+        && $replies{42}{'data'}
+        =~ m{several live sessions \[ owner, run \] : to=session:<name>},
+    'remind : several sessions and no name -> refused with the names'
+);
+my ( $t3, $e3 ) = set_reminder( "at=$at to=session:owner named one", 43 );
+ok( defined $t3
+        && $e3->{'action'}{'command'} eq
+        "coding.remind-fire $t3 session:owner named one",
+    'remind to=session:<name> : recorded as given'
+);
+@posted = ();
+$fake{'live'} = 1;
+fire_timer( 'coding', $t3 );
+pump();
+ok( "@posted" eq 'to=owner reminder : named one from=coding',
+    'fire : posted with to=<name>' );
+@posted       = ();
+@notified     = ();
+$fake{'live'} = 0;
+run_cmd( 'coding', 'coding.cmd.remind-fire',
+    'remind-41 session:gone it is away' );
+pump();
+ok( !@posted && "@notified" eq 'reminder it is away',
+    'fire : the named session is away -> notify, no other session' );
+$fake{'live'} = 1;
+ok( run_cmd( 'coding', 'coding.cmd.remind', "at=$at to=session: t" )->{'mode'}
+        eq 'false',
+    'remind : an empty session name refused'
+);
+
 say "1..", $pass + $fail;
 say "# pass $pass fail $fail";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,,,,,..,,,,,...,.,,,,.,,.,.,,.,,.,.,...,..,,...,...,,.,,,..,,,,,..,,,.,,
-#66UN2NK62OOIT6ZH6Q2FGTUKJQHNISJUGODGS2D2IZX77B5Q77CMDKUZKH75RUM5LM3SZNUXN6MYK
-#\\\|2LLM4FMFBV2GTESZJYTDTYXO7ANNHBTG7L7T3GQIBHJWC4DVTM7 \ / AMOS7 \ YOURUM ::
-#\[7]X35MFQGAM4CEY4NGGG74HD7EW3GB57O77AYH5ZUD76Q6JK4AIIAI 7  DATA SIGNATURE ::
+#,,,,,...,...,,..,,.,,..,,.,.,,.,,...,,,.,,,.,..,,...,...,,.,,,,.,..,,,,,,,.,,
+#UOCLP62LRIEKT6TZB7TCODN4JZTTLI4YS57BQ3WLXLRJRFANSTZMXF32UTUSA7NITB2K3VZLGTRGU
+#\\\|534CMJGJGADHAZQ36QK2HO5TUODFXEKE6H5E5N2CNF7RLEGMMZ2 \ / AMOS7 \ YOURUM ::
+#\[7]SZ4YSFX3OYXW7IZZT3T2A72DK4JU3TS7E3SRMW7BLQCOOZSGQWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,12 +9,16 @@
 ##        sound=soft|aware|alert|none ticker=set|clear key=<line key> \    ##
 ##        text=<rest of the line, {value} filled in>                       ##
 ## claude states : ok failed ; kimi : end_turn .. error stopped crashed    ##
+##   notify.same.<signal> = <value key> ..  what makes two cues the same   ##
+##        [ default : the notify.by keys ] ; a repeat inside the window    ##
+##        [ base.interval type notify-repeat ] is counted, not sent, and   ##
+##        the count shown on the next one. the ticker is never limited     ##
 ## the most specific entry wins, then shorter ones ; no entry : nothing    ##
 ## sounds : bin/warning-sound -profile ; sound=alarm is reserved [ the     ##
 ## alarm loop is a later stage, played as alert until then ]               ##
 
 ## runs : the ticker line goes when the run is done ; a run.start signal ##
-## sets it [ no zenka raises one yet ]                                   ##
+## sets it [ claude : each turn, kimi : each prompt ]                    ##
 notify.on.claude.run.start      = level=none ticker=set text=claude running
 notify.on.kimi.run.start        = level=none ticker=set text=kimi running
 
@@ -36,6 +40,8 @@ notify.on.kimi.run.done.crashed = level=warn sound=aware ticker=clear \
 
 ## usage : thresholds going up at 75 and 90, nothing going down ##
 notify.by.usage.threshold       = crossed percent
+notify.same.usage.threshold     = provider window crossed percent
+notify.same.usage.window.reset  = provider window
 notify.on.usage.threshold       = level=none
 notify.on.usage.threshold.up.75 = level=info sound=soft \
                                   text={provider} {window} at {used} %
@@ -48,8 +54,8 @@ notify.on.usage.window.reset    = level=info sound=soft \
 notify.quiet.hours              = 23-7
 notify.quiet.sound              = soft
 
-#,,.,,,..,,..,.,,,,,,,.,.,,..,...,,,.,..,,...,..,,...,..,,.,,,...,,.,,..,,,,.,
-#GIDOENB7QYX7UV7DCETQ2FNZ7HO3URLKLEMMJZS3FIO3PLK4WCMVGPE7F2J2I3V43ZDFLLBUXJUWS
-#\\\|OVF5JTWVFO72SST54VFTIE3TZ5SVP7HSVCLNHT75DBQRTGVKHNW \ / AMOS7 \ YOURUM ::
-#\[7]D3WEQK57A5QBETODW3N4FEU6F3EW5SK3CE6CFANFYFZBOFY7QECI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,,,.,..,,,.,,.,.,,,.,,.,,.,,,..,,...,...,,,.,.,.,...,...,.,,,
+#FCZOOKW7P2XVIP32DGGZ7FXLYTYTA7ZYDVF3PMNOAQWRGVHMNFMRUG6TUVRLSKQWME2WCGI74CFZY
+#\\\|QR5XZU7I75YKCAOW6VBZJSK4SLTDNJQGJXPQIKCQHVBSPXV2QLN \ / AMOS7 \ YOURUM ::
+#\[7]XCOURO2SN3KUI2AOEVGAYFKHC4GFO4LQS7XBYAEHGXUP43Z62MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+## [:< ##
+
+# name   = notify.dnd.store
+# descr  = do-not-disturb state, file `dnd`
+# args   = [ save ]
+# return = TRUE, FALSE when a save failed
+
+## p7 config style in the notify zenka's dir : `dnd.on = yes|no`, `dnd.    ##
+## until = <epoch, 0 : no limit>`, one `held.<ticker key> = text` line     ##
+## each. read on first use after a start                                   ##
+## [ never at init : that runs before the privileges drop ], written whole ##
+## on `save`. a time that ran out while the zenka was down ends when it is ##
+## read                                                                    ##
+
+my $op = shift // '';
+
+<[base.perlmod.load]>->('AMOS7::Switch')
+    if not <[base.perlmod.loaded]>->('AMOS7::Switch');
+
+if ( ref <notify.dnd.state> ne qw| HASH | ) {
+    my %state = ( 'on' => FALSE, 'until' => 0 );
+    my @held;
+    my $sref = <[file.zenka_dir.load]>->( 'dnd', ':encoding(UTF-8)' );
+    foreach my $pair (
+        AMOS7::Switch::parse_state(
+            ref $sref eq qw| SCALAR | ? $sref->$* : ''
+        )
+    ) {
+        my ( $key, $value ) = @{$pair};
+        if ( $key eq qw| dnd.on | ) {
+            $state{'on'} = $value eq qw| yes | ? TRUE : FALSE;
+        } elsif ( $key eq qw| dnd.until | ) {
+            $state{'until'} = $value if $value =~ m{\A\d+\z};
+        } elsif ( $key =~ m{\Aheld\.(notify\.held\.[\d.]+)\z} ) {
+            push @held,
+                {
+                'key'  => $1,
+                'text' => AMOS7::Switch::unescape_value($value)
+                };
+        }
+    }
+    <notify.dnd.state> = \%state;
+    <notify.dnd.held>  = \@held;
+}
+return TRUE if $op ne qw| save |;
+
+my $dnd  = <notify.dnd.state>;
+my $text = AMOS7::Switch::format_state(
+    'notify zenka : do-not-disturb state',
+    [ qw| dnd.on |,    $dnd->{'on'} ? qw| yes | : qw| no | ],
+    [ qw| dnd.until |, $dnd->{'until'} || 0 ],
+    map {
+        [   "held.$ARG->{'key'}",
+            AMOS7::Switch::escape_value( $ARG->{'text'} )
+        ]
+    } @{ <notify.dnd.held> //= [] }
+);
+my $saved = <[file.zenka_dir.write]>
+    ->( 'dnd', \$text, '>', 0600, ':encoding(UTF-8)' );
+return TRUE if $saved;
+
+<[base.log]>->( 0, '<< do not disturb : state not saved >>' );
+return FALSE;
+
+#,,,.,.,.,,.,,.,.,,..,,.,,.,.,..,,...,,,,,,.,,..,,...,...,.,,,..,,..,,.,,,.,,,
+#L3UMFLIWV2NKE43O2WQ3M3N5IEWRI7R62JVZT62GWQGOXPOM2SMXSRROTOZV2HVOTVU2IYRX6HOUA
+#\\\|N7GPEZUQ5VCELEYN7UAENLUXEI6C4NDLYS3D74MNAT2GJRPCNAW \ / AMOS7 \ YOURUM ::
+#\[7]5D56G4AKAAPDTPWN4AC2BPUMQYCGQGEHKPNIPHSJWBOVKUU3UYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

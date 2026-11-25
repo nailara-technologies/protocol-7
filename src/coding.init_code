@@ -815,10 +815,25 @@ eval { <coding.handover.timer>->cancel }
     }
 );
 
+## reminders a path never took : read and retried after the start ##
+## [ the timer only, no file access here : still root ]           ##
+eval { <coding.remind.timer>->cancel } if defined <coding.remind.timer>;
+<coding.remind.interval> = {};
+<coding.remind.timer>    = <[event.add_timer]>->(
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| coding-remind-retry |,
+                'state' => <coding.remind.interval>
+            }
+        ),
+        'handler' => qw| coding.remind.tick |,
+        'desc'    => 'reminders : retry the undelivered'
+    }
+);
+
 return 0;
 
-#,,,,,,.,,.,,,,.,,.,.,,.,,,,.,,..,,,,,.,,,,,,,.,.,...,...,..,,.,.,,,,,..,,..,,
-#QK2VO5YCOZKFQDRMNK5RKGBP2DRKPBYW4Y36AVCF3NXA2VQLIFVX54IEAYF7TX3KFYBVLLLGQ4GZG
-#\\\|LK37Q7G2ARXCR6EFGDWMF3DGHIOFAS6SORXWL2EZVJHW4FGFGWD \ / AMOS7 \ YOURUM ::
-#\[7]BYGGOUQJ6PFBU23YEP2HYJSLSEJNCM6N5NEIGFWU4P3K2XZH5IBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,.,,,,.,...,..,,...,,,,,,..,.,.,.,.,...,...,,..,,..,..,,,,,,,..,
+#TP56PR5HIMBF53PPAQRTZFGMGIPRIAK564AUATZUEVW3T4WAGV6WJ456GHIWRSWMKSQLUQZAUWJLE
+#\\\|HYSRYJNWBEWLL4QYNOWZVKNHUBLXVOJDDB3JSNIR4PTU7OHT4PU \ / AMOS7 \ YOURUM ::
+#\[7]NFGSHEQRPA64JNK67RCUWIHCEUR5V7ZKEJN6PIY2UXG5QUO4WIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

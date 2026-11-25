@@ -1,0 +1,28 @@
+## [:< ##
+
+# name   = coding.remind.watch
+# descr  = (re)arm the wake on a live session registration
+# return = TRUE when both commands were buffered
+
+## a fired entry is final under its id : removed, then added again          ##
+## [ as coding.handover.arm ]. the id is not a 'remind-<digits>' one : list ##
+## and drop never see it                                                    ##
+
+<coding.remind.watching> = TRUE;
+<[park.send]>->( qw| bucket-remove |, qw| reminder-wake | );
+return <[park.send]>->(
+    qw| bucket-add |,
+    join( ' ',
+        qw| reminder-wake on=claude.session.registered |,
+        qw| action=send-command |,
+        "command=\x22coding.remind-wake\x22",
+        "reason=\x22reminders : a live session registered\x22" ),
+    qw| coding.handler.remind_reply |,
+    { 'label' => qw| watch | }
+);
+
+#,,,,,,.,,..,,...,.,,,,,.,,,.,,,,,.,.,,.,,,,,,.,.,...,...,..,,.,,,.,,,..,,,,.,
+#TVSJKJPZN4E6NVRDWXNAOENEYSQKEBG7LBSMIK7TEEZK5UOOU4UVDYNKFD2GJMGG56DVS4PJKG4YS
+#\\\|NT6QRGT2ELVPOUUWDSGKJZO5FYMEFLCDUO7FTWWNNUCCKZGLHDJ \ / AMOS7 \ YOURUM ::
+#\[7]DGY7VETFWS4NTS2KM4NZLSVOTYQT67U5UC57C2FL7LFDWFMFCMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

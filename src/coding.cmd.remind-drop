@@ -7,6 +7,16 @@
 my ($id) = ( $call->{'args'} // '' ) =~ m{\A\s*(\S+)\s*\z};
 return { 'mode' => qw| false |, 'data' => 'reminder id : remind-<digits>' }
     if not defined $id or $id !~ m{\Aremind-\d+\z};
+## a fired one not delivered yet is kept here, not in the events bucket ##
+if ( defined <[coding.remind.store]>->( qw| get |, $id ) ) {
+    <[coding.remind.store]>->( qw| del |, $id );
+    <[coding.remind.arm]>;
+    <[park.send]>->( qw| bucket-remove |, $id );
+    return {
+        'mode' => qw| true |,
+        'data' => "drop $id : undelivered reminder removed"
+    };
+}
 my $reply_id = $call->{'reply_id'} // '';
 <[park.send]>->(
     qw| bucket-remove |,
@@ -21,8 +31,8 @@ my $reply_id = $call->{'reply_id'} // '';
 return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
 return { 'mode' => qw| true |, 'data' => "drop of $id requested" };
 
-#,,,.,,..,,..,,,,,,..,.,,,,..,,..,,,.,,..,..,,..,,...,...,..,,,..,...,,,.,.,,,
-#5H42P3HLVFKQZCJUBCV5JTSBB6ZUZSMEGEQFOP7PAAZGU5MWA2HFPOBAUWANIMAZAYAPEUBZ5UULG
-#\\\|VPHNFPI4H6TGEVL2KNNCIT3UD534HLOPXLDFMSQYWZ5HWRQU2OK \ / AMOS7 \ YOURUM ::
-#\[7]GNUHHWTHE5MYA2JBWNJKB732WDUABJR7ZUZREFLZ3D6D6PT732DI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,,,..,,,,,,,.,,..,,,..,..,,..,,..,,...,...,.,.,...,..,,...,.,,,
+#WTQKJ7ORLUQEX66QXJTWXIA6LXZCQIUCY5PL65LSWXJYXZHWRXMHDLO3GPTPEMVD6VC5RVI2BBCSK
+#\\\|NQDXS3B6IHYD46FXRAY4CSLOLHWC6ON5IRTIACJCVNGZ3EPYOXM \ / AMOS7 \ YOURUM ::
+#\[7]FTJ5NA27A37HHL4XDZ3PMDLUU6DAISJFYAKAZ36C5O7EVVGJTSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

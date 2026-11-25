@@ -73,6 +73,10 @@ my $session_registered   = 0;
 ## [ ~13 min, jittered, no round interval ]                             ##
 my $session_register_next  = 0;
 my $session_register_every = 13 * 60;
+## after a broken cube link, or a failed try : the cube \ claude zenka may ##
+## still be starting. short growing jittered delays, up to the 13 min      ##
+my $session_retry_start = 2.1;
+my $session_retry_delay = $session_retry_start;
 
 my $auth_user = sprintf 'unix-%s',
     ( $ENV{'PROTOCOL_7_BIN_P7_USER'} // $ENV{'USER'} // $ENV{'LOGNAME'}
@@ -1630,8 +1634,16 @@ while ( not $stdin_eof ) {
         $left = 1     if $left < 1;
         $wait = $left if not defined $wait or $left < $wait;
     }
-    my @ready = IO::Select->new( \*STDIN, @open_fh )->can_read($wait);
+    ## the idle cube link is watched too : eof is seen at once ##
+    my @ready
+        = IO::Select->new( \*STDIN, ( $cube_sock // () ), @open_fh )
+        ->can_read($wait);
     foreach my $fh (@ready) {
+        next if not defined fileno($fh);    ## closed in this round ##
+        if ( defined $cube_sock and $fh == $cube_sock ) {
+            cube_idle_read();
+            next;
+        }
         if ( fileno($fh) == fileno(STDIN) ) {
             my $got = sysread( STDIN, $stdin_buf, 65536, length $stdin_buf );
             next           if not defined $got and $OS_ERROR{'EINTR'};
@@ -2034,7 +2046,7 @@ sub tool_p7_command {
         return send_tool_result( $id, 'command is required', 1 );
     }
 
-    my ( $ok, $response ) = cube_command($command);
+    my ( $ok, $response ) = cube_command( _session_remind_target($command) );
     send_tool_result( $id, $response, $ok ? 0 : 1 );
 }
 
@@ -2351,6 +2363,24 @@ sub cube_connect {
     return $cube_sock;
 }
 
+## the idle link became readable : nothing is due between commands, so eof, ##
+## an error or stray bytes all end it. a peek only                          ##
+## [ the socket mode stays ] ; no 'close' line to a dead peer               ##
+sub cube_idle_read {
+    return if not defined $cube_sock;
+    my $peek = '';
+    my $got  = recv( $cube_sock, $peek, 1, MSG_PEEK() | MSG_DONTWAIT() );
+    return
+        if not defined $got
+        and ( $OS_ERROR{'EAGAIN'} or $OS_ERROR{'EINTR'} );
+    log_msg('cube link broken [ idle ] : the session registers again');
+    close($cube_sock);
+    $cube_sock            = undef;
+    $session_register_due = 1;
+    $session_retry_delay  = $session_retry_start;
+    return;
+}
+
 ## send a multiline command [ command+\n headers\n\n body\n.\n ] headers:
 ## hashref of key=>value, body: string (may contain newlines)
 sub cube_command_multiline {
@@ -2440,6 +2470,8 @@ sub cube_disconnect {
         sock_write( $cube_sock, "close\n" ) if $cube_sock->connected;
         close($cube_sock);
         $cube_sock = undef;
+        ## a dropped link : the main loop registers the session again ##
+        $session_register_due = 1;
     }
 }
 
@@ -5022,7 +5054,10 @@ sub _claude_run_start {
     open( CLAUDE_RUN_IN, '<', '/dev/null' )
         or return send_tool_result( $id, "/dev/null : $OS_ERROR", 1 );
     my $out_fh = Symbol::gensym();
-    my $pid    = eval {
+    ## a dispatched run is no live session : its own mcp server must not ##
+    ## register [ a session-post would land in the run as a user turn ]  ##
+    local $ENV{'P7_SESSION_REGISTER'} = qw| no |;
+    my $pid = eval {
         IPC::Open3::open3( '<&CLAUDE_RUN_IN', $out_fh, undef, '/bin/sh',
             '-c', $cmd );
     };
@@ -5216,6 +5251,7 @@ sub _session_inbox_post {
 ## token travels only in the body of the cube call [ never args, log ] kimi ##
 ## runs this server without the env : no registration                       ##
 sub _session_live_env {
+    return if ( $ENV{'P7_SESSION_REGISTER'} // '' ) eq qw| no |;
     my $path  = $ENV{'CLAUDE_CODE_MESSAGING_SOCKET'} // '';
     my $token = $ENV{'CLAUDE_CODE_MESSAGING_TOKEN'}  // '';
     return if not length $path or not length $token or not -S $path;
@@ -5226,6 +5262,23 @@ sub _session_live_name {
     my $name = $ENV{'P7_SESSION_NAME'} // '';
     $name = sprintf 'claude-%d', getppid() if $name !~ m|\A[\w.\-]{1,64}\z|;
     return $name;
+}
+
+## a reminder to 'session' sent through this server means the caller's own ##
+## session : named here, the zenka cannot tell the caller. unregistered    ##
+## [ a dispatched run, kimi ] : sent as it is                              ##
+sub _session_remind_target {
+    my $command = shift;
+    return $command
+        if not $session_registered
+        or $command !~ m{\A\s*(?:cube\.)?coding\.remind\s};
+    my $target = 'to=session:' . _session_live_name();
+    return $command
+        if $command =~ s{(?<!\S)to=session(?!\S)}{$target};
+    ## a quoted time value is no place to look for the key ##
+    return $command
+        if ( $command =~ s{="(?:[^"\\]|\\.)*"}{=}gr ) =~ m{(?<!\S)to=};
+    return $command =~ s{(coding\.remind)(?=\s)}{$1 $target}r;
 }
 
 sub _session_register {
@@ -5244,8 +5297,14 @@ sub _session_register {
     $session_register_due = 0;
     my $was = $session_registered;
     $session_registered = $ok ? 1 : 0;
-    $session_register_next
-        = time + int( $session_register_every * ( 0.87 + rand(0.26) ) );
+    my $delay = $session_register_every;
+    if ($ok) {
+        $session_retry_delay = $session_retry_start;
+    } elsif ( $session_retry_delay < $session_register_every ) {
+        $delay = $session_retry_delay;
+        $session_retry_delay *= 1.2;
+    }
+    $session_register_next = time + $delay * ( 0.87 + rand(0.26) );
     log_msg( 'live session register : %s', $ok ? 'done' : $reply // '-' )
         if not $ok or not $was;
     return $session_registered;
@@ -7238,8 +7297,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,,,,,..,,,.,,...,...,,,.,..,,,,,,,..,.,.,..,,...,...,.,,,.,,,,,,,,.,,,,,,
-#J4VWS7F6DYN5SB2GY4QAGNZT6JJAQQ7JBBQ3Y6OWPAZZ7XXGZ3DJ3MQCIMFUMLC2HS2DWMT5QLEN2
-#\\\|TQSIXDNYP7ZDTAKCA7FWXV6TYBHSJM3BW6EMF6TAUVKVY4E6YOK \ / AMOS7 \ YOURUM ::
-#\[7]UXN3LAQYSXIHHYD3M7O7D6C3GHEXS2T2UNWTKAWT4SQMXBSRO4DA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,..,,,,.,,..,,,,,,..,.,.,,,.,..,,...,...,...,,..,,,,,..,,,.,,
+#N2XQJRO6NCIFSOQUVGRJZWWO33Q4JRCL7QRZENLUO7EBQ5HHHFFT4TNN5GN2JBKZBW3KKQLSA7ABA
+#\\\|EQOGBSYTVD52ZPDUSAD6C6NTBRYRNOROISS57MSUWFTCNC5XRZK \ / AMOS7 \ YOURUM ::
+#\[7]PD32P43ZGNLZLKHHXOORKB36TDSBH7PBWXOA3YE7BOZOI6E73WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

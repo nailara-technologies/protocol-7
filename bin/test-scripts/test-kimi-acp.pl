@@ -163,8 +163,14 @@ $code{'file.zenka_dir.write'} = sub {
 };
 
 ## the cube : recorded, nothing is delivered ##
+my @start_routes;    ## the run.start signals, apart from the rest ##
 $code{'protocol-7.route-send'} = sub {
-    push @routes, shift;
+    my $route = shift;
+    if ( ( $route->{'call_args'}{'args'} // '' ) =~ m{\Akimi\.run\.start } ) {
+        push @start_routes, $route;
+    } else {
+        push @routes, $route;
+    }
     return TRUE;
 };
 $code{'protocol-7.command.send.local'} = sub {
@@ -551,6 +557,15 @@ ok( $r->{'data'} =~ m{cancel sent}, 'cancel : session/cancel sent' );
 ok( pump( sub { @{ signals() } >= 3 } ),
     'cancel : cancelled, then the queued prompt runs and ends' );
 is_sig( 1, "kimi.run.done state=cancelled session=$sid" );
+ok(
+    (   grep {
+            ( $_->{'call_args'}{'args'} // '' )
+                =~ m{\Akimi\.run\.start session=\Q$sid\E turn=\d+\z}
+                and $_->{'reply'}{'params'}{'signal'} eq 'kimi.run.start'
+        } @start_routes
+    ) == 3,
+    'signal : kimi.run.start for each prompt, with session and turn'
+);
 is_sig( 2, "kimi.run.done state=end_turn session=$sid" );
 ok( fake_log() =~ m{^cancel$}m, 'cancel : the child saw the notification' );
 $r = cmd( 'acp-cancel', '' );
@@ -867,8 +882,8 @@ ok(
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,.,,,.,,,,,,.,,,..,,,,.,.,.,,.,,,..,...,..,,...,...,.,.,.,,,,,.,.,.,.,,,
-#OUK52Z5VX52JXWIALDZIBIAHWICJI5W4FTTMKJXDK5ZMH62SZ7NSUM3C6AVWKR5PJ3SVZEV3BNV4C
-#\\\|4VZFOQRSA23JC6RS6EY5KC5UITN4MLKJRGVJRZNBBVB3VN2UZUU \ / AMOS7 \ YOURUM ::
-#\[7]WUZV45FBUS7M6XZNYGBNEOWDQFZDB7IT3W4LOXTLLBJPCCGYWABA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,..,,,..,,,,,.,.,,..,.,.,,.,,,,.,..,,...,...,.,.,.,.,...,,,,,.,,,
+#NOFL4BTXSHDVCCGG3H5MSDSKYMHOLFKJ442H4ORHUJWLB765TDO33DGILB5CZ3WDSYOPHCWZR52MU
+#\\\|LWPZEHYP27JXKZMRUQFJBLMSATZ3DV3NFEAHEVHI4IHP5R2S6UJ \ / AMOS7 \ YOURUM ::
+#\[7]4J45MJBPFZIPXY6D4UAS66ZNJV7X63HYSFYV3H3HPXXALK2ZDCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

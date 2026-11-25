@@ -53,8 +53,8 @@ foreach my $path (@paths) {
         sprintf( '%.1f%%', $m->{'free_percent'} ),
         $m->{'inodes_counted'}
         ? sprintf( '%d/%d', $m->{'inodes_used'}, $m->{'inodes'} )
-        : qw| - |,
-        $m->{'inodes_counted'} ? $m->{'inodes_free'} : qw| - |,
+        : 'n\a',
+        $m->{'inodes_counted'} ? $m->{'inodes_free'} : 'n\a',
         $trend,
         $duration->( $m->{'eta'} ) );
     next if not $m->{'jobs'}->@*;
@@ -70,8 +70,8 @@ foreach my $path (@paths) {
 }
 return { qw| mode | => qw| size |, qw| data | => $table };
 
-#,,,.,...,,..,.,,,,,,,,,.,,..,.,,,..,,...,.,,,..,,...,...,.,,,,,.,.,,,,..,,,.,
-#T4QLE66RZCDICCVBIDGNHNHB3TRUWPYYUTJP6GGLICSIUWTYN4B5SQJFXXCV6XFN7LGUTQKCDBGVS
-#\\\|VIEFLKRUYOVZ75DOGWCCXZAP5YYDAP5DQJB7WGSB6VV4DQHKIBR \ / AMOS7 \ YOURUM ::
-#\[7]DB5ZQ6HSBNTYNZYGGH56VETFITPHPQEQ5H6YXOIFXRNFIDO674AQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,.,,,..,,,,.,...,,,,,...,..,,..,,...,...,.,.,,,.,.,.,,,.,,.,,
+#KAI5BKZOIT63Y7ZT6AN3O5WRHWZ3I7WJYCDAETY3ECLHM623NTKTX2AUNEMKCEP2DM3PZTWSS3OCG
+#\\\|6MJWDC3IRNQZO2GHGZSPX46AT2SKXTMLK37KTKES33RGFYMO25P \ / AMOS7 \ YOURUM ::
+#\[7]IBD4BVWHORSLQRUNROWCDRSMWN7IV762ITNHTU6BRMFEONH5JGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

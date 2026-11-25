@@ -1,0 +1,47 @@
+## [:< ##
+
+# name   = coding.remind.failed
+# descr  = every path failed : keep the reminder, retry
+# args   = delivery hash [ id text round reasons ]
+
+## dropped meanwhile, or an overdue round already replaced : nothing to do ##
+
+my $in = shift // {};
+my $id = $in->{'id'};
+my $r  = <[coding.remind.store]>->( qw| get |, $id ) // return FALSE;
+return FALSE if ( $r->{'round'} // '' ) ne ( $in->{'round'} // '' );
+
+my $first = ( $r->{'tries'} // 0 ) == 0;
+$r->{'tries'}  = ( $r->{'tries'} // 0 ) + 1;
+$r->{'status'} = qw| undelivered |;
+$r->{'reason'} = join ' ; ', @{ $in->{'reasons'} // [] };
+my $again = delete $r->{'again'};
+<[coding.remind.store]>->( qw| set |, $id, $r );
+
+if ($first) {
+    <[base.logs]>->(
+        0,   '<< reminder %s not delivered : %s >>',
+        $id, $r->{'text'}
+    );
+    <[base.logs]>->(
+        0,   ':. reminder %s kept as undelivered [ %s ]',
+        $id, $r->{'reason'}
+    );
+    <[coding.remind.watch]>;
+    <[coding.remind.arm]>->(TRUE);
+} else {
+    <[base.logs]>->(
+        2,   ':. reminder %s still undelivered [ %s ]',
+        $id, $r->{'reason'}
+    );
+    <[coding.remind.arm]>;
+}
+## a session registered while this round was on its way ##
+<[coding.remind.send]>->($id) if $again;
+return FALSE;
+
+#,,,.,..,,,,,,,..,,,.,,,,,,,.,,.,,,..,..,,,,,,.,.,...,...,,..,,.,,,,.,..,,,..,
+#DJY3DA7LGCR3NA2B67LYAGQYSWOQSLWBZRNMYCCCRA5VJPMIOD4I5KXEU76YSH3ZYULQONJKN2YJW
+#\\\|B3RLLM2O2I2LXB6TNN6TPGPZYU7KVDYQ5NUMHIBCMW7355LEKIV \ / AMOS7 \ YOURUM ::
+#\[7]C7NOHPEWBFQ7JER3QLXY2ENC5N5AXQ3AEN2IWWW5HP3HJC2G4KCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

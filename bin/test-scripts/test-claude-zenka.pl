@@ -95,6 +95,7 @@ sub load_module {
 ## stubs : log, sender, timers, io watchers, idle timeout ##
 
 my @sent;      ## "command | args" ##
+my @starts;    ## the run.start signals, apart from the rest ##
 my @timers;    ## add_timer calls ##
 my ( $paused, $resumed ) = ( 0, 0 );
 my $var_dir = tempdir( CLEANUP => 1 );
@@ -107,8 +108,10 @@ $code{'file.zenka_dir.data_path'}           = sub {$var_dir};
 $code{'base.zenki.pause_ondemand_timeout'}  = sub { $paused++ };
 $code{'base.zenki.resume_ondemand_timeout'} = sub { $resumed++ };
 $code{'protocol-7.command.send.local'}      = sub {
-    my $c = shift;
-    push @sent, join ' | ', $c->{'command'}, $c->{'call_args'}{'args'} // '-';
+    my $c    = shift;
+    my $line = join ' | ', $c->{'command'}, $c->{'call_args'}{'args'} // '-';
+    if   ( $line =~ m{ claude\.run\.start } ) { push @starts, $line }
+    else                                      { push @sent,   $line }
     return TRUE;
 };
 $code{'event.add_timer'} = sub { push @timers, shift; return TRUE };
@@ -267,6 +270,13 @@ ok( @sig == 2
     'signal : claude.run.done state=ok with session, cost, turn'
 ) or say "#   got : @sig";
 ok( $resumed >= 2, 'result : the idle timeout resumes' );
+ok(
+    (   grep {
+            m{\Acube\.events\.signal \| claude\.run\.start session=\Q$session\E turn=1\z}
+        } @starts
+    ),
+    'signal : claude.run.start with session and turn'
+);
 ok( abs( $data{'claude'}{'cost'} - 0.025 ) < 1e-9, 'result : cost recorded' );
 
 open my $lfh, '<:encoding(UTF-8)', "$var_dir/events.log";
@@ -458,8 +468,8 @@ ok( ( $pr->{'error'} // '' ) =~ m{task-continue or claude-send},
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,.,..,,.,.,...,,.,,..,,.,,,..,,...,,.,,.,,,..,,...,...,.,,,.,,,,..,.,.,,,,,
-#2W6NXZT6RW3FT2ASBRW275BIZT6VGL374LKJUNPESQ7H67F2BYM5OFA7TFAOHOV3D7AAQBEPITMME
-#\\\|N3YC64KMG5Q2PVTOX5D6PEUC3JUEN5SLZZKWIVUU2RAVJXH7O6G \ / AMOS7 \ YOURUM ::
-#\[7]2HNAJHHSWDEZX5VXW74AGEJQY7UB5DBLWFMPBZSEHUM7U7SL2YCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,..,,.,,,.,,,..,.,,,,..,,..,,.,,..,,...,..,,.,.,,.,,.,.,,,.,,..,
+#JZR3RN7FF7MQX34DM6KW3EULCX7QMO3XNDFX4ITYKU64V5DO5VNNMJ4GBVPDZC7XRWG2HNBZSNXL2
+#\\\|CBGRHEQO6OLHBAENGNVWCBQJAIMXUGFWFDJYUXR3AZRSUU6Q2E7 \ / AMOS7 \ YOURUM ::
+#\[7]RTDF2QU5MQ627R6B4ZP6MGHQTN4C2ZIE6ZAPMQ5NGJMCB7EDFUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,41 @@
+## [:< ##
+
+# name   = coding.remind.send
+# descr  = one delivery round of a kept reminder
+# args   = reminder id
+# return = TRUE when a command is on its way
+
+## one round at a time : a record already 'sending' is left alone, until ##
+## its answer is overdue [ <coding.remind.stale_seconds> ]               ##
+
+my $id    = shift                                       // '';
+my $r     = <[coding.remind.store]>->( qw| get |, $id ) // return FALSE;
+my $stale = <coding.remind.stale_seconds>               // 89;
+return FALSE
+    if $r->{'status'} eq qw| sending |
+    and time - ( $r->{'since'} // 0 ) < $stale;
+my $round = ++<coding.remind.round>;
+$r->{'status'} = qw| sending |;
+$r->{'since'}  = time;
+$r->{'round'}  = $round;
+<[coding.remind.store]>->( qw| set |, $id, $r );
+my ( $session, $target ) = $r->{'to'} =~ m{\A(session)(?::([\w.\-]+))?\z};
+my $paths
+    = defined $session
+    ? [ qw| session |, qw| notify | ]
+    : [ qw| notify |, qw| session | ];
+return <[coding.remind.deliver]>->(
+    {   'id'      => $id,
+        'text'    => $r->{'text'},
+        'paths'   => $paths,
+        'session' => $target,
+        'round'   => $round,
+        'reasons' => []
+    }
+);
+
+#,,,.,.,.,,,.,,..,,..,,.,,,,,,.,.,...,,,.,.,,,.,.,...,...,.,.,.,.,,,.,,,.,,,.,
+#24K7EEIBWBWTAR7UOFLQN4U2KEC5KH7IBH6UPNAAEKNBACXZIV6WZ5FTKIGOHKBFBCHEKOCFHWHUW
+#\\\|PXJANJ4L3TZVCVVWZZR4R7YNUTPEYFDHAJ3F7HNRHXEDTBEGYIW \ / AMOS7 \ YOURUM ::
+#\[7]JX2JUHYLMSHSYEZJZ5O344YVOWUG3DFRQ775WX3E5PJH7OHEO6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

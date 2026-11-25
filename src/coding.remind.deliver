@@ -10,13 +10,17 @@
 
 my $in    = shift // {};
 my @paths = @{ $in->{'paths'} // [] };
-my $path  = shift @paths // return FALSE;
-my %send  = (
-    'session' =>
-        [ qw| claude.session-post |, "reminder : $in->{'text'} from=coding" ],
+my $path  = shift @paths // return <[coding.remind.failed]>->($in);
+## the recorded target ; without one the claude zenka never picks ##
+my $to   = defined $in->{'session'} ? "to=$in->{'session'} " : '';
+my %send = (
+    'session' => [
+        qw| claude.session-post |,
+        "${to}reminder : $in->{'text'} from=coding"
+    ],
     'notify' => [ qw| notify.message |, "reminder $in->{'text'}" ]
 );
-my $cmd  = $send{$path} // return FALSE;
+my $cmd  = $send{$path} // return <[coding.remind.failed]>->($in);
 my $sent = <[protocol-7.route-send]>->(
     {   'command'   => $cmd->[0],
         'call_args' => { 'args' => $cmd->[1] },
@@ -28,12 +32,11 @@ my $sent = <[protocol-7.route-send]>->(
 );
 return TRUE if $sent;
 <[base.logs]>->( 1, ':. reminder %s : %s not routable', $in->{'id'}, $path );
-return @paths
-    ? <[coding.remind.deliver]>->( { %{$in}, 'paths' => \@paths } )
-    : FALSE;
+push @{ $in->{'reasons'} }, "$path : not routable";
+return <[coding.remind.deliver]>->( { %{$in}, 'paths' => \@paths } );
 
-#,,,,,...,..,,,,,,...,,,,,,.,,.,,,..,,,..,.,,,..,,...,...,,..,.,,,.,,,.,.,.,,,
-#B7AR6T7FALDL2PAQPYZD4VTPPU5OWX3RSKVCHV3UMJB4IB55R264IFNSTJ44FJ3U3HMRI3E2DSSOC
-#\\\|TQC6NYYCEWARPTOG2FXB2UVSS3OWFZGZUWTPSKNFR26PGZCNVUM \ / AMOS7 \ YOURUM ::
-#\[7]MTFLNSGTQNKX33RUXXLHR3YMXYVTLYQHPFCQDEDVUXHFPAZJXKDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,..,,,,,,...,,,.,.,,,,.,,,.,,..,,..,,...,..,,...,.,.,,..,,.,,,..,
+#4OALH6KOETVQ25KBGUUXG3VMXU3OCP5ESBYZ3RBO4K3U4CGUXSPWOR3YWNDCM4CAOXV67LU2K6GL4
+#\\\|RDX47ZZCITJYJ4NI5ZEITSBAO2KGQRIVOYKP2THBMFT45BUBGQB \ / AMOS7 \ YOURUM ::
+#\[7]MOL6T2Q374OUV6PMOGBHMLETB4POSETKEPWNKA3CU4SUCBRK24DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

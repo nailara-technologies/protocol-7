@@ -2,20 +2,35 @@
 
 # name   = claude.live.post
 # descr  = one message into a registered live session
-# args   = { text from name [ default : newest ] }
+# args   = { text from name [ needed when several ] }
 # return = { name } or { error }
 
 ## a vanished socket path or a failed connect \ write drops the session ##
-## [ its token with it ] : the mcp server registers it again            ##
+## [ its token with it ] : the mcp server registers it again. without a ##
+## name only a single registration is used, never picked by age         ##
 
 my $arg      = shift // {};
 my $sessions = <[claude.live.sessions]>;
 my $name     = $arg->{'name'};
 if ( not defined $name ) {
-    ($name) = CORE::sort {
-               $sessions->{$b}{'since'} <=> $sessions->{$a}{'since'}
-            or $a cmp $b
-    } CORE::keys %{$sessions};
+    ## among several a gone socket is no candidate [ claude.sessions ] ; a ##
+    ## single one is dropped below, with its reason                        ##
+    my @gone
+        = CORE::keys %{$sessions} > 1
+        ? CORE::grep { not -S $sessions->{$ARG}{'socket'} }
+        CORE::keys %{$sessions}
+        : ();
+    foreach my $gone (@gone) {
+        CORE::delete $sessions->{$gone};
+        <[base.log]>->( 1, ": live session $gone dropped [ socket gone ]" );
+    }
+    my @names = CORE::sort CORE::keys %{$sessions};
+    return {
+        'error' => CORE::sprintf 'several live sessions [ %s ] : to=<name>',
+        CORE::join( ', ', @names )
+        }
+        if @names > 1;
+    $name = $names[0];
 }
 return { 'error' => 'no live session registered' } if not defined $name;
 my $session = $sessions->{$name}
@@ -49,8 +64,8 @@ return $drop->('write failed')
 <[base.log]>->( 1, ": live session $name : message posted" );
 return { 'name' => $name };
 
-#,,,.,,..,.,,,,.,,..,,..,,...,,,.,,..,,,,,,,.,..,,...,...,,,,,...,...,...,,..,
-#H7I5M7FSVEIH3GVQ3C6WY7EKDX6JM2ABTNESBMIM7MVNGCYRHBL2FBAA25KRQ6RKQXRUYHARMNPOG
-#\\\|5NTEFJRSEQREZ25I67LEDXOL7U63FZMWMFODW64DTLNPPG5ZMEQ \ / AMOS7 \ YOURUM ::
-#\[7]4HUCHRN46JBITTT5QTW36PEZPES6244PUL3FAR6FCN2SMNWF4GCQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,...,.,.,.,,,..,,,,.,,.,,..,,,,.,..,,...,..,,,..,..,,,,.,.,,,..,,
+#4A6HFL2YCJ5ERE6QXBHXGRFSQHRNIKFQJICKDKN5KZXNENE7K34AGZKUWWOL67GQCKJUZ4YYXN6QQ
+#\\\|B7DHCYLV5HW6WRWMPLPZYCDV6CKZ2ANREQ7UCPZLFPAEIAHELOP \ / AMOS7 \ YOURUM ::
+#\[7]VYE24FQCC4C7QBSASPBGMBV7YJ6XEFCLQBS7B6EQ6ASU2B6KDGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

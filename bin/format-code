@@ -465,6 +465,10 @@ while ( my $file_path = shift @files ) {
             }
         }
 
+        ## the .cmd. header's own variables, declared again ##
+        push @real_errors, cmd_header_redeclared($orig_text)
+            if $file_path =~ m{(?:\A|/)src/[^/]*\.cmd\.[^/]*\z};
+
         if (@real_errors) {
             warn color_msg( join_real_errors( $file_path, @real_errors ),
                 $file_path );
@@ -571,6 +575,64 @@ if ($report_mode) {
 
 say "\n$blacklight:$reset";
 exit( $report_mode and %reported ? 1 : 0 );
+
+##[ .cmd. modules : $call and $reply declared again ]##
+## the compiled-in .cmd. code header declares both [ bin/Protocol-7 ] : a ##
+## 'my' \ 'our' of either hides the header's one. as the loader : only in ##
+## the same scope [ the module's top level ], blocks and the heads of     ##
+## compound statements open their own. by token : comments and strings    ##
+## never count                                                            ##
+sub cmd_header_redeclared {
+    my $text       = shift;
+    my $translated = p7_syntax__translate($text);
+    my $doc        = PPI::Document->new( \$translated ) // return ();
+    $doc->index_locations;
+    my @tokens = grep { $ARG->significant } $doc->tokens;
+    my ( @found, %hinted );
+    foreach my $i ( 0 .. $#tokens ) {
+        my $word = $tokens[$i];
+        next
+            if not $word->isa('PPI::Token::Word')
+            or $word->content !~ m{\A(?:my|our)\z}
+            or in_inner_scope($word);
+        my $j    = $i + 1;
+        my $list = $j <= $#tokens && $tokens[$j]->content eq qw| ( |;
+        $j++ if $list;
+        while ( $j <= $#tokens ) {
+            my $name = $tokens[$j]->content;
+            if (    $tokens[$j]->isa('PPI::Token::Symbol')
+                and $name =~ m{\A\$(call|reply)\z} ) {
+                my $var   = $1;
+                my $error = sprintf '%s $%s line %d', $word->content, $var,
+                    $word->line_number;
+                $error
+                    .= " [ hint : \$$var is pre-declared by the compiled-in"
+                    . ' .cmd. code header [ bin/Protocol-7 ] : $call holds'
+                    . ' the args hashref, $reply the reply hashref'
+                    . ' { mode, data } the footer returns when the routine'
+                    . ' ends without return. drop the "my" to use it, or'
+                    . ' rename your variable ]'
+                    if not $hinted{$var}++;
+                push @found, $error;
+            }
+            last if not $list or $name eq qw| ) |;
+            $j++;
+        }
+    }
+    return @found;
+}
+
+## below the document : inside a block, or a compound statement ##
+## [ its loop variable and condition have their own scope ]     ##
+sub in_inner_scope {
+    my $node = shift;
+    while ( $node = $node->parent ) {
+        return 1
+            if $node->isa('PPI::Structure::Block')
+            or $node->isa('PPI::Statement::Compound');
+    }
+    return 0;
+}
 
 ##[ is this a P7 module [ i.e. one the <[...]>/<...> sugar actually gets   ]##
 ##[ expanded for ] , not a plain standalone script/library that merely    ]##
@@ -2824,8 +2886,9 @@ sub named_unary_deref_tokens {
 
     my @found;
     my @tokens = (
-        @{ $doc->find('PPI::Token::Word')     // [] },
-        @{ $doc->find('PPI::Token::Operator') // [] }
+        ## find answers '' without a match : '//' would keep it ##
+        @{ $doc->find('PPI::Token::Word')     || [] },
+        @{ $doc->find('PPI::Token::Operator') || [] }
     );
     @tokens = sort {
                $a->location->[0] <=> $b->location->[0]
@@ -3557,8 +3620,8 @@ sub show_progress {
     );
 }
 
-#,,..,,,.,,..,.,.,,..,,..,.,.,.,,,,,,,.,.,,,,,..,,...,...,...,..,,,,,,..,,.,.,
-#4TSSOAEERGSZ2KCUOBULSWG2MGQFOTZ3MZTLXIL7TCMRS452ACNCRBUA5C763Q6AZ5U2UWEBQQKC2
-#\\\|3F4T3BOJ2W6SCGOQLLJ6QXSTUUQ2O22QRWMJHC6CEKXR27H3ZPB \ / AMOS7 \ YOURUM ::
-#\[7]NMB5NGN6BWDFDJGHKJLPHPCII5AKSZYFIIVKDAIPUVUPW3OHQQCY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,.,,,,,,,..,..,,.,,,,.,,,,,,..,,..,,...,...,,..,..,,,..,.,,,,..,
+#3H5LQQGLMGDNXOSFFZXZWH3UWC7RNGMWN2FXVVUTJJG6AZO4NVLIKJGECCZIOR3OALUJYXLJYY6AA
+#\\\|NUNCRCINMF2J2I2T44JGTK3L6IVF3E7NPTINNBH67UPENK3IP4Q \ / AMOS7 \ YOURUM ::
+#\[7]FE3PTYMIDWIQCS6UNEE3CLZJ5WLP5DJNPRWC2EM7EHXYOFWAGEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

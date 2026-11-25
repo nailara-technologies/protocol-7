@@ -1,0 +1,23 @@
+## [:< ##
+
+# name   = coding.remind.lines
+# descr  = the kept reminders as list lines
+# return = list of lines, with the reason of each
+
+my $all = <[coding.remind.store]>->(qw| all |);
+my @lines;
+foreach my $id ( sort keys %{$all} ) {
+    my $r     = $all->{$id};
+    my $tries = $r->{'tries'} // 0;
+    push @lines,
+        sprintf '%s  %s  tries %d [ %s ] # %s [ to=%s ]',
+        $id, $r->{'status'}, $tries, $r->{'reason'} // 'on its way',
+        $r->{'text'}, $r->{'to'};
+}
+return @lines;
+
+#,,.,,.,.,,,.,.,,,..,,...,.,.,.,,,,.,,,,,,,,,,.,.,...,...,.,,,,,,,,,,,,,.,,.,,
+#554S3FPIRK7AJSUOVA2ARZC7623Y54MZIVZ3GENGWFSID4PI5B4Q4KPANEBBYXNPFCRIG4PKJYQNS
+#\\\|Q4VJUQTSBP4GHLY4SV5WTDYTKATLDZQBLH5LT6RT25QCQGQFKGS \ / AMOS7 \ YOURUM ::
+#\[7]LMP3JN4XNP6GGJF7RJVZ3V74TNO3SZSKV7SJLWWLM3SS6X4QHGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

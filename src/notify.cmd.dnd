@@ -12,8 +12,9 @@ $args =~ s{\A\s+|\s+\z}{}g;
 my ( $word, @opt ) = split m{\s+}, $args;
 $word //= '';
 
-my $dnd  = <notify.dnd.state> //= { 'on' => FALSE, 'until' => 0 };
-my $held = <notify.dnd.held>  //= [];
+<[notify.dnd.store]>;
+my $dnd  = <notify.dnd.state>;
+my $held = <notify.dnd.held> //= [];
 
 if ( $word eq qw| on | ) {
     my $until = 0;
@@ -32,8 +33,10 @@ if ( $word eq qw| on | ) {
         $until = time + $seconds;
     }
     %{$dnd} = ( 'on' => TRUE, 'until' => $until );
+    <[notify.dnd.store]>->(qw| save |);
 } elsif ( $word eq qw| off | ) {
     %{$dnd} = ( 'on' => FALSE, 'until' => 0 );
+    <[notify.dnd.store]>->(qw| save |);
 } elsif ( $word eq qw| clear-held | ) {
     foreach my $h ( @{$held} ) {
         <[protocol-7.command.send.local]>->(
@@ -43,6 +46,7 @@ if ( $word eq qw| on | ) {
         );
     }
     @{$held} = ();
+    <[notify.dnd.store]>->(qw| save |);
 } elsif ( length $word ) {
     return {
         'mode' => qw| false |,
@@ -57,8 +61,8 @@ $line .= sprintf ' until %s', scalar CORE::localtime( $dnd->{'until'} )
 $line .= sprintf ' [ %d held on the ticker ]', scalar @{$held} if @{$held};
 return { 'mode' => qw| true |, 'data' => $line };
 
-#,,,,,,,.,,..,..,,...,.,.,,,.,..,,,..,...,,..,..,,...,...,,.,,.,,,.,.,.,.,.,.,
-#64XB6ZHWLAHZYY6YGAXAIZ73HMBN5RK2CQ2CUMKNS4UNV4MDHOGVGVNQRK54KQDEYHPDRKSMJWMHE
-#\\\|UEUXFDYDAV4EWRK3Z7JFK42MORWQTILNAVECE2AGWAS4KZFURUX \ / AMOS7 \ YOURUM ::
-#\[7]YKVYAMOT7ZDSKGI2PJ7V3XUART4GKDOIV5GUXEIXCBBPET62SOAI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,,,.,..,,,..,,..,.,.,,.,,,..,..,,...,...,,.,,...,.,.,.,,,.,.,
+#Y6L4MFYH6DNQBQZWS5HVMP4HFEDTFOE2N2XWJ4QGXH47MTHBHJTL2EBDRAATNC6UCENFIQM5D5WI2
+#\\\|3E3KLOKZYRKG6OQDM4BGD4Y3A27JIF2IEASOLMIBWIII42I2YGT \ / AMOS7 \ YOURUM ::
+#\[7]BIP2SSA26BU6HXBUEGOXS3ZBVOL3HPQBW4L2YPFY7GLAULJIIKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

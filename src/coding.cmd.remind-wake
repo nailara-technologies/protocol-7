@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = coding.cmd.remind-wake
+# descr = a live session registered : retry reminders
+
+## sent by the events zenka from the watch entry [ coding.remind.watch ]. ##
+## a round still on its way is repeated once if it then fails             ##
+
+my $all = <[coding.remind.store]>->(qw| all |);
+return { 'mode' => qw| true |, 'data' => 'no undelivered reminders' }
+    if not keys %{$all};
+<[coding.remind.watch]>;
+foreach my $id ( sort keys %{$all} ) {
+    if ( $all->{$id}{'status'} eq qw| sending | ) {
+        $all->{$id}{'again'} = TRUE;
+    }
+    <[coding.remind.send]>->($id);
+}
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'retrying %d reminder(s)', scalar keys %{$all} )
+};
+
+#,,,,,,,.,,..,,.,,,..,.,,,.,.,.,,,,..,,,.,,,,,.,.,...,...,,,,,...,,,.,,,.,,,.,
+#4GTAKZCUSUC7FZZPWKCV7HAWZZD6VWVDTRF2IBDMDBL7RJDJSF53DVCTAULPR3VMC3DAU3AQ2LJ4C
+#\\\|QA4J3JMPP5TEMGN2M5FXFYCCD4RUSALKEHTEYTJSTYKNNZYXUMG \ / AMOS7 \ YOURUM ::
+#\[7]ESOJ5KJJ2YEEJSHE7DCAAGX5VMQTV76ADK66DLAUILXER664ICBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

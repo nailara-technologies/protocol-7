@@ -10,15 +10,23 @@ my $reply_id = $call->{'reply_id'} // '';
     qw| coding.handler.remind_reply |,
     { 'reply_id' => $reply_id, 'label' => qw| list | }
     )
-    or return {
-    'mode' => qw| false |,
-    'data' => 'events zenka not reachable'
+    or do {
+    my @kept = <[coding.remind.lines]>;
+    return {
+        'mode' => qw| false |,
+        'data' => 'events zenka not reachable'
+        }
+        if not @kept;
+    return {
+        'mode' => qw| size |,
+        'data' => join( "\n", @kept, 'events zenka not reachable' ) . "\n"
+    };
     };
 return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
 return { 'mode' => qw| true |, 'data' => 'reminders requested' };
 
-#,,..,,..,.,,,,,.,..,,...,..,,.,.,,.,,...,..,,..,,...,.,.,,..,.,.,,.,,,,.,,,.,
-#UUL6BSRFG5ZB3BEUUXMJ4KPFJ2QBPUOPDF3GFM5VPGXB62THLP3GXYI4L6V4DZAFUSTVEKYKO66LE
-#\\\|5N7TK2NIPNTLWAKHAUGQMK2XLIYM6XAWVYQX2BIYSLZ5E25HSZ3 \ / AMOS7 \ YOURUM ::
-#\[7]3SGEOQKEAROMKOKW72WLCEOVLRY52BRO3R6UXSKHIDMXWMM6TYDA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,..,,.,.,,.,,.,.,..,,,,.,.,.,..,,...,...,,,.,..,,,,.,...,,..,
+#OQ2IMATXWK7HVVXD3S7LCCLNZDZ3BD7LBAM4IVWCELYE4AURJKOEJHTPFZNKNOA67PDFWTKTDQQTA
+#\\\|WLKS2OVSBPWPNU5CQLZGV4LZYJIX6UEYND5CJDCMZTNJT6NFMAC \ / AMOS7 \ YOURUM ::
+#\[7]CCYLYT3LQ6PJ7TPI5ILIHIBKJIR4HXRDRQP3YPVWOO3WZQKVNQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

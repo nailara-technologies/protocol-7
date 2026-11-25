@@ -1,0 +1,22 @@
+## [:< ##
+
+# name   = coding.remind.tick
+# descr  = retry timer : send what is still undelivered
+# args   = the timer event [ not used ]
+
+## also the first look after a start : the file is read here, after the ##
+## privilege drop. nothing kept : no timer is armed again               ##
+
+undef <coding.remind.timer>;
+my $all = <[coding.remind.store]>->(qw| all |);
+return TRUE if not keys %{$all};
+<[coding.remind.watch]>;
+<[coding.remind.send]>->($ARG) foreach sort keys %{$all};
+<[coding.remind.arm]>;
+return TRUE;
+
+#,,,,,...,.,.,,,,,,,.,...,,..,,,,,.,,,,,.,,.,,.,.,...,...,,..,.,,,,..,..,,,,,,
+#VTQAFHSCKYOGU5PEHLNCV5BSCDFYGKRQ22XTG6WMQGQYAHMLGUR4OCKSZW5C33OJHDDZI4MHLFLZO
+#\\\|TP4AOUITQH7352PQPOMKXWZ3I2AQOYFYIL4J4BRJO4SNBOAWVF2 \ / AMOS7 \ YOURUM ::
+#\[7]PKXR4KVUMJW4FLHDFFH4LF2KDQ7NUQ6Y255NHO4ST6XOSFZPDUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

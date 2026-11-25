@@ -28,14 +28,18 @@ if ( not $sent ) {
 <claude.turn_active>  = TRUE;
 <claude.turn_started> = time;
 <[claude.event.add]>->( qw| user |, $text );
+<[claude.signal.raise]>->(
+    qw| claude.run.start |,
+    { 'session' => <claude.session> // '-', 'turn' => <claude.turn> }
+);
 
 ## a running turn is work : the idle timeout waits ##
 <[base.zenki.pause_ondemand_timeout]>
     if defined $code{'base.zenki.pause_ondemand_timeout'};
 return TRUE;
 
-#,,,,,,..,,,.,...,.,,,.,.,,,,,,..,,,.,,,.,...,..,,...,...,...,..,,,.,,...,.,.,
-#7TYVM7VB5R5GRTUOKOHQZCRRL3KRI5SS37R4WH5ABWHLUY5YALJT6NPNFA5NOYVPIOYXGBPPTY64G
-#\\\|5V7PNEOCOHTZYGPKLSFEZPSOK4ZX6RTTNZ5AXOGA4PH3WRXAYXX \ / AMOS7 \ YOURUM ::
-#\[7]WSNGEVS66S736OSSNJW3U63JALJ62SRN3SNE22FC234NCEEFSICY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,,.,..,,.,.,,.,,,..,.,,,..,,,,.,..,,...,...,,,,,,..,...,,,.,,.,,
+#PDND7JZ2LOXSUGSSI52LG7R72QYKS5O3BZEHG5LBPVEC7DVVSP37WO7VIHVQTWV6CMXLTAK6G3WKS
+#\\\|BZ34QZE3S6YLCX25RRP2X5RTBQ77EJ5WB7ZWS2IDYTAKFPOAFVP \ / AMOS7 \ YOURUM ::
+#\[7]ESRTHZ4ZCBLNWNUUBK26CLIFAUPZJ6ZIVOMCQWDDI72TOYGRA4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,41 @@
+## [:< ##
+
+# name   = coding.remind.add
+# descr  = the events bucket entry of a new reminder
+# args   = { when time to text reply_id }
+# return = the command reply [ deferred \ true \ false ]
+
+my $in = shift // {};
+my ( $when, $to, $text ) = @{$in}{qw| when to text |};
+my $reply_id = $in->{'reply_id'} // '';
+
+## the id : milliseconds and a counter -- a fired entry is final under its ##
+## id, so a new reminder after a restart must not meet an old one          ##
+my $seq = ++<coding.remind.seq>;
+my $id  = sprintf 'remind-%d%02d', int( Time::HiRes::time() * 1000 ),
+    $seq % 100;
+my $quote = sub { "\x22" . ( shift =~ s{([\\\x22])}{\\$1}gr ) . "\x22" };
+my $args  = join ' ',
+    $id,
+    "$when=" . $quote->( $in->{'time'} ),
+    'action=send-command',
+    'command=' . $quote->("coding.remind-fire $id $to $text"),
+    'reason=' . $quote->("$text [ to=$to ]");
+<[park.send]>->(
+    qw| bucket-add |,
+    $args,
+    qw| coding.handler.remind_reply |,
+    { 'reply_id' => $reply_id, 'label' => "reminder $id" }
+    )
+    or return {
+    'mode' => qw| false |,
+    'data' => 'events zenka not reachable : no reminder'
+    };
+return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
+return { 'mode' => qw| true |, 'data' => "reminder $id requested" };
+
+#,,..,,..,,..,,..,,..,,.,,.,.,,,,,,..,,..,,.,,..,,...,...,.,.,,.,,,..,,..,,..,
+#5ETVROYEUNZU7BJV6QCRDBGXTZALAQX24BFQK6KBWIL42EVMQONQWAINT64R6EUCI4C7OU65HZ3U2
+#\\\|N7GQUF5ZWNOK367IDCE6KOLSCT5YMLDABWEQIM5YQDTZIDOXQQG \ / AMOS7 \ YOURUM ::
+#\[7]4SN4SXYRO3ZWF4ZXCIQHQIUUBW4EUT2D7NQO6ZSYRI4OEKUVNWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
