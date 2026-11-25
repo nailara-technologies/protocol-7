@@ -57,10 +57,11 @@ base pushed up to 71ba3f9d2a ; azurum deployed at 71ba3f9d2a.
    "context at N % : a good moment for a handover or a targeted compaction" -- an offer, with
    unless= [ a handover was just written ] ; fits task-elements.md's compaction-as-a-tool
  9. budget-aware resume [ owner ] : a dispatch that stops on a plan limit registers a reminder for the window reset [ the exact time from usage.kimi \ usage.claude -- one plan, to the second ; usage.plan rounds to 0.1 h ] ; at the reset the inbox offers to resume it [ kimi_continue / claude_continue with the session uuid ] -- an offer, unless= [ resumed already ]
- 10. sign \ commit job ids [ owner ] : p7-sign-<unix time>-<pid> \ p7-commit-.. -> ntime [ bin/dev/p7-sign-run, p7-commit, p7-sign-wait parse them ]
+ 10. sign \ commit job ids [ owner ] : also the reminder ids [ src/coding.remind.add : remind-<unix ms><counter> ] ;  [ STARTED by kimi, stopped at the 7d limit : partial diff in data/state/kimi-ntime-job-ids.patch, files reset to HEAD ; resume session_d15117af-0fd1-4bba-8bcb-c9b7551e16d2 after the reset, git apply the patch first ] p7-sign-<unix time>-<pid> \ p7-commit-.. -> ntime [ bin/dev/p7-sign-run, p7-commit, p7-sign-wait parse them ]
+ 11. small : coding.remind rejects an at= that p7c split at a space [ at=<date> alone became due at once ; the time landed in the text ]
 
-#,,..,..,,..,,,.,,,.,,,,,,,,.,,.,,.,.,.,,,.,.,..,,...,...,.,.,,,,,,.,,.,,,,,,,
-#DXWXLJG3HA6YUPPHKVBW35L3G3ES73KU7ZRHTO3UOMJ37RLYELPHZILLVDVMQTKBRMEOPYN6KEA6U
-#\\\|LSOZZB3PJCVEPXRSQA2EN7IR6AL3O5XHLRMUHE4OORHSTTHZLNY \ / AMOS7 \ YOURUM ::
-#\[7]OVTA42GSFUIVZQB6CU2HGTLKQ6MG3QN5T5BEKMUFOAK2H2OJ3QBA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,...,,.,,..,,,,,,..,,,,,,,.,,,..,..,,...,...,,..,.,,,,,,,,,,,,,.,
+#UDQPQ6DYFNQS5MZDWK3H4HLBGM6ZNHZ3AESNFZNHREYI3FHS2N2C5TMLUFV3NQUSZO4V44VIKKNAO
+#\\\|FYHBMWKNBH6IZTG5HVWPFLSDQ42LOZRXUEVW2SRWBYVSGXPFUDS \ / AMOS7 \ YOURUM ::
+#\[7]QBEUASQH7WEEQRGD5ZY7NFXLDXMQJAI77X5UNSEL6VWEPI6AE4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

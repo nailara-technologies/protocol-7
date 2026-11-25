@@ -20,6 +20,14 @@ my @bad   = grep { not m{\A(?:at|after|to|unless)\z} } sort keys %{$pairs};
 return $fail->("unknown key : @bad [ at after to unless ]") if @bad;
 my @when = grep { defined $pairs->{$ARG} } qw| at after |;
 return $fail->('one of at= or after=') if @when != 1;
+## at=<date> <time> : p7c split it at the space, the time would land in the ##
+## text and the bare date be due at once                                    ##
+return $fail->( "at : '$pairs->{'at'} $parsed->{'words'}[0]' was split at "
+        . "the space -- write "
+        . "at=$pairs->{'at'}T$parsed->{'words'}[0]" )
+    if defined $pairs->{'at'}
+    and $pairs->{'at'} =~ m|\A\d{4}-\d\d-\d\d\z|
+    and ( $parsed->{'words'}[0] // '' ) =~ m{\A\d\d?:\d\d(?::\d\d)?\z};
 my $to = $pairs->{'to'} // qw| session |;
 return $fail->('to : session[:<name>] \ panel \ notify')
     if $to !~ m{\A(?:session(?::[\w.\-]{1,64})?|panel|notify)\z};
@@ -53,8 +61,8 @@ if ( $to eq qw| session | ) {
 }
 return <[coding.remind.add]>->($in);
 
-#,,,.,...,..,,.,.,.,.,..,,,..,..,,,,,,,,,,,,,,..,,...,...,...,,,.,,..,..,,.,.,
-#SYKF2CKMG36TQUVIEPRQFMDZJKR7ZXITHQKZA24CKRXAH7CBQDZ7HFVWP5IEMX3UE7PN7XUA2755M
-#\\\|DVAH7LA7X2DFNAAADM2FFSQF7XSKE5U3A4L5WFSJPP6Q47GCVZD \ / AMOS7 \ YOURUM ::
-#\[7]BCSLEJJRYFBCK543SXCWVLIXA7KJRCR3E5BEU7NIDS4NTWSYESDY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,..,.,,,,,,,.,,,,,,,,,,,..,,.,,,..,,...,.,.,..,,,.,,.,,,,..,,,,,
+#UZ6VDZKMXJBMJNKXAXFJNGXL2YF2JHSCZH327S3JY2AD2WPKPIHHYZTA5JVR7CC74X4RHCLXR5E4Y
+#\\\|FKIAAFZ3QJQLTTKDMXD5233HFDAFC55F5XWHCHNM5HPHBOLIMCJ \ / AMOS7 \ YOURUM ::
+#\[7]Q4WPKEBVTPSMQJDGUONYU6VIMAFH7GQJVLWM3FIHCTUR2AOLHUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
