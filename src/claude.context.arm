@@ -1,0 +1,33 @@
+## [:< ##
+
+# name   = claude.context.arm
+# descr  = the context size timer, while a session with a sid is registered
+# return = TRUE when a timer is set
+
+return TRUE if defined <claude.context.timer>;
+## without its cfg [ 'reload source' alone ] the rhythm's default is under ##
+## a second : no timer then, the next registration tries again             ##
+if ( not defined <base.interval.cfg.type.claude-context.minutes> ) {
+    <[base.log]>->(
+        1, ': context size timer not armed [ interval cfg not loaded ]'
+    );
+    return FALSE;
+}
+my $sessions = <[claude.live.sessions]>;
+return FALSE
+    if not grep { defined $sessions->{$ARG}{'sid'} } keys %{$sessions};
+<claude.context.timer> = <[event.add_timer]>->(
+    {   'after' => <[base.interval.next]>->(
+            { 'type' => qw| claude-context |, 'state' => {} }
+        ),
+        'handler' => qw| claude.context.tick |,
+        'desc'    => 'context size of the live sessions'
+    }
+);
+return TRUE;
+
+#,,.,,.,.,.,.,,,.,,,.,,.,,,,.,..,,,..,.,.,...,..,,...,...,.,.,..,,.,,,,,,,..,,
+#5VIFYTOJYRJOQVXTNEKXI5HLD2UZYQN3XZ2LVO2TKFWU3QH3BDWMYVD6HPOENB26ALI3VCXW42KRA
+#\\\|SKI5GSLCUCHUGRH46SV2YGJPL5MAVZFUS2PCSG77VXLCBZYZST6 \ / AMOS7 \ YOURUM ::
+#\[7]ANROFV55XNHJIPFFF22FP3JUD7KDIXQOHWZFXLIJW4CSMHJGAUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

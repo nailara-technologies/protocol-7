@@ -40,6 +40,16 @@ claude.cfg.interrupt    = control
 ## readable event lines kept in memory [ claude.status \ claude.tail ]
 claude.cfg.buffer_lines = 377
 
+## context size reminder [ claude.context.check ] : a registered live    ##
+## session is offered a handover once per threshold                      ##
+## [ percent of the window ] ; none while a handover is younger than the ##
+## quiet minutes                                                         ##
+# claude.cfg.context_window                 = 1000000
+# claude.cfg.context_thresholds             = 70 85
+# claude.cfg.context_handover_quiet_minutes = 13
+base.interval.cfg.type.claude-context.minutes = 3
+base.interval.cfg.type.claude-context.jitter  = 0.08
+
 ## stop : TERM, then KILL when the child is still there after this delay ##
 base.interval.cfg.type.claude-stop.start      = 3
 base.interval.cfg.type.claude-stop.factor     = 1.6
@@ -66,8 +76,8 @@ modules.load = auth.client net protocol io.unix ui stream_child session_move \
 
 [zenka.loop]
 
-#,,.,,.,.,,.,,...,,..,,,,,,..,,..,.,.,.,,,...,..,,...,...,...,...,..,,.,.,.,,,
-#G3HH64W24JZ634UL65KN4NHC7YZHVY5ZPNLJILQKUPVZQIHKKKPCPPQNCX7EQBOYPLMGPARVFVBTC
-#\\\|CAPE42PTSQ7FCD6A7M2LSBKVO7BOCHK2UKYJTA73REHDRRHUFS2 \ / AMOS7 \ YOURUM ::
-#\[7]ONO5ANHIYVYLJATGWVZKTYTD73ZL6JBA6SASLFGHOI3ZQO5JJMCY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,.,,.,.,..,,.,.,.,.,,,.,..,,..,,...,..,,,,.,..,,,..,...,...,
+#S2ZMAOGZSGDPRECR4JO67VU55VULXOA6KGMMCAP274OGZ654JFXAORS7DDTNW6LIQPG7Z3YVO4Y52
+#\\\|J4IJHALJMWOUQGOF2X7Q43YAQ4MVFFJU4K7KQ5WL732FOFYOFWJ \ / AMOS7 \ YOURUM ::
+#\[7]X5HPK7ZFS7UWSDNKSABEAKBMNCQH4BOL2FISHZOWRRBD5EXV4OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

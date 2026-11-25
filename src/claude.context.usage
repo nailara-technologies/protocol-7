@@ -1,0 +1,81 @@
+## [:< ##
+
+# name   = claude.context.usage
+# descr  = context size of a session, from its transcript's tail
+# args   = session id
+# return = tokens of the last assistant turn, or undef
+#
+# the jsonl is claude code's own format : parsed here only, a plain number
+# leaves. context = input + cache read + cache creation of that turn
+
+my $sid = shift // '';
+return undef
+    if $sid !~ m|\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z|;
+
+my $at = <[claude.session.project_dir]>;
+return undef if defined $at->{'error'};
+my $path = "$at->{'dir'}/$sid.jsonl";
+## a session started in another directory : the sid is unique anyway ##
+if ( not -f $path
+    and CORE::opendir( my $dh, "$at->{'config'}/projects" ) ) {
+    ($path) = grep {-f}
+        map {"$at->{'config'}/projects/$ARG/$sid.jsonl"}
+        sort grep { !m|\A\.| } CORE::readdir($dh);
+    CORE::closedir($dh);
+}
+return undef if not defined $path or not -f $path;
+
+<[base.perlmod.load]>->('JSON::XS')
+    if not <[base.perlmod.loaded]>->('JSON::XS');
+
+## octets for the decoder, never the default utf-8 layer ##
+CORE::open( my $fh, '<:raw', $path ) or return undef;
+my $size = -s $fh;
+my $max  = <claude.cfg.context_tail_max> // 8 * 1048576;
+my $span = <claude.cfg.context_tail>     // 262144;
+my $tokens;
+
+## only the tail is read ; one huge line may push the last turn further ##
+## back : the span doubles, up to its limit                             ##
+while ( not defined $tokens ) {
+    my $from = $size > $span ? $size - $span : 0;
+    last if not CORE::seek( $fh, $from, 0 );
+    my $tail = '';
+    last if not defined CORE::read( $fh, $tail, $size - $from );
+    my @lines = CORE::split m{\n}, $tail;
+    shift @lines if $from;    ## cut in its middle ##
+    foreach my $line ( reverse @lines ) {
+        next if CORE::index( $line, '"usage"' ) < 0;
+        ## a line still being written does not decode ##
+        my $turn = eval { JSON::XS::decode_json($line) };
+        next
+            if ref $turn ne qw| HASH |
+            or ( $turn->{'type'} // '' ) ne qw| assistant |
+            or $turn->{'isSidechain'}
+            or ref $turn->{'message'} ne qw| HASH |;
+        my $usage = $turn->{'message'}{'usage'};
+        next if ref $usage ne qw| HASH |;
+        my $sum = 0;
+        foreach my $key (
+            qw| input_tokens cache_read_input_tokens
+            cache_creation_input_tokens |
+        ) {
+            $sum += $usage->{$key}
+                if ( $usage->{$key} // '' ) =~ m|\A\d+\z|;
+        }
+        next if not $sum;    ## synthetic turns report zeros ##
+        $tokens = $sum;
+        last;
+    }
+    last if not $from or $span >= $max;
+    $span *= 2;
+    $span = $max if $span > $max;
+}
+CORE::close($fh);
+return $tokens;
+
+#,,.,,,.,,,,,,,,,,...,,.,,..,,,.,,..,,.,,,.,.,..,,...,...,...,,,.,...,,..,,..,
+#KGQHLSS3JLEUVJFIESSM2BPJGAFV6MJRLWW63IRDV2FZSLTO2ZTMCZMDB4XFGJ2FA4JV7GPITV7HK
+#\\\|IQI4PU3T6GNWOH4SJM476N4QIO337XC2CCY2E7OF3LERNLZ75C4 \ / AMOS7 \ YOURUM ::
+#\[7]FSKEAQI4BE44MULFRNRUSHPPEZIKZ3IWEOTLXHNKVDLRDFTCPCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

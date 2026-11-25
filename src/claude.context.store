@@ -1,0 +1,63 @@
+## [:< ##
+
+# name   = claude.context.store
+# descr  = thresholds already offered, file `context.cfg` in the var dir
+# args   = [ save ]
+# return = sid -> { level at }
+#
+# p7 config style, `context.<sid>.<key> = value` lines : a restart offers
+# nothing twice. entries older than claude.cfg.context_keep_seconds go on
+# a save
+
+<[base.perlmod.load]>->('AMOS7::Switch')
+    if not <[base.perlmod.loaded]>->('AMOS7::Switch');
+
+my $op  = shift // '';
+my $all = <claude.context.offered>;
+if ( ref $all ne qw| HASH | ) {
+    $all = {};
+    my $dir  = <[claude.var_dir]>;
+    my $text = '';
+    if ( defined $dir
+        and CORE::open( my $fh, '<:encoding(UTF-8)', "$dir/context.cfg" ) ) {
+        local $INPUT_RECORD_SEPARATOR = undef;
+        $text = <$fh> // '';
+        CORE::close($fh);
+    }
+    foreach my $pair ( AMOS7::Switch::parse_state($text) ) {
+        my ( $sid, $key )
+            = $pair->[0] =~ m{\Acontext\.([0-9a-f\-]{36})\.(level|at)\z};
+        $all->{$sid}{$key} = AMOS7::Switch::unescape_value( $pair->[1] )
+            if defined $key;
+    }
+    <claude.context.offered> = $all;
+}
+return $all if $op ne qw| save |;
+
+my $keep = <claude.cfg.context_keep_seconds> // 34 * 86400;
+delete @{$all}{
+    grep { time - ( $all->{$ARG}{'at'} // 0 ) > $keep }
+        keys %{$all}
+};
+my $dir = <[claude.var_dir]>->(TRUE);
+return $all if not defined $dir;
+my @pairs;
+foreach my $sid ( sort keys %{$all} ) {
+    push @pairs,
+        map { [ "context.$sid.$ARG", $all->{$sid}{$ARG} // 0 ] }
+        qw| level at |;
+}
+my $tmp = "$dir/context.cfg.new";
+if ( CORE::open( my $fh, '>:encoding(UTF-8)', $tmp ) ) {
+    print {$fh}
+        AMOS7::Switch::format_state(
+        'claude zenka : context size offers already made', @pairs );
+    CORE::rename( $tmp, "$dir/context.cfg" ) if CORE::close($fh);
+}
+return $all;
+
+#,,,,,,,,,,..,.,.,..,,,,,,,..,.,,,..,,...,...,..,,...,..,,,,,,,,.,..,,.,,,,.,,
+#LOJTUXNCNF5NJNAMFUJOFZ5V2OWQXVLJXDZ4QKARVHJF2J3PDKIEQXEEUMRKA74PSATKVNKH7PDRG
+#\\\|23CQHLMP5UHQ7KRLBY2F6AIDHAEG67X7SYNZD2YWLAB56J6YITN \ / AMOS7 \ YOURUM ::
+#\[7]4FVJKXHJMSUAS3EJJAXFHRD5EPOOVRLF46ORMOVKTKLC3N5NP6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

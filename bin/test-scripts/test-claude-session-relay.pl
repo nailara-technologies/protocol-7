@@ -107,6 +107,7 @@ make_path($var_dir);
 my @log;
 $code{'base.log'}                 = sub { shift; push @log, join ' ', @ARG };
 $code{'file.zenka_dir.data_path'} = sub {$var_dir};
+$code{'claude.context.arm'}       = sub {TRUE};   ## test-claude-context.pl ##
 my @raised;    ## what goes to the cube : the registration signal ##
 $code{'protocol-7.command.send.local'} = sub {
     push @raised, "$_[0]{'command'} $_[0]{'call_args'}{'args'}";
@@ -754,8 +755,8 @@ ok( $after == $posts && slurp($history) =~ m{held while off},
 say "\n$pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,..,,.,.,.,.,...,,.,,,,.,,..,..,,,.,,..,,..,,...,..,,...,,..,...,.,.,,,.,
-#ARIZ5SPXFYOEUQ6IVE233S653UYUAWKZLQLBAHYOEMZXWK3LE543BBNGWJ4FMOOI5E5EBRYMX42J6
-#\\\|TDGKYPKDMGCJW2R2I44Y3QCZQ2LBJO57OMQNMDRTGFWCC632ASA \ / AMOS7 \ YOURUM ::
-#\[7]6NBT4QRSJ5GIUBOO4WKHOIC6KYMJG6W6IH6PUKJWP6WXX7XDCCCY 7  DATA SIGNATURE ::
+#,,,.,...,...,.,.,,.,,,,,,...,.,,,,.,,,,.,,,.,..,,...,..,,,..,.,.,..,,.,.,,,.,
+#NQALXGCIQT7N4AZBTNQ773TZOFLJJSYDWZRVSUSBQYSQRAXB46WU2MNYCQAMCJEOGWMKVXJKTP5HW
+#\\\|ZIGVZVHTD3IEJENYSYBHK7IW2KBGLPF5SXIXHG4IQ6VZ4ESQTMY \ / AMOS7 \ YOURUM ::
+#\[7]UF43KZY5T27LH7XUZ3RCRB6G55QAMERXHD5KNZBOAX6CWLGKIYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

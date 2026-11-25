@@ -1,0 +1,58 @@
+## [:< ##
+
+# name   = claude.context.check
+# descr  = offer a handover to a live session whose context grew
+# return = number of offers posted
+#
+# a threshold crossed upward is offered once per session [ the highest one
+# only, when several are passed at once ] ; a later compaction does not
+# arm it again. a handover written lately : nothing is posted and nothing
+# marked, the offer comes after the quiet time
+
+my $window = <claude.cfg.context_window> // 1000000;
+$window = 1000000 if $window !~ m|\A[1-9]\d*\z|;
+my @levels = sort { $a <=> $b }
+    grep {m|\A[1-9]\d?\z|} split m{[\s,]+},
+    <claude.cfg.context_thresholds> // '70 85';
+my $quiet = <claude.cfg.context_handover_quiet_minutes> // 13;
+my $root  = <claude.cfg.handover_root> // <system.root_path> // '.';
+
+my $written
+    = ( CORE::stat("$root/data/ai-mem/claude/handover-live.md") )[9];
+return 0 if defined $written and time - $written < 60 * $quiet;
+
+my $sessions = <[claude.live.sessions]>;
+my $offered  = <[claude.context.store]>;
+my $posted   = 0;
+foreach my $name ( sort keys %{$sessions} ) {
+    my $live = $sessions->{$name} // next;
+    my $sid  = $live->{'sid'}     // next;    ## no transcript to find ##
+    next if not -S $live->{'socket'};
+    my $tokens = <[claude.context.usage]>->($sid) // next;
+    my ($level) = reverse grep { $tokens * 100 >= $ARG * $window } @levels;
+    next if not defined $level;
+    next if $level <= ( ( $offered->{$sid} // {} )->{'level'} // 0 );
+    my $r = <[claude.live.post]>->(
+        {   'name' => $name,
+            'sid'  => $sid,
+            'from' => qw| claude |,
+            'text' => sprintf(
+                'context at %d %% [ %d of %d ] : a good '
+                    . 'moment for a handover or a targeted compaction',
+                int( $tokens * 100 / $window ),
+                $tokens, $window
+            )
+        }
+    );
+    next if defined $r->{'error'};    ## logged there ##
+    $offered->{$sid} = { 'level' => $level, 'at' => time };
+    <[claude.context.store]>->(qw| save |);
+    $posted++;
+}
+return $posted;
+
+#,,..,,..,,.,,,.,,.,.,,,,,,..,,.,,,.,,,.,,,..,..,,...,...,,..,.,,,.,.,,..,...,
+#DIABOI2UV6ERH7WKUN6YW5ALF77SO5PKOSJ534I3XY3UWWZ65NI23YRZSE3RG4DXJ53QW2KWDNDVM
+#\\\|BXNPT7LXRZFMYBXJITEC7EBTLLKYQSFYDVFW25VZW4DFZQWZ3EN \ / AMOS7 \ YOURUM ::
+#\[7]F2RWKIS46JPWMM4FXIKOBCFPZQE4IWNI6XQIGMF5Y3AKUZNZE2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
