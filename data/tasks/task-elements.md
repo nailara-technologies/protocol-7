@@ -63,14 +63,35 @@ a parser, extensions we decide ourselves ]. the converters are first-class : rou
 3. the element store in the coding zenka ; the task zenka executes elements [ its tasks become
    elements with state + history ] ; the todo list and the briefs become views
 
+### perspective : thinking as content-addressed elements [ owner 2026-11-25 ]
+
+decision \ reasoning steps in a shared native form -- structure, not data -- get an identity
+[ BMW over the normalised form ], can be cached [ worked out once, reused by every session,
+agent, host ], evaluated in parallel [ only dependencies order them ] and shared without leaking
+[ structure shared, values local -- as n7fs blind replicas hold sealed content ]. small cases
+exist already : the sign queue's `criteria hold -> sign -> commit` is a decision node.
+
+first step without a new language : the DEDUP TREE. session rounds [ reasoning, tool rounds,
+decisions -- the session archive ] stored chunked and checksummed show the overlap by themselves :
+recurring chunks across sessions, agents and tasks mark what is worth caching ; the language
+follows from what is actually shared, not designed ahead [ extend what exists ].
+
+the dedup tree NORMALISES : equal content in different wording \ formatting lands on one node.
+those normalised nodes are where a later symbolic form attaches -- a symbol per node, not per
+phrasing ; translating language to symbols then means mapping text onto existing nodes, and the
+symbols inherit the nodes' identity, cache and sharing.
+the symbolic form is the ALWAYS CURRENT TREE LANGUAGE [ owner ] : derived, not designed --
+new content brings new nodes and symbols, nodes merged by normalisation merge their symbols ;
+it cannot go stale, it is a view of the tree [ as native need not be static, one level up ].
+
 ### open
 
 - how far todo ids and task-zenka ids merge [ one scheme, or a mapping ]
 - migration of the existing todo list and task history
 - which views first : the dashboard [ portrait panel ], the handover, `coding.elements`
 
-#,,,,,...,,,,,..,,,,.,.,.,..,,.,,,..,,.,,,,,,,..,,...,...,..,,,.,,.,,,,..,..,,
-#JDXXHWRFSFQPTCLRHGJUVCBAYEXSGKDHO5N22GV5CC3Z3QCXEOXAJLGPK5KIYYFWD5HSRC35B7KVQ
-#\\\|GDT7BQXYWAOPBN52VPWQLOOIV4GQRBBX5A6QYU5Y3IWKHWHNOPQ \ / AMOS7 \ YOURUM ::
-#\[7]FWJYIG7GM2OCQ2O5M5OXUNYKFDYB4RJCL3PWGRNM2OQIY5RT74CY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,..,,,,,.,.,..,,,..,,,.,,..,,,.,..,,...,...,,,,,...,...,,..,,,,,
+#MI2QQVQT5GRDPEW4ZAUUEN7OGXCPLLRJIXHWBUN2GYCEPTFXSUBNR76KBGGQ6LLALPG7SSEID5YA6
+#\\\|UK4DQPGTDBZA4G4BEQNZGTVCV2UKHAUFWQZCJF6BXPA6S5RZCUA \ / AMOS7 \ YOURUM ::
+#\[7]HLJVXMLBPOWOXWHPHDDZ55NB4W5TXJNW2WOPMLYH73AXUZBQPGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
