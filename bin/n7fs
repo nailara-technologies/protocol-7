@@ -444,6 +444,24 @@ if ( not defined $code ) {
 }
 exit $code;
 
+END {
+    if ( defined $command and $command =~ m{\A(?:place|placement)\z} ) {
+        my $rc = $CHILD_ERROR;
+        local $CHILD_ERROR;
+        my $target = $args[0] // $o{'disk'} // qw| unknown |;
+        require Sys::Hostname;
+        my $host = Sys::Hostname::hostname();
+        if ( open( my $null, '>', '/dev/null' ) ) {
+            local *STDOUT;
+            local *STDERR;
+            open( STDOUT, '>&', $null );
+            open( STDERR, '>&', $null );
+            system {'p7c'} 'p7c', 'events.signal', "$command.complete",
+                "rc=$rc", "host=$host", "target=$target";
+        }
+    }
+}
+
 ##[ HELPERS ]#################################################################
 
 sub usage {
@@ -3172,8 +3190,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,,,,,.,.,.,.,,..,,.,,..,,.,,,,..,,..,,.,,..,,...,...,,,.,..,,,,.,,..,...,
-#SIKMURKIGL3JZHTA42QT4IY6ZOGBLCGJSTMN3SQDE5D726EDDB6AHHJIJWPGJ3SUP7CAYQPBIFJ6Y
-#\\\|BTHIJNPFNGJ336D5ADJQYTWEOD3OML7GHQ4CU3JP2FBZ7OJTGTJ \ / AMOS7 \ YOURUM ::
-#\[7]PF7RAT57EOAZPNXV2KNM2PKVS4E32EUBDMLLODJVCEWQX5M54QBY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,.,,,.,,,,,,,,,,,,.,..,,,..,..,,..,,...,...,.,,,,.,,.,.,...,,.,,
+#5CHIA4ZYAZVJTLDPOYE6WUYSRLVYWM6EKJKMLGBX6ZX2RWBL3JAMDXXDTRMEQPDLJ7NPR6KG2FATU
+#\\\|6LDNHVDR3JU34FX5GM4XC64L2XYZDAEVO4NT7RV5EW7RQXISQ2B \ / AMOS7 \ YOURUM ::
+#\[7]ZUEVMWCAPL7FJIJB6WM7QAHFKBBDHODNPSPSZMV27TCQ5J3A7SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

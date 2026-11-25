@@ -12,8 +12,9 @@ my $root = <coding.cfg.handover_root> // <system.root_path> // '';
 my $path = "$root/data/ai-mem/claude/handover-live.md";
 my $tmp  = "$path.tmp-$PID";
 my $fail = sub {
+    my $error = shift;
     CORE::unlink $tmp;
-    return ( FALSE, "$path : " . shift );
+    return ( FALSE, "$path : $error" );
 };
 return $fail->('directory missing') if not -d "$root/data/ai-mem/claude";
 CORE::open( my $fh, '>:encoding(UTF-8)', $tmp ) or return $fail->($OS_ERROR);
@@ -23,8 +24,8 @@ CORE::close $fh             or return $fail->($OS_ERROR);
 CORE::rename( $tmp, $path ) or return $fail->($OS_ERROR);
 return ( TRUE, $path );
 
-#,,,.,...,...,...,...,,.,,,,.,,,,,,,,,.,,,..,,..,,...,...,...,,.,,...,,,,,,,,,
-#IROTOBC5DBFB26YFPWMKDE24YE4DTHYFSQBYSDG2PXVIILYH2ECQKNEFKHQWD3FNGZQ5WJX5NIC7M
-#\\\|YXO7E6NE6BP4RGRTJGCIY6I2VY7X5NRMKW6STK46PEORZGCJG4N \ / AMOS7 \ YOURUM ::
-#\[7]ZGLIRMM5SXY6T7XKCXBSBR7APMCE2LMGMM2XM6EK4FC2BW7QVSBI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,.,.,.,.,,,.,,.,,,,.,.,.,.,,,..,,...,...,,..,.,,,.,,,..,,,,,,
+#T5WU6BQ4XT3Q3FPLLEWDRLC3ROMEU5J5NRMIEXRY4LQEFBUT3AUXRZVPMDHY3OKQ5GT6B2AWX6O6Y
+#\\\|YBU6BPEI36O35NX4Z44Y4NYVVTG5RHIECUB72ZOS2ZEZRHJRQKR \ / AMOS7 \ YOURUM ::
+#\[7]VUVOTZSSYRASWMHAULGVKPHRVJ5BYFOS37JJEC5I3BDDIYJKUIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

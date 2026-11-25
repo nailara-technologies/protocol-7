@@ -25,7 +25,7 @@ my $json = JSON::PP->new->utf8->canonical;
 open my $input, '<:raw', $input_path
     or die "cannot read transcript : $OS_ERROR\n";
 my ( @records, %count );
-my ( $session_id, $model, $first, $last ) = ( '', '', '', '' );
+my ( $agent, $session_id, $model, $first, $last ) = ( '', '', '', '', '' );
 my $line_number = 0;
 while ( my $wire = <$input> ) {
     $line_number++;
@@ -34,18 +34,30 @@ while ( my $wire = <$input> ) {
         if $EVAL_ERROR
         or ref $event ne qw| HASH |;
 
+    my $type = $event->{'type'} // 'event';
+    $agent = 'kimi'
+        if not length $agent
+        and ( exists $event->{'time'}
+        or $type eq qw| metadata | && exists $event->{'protocol_version'} );
+    $agent      = 'claude' if not length $agent;
     $session_id = $event->{'sessionId'} // $event->{'session_id'} // ''
         if not length $session_id;
-    my $type = $event->{'type'} // 'event';
+    $session_id = $1
+        if $agent eq qw| kimi |
+        and not length $session_id
+        and $input_path =~ m{(?:\A|/)session_([^/]+)/};
     $count{$type}++;
     $model = $event->{'message'}{'model'} // $model
         if ref $event->{'message'} eq qw| HASH |;
+    $model = $event->{'model'} // $event->{'modelAlias'} // $model
+        if $type =~ m{\A(?:llm\.request|usage\.record|profile\.bind)\z};
     my $ntime = event_ntime($event);
     $first = $ntime if not length $first and length $ntime;
     $last  = $ntime if length $ntime;
     push @records, [ $line_number, $ntime, $event ];
 }
 close $input or die "cannot finish reading transcript : $OS_ERROR\n";
+$agent = 'claude' if not length $agent;
 
 my $out;
 if ( defined $out_path ) {
@@ -59,7 +71,7 @@ if ( defined $out_path ) {
 
 print {$out} "archive.format = session-events-v1\n";
 print {$out} "session.id = " . mask($session_id) . "\n";
-print {$out} "session.agent = claude\n";
+print {$out} "session.agent = $agent\n";
 print {$out} "session.model = "
     . ( length $model ? mask($model) : '-' ) . "\n";
 print {$out} "session.first = " . ( length $first ? $first : '-' ) . "\n";
@@ -71,7 +83,7 @@ print {$out} "\n";
 
 foreach my $record (@records) {
     my ( $source_line, $ntime, $event ) = @{$record};
-    foreach my $item ( event_lines($event) ) {
+    foreach my $item ( event_lines( $event, $agent ) ) {
         my ( $speaker, $kind, $text ) = @{$item};
         $text = single_line( mask($text) );
         printf {$out} "%s %s %s [ source %d ] : %s\n",
@@ -83,7 +95,8 @@ close $out or die "cannot finish output : $OS_ERROR\n";
 
 sub event_ntime {
     my $event = shift;
-    my $stamp = $event->{'timestamp'} // $event->{'created_at'} // '';
+    my $stamp = $event->{'time'} // $event->{'timestamp'}
+        // $event->{'created_at'} // '';
     return '' if not defined $stamp or ref $stamp;
     if (
         $stamp =~ m|\A(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(\.\d+)?Z\z| )
@@ -95,12 +108,14 @@ sub event_ntime {
         my $units = int( substr( $fraction . '0000', 1, 4 ) * 0.42 );
         return sprintf '%s.%04d', $ntime, $units;
     }
+    $stamp /= 1000 if $stamp =~ m|\A\d{13}(?:\.\d+)?\z|;
     return unix_to_ntime( $stamp, 4 ) if $stamp =~ m{\A\d+(?:\.\d+)?\z};
     return '';
 }
 
 sub event_lines {
-    my $event  = shift;
+    my ( $event, $agent ) = @ARG;
+    return kimi_event_lines($event) if $agent eq qw| kimi |;
     my $type   = $event->{'type'} // 'event';
     my $source = $type =~ m{\A(?:user|assistant)\z} ? $type : 'system';
     my @lines;
@@ -139,6 +154,105 @@ sub event_lines {
     }
     return @lines if @lines;
     return [ $source, $type, $event->{'subtype'} // $type ];
+}
+
+sub kimi_event_lines {
+    my $event = shift;
+    my $type  = $event->{'type'} // 'event';
+    return kimi_content_lines( 'user', $event->{'input'} )
+        if $type eq qw| turn.prompt |;
+    if ( $type eq qw| context.append_message | ) {
+        my $message = $event->{'message'};
+        return [ 'system', $type, $type ] if ref $message ne qw| HASH |;
+        my $source = $message->{'role'} // 'system';
+        my @lines  = kimi_content_lines( $source, $message->{'content'} );
+        foreach my $call (
+            ref $message->{'toolCalls'} eq qw| ARRAY |
+            ? @{ $message->{'toolCalls'} }
+            : ()
+        ) {
+            next if ref $call ne qw| HASH |;
+            my $function
+                = ref $call->{'function'} eq qw| HASH |
+                ? $call->{'function'}
+                : {};
+            my $args = $call->{'args'} // $call->{'input'}
+                // $function->{'arguments'} // {};
+            push @lines,
+                [
+                $source,
+                'tool_use',
+                ( $call->{'name'} // $function->{'name'} // '-' ) . ' '
+                    . (
+                    ref $args eq qw| HASH |
+                    ? tool_args($args)
+                    : block_text($args)
+                    )
+                ];
+        }
+        return @lines if @lines;
+        return [ $source, $type, $type ];
+    }
+    if ( $type eq qw| context.append_loop_event | ) {
+        my $loop = $event->{'event'};
+        return [ 'system', $type, $type ] if ref $loop ne qw| HASH |;
+        my $kind = $loop->{'type'} // 'event';
+        return kimi_content_lines( 'assistant', [ $loop->{'part'} ] )
+            if $kind eq qw| content.part |;
+        if ( $kind eq qw| tool.call | ) {
+            my $args = $loop->{'args'} // $loop->{'input'} // {};
+            return [
+                'assistant',
+                'tool_use',
+                ( $loop->{'name'} // '-' ) . ' '
+                    . (
+                    ref $args eq qw| HASH |
+                    ? tool_args($args)
+                    : block_text($args)
+                    )
+            ];
+        }
+        if ( $kind eq qw| tool.result | ) {
+            my $result = $loop->{'result'} // '';
+            my $text
+                = ref $result eq qw| HASH |
+                ? $result->{'output'} // $result->{'content'}
+                // $result->{'error'} // ''
+                : $result;
+            $text = block_text($text) if ref $text;
+            my ($first_line) = split m{\r?\n}, $text, 2;
+            return [
+                'system', 'tool_result',
+                length($text) . ' chars : ' . ( $first_line // '' )
+            ];
+        }
+        return [ 'system', $kind, $loop->{'step'} // '-' ]
+            if $kind eq qw| step.begin |;
+        return [ 'system', $kind,
+                  ( $loop->{'step'} // '-' ) . ' '
+                . ( $loop->{'finishReason'} // '-' ) ]
+            if $kind eq qw| step.end |;
+        return [ 'system', $kind, $kind ];
+    }
+    return [ 'system', $type, $type ];
+}
+
+sub kimi_content_lines {
+    my ( $source, $content ) = @ARG;
+    $content = [ { 'type' => 'text', 'text' => $content } ]
+        if defined $content and not ref $content;
+    my @lines;
+    foreach my $part ( ref $content eq qw| ARRAY | ? @{$content} : () ) {
+        next if ref $part ne qw| HASH |;
+        my $kind = $part->{'type'} // 'text';
+        $kind = 'thinking' if $kind eq qw| think |;
+        push @lines,
+            [
+            $source, $kind,
+            $part->{'text'} // $part->{'think'} // $part->{'thinking'} // ''
+            ];
+    }
+    return @lines;
 }
 
 sub block_text {
@@ -200,8 +314,8 @@ sub mask {
     return $text;
 }
 
-#,,..,.,.,.,.,.,,,.,,,,..,.,,,..,,,,.,..,,,,.,..,,...,...,.,.,,,,,.,,,,,,,...,
-#IUP4S7XJVX63TLF6PPTMEYQDWS4H6CA45TZLQBB6RNUPNYDZNNCGPESTGC3B4S5VHWY3652V2GTXO
-#\\\|ZT6K74QNHGZQ3KLQIGDZJCBQYHNAS2KBDMDHNNX7KXSUAODVG4U \ / AMOS7 \ YOURUM ::
-#\[7]GRX7CAYTH5J3G6MTTN2GPP7GRJKAB7C33QU7SPOL5F5IVTHYEGCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,,,.,.,,,...,,.,,..,,.,,,,,,,..,,...,...,,,.,,,,,.,,,,..,,..,
+#QUEXKPAPEPTPN2BFWWU7KHLTA342AYYQOLB4JEGTBFTWSTTOSRIW6OSRCVG3RJX3TTXYY5X2UAIOK
+#\\\|WBTZLPRZWGFJIY2UI4XAMTPJDNLLV5KEDZCH5ORPPFP3DNFPI42 \ / AMOS7 \ YOURUM ::
+#\[7]TI7RZ4X3IAKHOXXISLZ7L3YPSRC7WHKTIEIWYFEPR4JVGMUCPWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

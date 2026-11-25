@@ -51,9 +51,15 @@ base pushed up to 71ba3f9d2a ; azurum deployed at 71ba3f9d2a.
 5. the first native extension : multi-line values [ the writer reports the gap ]
 6. kimi wire.jsonl normaliser for the session archive [ notes in session-archive.md ]
 7. small : handover write error names the real cause [ said ENOENT on EACCES ]
+8. context size reminder [ owner ] : the mcp server finds the session transcript by its stable id
+   [ ~/.claude/projects/<dir>/<CLAUDE_CODE_SESSION_ID>.jsonl ], reads the last assistant turn's
+   token usage, and at thresholds [ ~70 \ 85 % of the window ] posts through the inbox channel
+   "context at N % : a good moment for a handover or a targeted compaction" -- an offer, with
+   unless= [ a handover was just written ] ; fits task-elements.md's compaction-as-a-tool
+ 9. budget-aware resume [ owner ] : a dispatch that stops on a plan limit registers a reminder for the window reset [ the exact time from usage.kimi \ usage.claude -- one plan, to the second ; usage.plan rounds to 0.1 h ] ; at the reset the inbox offers to resume it [ kimi_continue / claude_continue with the session uuid ] -- an offer, unless= [ resumed already ]
 
-#,,..,..,,...,...,.,,,.,.,.,.,...,...,..,,.,,,..,,...,...,...,.,,,,.,,..,,,.,,
-#56QOUAYE2NWJDXHZ5VADV5Q2KK7AV4SV3N2OTIPUP4XGPHZGGLB7DO3S6QND7UXNXQHGDCFOSPNX2
-#\\\|K7LIFP3UNJCGPT37T4DGSB4HJXXJ4L7KS2CX5FXD2PFOREEDVGD \ / AMOS7 \ YOURUM ::
-#\[7]ZA4ISAMN635B3E7UATOI4BC23MLYHOI7JROIV3AMNKL5DI2Z4YDY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,,,.,,,.,..,,..,,...,..,,...,..,,...,...,,,,,...,,.,,...,,,.,
+#3PPPYE6Y2J3OYUGJTNUXPKKW2YLQDOD3VLHDDWKA74ZRGX2RZTKQBAGTSPM4D55IOWNHELBFP2V56
+#\\\|PGHMGBDT4HYHOPXGAGINEHGMWDYOUQLVONQCSYUL3MMIWMDD3K2 \ / AMOS7 \ YOURUM ::
+#\[7]MVVNVUMLFJWLMXZBE2NT4LUGOCYWBMUFEUSRMZXACDUK7W3RFMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,8 @@
 ## watcher registry : signals from watched processes, files, logs -- local first, then across hosts
 
 owner direction 2026-11-25. completes data/tasks/claude-zenka.md item 8 [ sessions started by
-signals ] : standalone tools [ n7fs place ] raise no signal ; a watcher does it for them.
+signals ] : standalone tools raise their own completion where available [ n7fs place \ placement ] ;
+a watcher covers other tools and remains the fallback.
 
 ### stage 1 : the registry in the system zenka
 
@@ -63,8 +64,8 @@ there, the receiving side sees the same signal whatever the path :
 - which hosts may raise which remote signals [ access.signals gets a host part ]
 - duplicate suppression when two paths deliver the same event
 
-#,,..,.,.,,,.,.,,,,,,,..,,,,,,..,,,.,,...,...,..,,...,...,.,.,..,,,.,,,..,,,,,
-#F4LTVEGLIKBPKBEXMUG4YNJPME4OCT4ZJVFWKYBY36QPGPDMNKYYMNGFHHZAFPASU6LQU26R55HS2
-#\\\|MKEZCTROHXZJVVFECU56WCLDOUDXLNYNKC23PFX4G5FIDVM2HO6 \ / AMOS7 \ YOURUM ::
-#\[7]T2HBJ2QUOFIHLBWECAAHQLVCXGOKW3BOI3IZ4WZEBRAEBRF2MCAY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,.,,,..,,.,,,,.,,.,,,...,.,,,..,,...,...,,,.,,.,,.,.,...,,..,
+#5JIHJSGQY54EON3RMVLLTWOY365FXXWL5A5IEG3KINGLXFQ3W5RJ72C235JN2DOS734645AFGO656
+#\\\|Z5H3CXREVPNFUYO3EQHVSELYQOUSUNABG35XZPV3KGIAIUCUAE6 \ / AMOS7 \ YOURUM ::
+#\[7]YEHOXDDYD3LWBCZIR2NLP46PFZ4YBLMLBJB76WXFY3JDEHLU3MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
