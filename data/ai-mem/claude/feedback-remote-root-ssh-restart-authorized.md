@@ -35,3 +35,11 @@ deleting files I did not create, registrar \ dns provider changes.
 #\\\|HGAPFSP4IZAPBN22JAHEOWYWS6ASNHZ5XBH66VE6EOKECJGVCQK \ / AMOS7 \ YOURUM ::
 #\[7]7JOKGGFWT2HXCRR2UDIORT7MXHESQQ2XFQ3W4K7WFV7GWFBYBCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+2026-11-25 : owner -- "you have permission to deploy and test the code we write" : push + pull-git + reloads + live tests of our own changes need no per-step ask. azurum head check : `ssh root@azurum git -c safe.directory=* -C /usr/local/protocol-7 log -1` [ taeki cannot read .git/refs ]
+
+#,,,,,,.,,...,..,,,.,,,..,,,.,.,.,,..,..,,,..,..,,...,...,...,,,,,..,,.,.,.,.,
+#ENWY4QK7ADU5MCDV5YPUBIO4T2Q47TUBAWAIARZ4KCL6XL72RXHQLDSJZFJF3Q55EWIARYIKXLYXE
+#\\\|K6IVOESEHLVEXUBZALXOW5PRZOQ6KV2ASH4VOGTBQLDZO6B24RR \ / AMOS7 \ YOURUM ::
+#\[7]LAQ4WPFTFTV6EO4FE3VMWWSC7LPC6QAATIJAYLV5AX7Z4YJ43ODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

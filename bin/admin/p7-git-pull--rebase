@@ -16,6 +16,9 @@ my $p7_root = p7_root_dir();
 
 chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
 
+## .git readable for the protocol-7 group [ root's umask wrote 640 files ] ##
+share_git_with_group();
+
 ## an untracked file the incoming commits start tracking with the SAME  ##
 ## content                                                              ##
 ## [ e.g. a deps/.placeholder a zenka created before it was committed ] ##
@@ -100,6 +103,40 @@ sub git_out {
     return $out;
 }
 
+## root only, and only where the protocol-7 group exists : git writes       ##
+## group-readable from now on [ core.sharedRepository ], existing files get ##
+## the group, g+r [ dirs g+rx and setgid, new files inherit ]               ##
+sub share_git_with_group {
+    return if $EUID != 0 or not -d '.git';
+    my $gid = getgrnam('protocol-7');
+    return if not defined $gid;
+    system(qw| git config core.sharedRepository group |) == 0
+        or warn ": git config core.sharedRepository failed\n"
+        if git_out(qw| config core.sharedRepository |) ne 'group';
+    require File::Find;
+    my $fixed = 0;
+    File::Find::find(
+        {   'no_chdir' => 1,
+            'wanted'   => sub {
+                my @st = lstat($File::Find::name) or return;
+                return if -l _;
+                my $is_dir = -d _;
+                my $mode   = $st[2] & 07777;
+                my $want   = $mode | 040 | ( $is_dir ? 02050 : 0 );
+                if ( $st[5] != $gid ) {
+                    CORE::chown( -1, $gid, $File::Find::name ) and $fixed++;
+                }
+                if ( $want != $mode ) {
+                    CORE::chmod( $want, $File::Find::name ) and $fixed++;
+                }
+            }
+        },
+        '.git'
+    );
+    print ": .git shared with the protocol-7 group [ $fixed changes ]\n"
+        if $fixed;
+}
+
 sub c_dir  { File::Spec->catdir(@_) }
 sub r2_abs { File::Spec->rel2abs(@_) }
 
@@ -109,8 +146,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,,.,,..,.,.,,,.,...,,..,.,,,,,,,,..,.,,,,,,,..,,...,..,,..,,,,.,.,.,,,.,,,.,
-#RKY7GAVH4R4DSTLJWFW5VVLQV5256ZQUXLUDKFS2PIKYW3IN4DESIBBLAFGBQIHYR2XHITW2MGUZE
-#\\\|OEJ6FKMKJ2GAKDULZS6IEKDLQNTRQXB736FZ5FJUZWHRDGOS6DB \ / AMOS7 \ YOURUM ::
-#\[7]OOLCJH4BFFMQCE4FLK73MNH6IYC4V36XJPCVUBJ6DMV6S5HTHCDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,..,,,,,,..,,,,,,.,,,.,,,,.,,..,,...,...,,.,,,,,,...,,.,,,..,
+#NDCEULLFTS25AKXPNKGXDO4QK53OQYOEKEOSNE2RMONVSH74KLVABIIGKJPJDPIBKJY7E6JMH2M4G
+#\\\|X4DYU7PTGDE5IRGV2Z73UGYLXGFSVXUTX2M6F563PK56XSVLMQU \ / AMOS7 \ YOURUM ::
+#\[7]65DINJWBPTJ33RP4A2YPVITNHYKVXUZ53OO2P4Y3Z7FOL3562KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
