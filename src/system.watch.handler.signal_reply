@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = system.watch.handler.signal_reply
+# descr = events answered a watch signal
+
+my $reply = shift                                        // {};
+my $p     = $reply->{'params'}                           // {};
+my $item  = <system.watch.outbox>->{ $p->{'seq'} // '' } // return FALSE;
+return FALSE if $item->{'args'} ne ( $p->{'args'} // '' );
+
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+if ( $mode ne qw| true | ) {
+    <[base.logs]>->(
+        0,
+        '<< watch signal refused : %s : %s >>',
+        $text =~ s{\s+\z}{}r,
+        $item->{'args'}
+    );
+    return FALSE;    ## stays queued : sent again later ##
+}
+delete <system.watch.outbox>->{ $p->{'seq'} };
+<system.watch.dirty> = TRUE;
+<[system.watch.save]>;
+return TRUE;
+
+#,,,,,,.,,..,,,,.,.,,,,,,,,,,,.,,,,..,,,,,.,.,..,,...,...,.,.,,,.,,,.,,..,,.,,
+#TFQBQUPZPGXRSRND224PC5DHUDXQS6PAVIRN5UHKNR6HOAPS374UCMF74PDCB5DWWC774DVRSLSGA
+#\\\|O5HL4ZEBD7VNTWR6OM3SGPMCD4AGUMB3WAWCOXT3NXQDU7YUDGQ \ / AMOS7 \ YOURUM ::
+#\[7]OR6MTNHNCRGCNWLPL2KRU5CLM3ZNJXLF3CNL6GIZRX4KEVC7LMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

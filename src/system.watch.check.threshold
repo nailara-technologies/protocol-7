@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = system.watch.check.threshold
+# descr = a system value crosses a limit [ up \ down ]
+# args  = watch, [ unused ], now
+#
+# above=<n> triggers going up past n, below=<n> going down past n. the first
+# value read is the baseline : already beyond it does not trigger
+
+my ( $w, undef, $now ) = @ARG;
+my $value  = <[system.watch.value]>->( $w->{'pattern'} ) // return FALSE;
+my $up     = defined $w->{'above'};
+my $limit  = $up ? $w->{'above'}                             : $w->{'below'};
+my $beyond = ( $up ? $value > $limit : $value < $limit ) ? 1 : 0;
+my $old    = $w->{'beyond'};
+return FALSE if defined $old and $old == $beyond;
+$w->{'beyond'} = $beyond;
+<system.watch.dirty> = TRUE;
+return FALSE if not defined $old or not $beyond;
+
+<[system.watch.trigger]>->(
+    $w,
+    {   'name'    => $w->{'pattern'},
+        'value'   => sprintf( '%.2f', $value ),
+        'limit'   => $limit,
+        'crossed' => $up ? qw| up | : qw| down |
+    },
+    $now
+);
+return TRUE;
+
+#,,..,,.,,,.,,,,.,...,.,,,.,,,,..,.,,,,,.,.,,,..,,...,...,.,.,.,.,..,,..,,,..,
+#MSAJIN674DZ3TABONWVB5M6PI7EAXLAGTWHBHELC6EYUPEK4PTYB3UZAWNUEG5Q3VBG2WBSMT5WYS
+#\\\|AMK5R6JBYE56GZB4MMNG4FTRGPGNF6SMRWT5LTKROAW3C5LFLEN \ / AMOS7 \ YOURUM ::
+#\[7]K224M6I7MNARPNMPIMMEVSM3WNJ2UVIGR6EJXAAIK7RKOI5A7EDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

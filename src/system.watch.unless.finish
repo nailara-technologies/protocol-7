@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = system.watch.unless.finish
+# descr = unless hook : a condition holds, no signal
+# args  = owner, gate, state, reason
+#
+# once : the watch ends as skipped, what it waited for is no longer real.
+# repeat : the held triggers are dropped, the watch goes on
+
+my ( undef, $gate, undef, $reason ) = @ARG;
+my $w = <system.watch.entries>->{ $gate->{'id'} } // return FALSE;
+return FALSE if ( $w->{'gate'} // 0 ) != $gate;
+delete @{$w}{qw| gate held |};
+$w->{'reason'} = $reason;
+$w->{'state'}  = qw| skipped | if $w->{'mode'} eq qw| once |;
+<[base.logs]>->( 1, "watch '%s' skipped : %s", $w->{'id'}, $reason );
+<system.watch.dirty> = TRUE;
+<[system.watch.save]>;
+return TRUE;
+
+#,,.,,.,,,,,.,,,.,,,.,,,,,,.,,,,,,.,,,,.,,,,.,..,,...,...,,,,,,..,,,,,,..,.,,,
+#2V6Q633YDVAAJF7GJ4DNDEX43T2AIMXQXC63KDJ7FGXVT7PFNDI4S2XOPCTF24AFAJ2PCKGKUOPWW
+#\\\|GQP7UOPPGECFOY7MXI2AXRFJAOI22NYHQLJBAAK7JCCHRLP2LQE \ / AMOS7 \ YOURUM ::
+#\[7]AMKKVDO4RXO7V6HK6SBZKOF6FAEBHQZZDUPIDIAKVQ36EIYNYODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

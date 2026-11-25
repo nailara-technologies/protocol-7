@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = system.watch.cmd.watch-remove
+# param = <id>
+# descr = remove a watch [ queued signals still go out ]
+
+my $id = ( $call->{'args'} // '' ) =~ s{\A\s+|\s+\z}{}gr;
+return { 'mode' => qw| false |, 'data' => "no watch '$id'" }
+    if not exists <system.watch.entries>->{$id};
+my $old = delete <system.watch.entries>->{$id};
+if ( not <[system.watch.save]> ) {
+    <system.watch.entries>->{$id} = $old;
+    return {
+        'mode' => qw| false |,
+        'data' => 'watch registry cannot be written [ see log ]'
+    };
+}
+return { 'mode' => qw| true |, 'data' => "watch '$id' removed" };
+
+#,,,,,.,,,.,.,...,...,.,,,,..,..,,,..,..,,...,..,,...,..,,,..,.,.,,..,,.,,,,.,
+#NWIMROT55ZB5KAYPM73TJPOLANSMGLCQCDWHWFETF7JZN7MF4U4L4VL4FDKKO23TLY3NUEE3WDTAY
+#\\\|UDPDSPEL3ACAB26BVV4WWV5MJQSXFZBWYUPFOPSK3744XHBELS3 \ / AMOS7 \ YOURUM ::
+#\[7]NBCDLQYDNO2NUECA5OA5RTQSBT63OTLTJB2AT457AMKOCNDGAQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

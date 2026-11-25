@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = system.watch.init_code
+# descr = watcher registry defaults
+
+<system.watch.entries> //= {};
+<system.watch.outbox>  //= {};
+
+## base.sig_chld reaps every child : it leaves the status here for us ##
+<base.child_exit> //= {};
+
+<[base.perlmod.load]>->('AMOS7::Switch')
+    if not <[base.perlmod.loaded]>->('AMOS7::Switch');
+<[base.perlmod.load]>->('AMOS7::Config::Writer')
+    if not <[base.perlmod.loaded]>->('AMOS7::Config::Writer');
+
+## unless= uses str2time ##
+<[base.perlmod.autoload]>->('Date::Parse');
+
+## events.bucket.unless.* serves bucket entries and watches : here it ##
+## reads, ends and passes watches                                     ##
+<events.unless_host.get>    = qw| system.watch.unless.get |;
+<events.unless_host.finish> = qw| system.watch.unless.finish |;
+<events.unless_host.pass>   = qw| system.watch.unless.pass |;
+
+0;
+
+#,,,,,.,.,..,,,,,,.,,,.,.,,,,,.,,,,,,,,,,,,.,,..,,...,...,.,.,..,,..,,,,,,..,,
+#2GOXUVKZ6MCI5RNWDTMCP4FRHWYQUXVQHUHWG76PXPN7ML4KVI2DJHG2TYTJD3I74WIAJBTLUL74E
+#\\\|4BH6LHCXD22IHJFV6GXLPKLXN3EN4SPDNIBXGNEVXOA2F5MGTYM \ / AMOS7 \ YOURUM ::
+#\[7]K3V3S3JS2NIVUEQGWKRY26GOX4DOZAS3GVW5WT73S5KTKMUPQYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

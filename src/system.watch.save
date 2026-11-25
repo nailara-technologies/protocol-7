@@ -1,0 +1,79 @@
+## [:< ##
+
+# name   = system.watch.save
+# descr  = write the watch registry [ atomic ]
+# return = TRUE \ FALSE [ stays dirty, the next sweep tries again ]
+#
+# native config, written by AMOS7::Config::Writer. free text [ patterns,
+# signal arguments ] is %XX escaped by events.signal.encode : the writer
+# knows no quotes inside values and the file stays one line per key
+
+## a registry that exists but was not read is never overwritten ##
+return FALSE if <system.watch.load_failed>;
+
+my $path = <[system.watch.path]>;
+
+## the zenka dir : created by the shared writer on first use ##
+if ( not defined <system.watch.registry_path> ) {
+    my ($dir) = $path =~ m{\A(.*)/[^/]+\z};
+    <[file.zenka_dir.write]>->( 'watch.created', \"\n", qw| > |, 0640 )
+        if defined $dir and !-d $dir;
+}
+
+my %free = map { $ARG => 1 } qw| pattern match unless user |;
+my %config;
+foreach my $id ( keys <system.watch.entries>->%* ) {
+    my $w = <system.watch.entries>->{$id};
+    foreach my $key (
+        qw| kind pattern signal mode added state user match on size above
+        below unless until base offset inode skip_line beyond fired last
+        reason |
+    ) {
+        next if not defined $w->{$key};
+        $config{"watch.$id.$key"}
+            = ( $free{$key} or $key eq qw| reason | )
+            ? <[events.signal.encode]>->( $w->{$key} )
+            : $w->{$key};
+    }
+    if ( ref $w->{'seen'} eq qw| HASH | ) {
+        $config{"watch.$id.seen"} = join( ',',
+            map { join qw| : |, $ARG, $w->{'seen'}{$ARG}{'first'} }
+            sort keys $w->{'seen'}->%* )
+            || qw| - |;
+    }
+    $config{"watch.$id.held"} = join ',',
+        map { <[events.signal.encode]>->($ARG) } $w->{'held'}->@*
+        if ( $w->{'held'} // [] )->@*;
+}
+foreach my $seq ( keys <system.watch.outbox>->%* ) {
+    $config{"outbox.$seq.args"}
+        = <[events.signal.encode]>->( <system.watch.outbox>->{$seq}{'args'} );
+}
+
+my $ok = eval {
+    AMOS7::Config::Writer::write_file(
+        $path,
+        \%config,
+        {   'title' => 'system zenka watch registry',
+            'mode'  => 0640
+        }
+    );
+    1;
+};
+if ( not $ok ) {
+    <[base.logs]>->(
+        0,
+        '<< watch registry not written : %s >>',
+        $EVAL_ERROR =~ s{\s+\z}{}r
+    );
+    <system.watch.dirty> = TRUE;
+    return FALSE;
+}
+<system.watch.dirty> = FALSE;
+return TRUE;
+
+#,,,,,...,.,,,,.,,.,,,.,.,.,.,...,.,,,.,.,,.,,..,,...,...,,.,,.,,,.,,,,,.,.,,,
+#P7RCGPQYQ7W7XF5GM6GRRJYCL67B7PKC7XXLAFZ4PRLSQZCMBYOENXXG75T56NTOTOFE3PDIJSEI2
+#\\\|WHHKPOKJMIQNJP3PDYVHOD626RFHUKS4TPU5G3TQZTWQ3LJBOAG \ / AMOS7 \ YOURUM ::
+#\[7]LALFLVY2HLX25UAF3ZZETHISS5TJGBEBHE6OKRMIWUTFIVIXICAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

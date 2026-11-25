@@ -1,0 +1,188 @@
+## [:< ##
+
+# name  = system.watch.cmd.watch-add
+# param = <id> <kind> <pattern> signal=<name> [..]
+# descr = watch processes, files, logs or system values
+#
+#   kinds, with their <pattern> [ also as pattern="with spaces" ]
+#     proc-exit \ proc-start : regex on the command line  [ user=<name> ]
+#     file      : absolute path   on=appear|change|grow  [ size=<bytes> ]
+#     log       : absolute path   match=<regex>
+#     threshold : value name [ system.watch.value ]  above=<n> | below=<n>
+#   signal=<name>   raised as watch.<name>
+#   once [ default ] \ repeat
+#   unless=<condition,..>        as for events reminders
+#   valid-until=<span|time>      no signal after it [ 2d, 13h, a date ]
+#
+# the same id replaces a watch. proc watches take their first look at the
+# next poll
+#
+# example : tell when the n7fs place run on azurum ends [ rc=unknown there,
+# the run is not a child of the system zenka ]
+#   [ one line, the single quotes keep the shell off the pattern ; n7fs
+#     names itself 'n7fs <command>' in the process list ]
+#   ::: azurum system.watch-add place-complete proc-exit
+#       '^n7fs\s+place\b' signal=place.complete once
+#   -> signal watch.place.complete watch=place-complete pid= rc= runtime= age=
+
+my $fail   = sub { return { 'mode' => qw| false |, 'data' => shift } };
+my $parsed = <[events.bucket.parse_args]>->( $call->{'args'} // '' );
+return $fail->( $parsed->{'error'} ) if defined $parsed->{'error'};
+my %kv    = %{ $parsed->{'pairs'} };
+my @words = @{ $parsed->{'words'} };
+my $mode;
+$mode = pop @words
+    if @words > 2 and $words[-1] =~ m{\A(?:once|repeat)\z};
+my ( $id, $kind, @rest ) = @words;
+
+return $fail->('expected <id> <kind> <pattern> signal=<name>')
+    if not defined $kind;
+return $fail->('id : letters, digits, _ and -, 80 max')
+    if $id !~ m|\A[A-Za-z0-9][\w-]{0,79}\z|;
+my %kind_keys = (
+    'proc-exit'  => [qw| user |],
+    'proc-start' => [qw| user |],
+    'file'       => [qw| on size |],
+    'log'        => [qw| match |],
+    'threshold'  => [qw| above below |]
+);
+return $fail->('kind : proc-exit, proc-start, file, log or threshold')
+    if not exists $kind_keys{$kind};
+my %known = map { $ARG => 1 } qw| pattern signal unless valid-until |,
+    $kind_keys{$kind}->@*;
+
+foreach my $key ( sort keys %kv ) {
+    return $fail->("'$key=' is not known for kind $kind")
+        if not $known{$key};
+}
+my $pattern = $kv{'pattern'} // shift @rest;
+return $fail->('pattern expected [ use pattern="..," for spaces ]')
+    if not defined $pattern or not length $pattern;
+return $fail->("not understood : @rest") if @rest;
+
+my $signal = $kv{'signal'} // return $fail->('signal=<name> expected');
+$signal = "watch.$signal" if index( $signal, qw| watch. | ) != 0;
+return $fail->('signal : lowercase letters, digits, . _ - [ 80 max ]')
+    if $signal !~ m|\A[a-z0-9][a-z0-9._-]{0,79}\z|;
+
+my $now = <[base.time]>->(2);
+my %w   = (
+    'id'      => $id,
+    'kind'    => $kind,
+    'pattern' => $pattern,
+    'signal'  => $signal,
+    'mode'    => $mode // qw| once |,
+    'added'   => int $now,
+    'state'   => qw| active |,
+    'fired'   => 0
+);
+
+my $bad_regex = sub {
+    my $text = shift;
+    return undef if eval { my $r = qr{$text}; 1 };
+    return $EVAL_ERROR =~ s{ at \S+ line \d+.*}{}sr =~ s{\s+\z}{}r;
+};
+if ( $kind =~ m{\Aproc-} ) {
+    my $error = $bad_regex->($pattern);
+    return $fail->("pattern : $error") if defined $error;
+    if ( defined $kv{'user'} ) {
+        return $fail->("user '$kv{'user'}' is not known")
+            if $kv{'user'} !~ m{\A\d+\z}
+            and not defined CORE::getpwnam( $kv{'user'} );
+        $w{'user'} = $kv{'user'};
+    }
+} elsif ( $kind eq qw| file | or $kind eq qw| log | ) {
+    return $fail->('pattern : an absolute path expected')
+        if $pattern !~ m{\A/};
+}
+if ( $kind eq qw| file | ) {
+    my $on = $kv{'on'} // ( defined $kv{'size'} ? qw| grow | : qw| appear | );
+    return $fail->('on : appear, change or grow')
+        if $on !~ m{\A(?:appear|change|grow)\z};
+    return $fail->('on=grow and size=<bytes> go together')
+        if ( $on eq qw| grow | ) != ( defined $kv{'size'} );
+    return $fail->('size : bytes')
+        if defined $kv{'size'} and $kv{'size'} !~ m{\A\d+\z};
+    $w{'on'}   = $on;
+    $w{'size'} = $kv{'size'} if defined $kv{'size'};
+} elsif ( $kind eq qw| log | ) {
+    return $fail->('match=<regex> expected')
+        if not length( $kv{'match'} // '' );
+    my $error = $bad_regex->( $kv{'match'} );
+    return $fail->("match : $error") if defined $error;
+    $w{'match'} = $kv{'match'};
+} elsif ( $kind eq qw| threshold | ) {
+    return $fail->( 'value : mem.used_percent, process.count, '
+            . 'disk.free_percent:<mount> or '
+            . 'disk.inodes_free_percent:<mount>' )
+        if $pattern !~ m{\A(?:mem\.used_percent|process\.count|
+            disk\.(?:inodes_)?free_percent:/.*)\z}x;
+    my @limit = grep { defined $kv{$ARG} } qw| above below |;
+    return $fail->('one of above=<n>, below=<n>') if @limit != 1;
+    return $fail->("$limit[0] : a number")
+        if $kv{ $limit[0] } !~ m{\A\d+(?:\.\d+)?\z};
+    $w{ $limit[0] } = $kv{ $limit[0] };
+}
+if ( defined $kv{'unless'} ) {
+    my $conditions = <[events.bucket.unless.parse]>->( $kv{'unless'} );
+    return $fail->( $conditions->{'error'} )
+        if defined $conditions->{'error'};
+    $w{'unless'} = $conditions->{'unless'};
+}
+if ( defined( my $text = $kv{'valid-until'} ) ) {
+    my $span = AMOS7::Switch::parse_span($text);
+    my $until
+        = $text =~ m|\A\d{9,11}\z| ? $text + 0
+        : defined $span            ? int( $now + $span )
+        :                            str2time($text);
+    return $fail->("valid-until : '$text' not understood")
+        if not defined $until;
+    return $fail->('valid-until : already past') if $until <= $now;
+    $w{'until'} = int $until;
+}
+
+my $entries = <system.watch.entries>;
+my $old     = $entries->{$id};
+## room : the oldest finished watches go ##
+if ( not defined $old and keys %{$entries} >= 89 ) {
+    foreach my $gone (
+        sort {
+            ( $entries->{$a}{'added'} <=> $entries->{$b}{'added'} )
+                || $a cmp $b
+        }
+        grep { $entries->{$ARG}{'state'} !~ m{\A(?:active|triggered)\z} }
+        keys %{$entries}
+    ) {
+        delete $entries->{$gone};
+        last if keys %{$entries} < 89;
+    }
+}
+return $fail->('too many watches [ 89 max ] : remove some')
+    if not defined $old and keys %{$entries} >= 89;
+$entries->{$id} = \%w;
+
+## file and log : the baseline is the moment of adding ##
+if ( $kind eq qw| file | or $kind eq qw| log | ) {
+    my $check = "system.watch.check.$kind";
+    <[$check]>->( \%w, [], $now );
+}
+
+if ( not <[system.watch.save]> ) {
+    if ( defined $old ) { $entries->{$id} = $old }
+    else                { delete $entries->{$id} }
+    return $fail->('watch registry cannot be written [ see log ]');
+}
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "watch '%s' %s [ %s %s, signal %s ]",
+        $id, defined $old ? 'replaced' : 'added',
+        $w{'mode'}, $kind, $signal
+    )
+};
+
+#,,.,,,.,,.,.,,..,.,,,,.,,,,,,,..,.,.,,.,,..,,..,,...,...,.,,,.,.,,,.,...,,.,,
+#T6FW6WT4DQE45KNWWFQGH2W2QSG4JYJMRNN6L7V7MD2TOBYFEEAO4FBRBWXT4DQEOV6R3V4WXGSKS
+#\\\|CG2MVCRN73GYIMW27VHNJHJKP7CCC54SSJC3J2O3Q3INVS3NIHA \ / AMOS7 \ YOURUM ::
+#\[7]Q32PASBKGMVUZ2UCLNP3WTR3V5IIGUFPBMHDVF6N53OTPYXNIIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,6 +5,9 @@
 # args   = owner, entry
 # return = TRUE while checking or after ending the entry
 #
+# another keeper of entries [ the system zenka's watches ] names its own
+# <events.unless_host.get \ finish \ pass> ; unset : the buckets
+#
 # any holding condition ends the entry as skipped. an unreadable source does
 # not hold : its note is journaled and the remaining conditions are checked
 
@@ -41,8 +44,10 @@ while ( $e->{'unless_index'} < @conditions ) {
             ->( $cond, $records, $e->{'added'} );
         if ( $holds->{'open'} ) {
             delete $e->{'unless_check'};
-            my $notes = join ' ; ', @{ $e->{'unless_notes'} // [] };
-            <[events.bucket.finish]>->(
+            my $notes  = join ' ; ', @{ $e->{'unless_notes'} // [] };
+            my $finish = <events.unless_host.finish>
+                // qw| events.bucket.finish |;
+            <[$finish]>->(
                 $owner, $e, qw| skipped |,
                 ( length $notes ? "$notes ; " : '' )
                     . "unless $cond->{'text'} holds : $holds->{'reading'}"
@@ -106,11 +111,12 @@ while ( $e->{'unless_index'} < @conditions ) {
 delete $e->{'unless_check'};
 delete $e->{'unless_index'};
 $e->{'unless_pass'} = TRUE;
-<[events.bucket.evaluate]>->($owner);
+my $pass = <events.unless_host.pass> // qw| events.bucket.evaluate |;
+<[$pass]>->($owner);
 return TRUE;
 
-#,,,,,,,.,,.,,.,,,...,,..,...,,,.,,,,,...,.,,,..,,...,..,,..,,,,.,,,,,,,,,,.,,
-#42PWAUSUZ7HUE7LA2QWBVPN3OAXXXBJCIK2S7FXBDRXP6LAYUXKZ46KT7PQIA37JQEQR6Z4DMTJ4G
-#\\\|JR3D6VDHJSA6FKX6PJA7ZH5OYQMYZVNNI4ZWLV3B3GCVLGUYVRC \ / AMOS7 \ YOURUM ::
-#\[7]7TMPJ4MAB4LKKQHXKQC5SE5EX3S5P23SCESFVN3CQU3QKGA2OSAI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,.,,.,.,..,,,.,,.,,,...,,,.,...,..,,...,...,.,.,...,,..,,,,,.,,,
+#BURSNG3EBF7763DSFTC53LUNXDH2XT75TXHKKUEUQRCSZQP5QK5EDBX3Y3MZG7J5CBO2ENXH2ARNS
+#\\\|ABEI27OJE4IB2AFKGYW6PXBLI2XPBI66L3P57266QMYRHKHDU4A \ / AMOS7 \ YOURUM ::
+#\[7]LOHERAG3MABS3VGQJVMA2VLCO6SYTAMDOZTC4WGIO3H4Q5IDDSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

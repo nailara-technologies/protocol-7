@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = system.watch.value
+# descr  = one value of the system poll, by name
+# args   = name
+# return = number, undef when there is none [ or the name is not known ]
+#
+#   mem.used_percent   process.count
+#   disk.free_percent:<mount>   disk.inodes_free_percent:<mount>
+# disk values are as fresh as the disk poll [ its own adaptive interval ]
+
+my $name = shift // '';
+my $value;
+if ( $name eq qw| mem.used_percent | ) {
+    $value = <system.mem.used_percent>;
+} elsif ( $name eq qw| process.count | ) {
+    $value = <process.count>;
+} elsif ( $name =~ m{\Adisk\.(free_percent|inodes_free_percent):(/.*)\z} ) {
+    my ( $field, $mount ) = ( $1, $2 );
+    $value = ( ( <system.disk.mounts> // {} )->{$mount} // {} )->{$field};
+}
+return undef
+    if not defined $value or $value !~ m{\A-?\d+(?:\.\d+)?(?:e-?\d+)?\z};
+return $value + 0;
+
+#,,..,,,.,,,,,...,.,,,..,,..,,..,,...,...,..,,..,,...,..,,,,.,,,.,.,,,,,.,,.,,
+#5SLMCSF4W3ENITAXV5S5YT5XF4DIYGJFTDRJ5I5GUNBAXA3MANL2IRN4452FNSNPGBB7KTURHHEVG
+#\\\|VJG7VPZ6BTKNFPC3KH65YLMYZYZ7G3GOCVBEPENGEMFD4ZPOQPB \ / AMOS7 \ YOURUM ::
+#\[7]TNGWYQ73GT4HVF5LSIPBNG6VHCWLKVXLZJNPNQI3JXNV27NWZMAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

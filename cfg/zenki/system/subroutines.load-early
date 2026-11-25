@@ -21,6 +21,7 @@ base.exit
 base.regex
 base.cnt_s
 trust.chain
+events.fire
 base.s_warn
 base.s_read
 base.minmax
@@ -41,6 +42,7 @@ ui.layout.fit
 ui.budget.tty
 net.init_code
 net.calc_port
+base.u2n_time
 base.timezone
 base.sprint_t
 base.sort-num
@@ -101,6 +103,7 @@ system.init_code
 system.disk.poll
 plugin.auth.unix
 jobqueue.add_job
+events.init_code
 base.stream.push
 base.stream.open
 base.stream.gate
@@ -120,10 +123,16 @@ base.call_filter
 auth.pwd.success
 auth.auth_select
 ascii.frame.load
+system.watch.save
+system.watch.path
+system.watch.load
+system.watch.gate
+system.watch.emit
 plugin.auth.zenka
 net.read_bytewise
 jobqueue.move_job
 jobqueue.exec_job
+events.bucket.get
 base.stream.close
 base.session.user
 base.session.init
@@ -145,7 +154,12 @@ base.chk-sum.amos
 ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
+system.watch.value
+system.watch.sweep
 system.disk.mounts
+events.bucket.save
+events.bucket.path
+events.bucket.load
 base.reload_values
 base.reload_config
 base.parser.config
@@ -158,6 +172,7 @@ base.get_file.aref
 base.file.pre_init
 base.file.line_map
 base.event.add_var
+base.dependency.ok
 base.clear_p7_mods
 base.clean_unicode
 base.clean_hashref
@@ -167,6 +182,7 @@ system.disk.statvfs
 system.cmd.hostname
 plugin.auth.twofish
 io.ip.tcp.init_code
+events.bucket.start
 base.utf8.clean_str
 base.str.eval_error
 base.round_truncate
@@ -184,10 +200,16 @@ base.file.all_files
 base.extract_values
 base.event.pre_init
 base.diff.hash_keys
+base.dependency.add
 base.calc_unix_path
+system.watch.trigger
 io.ip.tcp.input.open
+events.signal.encode
+events.signal.decode
+events.bucket.finish
 base.route.init_code
 base.root.drop_privs
+base.reply.mode_text
 base.read_proc_times
 base.prng.chars-anum
 base.prng.characters
@@ -216,6 +238,8 @@ system.disk.init_code
 jobqueue.get_next_job
 jobqueue.get_job_data
 format.yaml.load_file
+events.source.arm_all
+events.bucket.journal
 crypt.C25519.key_vars
 crypt.C25519.key_path
 crypt.C25519.gen_keys
@@ -226,16 +250,25 @@ base.prng.add_entropy
 base.perlmod.pre_init
 base.perlmod.autoload
 base.parser.timestamp
+base.parser.time_left
 base.log.format_entry
 base.load_host_config
 base.load_config_file
 base.list.element.add
 base.file.match_files
 base.event.add_signal
+base.dependency.setup
 base.console.commands
 base.cfg.profile.list
 base.balanced-average
+system.watch.post_init
+system.watch.init_code
+system.watch.check.log
 system.process.cmd.top
+events.plugin.registry
+events.parser.next_run
+events.bucket.gate.arm
+events.bucket.evaluate
 crypt.C25519.sign_data
 base.session.init_code
 base.required_bin_path
@@ -244,11 +277,15 @@ base.register_bin_deps
 base.prng.entropy_pool
 base.perlmod.init_code
 base.path.resolved_abs
+base.load_section_conf
 base.host.trusted_file
 base.get_max_verbosity
 base.comp-int.is_valid
 base.cfg.profile.apply
 auth.client.owner_pins
+system.watch.unless.get
+system.watch.check.proc
+system.watch.check.file
 system.process.autokill
 system.cmd.pid_autokill
 system.cmd.abort-reboot
@@ -278,6 +315,9 @@ base.chk-sum.elf.inline
 base.callback.cmd_reply
 base.auth.set_zenka_key
 ui.caller.security-level
+system.watch.unless.pass
+system.watch.send_outbox
+system.watch.cmd.watches
 system.process.post_init
 system.process.init_code
 system.disk.handler.poll
@@ -285,6 +325,11 @@ system.cleanup.init_code
 protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
+events.bucket.parse_args
+events.bucket.gate.parse
+events.bucket.gate.holds
+events.bucket.gate.close
+events.bucket.gate.check
 crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
@@ -297,6 +342,7 @@ base.protocol-7.pre_init
 base.parser.command_list
 base.ntime.delta_seconds
 base.file.zulum_tmp_file
+base.dependency.pre_init
 base.cmd.verify-instance
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
@@ -305,6 +351,7 @@ ui.render.tree.invalidate
 system.disk.cmd.disk-done
 jobqueue.priorities_table
 io.unix.socket.input.open
+events.plugin.check_setup
 crypt.C25519.root_key_dir
 crypt.C25519.load_keypair
 base.stream.advance_drain
@@ -317,6 +364,7 @@ base.log.send-buffer.init
 base.load_runtime_modules
 base.is_defined_recursive
 base.handler.link-upgrade
+base.file.zenka_dir.write
 base.erase_buffer_content
 base.devmod.unload_unsafe
 base.devmod.safe_commands
@@ -324,12 +372,17 @@ base.chk-sum.elf.pre_init
 base.chk-sum.bmw.pre_init
 base.callback.delayed-log
 auth.client.distrust_list
+system.watch.unless.finish
+system.watch.cmd.watch-add
 system.memory.cmd.mem-used
 system.cmd.reenable-reboot
 system.cleanup.check_tasks
 protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
+events.signal.journal_read
+events.bucket.unless.parse
+events.bucket.unless.check
 crypt.C25519.encrypted_key
 base.warnings.from_bitmask
 base.session.split_subname
@@ -344,6 +397,7 @@ base.max-len.val-hash-keys
 base.handler.session_error
 base.event.io_idle_restart
 base.devmod.process_signal
+base.dependency.add_object
 base.check_dependency_dirs
 system.process.cmd.cpu-load
 system.handler.X-11_stopped
@@ -352,6 +406,7 @@ system.disk.cmd.disk-status
 system.admin_reboot_warning
 net.read_linewise_estimated
 io.unix.socket.output.close
+events.bucket.handler.start
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
 base.templates.register_add
@@ -368,6 +423,7 @@ base.debian.install_package
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 auth.client.zenka.init_code
+system.watch.check.threshold
 system.cmd.report-X-11-error
 system.cmd.reload_gfx_module
 protocol.protocol-7.pre_init
@@ -385,6 +441,7 @@ base.handler.heart_ack_reply
 base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 auth.client.server_pin.check
+system.watch.cmd.watch-remove
 system.handler.X-11_restarted
 system.handler.X-11_pid_reply
 system.disk.cmd.disk-register
@@ -433,6 +490,9 @@ base.handler.link-upgrade.input
 system.xcrash_hostreboot_trigger
 system.process.handler.wait_gone
 system.handler.X-11_driver_reply
+events.bucket.gate.handler.retry
+events.bucket.gate.handler.reply
+events.bucket.gate.handler.guard
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
 crypt.C25519.decrypt_priv_keystr
@@ -446,6 +506,7 @@ base.file.last_existing_dir_path
 base.file.get_swapped_subs_pairs
 base.config.load_proto_7_version
 ascii.frame.parse.border_segment
+system.watch.handler.signal_reply
 system.process.callback.send_kill
 protocol.amos-chksum.ext-cmd.exit
 base.zenki.pause_ondemand_timeout
@@ -453,6 +514,7 @@ base.sourcecode.in-mem.sub-source
 base.session.cancel_source_routes
 base.perlmod.init_install_buffers
 base.parser.center_ellipse_string
+base.dependency.install_callbacks
 base.callback.expire_code_version
 protocol.sftp.server.start-process
 protocol.sftp.callback.kill_server
@@ -461,6 +523,8 @@ protocol.amos-chksum.ext-cmd.modes
 protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
+events.bucket.unless.handler.reply
+events.bucket.unless.handler.guard
 crypt.C25519.load_keys_from_secret
 crypt.C25519.get_type_from_key_str
 base.zenki.resume_ondemand_timeout
@@ -532,8 +596,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,..,,...,...,...,,..,.,.,..,,,,.,,,.,.,.,..,,...,...,,.,,..,,,.,,,.,,.,.,
-#6SHFCO4GKQ4TIX4GT6AE56GFVWCZWRRCCLKLBW4WYPTX77Z2YUDCFMPWCIZDOOKBH6TTAWHFC6N7U
-#\\\|FXWH77OSU3XARQXY63DTWMBDSVIBDJTCMZTO6TQTTRJD56QLSTB \ / AMOS7 \ YOURUM ::
-#\[7]UEOGSKTNP2MPV5BFCFH5PY5AX2VIW2KAEE2JUA7WHMF66ZZKKUDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,,,,,...,.,,,...,...,,,.,,.,,..,,...,...,.,,,...,,.,,...,..,,
+#XUG2PRVREWQCFGHMRWYBIB7NCR57PXLZ5F7ZQOX4O65BQMZZSXQR52B64YF2LNJLIQ6HXWLZSXP32
+#\\\|PQSVJ7EAF6UGV4RK3FVB772E7JVSGG6AEHAJGIUJ7HNIYHAM4XJ \ / AMOS7 \ YOURUM ::
+#\[7]6QHYC4KZTHWPACUTSRMY25LHGPVRHURJ2UPITFMQRXKZRZT6M2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

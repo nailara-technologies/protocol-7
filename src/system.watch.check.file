@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = system.watch.check.file
+# descr = a path appears, changes or grows past a size
+# args  = watch, [ unused ], now
+#
+# the first look is the baseline and never triggers. a path that cannot be
+# looked at [ permissions ] is not 'absent' : the baseline stays
+
+my ( $w, undef, $now ) = @ARG;
+
+my @stat = CORE::stat( $w->{'pattern'} );
+return FALSE
+    if not @stat
+    and not $OS_ERROR{'ENOENT'}
+    and not $OS_ERROR{'ENOTDIR'};
+my $state = @stat ? join( qw| : |, @stat[ 7, 9, 1 ] ) : qw| absent |;
+my $old   = $w->{'base'};
+return FALSE if defined $old and $old eq $state;
+$w->{'base'} = $state;
+<system.watch.dirty> = TRUE;
+return FALSE if not defined $old or not @stat;
+
+my $old_size = $old eq qw| absent | ? undef : ( split m{:}, $old )[0];
+my $on       = $w->{'on'};
+my $hit
+    = $on eq qw| appear | ? $old eq qw| absent |
+    : $on eq qw| change | ? $old ne qw| absent |
+    : $stat[7] > $w->{'size'}
+    && ( not defined $old_size or $old_size <= $w->{'size'} );
+return FALSE if not $hit;
+
+<[system.watch.trigger]>->(
+    $w,
+    {   'path'  => $w->{'pattern'},
+        'event' => $on,
+        'size'  => $stat[7]
+    },
+    $now
+);
+return TRUE;
+
+#,,,,,..,,..,,,.,,.,.,,.,,..,,.,,,..,,,.,,..,,..,,...,...,,,,,..,,.,,,,..,...,
+#CIVFCIB3DSWXG3MDD2OI5MOIEOUBM4KVILMEAXV6BD26FTSLGDDBU2ADC47D72MBGVEHOKRQ4ANUE
+#\\\|4EW7MRSFAI3MAZIAVFVVO6F4UARFZHE3VUTLELBKOAZB6RPF3DA \ / AMOS7 \ YOURUM ::
+#\[7]VU5P5WOFKBCV6FQQ2UFSWJELZH6CS3AC44OM75RVBOYM2Z4I6QDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,118 @@
+## [:< ##
+
+# name  = system.watch.check.proc
+# descr = proc-start \ proc-exit : compare the matches
+# args  = watch, process records, now
+#
+# a match whose parent matches too belongs to that parent [ forked workers ].
+# identity is pid + start time. exit status is known only for a child of
+# this zenka [ base.sig_chld or our own waitpid ] : anything else is
+# rc=unknown, the kernel gives the status to the parent alone. a zombie has
+# ended. runtime is first to last sighting, age is process start to last
+# sighting ; both are unknown when the end happened while we were down
+
+my ( $w, $procs, $now ) = @ARG;
+
+my $regex = $w->{'regex'} //= qr{$w->{'pattern'}};
+my $uid;
+if ( length( $w->{'user'} // '' ) ) {
+    $uid
+        = $w->{'user'} =~ m{\A\d+\z}
+        ? $w->{'user'}
+        : ( CORE::getpwnam( $w->{'user'} ) )[2];
+    die "user '$w->{'user'}' is not known\n" if not defined $uid;
+}
+
+my ( %alive, %match );
+foreach my $p ( @{$procs} ) {
+    my $key = "$p->{'pid'}.$p->{'start'}";
+    $alive{$key} = $p;
+    next if ( $p->{'state'} // '' ) eq qw| defunct |;
+    next if $p->{'pid'} == $PID;
+    next if defined $uid and ( $p->{'uid'} // -1 ) != $uid;
+    my $cmd = length( $p->{'cmd'} // '' ) ? $p->{'cmd'} : $p->{'fname'} // '';
+    next if $cmd =~ m{\bwatch-add\b};    ## the command adding a watch ##
+    $match{ $p->{'pid'} } = $p if $cmd =~ $regex;
+}
+
+my $baseline = ref $w->{'seen'} ne qw| HASH |;
+my $seen     = $w->{'seen'} //= {};
+<system.watch.dirty> = TRUE if $baseline;
+
+## ended ##
+foreach my $key ( sort keys $seen->%* ) {
+    my $t = $seen->{$key};
+    my $p = $alive{$key};
+    if ( defined $p and ( $p->{'state'} // '' ) ne qw| defunct | ) {
+        $t->{'last'}  = $now;
+        $t->{'child'} = TRUE if ( $p->{'ppid'} // 0 ) == $PID;
+        next;
+    }
+    delete $seen->{$key};
+    <system.watch.dirty> = TRUE;
+    next if $w->{'kind'} ne qw| proc-exit |;
+    my ( $pid, $start ) = split m{\.}, $key;
+    my %values = ( 'pid' => $pid, 'rc' => qw| unknown | );
+    my $status;
+    if (    ref <base.child_exit> eq qw| HASH |
+        and exists <base.child_exit>->{$pid}
+        and $t->{'child'} ) {
+        $status = <base.child_exit>->{$pid};
+    } elsif ( defined $p and ( $p->{'ppid'} // 0 ) == $PID ) {
+        local $CHILD_ERROR;
+        if ( <[base.waitpid]>->($pid) == $pid ) {
+            $status = $CHILD_ERROR;
+            <base.child_exit>->{$pid} = $status;    ## other watches ##
+        }
+    }
+    if ( defined $status ) {
+        if ( my $signal = $status & 127 ) {
+            $values{'rc'}  = 128 + $signal;
+            $values{'sig'} = $signal;
+        } else {
+            $values{'rc'} = $status >> 8;
+        }
+    }
+    my $last = $t->{'last'};
+    $values{'runtime'}
+        = defined $last ? int( $last - $t->{'first'} ) : qw| unknown |;
+    $values{'age'}
+        = ( defined $last and $start > 0 )
+        ? int( $last - $start )
+        : qw| unknown |;
+    <[system.watch.trigger]>->( $w, \%values, $now );
+    return TRUE if $w->{'state'} ne qw| active |;
+}
+
+## new ##
+foreach my $pid ( sort { $a <=> $b } keys %match ) {
+    my $p = $match{$pid};
+    next if exists $match{ $p->{'ppid'} // 0 };
+    my $key = "$pid.$p->{'start'}";
+    next if exists $seen->{$key};
+    $seen->{$key} = {
+        'first' => int $now,
+        'last'  => $now,
+        'child' => ( $p->{'ppid'} // 0 ) == $PID ? TRUE : FALSE
+    };
+    <system.watch.dirty> = TRUE;
+    next if $w->{'kind'} ne qw| proc-start |;
+    ## at the first look only what started after the watch was added ##
+    next if $baseline and $p->{'start'} <= $w->{'added'};
+    <[system.watch.trigger]>->(
+        $w,
+        {   'pid'  => $pid,
+            'uid'  => $p->{'uid'}   // qw| unknown |,
+            'comm' => $p->{'fname'} // qw| unknown |
+        },
+        $now
+    );
+    return TRUE if $w->{'state'} ne qw| active |;
+}
+return TRUE;
+
+#,,.,,...,,,,,..,,.,,,,,.,.,.,..,,,.,,,,,,,.,,..,,...,...,...,.,,,,,.,,,,,,,.,
+#CJIEZRMOJ6BOK7ULBCIX3RKOTFDRXZF5DCNIWUNGQBPQ6F55WZBPPLS3WOOZUIL43IUKSHKCHNJCC
+#\\\|5JIZGI3DPS7CBJ5KNKT7OO6FUOQACH7OSJYEW7AVTM2MUO2OCNS \ / AMOS7 \ YOURUM ::
+#\[7]VDZ3L66TZNYIC2YHIQMD5I2WBVBSQWJXQ5MEZOV7TIDVJFPOKIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

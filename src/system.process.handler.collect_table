@@ -34,6 +34,17 @@ my $poll_at   = <[base.time]>->(2);
 my $cpu_prev  = <system.process.cpu_prev> // {};
 my %cpu_taken = ();
 
+## full records for the watches [ the top table cuts command lines ] ##
+my $watching = (
+    defined $code{'system.watch.sweep'}
+        and ( keys %{ <system.watch.entries> // {} }
+        or keys %{ <system.watch.outbox> // {} } )
+);
+my @watch_procs;
+## nobody watching : child statuses are not kept ##
+<base.child_exit>->%* = ()
+    if not $watching and ref <base.child_exit> eq qw| HASH |;
+
 foreach my $p ( @{ <system.process.pt>->table } ) {
     <process.count>++;
     my $cpu_time = $p->time // 0;            ## [ microseconds ] ##
@@ -69,6 +80,18 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
         'pctcpu' => $cpu,
         'pctmem' => $mem,
     };
+
+    push @watch_procs,
+        {
+        'pid'   => $p->pid,
+        'ppid'  => $p->ppid,
+        'start' => $p->start,
+        'uid'   => $p->uid,
+        'state' => $p->state,
+        'cmd'   => $p->cmndline,
+        'fname' => $p->fname
+        }
+        if $watching;
 
     ## process name blacklist ( not to be killed ) ##
     my $bl_match = 0;
@@ -205,6 +228,17 @@ if ( $mem_limit_reached and <mem.autokill> )
     }
 }
 
+## watches ride on this poll : a fault there must not stop the memory guard ##
+## or the re-arm below                                                      ##
+if ($watching) {
+    eval { <[system.watch.sweep]>->( \@watch_procs, $poll_at ) };
+    <[base.logs]>->(
+        0,
+        '<< watch sweep failed : %s >>',
+        $EVAL_ERROR =~ s{\s+\z}{}r
+    ) if $EVAL_ERROR;
+}
+
 ## dynamic poll acceleration [ re-arm status timer under rising pressure ] ##
 
 my $accel_threshold = <mem.accel_threshold>    // 0;
@@ -245,8 +279,8 @@ if (sprintf( '%.2f', <system.process.poll.current_interval> ) ne
     );
 }
 
-#,,..,.,,,,,.,.,.,,.,,,..,,.,,,.,,...,,,,,,.,,..,,...,..,,.,.,...,.,.,,,.,,.,,
-#6A4GJBXZ6ZMS7VEYDVJO6WXTTP6PQN4ETB7UPKOKLKELJHGL5I2DI3YFLMGZLUMQVHXY7JJCLL7Z4
-#\\\|CIKV3HAORUCPGJSGZ3JNNWUOXO5GLP6LIGDG3Y4NMLC4FAMDHIR \ / AMOS7 \ YOURUM ::
-#\[7]3KACVPMB6BPX2MUYH5QBSOQ5CRO4ERSBPYHL6JAXZHZXS4FPZQCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,.,,..,,,,,,,,,,,,,,,..,,..,.,,,..,,...,...,...,,..,,,,,,,,,,.,,
+#4FZRXT3CG4U2PB24JNLJEXDX6HKQW53YGQIAAX77DF5KVRPXRUEFHG4MRI4HUIU74GK323HINAYYA
+#\\\|LXLGFXCMZRAEHYLXIJLNFI4EPDD5PTSJRWYN7J4EOFOGJ54K2PK \ / AMOS7 \ YOURUM ::
+#\[7]JXEKRB2J7HGUXQMTI52EXQJQQW76SRDWLIQ7BSFGMOX53X36LSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

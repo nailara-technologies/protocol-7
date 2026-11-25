@@ -7,7 +7,8 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       top cpu-load mem-used reload_gfx_module pid_autokill \
                       name cur-pid hostname report-X-11-error \
                       abort-reboot reenable-reboot disk-status disk-register \
-                      disk-update disk-done
+                      disk-update disk-done watch-add watch-remove \
+                      watches
 
 ## devmod commands : only reachable while devmod is loaded on THIS zenka ##
 ## [ v7-zenki.devmod-enable / devmod-clear ], not a permanent grant      ##
@@ -42,6 +43,16 @@ disk.history_samples = 13 # [ recent samples in the free-space trend ]
 base.interval.cfg.type.disk.rhythm = disk
 base.interval.cfg.type.disk.start = 377 # [ seconds with comfortable room ]
 base.interval.cfg.type.disk.cap = 13 # [ seconds under critical pressure ]
+
+## watcher registry : unless= answers are waited for, an unanswered signal ##
+## to events is sent again [ data/tasks/watcher-registry.md ]              ##
+base.interval.cfg.type.budget-gate-answer.start = 89
+base.interval.cfg.type.budget-gate-answer.cap = 89
+base.interval.cfg.type.budget-gate-answer.cap_jitter = 13
+base.interval.cfg.type.watch-signal-retry.start = 13
+base.interval.cfg.type.watch-signal-retry.factor = 1.5
+base.interval.cfg.type.watch-signal-retry.cap = 780
+base.interval.cfg.type.watch-signal-retry.cap_jitter = 89
 
 ## per-mount overrides use disk.mount.<path>.<key>, for example :          ##
 #disk.mount./data.warn_free = 8
@@ -95,7 +106,11 @@ mem.oom_terminate_backstop = 8 # [sec.] escalation only : how long to wait
 ##
 ###
 
-modules.load = auth.client net protocol io.unix ui system
+modules.load = auth.client net protocol io.unix ui system \
+               events.bucket.unless events.bucket.parse_args \
+               events.bucket.gate.parse events.bucket.gate.holds \
+               events.signal.encode events.signal.decode \
+               events.signal.journal_read
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -106,8 +121,8 @@ modules.load = auth.client net protocol io.unix ui system
 
 [zenka.loop]
 
-#,,..,,,,,.,.,...,.,,,,,.,.,,,...,.,,,,,,,.,,,..,,...,...,...,..,,..,,...,.,,,
-#DCMCMILSVJ6GBO6ZBY5QX5AO3F5MH5FB7VGVOV7I7YM6EYNBJPUBGEIPCUF6ZQCKOTFR3LNEOM3AG
-#\\\|SPKM5EYMFWIMYC6V3TRV2MJLX4MU42KPY4VMYRVRP5HDM4XNLLW \ / AMOS7 \ YOURUM ::
-#\[7]MJHTXP5WVCRFGPUB5AABTMCGVBAXERM77VQM2BVTIXIWJTNPCSDI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,,,,.,,...,..,,.,,,,,.,,..,...,..,,...,..,,...,,..,,,.,..,,...,
+#NXMX5DR5IRQMDCNBG427HPA4TLDFTATRRU3PRPWWKUPJYB3BMHBYICIHAIU7KINCGXUBIRJUUVB36
+#\\\|LP6OPU2AQZOYHGDPHVR4NKEIV4INVVYSXVQXQP2QFC2MNADDMUA \ / AMOS7 \ YOURUM ::
+#\[7]6DQASIPACQH5YJXHMBPFVND3LAXULAJZUMUUUYJ25CBBMPCS6CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

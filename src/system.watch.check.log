@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = system.watch.check.log
+# descr = new lines of a log that match a pattern
+# args  = watch, [ unused ], now
+#
+# the first look starts at the end of the file. the offset only passes
+# complete lines, so a half written line is read again. a new inode or a
+# shorter file starts from the top. at most 256 KiB per poll, a longer line
+# is skipped ; at most 13 signals per poll, the rest is counted
+
+my ( $w, undef, $now ) = @ARG;
+my $max_bytes = <system.watch.log_chunk> // 262144;
+
+my @stat = CORE::stat( $w->{'pattern'} );
+if ( not @stat ) {
+    return FALSE
+        if not $OS_ERROR{'ENOENT'} and not $OS_ERROR{'ENOTDIR'};
+    ## absent : whatever appears later is new ##
+    if ( ( $w->{'inode'} // -1 ) ne 0 or not defined $w->{'offset'} ) {
+        @{$w}{qw| inode offset |} = ( 0, 0 );
+        delete $w->{'skip_line'};
+        <system.watch.dirty> = TRUE;
+    }
+    return FALSE;
+}
+return FALSE if !-f _;    ## a fifo would block ##
+my ( $inode, $size ) = @stat[ 1, 7 ];
+
+if ( not defined $w->{'offset'} ) {
+    @{$w}{qw| inode offset |} = ( $inode, $size );
+    <system.watch.dirty> = TRUE;
+    return FALSE;
+}
+if ( $w->{'inode'} != $inode or $size < $w->{'offset'} ) {
+    @{$w}{qw| inode offset |} = ( $inode, 0 );
+    delete $w->{'skip_line'};
+    <system.watch.dirty> = TRUE;
+}
+return FALSE if $size <= $w->{'offset'};
+
+open my $fh, '<:raw', $w->{'pattern'} or return FALSE;
+seek $fh, $w->{'offset'}, 0;
+my $chunk = '';
+my $got   = read $fh, $chunk, $max_bytes;
+close $fh;
+return FALSE if not $got;
+
+my $end = rindex $chunk, "\n";
+if ( $end < 0 ) {
+    return FALSE if $got < $max_bytes;
+    $w->{'offset'} += $got;    ## a line longer than the chunk ##
+    $w->{'skip_line'} = 1;
+    <system.watch.dirty> = TRUE;
+    return FALSE;
+}
+$w->{'offset'} += $end + 1;
+<system.watch.dirty> = TRUE;
+my @lines = split m{\n}, substr( $chunk, 0, $end ), -1;
+shift @lines if delete $w->{'skip_line'};    ## the rest of a long one ##
+
+my $regex = $w->{'regex'} //= qr{$w->{'match'}};
+my @hits;
+foreach my $line (@lines) {
+    utf8::decode($line);
+    $line =~ s{\r\z}{};
+    push @hits, $line if $line =~ $regex;
+}
+return FALSE if not @hits;
+my $dropped = @hits > 13 ? @hits - 13 : 0;
+splice @hits, 13 if $dropped;
+
+foreach my $i ( 0 .. $#hits ) {
+    my %values = ( 'path' => $w->{'pattern'}, 'line' => $hits[$i] );
+    $values{'dropped'} = $dropped if $dropped and $i == $#hits;
+    <[system.watch.trigger]>->( $w, \%values, $now );
+    last if $w->{'state'} ne qw| active |;
+}
+return TRUE;
+
+#,,..,,,.,..,,...,,..,,.,,,,.,,..,,.,,.,,,.,.,..,,...,..,,.,.,.,.,..,,.,,,,.,,
+#BYLVGHZWXTULXKNJRHEOR3I33MMEURQ6S7VUQTZSIH7UY2NDJTZIAFPR6BONZUESVYM2MGY7RY254
+#\\\|SCGKI4PNGUOOMWZ4AILXX7SVLQ5EJNT6CNZOX7PNB7PUK4L7L3F \ / AMOS7 \ YOURUM ::
+#\[7]HRZ6AJSSD6ZMESJVAGMS7SLHCT2NGAMTYPJERVHRQXZP42L6CGAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

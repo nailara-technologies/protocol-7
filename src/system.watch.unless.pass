@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = system.watch.unless.pass
+# descr = unless hook : nothing holds, emit what is held
+# args  = owner
+#
+# valid-until applied when the trigger happened, not again here
+
+foreach my $id ( sort keys <system.watch.entries>->%* ) {
+    my $w = <system.watch.entries>->{$id};
+    next if not defined $w->{'gate'} or not $w->{'gate'}{'unless_pass'};
+    my $notes = join ' ; ', @{ $w->{'gate'}{'unless_notes'} // [] };
+    <[base.logs]>->( 0, "watch '%s' : %s", $id, $notes ) if length $notes;
+    delete $w->{'gate'};
+    my $held = delete $w->{'held'} // [];
+    $w->{'state'} = qw| fired | if $w->{'mode'} eq qw| once |;
+    <[system.watch.emit]>->($ARG) for @{$held};
+    <system.watch.dirty> = TRUE;
+}
+<[system.watch.save]> if <system.watch.dirty>;
+return TRUE;
+
+#,,..,,.,,..,,,.,,,,.,.,.,,..,,,,,.,.,,..,,..,..,,...,.,.,,,.,,.,,..,,...,,..,
+#C53GMXSLWD7FQJMV7PCW46EDCFZFSV7JNNWGE4HBVYCMUVUZ6VESOAZRTPJWQMC4LTAJ5W7J3TO3S
+#\\\|SX5YSG7WZZXBZRJEWQZITIQ2LBJNOGFFZW7PUXZHXLBNYPBBCLY \ / AMOS7 \ YOURUM ::
+#\[7]TTAMU3FDSBDBWWSDXS2ZIJWCBGGAIGK2LLDC7ELZCJQGZP447YDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

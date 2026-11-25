@@ -249,6 +249,16 @@ order : 5, then 1 + 3, 2 grows out of them, 4 on the relay.
    with their reasons, the owner's positions, lessons. handover memory files become a pointer to
    `coding.handover` plus those, never a snapshot of the state.
 
+8. sessions started by signals [ owner direction 2026-11-25 ] : a session [ or the owner ] writes
+   a sub-session prompt and references it -- `when place.complete -> start a kimi session with
+   verify-tier-a.md` ; that session's run.done is the next signal, e.g. waking the parent task
+   "wipe the intel disk once tier A is verified" : a DAG of sessions driven by signals
+   [ data/tasks/branch-session-dag.md made live ]. the parent session or the owner is OFFERED the
+   start, or it starts after approval. have : signals, buckets with on= \ depends=, claude-send \
+   kimi-send, run.done signals, the session registry with stable ids. missing : an action plugin
+   `session-start` [ claude \ kimi, prompt file, context template ] and a completion signal from
+   standalone tools [ n7fs place \ placement raising one through p7c events.signal at the end ].
+
 signing stays with the owner in every step : the zenka REQUESTS signs [ the same detached
 bin/dev/p7-sign-run start as p7_sign, a job id back ] and commits only what was signed -- it holds
 no key and cannot answer the p7-sign-agent prompt [ y \ n \ d stays with the owner ]. a planned
@@ -324,8 +334,8 @@ per host [ never on the disk ], one host holds a session at a time [ a lease, li
 - inbox socket inbound policy : crossSessionInbound accept | hold | refuse, defaults by
   permission mode -- a bypass session holds messages from a prompting sender
 
-#,,..,,.,,..,,.,,,...,.,.,,,,,,,,,,.,,..,,.,.,..,,...,...,..,,.,.,,..,.,.,,,.,
-#PP7WS6S4SDJDSKPJYCW2VVSCO3DMIMKXJ76A6E7REGYNYM2H3MZP2P2GI5PLMFEWFFO3DLHKQ3EGU
-#\\\|DCBZ5BVJ5RBSQIJIAYP3OCBSS7CP4TQVPK6Q4RG3K4O7ECSZIJ2 \ / AMOS7 \ YOURUM ::
-#\[7]6JXEAMFNZWA5RRVKD7LIC5WEQ7WPUTXZZO2GZHJMB4GVEVPVYGCA 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,.,.,.,.,.,,..,,,.,,..,.,.,.,.,..,,...,.,.,,,,,...,.,,,..,,...,
+#5H7SN27I6KXGF7BCVRBEMMVGSHYZISHXV76CW6II3ECXZKJNOUS2VPHU7HH763OOPGGKBP525NX7C
+#\\\|6N4F63XLCTYOVOWWMRFXMI2FKH5VGGAVPLO4RTIDNZZYZLB2NWR \ / AMOS7 \ YOURUM ::
+#\[7]DORXUDRACP3W6SA4PIDVWBKGDRBACMJADMEVRTROOE3PTKXZVQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

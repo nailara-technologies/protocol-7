@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = system.watch.cmd.watches
+# descr = list the registered watches
+
+my $now  = <[base.time]>->(2);
+my $text = '';
+foreach my $id ( sort keys <system.watch.entries>->%* ) {
+    my $w     = <system.watch.entries>->{$id};
+    my $state = $w->{'state'};
+    $state = qw| expired |
+        if $state eq qw| active |
+        and AMOS7::Switch::expired( $w->{'until'}, $now );
+    $text .= sprintf "%s : %s %s [ %s, fired %d ] -> %s\n", $id,
+        $w->{'mode'}, $w->{'kind'}, $state, $w->{'fired'} // 0,
+        $w->{'signal'};
+    $text .= "  pattern     : $w->{'pattern'}\n";
+    foreach my $key (qw| user match on size above below unless |) {
+        $text .= sprintf "  %-11s : %s\n", $key, $w->{$key}
+            if defined $w->{$key};
+    }
+    $text .= sprintf "  valid-until : %s\n",
+        strftime( '%Y-%m-%d %H:%M:%S', CORE::localtime( $w->{'until'} ) )
+        if defined $w->{'until'};
+    $text .= sprintf "  tracked pid : %s\n", join ' ',
+        map { ( split m{\.} )[0] } sort keys $w->{'seen'}->%*
+        if keys %{ $w->{'seen'} // {} };
+    $text .= "  reason      : $w->{'reason'}\n" if defined $w->{'reason'};
+}
+my $queued = keys <system.watch.outbox>->%*;
+$text .= "signals waiting for events : $queued\n" if $queued;
+$text = "no watches\n"                            if not length $text;
+return { 'mode' => qw| size |, 'data' => $text };
+
+#,,,,,,,,,,,,,...,.,,,,,.,...,...,,,.,,..,..,,..,,...,...,.,.,.,.,,..,,,,,...,
+#KY33NNBPYN2MHRHIYANZQEYM3DXO7ONMLE7ED6Z5HDJ4LYA5REPGXVSU6DEC2TLV5TX6D2RNAP2TQ
+#\\\|Y6IWL6ZK6OEELYTYQ3UZUIMTZMEQAVRHDWMRLGORBQGCSZKZYGK \ / AMOS7 \ YOURUM ::
+#\[7]YUSCRR7BTEH7XDSUOZL5M2CUZVBJLHW4A4MQUYJRES6W45N6C2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

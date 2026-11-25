@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = system.watch.emit
+# descr = queue a signal for the events zenka
+# args  = events.signal argument line
+#
+# kept in the registry until events answers TRUE, so a signal is not lost
+# while events is away or this zenka restarts. delivery is at least once
+
+my $args = shift;
+<system.watch.seq> //= 0;
+my $seq = ++<system.watch.seq>;
+<system.watch.outbox>->{$seq}
+    = { 'args' => $args, 'tries' => 0, 'next_at' => 0, 'state' => {} };
+my @queued = sort { $a <=> $b } keys <system.watch.outbox>->%*;
+while ( @queued > 89 ) {
+    my $gone = shift @queued;
+    <[base.logs]>->(
+        0,
+        '<< watch outbox full : dropped : %s >>',
+        delete( <system.watch.outbox>->{$gone} )->{'args'}
+    );
+}
+<system.watch.dirty> = TRUE;
+<[system.watch.send_outbox]>;
+return TRUE;
+
+#,,..,..,,.,,,,.,,,.,,.,,,,.,,.,,,.,.,,,,,.,.,..,,...,..,,.,.,,..,..,,,.,,.,,,
+#EPE2RJ7IVFTNMXGWBB7Q63FYAT3VWIN6OBQPBA2JJY56Q2J34E6CKNSSDS4VEPUKEXSNSKWCLB2WG
+#\\\|OQLFMITIBUW3SSORFZEGZ7MDQ45DDU3JSH6BOPSZL45C6FNK2UK \ / AMOS7 \ YOURUM ::
+#\[7]2TFQONA6JAML5HQHJKC543UC4V3IPHCOV5OIFKAMKKUFDQLVBWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

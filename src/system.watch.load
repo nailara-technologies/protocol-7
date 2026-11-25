@@ -1,0 +1,88 @@
+## [:< ##
+
+# name   = system.watch.load
+# descr  = read the watch registry into memory
+# return = TRUE \ FALSE [ unreadable : saving stays refused ]
+#
+# a tracked process is kept as pid.start with its first sighting. the last
+# sighting is not stored : when it ended while this zenka was down, its
+# runtime is unknown. held triggers get their unless check again
+
+my $path = <[system.watch.path]>;
+<system.watch.load_failed> = FALSE;
+return TRUE if !-e $path;
+
+my $fh;
+if ( not open $fh, '<:encoding(UTF-8)', $path ) {
+    <[base.logs]>->(
+        0,     "<< watch registry '%s' unreadable : %s >>",
+        $path, $OS_ERROR
+    );
+    <system.watch.load_failed> = TRUE;
+    return FALSE;
+}
+my @lines = <$fh>;
+close $fh;
+
+<[base.perlmod.load]>->('AMOS7::Config')
+    if not <[base.perlmod.loaded]>->('AMOS7::Config');
+
+my %free    = map { $ARG => 1 } qw| pattern match unless user reason |;
+my $entries = {};
+my $outbox  = {};
+foreach my $record ( AMOS7::Config::normalize_lines( \@lines )->@* ) {
+    my $text = $record->{'text'} // next;
+    my ( $key, $value ) = $text =~ m{\A(\S+)\s*=(.*)\z} or next;
+    $value =~ s{\A'(.*)'\z}{$1};
+    if ( $key =~ m{\Aoutbox\.(\d+)\.args\z} ) {
+        $outbox->{$1} = {
+            'args'    => <[events.signal.decode]>->($value),
+            'tries'   => 0,
+            'next_at' => 0,
+            'state'   => {}
+        };
+        next;
+    }
+    if ( $key !~ m{\Awatch\.([\w-]+)\.(\w+)\z} ) {
+        <[base.logs]>->(
+            0, "<< watch registry : not understood : %s >>", $text
+        );
+        next;
+    }
+    my ( $id, $name ) = ( $1, $2 );
+    my $w = $entries->{$id} //= { 'id' => $id };
+    if ( $name eq qw| seen | ) {
+        $w->{'seen'} = {};
+        foreach my $item ( grep { $ARG ne qw| - | } split m{,}, $value ) {
+            $w->{'seen'}{$1} = { 'first' => $2 }
+                if $item =~ m{\A(\d+\.\d+):(\d+)\z};
+        }
+    } elsif ( $name eq qw| held | ) {
+        $w->{'held'} = [
+            map { <[events.signal.decode]>->($ARG) }
+                split m{,}, $value
+        ];
+    } else {
+        $w->{$name}
+            = $free{$name} ? <[events.signal.decode]>->($value) : $value;
+    }
+}
+foreach my $id ( keys $entries->%* ) {
+    my $w = $entries->{$id};
+    next
+        if defined $w->{'kind'}
+        and defined $w->{'pattern'}
+        and defined $w->{'signal'};
+    <[base.logs]>->( 0, "<< watch '%s' incomplete : dropped >>", $id );
+    delete $entries->{$id};
+}
+<system.watch.entries> = $entries;
+<system.watch.outbox>  = $outbox;
+<system.watch.seq>     = ( sort { $b <=> $a } keys $outbox->%* )[0] // 0;
+return TRUE;
+
+#,,.,,,.,,,..,,.,,.,,,,,.,,,,,..,,.,,,,,,,,..,..,,...,...,,,.,,,.,...,.,,,.,,,
+#5Z5MOIMEP67ZH73KETU7YGLLEFNEBVGCTESHD6FGGPRKR22KUGDU2IZ246JUCVBMU6X34UTKJS2S4
+#\\\|SWSPLSD4LL6KHKJWF2AIXLAMPAXB76PP6E2FKEH673FL2FJXUNS \ / AMOS7 \ YOURUM ::
+#\[7]HDSFHZUY4RFL7TOEBFSFUK3YF63MD3UMYTLI7JLW2NBQ53EDH6AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

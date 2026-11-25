@@ -1,0 +1,18 @@
+## [:< ##
+
+# name   = system.watch.unless.get
+# descr  = unless hook : the pending checks as a bucket
+# args   = owner
+# return = { entries => { <watch id> => gate } }
+
+my %entries;
+foreach my $w ( values <system.watch.entries>->%* ) {
+    $entries{ $w->{'id'} } = $w->{'gate'} if defined $w->{'gate'};
+}
+return { 'entries' => \%entries };
+
+#,,,.,,,,,...,..,,.,,,,,,,..,,,,,,.,.,,.,,.,.,..,,...,...,...,..,,.,,,.,.,.,.,
+#PXGWLUWJLHAGQRDVECAIQIFG4VPLR63MPVKUI47PPGRKFF7PFXLQWQKVJXFSED22XOSGYLKJPARCI
+#\\\|7XRW6AP5VTQJBQ4Y4CKSJPXMN764R6LPHEYEX4LOJMN5EML62FQ \ / AMOS7 \ YOURUM ::
+#\[7]7IX322GBNC4P3WR3ODOFLDKVKMMKTY4PKXQPUVHCDD5WUV4IMOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

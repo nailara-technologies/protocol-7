@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = system.watch.send_outbox
+# descr = send queued signals that are due
+# args  = now
+#
+# rides on the poll. route-send only buffers : the answer comes to
+# system.watch.handler.signal_reply. after 13 tries a signal is dropped
+
+my $now = shift // <[base.time]>->(2);
+foreach my $seq ( sort { $a <=> $b } keys <system.watch.outbox>->%* ) {
+    my $item = <system.watch.outbox>->{$seq};
+    next if $item->{'next_at'} > $now;
+    if ( $item->{'tries'} >= 13 ) {
+        <[base.logs]>->(
+            0, '<< watch signal not delivered, dropped : %s >>',
+            $item->{'args'}
+        );
+        delete <system.watch.outbox>->{$seq};
+        <system.watch.dirty> = TRUE;
+        next;
+    }
+    my $delay = <[base.interval.next]>->(
+        { 'type' => qw| watch-signal-retry |, 'state' => $item->{'state'} } );
+    $item->{'next_at'} = $now + ( $delay // 89 );
+    $item->{'tries'}++;
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| events.signal |,
+            'call_args' => { 'args' => $item->{'args'} },
+            'reply'     => {
+                'handler' => qw| system.watch.handler.signal_reply |,
+                'params'  => { 'seq' => $seq, 'args' => $item->{'args'} }
+            }
+        }
+    );
+}
+return TRUE;
+
+#,,..,,..,,.,,,.,,..,,.,,,...,.,.,,.,,...,..,,..,,...,..,,..,,,,,,.,.,,,,,,.,,
+#DFDJ2SSKNGFQ42M6SONW4QC7NEKOKC6BS4V3L7EFCDYYVST4GIZRXBWARUKWKNY37WLSQQQHCATD6
+#\\\|HJEWHPUXEZKCWV4DRGGYQ473EO64VBQGLNZZG5CSZKR52XTP3P7 \ / AMOS7 \ YOURUM ::
+#\[7]OXY4W7CHXVY7LA4Z5I4OMS2S3E2IOR4PDZWICSAS3YL7LAIRQKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

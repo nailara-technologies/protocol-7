@@ -1,0 +1,25 @@
+## [:< ##
+
+# name   = events.bucket.unless.parse
+# descr  = normalize the value of an unless= argument
+# args   = text [ condition,.. ]
+# return = { unless => normalized text } or { error => text }
+
+my @conditions = grep {length} split m{,}, shift // '';
+return { 'error' => 'unless : at least one condition expected' }
+    if not @conditions;
+my @parsed;
+foreach my $condition (@conditions) {
+    my $gate = <[events.bucket.gate.parse]>->($condition);
+    return { 'error' => $gate->{'error'} } if defined $gate->{'error'};
+    push @parsed, $gate->{'kind'} eq qw| budget |
+        ? "budget:$gate->{'text'}"
+        : $gate->{'text'};
+}
+return { 'unless' => join ',', @parsed };
+
+#,,..,,,,,..,,.,,,...,.,.,,,,,..,,..,,,.,,,..,..,,...,...,.,,,...,,,.,,..,,,.,
+#54NOHNMJNEFDTASNUJDT47XF2R6DQHQGLLFRK7JSGRVS4ID7XUNNF6SYVA5URHM2UKV6QPFGKJBMM
+#\\\|M2S2COABQUEEDQZ7C6BWBJMHR5CYGZEIYLWYLH2DLC5TA4JL6RL \ / AMOS7 \ YOURUM ::
+#\[7]MXWJXSCYWNATR7TEYGHA7F5DGWJUDBGY2QUEYU5CNQDVZM4QGMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

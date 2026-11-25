@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = system.watch.sweep
+# descr = check all watches against this poll
+# args  = process records [ pid ppid start uid state cmd fname ], now
+#
+# runs on the system poll [ system.process.handler.collect_table ] : no timer
+# of its own. a process that starts and ends between two polls is not seen.
+# one failing watch is logged and does not stop the others
+
+my $procs = shift // [];
+my $now   = shift // time;
+
+foreach my $id ( sort keys <system.watch.entries>->%* ) {
+    my $w = <system.watch.entries>->{$id} // next;
+    ## past valid-until : what it waited for is over ##
+    if ( ( $w->{'state'} // '' ) eq qw| active |
+        and AMOS7::Switch::expired( $w->{'until'}, $now ) ) {
+        @{$w}{qw| state reason |} = ( qw| expired |, qw| valid-until | );
+        <system.watch.dirty> = TRUE;
+        <[base.logs]>->( 1, "watch '%s' expired [ valid-until ]", $id );
+    }
+    if ( ( $w->{'state'} // '' ) eq qw| active | ) {
+        my $kind  = $w->{'kind'} =~ m{\Aproc-} ? qw| proc | : $w->{'kind'};
+        my $check = "system.watch.check.$kind";
+        eval { <[$check]>->( $w, $procs, $now ) };
+        <[base.logs]>->(
+            0,   "<< watch '%s' : check failed : %s >>",
+            $id, $EVAL_ERROR =~ s{\s+\z}{}r
+        ) if $EVAL_ERROR;
+    }
+    ## held across a restart [ a once watch is 'triggered' then ] : ask the ##
+    ## unless conditions again                                              ##
+    <[system.watch.gate]>->($w)
+        if ( $w->{'held'} // [] )->@*
+        and not defined $w->{'gate'};
+}
+
+## a child status nobody matched is of no further use ##
+<base.child_exit>->%* = () if ref <base.child_exit> eq qw| HASH |;
+
+<[system.watch.send_outbox]>->($now);
+<[system.watch.save]> if <system.watch.dirty>;
+return TRUE;
+
+#,,..,,,.,,..,,,,,,,,,...,,..,,,.,,,,,,,,,,,,,..,,...,..,,.,,,...,.,,,.,,,.,,,
+#QPOPAYDTKUZP7PCW3KCUALGJQUJCGX4RKQCL7L5ZTCLGAW2WZUBBETA6QVLCH7FONANGESTUY75RS
+#\\\|SDQ234WFEB654HXTRGVPDFKKNWFHGLK6SPHVE4EHKVDOFT46Z6Q \ / AMOS7 \ YOURUM ::
+#\[7]IPPQMDHQQIBTGYC54BH2DVJO67GK6BRZDP63MAAG3S3JK46ULCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

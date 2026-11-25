@@ -10,8 +10,9 @@ my $event = shift;
 my $d     = eval { $event->w->data } // {};
 my ( $owner, $id ) = ( $d->{'owner'} // '', $d->{'id'} // '' );
 delete <events.unless_guards>->{"$owner/$id"} if <events.unless_guards>;
-my $bucket = <[events.bucket.get]>->($owner) // return FALSE;
-my $e      = $bucket->{'entries'}{$id}       // return FALSE;
+my $get    = <events.unless_host.get>  // qw| events.bucket.get |;
+my $bucket = <[$get]>->($owner)        // return FALSE;
+my $e      = $bucket->{'entries'}{$id} // return FALSE;
 return FALSE
     if ( $e->{'unless_check'} // -1 ) != ( $d->{'seq'} // -2 )
     or ( $e->{'unless_index'} // -1 ) != ( $d->{'index'} // -2 )
@@ -23,8 +24,8 @@ $e->{'unless_index'}++;
 <[events.bucket.unless.check]>->( $owner, $e );
 return TRUE;
 
-#,,,.,.,,,,.,,..,,,.,,,,,,.,,,.,.,,..,,,.,,..,..,,...,..,,.,.,,..,.,.,,,.,,,.,
-#OTUMYOWG7GOKVFQL33OPJKETRO3PFSHMSQBVKSFOOIU3GRTWPOZ5OXPQKPAL3T3HNYSP4A2QOFZPS
-#\\\|UZ4KESAQARUDZP2RTQ6675SURCOKGMXGY7G4KG73YDHO3S3G2EN \ / AMOS7 \ YOURUM ::
-#\[7]F4DEP6VDUWDEY5CMIL3KYA4Y537JPXQ5WPCGNDGH5A4FNN2DXGBI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,.,.,,,,,.,,,,..,,,,,,,.,...,..,,...,...,...,..,,.,,,,,.,,..,
+#XIL7AVG2BGBS3NYP5HSPFQTBIGDS2KKWMHUAFVWAIJWC5XWKSWYQMFGKXJYLCBD3XG24NAQ3R26N2
+#\\\|WCCEEAKW5BMHQCQ4FWOQ7GHWX5BUHP2QFEXRH6UWAM6DDCFXZFV \ / AMOS7 \ YOURUM ::
+#\[7]TBZ24ZXUJ5SBMUZWMLPOJAIGDHJV2AMTDMYAZO446FE34VM54UDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

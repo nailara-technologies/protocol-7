@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = system.watch.gate
+# descr = ask the unless conditions of held triggers
+# args  = watch
+#
+# events.bucket.unless.check does the asking, over the same replies and
+# guard timer as for reminders ; its hooks are system.watch.unless.*
+
+my $w = shift;
+return FALSE if defined $w->{'gate'};
+$w->{'gate'} = {
+    'id'     => $w->{'id'},
+    'added'  => $w->{'added'},
+    'unless' => $w->{'unless'},
+    'state'  => qw| waiting |
+};
+eval {
+    <[events.bucket.unless.check]>->( qw| system-watch |, $w->{'gate'} );
+    1;
+} or do {    ## asked again at the next poll ##
+    <[base.logs]>->(
+        0,          "<< watch '%s' : unless check failed : %s >>",
+        $w->{'id'}, $EVAL_ERROR =~ s{\s+\z}{}r
+    );
+    delete $w->{'gate'};
+    return FALSE;
+};
+return TRUE;
+
+#,,.,,,..,,.,,,,.,,..,,.,,..,,,.,,...,..,,...,..,,...,..,,...,,.,,,,,,.,,,.,,,
+#UD7P5FYJWIFTXU66NZF4C7U6PJLMCTW7PTKHGQBH7FFDPDEUS35WUEYDRLVDMF7Q6GD273BPENGL2
+#\\\|2GSDE4MAGDLFEE7AWJVETFSOFWUXZFKUYIBT3U3CYADEOQWN5MC \ / AMOS7 \ YOURUM ::
+#\[7]DCHTNKQ6UXBF3WT56CNZ5QDS5PN4JWRGFJ7OJQEXORNMDZP3J6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

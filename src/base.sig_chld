@@ -10,10 +10,13 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {    ##  WNOHANG  ##
         2,    "cleaning up child pid %s [ exit code : %d ]..,",
         $pid, $CHILD_ERROR
     );
+    ## whoever watches child exits [ system.watch ] reads it from here ##
+    <base.child_exit>->{$pid} = $CHILD_ERROR
+        if ref <base.child_exit> eq qw| HASH |;
 }
 
-#,,..,,..,.,.,.,.,,,,,.,,,,..,,.,,,,.,.,,,.,.,..,,...,...,,..,,..,,,,,,.,,,,,,
-#O2DOYJAX7IHPN3KELF2TLK6JAESLINGECPBBTFPFBENXOZG5OJH5ZYPRW723WOOBUJXAXNMZQ7XPI
-#\\\|267AELXLNGC4IUZJJWTOALYTV4VAKHEP74SY4ERWVSRVRXEM7OB \ / AMOS7 \ YOURUM ::
-#\[7]AZCUSSIZT4VQM77QYX3DQJAPCY72N5CQ3QW5CS67TUQVM4T226BA 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,..,,,.,,,.,,,,,.,,,,,.,.,.,...,..,,...,..,,...,,..,.,,,..,,...,
+#BNFARURGXR3GRUJX4FBTJVQL4LTO5AELN2FNMT5ZCKKIEO5TZEGRVEV67PANV3B4GYRCBYECS4VPS
+#\\\|6HCOJIBOZHMPWKVPPG5U3MDS5A6OHR5VPBJANALVO4VEJJDUFTO \ / AMOS7 \ YOURUM ::
+#\[7]TSCRMCG272KWIIKX3PBUQ2ZL3FORPLMLFDWCJKHVHBSU2532OQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
