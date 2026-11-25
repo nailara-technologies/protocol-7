@@ -63,8 +63,14 @@ foreach my $record ( AMOS7::Config::normalize_lines( \@raw )->@* ) {
         my %spec;
         ## text= takes the rest of the line, the words before it are pairs ##
         $spec{'text'} = $1 if $value =~ s{(?:\A|\s)text=(.*)\z}{};
+        ## a bare word continues the pair before it [ to=notify session ] ##
+        my $last;
         foreach my $pair ( split m{\s+}, $value ) {
-            $spec{$1} = $2 if $pair =~ m{\A(\w+)=(\S+)\z};
+            if ( $pair =~ m{\A(\w+)=(\S+)\z} ) {
+                ( $last, $spec{$1} ) = ( $1, $2 );
+            } elsif ( defined $last and length $pair and $pair !~ m{=} ) {
+                $spec{$last} .= " $pair";
+            }
         }
         $map{'on'}{$key} = \%spec;
     }
@@ -78,8 +84,8 @@ foreach my $record ( AMOS7::Config::normalize_lines( \@raw )->@* ) {
 );
 return \%map;
 
-#,,..,..,,.,.,...,,,,,,,,,,.,,.,,,..,,,,,,,,.,..,,...,...,...,..,,..,,,,,,,,,,
-#CJWGHC54ZTI6Q2CGRBNYK4UUOS5D5ISS7QQ4MN5ATTPFRFLEHP535PHXNUXWONJ356AHEMSNOXXXY
-#\\\|F7YG264H2P2JU3KIPV6SY45Q47RVXH35TI34LUB23JBAR42F77S \ / AMOS7 \ YOURUM ::
-#\[7]SU4QNUIVY2UZ2Z2I6B74LJFQQ5NWPMIH2M3I37XKAR6FY6N2OSCQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,,,,..,,,.,,,.,.,.,...,,,.,...,..,,...,...,,..,.,,,,,.,.,.,,..,
+#EBW7YASCIGGV3KDDFVTIVLYEAHTFPFGTWHQYZNO2CA37TYKVD6QJMA7PG3YTWI7TRWMOSPXB5VIOA
+#\\\|SMWFMBEUH7E7QZLPKYBS45N6L6UHPURI63ZOGIPAM7YCFB3WHAC \ / AMOS7 \ YOURUM ::
+#\[7]5DRTVSAKM5C7AY3XM4VAU2ZIHRZJ6IBIBLD6WYNYYVFSKPABX6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,7 @@ my %reminder = map { $ARG => 1 }
     keys <[coding.remind.store]>->(qw| all |)->%*;
 $reminder{$ARG} = 1
     foreach ( $got->{'reminder'} // '' )
-    =~ m{^:\s+(remind-\d+)\s+waiting\b}mg;
+    =~ m{^:\s+(remind-(?:\d+|[A-Z2-7]+\d{2}))\s+waiting\b}gm;
 push @pending, scalar( keys %reminder ) . ' reminder(s) waiting'
     if %reminder;
 
@@ -43,8 +43,8 @@ push @pending, 'kimi zenka run'
 push @pending, $r->{'pending'} if length( $r->{'pending'} // '' );
 return @pending;
 
-#,,,,,,.,,,.,,,,.,..,,,,,,,..,,.,,.,,,.,,,,.,,..,,...,...,...,.,.,,.,,,.,,..,,
-#ZBL74TWUPHU7NSDTSLTOC34LBSQ3U2CGYV5FOOVCA36TXG3IOFOIPXDSARQM3UTIHT74KFW4TG6ZU
-#\\\|TA3VJLZIAXB4PN2W5WFBJ2Z64DFBBTNFEWMJXYTVVQGHNKEZOVY \ / AMOS7 \ YOURUM ::
-#\[7]PCUVIZ6HFWTCWNV5QZ3STO5HMCENB4PAIJFBX6QCVKFLZ5OTTIDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,,.,..,,.,.,.,,,.,,,.,,,,..,,,.,..,,...,...,.,.,.,,,,,,,.,,,.,,,
+#FA2SBO3NDHVPNNTUZVO6LD7TCN5I6CXWFL2JH57DWAVOX2QBR75W2KKDCTW3D26IOFR6VM6W3VB4M
+#\\\|3D7O5OP6EVIYHU2N43PXS7PHW36ABVTBQAWHWLGAML6MOAKPOG2 \ / AMOS7 \ YOURUM ::
+#\[7]7MSNE3AQJQLLJDF2KEE3A6RNQ6EF7SUSKDM3WG4UUNBJBGK4ZGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

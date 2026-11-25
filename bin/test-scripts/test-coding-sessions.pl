@@ -116,6 +116,8 @@ our $zenka = 'coding';
 my %down;
 $code{'base.log'}  = sub { push @logged, fmt_log(@ARG); TRUE };
 $code{'base.logs'} = sub { push @logged, fmt_log(@ARG); TRUE };
+my $remind_ntime = 'AAAAAAA';
+$code{'base.ntime.b32'} = sub { $remind_ntime++ };
 $code{'base.s_warn'}
     = sub { push @logged, 'warn ' . sprintf( shift, @ARG ); TRUE };
 $code{'base.time'} = sub {time};
@@ -834,7 +836,8 @@ reset_all();
 touch( 'claude-1446', $sid_1 );
 $data{'base'}{'interval'}{'cfg'}{'type'}{'bucket-wait'} = { 'minutes' => 13 };
 cmd( 'remind', 'after=bucket-wait to=session:claude-1446 look here' );
-my ($fire) = map {m{(remind-\d+ session:claude-1446\@$sid_1)}} @cube_log;
+my ($fire)
+    = map {m|(remind-[A-Z2-7]+\d{2} session:claude-1446\@$sid_1)|} @cube_log;
 ok( defined $fire, 'remind to=session : the sid is recorded with the name' );
 touch( 'claude-1292', $sid_1 );
 $fake{'refuse'}{'claude.cmd.session-post'}
@@ -957,8 +960,8 @@ ok( @{ touches($seen) } && $seen !~ m{sid=},
 say "\n# pass $pass fail $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,,,...,.,,,,..,.,,,,..,.,,,,..,.,,,,..,,,.,..,,...,...,...,,,.,,..,..,,...,
-#BAYLPYWKE2F3GE3LRJUKEGVGTQ5PRUGYHBJT5VC3CYSMI5PHTA6Y3DTJQRKPZDPEYSQB6WK6RKLH2
-#\\\|ZSNV5W4FCXC3SULGJBI3OJ5WH5ULFUJQVTX7LMG6WDCXEUL7CFI \ / AMOS7 \ YOURUM ::
-#\[7]FOVY33TEVN7X7USYLBLISBBBBYF7KWQKOHQHRYNQHE3O3A2O5UAQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,.,,,,,.,.,,..,,,.,,,,,.,.,,..,..,,...,...,,.,,,..,,..,,.,,.,.,
+#HFUX354VH2FYMHITQKTP5VFZRHKQWG3GXDXBGPB2O3PROHVZPF54QDOHBW3D56QJHJC2SGPDSA5K4
+#\\\|RNFFF63J2XEK4VQWII7BDL5KN3HDZJJARTEK65LHTSFYE7RO4O5 \ / AMOS7 \ YOURUM ::
+#\[7]DMNNA4FDM5SECSCVRGR27AZB2QCHCRXPDMBI6UB5KME26E7RQMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

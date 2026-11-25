@@ -35,7 +35,8 @@ use File::Temp  ();
 use POSIX       ();
 
 BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
-use Crypt::Misc qw| encode_b32r |;
+use Crypt::Misc  qw| encode_b32r |;
+use AMOS7::NTIME qw| ntime_b32_now |;
 
 my $root_path = Cwd::abs_path("$FindBin::RealBin/../..");
 chdir $root_path or die "p7-commit : chdir $root_path : $OS_ERROR\n";
@@ -64,7 +65,8 @@ sub staged_chksum {
 
 sub state_path {
     my $id = shift // '';
-    fail('unknown id') if $id !~ m|^p7-commit-\d+-\d+$|;
+    fail('unknown id')
+        if $id !~ m{^p7-commit-(?:\d+|[A-Z2-7]+)-\d+$};
     return "$state_dir/$id.json";
 }
 
@@ -123,7 +125,7 @@ if ( $command eq qw| prepare | ) {
     fail('nothing staged')
         if $op ne qw| amend-message | and not length $staged;
 
-    my $id = sprintf 'p7-commit-%d-%d', time(), $PID;
+    my $id = sprintf 'p7-commit-%s-%d', ntime_b32_now(), $PID;
     state_write(
         $id,
         {   qw| op |            => $op,
@@ -202,8 +204,8 @@ if ( $command eq qw| show | ) {
 
 fail('p7-commit prepare -op <op> < message | commit <id> | show <id>');
 
-#,,,,,...,..,,.,.,,.,,,,,,,,,,,,.,,..,..,,,,.,..,,...,.,,,.,,,...,,,,,,..,,..,
-#BDMIDBFJ6DKMNOMDPDY5QWS6ET25CITWYZR52Q752ECJE23EHEOGKSYRFN3BQB4T3FFRI7I5C7LPC
-#\\\|TQ5OL7DGBUDU6OZ7HIDNH5BXRE5LDZTURVZNT5THAAXVWX6BVIF \ / AMOS7 \ YOURUM ::
-#\[7]UEBQJR63EFNH2DXXC34VWR22QYRLLM2CNZLVZOXZWRKURRI6D4DA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,,.,,.,,,...,...,,.,,,..,..,,..,,...,...,..,,,..,..,,,..,.,.,
+#ILSV2ZB5OLJ3LC6KNRSDD6DNTEHZDWNS7LIM7K43RQJQVX767JAJY5S3OXWCJR37I7J74GCUSFBUW
+#\\\|NZ3BMVK74FL2273YLS6JFOAWWRHDILOWOONBH6EQ7MSDKWVG4VT \ / AMOS7 \ YOURUM ::
+#\[7]LDVO7PYUWIDRW4YSETIRG2E4AN7DAFM4ZXGKEA4KI44OX5RIOEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -44,6 +44,7 @@ BEGIN {
 
 use Digest::BMW;
 use AMOS7::Assert::Truth;
+use AMOS7::NTIME qw| ntime_b32_now |;
 use AMOS7::TEMPLATE;
 use AMOS7::Claude::Stream;
 use Time::HiRes;
@@ -7008,10 +7009,10 @@ sub _kimi_dispatch_async_reply {
 ## p7_sign : the signing chain as a detached job [ todo ZA2 slice 1 ]        ##
 ## ========================================================================= ##
 
-## job ids are the state file's base name : p7-sign-<epoch>-<pid> ##
+## job ids are the state file's base name : p7-sign-<ntime>-<pid> ##
 sub _p7_sign_state_path {
     my $job = shift // '';
-    return undef if $job !~ m|^p7-sign-\d+-\d+$|;
+    return undef if $job !~ m{^p7-sign-(?:\d+|[A-Z2-7]+)-\d+$};
     return "$ROOT_PATH/data/state/$job.json";
 }
 
@@ -7031,7 +7032,7 @@ sub tool_p7_sign {
 
     my $state_dir = "$ROOT_PATH/data/state";
     eval { make_path($state_dir) } if not -d $state_dir;
-    my $job        = sprintf 'p7-sign-%d-%d', time(), $PID;
+    my $job        = sprintf 'p7-sign-%s-%d', ntime_b32_now(), $PID;
     my $state_path = _p7_sign_state_path($job);
     my @cmd        = (
         "$ROOT_PATH/bin/dev/p7-sign-run",
@@ -7134,7 +7135,7 @@ sub tool_p7_sign_status {
 
 sub _p7_commit_state {
     my $id = shift // '';
-    return undef if $id !~ m|^p7-commit-\d+-\d+$|;
+    return undef if $id !~ m{^p7-commit-(?:\d+|[A-Z2-7]+)-\d+$};
     my $path = "$ROOT_PATH/data/state/$id.json";
     open( my $fh, '<:raw', $path ) or return undef;
     local $INPUT_RECORD_SEPARATOR;
@@ -7170,7 +7171,7 @@ sub tool_p7_commit_prepare {
     $output =~ s|\e\[[0-9;]*m||g;
     chomp $output;
     return send_tool_result( $id, $output, 1 ) if $failed;
-    my ($commit_id) = $output =~ m|(p7-commit-\d+-\d+)|;
+    my ($commit_id) = $output =~ m{(p7-commit-(?:\d+|[A-Z2-7]+)-\d+)};
     return send_tool_result(
         $id,
         sprintf "prepared %s [ op %s ]\ncommit with p7_commit(id=\"%s\")",
@@ -7447,8 +7448,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,.,,...,...,,,,,,,.,,.,,...,...,,..,,.,,...,..,,...,...,,..,...,...,,,.,..,,
-#ZZLLNBXVXAYQXIMXEDI2FQD677LC7NVCVXY2FEJD3LOPPOZWLPXAJN2WISQQ47TU3UTMOJXBKMWPK
-#\\\|XQPUL43VAZLELUEASWRI3RF4BK4GI2IPECBXLSG7CKYYHKXXINA \ / AMOS7 \ YOURUM ::
-#\[7]WOXYVYXXZLCPRR5VJQ4XYND3TEDH2LHWKXGC6WLVO3752KMP6GCI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,..,,..,,..,,..,,.,,,.,.,...,.,.,..,,...,...,.,,,.,,,,.,,...,,..,
+#VTVLTEUW3ABQB6UQKWFGYBD66MG657ZD4C2WAYLB5SJ7ILEWPFMNGA6OUSLPXKPLYSK3VKVM4CVCG
+#\\\|TN7F2HPLMALAGO6JHYEBXVKGVQA64O5MCNMD6O7ZPD2D34STBNZ \ / AMOS7 \ YOURUM ::
+#\[7]26QPCITOWN4LHD3WQSHGQAC45PEAKSUX2JBOAA7EO5VH6GCIRWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,11 +9,10 @@ my $in = shift // {};
 my ( $when, $to, $text ) = @{$in}{qw| when to text |};
 my $reply_id = $in->{'reply_id'} // '';
 
-## the id : milliseconds and a counter -- a fired entry is final under its ##
-## id, so a new reminder after a restart must not meet an old one          ##
+## the id : ntime and a counter -- a fired entry is final under its id, so ##
+## a new reminder after a restart must not meet an old one                 ##
 my $seq = ++<coding.remind.seq>;
-my $id  = sprintf 'remind-%d%02d', int( Time::HiRes::time() * 1000 ),
-    $seq % 100;
+my $id  = sprintf 'remind-%s%02d', <[base.ntime.b32]>, $seq % 100;
 ## a named session is recorded with its sid : `session:<name>@<sid>` in the ##
 ## entry's command, the name may change before it fires                     ##
 my $target = $to;
@@ -46,8 +45,8 @@ my $args
 return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
 return { 'mode' => qw| true |, 'data' => "reminder $id requested" };
 
-#,,..,.,.,.,,,..,,,,,,...,,.,,,.,,,.,,,..,,..,..,,...,...,...,.,,,,.,,,..,,,,,
-#4H7JMSJJVVUB2VLJPZPIW3G42DO7CSTZPQKXZ4CJYGFF4IURRSXS34I7HEKAGXXFZSADBEHYQJELI
-#\\\|ORL6E6CQXMJF4FGJF7OC2SIF6AAIHJWAU45UXWAVD2QYYQO4JOP \ / AMOS7 \ YOURUM ::
-#\[7]ASXEKVQ75ZYPSGUUZUWGECKMYN2W27XYHSHHLBCROU3H7MXQ44BI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,,,,,,.,,,,,,,,,,...,..,,,,.,..,,...,...,..,,,,,,,,,,..,,.,,,
+#7T2OQLRLNWDSHGOPCXXRCOCVMEKHLKOLBS5VDD23QLRCVLARGS7ZACMO2YB3QWYWFFS5UOAIHXHLS
+#\\\|V4SIXU4WOCJHDPR65GLAETWUQZ6BTXOZWE5EVMXZDMN2XHP4UVI \ / AMOS7 \ YOURUM ::
+#\[7]ZRZUBZBMPA2TS6TNRCW5YGYY2CMLUCLZ3AVYO23VUGYFH6WPV6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,8 @@ if ( ref $all ne qw| HASH | ) {
     my $sref = <[file.zenka_dir.load]>->( 'reminders', ':encoding(UTF-8)' );
     foreach my $line ( split m{\n}, ref $sref eq 'SCALAR' ? $sref->$* : '' ) {
         next
-            if $line !~ m{\Areminder\.(remind-\d+)\.(\w+) = (.*)\z};
+            if $line
+            !~ m{\Areminder\.(remind-(?:\d+|[A-Z2-7]+\d{2}))\.(\w+) = (.*)\z};
         my ( $r, $k, $v ) = ( $1, $2, $3 );
         $v =~ s{\\(.)}{$1 eq 'n' ? "\n" : $1}ge;
         $all->{$r}{$k} = $v;
@@ -57,8 +58,8 @@ my $ok   = <[file.zenka_dir.write]>->(
     if not $ok;
 return $ok ? TRUE : FALSE;
 
-#,,,.,.,.,.,.,,.,,.,,,.,,,,,,,..,,.,,,...,,,,,.,.,...,...,..,,,..,...,,.,,,..,
-#TVSUROR5P2X6ZXQHOZOZUYT6ICUUJJEW3MGPRDVDYLTTFITUSD4Q6JVDXUZWSROR3ARC5SM5XTV2Y
-#\\\|BVW3BGBK7HZZ7PZ4ATBTZHSPUQ44RPJZQXYK3FWRMGV7DOFFV5E \ / AMOS7 \ YOURUM ::
-#\[7]EIY35XKJK2H6FA3RNDYVN6ERAEUCVGBRJVT3DL4QPHROF5F7E6AY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,,..,..,,,,,,.,,,,..,,,,,.,.,.,.,...,..,,,,.,,.,,..,,,,,,..,,
+#6WCGC3Q4AHD6XZHYD7ZB47ZPCHEYSUH6VUU4CPSSKKTURWXV72BU7NXOQFBBU7NZ6X76RDBHESECG
+#\\\|NKNKPZHDWQQLESPJF2LP4TUNVYE5NFH6YYXPAXQLXIZEK42MRH6 \ / AMOS7 \ YOURUM ::
+#\[7]JRRI5EE25SSGUQ3WAU6T4ZDJDVDEXHLK2ZWRLOFHQBQIP5ECDSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

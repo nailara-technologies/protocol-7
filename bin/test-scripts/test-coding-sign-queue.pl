@@ -30,8 +30,9 @@ BEGIN {
     $main::root_path = $root;
     unshift @INC, "$root/data/lib-path/pm";
 }
-use Digest::BMW ();
-use Crypt::Misc qw| encode_b32r |;
+use Digest::BMW  ();
+use Crypt::Misc  qw| encode_b32r |;
+use AMOS7::NTIME qw| ntime_b32_now ntime_to_b32 b32_to_ntime |;
 
 use constant TRUE  => 5;
 use constant FALSE => 0;
@@ -148,7 +149,10 @@ $code{'base.interval.next'}  = sub { push @timers,  $ARG[0]{'type'}; 2 };
     sub new    { bless { 'on' => 1 }, shift }
     sub cancel { $_[0]{'on'} = 0 }
 }
-$code{'event.add_timer'} = sub { FakeTimer->new };
+$code{'event.add_timer'}                = sub { FakeTimer->new };
+$code{'base.ntime.b32'}                 = sub { ntime_b32_now(@ARG) };
+$code{'base.encode_ntime_to_B32'}       = sub { ntime_to_b32(@ARG) };
+$code{'base.ntime_BASE32_to_numerical'} = sub { b32_to_ntime(@ARG) };
 
 my $tmp
     = tempdir( 'coding-sign-queue-XXXXXX', 'TMPDIR' => 1, 'CLEANUP' => 1 );
@@ -212,7 +216,7 @@ if (\$cmd eq 'prepare') {
     my \$msg = do { local \$/; <STDIN> };
     if (-f "\$ctl/prepare-refuse") { print STDERR "p7-commit : message form refused\\n"; exit 1 }
     my \$staged = -f "\$ctl/staged" ? do { open my \$f, '<', "\$ctl/staged"; local \$/; <\$f> } : '';
-    my \$id = sprintf 'p7-commit-%d-%d', time, \$\$;
+    my \$id = sprintf 'p7-commit-AAAAAAA-%d', \$\$;
     open my \$f, '>:raw', "\$dir/\$id.json";
     print \$f \$j->encode({ op => 'new', message => \$msg, status => 'prepared', staged_files => [ split ' ', \$staged ] });
     close \$f; print "\$id\\n"; exit 0;
@@ -391,7 +395,7 @@ ok( wait_for( sub { entry('q1')->{'status'} eq 'committed' } ),
     'approved -> prepare -> commit' );
 ok( entry('q1')->{'commit'} =~ m{\Ac0ffee}, 'q1 : the commit hash kept' );
 my $log = read_file("$ctl/commit.log");
-ok( $log =~ m{\Aprepare -op new\ncommit p7-commit-\d+-\d+\n},
+ok( $log =~ m{\Aprepare -op new\ncommit p7-commit-[A-Z2-7]+-\d+\n},
     'prepare then commit, op new' );
 my ($cid) = $log =~ m{commit (p7-commit-\S+)};
 ok( JSON::PP::decode_json( read_file("$state/$cid.json") )->{'message'} eq
@@ -662,8 +666,8 @@ ok( scalar( grep( { $ARG eq 'coding-sign-watch' } @timers ) ),
 say "# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,,,,,,,,...,...,.,,,.,.,,.,,,,.,.,.,,,.,..,,...,..,,,..,,..,,.,,...,.,.,
-#CP6WIAJZHNQOGGCCWZHIUYRSEZFERCDPVJPC7TNYOLHHFULY6C4O7XBKTISEHUIOPRIZUZUTZM76E
-#\\\|NKQBTL4QYKDMFUDTYW55X7JA4NUXIVV2JMYUFRW56IHN3WIZH5U \ / AMOS7 \ YOURUM ::
-#\[7]PTWDOTTTZ7OMSU367ZP7FXPR3HD2ZNRLC4GHKHKZHANTRAV3I2AQ 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,.,,,.,.,,..,,.,,.,,,...,...,..,,...,...,,,,,,,,,.,.,.,,,.,,,
+#DSP2DR45AXXLBP3KDYH5ZYTIKXY5RAEY367JYEE2QFGXEDSICRVPOXK4KG5QVM64USJ6XUKT4E2W2
+#\\\|WOYKPC2BWYUBRBGYEVYEYTTZDEYXS3JPPEXVY4JGKQGCSTQMUTD \ / AMOS7 \ YOURUM ::
+#\[7]QBVHIX2ETKNVE3B2MNSMD6H3J3I6XV2N337YNF7FNIU6CC3AVKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -29,7 +29,8 @@ my $timeout = shift // 3600;
 ## tests point it at fake state files [ P7_STATE_DIR ] ##
 my $fast = $ENV{'P7_SIGN_WAIT_FAST'};
 die "p7-sign-wait <job> [ <timeout seconds> ]\n"
-    if $job !~ m{^p7-(?:sign|commit)-\d+-\d+$} or $timeout !~ m|^\d+$|;
+    if $job !~ m{^p7-(?:sign|commit)-(?:\d+|[A-Z2-7]+)-\d+$}
+    or $timeout !~ m|^\d+$|;
 
 my $root_path  = Cwd::abs_path("$FindBin::RealBin/../..");
 my $state_dir  = $ENV{'P7_STATE_DIR'} // "$root_path/data/state";
@@ -113,8 +114,8 @@ while (1) {
     $pause = $fast ? 0.2 : 5 if $pause > ( $fast ? 0.2 : 5 );
 }
 
-#,,.,,...,,.,,,.,,.,,,,..,..,,,,,,.,.,...,..,,..,,...,...,...,.,,,,..,,,.,...,
-#5BNIHYQMEI4NDIOTJPPI2SYMZEP6RJTHOBL75DEVBZNJOG7STAHRK5I7ASSZVEOQ7SOXHEX5ZOF3S
-#\\\|BCLUUBRBSBUY4CB6X7L7X446ULUBYHOUAQ6WP4WRTKO3NUJNALD \ / AMOS7 \ YOURUM ::
-#\[7]OED7XQOXSLTXAXKLEOI6QTQLTNUJYAXHRNT7LDOC4UYUDPZKYADY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,,,..,,,,.,,,,,.,,,.,.,,,,,...,..,,...,...,..,,..,,,,.,...,,,.,
+#N2BCG4G6BEVORUHV3WK3EEQ5FR6NILQT4EA6IJMOIMEEDXUQDOHR7CAWB7UCCJ2FLFOBFCB6UFUKQ
+#\\\|Q4SCJ2TOVVA4MYDZNJQ2VCD25OYF7VEUJJEIBXRSDFBKIGKVZAT \ / AMOS7 \ YOURUM ::
+#\[7]6HEN4XVFWXKANS6OECUZTZV5YHV44RV6GIVJI5ZTEJFV6U2R5MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

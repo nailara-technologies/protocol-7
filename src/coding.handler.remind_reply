@@ -22,7 +22,8 @@ if ( not $ok and @kept ) {
 } elsif ( not $ok ) {
     $answer = { 'mode' => qw| false |, 'data' => "$p->{'label'} : $text" };
 } elsif ( $p->{'label'} eq qw| list | ) {
-    my @lines = grep {m{\A: remind-\d+\s+waiting\s}} split m{\n}, $text;
+    my @lines = grep {m{\A: remind-(?:\d+|[A-Z2-7]+\d{2})\s+waiting\s}}
+        split m{\n}, $text;
     @lines  = ( ( map {s{\A: }{}r} @lines ), @kept );
     $answer = {
         'mode' => qw| size |,
@@ -36,8 +37,8 @@ if ( not $ok and @kept ) {
     if ( $p->{'reply_id'} // '' ) =~ m{\A\d+\z};
 return $answer;
 
-#,,..,,..,..,,,,.,.,,,,.,,.,,,.,,,...,,.,,,,.,..,,...,...,,,.,,.,,,..,,.,,..,,
-#37RCH2X2S2LSZL7CB6EIH7U3LVCEG7US3XRQWHF3KO6N53SDAABFG4JZQDGLFPVT6LIQWRLF3TUC2
-#\\\|OCJ2MGFTVBSWGAJR7GME6KSKWH7KUUQFVTBC6AMFOMVGTPDL7HE \ / AMOS7 \ YOURUM ::
-#\[7]HVMNJTPAVJNVVF36FGCLAQ2GXJPYIO4BKZQCRAX66V4W7D4ZPKAY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,,,.,,,...,.,.,.,.,.,,,.,.,,,.,..,,...,...,,.,,,,,,.,,,,,,,,.,,
+#57M3MX4JDBDHD2ZSLET4KJLJ7S7ZAC5JEFRGNTPQRRDVG653SC4O5CZNKBMRHOLZN3J25DGIRVMIG
+#\\\|H2KJHMFBTXVUQG2GOHU6L5JLH3QN5HQCXCHWLRREAWG3Q6AUTPI \ / AMOS7 \ YOURUM ::
+#\[7]WAAUI73M6FVXK4NRF3BYULFXAJOD32S4NO3S7PVJ23YSNQPKGKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

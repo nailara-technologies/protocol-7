@@ -4,7 +4,9 @@
 # param = <id> <session | panel | notify> <text>
 # descr = a reminder is due : deliver it
 
-my ( $id, $to, $text ) = ( $call->{'args'} // '' ) =~ m{\A\s*(remind-\d+)\s+
+my ( $id, $to, $text )
+    = ( $call->{'args'} // '' )
+    =~ m{\A\s*(remind-(?:\d+|[A-Z2-7]+\d{2}))\s+
     (session(?::[\w.\-]{1,64}(?:\@[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})?)?|panel|notify)
     \s+(\S.*?)\s*\z}xs;
 return { 'mode' => qw| false |, 'data' => 'remind-fire <id> <to> <text>' }
@@ -31,8 +33,8 @@ return {
     : "reminder $id kept : not delivered yet"
 };
 
-#,,..,.,.,,..,.,.,...,.,,,,.,,,..,,,.,,.,,,,,,..,,...,...,.,,,,.,,.,.,,,.,..,,
-#D6JUQTUFC3PF7NOJ7KATH7PS66BQGNYOF7TMDGYSKBEW243BPD57XKXAS5BT7EEULYTVSOM4WGTB6
-#\\\|4WAYUEDV7L3ELZIIWVZBD23YAPRPHSSCFCSNHHLJCXRYMNKCP3I \ / AMOS7 \ YOURUM ::
-#\[7]N2O2L46Z6U6BC7K7NTEFJFW34JBVZIKKIC5NERRALGSHEGDL64BY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,..,,..,.,,,.,.,...,,,.,,..,.,.,..,,...,...,.,.,,..,,.,,.,,,.,.,
+#7PVEU4ZGFANW5ZB4ZLDRYRYQ5MQNKJCVBCT6OHQL7R4RN7AZ73NC54L63Q6T6JDZ6ZEG325XTOIYA
+#\\\|CEQGAEBYINM577LBUEWDCRDJZ4X2RWDCLCOQFHBRAC2I5KKY6R3 \ / AMOS7 \ YOURUM ::
+#\[7]PFD5DYFVVV43H7H4E7C5CPJGOCJVIZ54KA4DHVVGM7SHPKTDQ4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -41,8 +41,10 @@ if ( $st eq qw| queued | ) {
     }
     CORE::mkdir($dir) if not -d $dir;
     ## a job id names its state file : never one an earlier job left ##
-    my $stamp = time;
-    $stamp++
+    my $stamp = <[base.ntime.b32]>;
+    $stamp
+        = <[base.encode_ntime_to_B32]>
+        ->( <[base.ntime_BASE32_to_numerical]>->($stamp) + 4200 )
         while -e "$dir/p7-sign-$stamp-$PID.json"
         or -e "$dir/p7-sign-$stamp-$PID.json.out";
     my $job     = "p7-sign-$stamp-$PID";
@@ -131,7 +133,7 @@ if ( $st eq qw| preparing | ) {
     CORE::unlink("$base.msg");
     my $out = <[coding.sign_queue.read_out]>->("$base.prepare.out");
     return $stop->("commit prepare refused : $out") if $rc != 0;
-    my ($commit) = $out =~ m{(p7-commit-\d+-\d+)};
+    my ($commit) = $out =~ m{(p7-commit-(?:\d+|[A-Z2-7]+)-\d+)};
     return $stop->("commit prepare gave no id : $out") if not defined $commit;
     my $c = <[coding.sign_queue.read_state]>->("$dir/$commit.json");
     return $stop->("commit $commit : no state") if not defined $c;
@@ -187,8 +189,8 @@ if ( $st eq qw| committing | ) {
 }
 return FALSE;
 
-#,,..,.,.,.,,,,.,,,,.,,.,,..,,..,,,..,,,.,.,,,..,,...,...,,.,,,,.,,.,,,.,,,.,,
-#YP4HKSHU25OLPFIHWDLYM7T2QBNMFIOG6WULUNT2XQQDJ5EUCVYJLBXFP5AOMIWFJHY6EODFF5NXE
-#\\\|66VTQPGWZFPAYZQZUCZ7JPFIL554RURJXG2P2KAME3US52BTRIT \ / AMOS7 \ YOURUM ::
-#\[7]7CR3VGQN6JQADZVAVUQEWNLBPHVAW52WEWHHPCBVZQQ2W2ACCIDI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,,,,,,.,,..,,,,.,.,,,.,.,,..,..,,...,...,...,,,.,,.,,...,,..,
+#44SYQT7F3XM72XPQKIGRZH2OO3WV7K3T4GVK5EFQIQKDZAK6MU6B2O2NZDQ4W4M4QUUPTBKRX3IC2
+#\\\|LIFOPJGQONN7VNBIWZTGM7OA3ZWD455GALTEINZPUYEOX5D6BSO \ / AMOS7 \ YOURUM ::
+#\[7]7H3LWJ3HJPIFWO73FZVFCIH45MMCULOTVWHBE6CWOGH5E6H3MIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

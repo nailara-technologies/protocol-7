@@ -92,6 +92,8 @@ my ( %answer, %down, %quiet );
 $code{'base.log'}  = sub { push @logged, join ' ', @ARG; TRUE };
 $code{'base.logs'} = sub { push @logged, join ' ', @ARG; TRUE };
 $code{'base.time'} = sub {time};
+my $remind_ntime = 'AAAAAAA';
+$code{'base.ntime.b32'} = sub { $remind_ntime++ };
 $code{'base.callback.cmd_reply'}
     = sub { $replies{ $ARG[0] } = $ARG[1]; TRUE };
 $code{'protocol-7.route-send'} = sub {
@@ -391,8 +393,8 @@ say "1..", $pass + $fail;
 say "# pass $pass fail $fail";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,,,,...,..,,,,.,.,.,,..,.,.,,.,,.,,,,,,,..,,...,...,,..,,,,,.,.,...,,,,,
-#TYV24JVHCDQHWL7Z5RJIBK2F2PQQ3JFMNWEJIDF34HYLMPZBCBK2NTODUGRRBXF4ICESRJ4OW2GWC
-#\\\|FPE4AYIADPHMUETSWFHEJSKZRW74Y4T72Z5RB6MZBFJVO6JOMS3 \ / AMOS7 \ YOURUM ::
-#\[7]NJHQ5BHMPY5BKEY5B4BKZVVTAN75QTBFVKJ7MMUDNVHATOH7CQBY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,...,..,,.,,,.,.,.,,,,..,,..,...,..,,...,..,,...,,..,,..,,,,,..,,
+#DTJZSSLIR3FLPPCVGFLD3YIDCUFLBNNF5QUC3TQ7IP7D55B6T6P4753OKTRGQRUPJP3XYBC5XXU56
+#\\\|MBT2K2YYLOXUIFQAGOCMNDORODYK6NY342NMMZAGBQIWJMM3LT5 \ / AMOS7 \ YOURUM ::
+#\[7]QQHBVMIBXEA2AP7AWE23WVWHWRX7N4IOMCLUNGWNUHWEX43RIMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

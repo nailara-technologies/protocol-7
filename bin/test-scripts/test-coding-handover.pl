@@ -112,6 +112,8 @@ $code{'base.logs'} = sub { push @logged, fmt_log(@ARG); TRUE };
 $code{'base.s_warn'}
     = sub { push @logged, 'warn ' . sprintf( shift, @ARG ); TRUE };
 $code{'base.time'} = sub {time};
+my $remind_ntime = 'AAAAAAA';
+$code{'base.ntime.b32'} = sub { $remind_ntime++ };
 $code{'base.callback.cmd_reply'}
     = sub { $replies{ $ARG[0] } = $ARG[1]; TRUE };
 
@@ -861,8 +863,8 @@ say "1..", $pass + $fail;
 say "# pass $pass fail $fail";
 exit( $fail ? 1 : 0 );
 
-#,,..,.,,,.,,,..,,,,,,..,,,,,,,..,,,,,,,,,..,,..,,...,...,..,,.,,,...,...,...,
-#52CWK7OH6FMUODTMIC7PC6GPENHU7HPYYSJ67BVAGZWUKXFAO6WRWACKNDFNSXLXMQATAYQA4F5K4
-#\\\|JSEZKZ37YGAWQVCALSRQ5ISLXXE7VNSCOE2L5QCCQREIDK6QJPI \ / AMOS7 \ YOURUM ::
-#\[7]D2QTFZDSHYWBTXU7JMMXAK6SKT57HJIE4DTUIDKD4X4TAYUGJ6DA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,..,.,,,,..,,.,,...,...,,,.,.,,,..,,...,...,.,,,,,.,.,,,...,,.,,
+#ECQLRKYPUOGDPB7H7TSZGB7CD6YVLMW6IRW7S26UD77RNS7LNBPB3XES22IPYSRSBAA2YRDFO2Z2Q
+#\\\|Q7URDUEF4GCCANPEDW27CL3Z5ZKPJEHJWJS4LS4JSSLO5Z6364R \ / AMOS7 \ YOURUM ::
+#\[7]NYI3J6DCC2ZJD2A2ROM22WMVLLW4VX2RNUY2SXW5WWPB3TYYVAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -99,6 +99,14 @@ check(
     $rc == 1 && $out =~ m|process gone|
 );
 
+## base32 ntime ids reach the same state files ##
+put( 'p7-sign-AAAAAAA-1', '{"status":"approved"}' );
+( $rc, $out ) = run_wait( 'p7-sign-AAAAAAA-1', 5 );
+check( 'base32 ntime sign id -> approved rc 0', $rc == 0 );
+put( 'p7-commit-AAAAAAA-1', '{"status":"committed"}' );
+( $rc, $out ) = run_wait( 'p7-commit-AAAAAAA-1', 5 );
+check( 'base32 ntime commit id -> committed rc 0', $rc == 0 );
+
 ## unknown job : rc 2 ##
 ( $rc, $out ) = run_wait( 'p7-sign-9-9', 10 );
 check( 'unknown job -> rc 2', $rc == 2 && $out =~ m|unknown job| );
@@ -106,8 +114,8 @@ check( 'unknown job -> rc 2', $rc == 2 && $out =~ m|unknown job| );
 say "$ok of $n";
 exit( $ok == $n ? 0 : 1 );
 
-#,,,.,.,,,,.,,,.,,,.,,...,.,,,,,.,.,.,...,.,.,..,,...,...,.,.,,.,,,..,...,,.,,
-#MT7AJJZO6PDFT6JVRYQKXK2L5YXDHRHMPLD7H3LMIET3F3526RBTOVQ5C2ORJMY7Z4XSV36TEIHYG
-#\\\|HBAEQN4XV2PNXW4H75K3SANNP2MIBUEP6SDMT5MCFMZ7AUY6XRG \ / AMOS7 \ YOURUM ::
-#\[7]RWEBVIR6AGOFBEG4JALUOOYZ47BTA3CB67I4BGMKBDM3LDT5HKDY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,,,.,.,,,,.,,...,,,,,.,.,.,,,..,,...,.,.,,,.,,,,,,.,,..,,.,,,
+#GQ25PEFNBWZM5R3AW3BSVK2AA22DQS26Z7BEJQ77NS5LXAWEOECVK4JX3R76PDRQGGFTKYGSI6ZNI
+#\\\|PAL264ZSV5644HZSLETILQSOPWCRXGN6RNZXI2XMRV66BSVK3LH \ / AMOS7 \ YOURUM ::
+#\[7]Y5YE6WIMVIVX22GHD5EA4V7SSC6NAHJCAEWJQF5HKQ77V33JCKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

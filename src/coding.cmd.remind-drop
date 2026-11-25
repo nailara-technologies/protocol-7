@@ -5,8 +5,8 @@
 # descr = remove a reminder before its time
 
 my ($id) = ( $call->{'args'} // '' ) =~ m{\A\s*(\S+)\s*\z};
-return { 'mode' => qw| false |, 'data' => 'reminder id : remind-<digits>' }
-    if not defined $id or $id !~ m{\Aremind-\d+\z};
+return { 'mode' => qw| false |, 'data' => 'reminder id : remind-<ntime>' }
+    if not defined $id or $id !~ m{\Aremind-(?:\d+|[A-Z2-7]+\d{2})\z};
 ## a fired one not delivered yet is kept here, not in the events bucket ##
 if ( defined <[coding.remind.store]>->( qw| get |, $id ) ) {
     <[coding.remind.store]>->( qw| del |, $id );
@@ -31,8 +31,8 @@ my $reply_id = $call->{'reply_id'} // '';
 return { 'mode' => qw| deferred | } if $reply_id =~ m{\A\d+\z};
 return { 'mode' => qw| true |, 'data' => "drop of $id requested" };
 
-#,,,,,..,,,..,,,,,..,,,,,,,.,,..,,,..,..,,..,,..,,...,...,.,.,...,..,,...,.,,,
-#WTQKJ7ORLUQEX66QXJTWXIA6LXZCQIUCY5PL65LSWXJYXZHWRXMHDLO3GPTPEMVD6VC5RVI2BBCSK
-#\\\|NQDXS3B6IHYD46FXRAY4CSLOLHWC6ON5IRTIACJCVNGZ3EPYOXM \ / AMOS7 \ YOURUM ::
-#\[7]FTJ5NA27A37HHL4XDZ3PMDLUU6DAISJFYAKAZ36C5O7EVVGJTSCI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,.,...,,,,,,.,,.,.,..,,,.,,,,.,..,,...,...,.,.,.,.,.,.,.,.,,.,,
+#D75VPQVJFNFPWUFB2RUOILRF52RKMUSUWZVTYDKGVG22H7JZXR73VO7UYA26F47ILSB7EBTPAY2BG
+#\\\|R5JO46FXKETKM53UZPEICKPZZZJOFIPW3EM5NWSWTUZKP7PA7J5 \ / AMOS7 \ YOURUM ::
+#\[7]IVIPHJB5AYDFE24FKFGBYVFOM3XX62KQZMHF53X236IA6TD5TIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
