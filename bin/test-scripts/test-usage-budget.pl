@@ -210,6 +210,7 @@ load_module($ARG) for qw|
     usage.pace.state
     base.interval.next
     base.interval.rhythm.non-linear
+    base.n2u_time base.u2n_time base.round_truncate
     |;
 
 my $plugin_dir = File::Spec->catdir( $root_path, 'src' );
@@ -865,6 +866,22 @@ $data{'usage'}{'pace'}{'records'}{'claude'} = {
     'start5h' => 22,
     'start'   => $t0 - 3600
 };
+## over the window's share : a plain line instead of `slow down x0.00` ##
+{
+    local $data{'usage'}{'pace'}{'records'}{'claude'} = {
+        'epoch5h' => $t0 + 4 * 3600,
+        'start7d' => 61,
+        'start5h' => 22,
+        'start'   => $t0 - 3600,
+        'k'       => 4.5
+    };
+    my $over = $pace_req->( 75, 90 );
+    ok( $over
+            =~ m{pace : window share used up, \d+ % over \[ the week : [\d.]+ % of the 7d per window left \]}
+            && $over !~ m{x0\.00},
+        'pace : over the share says so, with what the week has left'
+    ) or say "# $over";
+}
 my $slow = $pace_req->( 61.5, 24 );
 ok( $slow =~ m{pace now : 2\.0 %/h of the 5h}
         && $slow =~ m{: room to speed up x},
@@ -895,8 +912,8 @@ ok( $plan !~ m|[{}]|, 'plan : no json' );
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,,,...,,..,...,.,.,..,,,.,,,..,,.,,..,,,..,..,,...,...,..,,,,.,,,,,..,,..,,
-#SB7DBOAFZR3JZFJTBNZVGQ2XUG3BPMO55AO33WWX672KZUNTOUMG5CULVUSA2HF3VRLJAIX7SMCEK
-#\\\|GYOHY6LMEQET372CD2JC5U6SLWH7DFCTOH2JOAWE2SCA5RN3XZF \ / AMOS7 \ YOURUM ::
-#\[7]VUSRAKLC2ULTA2M2KLJSACSBSBVLEPXVRYMU3RKUYNRNRMZI7AAA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,,,,,..,,,..,,,,,,..,,,.,,..,..,,...,...,,,.,..,,,.,,,..,,.,,
+#4XJVBSBENXCVY7FPBZFOA556MK4AUPQYJAKHNH27HNBLQFPCYEPWWJZDABXBMFRWLORNTUHF4EHJU
+#\\\|4BEAJASCG3VCAKILKJIPQQG6MKJVER5TO6FDWRC4JZJUB75NRCG \ / AMOS7 \ YOURUM ::
+#\[7]RZN3OZU2KZKSUALE54ZIFCPWQ3KUTLP2ARWMXETQTUHMPLA346AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

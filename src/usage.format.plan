@@ -137,6 +137,20 @@ foreach my $name ( $request->{'order'}->@* ) {
                     defined $need5
                     ? sprintf( ' [ %.1f %%/h of the 5h ]', $need5 )
                     : '';
+            } elsif ( $left7 <= 0 or $fit5 <= 0 ) {
+                ## over the window's share : say so, and what the week has ##
+                ## left the same basis as `share used` below : 5h when the ##
+                ## ratio is known [ finer ], else 7d                       ##
+                my $over
+                    = defined $budget5
+                    && $budget5 > 0 ? 100 * $spent5 / $budget5 - 100
+                    : $budget7 > 0  ? 100 * $spent7 / $budget7 - 100
+                    :                 0;
+                push @lines,
+                      sprintf ' : pace : window share used up, %d %% over [ '
+                    . 'the week : %.1f %% of the 7d per window '
+                    . 'left ]',
+                    $over, $rest / $n5h;
             } else {
                 my $rate5 = $spent5 / ( $elapsed / 3600 );
                 my $rate7 = $spent7 / ( $elapsed / 3600 );
@@ -174,8 +188,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 }
 return join "\n", @lines;
 
-#,,.,,...,...,,.,,.,,,..,,,..,.,,,...,,,,,...,..,,...,..,,,.,,.,,,,,,,...,..,,
-#DSVIW2JEGA22FADYS3JMIKC7UH254NZRG75XNYINPTZNQZHPDIWVR64FQ5E2BW4553IVJCRH6NEOQ
-#\\\|RS3IU7TUX3ON5CUMAJC7ETIRNGY4LEQEEDZRRCMNL6EWKA5KBMT \ / AMOS7 \ YOURUM ::
-#\[7]XFGRNGSFPH5HFMXQE47OWOCW47236D7IBPHBPFHWANSZN4KMIKCY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,...,,..,,.,,..,,,.,,.,,,.,,,.,,,..,,...,...,.,.,.,,,,.,,,,,,...,
+#DDTE2RYKKZFSDRQDCJG4TRHVQ5KNO3D4B2XHPPLH3KW75VTO6XLIXIOJRI2B4UCDLWA5OWP3L4L6Q
+#\\\|RNNJT2JAYDAKGGP5PG7JAEQ6HHUUCXXTRKPVQMQ6DBIO3QKVIQN \ / AMOS7 \ YOURUM ::
+#\[7]VBVCATMZFOLPRT7IRUU3LRC6FAYUBSS3YJNQBT6QVJWM5N3Z3SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
