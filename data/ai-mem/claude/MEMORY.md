@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-relay-parking-notify](project-2026-11-25-session-handover-relay-parking-notify.md) — NEWEST, START HERE 2026-11-25 : parking, claude \ kimi zenki, chat relay into the live session, usage.plan, notify, coding handover ; tier A place pending ; read handover-live.md too
+- [session-handover-native-hub-watchers](project-2026-11-25-handover-pm-native-hub-watchers.md) — NEWEST, START HERE 2026-11-25 pm : state is DERIVED [ p7c coding.handover ] ; decisions, lessons, next steps ; tier A place running on azurum
+- [session-handover-relay-parking-notify](project-2026-11-25-session-handover-relay-parking-notify.md) — 2026-11-25 am : parking, claude \ kimi zenki, chat relay into the live session, usage.plan, notify, coding handover ; tier A place pending ; read handover-live.md too
 - [dispatch-sign-session-lessons](feedback-2026-11-25-dispatch-sign-session-lessons.md) — dispatched runs never register as live sessions, never guess a session target ; AMOS modules join the sign ; /tmp tmpfs : TMPDIR elsewhere
 - [session-handover-net-dns-host-memory](project-2026-11-23-session-handover-net-dns-host-memory.md) — 2026-11-23 : net zenka 1-5c, dns policy + behaviour, sign agent queue, host-memory brief ; X220T import on azurum, then tier B place
 - [session-handover-place-httpsd-core-sweep](project-2026-11-22-session-handover-place-httpsd-core-sweep.md) — 2026-11-22 : tier A place running [ fast code ] ; httpsd signed files : https live test on yourum before zulum ; CORE:: sweep landed
@@ -106,8 +107,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,..,,.,,,,,,..,,...,.,,,,..,,,,,...,,,.,..,,..,,...,...,,,,,,..,.,.,...,.,,,
-#52CIEBUTJ4HEWHAY2WOCHDVY3WTFCZVKU3WOAO32F7XK5ZPMG5I4POVPSQDIJ3XTLTMV3MI2SEB5S
-#\\\|EC6JQD4FENGO6UUQDH7576KAKNU5E5G6AESYS5FEQRWS26YMFFN \ / AMOS7 \ YOURUM ::
-#\[7]GKACBBTSJGN2P4MVRB5JPBFO5UPSV2W6JXPF6Y5CYTPY3M34LICQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,.,.,,,,,.,.,,,..,,,,,,.,.,,,,,..,,...,...,..,,,..,,,,,,,,,,,,,
+#G2CWMECYLLNZICUEVYDF52JIYXO3LJZUQZESXDNOSYPNPXSO3LDGIG73CZ4DF6AD52NDYG2UFV4RM
+#\\\|7GWPM5JHBU5TMLRV44UKEKYU3APDLQ7PAZMLALTELFO3GTXTNSB \ / AMOS7 \ YOURUM ::
+#\[7]ITGPDB6P6EPFUBHZ7L3V6PDFDMLXBP4SC6ONN3ZDBZLCLJ72AUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
