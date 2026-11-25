@@ -236,6 +236,7 @@ load_module($ARG) for qw|
     task.cmd.park task.cmd.unpark task.park.store task.cmd.continue
     task.cmd.show task.cmd.queue
     coding.cmd.park coding.cmd.unpark coding.park.store
+    base.n2u_time base.u2n_time base.round_truncate
     |;
 
 my $access_file = "$tmp/access.zenki";
@@ -677,8 +678,8 @@ ok( $replies{33}{'mode'} eq 'false'
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,,,,.,,,.,,,,..,,,.,,..,,,,,.,,,...,,..,..,,...,...,.,,,,.,,,,,,.,.,,,,,
-#GZGRQZ74W3OX32UN7PXIQ32MQEJHYWRSB3SSRJRACY5L7YUFE6BGFR2ISBSAT5XXXILZQQUVN5K5G
-#\\\|OWRYYM43T66SGMEVUQOTPBFGQSYOIV6W25NCXNYI2ZLEIAXVL76 \ / AMOS7 \ YOURUM ::
-#\[7]D5XPRTWGELJQIE4XXQVFC3WDZIQC6JDEQLM52UOW4S4MEFZYDOAI 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,,,,,.,,.,,.,,,.,,,.,,,.,.,,,,,..,,...,...,,.,,...,.,,,,,.,,,.,
+#KU5ZDUM56TQSBEHTEGL6YAQX4DQ3GLRTOLMTUL4LTUXL6FPATPW44MAWGNGBMZEIRZTZNS7LAPOLA
+#\\\|QFTH2LUF4JCCLBLO2VOTSK7FWALVGZ2WCRZGEB6BFE6YA6IXOBA \ / AMOS7 \ YOURUM ::
+#\[7]ME2SY72KFR6GTI4P4WZRLZA2GDNNW46MQW5EGRJBB2NEDE26P2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

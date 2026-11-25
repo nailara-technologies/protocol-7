@@ -1,8 +1,9 @@
 ## [:< ##
 
 # name   = events.notify.send
-# descr  = send one notification to the notify zenka
+# descr  = send one notification to its selected targets
 # args   = { level => info|warn|loves, sound => <profile>|none, text,
+#          to => notify|session[:name] .. [ default notify ],
 #          time [ optional, for the quiet hours ] }
 # return = the sound sent [ TRUE-ish ], FALSE for a bad level or no text
 #
@@ -39,15 +40,46 @@ if ( $sound eq qw| alarm | ) {
     $sound = qw| alert |;
 }
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| cube.notify.cue |,
-        'call_args' => { 'args' => "$level sound=$sound $text" }
-    }
-);
+my @to = grep {length} split m{\s+}, $n->{'to'} // qw| notify |;
+if ( CORE::grep { $ARG eq qw| notify | } @to ) {
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.notify.cue |,
+            'call_args' => { 'args' => "$level sound=$sound $text" }
+        }
+    );
+}
+
+my @session = map { m{\Asession(?::([\w.-]+))?\z} ? ( $1 // '' ) : () } @to;
+if (@session) {
+    <[base.perlmod.load]>->('AMOS7::Switch')
+        if not <[base.perlmod.loaded]>->('AMOS7::Switch');
+    my $relay = <system.root_path> . '/data/development/chat/relay';
+    my %relay = map { @{$ARG} } AMOS7::Switch::read_file($relay);
+    my $kind
+        = defined $relay{'relay.claude.enabled'}
+        ? qw| claude |
+        : qw| all |;
+    my $until = $relay{"relay.$kind.until"} // 0;
+    my $off   = ( $relay{"relay.$kind.enabled"} // qw| yes | ) eq qw| no |;
+    $off = FALSE if AMOS7::Switch::expired($until);
+
+    <[protocol-7.route-send]>->(
+        {   'command' => qw| claude.sessions |,
+            'reply'   => {
+                'handler' => qw| events.handler.notify_sessions |,
+                'params'  => {
+                    'text' => $text,
+                    'to'   => $session[0],
+                    'off'  => $off
+                }
+            }
+        }
+    ) if !$off;
+}
 return $sound;
 
-#,,,,,..,,..,,..,,...,...,,..,..,,...,,..,,,.,..,,...,..,,..,,,,.,..,,,,,,...,
-#TQTAMCJREGVDYLQXA6WBCDWWQWS7QZJQA36BCSH6QMVHTSGFHTLGNSEFGTA7AQD53A27OZCVKJRGY
-#\\\|QFPR36ND4GJVEUSRL2TJ2PCU3JY4HXVIPRJHZER5HOQZ73JACTP \ / AMOS7 \ YOURUM ::
-#\[7]R2PG2RR2X4DKCMHY257IEK4OIUT5OKXXSQOYXRMSGUCSVXZF7ODY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,.,.,,..,.,.,,,.,.,.,,.,,,..,,,,,..,,...,...,,,.,.,.,.,.,.,.,.,.,
+#3I6WEWUUDNESOA7YTNEIS5BI2CVSECGTXKVQY7JE6SIVWQZQ6LXG4I6ZYLM7QNUW473ZFCVCBEMFS
+#\\\|IHTMWLBIWFLOS2O4N2UZ2I66YUSUA4KUWJTMFAWDTVLDHD74M6I \ / AMOS7 \ YOURUM ::
+#\[7]AKFLWPOTX72OWWSFEWJ53SVW5UEEBZOSWCCBJU432GLN7DN5BCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

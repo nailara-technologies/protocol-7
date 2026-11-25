@@ -15,6 +15,7 @@ if ( length $mode and $mode ne qw| recalc | ) {
 ## cancel the timers of events no longer in the timetable [ NZ2 : this read ##
 ## <event.timers>, a hash nothing fills -- no timer was ever cancelled ]    ##
 for my $ev_id ( keys <events.timers>->%* ) {
+    next if $ev_id =~ m{/};    ## bucket timers belong to the source plugin ##
     next if exists <events.unix.timetable>->{$ev_id};
     for my $timer ( values %{ <events.timers>->{$ev_id} // {} } ) {
         $timer->cancel if defined $timer and $timer->is_active;
@@ -99,8 +100,8 @@ foreach my $ev_id ( keys <events.unix.timetable>->%* ) {
     } @timer_types;
 }
 
-#,,.,,...,,,,,.,,,..,,,,,,..,,,.,,.,.,,,,,...,..,,...,...,,.,,.,.,.,,,.,,,...,
-#75IINLD7D7EGN254T7GKQZC4Y3FYAWUDJGXB4DNRSNOL3J5VPTFUUU54LNIAVCBP3RFKGCE2BZ7WW
-#\\\|JYP6RUMO4AIUAJXQWSS2TSE4JCX6W6IQPHQS3UVH5RX63JBLVMC \ / AMOS7 \ YOURUM ::
-#\[7]E2BET2GBSBZCS4WB4K5HG7QOUFV6BTCIGZRNVZJX2GTZ3ZWMYWAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,,..,,,.,,,,,..,,,,.,...,,..,..,,...,...,,.,,..,,,..,.,.,..,,
+#PZDWL5YYDLBYLGXSM4ZTQPMBQD2ETJIH6NGURITU46V4FHX7DRXHQVADETXYLLTJP7F74CBZNAL4Q
+#\\\|FCNLRJP3TYDRYOANUE2B7X76WGGA76OFO5VPNRHHY5UO7XOP4FJ \ / AMOS7 \ YOURUM ::
+#\[7]6XEB6HKQGWGRWW5WC5TVCDQ3UOJWIYFARWGQRCBWBXVJNIDF6CAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

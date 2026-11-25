@@ -95,7 +95,7 @@ sub load_module {
 
 load_module($ARG) for qw|
     events.notify.map events.notify.apply events.notify.send
-    events.notify.ticker events.signal.raise events.bucket.action_route
+    events.handler.notify_sessions events.notify.ticker events.signal.raise events.bucket.action_route
     plugin.events.action.notify
     notify.cmd.cue notify.cmd.dnd notify.dnd.active notify.dnd.parse_span
     notify.dnd.store
@@ -105,6 +105,7 @@ load_module($ARG) for qw|
 ## fakes ##
 
 my ( @sent, @logged, @popups, @sounds, @parsed, $dismissed );
+my @session_names;
 $code{'base.log'}  = sub { push @logged, join ' ', @ARG; TRUE };
 $code{'base.logs'} = sub {
     my ( $l, $f, @a ) = @ARG;
@@ -119,6 +120,23 @@ $code{'events.plugin.registry'}        = sub { { 'source' => {} } };
 $code{'protocol-7.command.send.local'} = sub {
     my $c = shift;
     push @sent, "$c->{'command'} | " . ( $c->{'call_args'}{'args'} // '' );
+    TRUE;
+};
+$code{'protocol-7.route-send'} = sub {
+    my $c = shift;
+    push @sent,
+        "cube.$c->{'command'} | " . ( $c->{'call_args'}{'args'} // '' );
+    if ( $c->{'command'} eq 'claude.sessions' ) {
+        my $answer
+            = @session_names
+            ? {
+            'mode' => 'size',
+            'data' => join( '', map {"$_ : since now\n"} @session_names )
+            }
+            : { 'mode' => 'true', 'data' => 'no live session registered' };
+        $code{ $c->{'reply'}{'handler'} }
+            ->( { %{$answer}, 'params' => $c->{'reply'}{'params'} } );
+    }
     TRUE;
 };
 $code{"notify.cmd.$ARG"} = do {
@@ -219,6 +237,53 @@ ok( grep( { $ARG eq 'cube.notify.cue | warn sound=aware claude 5h at 91.0 %' }
 ## quiet hours ##
 $r = $apply->( 'claude', 'claude.run.done', { 'state' => 'failed' }, $night );
 ok( $r->{'sound'} eq 'soft', 'quiet hours : aware becomes soft at night' );
+
+## session targets : fake registry and relay state, never a live post ##
+$data{'system'}{'root_path'} = $tmp;
+my $session_send = sub {
+    $code{'events.notify.send'}->(
+        { 'level' => 'info', 'text' => 'window reset', 'to' => $ARG[0] } );
+};
+reset_all();
+@session_names = qw| main |;
+$session_send->('notify session');
+ok( 1 == grep( {m{\Acube\.notify\.cue }} @sent )
+        && grep(
+        { $_ eq 'cube.claude.session-post | '
+                . 'to=main window reset from=events' } @sent ),
+    'session : one registered session receives the rendered text'
+);
+reset_all();
+@session_names = qw| main work |;
+$session_send->('session');
+ok( !grep( {m{\Acube\.claude\.session-post}} @sent )
+        && grep( {m{several live sessions.*main, work}} @logged ),
+    'session : several without a name are skipped and logged'
+);
+reset_all();
+$session_send->('session:work');
+ok( grep(
+        { $_ eq 'cube.claude.session-post | '
+                . 'to=work window reset from=events' } @sent ),
+    'session : a map can name one of several sessions'
+);
+reset_all();
+@session_names = ();
+$session_send->('notify session');
+ok( 1 == grep( {m{\Acube\.notify\.cue }} @sent )
+        && !grep( {m{\Acube\.claude\.session-post}} @sent ),
+    'session : none registered skips quietly, notify still goes out'
+);
+mkdir "$tmp/data";
+mkdir "$tmp/data/development";
+mkdir "$tmp/data/development/chat";
+AMOS7::Switch::write_file( "$tmp/data/development/chat/relay",
+    'test relay', [ 'relay.claude.enabled' => 'no' ] );
+@session_names = qw| main |;
+$session_send->('session');
+ok( !grep( {m{\Acube\.claude\.session-post}} @sent ),
+    'session : chat relay off holds the post'
+);
 
 ## a map of its own : quiet = none, ticker set on start, alarm reserved ##
 open my $mfh, '>:encoding(UTF-8)', "$tmp/notify.map" or die;
@@ -634,8 +699,8 @@ my $ws_dir = File::Temp::tempdir(
 say "\n$pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,,.,.,.,,,,,,,,,,,,,..,,.,,,..,,,..,.,,,..,,...,,..,.,,,.,,,,..,,,,,,,.,
-#Y3GCWWEGNOG6ZTWMXUY76QOA24V2ULQLRZ2I2HFTUOOECAKV34BMSARYNOD5AHJTBRTNR2S3FK5M2
-#\\\|XJBO6QQ6GWG5XWJZYSLWBR2BGKLQ6JKV2WTYKBDOALRKXZKU6P7 \ / AMOS7 \ YOURUM ::
-#\[7]X65K7676BX7SBVGUEUDXEAIQAMWY6PMQXSCQPTUWDUVPMLRQ24BY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,,,,..,..,,.,.,,.,,...,,,,,...,..,,...,...,,..,..,,.,.,.,,,,,.,
+#QP63Z4BNXHXXFEOK6BOHXWERSYIWJYIDOKCR6WLHIMVXAS7U64JNSPCBIAG5JYKPBQROBDYXPW4OM
+#\\\|CDZH6XAWO24UAGXOS5VFZ4JVWMXDBOZGLSIVR5GUPVZ6UW63OIB \ / AMOS7 \ YOURUM ::
+#\[7]ZORDFMX2UOMPOZOZKGI6RX72LDH4DULS45MCFGOOPTOAEBBM5SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

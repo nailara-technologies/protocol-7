@@ -7,6 +7,7 @@
 ##   notify.by.<signal> = <value key> ..   the values that pick an entry   ##
 ##   notify.on.<signal>[.<value>..] = level=info|warn|loves|none \         ##
 ##        sound=soft|aware|alert|none ticker=set|clear key=<line key> \    ##
+##        to=notify|session[:<name>] .. [ default notify ] \               ##
 ##        text=<rest of the line, {value} filled in>                       ##
 ## claude states : ok failed ; kimi : end_turn .. error stopped crashed    ##
 ##   notify.same.<signal> = <value key> ..  what makes two cues the same   ##
@@ -26,6 +27,7 @@ notify.by.claude.run.done       = state
 notify.on.claude.run.done       = level=info sound=soft ticker=clear \
                                   text=claude run {state}
 notify.on.claude.run.done.failed = level=warn sound=aware ticker=clear \
+                                  to=notify session \
                                   text=claude run failed {reason}
 
 notify.by.kimi.run.done         = state
@@ -45,17 +47,17 @@ notify.same.usage.window.reset  = provider window
 notify.on.usage.threshold       = level=none
 notify.on.usage.threshold.up.75 = level=info sound=soft \
                                   text={provider} {window} at {used} %
-notify.on.usage.threshold.up.90 = level=warn sound=aware \
+notify.on.usage.threshold.up.90 = level=warn sound=aware to=notify session \
                                   text={provider} {window} at {used} %
-notify.on.usage.window.reset    = level=info sound=soft \
+notify.on.usage.window.reset    = level=info sound=soft to=notify session \
                                   text={provider} {window} window reset
 
 ## quiet hours [ local time ] : sounds become soft or none ##
 notify.quiet.hours              = 23-7
 notify.quiet.sound              = soft
 
-#,,,,,,,,,.,,,.,,,,,.,..,,,.,,.,.,,,.,,.,,.,,,..,,...,...,,,.,.,.,...,...,.,,,
-#FCZOOKW7P2XVIP32DGGZ7FXLYTYTA7ZYDVF3PMNOAQWRGVHMNFMRUG6TUVRLSKQWME2WCGI74CFZY
-#\\\|QR5XZU7I75YKCAOW6VBZJSK4SLTDNJQGJXPQIKCQHVBSPXV2QLN \ / AMOS7 \ YOURUM ::
-#\[7]XCOURO2SN3KUI2AOEVGAYFKHC4GFO4LQS7XBYAEHGXUP43Z62MAA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,.,,..,,,.,,.,,.,.,,.,,.,.,,,.,..,,...,...,...,..,,,..,,..,.,.,
+#56UPCFMOSDZ22X2IHTDCWKVWJCQDBJJHSZNBZXD3X22POCJKONO4YYIBPSCRGSBFJLLG3CYUNAKCO
+#\\\|3QJRUSFFP2542EEPVSANUA6NFIC3A7U27XQ6KDLQGXIMXFDZG75 \ / AMOS7 \ YOURUM ::
+#\[7]GFI7GQQRRB66DLBBPBHXN4WXR5HKLO2XLLVEZRTAEZSDYDIXTQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

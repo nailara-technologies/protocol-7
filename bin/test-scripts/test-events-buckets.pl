@@ -182,6 +182,9 @@ load_module($ARG) for qw|
     events.cmd.bucket-show
     base.interval.next
     base.interval.rhythm.non-linear
+    base.n2u_time
+    base.u2n_time
+    base.round_truncate
     |;
 
 my $plugin_dir = File::Spec->catdir( $root_path, 'src' );
@@ -316,6 +319,15 @@ ok( $file =~ m{^entry\.a1\.state = waiting$}m
 );
 ok( !-e "$tmp/var/bucket/coding.bucket.tmp", 'add : no tmp file is left' );
 ok( !( $file =~ m|[{}]| ),                   'add : no json in the file' );
+my ($file_at)    = $file =~ m{^entry\.a1\.at = (\d+)$}m;
+my ($file_added) = $file =~ m{^entry\.a1\.added = (\d+)$}m;
+ok( defined $file_at
+        && $file_at > 10_000_000_000
+        && $code{'base.n2u_time'}->($file_at) == $now + 3600
+        && $code{'base.n2u_time'}->($file_added)
+        == bucket_entry( 'coding', 'a1' )->{'added'},
+    'add : at and added are written as numerical ntime'
+);
 
 ## replace ##
 
@@ -625,6 +637,29 @@ ok( $r->{'mode'} eq 'true' && state_of( 'coding', 'old' ) eq 'none',
         . 'entry is dropped [ the journal keeps it ]'
 ) or say "#   $r->{'data'}";
 
+## static recalculation leaves bucket timers alone, watches may re-arm ##
+reset_state();
+add('coding',      'watch',
+    'on=run.done', 'action=send-command',
+    'command=coding.go'
+);
+add('coding',                'reminder',
+    "at=@{[ $now + 3600 ]}", 'action=send-command',
+    'command=coding.go'
+);
+
+for ( 1 .. 3 ) {
+    cmd( 'bucket-remove', 'coding watch' );
+    add('coding',      'watch',
+        'on=run.done', 'action=send-command',
+        'command=coding.go'
+    );
+}
+$code{'events.plugin.registry'}->()->{'source'}{'timetable'}{'arm'}->( [] );
+ok( $data{'events'}{'timers'}{'coding/reminder'}{'at'}->is_active,
+    'recalc : a static timer sweep does not cancel a bucket reminder'
+);
+
 ## the start timer handler loads the buckets once ##
 reset_state();
 add('coding',                'hs',
@@ -695,6 +730,37 @@ fire_timer( 'coding', 'r1' );
 ok( state_of( 'coding', 'r1' ) eq 'fired'
         && "@sent" eq 'cube.coding.go | r 1',
     'persist : the armed timer fires the restored entry'
+);
+
+## legacy unix files load and are rewritten with numerical ntime ##
+reset_state();
+mkdir "$tmp/var";
+mkdir "$tmp/var/bucket";
+open my $lfh, '>:encoding(UTF-8)', "$tmp/var/bucket/coding.bucket"
+    or die $OS_ERROR;
+print {$lfh} "entry.old.state = waiting\nentry.old.when = at\n"
+    . 'entry.old.at = '
+    . ( $now + 3600 )
+    . "\nentry.old.added = $now\nentry.old.met = 0\nentry.old.action "
+    . "= send-command\nentry.old.param.command = coding.go old\n";
+close $lfh;
+my $legacy = $code{'events.bucket.load'}->('coding');
+ok( $legacy->{'entries'}{'old'}{'at'} == $now + 3600
+        && $legacy->{'entries'}{'old'}{'added'} == $now,
+    'persist : legacy unix at and added values still load'
+);
+$code{'events.bucket.save'}->('coding');
+$file = read_text("$tmp/var/bucket/coding.bucket");
+($file_at) = $file =~ m{^entry\.old\.at = (\d+)$}m;
+ok( $file_at > 10_000_000_000
+        && $code{'base.n2u_time'}->($file_at) == $now + 3600,
+    'persist : saving a legacy entry rewrites its time as ntime'
+);
+add( 'coding', 'journal-time', 'action=send-command', 'command=coding.go' );
+my ($journal_ntime) = read_text("$tmp/var/bucket.journal") =~ m{time:(\d+)}m;
+ok( $journal_ntime > 10_000_000_000
+        && abs( $code{'base.n2u_time'}->($journal_ntime) - time ) < 2,
+    'journal : fire time is written as numerical ntime'
 );
 
 ## a restart in the middle of firing : never run twice ##
@@ -939,8 +1005,8 @@ ok( exists $reg->{'source'}{'bucket-dependency'}
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,,,,,.,,.,.,,,.,..,,,..,,..,,.,,.,.,,,,,..,,...,...,..,,,,,,,..,,..,,..,
-#NZLMV2HVB4LKOTGKNLAJ62VMWALDB5CQJVZBVDEKM2JQFRSCIGW2YEFBPVD35AYYZBW6YV5CK3BA4
-#\\\|TIBBAUHZK5IGSTIWYU34AGGGEIFN3RTHRFA6X6FATGY2WPQWUL7 \ / AMOS7 \ YOURUM ::
-#\[7]IT6W6DA2534PCFESSDM5QRPPNYA3RVIVJ25ZTNMEPJ3LRUEUWGAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,..,,,.,,,,,,,.,,..,,,,.,.,.,,,.,..,,...,...,.,,,..,,.,.,,,,,,,.,
+#4KS5S6NYEG422AAY4KLXZVJPDMXAVT2NW4O43NQK5T7C2SXJ5TREQWE4W7JV6AG5MHYY6XM6NYCVU
+#\\\|BA6NU2E2LHD2LZYYH5L4VHSY2KUGX7NFXF3ECR4NMDCSKMZ2ERE \ / AMOS7 \ YOURUM ::
+#\[7]JOYSOM2EAQPUPUC2DGN4URGTQFW6O47OX3QIYUM2DZOFFZZ6UOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

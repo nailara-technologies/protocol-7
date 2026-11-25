@@ -221,7 +221,8 @@ load_module($ARG) for grep {
     m{\A(?:park\.|events\.(?:plugin|source|fire|handler\.event_triggered|calc_unix|set_up_timers|action\.|access\.|signal\.|cmd\.signal\z|bucket\.|cmd\.bucket-)|plugin\.events\.(?:action|source)\.|base\.interval\.next\z|base\.interval\.rhythm\.|base\.reply\.mode_text\z|coding\.handover\.|coding\.remind\.|coding\.handler\.(?:handover|remind)_|coding\.cmd\.(?:handover|remind))}
 } @src;
 load_module($ARG) for qw|
-    coding.park.store coding.sign_queue.store |;
+    coding.park.store coding.sign_queue.store
+    base.n2u_time base.u2n_time base.round_truncate |;
 
 ## the fakes : what the real commands answer ##
 my %fake = (
@@ -857,8 +858,8 @@ say "1..", $pass + $fail;
 say "# pass $pass fail $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,,,...,...,,..,,.,,..,,.,.,,.,,...,,,.,,,.,..,,...,...,,.,,,,.,..,,,,,,,.,,
-#UOCLP62LRIEKT6TZB7TCODN4JZTTLI4YS57BQ3WLXLRJRFANSTZMXF32UTUSA7NITB2K3VZLGTRGU
-#\\\|534CMJGJGADHAZQ36QK2HO5TUODFXEKE6H5E5N2CNF7RLEGMMZ2 \ / AMOS7 \ YOURUM ::
-#\[7]SZ4YSFX3OYXW7IZZT3T2A72DK4JU3TS7E3SRMW7BLQCOOZSGQWAY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,,,,,,,.,,,..,,..,,,.,,,.,,,.,,..,,...,...,..,,,..,.,,,..,,..,,
+#UVBINVKMXFUPSSBNJCJGR6YUVX5ZILVI3MFZKCFHLNDXEV6ELQKSQD3WQEPS5V3B65U3JDJCTTS2U
+#\\\|VGGDQGRADFWK62AUOVEUO6WWWW4G27PQLT7QL3NRYG7P555YOL4 \ / AMOS7 \ YOURUM ::
+#\[7]X7BDJVYL3BTZVBAVA5C2HB2UAL5BRX46XHSZFFMVQX7HABXHG2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

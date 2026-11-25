@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = events.handler.notify_sessions
+# descr = post a notification to the selected live session
+# args  = claude.sessions reply, params { text, to, off }
+
+my $reply = shift              // {};
+my $in    = $reply->{'params'} // {};
+return FALSE if $in->{'off'};
+
+my @names
+    = ( $reply->{'mode'} // '' ) eq qw| size |
+    ? ( $reply->{'data'} // '' ) =~ m{^([\w.-]+) : since }mg
+    : ();
+return FALSE if !@names;
+
+my $target = $in->{'to'} // '';
+if ( length $target ) {
+    return FALSE if not CORE::grep { $ARG eq $target } @names;
+} elsif ( @names == 1 ) {
+    $target = $names[0];
+} else {
+    <[base.logs]>->(
+        1,
+        ':. notify session skipped : several live sessions [ %s ]',
+        CORE::join( ', ', @names )
+    );
+    return FALSE;
+}
+
+return <[protocol-7.route-send]>->(
+    {   'command'   => qw| claude.session-post |,
+        'call_args' => { 'args' => "to=$target $in->{'text'} from=events" }
+    }
+);
+
+#,,,.,,,.,,,,,,,,,,,,,,.,,,,,,.,,,,,,,,,.,,,,,.,,..,,,.,,,,,,,,,.,,,.,,,,.,,,
+
+#,,.,,.,,,...,.,,,...,..,,,.,,,..,.,.,,..,,..,..,,...,..,,,..,.,.,,,,,,.,,,..,
+#UVRO2W5DLA3EBIZFKWNDKQKLTIGWUF47EQ6ZVU56KS2NXWJLIKJMRUQT4AT6YOW44T22YQNLUFZUY
+#\\\|CHDYZXBOAX4ENFMO6AZVLRNHEPH4TRNU6C6HI33HPRA7HXZ7NRK \ / AMOS7 \ YOURUM ::
+#\[7]YCSXWNE2LYO4VNVDWJ2RUK3AQR76VA6U6WSIUHJLPJCMU7I3JYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

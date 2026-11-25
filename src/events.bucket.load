@@ -5,7 +5,8 @@
 # args   = owner zenka
 # return = the bucket hash ref, undef when there is no file
 # see events.bucket.save for the format ; a line that does not parse is
-# logged and skipped, the others load. the entry order is the file order
+# logged and skipped, the others load. the entry order is the file order ;
+# at, added and done accept old unix values and new numerical ntime
 
 my $owner = shift;
 my $path  = <[events.bucket.path]>->($owner);
@@ -39,6 +40,10 @@ if ( open my $fh, '<:encoding(UTF-8)', $path ) {
         } elsif ( $key eq qw| match | and defined $sub ) {
             $e->{'match'}{$sub} = $value;
         } else {
+            $value = <[base.n2u_time]>->($value)
+                if $key =~ m{\A(?:at|added|done)\z}
+                and $value =~ m{\A\d+(?:\.\d+)?\z}
+                and $value > 10_000_000_000;
             $e->{$key} = $value;
         }
     }
@@ -47,8 +52,8 @@ if ( open my $fh, '<:encoding(UTF-8)', $path ) {
 <events.buckets>->{$owner} = $bucket;
 return $bucket;
 
-#,,,,,,..,,,,,.,,,.,,,,.,,,,.,,,.,,,.,,,.,,,.,..,,...,...,.,,,.,,,,,,,,..,,,,,
-#6U2UIWOOC2C7WSAWGR7ZKXXUPWM5FGBB57KJ7XF7UXRULRQDIIKWMMU2IFD5F23TVN34T227BW7BS
-#\\\|YPZSBJEFB3UYBCEX66YXECED22JYRK4ITLXNSFN5CI6TEDKQXSE \ / AMOS7 \ YOURUM ::
-#\[7]KEZTVOZIF2TIF3KCFWWS27V3FPKXBSXR2OL4YQJAFZTJB7KJMIAI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,,,,,...,.,.,,,,,,,.,.,,,,..,..,,...,...,.,,,..,,,,.,..,,,,,,
+#EK322FWY4GHZUHCBPZO4QI3CXSDYQZX2PZ6NKGIZRG6ILPGX43WIVRVVXXKJ2UEL3MZ4F7MX26S5I
+#\\\|TSHXZAN6TS37ATGCGYPJKXFFVYBXSVA57QWKAIRWVYVZOTGFK6Y \ / AMOS7 \ YOURUM ::
+#\[7]57BKTCZAWQQANQNKU5N246IQYDSEGP4IETHI77X5PC7DQPDBVMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

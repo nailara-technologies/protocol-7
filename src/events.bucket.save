@@ -7,8 +7,9 @@
 #
 # p7 config style, one `entry.<id>.<key> = value` line each, readable and
 # editable by a person [ a stopped zenka only ] ; backslash and newline are
-# escaped in values. the file is written beside itself and renamed, so a
-# crash leaves the old or the new file, never half of one
+# escaped in values. at, added and done are numerical ntime ; memory and
+# timers keep unix time. the file is written beside itself and renamed, so
+# a crash leaves the old or the new file, never half of one
 
 my $owner  = shift;
 my $bucket = <events.buckets>->{$owner} // return FALSE;
@@ -42,8 +43,11 @@ foreach my $id ( @{ $bucket->{'order'} } ) {
         qw| state when at after on missed met added result done reason
         budget gate gate_at gate_reading |
     ) {
-        push @out, sprintf "%s.%s = %s\n", $p, $key, $esc->( $e->{$key} )
-            if defined $e->{$key};
+        my $value = $e->{$key};
+        $value = <[base.u2n_time]>->($value)
+            if defined $value and $key =~ m{\A(?:at|added|done)\z};
+        push @out, sprintf "%s.%s = %s\n", $p, $key, $esc->($value)
+            if defined $value;
     }
     push @out, sprintf "%s.depends = %s\n", $p, join ',', @{ $e->{'depends'} }
         if @{ $e->{'depends'} // [] };
@@ -80,8 +84,8 @@ if ( open my $fh, '>:encoding(UTF-8)', $tmp ) {
 );
 return FALSE;
 
-#,,.,,..,,,..,.,.,.,,,...,,,,,..,,,.,,.,.,,..,..,,...,..,,,..,..,,,,.,..,,..,,
-#PJINTZ2DBTU3WZNZAJ2A65Y2GBBAD2TMPDYTG3EVOKYZ5Q5QFFFWA45MP4XTA6LJ4SQCSKYX3NLEM
-#\\\|MTQQVCN3M6NICWO2M6X4RW7QBK5VOQZTXWJ365V3GQJMVE2U6LY \ / AMOS7 \ YOURUM ::
-#\[7]53SLI63PQP3PVDJIG5GUUUEYCWJIELVDTIHMEOHPSUZAEKNWBMDA 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,..,,,..,...,...,.,,,...,.,.,..,,...,..,,.,,,,,.,.,.,...,.,.,
+#TFW62XJJATDFBWJWTINM34VNWVDMU5EEFS7HIU7QLU5TFJWNISM2YS3EALZHBQXKYLGZ5CE7PJ4DC
+#\\\|EEKDKW73XGM3GFUR2ZBXHY3MYMC5EU4RSLCJKIHONJ3N3VKKCSO \ / AMOS7 \ YOURUM ::
+#\[7]RSBQQHRSUCM6ZI4IF5XGHNAQNXRET3SCO6DZ7I3CH2ZQDNKNPCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
