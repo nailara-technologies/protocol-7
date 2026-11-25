@@ -73,8 +73,15 @@ children. NEXT : kimi task -- stream the plan [ per tree \ chunk ], bounded memo
 pass a background upload child's error text to the parent [ only its exit status
 arrives today ]. stopgap if needed : temporary swap or N7FS_UPLOAD_JOBS=1.
 
-#,,.,,,,,,.,,,,..,,..,,,,,,,.,,..,,..,..,,.,.,..,,...,...,,,.,,,,,.,.,...,,.,,
-#P5ABZIRO73D5L6ODBXIEAM7G7LDNRVP5QNMBMWMROY2QVIJRMRBJVRJGZR47D2DKI6U6IBP4AN7PI
-#\\\|N4XPQT7F4MP7BCG2PROPAIQZUVWYXG74QL3DNKMPBFG4VYCIGJO \ / AMOS7 \ YOURUM ::
-#\[7]S6RJR3G743OXYWETY7YEKMGIBHEDEIHCRD632TUJXDNYQZWI3CDA 7  DATA SIGNATURE ::
+
+**update [ session 2, 2026-11-22 ]** : all five hosts on c88535f844.
+- place streams its plan [ 7712fa91b2 ] : 285 MB at 10k, 521 MB at 50k nodes ; resume alone 456 MB -- the per-node index / holder status maps are the rest [ follow-up ]. progress total fixed, bar clears left-overs [ 854712e655 ]. tier A placing on azurum.
+- signed files [ 0138c7febe ] : modes, trust-bound caches, every process_template path verified, template type = name minus .tmpl [ bare = html ], asc in mime table, no extension = asc, system mime db fallback. live tests pass on yourum + zulum [ 214ab44c9b made them deterministic ].
+- readme recent developments rewritten [ c88535f844 ] ; next : split the ~160 line "interacting" section.
+- open : remove data/web-root/vhosts/.signed-test-cleanup as root.
+
+#,,.,,.,,,,,.,.,.,,..,,,.,...,..,,.,.,,,.,.,.,...,...,..,,..,,,.,,..,,,.,,,..,
+#6QPYAF5EEG4ASK2FRREDKZBE3CRVATGWMCAYI4F5J27NMYMDLINMRF2LFRBQTWB7HELK3AITDKP32
+#\\\|22W5LH47E2B3XYHPPWY32A3AZDV2D7FRCRVUVLCQZDAST5Q4TKY \ / AMOS7 \ YOURUM ::
+#\[7]PNW4VNUVCLVKBGRCH5PQI442TH3LD5PN6P4QGG43KXFAZM5CF6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

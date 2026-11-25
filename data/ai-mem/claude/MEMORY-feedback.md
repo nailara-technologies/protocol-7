@@ -274,3 +274,12 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|P22STKFBH3JTOTXDOZDO3ZSYR2LUELOKQS6NOPLVQI2ETRNA6N4 \ / AMOS7 \ YOURUM ::
 #\[7]XJDEEI6BUQ2J4PDE7ZEFBEZNRSHJSXAVEQG66SAC5ODO7QVT2QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [install-via-debian-zenka](feedback-install-via-debian-zenka.md) — install missing host packages through the debian zenka, not plain apt over ssh [ 2026-11-22 ]
+- [network-silence-is-a-feature](feedback-network-silence-is-a-feature.md) — net \ discovery : when to stay silent [ no probe \ announce \ sweep ] matters as much as connecting ; name quiet cases for every outbound action
+- [one-pending-sign-at-a-time](feedback-one-pending-sign-at-a-time.md) — never start a second p7_sign while one waits : the older job ends "agent run denied" though approved [ superseded ]
+
+#,,..,,..,...,..,,...,,.,,.,.,,,.,,,.,,,.,,,.,..,,...,...,,.,,,..,,..,,,,,,..,
+#NOCOTK5XKWEEMVG5YXWIL4Y7GFAJ3RIKP2V4YWO6K3IYLBL5XRSBL7IIACM2CCMMGT4FVJWPKRNCE
+#\\\|JWTZHUUB3BLB23MDZNN3FFB7HK3EVXIC6PD3DNGPG4F6XLUD4Q7 \ / AMOS7 \ YOURUM ::
+#\[7]F5EKVV3A7YANFZFXXYMT3RF6QJCFJTPU454XLBKMUH7PCBDGJ2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

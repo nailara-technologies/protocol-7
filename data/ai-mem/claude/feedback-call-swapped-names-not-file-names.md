@@ -11,8 +11,10 @@ metadata:
 
 **How to apply:** before calling a `base.*` module, check whether its family swaps [ `grep -rn swap_subs src/*init_code src/*pre_init` ] and call the target name : `<[chk-sum.bmw.ctx]>`, `<[chk-sum.elf]>`. NOT swapped, stay `base.` : base.chk-sum.reference, base.chk-sum.from_substr. `subroutines.load-early` lists FILE names [ base.chk-sum.* is right there ]. tell kimi this in every dispatch touching checksums. an 'undefined value as subroutine reference' -> check for a swapped-prefix call first. SINCE 2026-10-11 `bin/format-code -c` flags these [ 'swapped name [ line N ] : <[old]> -> <[new]>' ; pairs from AMOS7::Protocol::P7Syntax p7_syntax__swap_pairs, shared with bin/dev/dep-graph ] -- the first full scan found 10 such calls in 9 files. related : [[use-format-code-not-perl-c]].
 
-#,,..,,.,,,,,,.,,,.,.,,..,.,,,,,.,,..,,,,,...,..,,...,...,...,,,.,,,.,,,,,.,.,
-#GLPZHFS4JGIDZNS4YV3I5RYAJKI7FI2YB226JQB3XYDJ6UV4VDY6L2OYQV7SWU4K2SD64JN2WV2NY
-#\\\|NXJRXXXFFB7XKYY6KOXOG4MZOOXB4RIVEWDGFQZEJCBCWHLQNXT \ / AMOS7 \ YOURUM ::
-#\[7]2FXKSM2RCV6EOEUNTPGTF6ERQVI7UQA3E7T2GR4UUXTPMKLFXWDI 7  DATA SIGNATURE ::
+2026-11-23 : same family beyond checksums -- base.base32.encode is swapped to `<[base32.encode]>` [ owner fixed it in net piece 3 ]. any `base.<family>.*` call : check the swap first, format-code -c names it.
+
+#,,..,.,,,...,..,,,,,,,.,,..,,.,.,.,,,.,.,...,..,,...,...,...,...,...,.,.,..,,
+#D6RRCYVGQW6ETJZG3LJ4MLY3API5NCMPDD2UXDD7OBW3HKKYBORPUIO5J7HE4DTYKD7UQ4SFCO6EQ
+#\\\|4JNLQSVC4XSTE2VXY43TXL7M3IPWZTLLOTYVVFN7CJTXW7REROD \ / AMOS7 \ YOURUM ::
+#\[7]HSPXB6GYYC3WMR3JZTP5XXWTTP35YJ33BPCYIIPQLWOKKJCKSOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

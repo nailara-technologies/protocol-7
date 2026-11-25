@@ -54,8 +54,11 @@ confirmation, and got it).
 
 **2026-10-29 :** thinking LOW is the default for kimi and for our own session -- quality stays high on current models. the real cost driver is CONTEXT GROWTH : one fresh, self-contained dispatch per piece over long kimi_continue chains ; hand a session over before its context bloats. bigger model + low thinking [ k3.1 low ] over smaller model + high for structural work. default kimi = k3.1 low [ mcp server ] ; LONG MECHANICAL tasks [ bulk renames, sweeps, many similar edits ] go to k2.8 low explicitly [ k2.7 = alias of the same model ]. 2026-10-29 runs : k2.8 low +3/+1 and +5/+2, k3.1 low +3/+1 [ 5h/7d ].
 
-#,,,.,,..,...,,.,,.,.,,,,,..,,...,,.,,...,...,.,.,...,...,..,,,.,,,.,,,..,,..,
-#ABULPJB4QJHM7JFBK3JQCJIHYRVEUZAVVXTSOHJTVCDH3E325M6664UAFJD52JKC4FZEYDOHUEWRU
-#\\\|7FDTFTL5CJEYQILVHKHIA3RB7IKVXLSANEQOTF5IR7VHEETYZ3I \ / AMOS7 \ YOURUM ::
-#\[7]II2UDQA2JBHT5OMT2CLTGPKBUTPGC2HNHM45XQG2XWFSHTZPBQCY 7  DATA SIGNATURE ::
+
+**update 2026-11-22 [ owner ]** : after a one-time weekly reset the remaining week budget is meant to be USED -- the 5h windows are the real pace limit then. shift work from kimi to claude_dispatch when kimi's week runs low [ kimi 65 % with 3 days left, claude 15 % ].
+
+#,,,,,...,,,.,..,,,,.,.,.,..,,,,,,.,.,.,,,.,.,..,,...,...,,,,,,..,,.,,.,.,,,,,
+#KSDEYONEQSPOEL77NEFJAD66M42SRY3Q2EQGYUU4RKNNEVOPRLEXXEIN7QAQNGANAGIXFCX372LAI
+#\\\|WIQYYK3XFPBCK7JXH5GD74Z2BIQY7USMEMFTQ3YPJVQ4OEKBSRF \ / AMOS7 \ YOURUM ::
+#\[7]JLNBYMGA6GKOF6BOB3NHADRY7U2G4KFRU5QK6CYJF5ZVNP4RXSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

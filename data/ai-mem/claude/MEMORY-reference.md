@@ -143,3 +143,11 @@ vs base., timer/config gotchas, file-io API, deferred-init callbacks, C25519 con
 #\\\|FCNADLQQITNLOE6UJVEBWYY2NWFI2QLUZYCI5AOKRALHH4UDYJM \ / AMOS7 \ YOURUM ::
 #\[7]7HRXKBDRZCB25OUEWXR5DNEV4Y7X4SEVHTYRML4X5XOAW6RHUMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [cube-source-zenka-alias](reference-cube-source-zenka-alias.md) — access.users \ access.zenki gate commands ; source_zenka alias [ command_aliases ] lets the target decide, usually overkill
+- [usage-zenka-status](reference-usage-zenka-status.md) — `p7c usage.status` : claude + kimi 7d \ 5h usage and reset times ; query it, time dispatches to the 5h reset
+
+#,,,,,.,,,.,.,,,,,,..,,,,,..,,...,,.,,,,,,...,..,,...,...,.,,,,,.,,.,,.,.,.,,,
+#R4KE55DDOFZLA6MIXHDSEANSXYSZV7LYXX62N2NV3OOQC5TPXP5VKDJYCUJY7I6ICGBCZ73TSNYJQ
+#\\\|DYMWQKUN7HJDFQDQ7IYBBV5NMQYWODXJWQHEFHRRXFUYHMMGXIS \ / AMOS7 \ YOURUM ::
+#\[7]PJU6IRSTIEZ7U7WAMTKRQCVROR2DBSMHT7BHQPABG76YWQNEIGCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

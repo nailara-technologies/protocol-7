@@ -257,3 +257,23 @@ reasoning namespace, orbital/STRM push, credential-fabric transport.
 #\\\|6GR6PJOKIHHHD7IPG3Q6ZT7ZUSIWSTUSHQ6NFRUIIJEP7FS5ILE \ / AMOS7 \ YOURUM ::
 #\[7]6V6QJT2ZCCLHJNHCSDKLTDWTETG5YE52SA36C3IP5TWJAF3AEABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+## past session handovers [ moved from MEMORY.md 2026-11-25 ]
+
+- [session-handover-host-prep-inline-config](project-2026-11-18-session-handover-host-prep-inline-config.md) — 2026-11-18 eve : power drivers, inline categories, AMOS7::Config ; servers clean on 68993003f
+- [session-handover-release-6-77-7](project-2026-11-18-session-handover-release-6-77-7.md) — 2026-11-18 pm : release 6.77.7, SEGV fix ; all 4 servers deployed clean
+- [session-handover-rcm-builds](project-2026-11-18-session-handover-rcm-builds.md) — 2026-11-18 : RCM builds, 4ZW wired, base.interval [ WEQ 1 ], -core-subs fixed ; next WEQ 2 first timer, RCM bridge, 4ZW live
+- [session-handover-todo-cleanup](project-2026-11-17-session-handover-todo-cleanup.md) — 2026-11-17 : todo cross-check, partial list in data/tasks
+- [session-handover-resource-ledger](project-2026-11-17-session-handover-resource-ledger.md) — 2026-11-17 : ledger 1a + canon + n7fs format 4 stages 1-2 built, reviewed, fixed, on all hosts [ ade49a75f ] ; next : format 4 stage 3, ledger 1b ; owner positions in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md
+- [session-handover-n7fs-fable-design-built](project-2026-11-14-session-handover-n7fs-fable-design-built.md) — : Fable N7FS design 5 7 8 9 10 fully built + pushed ; nothing live until owner all-clear ; Fable window plan
+- [session-handover-n7fs-review-findings](project-2026-11-13-session-handover-n7fs-review-findings.md) — previous : Fable N7FS findings 2 3 4 6 landed ; open 5 [ design first, fresh session ] 7 8 9 ; deploy notes ; add-only log mount sketch
+- [resource-accounting-design](project-2026-11-16-resource-accounting-design.md) — 2026-11-16 detail log : RESOURCE-ACCOUNTING-UNIFIED.md [ untracked ] by Fable + K3.1 review ; owner answers in ~/.n/private-notes/owner-pool-authorization-2026-11-16.md ; next fable pass + irrigation
+- [fable-access-window](project-2026-11-13-fable-access-window.md) — Fable 5.2 in plan until ~2026-11-16 : use for finding 5 review, findings 7 8 9 design
+- [shm-permissions-forgeable-open](project-2026-10-22-shm-permissions-forgeable-open.md) — grants FIXED 1d367968a ; open [ todo FKS, normal ] : local readers with file rights can still map a segment, encrypted pages next
+- [signature-valid-truth-map-ignored](project-2026-10-22-signature-valid-truth-map-ignored.md) — FIXED 2026-11-05 [ 25fc3740f, VWF ] : signature_valid honours a caller truth map [ truth checks only ] ; non-default map untested until the form footer
+
+#,,.,,.,,,,..,...,...,.,.,,,.,.,,,..,,.,,,,.,,..,,...,..,,,,.,,..,..,,.,,,.,.,
+#WWMUOTDJ2HBEH7LU3GVIZFYRRWABBGPFC2MQDQT2OTTYLR6WIJC3VQ3BG4SV3ZECS4FKCBGWGQRGE
+#\\\|IWQGQDQVHT7K47YRMPKP2TJA2Q2EJO2YSJOJZB73NZ46ZMIYNP7 \ / AMOS7 \ YOURUM ::
+#\[7]RCIORL5H3XJ5V7ABA7ZVAHOEZZIUQF7ZC5UHHBKUJNVARCEOWCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
