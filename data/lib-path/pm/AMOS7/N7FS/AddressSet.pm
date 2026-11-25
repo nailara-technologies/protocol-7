@@ -1,7 +1,7 @@
 ## [:< ##
 
 package AMOS7::N7FS::AddressSet;    ##########################################
-our $VERSION = qw| AMOS7::N7FS::AddressSet-VERSION.AKJZV2Y |;
+our $VERSION = qw| AMOS7::N7FS::AddressSet-VERSION.6Y47R2I |;
 
 ## a tied set for canonical node addresses : fixed-width packed buckets, with
 ## binary-search lookup and per-bucket iteration instead of one hash per node
@@ -28,21 +28,33 @@ sub _bucket {
     my ( $self, $address ) = @_;
     die "invalid n7fs node address\n" if length($address) != $ADDRESS_LENGTH;
     return $self->{'buckets'}{ _shard($address) } //= {
-        qw| bytes |  => '',
-        qw| sorted | => 1
+        qw| bytes |   => '',
+        qw| pending | => {}
     };
+}
+
+## new addresses wait in a plain hash ; the first lookup or walk after them
+## sorts the bucket once [ a bulk build never re-sorts per insert ]
+sub _merge {
+    my $bucket = shift;
+    return $bucket if not %{ $bucket->{'pending'} };
+    $bucket->{'bytes'} = join '',
+        sort { $a cmp $b } ( $bucket->{'bytes'} =~ m|.{93}|gs ),
+        keys %{ $bucket->{'pending'} };
+    $bucket->{'pending'} = {};
+    return $bucket;
 }
 
 sub _find {
     my ( $self, $address ) = @_;
     my $bucket = $self->{'buckets'}{ _shard($address) } // return -1;
-    if ( not $bucket->{'sorted'} ) {
-        $bucket->{'bytes'} = join '',
-            sort { $a cmp $b } $bucket->{'bytes'} =~ m|.{93}|gs;
-        $bucket->{'sorted'} = 1;
-    }
-    my $bytes = $bucket->{'bytes'};
-    my ( $low, $high ) = ( 0, length($bytes) / $ADDRESS_LENGTH - 1 );
+    return _search( _merge($bucket)->{'bytes'}, $address );
+}
+
+## the binary search over the sorted bytes alone ##
+sub _search {
+    my ( $bytes, $address ) = @_;
+    my ( $low,   $high )    = ( 0, length($bytes) / $ADDRESS_LENGTH - 1 );
     while ( $low <= $high ) {
         my $middle = int( ( $low + $high ) / 2 );
         my $cmp    = $address cmp
@@ -59,10 +71,11 @@ sub _find {
 
 sub STORE {
     my ( $self, $address, undef ) = @_;
-    return TRUE if _find( $self, $address ) >= 0;
     my $bucket = _bucket( $self, $address );
-    $bucket->{'bytes'} .= $address;
-    $bucket->{'sorted'} = FALSE;
+    return TRUE
+        if $bucket->{'pending'}{$address}
+        or _search( $bucket->{'bytes'}, $address ) >= 0;
+    $bucket->{'pending'}{$address} = TRUE;
     $self->{'counts'}{ _shard($address) }++;
     return TRUE;
 }
@@ -125,22 +138,30 @@ sub NEXTKEY {
             $self->{'iteration_at'} += $ADDRESS_LENGTH;
             return $address;
         }
-        my $shard  = shift $self->{'iteration_shards'}->@* // return undef;
-        my $bucket = $self->{'buckets'}{$shard};
-        if ( not $bucket->{'sorted'} ) {
-            $bucket->{'bytes'} = join '',
-                sort { $a cmp $b } $bucket->{'bytes'} =~ m|.{93}|gs;
-            $bucket->{'sorted'} = 1;
-        }
-        $self->{'iteration_bytes'} = $bucket->{'bytes'};
-        $self->{'iteration_at'}    = 0;
+        my $shard = shift $self->{'iteration_shards'}->@* // return undef;
+        $self->{'iteration_bytes'}
+            = _merge( $self->{'buckets'}{$shard} )->{'bytes'};
+        $self->{'iteration_at'} = 0;
     }
+}
+
+## the shards that hold addresses, in shard order [ batched map lookups ] ##
+sub shards {
+    my $self = shift;
+    return sort grep { $self->{'counts'}{$ARG} } keys $self->{'buckets'}->%*;
+}
+
+## the sorted addresses of one shard ##
+sub shard_addresses {
+    my ( $self, $shard ) = @_;
+    my $bucket = $self->{'buckets'}{$shard} // return ();
+    return _merge($bucket)->{'bytes'} =~ m|.{93}|gs;
 }
 
 1;
 
-#,,..,,,,,,..,..,,,..,,,,,,,,,,,,,,,,,...,,..,..,,...,...,.,.,.,.,,,.,,,,,.,.,
-#XYIKVF546Y57NDVUGRXAF7ADOOL6UBEXMZEYGO4CDSVPV2BLDV6DEWTMVKMPQJZOOWYWMWBIVQNLO
-#\\\|U5RFZ2CX7BRW5ZUTICDDAIVEBDWEXTR3WBLQESV7CF6P3G7VTII \ / AMOS7 \ YOURUM ::
-#\[7]2SZACTYE4HPBWPTLDIICG77JIFM4CUWJNC3FV3JQE6NHL7Y6JQBA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,.,,,..,,,,,,.,,.,,,,,.,.,,,,,.,..,,...,...,...,,..,.,,,.,.,...,
+#3KAAI5R66YPOWNM6QYZSHSJJLCDTBHXGP5U3L3NJ6ULD7DJF2OCJU7BOKNT734J6IXO6Q2QFR73WQ
+#\\\|WNEIFCMYAUQZLRD2OVQ3JMXZXXUJ7SZ3CHHQJQSFJ6USKMC47GH \ / AMOS7 \ YOURUM ::
+#\[7]AYVKC2VORFT6J5WSIN5IT7GHBQJRZP26FVMM3PDPQPOPANWULOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

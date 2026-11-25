@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.ZRTWS2Q |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.QINENII |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -435,8 +435,7 @@ sub clock_floor_reset {
 ## map is covered by any receipt that digested it
 sub receipt_covered {
     my ( $map, $version ) = @_;
-    return sort grep { ( $map->{'nodes'}{$ARG}{'added'} // 0 ) <= $version }
-        keys %{ $map->{'nodes'} // {} };
+    return @{ _map_census( $map, $version // 0 )->{'covered'} };
 }
 
 ## a digest over the covered entries' placement fields
@@ -446,23 +445,50 @@ sub receipt_covered {
 ## or lost an entry
 sub receipt_digest {
     my ( $map, $version ) = @_;
-    my $digest = Digest::BMW->new(384);
-    my $first  = TRUE;
-    foreach my $address ( receipt_covered( $map, $version ) ) {
-        my $e = $map->{'nodes'}{$address};
-        $digest->add("\n") if not $first;
-        $digest->add(
-            join "\0",
-            $address,
-            $e->{'blob'}   // '',
-            $e->{'offset'} // 0,
-            $e->{'length'} // 0,
-            $e->{'chunks'} // 0,
-            $e->{'node'}   // ''
-        );
-        $first = FALSE;
+    return _map_census( $map, $version // 0, qw| digest | => TRUE )
+        ->{'digest'};
+}
+
+## one pass over a holder map in shard order, each shard read once : the entry
+## count, the used bytes and the sorted addresses $version covers
+## [ every entry without a version ]. digest => TRUE adds the receipt digest
+## over them, in sorted address order ; each => $fn sees every entry
+sub _map_census {
+    my ( $map, $version, %opt ) = @_;
+    my %census = ( qw| count | => 0, qw| used | => 0, qw| covered | => [] );
+    my %fields;
+    require AMOS7::N7FS::Seal;
+    AMOS7::N7FS::Seal::_nodes_each(
+        $map->{'nodes'},
+        sub {
+            my ( $address, $entry ) = @_;
+            $opt{'each'}->( $address, $entry ) if $opt{'each'};
+            my $e = $entry // {};
+            $census{'count'}++;
+            $census{'used'} += $e->{'length'} // 0;
+            return
+                if defined $version
+                and ( $e->{'added'} // 0 ) > $version;
+            push $census{'covered'}->@*, $address;
+            $fields{$address} = join "\0", $address,
+                $e->{'blob'}   // '',
+                $e->{'offset'} // 0,
+                $e->{'length'} // 0, $e->{'chunks'} // 0, $e->{'node'} // ''
+                if $opt{'digest'};
+        }
+    );
+    $census{'covered'} = [ sort $census{'covered'}->@* ];
+    if ( $opt{'digest'} ) {
+        my $digest = Digest::BMW->new(384);
+        my $first  = TRUE;
+        foreach my $address ( $census{'covered'}->@* ) {
+            $digest->add("\n") if not $first;
+            $digest->add( delete $fields{$address} );
+            $first = FALSE;
+        }
+        $census{'digest'} = bmw_b32( $digest->digest );
     }
-    return bmw_b32( $digest->digest );
+    return \%census;
 }
 
 ## the covered-address cache beside a receipt : an unreachable holder cannot
@@ -724,12 +750,35 @@ sub _copies {
         my ( undef, $head, $map ) = eval {
             AMOS7::N7FS::Seal::_context( $opt{'root'}, $h->{'spec'}, TRUE );
         };
+        my $failed = $EVAL_ERROR;
+        ( undef, $head, $map ) = () if $fresh->{'stale'};
+        ## one pass over the map in shard order serves the receipt digest, ##
+        ## the covered set, used, count and the entries drain reads        ##
+        my $digest_version
+            = (     defined $head
+                and $h->{'role'} eq qw| durable |
+                and $receipt
+                and defined $receipt->{'covered'} )
+            ? $receipt->{'version'} // 0
+            : undef;
+        my %entries;
+        my $census
+            = defined $map
+            ? _map_census(
+            $map,
+            $digest_version,
+            qw| digest | => defined $digest_version,
+            $opt{'_stream'}
+            ? ()
+            : ( qw| each | => sub { $entries{ $ARG[0] } = $ARG[1] } )
+            )
+            : undef;
         my $state = qw| counted |;
         my $covered;
+        my $covered_list;
         if ( $fresh->{'stale'} ) {
             $state = 'rolled back';
-            ( undef, $head, $map ) = ();
-        } elsif ($EVAL_ERROR) {
+        } elsif ($failed) {
             $state = qw| unreachable |;
             ## within the grace a fresh receipt keeps the covered entries ##
             ## counting in place planning, from the cache it wrote ; the  ##
@@ -765,24 +814,24 @@ sub _copies {
                 $state = 'no fresh receipt';
             } else {
                 ## the exact version : it vouches for every mapped entry ##
-                $covered
-                    = _address_set( [ keys %{ $map->{'nodes'} // {} } ] );
+                $covered_list = $census->{'covered'};
+                $covered      = _address_set($covered_list);
             }
         } else {
             ## entries the receipt's version covers ; a changed or dropped ##
             ## covered entry changes the digest and voids the receipt      ##
-            if ( receipt_digest( $map, $receipt->{'version'} ) ne
-                $receipt->{'covered'} ) {
+            if ( $census->{'digest'} ne $receipt->{'covered'} ) {
                 ## a void receipt vouches for nothing : no copy, no proof ##
                 $state = 'no fresh receipt';
             } else {
-                $covered = _address_set(
-                    [ receipt_covered( $map, $receipt->{'version'} ) ] );
+                $covered_list = $census->{'covered'};
+                $covered      = _address_set($covered_list);
             }
         }
         if ( $excluded{$name} and $state eq 'counted' ) {
-            $state   = 'excluded';
-            $covered = undef;
+            $state        = 'excluded';
+            $covered      = undef;
+            $covered_list = undef;
         }
         $status{$name}{'state'} = $state;
         $status{$name}{'coverage'}
@@ -805,26 +854,27 @@ sub _copies {
             }
             $status{$name}{'nodes'} = {};
         } elsif ( defined $map ) {
-            $status{$name}{'nodes'} = $map->{'nodes'} if $opt{'_stream'};
-            foreach my $address ( keys %{ $map->{'nodes'} // {} } ) {
-                $used += $map->{'nodes'}{$address}{'length'} // 0;
-                if ( $covered and $covered->{$address} ) {
-                    $covered_count++;
-                    $copies{$address}{ $h->{'domain'} } = TRUE
-                        if not $opt{'_stream'};
-                    $proven{$address}{ $h->{'domain'} } = TRUE
-                        if $full and not $opt{'_stream'};
+            ## the entries themselves : drain reads their disk ids ##
+            if ( $opt{'_stream'} ) {
+                $status{$name}{'nodes'} = $map->{'nodes'};
+            } elsif (%entries) {
+                $status{$name}{'nodes'} = \%entries;
+            }
+            $used = $census->{'used'};
+            if ($covered_list) {
+                $covered_count = scalar @{$covered_list};
+                if ( not $opt{'_stream'} ) {
+                    foreach my $address ( @{$covered_list} ) {
+                        $copies{$address}{ $h->{'domain'} } = TRUE;
+                        $proven{$address}{ $h->{'domain'} } = TRUE if $full;
+                    }
                 }
-                ## the entry itself : drain reads its disk ids ##
-                $status{$name}{'nodes'}{$address} = $map->{'nodes'}{$address}
-                    if not $opt{'_stream'};
             }
         }
         $status{$name}{'covered_set'} = $covered;
         $status{$name}{'covered'}     = $covered_count;
         $status{$name}{'used'}        = $used;
-        $status{$name}{'count'}
-            = defined $map ? scalar keys %{ $map->{'nodes'} // {} } : 0;
+        $status{$name}{'count'}       = defined $map ? $census->{'count'} : 0;
         ## unreachable holders map nothing readable : their covered set ##
         ## comes from the cache, so there is no pending count either    ##
         $status{$name}{'pending'}
@@ -1319,26 +1369,33 @@ sub holder_prune {
     my ( @drop, $bytes, $legacy_kept );
     ( $bytes, $legacy_kept ) = ( 0, 0 );
     my %keep_address = map { $ARG => TRUE } @{ $opt{'keep_addresses'} // [] };
-    foreach my $address ( sort keys $map->{'nodes'}->%* ) {
-        next if $live{$address} or $keep_address{$address};
-        my $entry = $map->{'nodes'}{$address};
-        my %disks = %{
-            ref $entry->{'disks'} eq qw| HASH |
-            ? $entry->{'disks'}
-            : {}
-        };
-        ## no disk ids : it may belong to a detached disk or another host's ##
-        ## disk, so only an explicit -legacy drops it                       ##
-        if ( not %disks and not $opt{'legacy'} ) {
-            $legacy_kept++;
-            next;
+    ## one pass in shard order ; the drop list comes out in address order ##
+    my $count = 0;
+    AMOS7::N7FS::Seal::_nodes_each(
+        $map->{'nodes'},
+        sub {
+            my ( $address, $entry ) = @_;
+            $count++;
+            return if $live{$address} or $keep_address{$address};
+            my %disks = %{
+                ref $entry->{'disks'} eq qw| HASH |
+                ? $entry->{'disks'}
+                : {}
+            };
+            ## no disk ids : it may belong to a detached disk or another ##
+            ## host's disk, so only an explicit -legacy drops it         ##
+            if ( not %disks and not $opt{'legacy'} ) {
+                $legacy_kept++;
+                return;
+            }
+            return
+                if grep { not exists $seen{$ARG} or $seen{$ARG}{$address} }
+                keys %disks;
+            push @drop, $address;
+            $bytes += $entry->{'length'} // 0;
         }
-        next
-            if grep { not exists $seen{$ARG} or $seen{$ARG}{$address} }
-            keys %disks;
-        push @drop, $address;
-        $bytes += $entry->{'length'} // 0;
-    }
+    );
+    @drop = sort @drop;
     my ( @tree_drop, @tree_kept, @legacy_tree_kept );
     foreach my $tree ( sort keys $map->{'trees'}->%* ) {
         my %owners = %{
@@ -1366,12 +1423,24 @@ sub holder_prune {
         refuse('tree address untagging needs a disk')
             if not defined $opt{'disk'};
         my %drop = map { $ARG => TRUE } @drop;
+        ## the entries in one batched lookup, then the list in its order ##
+        my %entry;
+        AMOS7::N7FS::Seal::_nodes_lookup(
+            $map->{'nodes'},
+            [   grep {
+                            not $drop{$ARG}
+                        and not $live{$ARG}
+                        and not $keep_address{$ARG}
+                } @{ $opt{'tree_addresses'} }
+            ],
+            sub { $entry{ $ARG[0] } = $ARG[1] }
+        );
         foreach my $address ( @{ $opt{'tree_addresses'} } ) {
             next
                 if $drop{$address}
                 or $live{$address}
                 or $keep_address{$address};
-            my $entry = $map->{'nodes'}{$address} // next;
+            my $entry = $entry{$address} // next;
             my %disks = %{
                 ref $entry->{'disks'} eq qw| HASH |
                 ? $entry->{'disks'}
@@ -1410,10 +1479,10 @@ sub holder_prune {
     }
     return {
         %{$result},
-        qw| drop |      => scalar @drop,
-        qw| addresses | => \@drop,
-        qw| bytes |     => $bytes,
-        qw| kept |      => scalar( keys $map->{'nodes'}->%* ) - scalar @drop,
+        qw| drop |             => scalar @drop,
+        qw| addresses |        => \@drop,
+        qw| bytes |            => $bytes,
+        qw| kept |             => $count - scalar @drop,
         qw| legacy_kept |      => $legacy_kept,
         qw| tree_addresses |   => \@tree_drop,
         qw| tree_kept |        => \@tree_kept,
@@ -1423,8 +1492,8 @@ sub holder_prune {
 
 1;
 
-#,,,.,,,,,.,.,.,,,..,,.,.,...,...,,.,,,,.,,..,..,,...,..,,...,.,,,...,.,,,,,,,
-#BHLMVBCDXHE3CYZO2BZQV445YRCULG4SB52ZBCFSEHQZPN5NGBRZLOFXTWD44QYXYQUF6GIHTMRCW
-#\\\|5KXPKL4ABTGG2HFN27PNXXTB7HHTXTI67ETEFRRQVW27URUO5HX \ / AMOS7 \ YOURUM ::
-#\[7]DCJ3E5IS7GDXM4F7DEXDHHNFCBM3DK4QE6H6UXXIIH5AODDFASAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,.,...,,.,,.,,,.,.,.,,,,.,,..,,..,,...,...,...,,.,,..,,..,,..,,
+#4XGL63W3HGJPRBOAUHWBPRESHTKDTGJRL7MDBDXUJFB4MQP3YS4WK5NH3CED5ZEUM2TXGACSXPLDO
+#\\\|UB6QFOGIQ6YIUSUBDHEAC7U7JIZTOYCPFRGLYM3ARIWYMU7PKIF \ / AMOS7 \ YOURUM ::
+#\[7]OIVEUE5ATSY7TS3BTXZ5LDO35K3MIV7MHBIT6252TL7HEDVMWSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

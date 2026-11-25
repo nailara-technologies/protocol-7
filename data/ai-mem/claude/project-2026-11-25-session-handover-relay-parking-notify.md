@@ -27,6 +27,26 @@ data/ai-mem/claude/handover-live.md first [ `p7c coding.handover write` refreshe
 - n7fs : place \ placement -only-category \ -only-holder ; batch-read names, exit status kept
   on failed uploads, import estimate from sizes ; AMOS7::TERM password read without a console
 
+## after the first sync [ 05:25 ]
+
+- commits since : 2beb90a03c memory, 9ef8dbca36 session continuity stage 1 [ claude \ kimi
+  session-export \ -import \ -lease ] + n7fs profile, 9ddbc51d1b usage.plan [ nearer reset as
+  horizon, fixed window budget, stable 5h \ 7d ratio ]
+- the real tier A place was STOPPED by the owner during its planning phase [ nothing written ] :
+  data/tasks/n7fs-place-parallel.md -- the holder map shard cache thrashes [ 16 of up to 1024
+  shards cached, random order ; 10.8 s -> 1.4 s with no eviction ] ; holder_check and
+  _tree_inventory share the pattern. FIRST in the new week : the shard fix, then the place again
+- azurum is at afffd90525 [ pulled, no cube restart yet ]
+- BUG [ open ] : reminder remind-179557841566601 [ at 05:30, added 04:46 after a cube restart,
+  43 min ahead ] stayed `waiting` past its time and never fired ; a 2 min one at 00:17 fired.
+  suspect : its timer is cancelled when other entries of the coding bucket are re-armed
+  [ coding.handover re-arms its 3 watch entries after every event ] or long `at` timers are
+  lost. check plugin.events.source.timetable arm \ events.cmd.bucket-add re-arm scope first
+- list [ owner 2026-11-25 ] : event buckets store `at` \ `added` as unix time
+  [ entry.<id>.at = 1795581000 ] -- switch to ntime, at least numerical ntime, in the bucket
+  files and journals ; with the reminder bug above, same code paths
+- shard fix run cr-1125-052842-1568-7 [ opus ] started 05:28 -- resume it if the 7d limit stopped it
+
 ## pending
 
 - tier A place on azurum [ tmux tierB:placement, as taeki ] : `place JXO355A -root-key vault:main
@@ -53,8 +73,8 @@ data/ai-mem/claude/handover-live.md first [ `p7c coding.handover write` refreshe
 - one sign at a time ; changed AMOS modules must join the sign set or the sign aborts
 - the usage.plan pace line decides how much runs in parallel
 
-#,,,,,,,.,..,,,,,,.,.,..,,,,.,.,.,.,.,,,,,.,.,..,,...,..,,,,.,,..,...,...,,..,
-#3VUHORK6LEUNG4IIB6EEO3WGYW4A5J4ZTM2YKWGXG7FNN326P7GISQ65TO3P2BUOYQA4DFLQE7AE2
-#\\\|W3RZAILBJYKQFT4R7Y5MAWZKJ5N2S3P7LHVSEJET5EPUA4DFWPK \ / AMOS7 \ YOURUM ::
-#\[7]PM6K6NZTG5SHBPJ2YID5DZ6AWMJBJGDZBMJAKSUJG7OF7BNIW6BI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,.,,,.,,,.,,,,,,,,.,.,,,,.,,..,,..,,...,...,,..,.,.,.,.,...,,,,,
+#7Z6YOGSZMOABDEE4JYURNYZYXQWI4446FFVHGKX3XY6KO2LH6WDGCAD6FDAAX3ZM4U2XFOLPHTF2S
+#\\\|XJIGZ5QAJPYE34HC6CLOCDC2JV5JD6G6W7BTMU3LWBU67ZWPI2W \ / AMOS7 \ YOURUM ::
+#\[7]EXWF5JGQ452SYLWPTIPLRYKH6VHJTYGAL3JPTR2NFLPYREE4LKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

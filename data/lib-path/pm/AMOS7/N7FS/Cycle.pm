@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.KWJAPMI |;
+our $VERSION = qw| AMOS7::N7FS::Cycle-VERSION.4OOCVVQ |;
 
 @EXPORT_OK = qw| config_read state_read cycle_gate cycle_run cycle_status |;
 
@@ -756,13 +756,19 @@ sub _retention_addresses {
             AMOS7::N7FS::Seal::_manifest_files( $id, $manifest );
     }
     %expired = map { $ARG => TRUE } @expired;
+    ## the expired addresses looked up in one batch per map ##
     foreach my $target ( @{$holders} ) {
-        foreach my $address ( keys $target->[2]{'nodes'}->%* ) {
-            next if not $expired{$address};
-            my $disks = $target->[2]{'nodes'}{$address}{'disks'} // {};
-            $preserved{$address} = TRUE
-                if grep { $ARG ne $id->{'disk'} } keys %{$disks};
-        }
+        AMOS7::N7FS::Seal::_nodes_lookup(
+            $target->[2]{'nodes'},
+            [ sort keys %expired ],
+            sub {
+                my ( $address, $entry, $found ) = @_;
+                return if not $found;
+                my $disks = ( $entry // {} )->{'disks'} // {};
+                $preserved{$address} = TRUE
+                    if grep { $ARG ne $id->{'disk'} } keys %{$disks};
+            }
+        );
     }
     return ( \@expired, \%kept, \%preserved );
 }
@@ -1999,8 +2005,8 @@ sub cycle_status {
 
 1;
 
-#,,,.,.,,,...,.,,,,,,,.,,,,.,,,..,.,.,..,,..,,..,,...,...,.,.,.,,,,,,,...,,.,,
-#G5LZQLZSWTBTUHKTBJQAGUVI6IQSK325AWAHGMODLI5VSU23VQLH6IH2RNEKYEBB52HICUANQAON4
-#\\\|GEFWZNORMUPU4RYCAIZ3ZMXYKSEOYL6HZNEGHHS7BYRLNEEPYY6 \ / AMOS7 \ YOURUM ::
-#\[7]M65G6HRZHN6FTIEJ6ODH5QY5EOZN63TD4CO752OHFTC4DANKY4DI 7  DATA SIGNATURE ::
+#,,..,,..,,..,...,...,,,,,..,,,.,,.,.,...,.,,,..,,...,..,,,..,.,,,,..,,,,,..,,
+#5OIINLCSFYOIYHEG5XRIFRBYDUCPRTTVHPDO664WSA2HIY2T6TP3UO22RIJOVMMW6QROJIMNRWRRY
+#\\\|53ZS77UMZ7A36HF6RTUBG7NL24XZYPOI4QGXARBXTKBLTIGAPMY \ / AMOS7 \ YOURUM ::
+#\[7]RWHPRFHLETX3GPR23AF6G5JDEDNSZJCOC7WSYBGX4KSVKOXBC4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

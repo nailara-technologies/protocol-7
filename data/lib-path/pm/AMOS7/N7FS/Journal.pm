@@ -21,7 +21,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.MHOYGUQ |;
+our $VERSION = qw| AMOS7::N7FS::Journal-VERSION.Q574QGY |;
 
 @EXPORT_OK = qw| journal_replay journal_head journal_write |;
 
@@ -106,8 +106,26 @@ sub _record {
 
 sub _ref_id { return join "\0", @ARG[ 0, 1 ] }
 
+## the meta and reference keys of each node, so a release drops its own items
+## without a scan over every live one. a replay passed in without it
+## [ journal_write ] gets one for this call only, never stored in it
+sub _node_keys {
+    my $expected = shift;
+    my %index;
+    foreach my $set (qw| metas references |) {
+        foreach my $key ( keys %{ $expected->{$set} // {} } ) {
+            my $node = $expected->{$set}{$key}{'node'} // next;
+            $index{$set}{$node}{$key} = TRUE;
+        }
+    }
+    return \%index;
+}
+
 sub _operations {
     my ( $p, $expected, $id ) = @ARG;
+    ## a passed-in replay builds its index only when this entry releases ##
+    my $index = $expected->{'_node_keys'} // (
+        @{ $p->{'drop'}{'releases'} // [] } ? _node_keys($expected) : {} );
     $expected->{'released'}      //= {};
     $expected->{'meta_history'}  //= {};
     $expected->{'ref_history'}   //= {};
@@ -149,11 +167,14 @@ sub _operations {
                     $p->{'seq'}, $meta->{'node'} )
                     if not $expected->{'nodes'}{ $meta->{'node'} };
                 if ( not $expected->{'_compact_place'} ) {
-                    $expected->{'metas'}{$key}        = $meta;
-                    $expected->{'meta_history'}{$key} = $meta;
+                    $expected->{'metas'}{$key}                 = $meta;
+                    $expected->{'meta_history'}{$key}          = $meta;
+                    $index->{'metas'}{ $meta->{'node'} }{$key} = TRUE;
                 }
             } else {
                 delete $expected->{'metas'}{$key};
+                delete $index->{'metas'}{ $meta->{'node'} }{$key}
+                    if exists $index->{'metas'}{ $meta->{'node'} };
             }
         }
         foreach my $ref ( $p->{$which}{'references'}->@* ) {
@@ -182,8 +203,9 @@ sub _operations {
                     qw| dropped | => FALSE,
                     }
                     : { %{$ref}, qw| dropped | => FALSE };
-                $expected->{'references'}{$key}  = $history;
-                $expected->{'ref_history'}{$key} = $history;
+                $expected->{'references'}{$key}                = $history;
+                $expected->{'ref_history'}{$key}               = $history;
+                $index->{'references'}{ $ref->{'node'} }{$key} = TRUE;
             } else {
                 refuse( 'journal seq %d : drop of a non-live reference %s',
                     $p->{'seq'}, $ref->{'path'} )
@@ -363,8 +385,9 @@ sub _operations {
         $expected->{'released'}{$node} = TRUE;
         push $expected->{'release_order'}->@*, $node;
         foreach my $set (qw| metas references |) {
-            foreach my $key ( keys $expected->{$set}->%* ) {
-                my $item = $expected->{$set}{$key};
+            my $keys = delete $index->{$set}{$node} // {};
+            foreach my $key ( keys %{$keys} ) {
+                my $item = $expected->{$set}{$key} // next;
                 next if $item->{'node'} ne $node;
                 $item->{'released'} = TRUE;
                 delete $expected->{$set}{$key};
@@ -384,7 +407,8 @@ sub journal_replay {
     my %expected = (
         qw| nodes |      => {},
         qw| metas |      => {},
-        qw| references | => {}
+        qw| references | => {},
+        qw| _node_keys | => {},
     );
     if ( $opt{'compact_place'} ) {
         tie %{ $expected{'nodes'} }, 'AMOS7::N7FS::AddressSet';
@@ -551,8 +575,8 @@ sub journal_write {
 
 1;
 
-#,,,,,,.,,.,.,..,,,..,.,.,..,,,,.,..,,,.,,,,,,.,.,...,...,...,,..,..,,,.,,...,
-#GB63JPWUFLN2N3ABPQFT7WEUZWTGLBUICF6AVKSGIUEGRBAMQEFNXHDC2O64EXCZ6P6QCI4DNQ2KI
-#\\\|5H3RJB3JV7LCEHEU5OKBK3QSEPCZFJ7IJTD6R4PLXGP7EY4JGR6 \ / AMOS7 \ YOURUM ::
-#\[7]M74NN354SNWPQLAQCJVKZXN5RJZMKKWG7MZCHT7UZIILUOIBWYAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,,,,,,,.,..,,,..,.,,,,,,,..,,.,.,...,...,.,,,,,,,.,.,.,.,...,
+#QMGZYLDFAWBKET3ZTNNM3WEWT7B2JNXXFGLMMDBFMTTYFAREJ3ICLGG7SKPW77HU3M2LEF5AQRKL6
+#\\\|4RBLSHEA4C27U43NITXXPWXBGYM6SJL37R6MW4H7OII65Z7UUDH \ / AMOS7 \ YOURUM ::
+#\[7]LXIDL4C7UTORFYWXKWZJMIGJ4Q5IGGT6ATT3WUGAEKZIBVPSGCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.TZ2TFDI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.EK6GBNY |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -726,6 +726,67 @@ sub _lazy_nodes {
     return \%nodes;
 }
 
+## every entry of a node map, one shard at a time in shard order : each shard
+## is read once and released after its entries [ memory stays bounded ] ;
+## $fn->( address, entry ). a plain hash goes in sorted address order
+sub _nodes_each {
+    my ( $nodes, $fn ) = @_;
+    $nodes //= {};
+    my $lazy = tied %{$nodes};
+    ## the callback gets copies of the values, never aliases into a shard ##
+    my $each = sub {
+        my $entries = shift;
+        foreach my $address ( sort keys %{$entries} ) {
+            my $entry = $entries->{$address};
+            $fn->( $address, $entry );
+        }
+    };
+    if ( not _is_lazy($lazy) ) {
+        $each->($nodes);
+        return;
+    }
+    $each->( $lazy->_peek($ARG) ) for $lazy->_shard_order;
+    return;
+}
+
+## many lookups at once : the addresses grouped by shard, each needed shard
+## read once in shard order ; $fn->( address, entry, exists ) per address
+sub _nodes_lookup {
+    my ( $nodes, $addresses, $fn ) = @_;
+    $nodes //= {};
+    my $lazy = tied %{$nodes};
+    if ( not _is_lazy($lazy) ) {
+        foreach my $address ( @{$addresses} ) {
+            my $found = exists $nodes->{$address};
+            my $entry = $found ? $nodes->{$address} : undef;
+            $fn->( $address, $entry, $found );
+        }
+        return;
+    }
+    my %group;
+    push @{ $group{ _node_shard($ARG) } }, $ARG for @{$addresses};
+    foreach my $shard ( sort keys %group ) {
+        my $entries = $lazy->_peek($shard);
+        foreach my $address ( @{ $group{$shard} } ) {
+            my $found = exists $entries->{$address};
+            my $entry = $found ? $entries->{$address} : undef;
+            $fn->( $address, $entry, $found );
+        }
+    }
+    return;
+}
+
+## shards decoded so far by a lazy node map [ tests count them ] ##
+sub _nodes_reads {
+    my $lazy = tied %{ shift // {} };
+    return _is_lazy($lazy) ? $lazy->{'reads'} // 0 : 0;
+}
+
+sub _is_lazy {
+    my $lazy = shift;
+    return ( ref $lazy and $lazy->isa('AMOS7::N7FS::Seal::LazyNodes') );
+}
+
 sub _map_blob_names {
     my ( $root, $base, $alt, $head, $map ) = @_;
     my %names = map { $ARG => TRUE }
@@ -868,8 +929,27 @@ sub _load {
             keys %{ $self->{'cache'} };
         delete $self->{'cache'}{$old} if defined $old;
     }
-    my $desc = $self->{'shards'}{$shard} // return $self->{'cache'}{$shard}
-        = {};
+    return $self->{'cache'}{$shard} = _decode( $self, $shard );
+}
+
+## a shard for one pass : the cached copy, or one decoded and not kept ##
+sub _peek {
+    my ( $self, $shard ) = @_;
+    return $self->{'cache'}{$shard} // _decode( $self, $shard );
+}
+
+## every shard that may hold entries, in shard order ##
+sub _shard_order {
+    my $self   = shift;
+    my %shards = map { $ARG => 1 }
+        keys %{ $self->{'shards'} }, keys %{ $self->{'cache'} };
+    return sort keys %shards;
+}
+
+sub _decode {
+    my ( $self, $shard ) = @_;
+    my $desc = $self->{'shards'}{$shard} // return {};
+    $self->{'reads'}++;
     ## remote shards arrive in bounded windows ; decoded shards release ##
     ## both the ciphertext and plaintext copies                         ##
     if ( AMOS7::N7FS::Holder::holder_parse( $self->{'base'} )->{'type'} eq
@@ -896,7 +976,7 @@ sub _load {
         if ref $nodes ne qw| HASH |;
     delete $AMOS7::N7FS::Seal::PREFETCHED{ $self->{'base'} }
         { $desc->{'blob'} };
-    return $self->{'cache'}{$shard} = $nodes;
+    return $nodes;
 }
 
 sub FETCH {
@@ -1852,15 +1932,54 @@ sub _select_addresses {
     return ( $id, $replay, \@addresses, \%trees, \%node_categories );
 }
 
+## how many files of each tree the map holds : one pass in shard order over
+## the files of every tree at once [ a shard is read once per call ]
+sub _tree_held {
+    my ( $map, $names, $trees ) = @_;
+    my ( %held, %by_shard );
+    my $nodes = $map->{'nodes'} // {};
+    my $lazy  = tied %{$nodes};
+    if ( not _is_lazy($lazy) ) {
+        $held{$ARG} = grep { exists $nodes->{$ARG} }
+            keys %{ $trees->{$ARG}{'_file_set'} // {} }
+            for @{$names};
+        return \%held;
+    }
+    foreach my $name ( @{$names} ) {
+        $held{$name} = 0;
+        my $files = $trees->{$name}{'_file_set'} // {};
+        my $set   = tied %{$files};
+        if ( ref $set and $set->isa('AMOS7::N7FS::AddressSet') ) {
+            $by_shard{$ARG}{$name} = $set for $set->shards;
+        } else {
+            push @{ $by_shard{ _node_shard($ARG) }{$name} }, $ARG
+                for keys %{$files};
+        }
+    }
+    foreach my $shard ( sort keys %by_shard ) {
+        my $entries = $lazy->_peek($shard);
+        foreach my $name ( keys %{ $by_shard{$shard} } ) {
+            my $files = $by_shard{$shard}{$name};
+            $held{$name}
+                += grep { exists $entries->{$ARG} }
+                ref $files eq qw| ARRAY |
+                ? @{$files}
+                : $files->shard_addresses($shard);
+        }
+    }
+    return \%held;
+}
+
 sub _tree_inventory {
     my ( $map, $trees ) = @_;
     my $changes = 0;
+    my $held_by = _tree_held( $map,
+        [ grep { $map->{'trees'}{$ARG} } keys %{$trees} ], $trees );
     foreach my $name ( keys %{$trees} ) {
         my $record = $map->{'trees'}{$name} // next;
-        my $held   = grep { exists $map->{'nodes'}{$ARG} }
-            keys %{ $trees->{$name}{'_file_set'} // {} };
-        my $files = $trees->{$name}{'files'} // 0;
-        my $state = $held == $files ? qw| complete | : qw| partial |;
+        my $held   = $held_by->{$name};
+        my $files  = $trees->{$name}{'files'} // 0;
+        my $state  = $held == $files ? qw| complete | : qw| partial |;
         next
             if ( $record->{'files'} // -1 ) == $files
             and ( $record->{'held'}  // -1 ) == $held
@@ -2426,8 +2545,12 @@ sub seal_recover {
                     my %distinct = map { $ARG->{'a'} => TRUE }
                         grep { ( $ARG->{'t'} // '' ) eq qw| file | } @entries;
                     $files = scalar keys %distinct;
-                    $held  = grep { exists $source->{'map'}{'nodes'}{$ARG} }
-                        keys %distinct;
+                    $held  = 0;
+                    _nodes_lookup(
+                        $source->{'map'}{'nodes'},
+                        [ keys %distinct ],
+                        sub { $held++ if $ARG[2] }
+                    );
                 }
                 push @list,
                     {
@@ -2578,14 +2701,17 @@ sub _checked_chunk {
 ## small one. uniform-by-node sampling missed a 1 % rot in ~85 % of runs at ##
 ## 24k nodes [ review finding 4 ]                                           ##
 sub _sampled_chunks {
-    my ( $opt, $map, $addresses, $hits ) = @_;
+    my ( $opt, $map, $addresses, $hits, $lengths ) = @_;
     my $wanted = $opt->{'samples'} // 16;
     refuse('samples must be a positive integer')
         if $wanted !~ m|\A[1-9]\d*\z|;
     my @weight;
     my $total = 0;
-    foreach my $address ( @{$addresses} ) {
-        my $length = $map->{'nodes'}{$address}{'length'} // 0;
+    foreach my $at ( 0 .. $#{$addresses} ) {
+        my $length
+            = $lengths
+            ? $lengths->[$at] // 0
+            : $map->{'nodes'}{ $addresses->[$at] }{'length'} // 0;
         $length = 1 if $length < 1;
         push @weight, $length;
         $total += $length;
@@ -2593,21 +2719,26 @@ sub _sampled_chunks {
     my $rng = $opt->{'rng'} // sub { random_bytes(8) };
     my ( %seen,  %meta );
     my ( $rolls, $checked ) = ( 0, 0 );
-    ## enough samples for every node : each node gets one chunk first, the ##
-    ## rest goes by bytes [ a tiny damaged node is never skipped then ]    ##
+    ## enough samples for every node : each node gets one chunk first, the  ##
+    ## rest goes by bytes [ a tiny damaged node is never skipped then ] the ##
+    ## os rng here : order does not matter, so shard order [ batched ]      ##
     if ( $wanted >= @{$addresses} and not $opt->{'rng'} ) {
-        foreach my $address ( @{$addresses} ) {
-            my $entry = $map->{'nodes'}{$address};
-            my ( $base, $chunk_size, $chunks )
-                = @{ $meta{$address}
-                    //= [ _blob_meta( $opt->{'holder'}, $entry ) ] };
-            my $index = unpack( 'Q>', $rng->() ) % $chunks;
-            $seen{"$address\0$index"}++;
-            _checked_chunk( @{$opt}{qw| holder root |},
-                $map, $entry, $base, $index, $chunk_size, $chunks );
-            $hits->{$address}++;
-            $checked++;
-        }
+        _nodes_lookup(
+            $map->{'nodes'},
+            $addresses,
+            sub {
+                my ( $address, $entry ) = @_;
+                my ( $base, $chunk_size, $chunks )
+                    = @{ $meta{$address}
+                        //= [ _blob_meta( $opt->{'holder'}, $entry ) ] };
+                my $index = unpack( 'Q>', $rng->() ) % $chunks;
+                $seen{"$address\0$index"}++;
+                _checked_chunk( @{$opt}{qw| holder root |},
+                    $map, $entry, $base, $index, $chunk_size, $chunks );
+                $hits->{$address}++;
+                $checked++;
+            }
+        );
     }
     ## the roll cap only guards a pathological store : every roll that  ##
     ## lands on an already checked chunk is skipped, and duplicates are ##
@@ -2687,11 +2818,15 @@ sub _tree_claims_verify {
         my $tree = $map->{'trees'}{$name};
         next if ( $tree->{'state'} // qw| complete | ) ne qw| complete |;
         my ( undef, @entries ) = _manifest_read( $root, $base, undef, $tree );
-        foreach my $entry ( grep { ( $ARG->{'t'} // '' ) eq qw| file | }
-            @entries ) {
-            refuse( 'complete tree %s does not map %s', $name, $entry->{'a'} )
-                if not exists $map->{'nodes'}{ $entry->{'a'} };
-        }
+        my @files = map { $ARG->{'a'} }
+            grep { ( $ARG->{'t'} // '' ) eq qw| file | } @entries;
+        ## batched in shard order ; the first missing in manifest order ##
+        my %missing;
+        _nodes_lookup( $map->{'nodes'}, \@files,
+            sub { $missing{ $ARG[0] } = TRUE if not $ARG[2] } );
+        my ($first) = grep { $missing{$ARG} } @files;
+        refuse( 'complete tree %s does not map %s', $name, $first )
+            if defined $first;
     }
     return TRUE;
 }
@@ -2723,9 +2858,31 @@ sub holder_check {
             map  { $ARG->{'index'}{'blob'} } values %{ $map->{'trees'} // {} }
         ]
     );
-    my $sizes     = holder_sizes($base);
-    my @addresses = sort keys $map->{'nodes'}->%*;
-    my %blobs     = map { $ARG => TRUE }
+    my $sizes = holder_sizes($base);
+    ## one pass over the map in shard order : the size check, the sample
+    ## weights and the covered digest. the first bad size in address order
+    ## refuses below, where the per-address loop did
+    my ( @addresses, %length, %wrong_size, %node_blobs );
+    require AMOS7::N7FS::Placement;
+    my $census = AMOS7::N7FS::Placement::_map_census(
+        $map,
+        $head->{'version'},
+        qw| digest | => TRUE,
+        qw| each |   => sub {
+            my ( $address, $entry ) = @_;
+            push @addresses, $address;
+            $length{$address} = $entry->{'length'};
+            my $size = $sizes->{ $entry->{'blob'} };
+            my $need = ( $entry->{'offset'} // 0 ) + $entry->{'length'};
+            $wrong_size{$address} = $entry->{'blob'}
+                if not defined $size
+                or
+                ( defined $entry->{'node'} ? $size < $need : $size != $need );
+            $node_blobs{ $entry->{'blob'} } = TRUE;
+        },
+    );
+    @addresses = sort @addresses;
+    my %blobs = map { $ARG => TRUE }
         _map_blob_names( $opt{'root'}, $base, $alt, $head, $map );
 
     foreach my $name ( keys %blobs ) {
@@ -2745,16 +2902,12 @@ sub holder_check {
             if $sizes->{ $desc->{'blob'} } != $desc->{'size'};
     }
 
-    foreach my $address (@addresses) {
-        my $entry = $map->{'nodes'}{$address};
-        my $size  = $sizes->{ $entry->{'blob'} };
-        my $need  = ( $entry->{'offset'} // 0 ) + $entry->{'length'};
+    if (%wrong_size) {
+        my ($first) = sort keys %wrong_size;
         refuse( 'mapped blob is missing or has the wrong size : %s',
-            $entry->{'blob'} )
-            if not defined $size
-            or ( defined $entry->{'node'} ? $size < $need : $size != $need );
-        $blobs{ $entry->{'blob'} } = TRUE;
+            $wrong_size{$first} );
     }
+    $blobs{$ARG} = TRUE for keys %node_blobs;
     my ( $checked, %hits ) = ( 0, () );
     if ( $coverage eq qw| scrub | ) {
         ## keyless full coverage : a blob's name is the checksum of its own ##
@@ -2776,18 +2929,24 @@ sub holder_check {
         _manifest_verify( @opt{qw| root holder |}, undef, $ARG,
             $map->{'trees'}{$ARG} )
             for sort keys $map->{'trees'}->%*;
-        foreach my $address (@addresses) {
-            my $entry = $map->{'nodes'}{$address};
-            my ( $base, $chunk_size, $chunks )
-                = _blob_meta( $opt{'holder'}, $entry );
-            foreach my $index ( 0 .. $chunks - 1 ) {
-                _checked_chunk( @opt{qw| holder root |},
-                    $map, $entry, $base, $index, $chunk_size, $chunks );
+        ## every chunk of every entry, in shard order [ each shard once ] ##
+        _nodes_each(
+            $map->{'nodes'},
+            sub {
+                my ( undef, $entry ) = @_;
+                my ( $base, $chunk_size, $chunks )
+                    = _blob_meta( $opt{'holder'}, $entry );
+                foreach my $index ( 0 .. $chunks - 1 ) {
+                    _checked_chunk( @opt{qw| holder root |},
+                        $map, $entry, $base, $index, $chunk_size, $chunks );
+                }
+                $checked += $chunks;
             }
-            $checked += $chunks;
-        }
+        );
     } elsif ( $coverage eq qw| sampled | ) {
-        $checked = _sampled_chunks( \%opt, $map, \@addresses, \%hits )
+        $checked
+            = _sampled_chunks( \%opt, $map, \@addresses, \%hits,
+            [ @length{@addresses} ] )
             if @addresses;
         $checked += _sampled_manifest_chunks( \%opt, $map, $sizes );
     }
@@ -2797,9 +2956,7 @@ sub holder_check {
     ## the incremental-receipt digest : the entries this version covers, ##
     ## over their placement fields -- the receipt stores it and _copies  ##
     ## recomputes it to prove the covered part only grew                 ##
-    require AMOS7::N7FS::Placement;
-    my @covered_list
-        = AMOS7::N7FS::Placement::receipt_covered( $map, $head->{'version'} );
+    my @covered_list = @{ $census->{'covered'} };
     return {
         qw| version |  => $head->{'version'},
         qw| root_id |  => $opt{'root'}{'root_id'},
@@ -2808,9 +2965,7 @@ sub holder_check {
         qw| chunks |   => $checked,
         qw| samples |  => $checked,
         qw| coverage | => $coverage eq qw| scrub | ? qw| full | : $coverage,
-        qw| covered |  => AMOS7::N7FS::Placement::receipt_digest(
-            $map, $head->{'version'}
-        ),
+        qw| covered |  => $census->{'digest'},
         qw| covered_nodes | => scalar @covered_list,
         qw| covered_list |  => \@covered_list,
         qw| by_node |       => \%hits,
@@ -2994,11 +3149,14 @@ sub repack_packs {
     refuse('no sealed head on this holder') if not defined $head;
     my $sizes = holder_sizes($base);
     my %packs;
-    foreach my $address ( keys $map->{'nodes'}->%* ) {
-        my $entry = $map->{'nodes'}{$address};
-        next if not defined $entry->{'node'};
-        push @{ $packs{ $entry->{'blob'} } }, [ $address, $entry ];
-    }
+    _nodes_each(
+        $map->{'nodes'},
+        sub {
+            my ( $address, $entry ) = @_;
+            return if not defined $entry->{'node'};
+            push @{ $packs{ $entry->{'blob'} } }, [ $address, $entry ];
+        }
+    );
     my @candidates;
     foreach my $name ( sort keys %packs ) {
         my $size = $sizes->{$name} // refuse( 'pack is missing : %s', $name );
@@ -3061,10 +3219,13 @@ sub repack_packs {
         my $old = $candidate->{'pack'};
         my $new = $candidate->{'new_pack'};
         foreach my $item ( $packs{$old}->@* ) {
-            my $entry = $item->[1];
+            my ( $address, $entry ) = @{$item};
             $entry->{'blob'}   = $new;
             $entry->{'offset'} = delete $entry->{'_repack_offset'};
             $entry->{'added'}  = $version;
+            ## stored back : the shard is marked for the commit, an entry ##
+            ## of a shard no longer cached is never lost                  ##
+            $map->{'nodes'}{$address} = $entry;
         }
         $map->{'superseded'}{$old} = $version;
     }
@@ -3192,8 +3353,7 @@ sub holder_gc {
     }
     my %keep = map { $ARG => TRUE } _head_name( $opt{'root'} ),
         _map_blob_names( $opt{'root'}, $base, undef, $head, $map );
-    $keep{ $map->{'nodes'}{$ARG}{'blob'} } = TRUE
-        for keys $map->{'nodes'}->%*;
+    _nodes_each( $map->{'nodes'}, sub { $keep{ $ARG[1]{'blob'} } = TRUE } );
     $keep{$ARG} = TRUE
         for grep { not $covered{$ARG} } keys $map->{'superseded'}->%*;
     ## pushed by a relay, not adopted yet ##
@@ -3349,11 +3509,13 @@ sub holder_migrate {
     refuse('no sealed head on this holder') if not defined $head;
     my $tag       = root_subdir( $opt{'root'} );
     my $head_name = _head_name( $opt{'root'} );
+    my @node_blobs;
+    _nodes_each( $map->{'nodes'}, sub { push @node_blobs, $ARG[1]{'blob'} } );
     my %move
         = map { $ARG => TRUE }
         _map_blob_names( $opt{'root'}, $base, holder_sub_spec( $top, $tag ),
         $head, $map ),
-        ( map { $map->{'nodes'}{$ARG}{'blob'} } keys $map->{'nodes'}->%* ),
+        @node_blobs,
         @{ $opt{'keep'} // [] };
     my @blobs = sort grep { $ARG ne $head_name } keys %move;
     my $flat  = holder_stats($top);
@@ -3401,12 +3563,23 @@ sub unmap_nodes {
         = _context( @opt{qw| root holder |}, FALSE );
     my $pin = holder_canonical( $opt{'holder'} );
     refuse('no sealed head on this holder') if not defined $head;
+    ## both lists looked up in one batch, each shard read once ##
+    my ( %mapped, %entry );
+    _nodes_lookup(
+        $map->{'nodes'},
+        [ $opt{'addresses'}->@*, @{ $opt{'untag'} // [] } ],
+        sub {
+            my ( $address, $entry, $found ) = @_;
+            $mapped{$address} = TRUE if $found;
+            $entry{$address}  = $entry;
+        }
+    );
     my %gone = map { $ARG => TRUE }
-        grep { exists $map->{'nodes'}{$ARG} } $opt{'addresses'}->@*;
+        grep { $mapped{$ARG} } $opt{'addresses'}->@*;
     ## untag : the node stays mapped for its other disks  no        ##
     ## autovivification : a missing entry or disk set stays missing ##
     my @untag = grep {
-        my $e = $map->{'nodes'}{$ARG};
+        my $e = $entry{$ARG};
         not $gone{$ARG}
             and ref $e eq qw| HASH |
             and ref $e->{'disks'} eq qw| HASH |
@@ -3419,8 +3592,16 @@ sub unmap_nodes {
         if not %gone
         and not @untag
         and not @stale;
-    delete $map->{'nodes'}{$ARG} for keys %gone;
-    delete $map->{'nodes'}{$ARG}{'disks'}{ $opt{'disk'} } for @untag;
+    ## in shard order : a shard loads once and stays marked for the commit ##
+    my $by_shard = sub {
+        sort { _node_shard($a) cmp _node_shard($b) or $a cmp $b } @ARG;
+    };
+    delete $map->{'nodes'}{$ARG} for $by_shard->( keys %gone );
+    foreach my $address ( $by_shard->(@untag) ) {
+        my $entry = $map->{'nodes'}{$address};
+        delete $entry->{'disks'}{ $opt{'disk'} };
+        $map->{'nodes'}{$address} = $entry;
+    }
     my %trees = map { $ARG => TRUE } @stale;
     foreach my $name ( sort keys %{ $map->{'trees'} // {} } ) {
         my $files = $opt{'tree_files'}{$name} // [];
@@ -3748,8 +3929,8 @@ sub shred_node {
 
 1;
 
-#,,,.,,..,,.,,,.,,,..,,..,.,,,,,.,,.,,.,.,...,..,,...,...,.,,,...,...,..,,,.,,
-#6U427SG6EMSA4C46NZNWSYNLOQKNTWDR6LZYVOF6QEW632GJ2ZT6SSBTHKLCPYWWJMNXA6NV2UWUY
-#\\\|AQ36T3JF34JZGQFIOWQRJDQ2GIJEYHJNW53BR4DWV4QE4VUDHID \ / AMOS7 \ YOURUM ::
-#\[7]HZYKOXSRAS7DTJ65BT6ORKLPGI4USDUHKENWHJJQKYXEPNSGLODA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,...,,.,,,..,,,.,,,.,.,,,.,,,..,,...,...,...,...,..,,,,.,..,,
+#YCAHHIQXWRAR3FYSQESDOIPWA5FQHKIBMC7OOGLRK54YSNA2HXOJWAEEGYAR7FW37NO34IYZEBGA6
+#\\\|ZTAQ2V4CEW3EQYINY6WKLH2WKCAXBIMSYFUOKS4NZUSTFZLK6K4 \ / AMOS7 \ YOURUM ::
+#\[7]FV2KFOEHFOBIIMGUQUTXSIS7Y4DE6VKHH5QFKO56AYO5SY5376CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
