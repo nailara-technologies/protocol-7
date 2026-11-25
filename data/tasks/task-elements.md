@@ -83,6 +83,23 @@ symbols inherit the nodes' identity, cache and sharing.
 the symbolic form is the ALWAYS CURRENT TREE LANGUAGE [ owner ] : derived, not designed --
 new content brings new nodes and symbols, nodes merged by normalisation merge their symbols ;
 it cannot go stale, it is a view of the tree [ as native need not be static, one level up ].
+several human languages point to the SAME nodes [ owner ] : a content exists once, not once
+per language -- translation becomes a lookup from the node to a phrasing, what one session
+worked out in german is the same node in an english one ; the symbols sit above all human
+languages as their shared reference. normalise at the level of meaning, not only characters.
+non-human sources too [ owner ] : a cat at an empty bowl [ weight \ camera sensor ], a water
+level under a threshold -- they point to the same node as the spoken "need to feed the cat" \
+"need to change the water", and the same reminder \ notify \ parked task follows. practical
+path : sensor events as an events source plugin [ next to timetable \ signal ], the reminder
+chain as built 2026-11-25 ; camera input could learn from the rescued tinykittens collection
+[ private notes : input for the kitten inference runs ].
+it learns from the outcome : the reaction [ fed, door opened, ignored -- seen by the bowl \ door
+sensors or an answer on the phone ] labels the cue ; meaning and urgency sharpen over time and
+pick the path [ soft cue at home, phone message with the audio clip, loud when nobody reacts ].
+rules carry the decision, the learned part refines only what they cannot tell apart.
+privacy by addressee [ owner ] : forward only what was meant for someone -- the meow at the
+bowl or the door is addressed, the chatter at the birds outside stays home. local by default,
+out only with an addressee [ as network silence is a feature ] -- for people the same.
 
 ### open
 
@@ -90,8 +107,8 @@ it cannot go stale, it is a view of the tree [ as native need not be static, one
 - migration of the existing todo list and task history
 - which views first : the dashboard [ portrait panel ], the handover, `coding.elements`
 
-#,,,,,,..,,,,,,..,,,,,.,.,..,,,..,,,.,,..,,,.,..,,...,...,,,,,...,...,,..,,,,,
-#MI2QQVQT5GRDPEW4ZAUUEN7OGXCPLLRJIXHWBUN2GYCEPTFXSUBNR76KBGGQ6LLALPG7SSEID5YA6
-#\\\|UK4DQPGTDBZA4G4BEQNZGTVCV2UKHAUFWQZCJF6BXPA6S5RZCUA \ / AMOS7 \ YOURUM ::
-#\[7]HLJVXMLBPOWOXWHPHDDZ55NB4W5TXJNW2WOPMLYH73AXUZBQPGBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,...,...,.,.,,..,,,,,...,.,,,,,.,..,,...,...,..,,.,,,.,,,.,,,...,
+#U7VWC2542AYLTYMSESPNWOB7Y7MI5IKDKABOUF5EGWA3MF3SOAJG5CXKWALQKTHE6LTFPDWP6EDIC
+#\\\|S7NZ3QYNVM4WAQYX2ULEVSTN4UMUZBDECWN5H5EDQZLHGJSRDEN \ / AMOS7 \ YOURUM ::
+#\[7]E5BEFS47QO7JDNSV6Z553QLQOAT2ID3PDERFX236GFP47RF72GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
