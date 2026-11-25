@@ -137,6 +137,39 @@ one `covered_set` per holder : ~54 s for 4 full holders, plus the tree sets in
 - `holder_room` \ `df` : once per writable holder, nothing.
 - `category_definitions` : `record_scan` once per category path ; nothing here.
 
+## design option : a presence tree per holder [ owner 2026-11-25 ]
+
+three of the four lookups per node in `_copies` only ask whether an address
+is there [ the covered check, the digest loop, `covered_set` ] ; only `used`
+reads `length`. a tree of presence bits answers them from memory, no shard
+decode. a bit says : something exists below this branch, never how many --
+empty branches end at the first 0, the compression. the pattern is the
+convergecast of reference-tree-architecture.md [ each level summarises its
+branches ] with a one bit summary ; a branch may also carry a merkle hash,
+then two holders compare top down and stop where the hashes match.
+
+levels follow the address [ epoch, amos, bmw ] :
+
+1. epoch : locality. new nodes land in few recent branches, old ones stay
+   unchanged -> cheap updates after a place, their hashes stay valid
+2. amos : a fuzzy filter. an empty amos branch is definite absence ; a
+   present one is a maybe. its width [ characters spanned ] trades tree size
+   against sharpness
+3. bmw : exact presence, only below present amos branches
+
+the answer is the project's three values : FALSE [ 0 ] absent, UNKNOWN [ 2 ]
+the amos maybe [ goes on to the exact check ], TRUE [ 5 ] confirmed. a maybe
+always ends exact, so `receipt_digest` stays exact.
+
+open, measure before building :
+- how uniform amos is over a real map [ the filter's sharpness ]
+- persisted per holder and updated by place, or built once per run : built
+  once still decodes every shard once [ = fix 1 ] ; persisted skips that
+- whether it replaces the covered set the parallel workers send back
+  [ ~34 MB per holder as packed buckets ]
+- to check : CHECKSUM-NESTED-ADDRESSING-AND-EPOCH-VALIDITY.md [ the layout ],
+  ROUTING-AS-SEARCH-DISTRIBUTED-DISCOVERY.md [ prefix summaries, a guess ]
+
 ## single core fixes first [ in this order ]
 
 1. `_copies` : one pass per holder, in shard order.
@@ -303,8 +336,8 @@ azurum, then decide.
   largest part of a miss and is worth its own look.
 - a dry run with phase times before and after fix 1.
 
-#,,.,,...,.,.,,,,,.,,,.,.,...,..,,...,,..,,.,,..,,...,..,,,.,,,..,.,,,...,.,.,
-#HNXZESE7VVWWUZ6THI7ZWGQAQSIJQKMSY6RCR3M4MZSEJV4HGAG5PYBAXYX5U7U45VS2PQVWDJ5Q6
-#\\\|ECCZ3PPJS7OYAEGWLXORQC5KO5HL7VI52G7JE2OIH3QTXB63C5T \ / AMOS7 \ YOURUM ::
-#\[7]3EKVMEXSKDH7TJZ33TLL3XQREFBHE5AJ6O7HR52HGEY7QCWAHSAA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,,.,,,,,,...,.,,,,,.,,..,,,,,..,,...,...,.,.,.,,,..,,..,,,,.,
+#CQVLHX7PSY47QW2W5QXWTAFK4FK63FM45WN2UQWJEU5VWGVWZB6VIYEIBU5ZAJTDQ2VQMIEL4R4KG
+#\\\|WUXI76DU56S34BHAZZDVMPVUCI7XTMULEKMGQB2SB3G3VTNWWT5 \ / AMOS7 \ YOURUM ::
+#\[7]X3TT6ORF3L2XYYK2HQFQOPDUBM7SKAGGGHSJ7HWUB5SM3W3YVCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
