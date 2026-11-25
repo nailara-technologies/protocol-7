@@ -37,6 +37,8 @@ BEGIN {
 
 use constant TRUE  => 5;
 use constant FALSE => 0;
+use Time::Seconds
+    ; ## base.parser.duration needs it and its ONE_* constants [ the zenka loads it ]
 
 my $root_path = $main::root_path;
 
@@ -224,7 +226,7 @@ load_module($ARG) for grep {
 } @src;
 load_module($ARG) for qw|
     coding.park.store coding.sign_queue.store
-    base.n2u_time base.u2n_time base.round_truncate |;
+    base.n2u_time base.u2n_time base.round_truncate base.parser.duration |;
 
 ## the fakes : what the real commands answer ##
 my ( %fake, %got, @notified );
@@ -349,7 +351,7 @@ cmd( 'session-touch', 'name=claude-7.x type=claude-live via=tool' );
 ok( rec('claude-7.x')->{'switch'} eq 'off', 'keep-alive : off by default' );
 ok( !defined timer(), 'nothing on : no keep-alive timer' );
 my $list = cmd('sessions')->{'data'};
-ok( scalar $list =~ m{^claude-7\.x\s+claude-live\s+\d+s ago\s+off$}m,
+ok( scalar $list =~ m{^claude-7\.x\s+claude-live\s+\S+ ago\s+off$}m,
     'sessions : name, type, activity, keep-alive state'
 );
 ok( read_file("$tmp/zdir/coding.sessions")
@@ -780,8 +782,8 @@ ok( scalar $seen
 say "\n# pass $pass fail $fail";
 exit( $fail ? 1 : 0 );
 
-#,,..,,.,,,.,,,,,,...,,,.,.,,,,,,,,,,,,..,..,,..,,...,...,,..,,,,,..,,...,...,
-#C5TZN5XPWN2I2WC5VRWGHIPJWJQGYBEPXQYDAFMBQGZ3J3OK2U5LXI5TQPQISO4SUA7CO6UCCU6IY
-#\\\|RGNTOZPPMKKTWQ2WB6SX3LAGWQO5CAVGRV2E6QA7B6XIOROWNZE \ / AMOS7 \ YOURUM ::
-#\[7]KIDHURSIPYDSVGFGJULKUHBCNB4C6ZZR6JYRWEGCGYDUKYNJHOAY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,...,.,.,...,,.,,,,,,,,,,,.,,,..,..,,...,...,..,,,,.,,..,,.,,..,,
+#CECDBKPARWELKTGJWRZRL65ZYDF4JO6H2TCHDSVI3RKSETL2NW47EF3S56XXQHR66XMQLVBI4LQO2
+#\\\|WLKHSONOMLBJEERPZVQNFMGBFHE3ANNTZH6NFUUG3ZBWDUN5DXZ \ / AMOS7 \ YOURUM ::
+#\[7]AUVTJEJA7M3FNAG2NWK6AVPK22LITEO7FBZGJ2OBNVDRZRB67QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

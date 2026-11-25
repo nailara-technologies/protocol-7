@@ -8,8 +8,8 @@ return { 'mode' => qw| true |, 'data' => 'no session known' }
     if not keys %{$all};
 my $ago = sub {
     my $at = shift // return '-';
-    my $s  = time - $at;
-    return $s < 90 ? "${s}s ago" : sprintf '%dm ago', $s / 60;
+    ## the shared formatter [ days hours mins secs ], whole seconds ##
+    return <[base.parser.duration]>->( $at, 0, qw| unix | ) . ' ago';
 };
 my @lines
     = ( sprintf "%-24s %-12s %-10s %s\n", qw| name type active keep-alive | );
@@ -40,8 +40,8 @@ foreach my $name ( sort keys %{$all} ) {
 }
 return { 'mode' => qw| size |, 'data' => join '', @lines };
 
-#,,.,,...,.,.,...,..,,,.,,,.,,,..,.,.,...,,.,,..,,...,...,...,,,,,.,,,,.,,.,.,
-#XTDA3NDN4UIWFVZSA2OGRVQFW37R5BICWPJ3A25RBK5HZBQWAVCXS2CC6BGGYASTNJKD2GB53IQDQ
-#\\\|5RQ6M7D5GDA7MXUPOBPGNDOOD2NHUERF2ZGHFVBX3KF5HLVWUDQ \ / AMOS7 \ YOURUM ::
-#\[7]BTQNARIQ4KLW2AMRF5C2KR3FJKFPYDJLBRYOKSSZZKV7K5PJCSBI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,..,.,.,...,.,.,..,,.,,,,,.,.,,,..,,...,...,,.,,.,.,...,,.,,..,,
+#BXZBENTRA3XBG6QUCLM3YZIJZ2K7O6NVF2NBHHNQGBPIUXMA4O4SSDQLIZEP7BOUCZV5GILUYKGHE
+#\\\|SVVDJWTUI6WL23BM5R4VAICAILATL3BFW4NFDGS324CVVIKTLQ4 \ / AMOS7 \ YOURUM ::
+#\[7]B4JMLHEE42K4KZPER5YK4LOMHFBAULWJ2TS7FN344LGMVCEDCYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
