@@ -57,9 +57,10 @@ base pushed up to 71ba3f9d2a ; azurum deployed at 71ba3f9d2a.
    "context at N % : a good moment for a handover or a targeted compaction" -- an offer, with
    unless= [ a handover was just written ] ; fits task-elements.md's compaction-as-a-tool
  9. budget-aware resume [ owner ] : a dispatch that stops on a plan limit registers a reminder for the window reset [ the exact time from usage.kimi \ usage.claude -- one plan, to the second ; usage.plan rounds to 0.1 h ] ; at the reset the inbox offers to resume it [ kimi_continue / claude_continue with the session uuid ] -- an offer, unless= [ resumed already ]
+ 10. sign \ commit job ids [ owner ] : p7-sign-<unix time>-<pid> \ p7-commit-.. -> ntime [ bin/dev/p7-sign-run, p7-commit, p7-sign-wait parse them ]
 
-#,,,.,,.,,,..,,..,,,.,,,.,..,,..,,...,..,,...,..,,...,...,,,,,...,,.,,...,,,.,
-#3PPPYE6Y2J3OYUGJTNUXPKKW2YLQDOD3VLHDDWKA74ZRGX2RZTKQBAGTSPM4D55IOWNHELBFP2V56
-#\\\|PGHMGBDT4HYHOPXGAGINEHGMWDYOUQLVONQCSYUL3MMIWMDD3K2 \ / AMOS7 \ YOURUM ::
-#\[7]MVVNVUMLFJWLMXZBE2NT4LUGOCYWBMUFEUSRMZXACDUK7W3RFMCQ 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,,.,,,,,,,,.,,.,,.,.,.,,,.,.,..,,...,...,.,.,,,,,,.,,.,,,,,,,
+#DXWXLJG3HA6YUPPHKVBW35L3G3ES73KU7ZRHTO3UOMJ37RLYELPHZILLVDVMQTKBRMEOPYN6KEA6U
+#\\\|LSOZZB3PJCVEPXRSQA2EN7IR6AL3O5XHLRMUHE4OORHSTTHZLNY \ / AMOS7 \ YOURUM ::
+#\[7]OVTA42GSFUIVZQB6CU2HGTLKQ6MG3QN5T5BEKMUFOAK2H2OJ3QBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

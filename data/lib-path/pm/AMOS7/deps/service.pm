@@ -1,5 +1,5 @@
 package AMOS7::deps::service;
-our $VERSION = qw| AMOS7::deps::service-VERSION.N4LNMWI |;
+our $VERSION = qw| AMOS7::deps::service-VERSION.TUFEP4A |;
 
 use strict;
 use warnings;
@@ -169,7 +169,74 @@ sub install {
         )
     );
 
+    push( @report, _admin_group($p7_root) );
+
     return \@report;
+}
+
+## the protocol-7 user \ group exist before the first zenka start, with the ##
+## same rules [ cfg/system-user-map pref-uid, useradd --system -U -m ] ;    ##
+## the configured admin user joins the group only when it is the user who   ##
+## ran the installer [ $SUDO_USER ] -- never another user, never root       ##
+sub _admin_group {
+    my ($p7_root) = @_;
+    return [ 'protocol-7 group', 'skipped', 'needs root' ] if $EUID != 0;
+    my %cfg;
+    if ( open( my $fh, '<', "$p7_root/cfg/system-user-map" ) ) {
+        while ( my $line = <$fh> ) {
+            $cfg{$1} = $2
+                if $line =~ m{\A\s*([\w.-]+)\s*[=:]\s*([\w-]+)};
+        }
+    }
+    my $usr = $cfg{'system.amos-zenka-user'} // qw| protocol-7 |;
+    my @rows;
+    if ( not defined getpwnam($usr) ) {
+        my @opts = qw| --system -U -m |;
+        my $uid  = $cfg{"base.root.pref-uid.$usr"};
+        push @opts, qw| -u |, $uid
+            if defined $uid
+            and $uid =~ m|\A\d{3}\z|
+            and not getpwuid($uid);
+        my $ok = system( qw| useradd |, @opts, $usr ) == 0;
+        push @rows,
+            [
+            "user $usr",
+            $ok ? 'changed' : 'failed',
+            $ok ? 'created' : undef
+            ];
+        return @rows if not $ok;
+    }
+    my $admin = $cfg{'system.admin-user'} // '';
+    my $sudo  = $ENV{'SUDO_USER'}         // '';
+    if ( not length $admin or $admin ne $sudo ) {
+        push @rows,
+            [
+            'admin in group',
+            'skipped',
+            length $admin
+            ? "installer run by '$sudo', admin is '$admin'"
+            : 'no system.admin-user'
+            ];
+        return @rows;
+    }
+    my @pw = getpwnam($admin);
+    if ( not @pw or $pw[2] < 1000 ) {
+        push @rows, [ 'admin in group', 'skipped', "$admin : no login user" ];
+        return @rows;
+    }
+    my $members = ( getgrnam($usr) )[3] // '';
+    if ( grep { $_ eq $admin } split m{\s+}, $members ) {
+        push @rows, [ 'admin in group', 'ok', $admin ];
+        return @rows;
+    }
+    my $ok = system( qw| usermod -aG |, $usr, $admin ) == 0;
+    push @rows,
+        [
+        'admin in group',
+        $ok ? 'changed'                     : 'failed',
+        $ok ? "$admin added [ new logins ]" : $admin
+        ];
+    return @rows;
 }
 
 sub _install_link {
@@ -418,8 +485,8 @@ sub _write_file {
 
 1;
 
-#,,,,,,.,,.,.,.,,,.,.,.,,,,..,..,,..,,,,,,.,,,..,,...,...,.,.,.,,,...,,,,,,,.,
-#WL2UTPESR5JF5NHCOU2UO3KNT5H5MFW64P3H4MDIZPN7EUJ5PZ24KXQR2OHU5T3H5N6APFSWWTFA2
-#\\\|JY74ONIKZEJIKSNW2AHVGIDKDL3HEZKWYWDZVOD32KUP4FNUZGI \ / AMOS7 \ YOURUM ::
-#\[7]VC7I22K43WLLYDUTKVENZVRVOIK4EA67ZJ3FG6DM6IOAQEM62IAA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,..,.,,,,..,.,.,.,.,,..,,,,,,,.,..,,...,...,...,,.,,.,.,,.,,.,,,
+#ESMU6WDCUHOVD55HZGHMJ6UYDEZLQOPK3CEFJLZLTZN25QA47TTKYQ32LZ5YR6S4NP7Z4PSOLU6TM
+#\\\|MPMVRVPJCKTDWYPMIUIRDB62S424SSMQLGYSXXW2H7YB7IAYNUU \ / AMOS7 \ YOURUM ::
+#\[7]E32AWFWP66F4A6D2ZULLRH66UWJ27HXLRRWMO4HKMN2GP5USJODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
