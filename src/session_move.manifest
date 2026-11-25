@@ -1,0 +1,58 @@
+## [:< ##
+
+# name   = session_move.manifest
+# descr  = read and check a stored session's manifest
+# args   = session dir, kind, id, allowed name regex
+# return = { ok, work_dir, host, files => { name => .. } }
+#          | { error }
+#
+# the store may come from another host : only names the caller allows,
+# each once, no '..', no symlink on the way. every listed file is
+# checked here, and again on the staged copy [ session_move.transfer ]
+
+my ( $base, $kind, $id, $allowed ) = @ARG;
+my $text = <[session_move.read_text]>->("$base/manifest");
+return { 'error' => "no manifest in $base" } if not defined $text;
+my $cfg = <[session_move.parse]>->($text);
+return { 'error' => "manifest : not a $kind session $id" }
+    if ( $cfg->{'kind'} // '' ) ne $kind
+    or ( $cfg->{'session'} // '' ) ne $id;
+
+my %files;
+foreach my $line ( @{ $cfg->{'file'} } ) {
+    my ( $size, $sum, $name ) = $line =~ m{\A(\d+)\s+([A-Z2-7]+)\s+(\S+)\z};
+    return { 'error' => "manifest : bad file line '$line'" }
+        if not defined $name;
+    return { 'error' => "manifest : '$name' is not a session file" }
+        if $name =~ m{(?:\A|/)\.\.?(?:/|\z)}
+        or $name !~ $allowed;
+    return { 'error' => "manifest : '$name' listed twice" }
+        if exists $files{$name};
+    my $path = $base;
+    foreach my $part ( CORE::split m{/}, $name ) {
+        $path .= "/$part";
+        return { 'error' => "$name : a symlink in the store" } if -l $path;
+    }
+    return { 'error' => "$name : missing in the store" } if not -f $path;
+    return { 'error' => "$name : size or checksum differs from the manifest" }
+        if -s $path != $size
+        or ( <[chk-sum.bmw.filesum]>->( 256, $path ) // '' ) ne $sum;
+    $files{$name} = {
+        'name' => $name,
+        'from' => $path,
+        'size' => $size,
+        'sum'  => $sum
+    };
+}
+return {
+    'ok'       => TRUE,
+    'files'    => \%files,
+    'work_dir' => $cfg->{'work_dir'} // '',
+    'host'     => $cfg->{'host'}     // ''
+};
+
+#,,.,,,,.,,,,,...,,,,,.,.,,,,,,..,,,,,,,.,..,,..,,...,...,.,,,,..,..,,.,.,,.,,
+#J2NQZ43DMBTHELOOH53RHVHT3XVVY7IC3VXEIRH4Z24YXS7CEVXP2ZB46SWTI4MXSFPOUMKKEKRLU
+#\\\|2HQ7MWOT345JLSLVMLRJS7LLOBRLZRF67I74SFBQC5KZ4EW6LPH \ / AMOS7 \ YOURUM ::
+#\[7]HVWMCW4FRZUMSV73I33GJ42TRHL4CNBDCZXEKQVM44MAT4DJKEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

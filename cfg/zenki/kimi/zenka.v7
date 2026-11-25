@@ -14,7 +14,8 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       approve reject approvals new-session session-info \
                       list-models set-model \
                       acp-start acp-send acp-cancel acp-status \
-                      acp-tail acp-stop \
+                      acp-tail acp-stop acp-session-export \
+                      acp-session-import acp-session-lease \
                       src-age src-ver subname name
 
 ## devmod commands : only reachable while devmod is loaded on THIS zenka ##
@@ -50,6 +51,8 @@ kimi.cfg.memory_path = data/ai-mem/kimi
 # kimi.acp.cfg.permission = deny           ## deny \ allow-once
 # kimi.acp.cfg.autostart  = yes            ## acp-send starts a session
 # kimi.acp.cfg.buffer     = 500            ## event lines kept
+# kimi.acp.cfg.lease_hours = 13            ## session store lease
+# kimi.acp.cfg.kimi_home   =               ## default : ~/.kimi-code
 
 ## child stop escalation and the zenka exit waits [ seconds, non-linear ]
 base.interval.cfg.type.kimi-acp-stop.start      = 2
@@ -64,7 +67,8 @@ base.interval.cfg.type.kimi-acp-exit.cap_jitter = 0.2
 crypt.C25519.autocreate-user-key = yes
 
 modules.load = auth.client net protocol io.unix ui websocket crypt.C25519 \
-               format.json devmod stream_child kimi
+               format.json devmod stream_child session_move \
+               kimi
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -77,8 +81,8 @@ modules.load = auth.client net protocol io.unix ui websocket crypt.C25519 \
 
 [zenka.loop]
 
-#,,,.,,,.,..,,.,.,,,,,,,,,.,,,...,,..,.,.,,,.,..,,...,...,.,.,,.,,,,,,...,.,.,
-#4D5GTKYYX67MKN6FZOJHJNWAQOLLRTWTD6UVNBAYKRWTDIQYGME3XLWEGSFKYBLKF6BTU4Q525K6Q
-#\\\|6IHQ53GVK6P7VPMSV3DINL3A5RZJ37BBIMK3DK25J7XSZVF5MED \ / AMOS7 \ YOURUM ::
-#\[7]236GWYUDLXIQWXFC5DA75PXAVJTFL6DTFWXSITGGRWZMMJLYCUAI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,...,,,.,...,.,,,.,.,,,,,.,.,.,.,..,,...,...,,.,,..,,,,,,,.,,,,,,
+#2V2IDI6VPTBS47FBVHDU33BGSOPJ5K5YS75EXWFW2QCODG6ORVJEDAPEEG33BJTICC4LLPGIF7YUG
+#\\\|AR4ADURNN7CMM36OBIOXASTEYKNUZVRWL3JVBCP7DXEM5B4U3RY \ / AMOS7 \ YOURUM ::
+#\[7]DKSBR6BBP2RNZBF2YO6PMMEGO5P62ZFIGW5FRNK4UXMH25V5RWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

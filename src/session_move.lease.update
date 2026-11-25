@@ -1,0 +1,60 @@
+## [:< ##
+
+# name   = session_move.lease.update
+# descr  = acquire or release the lease of a session
+# args   = session dir, op [ acquire | release ], hours
+# return = { ok, had => TRUE when it was ours } | { error }
+#
+# one holder : another host's unexpired lease refuses both ops. the
+# read and the write run under a mkdir lock in the session dir
+
+my ( $base, $op, $hours ) = @ARG;
+$hours = 13 if ( $hours // '' ) !~ m|\A\d{1,4}\z| or $hours == 0;
+return { 'error' => "no session dir $base" } if not -d $base;
+
+my $lock = "$base/lease.lock";
+return { 'error' => "lease is locked [ $lock : remove it when stale ]" }
+    if not CORE::mkdir( $lock, 0700 );
+
+my $host  = <[session_move.host]>;
+my $lease = <[session_move.lease.read]>->($base);
+my $ours  = defined $lease && $lease->{'host'} eq $host;
+my $now   = CORE::time();
+my $r     = { 'ok' => TRUE, 'had' => $ours ? TRUE : FALSE };
+
+if (    defined $lease
+    and not $ours
+    and ( $lease->{'broken'} or $lease->{'until'} > $now ) ) {
+    $r = {
+          'error' => $lease->{'broken'}
+        ? "unreadable lease file $base/lease"
+        : sprintf(
+            'held by host %s until %s',
+            $lease->{'host'},
+            scalar CORE::gmtime( $lease->{'until'} ) . ' utc'
+        )
+    };
+} elsif ( $op eq qw| acquire | ) {
+    $r = { 'error' => "cannot write $base/lease" }
+        if not <[session_move.write_text]>->(
+        "$base/lease",
+        sprintf(
+            "## session lease : one holder at a time ##\n\nhost "
+                . " = %s\npid   = %d\nsince = %d\nuntil = %d\n",
+            $host,                                    $PID,
+            $ours ? $lease->{'since'} || $now : $now, $now + $hours * 3600
+        )
+        );
+} elsif ($ours) {
+    $r = { 'error' => "cannot remove $base/lease" }
+        if not CORE::unlink("$base/lease");
+}
+
+CORE::rmdir($lock);
+return $r;
+
+#,,,,,.,.,..,,,,.,..,,...,.,.,,,.,,,,,,..,,.,,..,,...,...,,,,,,,.,,,.,...,,,.,
+#P2DABIOGK2NPH3CR7573GFHVUYD5DLXUMMLTK56A673NCMA4R6TPEL7767Q6SAE25EOILV2HEZWHU
+#\\\|2GVV5IJZEBWMSRMZTTJIRT7KM26RGEJRMMSRRV7OW3PHKPD7BML \ / AMOS7 \ YOURUM ::
+#\[7]VB5INEN5ULIPNTMZLOQ4ZYGZLIZYYAVCAVMACFR7AU62A6DPIADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

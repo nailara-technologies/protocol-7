@@ -29,6 +29,14 @@ $resume = '' if $resume eq qw| new |;
 return { 'error' => "resume '$resume' : not a session id" }
     if length $resume and $resume !~ m|\A[\w-]{8,80}\z|;
 
+## an imported session : refused when another host took its lease ##
+if ( length $resume ) {
+    my $held = <[claude.session.hold]>->(
+        qw| renew |, $resume, <[claude.session.transcript]>->($resume)
+    );
+    return { 'error' => "session $resume : $held" } if defined $held;
+}
+
 my $tool = <claude.cfg.permission_prompt_tool> // '';
 my @cmd  = (
     $binary,
@@ -85,8 +93,8 @@ $child->{'resume'} = $resume;
 <[claude.turn.next]>;
 return { 'ok' => TRUE, 'pid' => $pid };
 
-#,,..,.,.,..,,,,.,,..,,,.,.,,,..,,..,,.,,,,.,,..,,...,...,..,,...,,,,,..,,.,,,
-#EGYPUAA57ORFWL4QOVTIZ3VVNIRKGK22G3PAZ3DEIJ7IW627H4BRRO4B7QNPZXGIDRPTQ3G2H4U3U
-#\\\|ZICZX42SCUH5QY25VCN6SYID26NUYL76A3UNDKIXNEY7EDA27Q6 \ / AMOS7 \ YOURUM ::
-#\[7]AZCGPUHA7CUXPAR3NK4JJIBERAQMKK6DQYMVWEL5N5G4K6SINODY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,,,..,,,,,,.,.,,..,.,,,...,,,.,..,,...,..,,..,,.,.,,,.,,,.,,,,,
+#4VCVO7N5JEEAILXO2E4BKZO2RXJHEG5FFBLEWFZMOHGNBNZTUGDDBQU3IZQYF22BLBIEN77MGDU3G
+#\\\|7TDD3K2IL45EF7LGLGQJ4XGMYL5MQNGI3FHWKUHBJHB3JC2UMPM \ / AMOS7 \ YOURUM ::
+#\[7]NXYOM4KTTUUSURWYCG5WWKQXPVM4WDZG6KPN2BMENUB2ROTFK4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

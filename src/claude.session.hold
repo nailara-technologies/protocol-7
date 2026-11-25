@@ -1,0 +1,58 @@
+## [:< ##
+
+# name   = claude.session.hold
+# descr  = the store lease this host holds for a session
+# args   = op [ record | renew | release ], id, then
+#          the session dir [ record ] or, on a resume,
+#          the local transcript [ renew ]
+# return = undef, or the reason a renew is refused
+#
+# hold.<id>.cfg in the var dir points at the leased session dir. a
+# session never moved has none : renew and release do nothing.
+# export and import record it. release frees the lease in the store and
+# KEEPS the pointer : a later resume asks the store again
+
+my ( $op, $id, $path ) = @ARG;
+my $base = $path;
+return undef if ( $id // '' ) !~ m|\A[\w-]{8,80}\z|;
+my $dir = <[claude.var_dir]>->( $op eq qw| record | );
+return $op eq qw| record | ? 'no var dir' : undef if not defined $dir;
+my $file = "$dir/hold.$id.cfg";
+
+if ( $op eq qw| record | ) {
+    return <[session_move.write_text]>->( $file, "lease = $base\n" )
+        ? undef
+        : "cannot write $file";
+}
+return undef if not -f $file;
+$base = <[session_move.parse]>
+    ->( <[session_move.read_text]>->($file) )->{'lease'};
+if ( not defined $base or not -d $base ) {
+    <[claude.event.add]>->(
+        qw| lease |,
+        'the session store is not reachable : ' . ( $base // '?' )
+    );
+    return undef;
+}
+## a resume : the store must not be ahead of this host's transcript ##
+if (    $op eq qw| renew |
+    and defined $path
+    and -f "$base/$id.jsonl"
+    and not <[session_move.is_prefix]>->( "$base/$id.jsonl", $path ) ) {
+    my $why = 'the store holds a newer or diverged transcript : import it';
+    <[claude.event.add]>->( qw| lease |, "$op : $why" );
+    return $why;
+}
+my $r = <[session_move.lease.update]>->(
+    $base, $op eq qw| renew | ? qw| acquire | : qw| release |,
+    <claude.cfg.lease_hours>
+);
+return undef if not defined $r->{'error'};
+<[claude.event.add]>->( qw| lease |, "$op : $r->{'error'}" );
+return $op eq qw| renew | ? $r->{'error'} : undef;
+
+#,,..,.,,,,.,,.,,,..,,.,,,,..,.,,,,,.,,..,.,.,..,,...,...,,,.,.,,,...,,,.,.,.,
+#K7BTPP2KCVRFT27EME3PXW54ELCK5EP57WZI55JIV4DOAHVYHHBTT6FHX7NJH3A6I4JNBE3HX3KZY
+#\\\|34AB66KOW63VX5BAJIBUCKNVLGEVUSYRAHIKCWV57VA7XG7FJKB \ / AMOS7 \ YOURUM ::
+#\[7]AYE5U4D3UYILRDEYYVR3KWSHAKEH4UU5IX77NCIRAMCQR6B3G4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

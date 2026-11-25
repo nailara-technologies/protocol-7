@@ -21,13 +21,16 @@ my $stopping = $child->{'stopping'} ? TRUE : FALSE;
     $child->{'pid'}, <claude.state>, $reason
 );
 
+<[claude.session.hold]>->( qw| release |, <claude.session> )
+    if $stopping;
+
 <[claude.turn.done]>->( { 'failed' => $stopping ? 'stopped' : 'crashed' } )
     if <claude.turn_active>;
 <[base.zenki.resume_ondemand_timeout]>
     if defined $code{'base.zenki.resume_ondemand_timeout'};
 
-#,,,,,..,,,,,,..,,..,,,,,,...,.,,,...,...,..,,..,,...,...,,.,,.,,,,,.,.,.,..,,
-#4P736TYTMDHRHSSGGCKUH46QHK2AGS62G5GR3TPOZPMKVQSJDK43E64DM277KNPJYJSX5EBFLUYTY
-#\\\|STVJICDQUX2GTKZAYRBF4DNKHHKIDOOVECBSL4SZYKJZ2NOV2SI \ / AMOS7 \ YOURUM ::
-#\[7]SEA2XNVDRXJGQKGDOOJGOXQGBLPYXWBEBKV7IFOCMFLZVQP5FECQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,,.,,,,.,,.,,..,,,,,,,,,,,,,,..,,...,...,,,.,,,.,,,.,,,,,.,.,
+#PC6HK2XWRBBSB35C7MA3RPI5FB4QHNUTQOBTRI6R4HAQQ2AQ6IH32ZMVNEVP33KFX5PILCKPK7C6O
+#\\\|7RZIYL77XPBJHOR3R36YJ2XJVQVDX3KZMJESNZIVZNMMFW5ITLB \ / AMOS7 \ YOURUM ::
+#\[7]ASS3ASJDIR26LWJSJH6Y3WXJSRABGGD74CGRG7DPRMCCTMMH3MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,6 +13,8 @@ my $state
     : qw| failed |;
 <claude.cost> = $d->{'total_cost_usd'} + 0
     if ( $d->{'total_cost_usd'} // '' ) =~ m{\A[\d.eE+-]+\z};
+<[claude.session.hold]>->( qw| renew |, <claude.session> )
+    if <[claude.session.running]>;
 my $was = <claude.turn_active>;
 <claude.turn_active> = FALSE;
 <claude.last_result> = {
@@ -37,8 +39,8 @@ my $was = <claude.turn_active>;
     if defined $code{'base.zenki.resume_ondemand_timeout'};
 <[claude.turn.next]>;
 
-#,,,.,.,,,...,,,,,.,,,,.,,,,,,..,,,,,,,,.,.,.,..,,...,...,,,,,.,.,.,,,..,,..,,
-#5F4SQUI23IUPYDGOWENI47WCPTA6U7NH2EJJIGH7WAH6GBSBVYMJQUIT6MJW4CXUW7RMKNBVUTKJE
-#\\\|2VVF6MWB5U6VKGTJ7QWO7GR7EDQNNYRZG34K2YFQTS2QZSPFQFL \ / AMOS7 \ YOURUM ::
-#\[7]YXENCGX44Y2YUF6CGD7DQLLS3VIMBFGNRERWBHG5XTK4R3FVGSDY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,.,,,...,,.,,..,,,,,,.,.,,..,..,,...,...,,,,,,,,,.,,,...,.,.,
+#YLKJPPM63EJAAN6V2E7XTNF2ZCRPMAQQ6M7MPWG5ZBZ6Y6DHMS6L66HEXY4KMIJC5DTBHI472OR5K
+#\\\|5I4HLZTTZU7IJMQB4ILX6X5SHBJSHNG3UMTTLZWG3FHMMD45TUG \ / AMOS7 \ YOURUM ::
+#\[7]YFAINEPRB4ERYT6CMCNWE6GOEUTNIO74V6XPN54ICKT6LZRKSEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,6 +15,15 @@ my $st     = <[kimi.acp.state]>;
 return { 'success' => FALSE, 'error' => "session is $st->{'phase'}" }
     if $st->{'phase'} ne qw| stopped |;
 
+## an imported session : refused when another host took its lease ##
+if ( defined $resume ) {
+    my $held = <[kimi.acp.hold]>->(
+        qw| renew |, $resume, <[kimi.acp.session_transcript]>->($resume)
+    );
+    return { 'success' => FALSE, 'error' => "session $resume : $held" }
+        if defined $held;
+}
+
 <[base.perlmod.load]>->($ARG) for qw| JSON::XS |;
 
 my $command = <kimi.acp.cfg.command> // 'kimi acp';
@@ -86,8 +95,8 @@ my $pid = $r->{'handle'}{'pid'};
 
 return { 'success' => TRUE };
 
-#,,,.,.,.,.,,,.,,,,.,,,,.,,.,,,..,,..,,,.,...,..,,...,.,.,..,,.,,,,,.,,..,,,,,
-#227GLXFTWVFML4QQU4O344HPMOF3FNMTEZIJOV5BWGJCOXMXQR5K3GZWRCRGBV7FK2KO35AGTYWL4
-#\\\|JZ7UUQ7BGKYHCLCLHAJY5WYQEKVOJJDWRSMHI2YO2K7LHBDMECS \ / AMOS7 \ YOURUM ::
-#\[7]IUZT56TGOJXM35FQJC55O5JZJ5C32FMWTL2O734Y35JZJCA2ZQCI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,..,,,,,,,..,,.,,,..,,..,.,.,..,,...,..,,...,..,,..,,...,..,,
+#TWBEQWXA7NHVM37HLHFY4JCTZE743TV3DTNHIYC3RKWGCWHHZMR7DAC7EKTXJUPMYFA5PPGRSPGLE
+#\\\|B77CVXJPANWMUD3KG4NQMKUF44P4MABYFOLX6A6PKRWQYIQTCN3 \ / AMOS7 \ YOURUM ::
+#\[7]G7UMVCTINYE5MCTUJIKZD63KREQLIETCX2OPL2CXRVVIMUIPRMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,41 @@
+## [:< ##
+
+# name   = claude.session.project_dir
+# descr  = claude's transcript dir for the work dir
+# return = { dir, work_dir } | { error }
+#
+# the naming of claude code itself [ read from the 2.1.332 binary, equal
+# to the dirs under ~/.claude/projects ] : the cwd of the process, every
+# character outside a-z A-Z 0-9 becomes '-' [ one per utf-16 unit ].
+# above 200 characters it appends a hash of its own : refused here
+
+my $work = <claude.cfg.work_dir> // <system.root_path> // '.';
+my $real = Cwd::realpath($work);    ## the child sees the physical path ##
+return { 'error' => "work dir '$work' : not a directory" }
+    if not defined $real or not -d $real;
+utf8::decode($real) if not utf8::is_utf8($real);
+
+my $name = $real;
+$name =~ s{([^a-zA-Z0-9])}{ord($1) > 0xFFFF ? '--' : '-'}ge;
+return { 'error' => 'work dir name above 200 characters : not supported' }
+    if length $name > 200;
+
+my $config = <claude.cfg.config_dir> // $ENV{'CLAUDE_CONFIG_DIR'};
+if ( not defined $config or not length $config ) {
+    my $home = <[stream_child.user_env]>->()->{'HOME'};
+    return { 'error' => 'no home dir for the zenka user' }
+        if not defined $home;
+    $config = "$home/.claude";
+}
+return {
+    'config'   => $config,
+    'name'     => $name,
+    'dir'      => "$config/projects/$name",
+    'work_dir' => $real
+};
+
+#,,,.,.,.,.,,,,,,,,,,,...,.,.,,,,,...,,,,,.,.,..,,...,...,.,,,.,.,.,.,.,,,,.,,
+#GU4J5QPUM3WFEIV7XOONQMR3HTWLXMRNWDYDJCFY36IAJI2RHKNOQ3252UISGKRMZSLCWWWH33EEU
+#\\\|EZZ3UOE6DETJZAH4HJXXA46MXDBPPBGVTVSS34HTHEPWJRICWXD \ / AMOS7 \ YOURUM ::
+#\[7]XKENQFLTV5FBPRGQCOT2OE3IJFHO2OSDZIYW6FIL4PCYPLI7OGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

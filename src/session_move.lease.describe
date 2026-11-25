@@ -1,0 +1,21 @@
+## [:< ##
+
+# name   = session_move.lease.describe
+# descr  = one readable line for a lease
+# args   = session dir
+# return = text
+
+my $base  = shift;
+my $lease = <[session_move.lease.read]>->($base);
+return "$base : free"                  if not defined $lease;
+return "$base : unreadable lease file" if $lease->{'broken'};
+return sprintf '%s : host %s pid %s since %s until %s [ %s ]',
+    $base, $lease->{'host'}, $lease->{'pid'}, $lease->{'since'},
+    $lease->{'until'},
+    $lease->{'until'} > CORE::time() ? qw| held | : qw| expired |;
+
+#,,..,,,.,,.,,..,,,.,,,,,,...,,,,,,..,,..,,.,,..,,...,...,,..,...,,,,,.,.,.,,,
+#3HAX6L7UMHMNDVNNSBHZAVVH5UUJI3KIMG6X62NGTRQPM2WTZYHWD3GYKWQOZBU7Y65WUIJVCVYSW
+#\\\|X5AT4CMXPID2UCGNCQUB2JY54OYAGBQUBYIE6KZ7SOLARL6VL2X \ / AMOS7 \ YOURUM ::
+#\[7]US5BA54SROPWJU5QFLWEEYZIG442LCBHNHGVAJ7JGVPWY4G5C2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

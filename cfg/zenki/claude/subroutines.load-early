@@ -136,6 +136,7 @@ stream_child.step
 stream_child.reap
 stream_child.note
 stream_child.gone
+session_move.host
 plugin.auth.zenka
 net.read_bytewise
 jobqueue.move_job
@@ -170,6 +171,7 @@ stream_child.write
 stream_child.start
 stream_child.flush
 stream_child.alive
+session_move.parse
 claude.wire.encode
 claude.wire.decode
 claude.stream.line
@@ -196,11 +198,13 @@ ascii.frame.render
 stream_child.status
 stream_child.signal
 stream_child.disarm
+session_move.export
 plugin.auth.twofish
 io.ip.tcp.init_code
 claude.signal.raise
 claude.session.save
 claude.session.load
+claude.session.hold
 claude.handler.reap
 claude.cmd.sessions
 claude.child.stderr
@@ -245,6 +249,7 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.chk-sum.bmw.ctx
 base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
@@ -252,6 +257,8 @@ ascii.frame.validate
 stream_child.user_env
 stream_child.end_code
 stream_child.close_in
+session_move.transfer
+session_move.manifest
 jobqueue.get_next_job
 jobqueue.get_job_data
 format.yaml.load_file
@@ -277,8 +284,12 @@ base.console.commands
 base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
+session_move.read_text
+session_move.make_dirs
+session_move.is_prefix
 crypt.C25519.sign_data
 claude.stream.describe
+claude.session.running
 base.session.init_code
 base.required_bin_path
 base.register_src_deps
@@ -291,6 +302,8 @@ base.get_max_verbosity
 base.comp-int.is_valid
 base.cfg.profile.apply
 auth.client.owner_pins
+session_move.write_text
+session_move.lease.read
 protocol.sftp.init_code
 jobqueue.queue_template
 io.unix.socket.end_code
@@ -325,6 +338,7 @@ crypt.C25519.single_file
 crypt.C25519.load_single
 crypt.C25519.chk_key_dir
 claude.handler.stop_kill
+claude.cmd.session-lease
 base.zenka.push.pre_init
 base.zenka.is_v7_started
 base.templates.init_code
@@ -335,15 +349,20 @@ base.parser.command_list
 base.ntime.delta_seconds
 base.file.zulum_tmp_file
 base.cmd.verify-instance
+base.chk-sum.bmw.filesum
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 base.buffer.erase_secure
 ui.render.tree.invalidate
 stream_child.handler.reap
+session_move.lease.update
 jobqueue.priorities_table
 io.unix.socket.input.open
 crypt.C25519.root_key_dir
 crypt.C25519.load_keypair
+claude.session.transcript
+claude.cmd.session-import
+claude.cmd.session-export
 base.stream.advance_drain
 base.sourcecode.init_code
 base.session.cancel_route
@@ -367,6 +386,7 @@ protocol.sftp.read_ssh_env
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.encrypted_key
+claude.session.project_dir
 base.warnings.from_bitmask
 base.session.split_subname
 base.session.check.flushed
@@ -383,6 +403,7 @@ base.devmod.process_signal
 base.check_dependency_dirs
 stream_child.handler.stdout
 stream_child.handler.stderr
+session_move.lease.describe
 net.read_linewise_estimated
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
@@ -556,8 +577,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,..,...,,,,,,,.,..,,,..,,,,,,.,,.,.,..,,..,,...,...,..,,,..,,,.,.,.,,..,
-#E2CTRW2TLQEVWHLLLVNVQCMEDHEFFDQI2SACJXKQLSJQP72JPZMY3WHQTDVVZKMGOHIQEGU75P4GE
-#\\\|JWIHZNTINHRIUQEPUINEUZJVQ4VMQ27F3PUBCMEEFRBBVRJWIIQ \ / AMOS7 \ YOURUM ::
-#\[7]VZQCRIWA6HWBXHUID6YXHNKAVQFFA36IJJJB2NAAKSIKRAXY3GBA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,.,,..,...,.,,,,.,,,.,,,..,.,.,..,,...,...,...,,.,,,.,,,..,..,,
+#JXNGFWCCGGTY5RLJZBK7ZW477RAVA5GJRNSBO2XY7CSROJANG27VBEW4UJIB736JCNOG5X7D4CQVW
+#\\\|AGHGEHIWFTTGSX42YFGI2BPPN64QCIDMKMZCRYMBB4OGBS5KTCD \ / AMOS7 \ YOURUM ::
+#\[7]2REQWVAVNHVNKGK3C5ISGTTNOKFLKFAWPTJCZAGZ3EXYHT4WAUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

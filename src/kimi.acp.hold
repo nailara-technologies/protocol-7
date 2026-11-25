@@ -1,0 +1,57 @@
+## [:< ##
+
+# name   = kimi.acp.hold
+# descr  = the store lease this host holds for a session
+# args   = op [ record | renew | release ], id, then
+#          the session dir [ record ] or, on a resume,
+#          the local transcript [ renew ]
+# return = undef, or the reason a renew is refused
+#
+# acp.hold.<id> in the zenka dir points at the leased session dir. a
+# session never moved has none : renew and release do nothing.
+# export and import record it. release frees the lease in the store and
+# KEEPS the pointer : a later resume asks the store again
+
+my ( $op, $id, $path ) = @ARG;
+my $base = $path;
+return undef if ( $id // '' ) !~ m|\A[\w-]{8,80}\z|;
+my $name = "acp.hold.$id";
+
+if ( $op eq qw| record | ) {
+    my $text = "lease = $base\n";
+    return <[file.zenka_dir.write]>->( $name, \$text )
+        ? undef
+        : "cannot write $name";
+}
+my $sref = <[file.zenka_dir.load]>->($name);
+return undef if not defined $sref or $sref->$* !~ m{^lease\s*[=:]}m;
+$base = <[session_move.parse]>->( $sref->$* )->{'lease'};
+if ( not defined $base or not -d $base ) {
+    <[kimi.acp.event]>->(
+        qw| note |, 'the session store is not reachable : ' . ( $base // '?' )
+    );
+    return undef;
+}
+## a resume : the store must not be ahead of this host's transcript ##
+my $stored = "$base/agents/main/wire.jsonl";
+if (    $op eq qw| renew |
+    and defined $path
+    and -f $stored
+    and not <[session_move.is_prefix]>->( $stored, $path ) ) {
+    my $why = 'the store holds a newer or diverged transcript : import it';
+    <[kimi.acp.event]>->( qw| note |, "lease $op : $why" );
+    return $why;
+}
+my $r = <[session_move.lease.update]>->(
+    $base, $op eq qw| renew | ? qw| acquire | : qw| release |,
+    <kimi.acp.cfg.lease_hours>
+);
+return undef if not defined $r->{'error'};
+<[kimi.acp.event]>->( qw| note |, "lease $op : $r->{'error'}" );
+return $op eq qw| renew | ? $r->{'error'} : undef;
+
+#,,,,,.,.,,,,,.,.,,..,.,,,,.,,.,.,...,...,,,.,..,,...,..,,,..,.,.,,.,,,..,,.,,
+#4HPFPPITW2ZVNERF6YSY5433VDV5O4B6PGQAEXUIZTVADJTHUM4CGSUU3CZ67A7RRI7W7JQ6ZXWYG
+#\\\|THD7UJVNIHFKWEEAZ62VJMJ4JHMCXGOZXSLX5NRBMRVK3WHLL2Y \ / AMOS7 \ YOURUM ::
+#\[7]SKQV7S43QHQAZJ6N67YF6STU54QA462XX5Q4KN4IOHT4HSWJHSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

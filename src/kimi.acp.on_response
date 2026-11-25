@@ -78,6 +78,7 @@ if ( $kind eq qw| session | ) {
 
 if ( $kind eq qw| prompt | ) {
     <[kimi.acp.flush_chunk]>;
+    <[kimi.acp.hold]>->( qw| renew |, $st->{'session_id'} );
     my $state = defined $why ? qw| error | : $result->{'stopReason'}
         // qw| end_turn |;
     $st->{'turn'}  = undef;
@@ -93,8 +94,8 @@ if ( $kind eq qw| prompt | ) {
 
 return TRUE;
 
-#,,,.,,,,,,..,..,,,.,,,,.,..,,,.,,,,.,,.,,,.,,..,,...,...,.,,,.,,,..,,.,,,.,.,
-#EUYWFT7T7IYOMTELICHUYU52FH2KYORJMTRZYGB2STC2MVLCGI27EO7ZSFLFOQ7HW23CDAFWYEORY
-#\\\|HBW2ZPYEFTPMQO3HMLIZSNC2D2KSLAOHVWGAWRUSVR4LM2NTILF \ / AMOS7 \ YOURUM ::
-#\[7]YIER5URONXDN3UWNYL4YH6WLBD4OMJHUCCUSZVIT5EU653KEIIBQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,,,.,...,.,.,,,,,,.,,,..,,,,,..,,...,...,.,,,,.,,,,,,,,.,,.,,
+#65JLKNFIHJ3Q64GTWX6TAEMKPQPSXISRCDUWS3HDCNNZ6675ROFSB6Q4DMAHEOQI5QH7GZW4QNICA
+#\\\|43XOXMNIXWZ4K3D2Y47FRILHPOB3KMEHMEQFYULU4CSUMQGK37A \ / AMOS7 \ YOURUM ::
+#\[7]4Q45GP5LGRENLHBIAE3Z6LPDYEXYA3YZALYKN6JEI55XWBTMFWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

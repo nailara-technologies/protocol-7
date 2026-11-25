@@ -4,16 +4,19 @@
 # descr = end the claude code process [ the session is kept ]
 
 CORE::splice( @{ <claude.queue> //= [] } );
-return { 'mode' => qw| false |, 'data' => 'claude is not running' }
-    if not <[claude.child.stop]>;
+if ( not <[claude.child.stop]> ) {
+    <[claude.session.hold]>->( qw| release |, <claude.session> )
+        if not <[claude.session.running]>;
+    return { 'mode' => qw| false |, 'data' => 'claude is not running' };
+}
 return {
     'mode' => qw| true |,
     'data' => 'claude stopping [ session '
         . ( <claude.session> // '-' ) . ' ]'
 };
 
-#,,..,.,,,.,,,,..,..,,.,.,...,..,,,.,,,,,,.,.,..,,...,...,..,,,..,.,.,.,.,..,,
-#ES3GH2XMVK6BHUI7OBE7EIZP22WCRVJT5TSWD2DIQI2B4TZNXY2HPSQIS7EVVRMEPNOVJUST34RTE
-#\\\|Z6BI4CRHA6TBUS7NEGR2NMUNPKIHBA2M7BV6DHXF4NWRNJV77EX \ / AMOS7 \ YOURUM ::
-#\[7]ANO35SQDKDTK475AURSO6MKIPYKECERLVF34YHXPZ7PPZQQTUEBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,,,.,,,,,,,.,.,.,.,,,,,.,.,.,..,,...,...,,.,,.,.,,,.,.,.,.,.,
+#EYPD77ZD5HXESKIZ4VWFUWMRALR4J5SKQF5KUK7HPQBZVVSU426GP4QRRWSNWH7ZRRU4H73LISPD2
+#\\\|VHZ43KBHATL7WVI53RLNRECV5EOPTXHJJFJMEXFIXEGRB3YCOU2 \ / AMOS7 \ YOURUM ::
+#\[7]ACUB7LP5D32LRN5Q4JY7PVKG4KE2U3QVSS2EKFFSE4CPXYNGGUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

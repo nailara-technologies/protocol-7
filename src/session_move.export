@@ -1,0 +1,69 @@
+## [:< ##
+
+# name   = session_move.export
+# descr  = a session's files and manifest into the store
+# args   = { store, kind, id, work_dir, hours, files }
+# return = { ok, base, names } | { error }
+#
+# files : [ { name, from, append } ] -- the caller's list is all that is
+# ever copied, no directory is walked. the lease is taken for the copy
+# and released when the export is complete
+
+my $in = shift;
+my ( $store, $kind, $id ) = @{$in}{qw| store kind id |};
+return { 'error' => "store '$store' : an existing absolute dir expected" }
+    if ( $store // '' ) !~ m{\A/} or not -d $store;
+return { 'error' => "cannot make $store/$kind/$id" }
+    if not <[session_move.make_dirs]>->( $store, "$kind/$id" );
+my $base = "$store/$kind/$id";
+
+my $lease
+    = <[session_move.lease.update]>->( $base, qw| acquire |, $in->{'hours'} );
+return $lease if defined $lease->{'error'};
+
+my ( @list, $error );
+foreach my $file ( @{ $in->{'files'} } ) {
+    my $name = $file->{'name'};
+    my $dir  = $name =~ m{\A(.+)/[^/]+\z} ? $1 : '';
+    if ( not <[session_move.make_dirs]>->( $base, $dir ) ) {
+        $error = "$name : cannot make its dir in the store";
+        last;
+    }
+    push @list, { %{$file}, 'to' => "$base/$name" };
+}
+my $r;
+$r = <[session_move.transfer]>->( \@list ) if not defined $error;
+$error //= $r->{'error'};
+
+if ( not defined $error ) {
+    my $manifest
+        = sprintf "## session continuity manifest ##\n\nkind     = "
+        . "%s\nsession  = %s\nwork_dir = %s\nhost     = "
+        . "%s\ntime     = %d\n\n## size sum name ##\n",
+        $kind, $id, $in->{'work_dir'}, <[session_move.host]>,
+        CORE::time();
+    $manifest .= "file     = $ARG->{'size'} $ARG->{'sum'} $ARG->{'name'}\n"
+        foreach @{ $r->{'files'} };
+    $error = 'cannot write the manifest'
+        if not <[session_move.write_text]>->( "$base/manifest", $manifest );
+}
+
+if ( defined $error ) {
+    <[session_move.lease.update]>->( $base, qw| release | )
+        if not $lease->{'had'};
+    return { 'error' => $error };
+}
+my $freed = <[session_move.lease.update]>->( $base, qw| release | );
+return { 'error' => "exported, lease kept : $freed->{'error'}" }
+    if defined $freed->{'error'};
+return {
+    'ok'    => TRUE,
+    'base'  => $base,
+    'names' => [ map { $ARG->{'name'} } @{ $r->{'files'} } ]
+};
+
+#,,.,,..,,.,.,,,,,.,,,...,,..,,..,,..,.,.,.,,,..,,...,...,...,,.,,,,.,,,,,.,,,
+#546NR5BBJS4OEZD7AXTOEKR64WMML3FUSRQ3AERSVRHA47II77WROEUZ77HQBS6UGHDCXICUCOJUS
+#\\\|EQZTX5AIUDBL3CUAU7J3QXYT6BPXQLLH2H7CPONEGYPUZT6CBBR \ / AMOS7 \ YOURUM ::
+#\[7]Z3EC5MZAOQC7EB5HWZ6JLRBXZYDJ5EQT3QASWYMTYFK7ACSSK2DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,20 @@
+## [:< ##
+
+# name   = session_move.read_text
+# descr  = a text file as one string
+# args   = path
+# return = text, or undef [ missing, a symlink ]
+
+my $path = shift;
+return undef if -l $path                         or not -f $path;
+CORE::open( my $fh, '<:encoding(UTF-8)', $path ) or return undef;
+local $RS = undef;
+my $text = <$fh>;
+CORE::close($fh);
+return $text // '';
+
+#,,,.,..,,,,.,,.,,...,.,,,,..,,,,,.,.,...,,,,,..,,...,...,...,.,,,,,.,,.,,,,.,
+#EVT73QMJALEHSJHW4YUQEZIEWPCKBFA3B7KS7C3CO5UQ67XP7OHDPOSFOWNTLIIZ5VNBKLEBCDECQ
+#\\\|U4QFXIKMY7NK2SEBNKOKDGHD3WH4CZYY34I4RWKP6MK2XZ7ZNLH \ / AMOS7 \ YOURUM ::
+#\[7]NZ5DHYTSHLFXN3BZD4TUGX6UUZS6ASKM3WZCVL653I2DTN7SBQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

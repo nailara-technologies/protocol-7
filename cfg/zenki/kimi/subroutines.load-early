@@ -45,6 +45,7 @@ net.init_code
 net.calc_port
 kimi.end_code
 kimi.acp.stop
+kimi.acp.hold
 base.timezone
 base.sprint_t
 base.sort-num
@@ -149,6 +150,7 @@ stream_child.step
 stream_child.reap
 stream_child.note
 stream_child.gone
+session_move.host
 plugin.auth.zenka
 net.read_bytewise
 kimi.task.execute
@@ -184,6 +186,7 @@ stream_child.write
 stream_child.start
 stream_child.flush
 stream_child.alive
+session_move.parse
 kimi.task.complete
 kimi.connect.local
 kimi.cmd.task-file
@@ -215,6 +218,7 @@ websocket.init_code
 stream_child.status
 stream_child.signal
 stream_child.disarm
+session_move.export
 plugin.auth.twofish
 kimi.session.create
 kimi.intake.process
@@ -271,6 +275,7 @@ base.eval.comp_regex
 base.disable_command
 base.devmod.dump_var
 base.cmd.show-buffer
+base.chk-sum.bmw.ctx
 base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
@@ -278,6 +283,8 @@ ascii.frame.validate
 stream_child.user_env
 stream_child.end_code
 stream_child.close_in
+session_move.transfer
+session_move.manifest
 kimi.task.queue_clear
 kimi.cmd.session-info
 jobqueue.get_next_job
@@ -308,9 +315,13 @@ base.cmd.buffer-erase
 base.cfg.profile.list
 base.balanced-average
 websocket.handler.read
+session_move.read_text
+session_move.make_dirs
+session_move.is_prefix
 kimi.watcher.ws_status
 kimi.task.queue_status
 kimi.acp.session_store
+kimi.acp.session_paths
 kimi.acp.agent_request
 crypt.C25519.sign_keys
 crypt.C25519.sign_data
@@ -329,6 +340,8 @@ base.comp-int.is_valid
 base.cfg.profile.apply
 base.call_online_hooks
 auth.client.owner_pins
+session_move.write_text
+session_move.lease.read
 protocol.sftp.init_code
 kimi.task.queue_enqueue
 kimi.handler.ws_message
@@ -383,11 +396,13 @@ base.file.zulum_tmp_file
 base.file.zenka_dir.load
 base.file.strip_path_str
 base.cmd.verify-instance
+base.chk-sum.bmw.filesum
 base.chk-sum.bmw.L13-str
 base.check_cfg_cmd_alias
 base.buffer.erase_secure
 ui.render.tree.invalidate
 stream_child.handler.reap
+session_move.lease.update
 kimi.helper.task_priority
 kimi.flush_on_acquisition
 jobqueue.priorities_table
@@ -419,6 +434,7 @@ stream_child.handler.stdin
 protocol.sftp.read_ssh_env
 kimi.wire.question_respond
 kimi.wire.approval_respond
+kimi.cmd.acp-session-lease
 io.unix.socket.output.open
 io.unix.socket.input.close
 crypt.C25519.key_checksums
@@ -442,9 +458,13 @@ base.devmod.process_signal
 base.check_dependency_dirs
 stream_child.handler.stdout
 stream_child.handler.stderr
+session_move.lease.describe
 net.read_linewise_estimated
 kimi.event.on_task_complete
 kimi.connect.schedule_retry
+kimi.cmd.acp-session-import
+kimi.cmd.acp-session-export
+kimi.acp.session_transcript
 io.unix.socket.output.close
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
@@ -640,8 +660,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,.,,,,,.,,.,,.,,,.,.,,..,..,,...,...,.,,,..,,...,..,,.,.,..,,.,.,,.,,...,
-#XMVZXIKQTFUEQM5HW5BIF3IAW5KH3GWG5AIW5XTOPXKCXBQDPGXMKDGVFCH57MWFYPADPBDTGD2LK
-#\\\|EEAMBDK4Z7LSEVE52E66TQJPHSKB4ODQASAS2EPIM4WQXBU7B7H \ / AMOS7 \ YOURUM ::
-#\[7]FICAANZQLM77ASSE3ZIQANCGL7EMMW4ANDNJPQMGXZS72YYLU4BQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,,,,,,,,,...,.,,,...,.,.,.,,,..,,...,...,,.,,,,,,...,...,,..,
+#43D7RYYHIHSWWGXP5EO56OQ6ZBT3EDXSEHZLDJB2ZG5RJOD4DKQVINYPLLRVMOMMBHW7G2ZXBYMRS
+#\\\|YKQOV7WZ2HJ7FVZIRO345NC5WZ6GOAZVZFBYPQSWQ5VUUQUOHCK \ / AMOS7 \ YOURUM ::
+#\[7]3SV2WPOLFIWVHFDJ3NW27UC2ESZNBL4ZHH54QK334NM6SIHQ5ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

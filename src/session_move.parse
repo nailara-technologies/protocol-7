@@ -1,0 +1,23 @@
+## [:< ##
+
+# name   = session_move.parse
+# descr  = p7 config style text [ = and : are equal ]
+# args   = text
+# return = hash ref [ 'file' lines : array ref ]
+
+my $text = shift // '';
+my %cfg  = ( 'file' => [] );
+foreach my $line ( CORE::split m{\n}, $text ) {
+    next if $line =~ m{\A\s*(?:#|\z)};
+    my ( $key, $value ) = $line =~ m{\A\s*([\w.-]+)\s*[=:]\s*(.*?)\s*\z}
+        or next;
+    if ( $key eq qw| file | ) { push @{ $cfg{'file'} }, $value }
+    else                      { $cfg{$key} = $value }
+}
+return \%cfg;
+
+#,,,.,.,,,,.,,.,,,...,.,,,,.,,...,,,,,..,,,,.,..,,...,...,.,.,,,,,,,.,.,,,,..,
+#IMVNOURXJ3JPI4JIPEP5KBTTHK7EP3RUNDNRUEBWJMGWS2B4LG5UZDHI6VOJIOBE3UZDXJLGRJCPK
+#\\\|I7E4O47OFJHVW33MNWDHPMGZLAJQR5IATWZGFHVWIEZXA6LDJZS \ / AMOS7 \ YOURUM ::
+#\[7]7L256EILJJ3GFHORKG4NODQAHL7ZSKVR5XAEFHPCLN6AZFKNMQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

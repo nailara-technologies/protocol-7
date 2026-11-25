@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = claude.cmd.session-export
+# param = <store dir>
+# descr = copy the stopped session into a store dir
+
+my ($store) = ( $call->{'args'} // '' ) =~ m{\A\s*(\S+)\s*\z};
+return { 'mode' => qw| false |, 'data' => 'expected : <store dir>' }
+    if not defined $store;
+return {
+    'mode' => qw| false |,
+    'data' => 'claude is running : stop it first'
+    }
+    if <[claude.session.running]>;
+
+my $id  = <claude.session> // '';
+my $var = <[claude.var_dir]>;
+return { 'mode' => qw| false |, 'data' => 'no session recorded' }
+    if $id !~ m|\A[\w-]{8,80}\z|
+    or not defined $var;
+my $at = <[claude.session.project_dir]>;
+return { 'mode' => qw| false |, 'data' => $at->{'error'} }
+    if defined $at->{'error'};
+
+## exactly these three : never anything else of the config dir ##
+my @files = (
+    {   'name'   => "$id.jsonl",
+        'from'   => "$at->{'dir'}/$id.jsonl",
+        'append' => TRUE
+    },
+    { 'name' => qw| session.cfg |, 'from' => "$var/session.cfg" }
+);
+
+my $tail = "$var/events.tail.export.$PID";
+if ( -f "$var/events.log"
+    and CORE::open( my $fh, '<:encoding(UTF-8)', "$var/events.log" ) ) {
+    my @last;
+    while ( my $line = <$fh> ) {
+        push @last, $line;
+        CORE::shift(@last) if @last > 377;
+    }
+    CORE::close($fh);
+    push @files, { 'name' => qw| events.tail |, 'from' => $tail }
+        if <[session_move.write_text]>->( $tail, join '', @last );
+}
+
+my $r = <[session_move.export]>->(
+    {   'store'    => $store,
+        'kind'     => qw| claude |,
+        'id'       => $id,
+        'work_dir' => $at->{'work_dir'},
+        'hours'    => <claude.cfg.lease_hours>,
+        'files'    => \@files
+    }
+);
+CORE::unlink($tail);
+return { 'mode' => qw| false |, 'data' => $r->{'error'} }
+    if defined $r->{'error'};
+## the pointer stays : a resume here asks the store first ##
+my $kept = <[claude.session.hold]>->( qw| record |, $id, $r->{'base'} );
+return { 'mode' => qw| false |, 'data' => "exported, but : $kept" }
+    if defined $kept;
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'session %s exported [ %s ], lease released',
+        $id, join( ' ', @{ $r->{'names'} } )
+    )
+};
+
+#,,.,,.,,,...,...,..,,,..,...,...,..,,...,,,,,..,,...,...,.,.,,.,,...,,,.,.,,,
+#CS5ZNX6GEUNM7CBA3ZODA5IGPZPGZMDGXSYW4NJDI25AUXMBARTRKFL5H4C2KZG52AZUSUBBGHSSW
+#\\\|3VQK4BHGNPSKXDULU7QAHXFPOOLWNFXSI4BMATHBJTG4CLYCLNC \ / AMOS7 \ YOURUM ::
+#\[7]2HCPTOGUIP54QTUCW2E2EOGJKFQPWK3T7IZVPTPUPBFD5T7P6MDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

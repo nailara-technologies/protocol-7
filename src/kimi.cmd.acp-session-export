@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = kimi.cmd.acp-session-export
+# param = <store dir> [ <session id> ]
+# descr = copy the stopped acp session into a store dir
+
+my ( $store, $id )
+    = ( $call->{'args'} // '' ) =~ m|\A\s*(\S+)(?:\s+([\w-]{8,80}))?\s*\z|;
+return { 'mode' => qw| false |, 'data' => 'expected : <store dir> [ <id> ]' }
+    if not defined $store;
+return {
+    'mode' => qw| false |,
+    'data' => 'kimi acp is running : stop first'
+    }
+    if <[kimi.acp.state]>->()->{'phase'} ne qw| stopped |;
+$id //= <[kimi.acp.session_store]>->(qw| load |) // '';
+return { 'mode' => qw| false |, 'data' => 'no session recorded' }
+    if $id !~ m|\A[\w-]{8,80}\z|;
+
+my $at = <[kimi.acp.session_paths]>;
+return { 'mode' => qw| false |, 'data' => $at->{'error'} }
+    if defined $at->{'error'};
+
+## kimi's index names the session dir [ json lines, the last entry wins ] ##
+<[base.perlmod.load]>->(qw| JSON::XS |);
+my ( $dir, $work )
+    = ( "$at->{'home'}/sessions/$at->{'key'}/$id", $at->{'work_dir'} );
+if ( CORE::open( my $fh, '<:raw', "$at->{'home'}/session_index.jsonl" ) ) {
+    while ( my $line = <$fh> ) {
+        my $d = eval { JSON::XS::decode_json($line) };
+        next
+            if ref $d ne qw| HASH |
+            or ( $d->{'sessionId'} // '' ) ne $id;
+        ( $dir, $work ) = ( $d->{'sessionDir'}, $d->{'workDir'} // $work );
+    }
+    CORE::close($fh);
+}
+return { 'mode' => qw| false |, 'data' => "no kimi session $id" }
+    if not defined $dir
+    or index( $dir, "$at->{'home'}/sessions/" ) != 0
+    or $dir =~ m{/\.\.(?:/|\z)}
+    or not -f "$dir/state.json";
+
+## named files only : state.json and each agent's transcript ##
+my @files = ( { 'name' => qw| state.json |, 'from' => "$dir/state.json" } );
+if ( CORE::opendir( my $dh, "$dir/agents" ) ) {
+    foreach my $agent ( sort grep {m{\A[\w-]+\z}} CORE::readdir($dh) ) {
+        next
+            if -l "$dir/agents/$agent"
+            or not -f "$dir/agents/$agent/wire.jsonl";
+        push @files,
+            {
+            'name'   => "agents/$agent/wire.jsonl",
+            'from'   => "$dir/agents/$agent/wire.jsonl",
+            'append' => TRUE
+            };
+    }
+    CORE::closedir($dh);
+}
+return { 'mode' => qw| false |, 'data' => 'no main agent transcript' }
+    if not grep { $ARG->{'name'} eq qw| agents/main/wire.jsonl | } @files;
+
+my $r = <[session_move.export]>->(
+    {   'store'    => $store,
+        'kind'     => qw| kimi |,
+        'id'       => $id,
+        'work_dir' => $work,
+        'hours'    => <kimi.acp.cfg.lease_hours>,
+        'files'    => \@files
+    }
+);
+return { 'mode' => qw| false |, 'data' => $r->{'error'} }
+    if defined $r->{'error'};
+## the pointer stays : a resume here asks the store first ##
+my $kept = <[kimi.acp.hold]>->( qw| record |, $id, $r->{'base'} );
+return { 'mode' => qw| false |, 'data' => "exported, but : $kept" }
+    if defined $kept;
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'session %s exported [ %s ], lease released',
+        $id, join( ' ', @{ $r->{'names'} } )
+    )
+};
+
+#,,,,,,..,,,.,,,,,,..,.,.,...,..,,..,,.,,,,..,..,,...,..,,,,.,,.,,..,,.,.,,.,,
+#4HBKLZMP2BRUTHCF44XFDEG542LJ4ZRJ27SG5EBKNJXHASUWFLAUUPNEN2BYWRQNPOSUKOHMCN37I
+#\\\|6L3OFM4YQOOE7ACQ4T4FZHV3UDSV62XCN4SQQVFI56VDCHNVU32 \ / AMOS7 \ YOURUM ::
+#\[7]OO7LSG4P5TZ2OAKWNQGHC3JO777S67PFQV3KWXAZ3AMX4KB3VSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

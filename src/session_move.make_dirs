@@ -1,0 +1,23 @@
+## [:< ##
+
+# name   = session_move.make_dirs
+# descr  = make the dirs of a path below a base [ 0700 ]
+# args   = existing base dir, relative dir
+# return = TRUE | FALSE [ a symlink or a file in the way ]
+
+my ( $path, $relative ) = @ARG;
+return FALSE if not -d $path;
+foreach my $part ( grep {length} CORE::split m{/}, $relative // '' ) {
+    return FALSE if $part eq qw| . | or $part eq qw| .. |;
+    $path .= "/$part";
+    return FALSE               if -l $path;
+    CORE::mkdir( $path, 0700 ) if not -e $path;
+    return FALSE               if not -d $path;
+}
+return TRUE;
+
+#,,..,..,,.,,,,.,,.,.,.,.,.,,,...,,.,,,.,,,.,,..,,...,...,...,..,,,..,..,,...,
+#IGNWOQHKSEHX3ZMTJ7GHN57SX24GDK7ANZ4PAOCAUYBPAGIN7ODIY77OWUI5PSSIV7EZXKSNCBYHY
+#\\\|GQQV7BDZQUYC6SWCAPTZIYP2IUNCAN3KXUJZ5PBFCNGMFFT6PUE \ / AMOS7 \ YOURUM ::
+#\[7]J223DU4QHQHJMQLK47IF5GYT42AARX2Q2AGEJH6JKGFXDIH4QMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

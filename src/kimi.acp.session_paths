@@ -1,0 +1,46 @@
+## [:< ##
+
+# name   = kimi.acp.session_paths
+# descr  = kimi's session store paths for the work dir
+# return = { home, work_dir, key } | { error }
+#
+# the workspace dir name of kimi code itself [ encodeWorkDirKey, read
+# from the installed binary, equal to the dirs under sessions/ ] :
+# wd_<slug of the last part>_<12 hex of sha256 of the path>. sha256 is
+# kimi's external format, nothing internal uses it
+
+my $work = <kimi.cfg.work_dir> // <system.root_path> // '';
+return { 'error' => "work dir '$work' : an absolute dir expected" }
+    if $work !~ m{\A/} or not -d $work;
+( my $normal = $work ) =~ s{(?<=.)/+\z}{};
+
+my $slug = lc( ( CORE::split m{/}, $normal )[-1] // $normal );
+$slug =~ s{[^a-z0-9._-]+}{-}g;
+$slug =~ s{\A-+|-+\z}{}g;
+$slug = substr $slug, 0, 40;
+$slug =~ s{\A-+|-+\z}{}g;
+$slug = qw| workspace | if $slug =~ m|\A\.{0,2}\z|;
+
+<[base.perlmod.load]>->(qw| Digest::SHA |);
+my $octets = $normal;
+utf8::encode($octets) if utf8::is_utf8($octets);
+
+my $home = <kimi.acp.cfg.kimi_home>;
+if ( not defined $home ) {
+    my $user = <[stream_child.user_env]>->()->{'HOME'};
+    return { 'error' => 'no home dir for the zenka user' }
+        if not defined $user;
+    $home = "$user/.kimi-code";
+}
+return {
+    'home'     => $home,
+    'work_dir' => $normal,
+    'key'      => sprintf 'wd_%s_%s',
+    $slug, substr( Digest::SHA::sha256_hex($octets), 0, 12 )
+};
+
+#,,..,...,,.,,,,.,...,.,.,.,,,,,.,.,.,,,,,,,,,..,,...,...,...,...,,..,...,,.,,
+#TT4Y5XZW7XBO2KOOEAOVADG3CZBMGHAW5E2ZARPX3XH3K7RCPOWZGERTBPUP3TE5MZUFUHQRXUVDM
+#\\\|UMVWFFVNK3TU4BZ6PJPAV3CTM6UKIMMK6IH7TIEBE2DW2RNK6GQ \ / AMOS7 \ YOURUM ::
+#\[7]4T5SB5CMBOEJW3IHLQMLEUFEA5D7Q3KHVEN7SROOFCPUAIDASKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

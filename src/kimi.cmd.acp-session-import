@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = kimi.cmd.acp-session-import
+# param = <store dir> <session id>
+# descr = take a stored session : acp-start resumes it
+
+my ( $store, $id )
+    = ( $call->{'args'} // '' ) =~ m|\A\s*(\S+)\s+([\w-]{8,80})\s*\z|;
+return { 'mode' => qw| false |, 'data' => 'expected : <store dir> <id>' }
+    if not defined $id;
+return {
+    'mode' => qw| false |,
+    'data' => 'kimi acp is running : stop first'
+    }
+    if <[kimi.acp.state]>->()->{'phase'} ne qw| stopped |;
+my $base = "$store/kimi/$id";
+return { 'mode' => qw| false |, 'data' => "no stored session in $base" }
+    if $store !~ m{\A/}
+    or not -d $base;
+
+my $lease = <[session_move.lease.update]>->(
+    $base, qw| acquire |, <kimi.acp.cfg.lease_hours>
+);
+return { 'mode' => qw| false |, 'data' => $lease->{'error'} }
+    if defined $lease->{'error'};
+my $fail = sub {
+    <[session_move.lease.update]>->( $base, qw| release | )
+        if not $lease->{'had'};
+    return { 'mode' => qw| false |, 'data' => shift };
+};
+
+my $m = <[session_move.manifest]>->(
+    $base, qw| kimi |, $id, qr{\A(?:state\.json|agents/[\w-]+/wire\.jsonl)\z}
+);
+return $fail->( $m->{'error'} ) if defined $m->{'error'};
+return $fail->('manifest : state or main transcript missing')
+    if not exists $m->{'files'}{'state.json'}
+    or not exists $m->{'files'}{'agents/main/wire.jsonl'};
+
+my $at = <[kimi.acp.session_paths]>;
+return $fail->( $at->{'error'} ) if defined $at->{'error'};
+return $fail->("no kimi home $at->{'home'} : log in there first")
+    if not -d $at->{'home'};
+my $relative = "sessions/$at->{'key'}/$id";
+my $dir      = "$at->{'home'}/$relative";
+
+my @list;
+foreach my $name ( sort keys %{ $m->{'files'} } ) {
+    next if $name eq qw| state.json |;
+    my $sub = $name =~ m{\A(.+)/} ? $1 : '';
+    return $fail->("cannot make $dir/$sub")
+        if not
+        <[session_move.make_dirs]>->( $at->{'home'}, "$relative/$sub" );
+    push @list,
+        { %{ $m->{'files'}{$name} }, 'to' => "$dir/$name", 'append' => TRUE };
+}
+## state.json holds the old host's paths : staged beside, then rewritten ##
+my $staged = "$dir/state.json.import";
+push @list, { %{ $m->{'files'}{'state.json'} }, 'to' => $staged };
+my $r = <[session_move.transfer]>->( \@list );
+return $fail->( $r->{'error'} ) if defined $r->{'error'};
+
+## external json, decoded here at the edge ##
+<[base.perlmod.load]>->(qw| JSON::XS |);
+my $json  = JSON::XS->new->utf8->canonical;
+my $state = eval {
+    CORE::open( my $fh, '<:raw', $staged ) or die "cannot read\n";
+    local $RS = undef;
+    $json->decode( scalar <$fh> );
+};
+CORE::unlink($staged);
+return $fail->('state.json : not readable json')
+    if ref $state ne qw| HASH |;
+$state->{'cwd'} = $at->{'work_dir'} if exists $state->{'cwd'};
+if ( ref $state->{'agents'} eq qw| HASH | ) {
+    foreach my $agent ( keys %{ $state->{'agents'} } ) {
+        my $entry = $state->{'agents'}{$agent};
+        $entry->{'homedir'} = "$dir/agents/$agent"
+            if ref $entry eq qw| HASH |
+            and exists $entry->{'homedir'}
+            and $agent =~ m{\A[\w-]+\z};
+    }
+}
+my $text = $json->encode($state);
+utf8::decode($text);
+return $fail->('cannot write state.json')
+    if not <[session_move.write_text]>->( "$dir/state.json", $text );
+
+## kimi's index : one appended line, its other files are left alone ##
+my $line = $json->encode(
+    {   'sessionId'  => $id,
+        'sessionDir' => $dir,
+        'workDir'    => $at->{'work_dir'}
+    }
+);
+my $index = "$at->{'home'}/session_index.jsonl";
+return $fail->('session_index.jsonl : a symlink') if -l $index;
+CORE::open( my $ifh, '>>:raw', $index )
+    or return $fail->("cannot append to $index");
+print {$ifh} "$line\n";
+CORE::close($ifh) or return $fail->("cannot append to $index");
+
+my $why = <[kimi.acp.hold]>->( qw| record |, $id, $base );
+return $fail->($why) if defined $why;
+return $fail->('cannot save the session id')
+    if not <[kimi.acp.session_store]>->( qw| save |, $id );
+<[kimi.acp.event]>->(
+    qw| note |, "session $id imported from host $m->{'host'}"
+);
+return {
+    'mode' => qw| true |,
+    'data' => "session $id imported [ from $m->{'host'}, $m->{'work_dir'} "
+        . "-> $at->{'work_dir'} ] : acp-start resumes it"
+};
+
+#,,,,,,,,,..,,..,,,,.,..,,.,,,,,,,,,.,...,...,..,,...,...,.,,,.,,,..,,,,,,,..,
+#6WDAJA7J5D32GFKFJQKEPTZBHB76MWUEWULUYY7UYZWPKKO6IYM2HEZ4XCCI67BA5TCGZ5XHH734O
+#\\\|EVWJJL5FFAW4PERVCLNRGDIZPINADDEKYWHLWBCHS6YV65VYJKJ \ / AMOS7 \ YOURUM ::
+#\[7]XFTU46UU2DOAN3VDYZULFGJ7X3HK5YPRTNU2RT7IHOQOKMJZYGCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

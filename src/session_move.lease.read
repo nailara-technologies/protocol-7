@@ -1,0 +1,24 @@
+## [:< ##
+
+# name   = session_move.lease.read
+# descr  = the lease of a stored session
+# args   = session dir in the store
+# return = { host, pid, since, until } | undef [ none ]
+#
+# a lease file that cannot be read as one is returned with a host '?'
+# and no end : it blocks until a person removed it
+
+my $base = shift;
+my $file = "$base/lease";
+return undef if not -e $file and not -l $file;
+my $cfg = <[session_move.parse]>->( <[session_move.read_text]>->($file) );
+return { 'host' => '?', 'broken' => TRUE }
+    if not length( $cfg->{'host'} // '' )
+    or ( $cfg->{'until'} // '' ) !~ m{\A\d+\z};
+return { map { ( $ARG => $cfg->{$ARG} // '' ) } qw| host pid since until | };
+
+#,,,,,.,,,.,.,..,,.,.,..,,...,..,,,,.,.,.,.,,,..,,...,...,.,.,.,,,.,.,..,,,.,,
+#5EEQIXGGXZL4TIWI4GPARKEDXHH6HKN3IMHUBNTPJBWXKQMR6V6QN25KFVKYL6KMIVD27ZZEVD4ZW
+#\\\|G477IKYVALJ3GW54JLKOCI63HFE64MC2XN3GWZGT2L2NMHLQI6E \ / AMOS7 \ YOURUM ::
+#\[7]QU45LVVSUWUF7M62M3B6CN3ARPATXDWLQUJTYY5RKP7WSFWTFOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

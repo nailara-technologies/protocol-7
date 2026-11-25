@@ -12,7 +12,8 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       src-age src-ver subname name \
                       start send interrupt status tail stop permission \
                       session-register session-unregister \
-                      session-post sessions
+                      session-post sessions \
+                      session-export session-import session-lease
 
 system.zenka.verbosity.buffer  = 2
 system.zenka.verbosity.console = 2
@@ -33,6 +34,9 @@ claude.cfg.args   = -p --input-format stream-json \
 # claude.cfg.var_dir                =      ## default : the zenka data dir
 ## interrupt : control [ a stream-json control_request ] or signal [ SIGINT ]
 claude.cfg.interrupt    = control
+## session continuity : how long a store lease holds without a renewal   ##
+# claude.cfg.lease_hours  = 13
+# claude.cfg.config_dir   =              ## default : ~/.claude of the user
 ## readable event lines kept in memory [ claude.status \ claude.tail ]
 claude.cfg.buffer_lines = 377
 
@@ -48,7 +52,8 @@ base.interval.cfg.type.claude-reap.factor     = 1.6
 base.interval.cfg.type.claude-reap.cap        = 8
 base.interval.cfg.type.claude-reap.cap_jitter = 1
 
-modules.load = auth.client net protocol io.unix ui stream_child claude
+modules.load = auth.client net protocol io.unix ui stream_child session_move \
+               claude
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -61,8 +66,8 @@ modules.load = auth.client net protocol io.unix ui stream_child claude
 
 [zenka.loop]
 
-#,,..,,..,,.,,.,.,.,,,.,,,...,.,,,,.,,.,,,,.,,..,,...,...,.,,,,.,,...,,.,,.,,,
-#VBOQPBCFGEU2M3PNSCXDXS44UOE2JUYC2JZHQT64LUSUF4EUBJUMSPBQK3OOSRNQL53DJWQYD23HE
-#\\\|WHG2OZG32KJKLWKZLBMON5662HPAUCBIOXSTGDJUB5MW2K2WW7Q \ / AMOS7 \ YOURUM ::
-#\[7]XE3EFXTIVUMEH6JVTWHJ6444KX4PJXW6JOSBTQ7IF3MHS7ZBDWAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,...,,..,,,,,,..,,..,.,.,.,,,...,..,,...,...,...,...,..,,.,.,.,,,
+#G3HH64W24JZ634UL65KN4NHC7YZHVY5ZPNLJILQKUPVZQIHKKKPCPPQNCX7EQBOYPLMGPARVFVBTC
+#\\\|CAPE42PTSQ7FCD6A7M2LSBKVO7BOCHK2UKYJTA73REHDRRHUFS2 \ / AMOS7 \ YOURUM ::
+#\[7]ONO5ANHIYVYLJATGWVZKTYTD73ZL6JBA6SASLFGHOI3ZQO5JJMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

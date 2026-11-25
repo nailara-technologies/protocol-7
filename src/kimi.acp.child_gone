@@ -37,12 +37,14 @@ my $had_turn = defined $st->{'turn'}
     'stopping' => FALSE
 );
 <[base.zenki.resume_ondemand_timeout]>;
+<[kimi.acp.hold]>->( qw| release |, $st->{'session_id'} )
+    if $was_stopping;
 <[kimi.acp.raise_done]>->( $was_stopping ? qw| stopped | : qw| crashed | )
     if $had_turn;
 return TRUE;
 
-#,,,.,.,.,,,.,..,,,.,,.,.,,.,,,,,,,..,,..,.,,,..,,...,...,,,,,...,...,.,,,..,,
-#Y3UEEWWRBUM25CVEQ4FTY2T6BKSFRNXYEI3ZWLF2RVOBYQNZ6D7LAFNKNJHR7R3656FNGDXYLR6KK
-#\\\|X7KTAWFYBTZJSJGKN3C4GLQBWZVSNKTEZDST7APUSJDGH4VXYQ2 \ / AMOS7 \ YOURUM ::
-#\[7]5SW6EFMINBZNJ23HL4WHMETQBMYG3I6MX7BZZRTBVHJSCIW36GBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,.,,,,,.,,.,,,.,,,.,,..,,.,,,..,,...,...,.,,,.,,,...,..,,,..,
+#7PTF6Z5W26DBGHK65ES5ZPENIZOYUJWC65MLGDRANM4K2GNY3BNRQ3TEITNR6IOSZXQC7WZRCLYJG
+#\\\|4T3A6OWEAQGVGLFSB6XLBXJZR5JRGPRCFSE52VDIXBHKZJECJHM \ / AMOS7 \ YOURUM ::
+#\[7]ZK5CRFVJ2QFWMAMFRSXRZ5RZMIPKCEEQASC522FOEQQDGYFGNQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

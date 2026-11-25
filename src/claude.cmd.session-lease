@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = claude.cmd.session-lease
+# param = [ <store dir> <session id> ]
+# descr = show a stored session's lease [ or own holds ]
+
+my $args = $call->{'args'} // '';
+my ( $store, $id ) = $args =~ m|\A\s*(\S+)\s+([\w-]{8,80})\s*\z|;
+my @bases;
+if ( defined $id ) {
+    @bases = ("$store/claude/$id");
+    return { 'mode' => qw| false |, 'data' => "no stored session $bases[0]" }
+        if not -d $bases[0];
+} elsif ( $args =~ m{\S} ) {
+    return { 'mode' => qw| false |, 'data' => 'expected : <store dir> <id>' };
+} else {
+    my $dir = <[claude.var_dir]>;
+    if ( defined $dir and CORE::opendir( my $dh, $dir ) ) {
+        foreach my $name ( sort grep {m{\Ahold\.[\w-]+\.cfg\z}}
+            CORE::readdir($dh) ) {
+            my $cfg = <[session_move.parse]>
+                ->( <[session_move.read_text]>->("$dir/$name") );
+            push @bases, $cfg->{'lease'} if defined $cfg->{'lease'};
+        }
+        CORE::closedir($dh);
+    }
+    return { 'mode' => qw| true |, 'data' => 'no lease held' }
+        if not @bases;
+}
+return {
+    'mode' => qw| size |,
+    'data' => join( '',
+        map { <[session_move.lease.describe]>->($ARG) . "\n" } @bases )
+};
+
+#,,,,,..,,.,.,,..,,..,.,,,,,.,,,,,.,.,,..,.,.,..,,...,...,.,.,..,,,,.,,..,,,,,
+#E3HHWBYROAV2YOHJXF7RAG5SQYJE45UYDHJKKCG3LQE5J4S3Z2ARRF4IEK26F7RB7BDAAPMBQKOX4
+#\\\|GKCLJ5JMKVU5W3STMEHTYSX6KB7CSQWNNFS5DBC4HVU64J6T7FO \ / AMOS7 \ YOURUM ::
+#\[7]644P2D4MXDT3RLDJCUPQMUDC6FRINPX2V3WUFRYJKOGLKBIOJ6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

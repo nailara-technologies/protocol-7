@@ -1,0 +1,19 @@
+## [:< ##
+
+# name   = session_move.host
+# descr  = the host name a lease and a manifest carry
+# return = name
+
+my $name = <session_move.cfg.host>;
+if ( not defined $name ) {
+    <[base.perlmod.load]>->(qw| POSIX |);
+    $name = ( POSIX::uname() )[1] // '';
+}
+$name =~ s{[^\w.-]+}{-}g;
+return length $name ? $name : qw| unknown |;
+
+#,,,,,.,,,.,.,,,,,...,...,,.,,,.,,,.,,,,.,.,.,..,,...,..,,..,,..,,...,..,,,.,,
+#AENQ2KWSYKUYFICOT25XVNCPTTVDYE3SIIFWKM2JMWLJ2CMHU4TWV5MMTTRFHLLNWYJ3E6TITFTY2
+#\\\|MZQK7SPTW3QNTYPWOBWVG563MNXM2TIV5GJD2ODTJ7IQXLZUCWZ \ / AMOS7 \ YOURUM ::
+#\[7]OHTXTU3QQEM3UI2PDSJZLR4ECYRXU6T57QLNFOZ4HLWND652WOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

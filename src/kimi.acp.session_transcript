@@ -1,0 +1,20 @@
+## [:< ##
+
+# name   = kimi.acp.session_transcript
+# descr  = this host's transcript of a held session
+# args   = session id
+# return = path, or undef [ no hold : nothing to check ]
+
+my $id = shift // '';
+return undef if $id !~ m|\A[\w-]{8,80}\z|;
+my $sref = <[file.zenka_dir.load]>->("acp.hold.$id");
+return undef if not defined $sref or $sref->$* !~ m{^lease\s*[=:]}m;
+my $at = <[kimi.acp.session_paths]>;
+return undef if defined $at->{'error'};
+return "$at->{'home'}/sessions/$at->{'key'}/$id/agents/main/wire.jsonl";
+
+#,,,,,..,,...,,..,,.,,.,,,.,,,..,,,,.,,.,,,.,,..,,...,...,..,,,.,,,..,,,,,,,,,
+#DVXP24RTKRPASQVZSJLL2NKF3QMEE5DCMY6IS52NUKJAMVL7Y24E4MWR2KZ7LP633626OGQBE7U6A
+#\\\|WF5GXWYYIHK7ESO3WQUBXBGFIA75RAYWDEL3N7S67OPIN4ET7Q5 \ / AMOS7 \ YOURUM ::
+#\[7]WNQEXN2CUIWV4Q22L7DNTEXZCM457AJQWPB343UVK7CI4VUIXUDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

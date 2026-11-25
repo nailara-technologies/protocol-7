@@ -1,0 +1,26 @@
+## [:< ##
+
+# name   = session_move.is_prefix
+# descr  = TRUE when file one is a byte prefix of two
+# args   = shorter path, longer path
+
+my ( $one, $two ) = @ARG;
+my $left = -s $one // 0;
+return FALSE if $left > ( -s $two // 0 );
+CORE::open( my $a_fh, '<:raw', $one ) or return FALSE;
+CORE::open( my $b_fh, '<:raw', $two ) or return FALSE;
+while ( $left > 0 ) {
+    my $want  = $left < 65536 ? $left : 65536;
+    my $got_a = CORE::read( $a_fh, my $part_a, $want );
+    my $got_b = CORE::read( $b_fh, my $part_b, $want );
+    return FALSE if not $got_a or not $got_b or $got_a != $got_b;
+    return FALSE if $part_a ne $part_b;
+    $left -= $got_a;
+}
+return TRUE;
+
+#,,.,,...,,.,,...,.,,,..,,.,.,.,.,,,.,..,,.,,,..,,...,...,...,,,.,...,,..,.,.,
+#CYBGEQW53U5SQEOVKLQB7TNBONMDJT5ZLLJOTOA67BEJABNPMLT64PE52YHCKET2XQDYSO3CI3TIK
+#\\\|5C327U2JS2PBM6J6RHXAEDNP4M7QJ6EB53KCKAQQRZBRTEZWS3T \ / AMOS7 \ YOURUM ::
+#\[7]LWTAPFNQTLDVRZLC5VYITOTBNGMAR53J7VPTFHMBKFAPU66LYSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

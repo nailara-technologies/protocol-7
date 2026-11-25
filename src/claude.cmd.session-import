@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = claude.cmd.session-import
+# param = <store dir> <session id>
+# descr = take a stored session : claude.start resumes it
+
+my ( $store, $id )
+    = ( $call->{'args'} // '' ) =~ m|\A\s*(\S+)\s+([\w-]{8,80})\s*\z|;
+return { 'mode' => qw| false |, 'data' => 'expected : <store dir> <id>' }
+    if not defined $id;
+return {
+    'mode' => qw| false |,
+    'data' => 'claude is running : stop it first'
+    }
+    if <[claude.session.running]>;
+my $base = "$store/claude/$id";
+return { 'mode' => qw| false |, 'data' => "no stored session in $base" }
+    if $store !~ m{\A/}
+    or not -d $base;
+
+my $lease = <[session_move.lease.update]>->(
+    $base, qw| acquire |, <claude.cfg.lease_hours>
+);
+return { 'mode' => qw| false |, 'data' => $lease->{'error'} }
+    if defined $lease->{'error'};
+my $fail = sub {
+    <[session_move.lease.update]>->( $base, qw| release | )
+        if not $lease->{'had'};
+    return { 'mode' => qw| false |, 'data' => shift };
+};
+
+my $m = <[session_move.manifest]>->(
+    $base, qw| claude |, $id,
+    qr{\A(?:\Q$id\E\.jsonl|session\.cfg|events\.tail)\z}
+);
+return $fail->( $m->{'error'} ) if defined $m->{'error'};
+my $jsonl = $m->{'files'}{"$id.jsonl"};
+return $fail->('manifest : no transcript') if not defined $jsonl;
+
+my $at = <[claude.session.project_dir]>;
+return $fail->( $at->{'error'} ) if defined $at->{'error'};
+my $var = <[claude.var_dir]>->(TRUE);
+return $fail->('no var dir') if not defined $var;
+
+## claude's own dirs : made below an existing config dir only ##
+return $fail->("no claude config dir $at->{'config'} : log in there first")
+    if not -d $at->{'config'};
+return $fail->("cannot make $at->{'dir'}")
+    if not
+    <[session_move.make_dirs]>->( $at->{'config'}, "projects/$at->{'name'}" );
+
+## session.cfg is checked, not copied : session.save writes this host's ##
+my @list
+    = ( { %{$jsonl}, 'to' => "$at->{'dir'}/$id.jsonl", 'append' => TRUE } );
+push @list,
+    {
+    %{ $m->{'files'}{'events.tail'} },
+    'to' => "$var/events.imported.$id.log"
+    }
+    if exists $m->{'files'}{'events.tail'};
+my $r = <[session_move.transfer]>->( \@list );
+return $fail->( $r->{'error'} ) if defined $r->{'error'};
+
+my $why = <[claude.session.hold]>->( qw| record |, $id, $base );
+return $fail->($why) if defined $why;
+return $fail->('cannot save the session id')
+    if not <[claude.session.save]>->($id);
+<[claude.event.add]>->(
+    qw| lease |, "session $id imported from host $m->{'host'}"
+);
+return {
+    'mode' => qw| true |,
+    'data' => "session $id imported [ from $m->{'host'}, $m->{'work_dir'} "
+        . "-> $at->{'work_dir'} ] : claude.start resumes it"
+};
+
+#,,.,,,.,,...,..,,,,,,...,,,.,...,,,.,,.,,,..,..,,...,...,...,...,.,.,.,.,,.,,
+#FXILOCUVJJ37ZVKZ2QZDWPAQC7QNIQNZCUY3ELCRHQ4IZKAN7VA4CXYBCLATOOQRAQUR6DCG5FBUI
+#\\\|X63QMKKRPYDBHSATPSVHN4WFKDJNKUUYE6ZLJMTVHGEABTD6IZG \ / AMOS7 \ YOURUM ::
+#\[7]2BJ4J3RWZSQ6ECORZ6IVNPWKIL5GZJ7PJZQZU67UMHZEICCGRSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

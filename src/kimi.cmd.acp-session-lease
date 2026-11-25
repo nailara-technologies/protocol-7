@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = kimi.cmd.acp-session-lease
+# param = <store dir> [ <session id> ]
+# descr = show a stored kimi session's lease
+
+my ( $store, $id )
+    = ( $call->{'args'} // '' ) =~ m|\A\s*(\S+)(?:\s+([\w-]{8,80}))?\s*\z|;
+$id //= <[kimi.acp.session_store]>->(qw| load |);
+return { 'mode' => qw| false |, 'data' => 'expected : <store dir> [ <id> ]' }
+    if not defined $store or not defined $id;
+my $base = "$store/kimi/$id";
+return { 'mode' => qw| false |, 'data' => "no stored session $base" }
+    if not -d $base;
+return {
+    'mode' => qw| true |,
+    'data' => <[session_move.lease.describe]>->($base)
+};
+
+#,,..,...,,..,.,,,..,,,.,,.,.,.,.,.,,,,,,,.,.,..,,...,...,,,,,,.,,,..,,,.,,..,
+#D7LMU5EUUNPQWNFMURN47UZTHAPFNRNC3X4M35WQASQXV7Z6AFWWADWLOX75MPBXEAVXM22TLXXVG
+#\\\|QQ3JA7O65D43F4EZZZHQFPACM33SPFDQ5CXFGD2YIQ6M7OFVTVR \ / AMOS7 \ YOURUM ::
+#\[7]HPLMCB2X3FJHWNNXNIO4DMOMHIEWFM766SDQIPHUYBUW74B7VEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,95 @@
+## [:< ##
+
+# name   = session_move.transfer
+# descr  = copy a file set : all staged and checked first
+# args   = array ref of { from, to, name, append, size, sum }
+# return = { ok, files => [ { name, size, sum } ] } | { error }
+#
+# the one copy path of export and import. octets, 0600. nothing is put in
+# place until every file was staged and passed its checks :
+#   size \ sum : given by a manifest, checked on the staged copy
+#   append     : a transcript only grows. an existing target is replaced
+#                only when it is a prefix of the new one, so a stale or
+#                diverged side never overwrites progress
+
+my $list = shift;
+my ( @staged, @done, $error );
+
+foreach my $item ( @{$list} ) {
+    my ( $from, $to, $name ) = @{$item}{qw| from to name |};
+    if ( -l $from or not -f $from ) {
+        $error = "$name : not a regular file";
+        last;
+    }
+    if ( -l $to or ( -e $to and not -f $to ) ) {
+        $error = "$name : the target is not a regular file";
+        last;
+    }
+    my $tmp = "$to.new.$PID";
+    CORE::unlink($tmp);
+    my ( $in, $out );
+    if (not(CORE::open( $in, '<:raw', $from )
+            and CORE::sysopen(
+                $out,                                                   $tmp,
+                Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL(), 0600
+            )
+        )
+    ) {
+        $error = "$name : cannot copy [ $OS_ERROR ]";
+        last;
+    }
+    push @staged, [ $tmp, $to ];
+    CORE::binmode($out);
+    my $copied = TRUE;
+    while (TRUE) {
+        my $got = CORE::sysread( $in, my $part, 65536 );
+        if ( not defined $got ) { $copied = FALSE; last }
+        last if $got == 0;
+        if ( ( CORE::syswrite( $out, $part ) // -1 ) != $got ) {
+            $copied = FALSE;
+            last;
+        }
+    }
+    CORE::close($in);
+    $copied = FALSE if not CORE::close($out);
+    if ( not $copied ) {
+        $error = "$name : copy failed [ $OS_ERROR ]";
+        last;
+    }
+    my $size = -s $tmp // 0;
+    my $sum  = <[chk-sum.bmw.filesum]>->( 256, $tmp ) // '';
+    if ( not length $sum ) {
+        $error = "$name : no checksum";
+        last;
+    }
+    if (   defined $item->{'sum'} and $item->{'sum'} ne $sum
+        or defined $item->{'size'} and $item->{'size'} != $size ) {
+        $error = "$name : size or checksum differs from the manifest";
+        last;
+    }
+    if (    $item->{'append'}
+        and -f $to
+        and not <[session_move.is_prefix]>->( $to, $tmp ) ) {
+        $error = "$name : $to is newer or has diverged, not replaced "
+            . '[ move it away to take the other one ]';
+        last;
+    }
+    push @done, { 'name' => $name, 'size' => $size, 'sum' => $sum };
+}
+
+if ( not defined $error ) {
+    foreach my $pair (@staged) {
+        next if CORE::rename( $pair->[0], $pair->[1] );
+        $error = "cannot place $pair->[1] [ $OS_ERROR ]";
+        last;
+    }
+}
+CORE::unlink( $ARG->[0] ) foreach grep { -e $ARG->[0] } @staged;
+return { 'error' => $error } if defined $error;
+return { 'ok'    => TRUE, 'files' => \@done };
+
+#,,.,,,,.,,,.,..,,,,,,,.,,,,.,,..,..,,,,,,...,..,,...,...,.,,,.,,,..,,,.,,,.,,
+#L3WLR6TO25DI6T5MXIPY3LGOKMRAZO2RK6OSL3JMHRL5G2WTJYFLO33A3WAO5P6OLOEYWWWAJASEG
+#\\\|SLFYRTQRO2UCR7GZINZI6EAEBDPINJHIS62OLRNFATK7PT63AJ3 \ / AMOS7 \ YOURUM ::
+#\[7]NJU3KL346RN77DNZB2MUWH7ONBQULYOGBHEVA446EC7RSHKTIWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

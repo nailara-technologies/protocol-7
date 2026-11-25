@@ -1,0 +1,18 @@
+## [:< ##
+
+# name   = claude.session.transcript
+# descr  = this host's transcript of a held session
+# args   = session id
+# return = path, or undef [ no hold : nothing to check ]
+
+my $id  = shift;
+my $dir = <[claude.var_dir]>;
+return undef if not defined $dir or not -f "$dir/hold.$id.cfg";
+my $at = <[claude.session.project_dir]>;
+return defined $at->{'error'} ? undef : "$at->{'dir'}/$id.jsonl";
+
+#,,,,,...,,,,,..,,..,,,.,,,.,,,.,,.,.,.,,,,.,,..,,...,...,...,,,.,...,,..,...,
+#H625QH4H7SRTUOWRUPH6DOSS23XTIDOQEQ56LVG6BYDTJVTBJWIOKO5EKJNNI6YYLW4SWD4ZD7CYS
+#\\\|IBEII7ZR2O7IDMWPXPI5K2OJLPQXEM5HOFXVRO6S3FEKRB24AHW \ / AMOS7 \ YOURUM ::
+#\[7]P4IFQIFDEKDSK5OVUSWCLRSWB26UC4UBRFC7BPT6TQ7SZKS7O2BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,25 @@
+## [:< ##
+
+# name   = session_move.write_text
+# descr  = replace a text file [ tmp + rename, 0600 ]
+# args   = path, text
+# return = TRUE | FALSE
+
+my ( $path, $text ) = @ARG;
+my $tmp = "$path.new.$PID";
+CORE::unlink($tmp);
+CORE::sysopen( my $fh, $tmp,
+    Fcntl::O_WRONLY() | Fcntl::O_CREAT() | Fcntl::O_EXCL(), 0600 )
+    or return FALSE;
+CORE::binmode( $fh, ':encoding(UTF-8)' );
+my $ok = print {$fh} $text;
+$ok = FALSE if not CORE::close($fh);
+return TRUE if $ok and CORE::rename( $tmp, $path );
+CORE::unlink($tmp);
+return FALSE;
+
+#,,,,,..,,,,,,,,,,..,,..,,...,,,,,,,,,...,.,.,..,,...,...,.,,,..,,.,.,,.,,,..,
+#R6YEZ7JSTAA2XSLA5OCUPK2Q4IIUJPNWBKWKR5RDXKAZ7Q6EOQI2C7ET5KDKOQNMHBAORNRHGTJMO
+#\\\|ZKTZWBHHYN3I7UPZ2SUHEHICCCO6SOXKBW56QEBA23SDFFTBEOT \ / AMOS7 \ YOURUM ::
+#\[7]SRF2NYSOID2BZUWJFLM7XJNQE5KGQYWXHWQYMAXCN3XU2P4ESGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
