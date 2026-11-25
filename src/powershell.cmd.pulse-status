@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = powershell.cmd.pulse-status
+# descr = host pulseaudio process and tcp 4713 reachability
+
+my $status = <[powershell.pulse-status]>;
+
+return { 'mode' => qw| false |, 'data' => 'pulse-status failed' }
+    if not defined $status;
+
+return { 'mode' => qw| false |, 'data' => $status->{'error'} }
+    if defined $status->{'error'};
+
+my $proc_str
+    = $status->{'running'}
+    ? sprintf( 'running [ pid %s ]', join( ', ', $status->{'pids'}->@* ) )
+    : 'not running';
+my $tcp_str = $status->{'tcp'} ? 'reachable' : 'unreachable';
+
+return {
+    'mode' => $status->{'running'} && $status->{'tcp'}
+    ? qw| true |
+    : qw| false |,
+    'data' => sprintf(
+        "process : %s ; tcp %s:4713 : %s",
+        $proc_str, $status->{'host_ip'}, $tcp_str
+    ),
+};
+
+#,,.,,..,,.,.,,.,,,.,,.,,,...,.,.,.,,,,,,,,..,..,,...,...,...,...,,,.,,,,,.,,,
+#YEOMREKQSH4VDLRDCPLGE4VWMUTSXZ3HGIMHKXXEEEY5TB76ULR4GINB6FAFAXNGN35RFAGTQGZLY
+#\\\|55BZDHCMYTXAC3WCSEULBWDCJADCDJRY3YNQSIX2MT7HIIYQHRT \ / AMOS7 \ YOURUM ::
+#\[7]5I5DQUHQLMVXRW64YK6A7IJMVEAHEY365HYRATEQA4CGVBPMIQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

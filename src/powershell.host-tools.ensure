@@ -1,0 +1,177 @@
+## [:< ##
+
+# name  = powershell.host-tools.ensure
+# descr = resolve one <powershell.tools.<name>> host tool entry :
+#         winget = locate an installed package , url = pinned download
+# param = <entry-name> <entry-hashref>   [ see host-tools.cfg ]
+# return = resolved wsl exe path or undef [ never installs on mismatch ]
+
+my ( $name, $entry, $opts ) = @ARG;
+$opts //= {};
+
+warn 'expected entry name and hashref parameters <{C1}>' and return undef
+    if not length( $name // '' )
+    or ref $entry ne qw| HASH |;
+
+my $source = $entry->{'source'} // '';
+my $exe    = $entry->{'exe'}    // '';
+
+warn "host tool '$name' : missing source or exe key <{C1}>" and return undef
+    if not length $source or not length $exe;
+
+my $local_wsl = <powershell.cfg.local_appdata_wsl>;
+
+if ( $source eq qw| winget | ) {
+
+    ## machine-wide install first , per-user winget package second -- never ##
+    ## PATH : a freshly installed host tool is not on PATH in any           ##
+    ## already-open process                                                 ##
+    my @candidates = ();
+    push( @candidates, $entry->{'machine_path'} )
+        if length( $entry->{'machine_path'} // '' );
+    push(
+        @candidates,
+        glob(
+                  $local_wsl
+                . '/Microsoft/WinGet/Packages/'
+                . $entry->{'package'} . '*/'
+                . $exe
+        )
+    ) if defined $local_wsl and length( $entry->{'package'} // '' );
+
+    foreach my $candidate (@candidates) {
+        return $candidate if -x $candidate;
+    }
+
+    warn sprintf( '%s not found -- one-time host install : %s <{C1}>',
+        $exe, $entry->{'install_hint'} // "winget install $name" );
+    return undef;
+}
+
+if ( $source ne qw| url | ) {
+    warn "host tool '$name' : unknown source '$source' <{C1}>";
+    return undef;
+}
+
+## --- source = url : download into %LOCALAPPDATA%\protocol-7\<name> --- ##
+
+my $local_win = <powershell.cfg.local_appdata_win>;
+if ( not defined $local_wsl or not defined $local_win ) {
+    warn "host tool '$name' : LOCALAPPDATA unresolved , cannot fetch <{C1}>";
+    return undef;
+}
+
+my $url = $entry->{'url'} // '';
+if ( $url !~ m|^https://[\w./%?&=+~-]+$| ) {
+    warn "host tool '$name' : url missing or not plain https <{C1}>";
+    return undef;
+}
+my ($asset) = $url =~ m|/([^/]+)$|;
+
+my $target_wsl = $local_wsl . '/protocol-7/' . $name;
+my $exe_path   = $target_wsl . '/' . $exe;
+
+## already installed : nothing to verify against , the pin guards the ##
+## download itself -- an already-expanded tree is trusted as-is       ##
+return $exe_path if -x $exe_path;
+
+## init passes no_fetch : a download never blocks zenka start ; the first ##
+## command that needs the tool fetches it                                 ##
+return undef if $opts->{'no_fetch'};
+
+my $stage_wsl = $local_wsl . '/protocol-7/.download';
+my $asset_wsl = $stage_wsl . '/' . $asset;
+
+## wsl /mnt/c/... form -> win32 C:\... form for inside the script          ##
+my $win = sub {
+    my $wsl_path = shift;
+    $wsl_path =~ s|^/mnt/([a-zA-Z])/|uc($1) . ':/'|e;
+    $wsl_path =~ s|/|\\|g;
+    return $wsl_path;
+};
+my $asset_win  = $win->($asset_wsl);
+my $stage_win  = $win->($stage_wsl);
+my $target_win = $win->($target_wsl);
+
+## single-line, semicolon-joined script + 'P7ERR:' sentinel , same shape as ##
+## powershell.cmd.mem-used [ interop argv does not survive newlines ]       ##
+my $ps_dl
+    = sprintf( q#$ErrorActionPreference = 'Stop'; try { #
+        . q#New-Item -Path '%s' -ItemType Directory -Force | Out-Null; #
+        . q#Invoke-WebRequest -Uri '%s' -OutFile '%s'; #
+        . q#Write-Output 'DOWNLOADED' } #
+        . q#catch { Write-Output ('P7ERR:' + $_.Exception.Message) }#,
+    $stage_win, $url, $asset_win );
+
+my $out = <[powershell.exec]>->($ps_dl);
+if ( not defined $out or $out !~ m|^DOWNLOADED\s*$|m ) {
+    my $err = $out // 'powershell.exec failed';
+    $err = $1 if $err =~ m|^P7ERR:(.+)|m;
+    $err =~ s|\s+$||;
+    warn "host tool '$name' : download failed [ $err ] <{C1}>";
+    return undef;
+}
+
+## internal BMW checksum only [ AMOS7 / base.chk-sum.* , never sha ] : no ##
+## upstream digest exists , so the first verified download pins it and    ##
+## every later download must match the pin or fails closed                ##
+my $sum = <[chk-sum.bmw.filesum]>->( 384, $asset_wsl );
+if ( not defined $sum ) {
+    warn "host tool '$name' : cannot checksum downloaded asset <{C1}>";
+    return undef;
+}
+
+my $pin = <powershell.host-tools.pins>->{$name};
+if ( defined $pin and $sum ne $pin ) {
+    unlink($asset_wsl);
+    warn sprintf( 'host tool %s : pinned BMW checksum MISMATCH [ '
+            . 'got %s , pinned %s ] -- refusing to install <{C1}>',
+        $name, $sum, $pin );
+    return undef;
+}
+
+my $ps_install = sprintf(
+    q#$ErrorActionPreference = 'Stop'; try { #
+        . q#New-Item -Path '%s' -ItemType Directory -Force | Out-Null; #
+        . (
+        $asset =~ m|\.zip\z|i
+        ? q#Expand-Archive -LiteralPath '%s' -DestinationPath '%s' -Force; #
+        : q#Move-Item -LiteralPath '%s' -Destination '%s' -Force; #
+        )
+        . q#Write-Output 'INSTALLED' } #
+        . q#catch { Write-Output ('P7ERR:' + $_.Exception.Message) }#,
+    $target_win,
+    $asset_win,
+    $target_win
+);
+
+$out = <[powershell.exec]>->($ps_install);
+if ( not defined $out or $out !~ m|^INSTALLED\s*$|m or not -x $exe_path ) {
+    my $err = $out // 'powershell.exec failed';
+    $err = $1 if $err =~ m|^P7ERR:(.+)|m;
+    $err =~ s|\s+$||;
+    warn "host tool '$name' : install failed [ $err ] <{C1}>";
+    return undef;
+}
+
+## first verified download : record the pin only now                       ##
+## [ download + expand + exe all confirmed ] -- a later download then must ##
+## match it                                                                ##
+if ( not defined $pin ) {
+    if ( <[powershell.host-tools.save-pin]>->( $name, $sum ) ) {
+        <powershell.host-tools.pins>->{$name} = $sum;
+    } else {
+        warn "host tool '$name' : could not record checksum pin <{C1}>";
+        return undef;    ## unpinned install must not become the baseline ##
+    }
+}
+
+unlink($asset_wsl) if $asset =~ m|\.zip\z|i;
+
+return $exe_path;
+
+#,,..,...,,,,,...,.,,,.,,,,..,..,,,,.,.,.,,,,,..,,...,...,,..,..,,,..,,,,,,..,
+#JPSVHLDY7JAQLTN34Y3TELTWP23P2I4BMWMXIV7OSZV3G7FUINEDBUICDQ475Q55PFSYY6JMCLUTU
+#\\\|VNNIHIX6BHXJE6HY36RCAUJGSBZVAMMPDBN3RUXW6WU6PUXIEO2 \ / AMOS7 \ YOURUM ::
+#\[7]W6R4HTB2KE7DKN6OHOMAL3DJDJVNAJKYGAXXJ6GZMGDG7M4HPECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

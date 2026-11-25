@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = powershell.pulse-start
+# descr = start host pulseaudio detached [ survives wsl --shutdown ] with
+#         a p7-owned .pa file : native-protocol-tcp on the wsl host ip ,
+#         acl-only auth , no anonymous auth , no firewall rule , no service
+# return = { 'ok' => TRUE|FALSE , 'msg' => <text> }
+
+my $exe = <powershell.cfg.pulseaudio_path>;
+
+## not fetched at init [ no_fetch ] : fetch on first use ##
+if ( not defined $exe or not -x $exe ) {
+    $exe = <[powershell.host-tools.ensure]>->(
+        'pulseaudio', <powershell.tools>->{'pulseaudio'}
+        )
+        if defined <powershell.tools>
+        and ref <powershell.tools>->{'pulseaudio'} eq qw| HASH |;
+    <powershell.cfg.pulseaudio_path> = $exe if defined $exe;
+}
+return {
+    'ok'  => FALSE,
+    'msg' => 'pulseaudio.exe not available on host -- url entry '
+        . 'ensure failed or host-tools.cfg missing [ see init log ]'
+    }
+    if not defined $exe
+    or not length $exe
+    or not -x $exe;
+
+my $net = <[powershell.wsl-host-net]>;
+return { 'ok' => FALSE, 'msg' => 'could not determine wsl host ip/subnet' }
+    if not defined $net;
+
+## p7-owned startup script next to the exe , rewritten on every start : ##
+## module-native-protocol-tcp bound to the wsl host ip only , auth by   ##
+## source-subnet acl [ no auth-anonymous ] ; waveout for the host sink  ##
+( my $tool_dir = $exe ) =~ s|/[^/]+$||;
+my $pa_path = $tool_dir . '/p7-default.pa';
+my $pa_content
+    = sprintf(
+    "## written by powershell zenka pulse-start -- rewritten each start "
+        . "##\nload-module module-waveout\nload-module "
+        . "module-native-protocol-tcp listen=%s port=4713 auth-ip-acl=%s\n",
+    $net->{'host_ip'}, $net->{'cidr'} );
+
+return { 'ok' => FALSE, 'msg' => "cannot write $pa_path" }
+    if not <[file.write]>->( $pa_path, $pa_content );
+
+## wsl /mnt/c/... form -> win32 C:\... form for inside the script          ##
+( my $exe_win = $exe )      =~ s|^/mnt/([a-zA-Z])/|uc($1) . ':/'|e;
+$exe_win                    =~ s|/|\\|g;
+( my $dir_win = $tool_dir ) =~ s|^/mnt/([a-zA-Z])/|uc($1) . ':/'|e;
+$dir_win                    =~ s|/|\\|g;
+
+## Start-Process -WindowStyle Hidden : a fresh windows-side process , not a ##
+## wsl-interop tether [ same escape as usbipd-attach ] -- it survives wsl   ##
+## --shutdown . no firewall rule , no service , no installer .              ##
+## single-line, semicolon-joined script + 'P7ERR:' sentinel , per           ##
+## powershell.cmd.mem-used . -ArgumentList elements carry embedded double   ##
+## quotes where a path may contain spaces [ PS 5.1 native re-quoting ]      ##
+my $ps_script
+    = sprintf( q#$ErrorActionPreference = 'Stop'; try { #
+        . q#if ( Get-Process pulseaudio -ErrorAction SilentlyContinue ) { #
+        . q#Write-Output 'ALREADY_RUNNING' } else { #
+        . q#$p = Start-Process -FilePath '%s' -WorkingDirectory '%s' #
+        . q#-ArgumentList '-n','--exit-idle-time=-1','-F','p7-default.pa' #
+        . q#-WindowStyle Hidden -PassThru; #
+        . q#Write-Output ('STARTED=' + $p.Id) } } #
+        . q#catch { Write-Output ('P7ERR:' + $_.Exception.Message) }#,
+    $exe_win, $dir_win );
+
+my $out = <[powershell.exec]>->($ps_script);
+return { 'ok' => FALSE, 'msg' => 'powershell.exec failed' }
+    if not defined $out;
+return { 'ok' => FALSE, 'msg' => $1 } if $out =~ m|^P7ERR:(.+)|m;
+
+return {
+    'ok'  => TRUE,
+    'msg' => sprintf(
+        'pulseaudio already running on host [ listen %s:4713 , acl %s ]',
+        $net->{'host_ip'}, $net->{'cidr'}
+    )
+    }
+    if $out =~ m|^ALREADY_RUNNING\s*$|m;
+
+return {
+    'ok'  => TRUE,
+    'msg' => sprintf(
+        'pulseaudio started on host [ pid %s , listen %s:4713 , acl %s ]',
+        $1, $net->{'host_ip'}, $net->{'cidr'}
+    )
+    }
+    if $out =~ m|^STARTED=(\d+)|m;
+
+return { 'ok' => FALSE, 'msg' => 'unexpected powershell output' };
+
+#,,,.,.,.,,,.,,.,,,,,,,..,.,,,...,..,,.,,,.,,,..,,...,...,..,,.,.,,,.,,,.,,..,
+#YSR4UNDVKXUZQLW5HACBGOYPSQEMZRY67D6BKWUFMEDNJOLGR7MKK4KZV6BIOBOCDZAHOVFUARXPY
+#\\\|GXV6UCPRPKLOUSAPMJTRJELEACWSFTCAARJOPFTJTZBJ2AKQLG4 \ / AMOS7 \ YOURUM ::
+#\[7]X4NIDKQEQHZ3BECE4QER36UCNMF2YVAFL3YK2KASN3WXDGINAUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

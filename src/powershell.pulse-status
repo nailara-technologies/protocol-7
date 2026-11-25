@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = powershell.pulse-status
+# descr = host pulseaudio status : windows process check plus a tcp
+#         connect from wsl to <host ip>:4713
+# return = { 'running' => bool , 'pids' => [..] , 'tcp' => bool ,
+#            'host_ip' => <ip> } or undef
+
+my $net = <[powershell.wsl-host-net]>;
+return undef if not defined $net;
+
+my %status = ( 'host_ip' => $net->{'host_ip'}, 'pids' => [] );
+
+## process check windows-side [ single-line script + P7ERR sentinel ]      ##
+my $ps_script
+    = q#$ErrorActionPreference = 'Stop'; try { #
+    . q#$p = @( Get-Process pulseaudio -ErrorAction SilentlyContinue ); #
+    . q#Write-Output ('PIDS=' + ( $p.Id -join ',' )) } #
+    . q#catch { Write-Output ('P7ERR:' + $_.Exception.Message) }#;
+
+my $out = <[powershell.exec]>->($ps_script);
+return undef if not defined $out;
+return {
+    'running' => FALSE,
+    'tcp'     => FALSE,
+    'error'   => $1,
+    'host_ip' => $net->{'host_ip'},
+    'pids'    => []
+    }
+    if $out =~ m|^P7ERR:(.+)|m;
+
+if ( $out =~ m|^PIDS=(.*)$|m and length $1 ) {
+    $status{'pids'}    = [ split( m|,|, $1 ) ];
+    $status{'running'} = TRUE;
+} else {
+    $status{'running'} = FALSE;
+}
+
+## tcp connect from wsl to the host-side native-protocol-tcp listener      ##
+<[base.perlmod.autoload]>->('IO::Socket::INET');
+my $sock = IO::Socket::INET->new(
+    'PeerAddr' => $net->{'host_ip'},
+    'PeerPort' => 4713,
+    'Proto'    => 'tcp',
+    'Timeout'  => 3
+);
+$status{'tcp'} = defined $sock ? TRUE : FALSE;
+close($sock) if defined $sock;
+
+return \%status;
+
+#,,,,,.,,,.,.,.,,,..,,..,,,.,,,.,,,..,.,.,,,,,..,,...,...,..,,...,,.,,,,,,,.,,
+#U37P3U33KY2HTFAXTYDCKVGJA3MR7WGWPE7CW726SSHL4EYY3BETGBTJIMKY3MXJSAHDSKXMMA5NI
+#\\\|5ATC3TK4WHWAQ2T5QUXRTHUKPTJIMXBFJ7ZNVAQFRYQDD7SHJQG \ / AMOS7 \ YOURUM ::
+#\[7]2IK73VFBNFQ7SYPXIPDQEBXLKEAGADFUNKIXB774DFYUA5ODBCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = powershell.host-tools.load-pins
+# descr = read pinned BMW checksums of url-sourced host tools
+#         [ data/state/powershell.host-tools.state , native p7 cfg style ]
+
+## the pin file is runtime-written by this zenka itself , so the          ##
+## trusted-file config layers [ base.load_config_file_if_present ] refuse ##
+## it by design -- parse the few pin lines directly instead               ##
+
+my $state_path
+    = <system.root_path> . '/data/state/powershell.host-tools.state';
+
+my $pins = {};
+
+if ( -f $state_path ) {
+    open( my $pin_fh, qw| < |, $state_path ) or do {
+        warn sprintf( 'cannot read host-tools pin state [ %s ] <{C1}>',
+            <[base.str.os_err]> );
+        return undef;    ## fail closed : without pins downloads refuse ##
+    };
+    while ( my $line = <$pin_fh> ) {
+        next if $line =~ m|^\s*#|;
+        $pins->{$1} = $2
+            if $line
+            =~ m|^\s*powershell\.tools\.([\w-]+)\.pin\s*=\s*(\S+)\s*$|;
+    }
+    close($pin_fh);
+}
+
+<powershell.host-tools.pins> = $pins;
+
+return $pins;
+
+#,,..,,,.,.,,,.,,,,.,,...,.,.,,..,...,.,.,...,..,,...,...,,,.,,.,,.,.,..,,,,,,
+#JHIT5YPHMEUBZ657CWMLF7D7X7AB5UDJBL6I3X6H55QEXR5DU6PTNORFMZ2SMHHARM7JAKKWNC7QY
+#\\\|PSEYUOXXRKGGYL72MWKBYQQJSSEPY22WPK4ZM3KZ63DA7GUIHOL \ / AMOS7 \ YOURUM ::
+#\[7]RPTUZTA6CXFRUTBGF6S4GBND6RRJEPKXOM4ES7YM5A23WNN64SCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

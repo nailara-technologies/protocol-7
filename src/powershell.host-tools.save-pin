@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = powershell.host-tools.save-pin
+# descr = record or replace one tool's pinned BMW checksum in
+#         data/state/powershell.host-tools.state [ native p7 cfg style ]
+# param = <entry-name> <bmw-384-b32-checksum>
+
+my ( $name, $sum ) = @ARG;
+
+if ( not length( $name // '' ) or not length( $sum // '' ) ) {
+    warn 'expected entry name and checksum parameters <{C1}>';
+    return FALSE;
+}
+
+return FALSE if $name !~ m|^[\w-]+$| or $sum =~ m|\s|;
+
+my $state_path
+    = <system.root_path> . '/data/state/powershell.host-tools.state';
+
+my @lines = ();
+if ( -f $state_path ) {
+    open( my $read_fh, qw| < |, $state_path ) or do {
+        warn sprintf( 'cannot read host-tools pin state [ %s ] <{C1}>',
+            <[base.str.os_err]> );
+        return FALSE;
+    };
+    @lines = <$read_fh>;
+    close($read_fh);
+}
+
+my $pin_re   = qr|^\s*powershell\.tools\.\Q$name\E\.pin\s*=|;
+my $new_line = sprintf( "powershell.tools.%s.pin = %s\n", $name, $sum );
+my $replaced = FALSE;
+map { $ARG = $new_line and $replaced = TRUE if $ARG =~ $pin_re } @lines;
+
+if ( not $replaced ) {
+    push( @lines,
+        "## runtime-written by powershell.host-tools.save-pin : first  ##\n",
+        "## verified download of a url-sourced host tool pins its      ##\n",
+        "## BMW-384 B32 checksum ; later downloads must match or fail  ##\n",
+        "## closed . delete a pin line to re-pin on the next download  ##\n",
+        "\n" )
+        if not @lines;
+    push( @lines, $new_line );
+}
+
+return <[file.write]>->( $state_path, \@lines ) ? TRUE : FALSE;
+
+#,,..,,.,,.,,,,..,...,...,,,.,,,.,,,,,,,.,...,..,,...,...,.,,,.,,,...,,,.,.,,,
+#NGUWI727Z6FITHXGLPTRC54FARCEJWLPLVJMQUADZ4QWBUP6FZF3CIDMVKERSDSVNUHGZUWFD6WHE
+#\\\|EFMQQXOLB4LSITOVVXQWQUCF37ZQ3VY7CJTYRSH663Z2EFX32PQ \ / AMOS7 \ YOURUM ::
+#\[7]PGPYL6OMD2S6AFBFOWA2Q5SVQ2IV5HO44ZFDXCBDN5CDGSIETUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

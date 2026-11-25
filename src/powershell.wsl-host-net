@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = powershell.wsl-host-net
+# descr = wsl host ip and this distro's own subnet cidr
+#         [ for host-side pulseaudio listen and auth-ip-acl ]
+# return = { 'host_ip' => <ip> , 'cidr' => <ip/prefix> } or undef
+
+my %net = ();
+
+my $ip_bin = <[file.which]>->('ip') // '/usr/sbin/ip';
+
+## wsl2 nat networking : the windows host is the default gateway ; the    ##
+## /etc/resolv.conf nameserver is the usual fallback [ mirrored dns off ] ##
+my $route = qx|$ip_bin -4 route show default 2>/dev/null|;
+( $net{'host_ip'} ) = $route =~ m|^default\s+via\s+([\d.]+)|m;
+
+if ( not defined $net{'host_ip'} and -r '/etc/resolv.conf' ) {
+    my $conf_sref = <[file.slurp]>->( '/etc/resolv.conf', qw| :raw | );
+    ( $net{'host_ip'} ) = $conf_sref->$* =~ m|^nameserver\s+([\d.]+)|m
+        if defined $conf_sref;
+}
+
+## this distro's own v4 address with prefix -- auth-ip-acl takes the      ##
+## address/prefix form directly                                           ##
+## [ wsl2 nat : connections come from the vm's own subnet ] . eth0 is the ##
+## wsl2 interface , any global v4 address is only a fallback              ##
+my $addr = qx|$ip_bin -4 -o addr show dev eth0 2>/dev/null|;
+( $net{'cidr'} ) = $addr =~ m|\sinet\s+([\d.]+/\d+)|;
+if ( not defined $net{'cidr'} ) {
+    $addr = qx|$ip_bin -4 -o addr show scope global 2>/dev/null|;
+    ( $net{'cidr'} ) = $addr =~ m|\sinet\s+([\d.]+/\d+)|;
+}
+
+if ( not defined $net{'host_ip'} or not defined $net{'cidr'} ) {
+    warn 'could not determine wsl host ip or subnet cidr <{C1}>';
+    return undef;
+}
+
+## auth-ip-acl wants the network address , not this host's own ##
+my ( $ip, $prefix ) = split( m|/|, $net{'cidr'} );
+my $mask = $prefix ? ( 0xFFFFFFFF << ( 32 - $prefix ) ) & 0xFFFFFFFF : 0;
+$net{'cidr'} = join(
+    '.',
+    unpack(
+        'C4',
+        pack( 'N', unpack( 'N', pack( 'C4', split( m|\.|, $ip ) ) ) & $mask )
+    )
+    )
+    . '/'
+    . $prefix;
+
+return \%net;
+
+#,,..,,..,...,,,.,,,.,,,.,..,,,,.,,,,,.,.,,,,,..,,...,...,.,.,,,,,...,,,,,..,,
+#YNXYPANBPL4GQUTQBATXZ2IG5UGDJMSA2EN7733JCT4YVYHAMWNQ2KP4DBMKZYLUFDEBSTZCLK2RS
+#\\\|Y4UF3MLCC4L46ZXLQ6ON2A4O3NVQW7BRGKBBEZMDJBZFZKIMLSQ \ / AMOS7 \ YOURUM ::
+#\[7]LOR2PGCABLJTIDH2JKKAPJF4BT7OE7L2NCAZFUTQ2RUKYQOMOUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

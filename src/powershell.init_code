@@ -232,31 +232,36 @@ PS_SETUP
     }
 }
 
-## usbipd.exe absolute-path resolution [ same PATH-refresh trap as       ##
-## powershell.exe above : a freshly winget-installed host tool is NOT on ##
-## PATH in any already-open process -- never rely on PATH here ] :       ##
-## machine-wide install first, per-user winget package second.           ##
-if ( not defined <powershell.cfg.usbipd_path> ) {
-    my @candidates = ('/mnt/c/Program Files/usbipd-win/usbipd.exe');
+## host tools from cfg/zenki/powershell/host-tools.cfg                      ##
+## [ winget packages and pinned url downloads ] : resolve or fetch each     ##
+## entry and store the wsl exe path in its cfg_var . usbipd.exe keeps its   ##
+## absolute-path resolution [ same PATH-refresh trap as powershell.exe      ##
+## above : a freshly winget-installed host tool is NOT on PATH in any       ##
+## already-open process -- never rely on PATH here ] : machine-wide install ##
+## first, per-user winget package second. url entries download into         ##
+## %LOCALAPPDATA%\protocol-7\<name> with a pinned BMW checksum              ##
+## [ see powershell.host-tools.ensure ] .                                   ##
+<[powershell.host-tools.load-pins]>;
+if ( defined <powershell.tools> ) {
+    foreach my $tool_name ( sort keys <powershell.tools>->%* ) {
+        my $entry = <powershell.tools>->{$tool_name};
+        my $path  = <[powershell.host-tools.ensure]>->(
+            $tool_name, $entry, { 'no_fetch' => TRUE }
+        );
+        next if not defined $path;
 
-    push(
-        @candidates,
-        glob(
-                  <powershell.cfg.local_appdata_wsl>
-                . '/Microsoft/WinGet/Packages/dorssel.usbipd-win*/usbipd.exe'
-        )
-    ) if defined <powershell.cfg.local_appdata_wsl>;
-
-    foreach my $candidate (@candidates) {
-        if ( -x $candidate ) {
-            <powershell.cfg.usbipd_path> = $candidate;
-            last;
+        my $cfg_var = $entry->{'cfg_var'} // '';
+        next if not length $cfg_var;
+        my @dtree = <[base.parser.data_hkey_tree]>->($cfg_var);
+        if (@dtree) {
+            my $leaf     = pop @dtree;
+            my $data_ref = *data{HASH};
+            foreach my $subkey (@dtree) {
+                $data_ref = $data_ref->{$subkey} //= {};
+            }
+            $data_ref->{$leaf} = $path;
         }
     }
-
-    warn 'usbipd.exe not found -- one-time host install '
-        . ': winget install dorssel.usbipd-win <{C1}>'
-        if not defined <powershell.cfg.usbipd_path>;
 }
 
 ## cancel stale attach polls across source reload : the old timers would ##
@@ -278,8 +283,8 @@ if ( defined <powershell.attach.pending> ) {
 
 0;
 
-#,,,.,.,.,,,.,.,.,,.,,,,.,,,.,,..,...,,.,,,,.,..,,...,...,.,,,,,.,,.,,..,,..,,
-#ATSSFC6PHJAEWJNICXRT2GDWAT4PSIDB2JOVM5EMWGX5MRFTLYPZPP6ARL6MJ4UVJLO2VZWN5YDPU
-#\\\|TWC3YM4O3IAPKASRUIDFZOLP6A5JUVOT72R6S3S5FKS7KDK42Y7 \ / AMOS7 \ YOURUM ::
-#\[7]BK6E3GK5O6TA2TNG43NKV2U7YRNAS7HEUIEFQE7WWMAAIDIADEAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,,,.,,,...,.,.,,.,,.,,,,.,,..,,..,,...,...,..,,...,,..,,,.,,,,,
+#K6REECQFNKSWLTNHDBAVXL6S7ZMCIL3RRTHLZMU7ATJSBLOM7M2T6GXBQVOANU2YI2BHZKC2GZTC4
+#\\\|MGRI2CTZHKH7BN6MMLKIUBHUNMCE45L5DUZXTAKPMWJZAKATIGV \ / AMOS7 \ YOURUM ::
+#\[7]SOOSKZCWICKORPPXWEFD6WWKSQISJR2KX5FO5YZU5NJ3X3HTMMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
