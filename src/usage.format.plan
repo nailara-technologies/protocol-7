@@ -96,21 +96,40 @@ foreach my $name ( $request->{'order'}->@* ) {
                 = ( $five->{'used_pct'} // 0 ) - ( $rec->{'start5h'} // 0 );
             my $left5   = 100 - ( $five->{'used_pct'} // 0 );
             my $elapsed = ( $request->{'now'} // time ) - $rec->{'start'};
-            my $share   = $rest / $n5h;
-            my $hleft   = $cur / 3600;
+            ## the window's budget is fixed at its start                   ##
+            ## [ 7d left then over the windows left ] ; the horizon is the ##
+            ## nearer of the 5h and the 7d reset -- what the week has left ##
+            ## ends with the week                                          ##
+            my $budget7 = ( 100 - $rec->{'start7d'} ) / $n5h;
+            my $left7   = $budget7 - $spent7;
+            $left7 = 0 if $left7 < 0;
+            my $horizon = $cur < $secs ? $cur : $secs;
+            my $hleft   = $horizon / 3600;
             push @lines,
                 sprintf ' : this window : %.1f %% of the '
                 . '7d, %.1f %% of the 5h used in %s',
                 $spent7, $spent5, $hours->($elapsed);
-            ## the share in 5h percent through the ratio seen so far ; the ##
-            ## 5h percent left caps it -- the tighter one decides the pace ##
-            my $k = $spent7 >= 1 && $spent5 > 0 ? $spent5 / $spent7 : undef;
+            push @lines,
+                sprintf ' : horizon : %s [ the 7d reset comes first ]',
+                $hours->($horizon)
+                if $secs < $cur;
+            ## 5h percent per 7d percent : the average of past windows     ##
+            ## [ usage.pace.observe ], this window's own ratio as fallback ##
+            my $k = $rec->{'k'};
+            $k = $spent5 / $spent7
+                if not defined $k
+                and $spent7 >= 1
+                and $spent5 > 0;
+            my $budget5 = defined $k ? $budget7 * $k : undef;
             my $fit5
-                = defined $k
-                ? ( $share * $k < $left5 ? $share * $k : $left5 )
+                = defined $budget5
+                ? $budget5 - $spent5
                 : $left5;
+            $fit5 = 0      if $fit5 < 0;
+            $fit5 = $left5 if $fit5 > $left5;
             my $need5 = $hleft > 0 ? $fit5 / $hleft  : undef;
-            my $need7 = $hleft > 0 ? $share / $hleft : undef;
+            my $need7 = $hleft > 0 ? $left7 / $hleft : undef;
+
             if ( $elapsed < 13 * 60 or $spent5 <= 0 or not defined $need5 ) {
                 push @lines,
                     sprintf ' : pace : up to %.1f %%/h of the 7d%s fits',
@@ -121,7 +140,7 @@ foreach my $name ( $request->{'order'}->@* ) {
             } else {
                 my $rate5 = $spent5 / ( $elapsed / 3600 );
                 my $rate7 = $spent7 / ( $elapsed / 3600 );
-                my $ratio = $need5 / $rate5;
+                my $ratio = $rate5 > 0 ? $need5 / $rate5 : 0;
                 push @lines,
                     sprintf ' : pace now : %.1f %%/h of '
                     . 'the 5h [ %.1f %%/h of the 7d ]',
@@ -137,10 +156,15 @@ foreach my $name ( $request->{'order'}->@* ) {
                     : 'on pace';
             }
             ## how much of this window's share is spent, in 5h percent ##
+            ## against the fixed budget in 5h percent                  ##
+            ## [ moves with each 5h percent ], else in 7d percent      ##
+            my $used_pct
+                = defined $budget5 && $budget5 > 0 ? 100 * $spent5 / $budget5
+                : $budget7 > 0                     ? 100 * $spent7 / $budget7
+                :                                    undef;
             push @lines, sprintf ' : share used : %s %3d %%',
-                $bar->( 100 * $spent5 / ( $spent5 + $fit5 ) ),
-                100 * $spent5 / ( $spent5 + $fit5 )
-                if $spent5 > 0 and $spent5 + $fit5 > 0;
+                $bar->($used_pct), $used_pct
+                if defined $used_pct and $spent5 > 0;
         }
     } else {
         push @lines, ' :';
@@ -150,8 +174,8 @@ foreach my $name ( $request->{'order'}->@* ) {
 }
 return join "\n", @lines;
 
-#,,,.,,..,.,.,..,,,.,,..,,.,.,..,,,.,,,,,,,,.,..,,...,...,.,.,,,.,,,,,..,,,,,,
-#EHG74CBTJKFK2C7DQ7IF33LE7SDHV2P3CNED6DONSXGHIVXKU2ER5UD2GAD3HJEPHL2OSLN6SH4UY
-#\\\|2ZLFQOVBKATVRPKNE7NLIQHMHPCCICC5NU3SUYUODRRNIUBZ66K \ / AMOS7 \ YOURUM ::
-#\[7]RZ54RV7WFMCMTLVG7EJMMRDVCD25L7SSYIY55JQ5CKOWD2PBVSAI 7  DATA SIGNATURE ::
+#,,.,,...,...,,.,,.,,,..,,,..,.,,,...,,,,,...,..,,...,..,,,.,,.,,,,,,,...,..,,
+#DSVIW2JEGA22FADYS3JMIKC7UH254NZRG75XNYINPTZNQZHPDIWVR64FQ5E2BW4553IVJCRH6NEOQ
+#\\\|RS3IU7TUX3ON5CUMAJC7ETIRNGY4LEQEEDZRRCMNL6EWKA5KBMT \ / AMOS7 \ YOURUM ::
+#\[7]XFGRNGSFPH5HFMXQE47OWOCW47236D7IBPHBPFHWANSZN4KMIKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

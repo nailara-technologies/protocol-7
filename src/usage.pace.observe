@@ -32,13 +32,29 @@ my $new
     || abs( ( $rec->{'epoch5h'} // 0 ) - $epoch ) > 13 * 60
     || $used < ( $rec->{'start7d'} // 0 )
     || !defined $rec->{'start5h'};
-return $rec if not $new;
+## the last values seen in this window [ memory only ] : at the next window ##
+## they give its 5h-per-7d ratio for the moving average below               ##
+if ( not $new ) {
+    $rec->{'last5'} = $five->{'used_pct'} // $rec->{'last5'};
+    $rec->{'last7'} = $used;
+    return $rec;
+}
+my $k = defined $rec ? $rec->{'k'} : undef;
+if ( defined $rec and defined $rec->{'last7'} and defined $rec->{'last5'} ) {
+    my $d7 = $rec->{'last7'} - ( $rec->{'start7d'} // 0 );
+    my $d5 = $rec->{'last5'} - ( $rec->{'start5h'} // 0 );
+    if ( $d7 >= 1 and $d5 > 0 ) {
+        my $seen = $d5 / $d7;
+        $k = defined $k ? ( $k * 2 + $seen ) / 3 : $seen;
+    }
+}
 
 $state->{$provider} = {
     'epoch5h' => $epoch,
     'start7d' => $used,
     'start5h' => $five->{'used_pct'} // 0,
-    'start'   => time
+    'start'   => time,
+    ( defined $k ? ( 'k' => sprintf( '%.3f', $k ) ) : () )
 };
 my $text = "   .:[ usage : 7d and 5h percent at "
     . "the start of the 5h window ]:.\n\n";
@@ -46,14 +62,15 @@ my $text = "   .:[ usage : 7d and 5h percent at "
 foreach my $name ( sort keys %{$state} ) {
     my $r = $state->{$name};
     $text .= sprintf "   %s.%-8s = %s\n", $name, $ARG, $r->{$ARG}
-        foreach qw| epoch5h start7d start5h start |;
+        foreach grep { defined $r->{$ARG} }
+        qw| epoch5h start7d start5h start k |;
 }
 eval { <[file.zenka_dir.write]>->( qw| pace.cfg |, \$text, '>', 0640 ); 1 }
     or <[base.logs]>->( 0, '<< usage pace : pace.cfg not written >>' );
 return $state->{$provider};
 
-#,,.,,...,.,,,.,,,.,.,,,,,,..,,,.,,..,,,,,.,.,..,,...,..,,...,.,.,..,,,..,,,,,
-#3RZK7R25GR55RYOO7UWSIL6IU7E4EKZHT3GODLQKYLVIGNBWRW56CC23PH5GHJOB337LP73ORQLJ4
-#\\\|WNHP5WNMLDBSOMQTH46Q7LUYII6CZTWQFZNMP5MNA7IB2T3I64M \ / AMOS7 \ YOURUM ::
-#\[7]TWTR5EQWSX44GUIBLFWWGQ76QJC6TEAN43IHG6SW3KVLW5M4RMCA 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,,,,,,,,..,,.,,,.,,..,,,,,,,..,..,,...,...,.,,,.,.,..,,...,.,.,
+#NGIY7TF52SPQPQKYCIV5YFMY5FCXTUMV23RJV47QKCMVJ4PMJZ35PEDT253BRN7WUKWA3J3VP2TJK
+#\\\|45UASFYMN2XLAAR5FET3MKYPI7QUJAAX6BZKKA4NZCTNTCNXPKL \ / AMOS7 \ YOURUM ::
+#\[7]YUZ66KCJEIN7KFUDXVZQLYLLVIH2LH62UEKNEWQXI7OHDFUVQEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

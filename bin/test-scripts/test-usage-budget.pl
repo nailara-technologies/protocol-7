@@ -811,14 +811,60 @@ ok( $fast
         =~ m{this window : 4\.0 % of the 7d, 18\.0 % of the 5h used in 1\.0 h}
         && $fast =~ m{pace now : 18\.0 %/h of the 5h \[ 4\.0 %/h of the 7d \]}
         && $fast
-        =~ m{pace fits : 9\.8 %/h of the 5h \[ 2\.2 %/h of the 7d \] : slow down to about x0\.55},
+        =~ m{pace fits : 6\.5 %/h of the 5h \[ 1\.4 %/h of the 7d \] : slow down to about x0\.36},
     'pace : too fast for the share -> slow down with the factor'
 ) or say "# $fast";
 ok( $fast        =~ m|^ :       \[:{10} {16}\] used$|m
-        && $fast =~ m|^ : share used : \[:{8} {18}\]  31 %$|m
+        && $fast =~ m|^ : share used : \[:{11} {15}\]  41 %$|m
         && $fast !~ m{\e},
     'bars : window used and share used, plain characters'
 ) or say "# $fast";
+## the owner's case 2026-11-25 : 4 % of the 7d left, 0.9 h to the week's ##
+## end, 4.4 h to the 5h reset -- the nearer horizon decides              ##
+$data{'usage'}{'pace'}{'records'}{'claude'} = {
+    'epoch5h' => $t0 + 4.4 * 3600,
+    'start7d' => 92,
+    'start5h' => 0,
+    'start'   => $t0 - 0.6 * 3600,
+    'k'       => 9
+};
+my $last = $code{'usage.format.plan'}->(
+    {   'order'   => ['claude'],
+        'now'     => $t0,
+        'results' => {
+            'claude' => {
+                'ok'     => TRUE,
+                'result' => {
+                    'rows' => [
+                        {   'window'    => '7d',
+                            'used_pct'  => 96,
+                            'resets_in' => int( 0.9 * 3600 )
+                        },
+                        {   'window'    => '5h',
+                            'used_pct'  => 35,
+                            'resets_in' => int( 4.4 * 3600 )
+                        }
+                    ]
+                }
+            }
+        }
+    }
+);
+ok( $last =~ m{horizon : 0\.9 h \[ the 7d reset comes first \]}
+        && $last
+        =~ m{pace fits : 41\.1 %/h of the 5h \[ 4\.4 %/h of the 7d \] : slow down to about x0\.70},
+    'pace : the nearer reset is the horizon [ the week ends first ]'
+) or say "# $last";
+ok( $last =~ m{share used : .*  48 %},
+    'share used : against the fixed budget with the stored ratio' )
+    or say "# $last";
+delete $data{'usage'}{'pace'}{'records'}{'claude'}{'k'};
+$data{'usage'}{'pace'}{'records'}{'claude'} = {
+    'epoch5h' => $t0 + 4 * 3600,
+    'start7d' => 61,
+    'start5h' => 22,
+    'start'   => $t0 - 3600
+};
 my $slow = $pace_req->( 61.5, 24 );
 ok( $slow =~ m{pace now : 2\.0 %/h of the 5h}
         && $slow =~ m{: room to speed up x},
@@ -849,8 +895,8 @@ ok( $plan !~ m|[{}]|, 'plan : no json' );
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,,,,,.,,,..,,.,,,,,,,,.,..,,,..,,,.,.,,,,.,,..,,...,...,...,.,.,,,,,.,.,...,
-#25YL5IBKF3IF5D2XGVGVSJHGPXSWHV3WD4UUO5FHS3KD2ZQC24QD4A2WCVER7A7XEUDZJPEWEJHMM
-#\\\|52ETSJ3NZURIGLBHAUVAJVYKRSQDQFCZQDAUIHTRTUXPPBZ3GMP \ / AMOS7 \ YOURUM ::
-#\[7]SLSCDK733Y6Y2PKFUELUDOTGHDPEX6F36GLZQJ3R5LDLHHCDLGAA 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,.,.,..,,,.,,,..,,.,,..,,,..,..,,...,...,..,,,,.,,,,,..,,..,,
+#SB7DBOAFZR3JZFJTBNZVGQ2XUG3BPMO55AO33WWX672KZUNTOUMG5CULVUSA2HF3VRLJAIX7SMCEK
+#\\\|GYOHY6LMEQET372CD2JC5U6SLWH7DFCTOH2JOAWE2SCA5RN3XZF \ / AMOS7 \ YOURUM ::
+#\[7]VUSRAKLC2ULTA2M2KLJSACSBSBVLEPXVRYMU3RKUYNRNRMZI7AAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
