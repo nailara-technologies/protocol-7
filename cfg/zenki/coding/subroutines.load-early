@@ -338,6 +338,7 @@ coding.mode.setting
 coding.input.decode
 coding.handover.git
 coding.handover.arm
+coding.cmd.sessions
 coding.cmd.restream
 coding.cmd.progress
 coding.cmd.handover
@@ -392,6 +393,8 @@ coding.task.complete
 coding.system_prompt
 coding.self_test.run
 coding.remind.failed
+coding.keepalive.off
+coding.keepalive.arm
 coding.idiom.resolve
 coding.gpu_sparkline
 coding.decision.send
@@ -402,6 +405,7 @@ coding.cmd.task-info
 coding.cmd.stop-task
 coding.cmd.resurrect
 coding.cmd.reminders
+coding.cmd.keepalive
 coding.cmd.call-tool
 coding.cmd.ask-reply
 coding.async.request
@@ -475,8 +479,13 @@ coding.tools.dispatch
 coding.task.resurrect
 coding.sign_queue.cfg
 coding.sign_queue.arm
+coding.sessions.touch
+coding.sessions.store
 coding.remind.deliver
+coding.keepalive.tick
+coding.keepalive.send
 coding.intake.process
+coding.handover.write
 coding.handover.watch
 coding.handover.start
 coding.gpu_lease.gate
@@ -556,6 +565,9 @@ coding.scratchpad.scan
 coding.prompt.assemble
 coding.mode.task_model
 coding.last-compaction
+coding.keepalive.watch
+coding.keepalive.start
+coding.keepalive.delay
 coding.handover.render
 coding.handler.http_io
 coding.cmd.task-append
@@ -620,6 +632,7 @@ coding.task.failed.list
 coding.sign_queue.store
 coding.sign_queue.prune
 coding.lora_train_spawn
+coding.keepalive.decide
 coding.handover.sources
 coding.handover.refresh
 coding.cmd.vision-model
@@ -704,6 +717,7 @@ coding.task.analyze_full
 coding.start.chmod_child
 coding.sign_queue.detach
 coding.self_test.archive
+coding.keepalive.pending
 coding.init_dependencies
 coding.image.select_refs
 coding.idiom.repair.auto
@@ -711,6 +725,7 @@ coding.idiom.check_write
 coding.helper.task_chain
 coding.helper.dry_last_n
 coding.gpu_lease.request
+coding.cmd.session-touch
 coding.cmd.restart-round
 coding.cmd.clear-applied
 coding.buffer.task_write
@@ -851,6 +866,7 @@ coding.handler.drain_check
 coding.context.read_module
 coding.cmd.resume-analysis
 coding.cmd.last-compaction
+coding.cmd.keepalive-reset
 coding.cmd.gpu-lease-yield
 coding.cmd.abort-inference
 coding.catalog.track_write
@@ -917,6 +933,7 @@ coding.self_test.multiplier
 coding.round_chain.restream
 coding.parser.str.is_vision
 coding.parse.xml_tool_calls
+coding.keepalive.reset_post
 coding.intake.validate_task
 coding.idiom.repair.request
 coding.helper.task_priority
@@ -982,6 +999,7 @@ coding.handler.remind_target
 coding.cmd.summarize-context
 coding.cmd.subscribe-session
 coding.cmd.safe-context-size
+coding.cmd.keepalive-pending
 coding.cmd.gpu-lease-granted
 coding.cmd.complete-analysis
 coding.catalog.corpus.record
@@ -1039,6 +1057,7 @@ coding.helper.priority_scorer
 coding.helper.log_transaction
 coding.helper.category_mapper
 coding.handler.restart_server
+coding.handler.keepalive_sent
 coding.handler.handover_reply
 coding.handler.deferred_reply
 coding.handler.decision_reply
@@ -1224,6 +1243,7 @@ coding.handler.thermal_hold_done
 coding.handler.refresh_mem_stats
 coding.handler.lora_train_stdout
 coding.handler.lora_train_stderr
+coding.handler.keepalive_pending
 coding.gpu_lease.cancel_activity
 base.perlmod.install_cpan_module
 base.perlmod.get_collision_index
@@ -1570,8 +1590,8 @@ llm.service.consensus_vote.encode_harmonic_certainty
 coding.vision-parser.handler.check_vision_completion
 coding.vision-parser.handler.check_extraction_completion
 
-#,,,,,,..,,.,,...,,,,,.,,,,,,,,,,,,.,,,.,,.,,,..,,...,...,..,,.,.,..,,,,.,,.,,
-#2IQJUWZJANECMJX7DHSGJ32M3F7MFLH5FO4GFRK22VFF6T7O47OQRIAKVMVNBZJANOBAXP7XCFEO6
-#\\\|QWWCX52TCXVWIFSOIRV72EURZCNE4NEM6VZDW3KE5NN4DX5XKM7 \ / AMOS7 \ YOURUM ::
-#\[7]BZC7HKB6UYKPRODAIUUPDIELBXCJL2ORUNGG5U33FYT3DBY2AODY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,...,.,,,,,,,,.,,,..,,,,,.,.,,.,,..,,...,...,.,.,...,,,.,,.,,...,
+#JCJ22WOJEWTIYPR7NUTDLC6DKYBRET2ACWZULFMP6ZAAONIU5XLJAOMVEXOG4WA3A6R7EUF3VBURG
+#\\\|PXTCBOJXPKUQBQO2GGTWOE5PPUP5AGUJXRGQBUG2VSGO3JYCOTL \ / AMOS7 \ YOURUM ::
+#\[7]SLE3TFS3CHLXKDW2SVDPXHITA4NTBYMD7SCLCIKSUF4IC4SDVCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

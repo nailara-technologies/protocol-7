@@ -1,0 +1,50 @@
+## [:< ##
+
+# name   = coding.keepalive.pending
+# descr  = what is pending for one session
+# args   = session name, source answers { claude kimi reminder }
+# return = list of short texts, empty : nothing pending
+#
+# a zenka's own run is not pending for its own session
+
+my ( $name, $got ) = @ARG;
+my $r = <[coding.sessions.store]>->()->{$name} // return;
+my @pending;
+
+push @pending, "$r->{'dispatches'} dispatch(es) running"
+    if ( $r->{'dispatches'} // 0 ) > 0;
+
+my $queue = <[coding.sign_queue.store]> // {};
+my @signs = grep {
+    $queue->{'entry'}{$ARG}{'status'} !~ m{\A(?:committed|stopped)\z}
+    }
+    sort keys %{ $queue->{'entry'} // {} };
+my @plans
+    = grep { $queue->{'plan'}{$ARG}{'status'} =~ m{\A(?:waiting|testing)\z} }
+    sort keys %{ $queue->{'plan'} // {} };
+push @pending, 'sign queue : ' . join( ' ', @signs )   if @signs;
+push @pending, 'commit plans : ' . join( ' ', @plans ) if @plans;
+
+my %reminder = map { $ARG => 1 }
+    keys <[coding.remind.store]>->(qw| all |)->%*;
+$reminder{$ARG} = 1
+    foreach ( $got->{'reminder'} // '' )
+    =~ m{^:\s+(remind-\d+)\s+waiting\b}mg;
+push @pending, scalar( keys %reminder ) . ' reminder(s) waiting'
+    if %reminder;
+
+push @pending, 'claude zenka run'
+    if $r->{'type'} ne qw| claude-zenka |
+    and ( $got->{'claude'} // '' ) =~ m{^state\s*:.*\[ turn running \]}m;
+push @pending, 'kimi zenka run'
+    if $r->{'type'} ne qw| kimi-acp |
+    and ( $got->{'kimi'} // '' ) =~ m{^phase\s*:\s*prompting\b}m;
+
+push @pending, $r->{'pending'} if length( $r->{'pending'} // '' );
+return @pending;
+
+#,,,,,,.,,,.,,,,.,..,,,,,,,..,,.,,.,,,.,,,,.,,..,,...,...,...,.,.,,.,,,.,,..,,
+#ZBL74TWUPHU7NSDTSLTOC34LBSQ3U2CGYV5FOOVCA36TXG3IOFOIPXDSARQM3UTIHT74KFW4TG6ZU
+#\\\|TA3VJLZIAXB4PN2W5WFBJ2Z64DFBBTNFEWMJXYTVVQGHNKEZOVY \ / AMOS7 \ YOURUM ::
+#\[7]PCUVIZ6HFWTCWNV5QZ3STO5HMCENB4PAIJFBX6QCVKFLZ5OTTIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

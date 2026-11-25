@@ -1,0 +1,44 @@
+## [:< ##
+
+# name   = coding.keepalive.send
+# descr  = one message, the way the session type takes it
+# args   = { name type text .. }
+# return = TRUE when buffered
+#
+# a kimi tui blocks outside input : its keep-alive is a notification
+
+my $in = shift // {};
+my ( $name, $type, $text ) = @{$in}{qw| name type text |};
+my %path = (
+    'claude-live' =>
+        [ qw| claude.session-post |, "to=$name from=coding $text" ],
+    'claude-zenka' => [ qw| claude.send |,   $text ],
+    'kimi-acp'     => [ qw| kimi.acp-send |, $text ],
+    'kimi-tui'     =>
+        [ qw| notify.message |, "$name not reachable [ kimi tui ] : $text" ]
+);
+my $cmd = $path{$type};
+return TRUE
+    if defined $cmd
+    and <[protocol-7.route-send]>->(
+    {   'command'   => $cmd->[0],
+        'call_args' => { 'args' => $cmd->[1] },
+        'reply'     => {
+            'handler' => qw| coding.handler.keepalive_sent |,
+            'params'  => { %{$in} }
+        }
+    }
+    );
+<[coding.handler.keepalive_sent]>->(
+    {   'cmd'       => qw| FALSE |,
+        'call_args' => { 'args' => 'not routable' },
+        'params'    => { %{$in} }
+    }
+);
+return FALSE;
+
+#,,,.,...,,.,,...,,,,,...,..,,.,.,..,,.,,,.,.,..,,...,...,,,,,.,,,.,,,,,.,..,,
+#DLCQOM454JZFO2OJOM3ES7T374SQFVOWENCQWKVCVTMI4Q2TZLIR3OYJC2QTIIWBGGA75AFUG2KHO
+#\\\|UAUXPEYZAAXBWOWVQCSK7RCSRZ2LQ335AHD6HEHQWZZW6AAEHQE \ / AMOS7 \ YOURUM ::
+#\[7]Y57P26E6TRS5C6JYUDP6SGA54WH3A22HTXBESBEU3COAOWUSRCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

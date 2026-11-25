@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = coding.cmd.sessions
+# descr = known sessions, activity and keep-alive
+
+my $all = <[coding.sessions.store]>;
+return { 'mode' => qw| true |, 'data' => 'no session known' }
+    if not keys %{$all};
+my $ago = sub {
+    my $at = shift // return '-';
+    my $s  = time - $at;
+    return $s < 90 ? "${s}s ago" : sprintf '%dm ago', $s / 60;
+};
+my @lines
+    = ( sprintf "%-24s %-12s %-10s %s\n", qw| name type active keep-alive | );
+foreach my $name ( sort keys %{$all} ) {
+    my $r     = $all->{$name};
+    my $on    = $r->{'switch'} eq qw| on |;
+    my $ended = $on && AMOS7::Switch::expired( $r->{'until'}, time );
+    my $state
+        = ( $on and not $ended )
+        ? sprintf(
+        'on [ %d of %d%s ]',
+        $r->{'count'} // 0,
+        <coding.cfg.keepalive_max> // 6,
+        $r->{'until'}
+        ? sprintf( ', %dm left', ( $r->{'until'} - time ) / 60 )
+        : ''
+        )
+        : 'off'
+        . (
+          $ended       ? ' [ its time ended ]'
+        : $r->{'note'} ? " [ $r->{'note'} ]"
+        :                ''
+        );
+    $state .= " # pending : $r->{'pending'}"
+        if length( $r->{'pending'} // '' );
+    push @lines, sprintf "%-24s %-12s %-10s %s\n", $name, $r->{'type'},
+        $ago->( $r->{'last'} ), $state;
+}
+return { 'mode' => qw| size |, 'data' => join '', @lines };
+
+#,,.,,...,.,.,...,..,,,.,,,.,,,..,.,.,...,,.,,..,,...,...,...,,,,,.,,,,.,,.,.,
+#XTDA3NDN4UIWFVZSA2OGRVQFW37R5BICWPJ3A25RBK5HZBQWAVCXS2CC6BGGYASTNJKD2GB53IQDQ
+#\\\|5RQ6M7D5GDA7MXUPOBPGNDOOD2NHUERF2ZGHFVBX3KF5HLVWUDQ \ / AMOS7 \ YOURUM ::
+#\[7]BTQNARIQ4KLW2AMRF5C2KR3FJKFPYDJLBRYOKSSZZKV7K5PJCSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

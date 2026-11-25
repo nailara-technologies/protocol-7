@@ -1,0 +1,73 @@
+## [:< ##
+
+# name   = coding.keepalive.decide
+# descr  = end the round : a message or none, per session
+# return = count of messages on their way
+#
+# nothing pending : no message, the next look one idle time later. a
+# claude \ kimi zenka with no process is not sent to [ the send would
+# start one, with no cache to keep ] ; with its own turn running it is
+# not idle
+
+my $round = delete <coding.keepalive.round> // return 0;
+my $got   = $round->{'got'};
+my $all   = <[coding.sessions.store]>;
+my $max   = <coding.cfg.keepalive_max> // 6;
+my $sent  = 0;
+my @send;
+
+foreach my $name ( @{ $round->{'names'} } ) {
+    my $r = $all->{$name} // next;
+    next
+        if $r->{'switch'} ne qw| on |
+        or ( $r->{'due'} // 0 ) > time;    ## active meanwhile ##
+    my $own
+        = $r->{'type'} eq qw| claude-zenka | ? $got->{'claude'}
+        : $r->{'type'} eq qw| kimi-acp |     ? $got->{'kimi'}
+        :                                      undef;
+    $r->{'due'} = time + <[coding.keepalive.delay]>;
+    if ( $r->{'type'} =~ m{\A(?:claude-zenka|kimi-acp)\z} ) {
+        next if not defined $own;    ## state unknown ##
+        next
+            if $own =~ m{\[ turn running \]|^phase\s*:\s*prompting\b}m;
+        next
+            if $r->{'type'} eq qw| claude-zenka |
+            ? $own !~ m{^pid\s*:\s*\d}m
+            : $own =~ m{^phase\s*:\s*stopped\b}m;
+    }
+    my @pending = <[coding.keepalive.pending]>->( $name, $got );
+    next if not @pending;
+
+    my $before = $r->{'sent'};
+    my $n      = ++$r->{'count'};
+    $r->{'sent'} = time;
+    my $text
+        = sprintf 'keep-alive [ %d of %d ] pending : %s [ %s ]',
+        $n, $max, join( ' ; ', @pending ),
+        $n >= $max
+        ? 'the last one : keep-alive now off'
+        : 'a short answer is enough';
+    <[coding.keepalive.off]>->(
+        $name, "$max keep-alives in a row with no other activity"
+    ) if $n >= $max;
+    push @send,
+        {
+        'name'   => $name,
+        'type'   => $r->{'type'},
+        'text'   => $text,
+        'sent'   => $r->{'sent'},
+        'before' => $before,
+        'last'   => ( $n >= $max ) ? TRUE : FALSE,
+        'until'  => $r->{'until'}
+        };
+}
+<[coding.sessions.store]>->(qw| save |);
+$sent += <[coding.keepalive.send]>->($ARG) ? 1 : 0 foreach @send;
+<[coding.keepalive.arm]>;
+return $sent;
+
+#,,.,,,,,,,,,,,,,,,..,.,,,,,,,...,,..,.,,,..,,..,,...,..,,..,,..,,,,.,..,,,.,,
+#XCZWWF2IC6AEPRUITN2CRTQKKHFTYJU6GWJUXORZJO3H5LR6VDIDVAAUNMNPJIJSXBU3UBQPJFTX6
+#\\\|TXXSHAMBKK53TNKHONQRFXL3R6RG4MRFGVLNUR2DVW32QGTBYUR \ / AMOS7 \ YOURUM ::
+#\[7]XPZ6TYRLOK7H3HSLRMQBKRDCJPCECUM3XLMPVQ72MFNBHD5UT4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

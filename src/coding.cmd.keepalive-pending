@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = coding.cmd.keepalive-pending
+# param = <session> <text> | <session> -
+# descr = mark what a session waits for [ - : clear ]
+
+my ( $name, $text )
+    = ( $call->{'args'} // '' ) =~ m{\A\s*(\S+)\s+(.*?)\s*\z}s;
+return {
+    'mode' => qw| false |,
+    'data' => 'keepalive-pending <session> <text> | -'
+    }
+    if not length( $text // '' );
+my $r = <[coding.sessions.store]>->()->{$name} // return {
+    'mode' => qw| false |,
+    'data' => "no session '$name' [ coding.sessions ; session-touch first ]"
+};
+if ( $text eq '-' ) {
+    delete $r->{'pending'};
+} else {
+    $text =~ s{\s+}{ }g;
+    $r->{'pending'} = substr $text, 0, 233;
+}
+<[coding.sessions.store]>->(qw| save |);
+return {
+    'mode' => qw| true |,
+    'data' => $text eq '-' ? "marker cleared : $name" : "marker set : $name"
+};
+
+#,,..,..,,,,.,,,.,,.,,..,,,.,,..,,.,.,.,.,,,,,..,,...,..,,,,,,,,.,,,.,..,,,.,,
+#7JAESRHOZ5NZHUJ4W5V6U7AJTIWYW6V3GJZWIONP6LSD3UU6I6XSYFVYLOCEGCYTYWION5VRPFKHG
+#\\\|IHPO5HZL3T4PAAQQLBPPGYAUFIKXUI5YCTV7JA2PDKOGELT7ESL \ / AMOS7 \ YOURUM ::
+#\[7]KAOHSMH6DZVI7RL5BRMOBPC6F7ONL5XR7VQKRPBMI5PAQQDMZIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

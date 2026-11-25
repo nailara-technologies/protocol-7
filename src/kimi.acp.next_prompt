@@ -18,6 +18,16 @@ $st->{'turn'}  = { 'started' => time };
 $st->{'turns'}++;
 <[kimi.acp.event]>->( qw| prompt |, $text );
 
+## the session registry : a keep-alive prompt is no new activity ##
+<[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.coding.session-touch |,
+        'call_args' => {
+            'args' => 'name=kimi-acp type=kimi-acp via='
+                . ( $text =~ m{\Akeep-alive \[} ? 'keepalive' : 'prompt' )
+        }
+    }
+);
+
 ## route-send only buffers, and in order : start goes before done ##
 my $session = ( $st->{'session_id'} // qw| none | ) =~ s{[^\w.:-]}{_}gr;
 <[protocol-7.route-send]>->(
@@ -40,8 +50,8 @@ my $session = ( $st->{'session_id'} // qw| none | ) =~ s{[^\w.:-]}{_}gr;
 );
 return TRUE;
 
-#,,,.,,,.,,..,..,,...,,..,,..,,,,,...,...,..,,..,,...,...,.,.,..,,,,.,...,.,.,
-#QINAH7HI3UFBBEIVMI45EY7Q3BPTEMVSJO2TFOM44IHBVUA3LJW5LXDSGNAPFY7SMD2GFZRUN4TXW
-#\\\|GDGUOFVRIO6SYBR4HRMIYGY2VW2GXSZZQUQ3JELXFTYEOZT6WNF \ / AMOS7 \ YOURUM ::
-#\[7]LY7SE3T3FNNMG4GI2WF62XIKKRVLOLT7QUJRIN65FQ45H5CZ26AI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,...,,..,,,,,.,,,.,.,...,,,.,..,,...,...,.,.,..,,.,,,.,.,,.,,
+#5Q2T3BPXWHLBE2UTIZYCR27PXWVXP5HGMXGAY67S3YYIJLCFCMUWOHFU3DUD3GIB3KFEW4QQDWSVS
+#\\\|GOTR4NE27VWHJIHTSUZITMB53BUYOSLRFJK3R7L2D65HSCD5T4W \ / AMOS7 \ YOURUM ::
+#\[7]QQZNB46PBWD4EL7O6TTFYW6OQEWPLMBKASRB4QITS5TVK3GQACBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,78 @@
+## [:< ##
+
+# name   = coding.keepalive.tick
+# descr  = keep-alive timer : ask what is pending
+# args   = the timer event [ not used ]
+#
+# route-send only buffers : coding.handler.keepalive_pending collects the
+# answers and decides. a round a source never answered is decided with
+# what came, at the next tick after coding.cfg.keepalive_round_seconds
+
+undef <coding.keepalive.timer>;
+my $round = <coding.keepalive.round>;
+if ( defined $round ) {
+    if (time - $round->{'at'}
+        >= ( <coding.cfg.keepalive_round_seconds> // 89 ) ) {
+        <[coding.keepalive.decide]>;
+    } else {
+        <[coding.keepalive.arm]>;
+    }
+    return TRUE;
+}
+
+my $all = <[coding.sessions.store]>;
+my @due;
+my $changed;
+foreach my $name ( sort keys %{$all} ) {
+    my $r = $all->{$name};
+    next if $r->{'switch'} ne qw| on |;
+    if ( AMOS7::Switch::expired( $r->{'until'}, time ) ) {
+        $changed = <[coding.keepalive.off]>->( $name, 'its time ended' );
+        next;
+    }
+    push @due, $name if ( $r->{'due'} // 0 ) <= time;
+}
+<[coding.sessions.store]>->(qw| save |) if $changed;
+if ( not @due ) {
+    <[coding.keepalive.arm]>;
+    return TRUE;
+}
+
+my $id    = ++<coding.keepalive.seq>;
+my %query = (
+    'claude'   => [ qw| claude.status |,      '' ],
+    'kimi'     => [ qw| kimi.acp-status |,    '' ],
+    'reminder' => [ qw| events.bucket-show |, '' ]
+);
+<coding.keepalive.round> = {
+    'id'    => $id,
+    'at'    => time,
+    'names' => \@due,
+    'wait'  => { map { $ARG => 1 } keys %query },
+    'got'   => {}
+};
+foreach my $source ( sort keys %query ) {
+    next
+        if <[protocol-7.route-send]>->(
+        {   'command'   => $query{$source}->[0],
+            'call_args' => { 'args' => $query{$source}->[1] },
+            'reply'     => {
+                'handler' => qw| coding.handler.keepalive_pending |,
+                'params'  => { 'round' => $id, 'source' => $source }
+            }
+        }
+        );
+    delete <coding.keepalive.round>->{'wait'}{$source};
+}
+if ( not keys <coding.keepalive.round>->{'wait'}->%* ) {
+    <[coding.keepalive.decide]>;
+} else {
+    <[coding.keepalive.arm]>;
+}
+return TRUE;
+
+#,,.,,,,,,,.,,.,.,...,...,.,,,...,,.,,,,.,,,,,..,,...,..,,...,,..,.,.,,..,,.,,
+#C357WRRAEJMIOO7VKGXPBPXKHHNJW6PU3JV7YQRGYO3I7PC6LSMAPK5YXLSHCQZDUAJUT2TX4D7JQ
+#\\\|PLWO6WP6DJCJDNSF3QEBVP4FH6PJVMVRVCFF42WPC4MP7YTZWKB \ / AMOS7 \ YOURUM ::
+#\[7]A4FFP63G3B6MMPYFMZNDIAHJRLINZAR2RFLOKZ5ARRPKG3VHY6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

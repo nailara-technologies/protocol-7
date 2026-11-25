@@ -228,6 +228,13 @@ order : 5, then 1 + 3, 2 grows out of them, 4 on the relay.
 5. context templates : data/yaml/context-templates/p7-dispatch-rules.yaml [ created 2026-11-24 ]
    carries the hard rules ; task templates on top [ new zenka, n7fs change, fake-child tests ]
 
+6. tasks across sessions [ owner direction 2026-11-25 ] : a session is a round of a task, as a
+   tool call is a round of a session ; task <-> session is many-to-many with cross references
+   [ the session registry knows which tasks a session touched, a task which sessions hold its
+   context ]. one session serving several parallel tasks shares their context for free -- the
+   zenka can suggest which tasks fit one next session [ shared files, zenki, decisions ] and
+   which session to resume for a task.
+
 signing stays with the owner in every step : the zenka REQUESTS signs [ the same detached
 bin/dev/p7-sign-run start as p7_sign, a job id back ] and commits only what was signed -- it holds
 no key and cannot answer the p7-sign-agent prompt [ y \ n \ d stays with the owner ]. a planned
@@ -303,8 +310,8 @@ per host [ never on the disk ], one host holds a session at a time [ a lease, li
 - inbox socket inbound policy : crossSessionInbound accept | hold | refuse, defaults by
   permission mode -- a bypass session holds messages from a prompting sender
 
-#,,,,,.,.,,.,,.,,,,,.,,.,,,,.,,.,,.,,,...,,..,..,,...,...,.,.,.,,,,.,,...,...,
-#5EL4C3EY6TJSSX3MYXFX3L3OCFO2NTZJHTW5372LHQMCRAOZXTKYM25MUM3HQ5IGFYW6VEKDYQFRE
-#\\\|O3UH4UQTHIY6ILJNRWZVLFAQLPB2NIAW74SN5ELIITSWKP7SIKK \ / AMOS7 \ YOURUM ::
-#\[7]BYXAYYGWHLX7RJ2WDZKGHMYZPAS7FMCAUGOA3AGZNBQZCDVUUUAI 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,.,,,,,.,.,,.,,...,...,..,,,..,..,,...,...,...,,.,,,,.,...,.,,,
+#AVRMVC5APUWGP2M2T754R5CFOSDKYPU3HW5H6SZB2N267P75Y2WUPOXJONDMYTBOOXFSIJXBJO2GI
+#\\\|BOTK3YSHST7PTCPQEG4NKW54NV2CRZOOOUJ2IB3JZT2XIHFO3HM \ / AMOS7 \ YOURUM ::
+#\[7]2DWB3UYMUMVSPDVN7PNZRDMLTPRRNXTGKL53J7ZHOH6HGDVKGUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

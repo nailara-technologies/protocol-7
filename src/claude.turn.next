@@ -24,6 +24,15 @@ if ( not $sent ) {
     CORE::unshift( @{<claude.queue>}, $text );
     return FALSE;
 }
+## the session registry : a turn of a keep-alive is no new activity ##
+<[protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.coding.session-touch |,
+        'call_args' => {
+            'args' => 'name=claude-zenka type=claude-zenka via='
+                . ( $text =~ m{\Akeep-alive \[} ? 'keepalive' : 'turn' )
+        }
+    }
+);
 <claude.turn>++;
 <claude.turn_active>  = TRUE;
 <claude.turn_started> = time;
@@ -38,8 +47,8 @@ if ( not $sent ) {
     if defined $code{'base.zenki.pause_ondemand_timeout'};
 return TRUE;
 
-#,,,.,..,,,..,,,.,..,,.,.,,.,,,..,.,,,..,,,,.,..,,...,...,,,,,,..,...,,,.,,.,,
-#PDND7JZ2LOXSUGSSI52LG7R72QYKS5O3BZEHG5LBPVEC7DVVSP37WO7VIHVQTWV6CMXLTAK6G3WKS
-#\\\|BZ34QZE3S6YLCX25RRP2X5RTBQ77EJ5WB7ZWS2IDYTAKFPOAFVP \ / AMOS7 \ YOURUM ::
-#\[7]ESRTHZ4ZCBLNWNUUBK26CLIFAUPZJ6ZIVOMCQWDDI72TOYGRA4DI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,,.,..,,.,,,..,,...,,..,,.,,..,,..,,...,...,.,.,..,,..,,...,.,.,
+#XBNJIRYH5B7VZSOPNKTOCJGAOKIWHBDLASFVP67U6QXB3FCBTYXBMSFFJTQ4ARTLU6GZTQCZGRJAK
+#\\\|Y4DH672GXTRADHMBQMZ4EYGFJYU67K4D7ABW2CW77AZI2DI2YIX \ / AMOS7 \ YOURUM ::
+#\[7]SP4IHMXSIJXPCJ5WSP6C66W7EOWCH4G5NV6U6BGR2RE36TM6DSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

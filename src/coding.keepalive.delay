@@ -1,0 +1,20 @@
+## [:< ##
+
+# name   = coding.keepalive.delay
+# descr  = idle time until the next keep-alive is due
+# return = seconds, below the prompt cache's idle hour
+#
+# interval type coding-keepalive. the rhythm's harmonic step may move a
+# delay past the cache's life : kept under the ceiling [ downward only ]
+
+my $delay = <[base.interval.next]>
+    ->( { 'type' => qw| coding-keepalive |, 'state' => {} } );
+my $ceiling = 60 * ( <coding.cfg.keepalive_ceiling_minutes> // 55 );
+$delay = $ceiling - rand( $ceiling / 34 ) if $delay > $ceiling;
+return $delay;
+
+#,,,,,.,,,,,.,,.,,,.,,...,,,,,.,.,,..,...,,.,,..,,...,..,,..,,...,,.,,,,.,.,.,
+#CMXXUE5HIC4IV7OMU7THHIULJJDR2C6PK4G3OMSBKH5IHAG4UAQEDW2JCLYCAFHFHLSNLUV4X3UDW
+#\\\|NRGJ5J4C5TNV6XCOJOALRDCF6YXYO7FARECHPV7KANR32IOI6ZM \ / AMOS7 \ YOURUM ::
+#\[7]VFUV6KLU744NRGQ46CCUOTWY3VWN73EHMNLCDWPODEVDX2NRAKAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

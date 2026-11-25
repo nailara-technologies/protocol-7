@@ -1,0 +1,46 @@
+## [:< ##
+
+# name   = coding.keepalive.arm
+# descr  = the one timer : the earliest due session
+# return = TRUE when a timer is set
+#
+# a time already passed [ after a restart, a failed delivery ] waits the
+# short coding-keepalive-retry delay ; with a round open the timer waits
+# for its end
+
+eval { <coding.keepalive.timer>->cancel }
+    if defined <coding.keepalive.timer>;
+undef <coding.keepalive.timer>;
+
+my $all = <[coding.sessions.store]>;
+my @on  = grep { $all->{$ARG}{'switch'} eq qw| on | } keys %{$all};
+return FALSE if not @on;
+
+my $round = <coding.keepalive.round>;
+my $at;
+if ( defined $round ) {
+    $at = $round->{'at'} + ( <coding.cfg.keepalive_round_seconds> // 89 );
+} else {
+    foreach my $name (@on) {
+        my $due = $all->{$name}{'due'} // 0;
+        $at = $due if not defined $at or $due < $at;
+    }
+}
+my $after = $at - time;
+if ( $after < 1 ) {
+    $after = <[base.interval.next]>
+        ->( { 'type' => qw| coding-keepalive-retry |, 'state' => {} } );
+}
+<coding.keepalive.timer> = <[event.add_timer]>->(
+    {   'after'   => $after,
+        'handler' => qw| coding.keepalive.tick |,
+        'desc'    => 'keep-alive : the next idle session'
+    }
+);
+return TRUE;
+
+#,,..,.,.,,.,,,..,,..,.,.,,.,,,..,...,.,.,,,,,..,,...,...,,,.,.,.,...,...,...,
+#XRSVL2U6NNKRGBNWK34HGVOW6GHREFKZC5VD6UZMVU5P66BN6BD5OEMCXC6L4AXIKKMSNUKM7F744
+#\\\|6PQ4RKIVUT5ENFCBEX4JC2LWCSWPYXEPPQPREQQW56LBXGMFB5Q \ / AMOS7 \ YOURUM ::
+#\[7]SZK6ER7OVB2CVL656OWCMTMEF77Q6Z2MBDTJAKWUM24BB2WK5EAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

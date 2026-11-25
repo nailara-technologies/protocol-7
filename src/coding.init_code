@@ -830,10 +830,25 @@ eval { <coding.remind.timer>->cancel } if defined <coding.remind.timer>;
     }
 );
 
+## session keep-alive : the registry is read after the privileges dropped ##
+eval { <coding.keepalive.timer>->cancel }
+    if defined <coding.keepalive.timer>;
+delete <coding.keepalive.round>;
+<coding.keepalive.timer> = <[event.add_timer]>->(
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| coding-keepalive-resume |,
+                'state' => {}
+            }
+        ),
+        'handler' => qw| coding.keepalive.start |,
+        'desc'    => 'keep-alive : arm after start'
+    }
+);
+
 return 0;
 
-#,,,,,,,.,,.,,,.,,,,.,...,..,,...,,,,,,..,.,.,.,.,...,...,,..,,..,..,,,,,,,..,
-#TP56PR5HIMBF53PPAQRTZFGMGIPRIAK564AUATZUEVW3T4WAGV6WJ456GHIWRSWMKSQLUQZAUWJLE
-#\\\|HYSRYJNWBEWLL4QYNOWZVKNHUBLXVOJDDB3JSNIR4PTU7OHT4PU \ / AMOS7 \ YOURUM ::
-#\[7]NFGSHEQRPA64JNK67RCUWIHCEUR5V7ZKEJN6PIY2UXG5QUO4WIBY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,,..,...,.,,,,,.,..,,,.,,,,,,.,.,...,...,...,.,,,..,,,,,,...,
+#3WZIAJW6U7VL6ZSQU6RWYRRNFJNI6YH7UFQEDODQG2IIOHQJRGM55GIG2ZYUTU3CKBWNQSGHDRLIU
+#\\\|M7IH6VVYTHAG5JGFIYTTVJMN46GGHKWOS5CL5YAHQIDDQE426H7 \ / AMOS7 \ YOURUM ::
+#\[7]YWBQW24HXOAIH6WJ4GQZGZ2W2JWQQ6TXGTVPJVXHM6UISGBQ3OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

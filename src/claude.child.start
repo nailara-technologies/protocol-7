@@ -51,6 +51,8 @@ my @cmd  = (
 ## ~/.local/bin on the path                                        ##
 ## [ claude's login, settings and mcp config live there ]          ##
 my $env = <[stream_child.user_env]>->(qw| .local/bin |);
+## this zenka reports its turns itself : the child's mcp server does not ##
+$env->{'P7_SESSION_REPORT'} = qw| no |;
 
 ## closing stdin ends a stream-json session by itself ; TERM is sent with ##
 ## it, KILL after a claude-stop delay                                     ##
@@ -93,8 +95,8 @@ $child->{'resume'} = $resume;
 <[claude.turn.next]>;
 return { 'ok' => TRUE, 'pid' => $pid };
 
-#,,,.,,..,,.,,.,,,..,,,,,,.,.,,..,.,,,...,,,.,..,,...,..,,..,,.,.,,,.,,,.,,,,,
-#4VCVO7N5JEEAILXO2E4BKZO2RXJHEG5FFBLEWFZMOHGNBNZTUGDDBQU3IZQYF22BLBIEN77MGDU3G
-#\\\|7TDD3K2IL45EF7LGLGQJ4XGMYL5MQNGI3FHWKUHBJHB3JC2UMPM \ / AMOS7 \ YOURUM ::
-#\[7]NXYOM4KTTUUSURWYCG5WWKQXPVM4WDZG6KPN2BMENUB2ROTFK4DI 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,,,.,.,,,...,.,,,,..,,..,.,,,..,,...,...,...,...,,..,,..,..,,
+#5JEL3TAAFX33DYZPSXHSP7WHHWP6X2WMR3ZPYYSUQD7E4ZNTJZHGHIUPRH6FP24JK3X274GE7GQT6
+#\\\|DIW2VE27BZLT2WB3FV3IEG3NQDJAOOGTYHOQKTM32CZCNGFP5KA \ / AMOS7 \ YOURUM ::
+#\[7]D7BLXJSNZNVISMDYCUVDP6HS4V3WXTCTIG7NM4XEM3SJT2NG5SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

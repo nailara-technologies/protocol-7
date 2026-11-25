@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = coding.cmd.keepalive
+# param = <session> on | off [ for=<span> ]
+# descr = keep an idle session's prompt cache warm
+#
+# off by default ; a span like 90m 5h 1d ends it by itself
+
+my ( $name, $to, @rest ) = split ' ', $call->{'args'} // '';
+my $usage = 'keepalive <session> on|off [ for=<span> ]';
+return { 'mode' => qw| false |, 'data' => $usage }
+    if not defined $to
+    or $to !~ m{\A(?:on|off)\z}
+    or @rest > 1
+    or ( @rest and ( $to eq qw| off | or $rest[0] !~ m{\Afor=} ) );
+
+my $r = <[coding.sessions.store]>->()->{$name} // return {
+    'mode' => qw| false |,
+    'data' => "no session '$name' [ coding.sessions ; session-touch first ]"
+};
+
+if ( $to eq qw| off | ) {
+    <[coding.keepalive.off]>->( $name, 'switched off' );
+    delete $r->{'note'};
+    <[coding.sessions.store]>->(qw| save |);
+    <[coding.keepalive.arm]>;
+    return { 'mode' => qw| true |, 'data' => "keep-alive $name off" };
+}
+
+my $until = 0;
+if (@rest) {
+    my $seconds = AMOS7::Switch::parse_span( $rest[0] =~ s{\Afor=}{}r )
+        // return { 'mode' => qw| false |, 'data' => 'span : like 90m 5h' };
+    $until = time + $seconds;
+}
+$r->{'switch'} = qw| on |;
+$r->{'until'}  = $until;
+$r->{'count'}  = $r->{'fail'} = 0;
+delete $r->{'note'};
+## idle from the later of the last activity and the last keep-alive ##
+$r->{'due'} //= time + <[coding.keepalive.delay]>;
+<[coding.sessions.store]>->(qw| save |);
+<[coding.keepalive.watch]>;
+<[coding.keepalive.arm]>;
+my $note
+    = $r->{'type'} eq qw| kimi-tui |
+    ? ' [ a kimi tui takes no outside input : notifications only ]'
+    : '';
+return {
+    'mode' => qw| true |,
+    'data' => "keep-alive $name on" . ( @rest ? ' ' . $rest[0] : '' ) . $note
+};
+
+#,,.,,,,.,,,.,,,.,.,.,..,,,.,,,.,,,,,,..,,.,,,..,,...,...,..,,,.,,.,.,..,,.,.,
+#MGMCMOVJPVK3KJORKQTXL2NW6NY4BBJZZAVCWBXOAV5YYUAXMDF7FNOQP3V7NPC5GQ4UZND5SHJK4
+#\\\|RUTZKW33DTF7UH33G2QY5ACIETI3NN7L2MRS7XKGR5QEZIJVK2Y \ / AMOS7 \ YOURUM ::
+#\[7]NA2FG2UIHWO33LL25JKSYHGRQJN772RDBY5AZ4JDQBEI4RXRRKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

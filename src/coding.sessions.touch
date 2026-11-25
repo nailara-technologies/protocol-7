@@ -1,0 +1,46 @@
+## [:< ##
+
+# name   = coding.sessions.touch
+# descr  = one activity report of a session
+# args   = { name type via dispatches }
+# return = the record, undef : a state report of an unknown one
+#
+# via=keepalive, or any report within coding.cfg.keepalive_echo_seconds
+# of a keep-alive [ the session answering it ], refreshes the idle time
+# only : last activity and the count in a row stay. via=state carries the
+# dispatch count only, it is no activity
+
+my $in   = shift // {};
+my $all  = <[coding.sessions.store]>;
+my $via  = $in->{'via'} // '';
+my $name = $in->{'name'};
+my $now  = time;
+my $r    = $all->{$name};
+return undef if not defined $r and $via eq qw| state |;
+my $new = not defined $r;
+$r = $all->{$name}
+    //= { 'since' => $now, 'switch' => qw| off |, 'count' => 0 };
+$r->{'type'}       = $in->{'type'};
+$r->{'dispatches'} = $in->{'dispatches'} if defined $in->{'dispatches'};
+
+if ( $via ne qw| state | ) {
+    my $echo = $via eq qw| keepalive |
+        || ( defined $r->{'sent'}
+        and $now - $r->{'sent'}
+        < ( <coding.cfg.keepalive_echo_seconds> // 233 ) );
+    if ( not $echo or $new ) {
+        $r->{'last'}  = $now;
+        $r->{'via'}   = $via;
+        $r->{'count'} = $r->{'fail'} = 0;
+    }
+    $r->{'due'} = $now + <[coding.keepalive.delay]>;
+}
+<[coding.sessions.store]>->(qw| save |);
+<[coding.keepalive.arm]> if $r->{'switch'} eq qw| on |;
+return $r;
+
+#,,..,.,.,,..,.,,,...,...,.,,,,,,,.,,,,,.,.,.,..,,...,...,,..,.,.,,..,,,.,,..,
+#YAJVB7LNCNFWBAAWHNNTARJER3FS7BUWO3LH5H54CYHUOL6JHMPKIPEFGPY43LXYTIMLWDKJN34QM
+#\\\|3G4FC4K6BHPPFK2MR6RP2U5TM5E2FI2HU2LGWAEXXO5RYCCX7J2 \ / AMOS7 \ YOURUM ::
+#\[7]LICLO4BGAOYNHD4MWSEJGZINDS4A5BKDO3DYOXCJBFQGGFTFS6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

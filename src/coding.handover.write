@@ -1,0 +1,30 @@
+## [:< ##
+
+# name   = coding.handover.write
+# descr  = write the full handover block to its file
+# return = ( TRUE, path ) or ( FALSE, error text )
+#
+# data/ai-mem/claude/handover-live.md [ overwritten each time, the one file
+# the next session reads first ] -- no other file
+
+my $text = <[coding.handover.render]>->(FALSE);
+my $root = <coding.cfg.handover_root> // <system.root_path> // '';
+my $path = "$root/data/ai-mem/claude/handover-live.md";
+my $tmp  = "$path.tmp-$PID";
+my $fail = sub {
+    CORE::unlink $tmp;
+    return ( FALSE, "$path : " . shift );
+};
+return $fail->('directory missing') if not -d "$root/data/ai-mem/claude";
+CORE::open( my $fh, '>:encoding(UTF-8)', $tmp ) or return $fail->($OS_ERROR);
+CORE::print {$fh} "# handover live [ coding.handover write ]\n\n", $text
+    or return $fail->($OS_ERROR);
+CORE::close $fh             or return $fail->($OS_ERROR);
+CORE::rename( $tmp, $path ) or return $fail->($OS_ERROR);
+return ( TRUE, $path );
+
+#,,,.,...,...,...,...,,.,,,,.,,,,,,,,,.,,,..,,..,,...,...,...,,.,,...,,,,,,,,,
+#IROTOBC5DBFB26YFPWMKDE24YE4DTHYFSQBYSDG2PXVIILYH2ECQKNEFKHQWD3FNGZQ5WJX5NIC7M
+#\\\|YXO7E6NE6BP4RGRTJGCIY6I2VY7X5NRMKW6STK46PEORZGCJG4N \ / AMOS7 \ YOURUM ::
+#\[7]ZGLIRMM5SXY6T7XKCXBSBR7APMCE2LMGMM2XM6EK4FC2BW7QVSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

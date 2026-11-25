@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = coding.handler.keepalive_sent
+# descr = a delivery answered : a refused one is not counted
+#
+# refused : tried again on the coding-keepalive-retry rhythm ; as many
+# refusals in a row as keep-alives allowed switch it off. a post of the
+# reset hand-over line [ params reset ] is only logged
+
+my $reply = shift              // {};
+my $p     = $reply->{'params'} // {};
+my $name  = $p->{'name'}       // return FALSE;
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my $all = <[coding.sessions.store]>;
+my $r   = $all->{$name} // return FALSE;
+if ( $mode ne qw| false | ) {
+    $r->{'fail'} = 0;
+    <[base.logs]>->( 1, ': keep-alive %s : delivered', $name );
+    <[coding.sessions.store]>->(qw| save |);
+    return TRUE;
+}
+<[base.logs]>->( 0, '<< keep-alive %s not delivered : %s >>', $name, $text );
+return FALSE if $p->{'reset'};
+return FALSE
+    if ( $r->{'sent'} // 0 ) != ( $p->{'sent'} // -1 );    ## outdated ##
+$r->{'count'}-- if $r->{'count'};
+$r->{'sent'} = $p->{'before'};
+delete $r->{'sent'} if not defined $r->{'sent'};
+if ( $p->{'last'} and $r->{'switch'} ne qw| on | ) {
+    $r->{'switch'} = qw| on |;
+    $r->{'until'}  = $p->{'until'} if defined $p->{'until'};
+    delete $r->{'note'};
+}
+$r->{'fail'} = ( $r->{'fail'} // 0 ) + 1;
+my $state = <coding.keepalive.retry> //= {};
+delete $state->{$name} if $r->{'fail'} == 1;
+$r->{'due'} = time + <[base.interval.next]>->(
+    {   'type' => qw| coding-keepalive-retry |,
+        'state' => $state->{$name} //= {}
+    }
+);
+<[coding.keepalive.off]>->( $name, "not deliverable : $text" )
+    if $r->{'fail'} >= ( <coding.cfg.keepalive_max> // 6 );
+<[coding.sessions.store]>->(qw| save |);
+<[coding.keepalive.arm]>;
+return FALSE;
+
+#,,,,,,..,,..,,..,.,,,,,.,...,,,.,,..,.,,,..,,..,,...,...,.,,,..,,...,...,,..,
+#LGK4JJOZ64LQYHOODKUI46MPOTZ2I6WRAESAYPJ2LJR5JJO7KPPIJ7Q4KLYNGIELT24TFRX4C6VAC
+#\\\|AM3JWTW5QZOJNHEAD4OUMSRO76ON7ZPXP2Y63YYSCM5XBEXA2F2 \ / AMOS7 \ YOURUM ::
+#\[7]272LD5YV3FF4KQ6INKLJRSYWXE6ZE3YTIRLSNYRNHWS3S5ZKYIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

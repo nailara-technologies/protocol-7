@@ -296,6 +296,7 @@
                                      v7-zenki.terminate-implicit v7-zenki.restart \
                                      coding.handover-event coding.remind-fire \
                                      coding.remind-wake \
+                                     coding.keepalive-reset \
                                      notify.cue ticker.status-set ticker.status-clear
 
           access.cmd.usr.content  =  v7-zenki.restart weather.get-urls \
@@ -379,6 +380,8 @@
                                      protocol-7-menu.pending-question-list \
                                      coding.handover-event coding.remind-fire \
                                      coding.remind-wake \
+                                     coding.keepalive-reset \
+                                     claude.send kimi.acp-send \
                                      claude.status claude.session-post \
                                      claude.sessions \
                                      kimi.acp-status notify.message \
@@ -439,9 +442,11 @@
             access.cmd.usr.usage  =  events.signal
 
            access.cmd.usr.claude  =  v7-zenki.register_child events.signal \
+                                     coding.session-touch \
                                      v7-zenki.gone_child
 
              access.cmd.usr.kimi  =  v7-zenki.register_child events.signal \
+                                     coding.session-touch \
                                      task.queue task.show task.claim \
                                      task.complete task.fail task.reset \
                                      kimi-web.list_agents kimi-web.spawn_agent
@@ -629,8 +634,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,,,,.,.,,,,,.,.,,,,,..,,,.,,,,,,...,,,,,,,.,.,.,...,...,,,.,.,,,,,.,.,,,,,.,
-#UCYZ22XEUDSKYKUVORRP3BQQ4FMWEW7FY4XSCJXTD3JZXAP354G7GXINURHFIV7DINUFJWX5GFEPI
-#\\\|UR4YITFI4ZWUHSHCRFCCTZMIMZPD4NRJ32CHMZLGKLYR4CKFUU3 \ / AMOS7 \ YOURUM ::
-#\[7]NHL5KGFTLSVZREHCJCMCXDRDYVJPHXDHEZ4CUXOZZR2XIFAFBIDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,,,...,,..,,,,,,,,,,.,,.,,,...,.,.,...,...,.,,,..,,,.,,...,,,.,
+#5N23MX755BDEXPEJSK72VKKAGDMHXLDGI7HVRTTSPQAQQ6DK7P4B2ZIBUCREEKSEKAGS7BYRIJJFA
+#\\\|CAYK6TK5ZPFIXUR3IOYXQA27AD7OMZ3T27WJJAFIKESV6UB5BJJ \ / AMOS7 \ YOURUM ::
+#\[7]LLA37EOK6GWD44SFAFMQKDZ6CMMAIU6JF725QCF5YKYVX7NP5QCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

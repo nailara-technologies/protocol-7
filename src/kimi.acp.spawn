@@ -32,9 +32,13 @@ return { 'success' => FALSE, 'error' => 'no acp command configured' }
     if not @cmd;
 
 ## end of input first, then TERM, then KILL, then given up ##
+my $env = <[stream_child.user_env]>->(qw| .kimi-code/bin .local/bin |);
+## this zenka reports its prompts itself : the child's mcp server does not ##
+$env->{'P7_SESSION_REPORT'} = qw| no |;
+
 my $r = <[stream_child.start]>->(
-    {   'cmd' => \@cmd,
-        'env' => <[stream_child.user_env]>->(qw| .kimi-code/bin .local/bin |),
+    {   'cmd'       => \@cmd,
+        'env'       => $env,
         'on_line'   => qw| kimi.handler.acp_stdout |,
         'on_stderr' => qw| kimi.handler.acp_stderr |,
         'on_gone'   => qw| kimi.acp.child_gone |,
@@ -95,8 +99,8 @@ my $pid = $r->{'handle'}{'pid'};
 
 return { 'success' => TRUE };
 
-#,,..,,,.,..,,,,,,..,,,,,,,..,,.,,,..,,..,.,.,..,,...,..,,...,..,,..,,...,..,,
-#TWBEQWXA7NHVM37HLHFY4JCTZE743TV3DTNHIYC3RKWGCWHHZMR7DAC7EKTXJUPMYFA5PPGRSPGLE
-#\\\|B77CVXJPANWMUD3KG4NQMKUF44P4MABYFOLX6A6PKRWQYIQTCN3 \ / AMOS7 \ YOURUM ::
-#\[7]G7UMVCTINYE5MCTUJIKZD63KREQLIETCX2OPL2CXRVVIMUIPRMBA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,,,..,,,..,...,..,,,..,,,.,..,,..,,...,...,,..,...,,..,,,.,,,,,
+#HSVENTNSVG3VU4R3SNCFFKNTDJOM2YOI22FEECO3T42FX6GPMVXLGKUYEHTOPJSCXU4NM4JOP2ZKO
+#\\\|WXUTLJ36SVOATECNDFCRY5RYK6LLC5LTMBHXBMVA2B35URJZFMT \ / AMOS7 \ YOURUM ::
+#\[7]ZB6KRBT6WZ6ZTUJOY6J37BOLTSL3MSN6FLS6GI4CIEXKAPGAOEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

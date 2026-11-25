@@ -48,7 +48,20 @@ coding.cfg.context-auto-compact-threshold = 84
 
 ## sign queue \ commit plans : the watch rhythm [ seconds ] -- a sign waits ##
 ## for the owner, a plan for its tests ; resume : the first look after a    ##
-## start                                                                    ##
+## start  session keep-alive : the prompt cache expires after about an idle ##
+## hour, due after ~54 idle minutes [ coding.keepalive.delay keeps it under ##
+## coding.cfg.keepalive_ceiling_minutes, 55 ] ; retry : a time already      ##
+## passed, a refused delivery ; resume : the first look after a start       ##
+base.interval.cfg.type.coding-keepalive.minutes           = 54
+base.interval.cfg.type.coding-keepalive.jitter            = 0.03
+base.interval.cfg.type.coding-keepalive-retry.start       = 8
+base.interval.cfg.type.coding-keepalive-retry.factor      = 1.6
+base.interval.cfg.type.coding-keepalive-retry.cap         = 233
+base.interval.cfg.type.coding-keepalive-retry.cap_jitter  = 21
+base.interval.cfg.type.coding-keepalive-resume.start      = 17
+base.interval.cfg.type.coding-keepalive-resume.factor     = 1
+base.interval.cfg.type.coding-keepalive-resume.cap        = 17
+base.interval.cfg.type.coding-keepalive-resume.cap_jitter = 0.2
 base.interval.cfg.type.coding-sign-watch.start       = 2
 base.interval.cfg.type.coding-sign-watch.factor      = 1.2
 base.interval.cfg.type.coding-sign-watch.cap         = 34
@@ -109,7 +122,9 @@ access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
                       list-backups show-backup subscribe-session \
                       ask answer open sign-queue commit-plan commit-plans \
                       handover handover-event remind reminders \
-                      remind-drop remind-fire remind-wake
+                      remind-drop remind-fire remind-wake \
+                      session-touch sessions keepalive keepalive-pending \
+                      keepalive-reset
 ##                    utf8-test-buffer utf8-stream-test \ ## <-- resolved =).
 ##                    test-strm test-strm-size            ## <-- resolved =).
 
@@ -645,8 +660,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,..,...,.,,,,..,,,,,,,,,.,.,...,,.,,,,,,,.,,.,.,...,...,,..,...,,,.,...,,..,
-#HDCMHEMX2YS7RL5X2UDZASFBTFA4TOUNFKXXYNBRBSSEZ4YAR6AKQPZDZAPLMVTBGHYUGENZOULMC
-#\\\|W4RBYYO6ZMJ5XLUTLPJN7C2YGJ4P5TS54NKBEWVEA66IXPWCN6Y \ / AMOS7 \ YOURUM ::
-#\[7]XZO5AW6LI3ZGBMZSLUHFRORCIJ7M4XVAMVGZHU6HOEDG5VUVC6AQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,,,,.,,,..,,.,,...,,..,,,,,.,,,.,.,...,.,.,,,.,.,.,,,,,,,,,.,.,
+#4WZG4MR6C76FCOHXWJJFU7BX2H6K5JG45FHB5J3UDSL4UEBZTETITTJ2PRLL5TRYZGU3VGZI2FCGS
+#\\\|MTPI4HLLQZFY522DKSCIGP4F2ZOOLD5TG5TIKF5X5B53CEG2UTC \ / AMOS7 \ YOURUM ::
+#\[7]JAJKDHTKN3GJ7FK6V2Q2HDAUTJLM5LDNCD4FCAL3UUGSSDTBC4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

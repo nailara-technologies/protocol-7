@@ -1,0 +1,65 @@
+## [:< ##
+
+# name   = coding.sessions.store
+# descr  = the session registry, file `sessions`
+# args   = [ save ]
+# return = name -> record
+#
+# p7 config style in the coding zenka's dir, one `session.<name>.<key> =
+# value` line each ; read on first use after a start [ never in init_code :
+# still root there ], written whole on `save`. a session with keep-alive
+# off and no activity for coding.cfg.session_keep_seconds is dropped then
+#
+# keys : type via since last due [ epochs ], sent [ last keep-alive ],
+# count fail, switch [ on | off ], until [ 0 : no limit ], note [ why the
+# switch went off ], pending [ the agent's marker ], dispatches
+
+<[base.perlmod.load]>->('AMOS7::Switch')
+    if not <[base.perlmod.loaded]>->('AMOS7::Switch');
+
+my $op  = shift // '';
+my $all = <coding.sessions.records>;
+if ( ref $all ne qw| HASH | ) {
+    $all = {};
+    my $sref = <[file.zenka_dir.load]>->( 'sessions', ':encoding(UTF-8)' );
+    foreach my $pair (
+        AMOS7::Switch::parse_state( ref $sref eq 'SCALAR' ? $sref->$* : '' ) )
+    {
+        my ( $name, $key ) = $pair->[0] =~ m{\Asession\.([\w.\-]+)\.(\w+)\z};
+        next if not defined $key;
+        $all->{$name}{$key} = AMOS7::Switch::unescape_value( $pair->[1] );
+    }
+    delete @{$all}{ grep { not defined $all->{$ARG}{'type'} } keys %{$all} };
+    <coding.sessions.records> = $all;
+}
+return $all if $op ne qw| save |;
+
+my $keep = <coding.cfg.session_keep_seconds> // 8 * 86400;
+foreach my $name ( keys %{$all} ) {
+    my $r = $all->{$name};
+    delete $all->{$name}
+        if ( $r->{'switch'} // '' ) ne qw| on |
+        and time - ( $r->{'last'} // $r->{'since'} // 0 ) > $keep;
+}
+my @pairs;
+foreach my $name ( sort keys %{$all} ) {
+    my $r = $all->{$name};
+    push @pairs, map {
+        [ "session.$name.$ARG", AMOS7::Switch::escape_value( $r->{$ARG} ) ]
+    } grep { defined $r->{$ARG} } sort keys %{$r};
+}
+my $text
+    = AMOS7::Switch::format_state(
+    'coding zenka : session registry [ edit only while it is stopped ]',
+    @pairs );
+<[base.logs]>->( 0, '<< sessions file not written : kept in memory only >>' )
+    if not <[file.zenka_dir.write]>->(
+    'sessions', \$text, '>', 0600, ':encoding(UTF-8)'
+    );
+return $all;
+
+#,,.,,.,.,.,,,...,..,,...,.,,,..,,,..,,,,,.,.,..,,...,..,,,..,.,.,...,,,,,.,.,
+#YORP55MJL5UO2NIADWHNYF3IYIRUNIIN5F6HGON5XVIOPXQLOXQKDQZBXBIKHMYQMBKIYLOYGAMB4
+#\\\|VKW3KMSDT6AXMI63KV4SH3XT6H7Y77PFPPALAVRQVTTWV4P23CX \ / AMOS7 \ YOURUM ::
+#\[7]CHQE7CDA6I7DFKBZANM46LMXBT6PFHLUH5A5RRR3ZJ5XL47KJEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

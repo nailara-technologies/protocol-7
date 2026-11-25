@@ -77,6 +77,12 @@ my $session_register_every = 13 * 60;
 ## still be starting. short growing jittered delays, up to the 13 min      ##
 my $session_retry_start = 2.1;
 my $session_retry_delay = $session_retry_start;
+## session registry reports [ _session_report ] ##
+my $session_report_next  = 0;
+my $session_report_count = 0;
+my $session_state_next   = 0;
+my $session_activity     = 0;    ## a tool call since the last report ##
+my %kimi_workers;                ## pid -> 1 : detached kimi runs      ##
 
 my $auth_user = sprintf 'unix-%s',
     ( $ENV{'PROTOCOL_7_BIN_P7_USER'} // $ENV{'USER'} // $ENV{'LOGNAME'}
@@ -1634,7 +1640,20 @@ while ( not $stdin_eof ) {
         $left = 1     if $left < 1;
         $wait = $left if not defined $wait or $left < $wait;
     }
-    ## the idle cube link is watched too : eof is seen at once ##
+    ## the idle cube link is watched too : eof is seen at once a detached ##
+    ## kimi run ends unseen : looked at while one is tracked              ##
+    $wait = 55 if %kimi_workers and ( not defined $wait or $wait > 55 );
+    ## a throttled report goes out when its time comes, not when the next ##
+    ## request does : a late one would overstate how warm the cache is    ##
+    if ($session_activity) {
+        my $left = $session_report_next - time;
+        $left = 1     if $left < 1;
+        $wait = $left if not defined $wait or $left < $wait;
+    }
+    if ($session_state_next) {    ## an undelivered dispatch count ##
+        my $left = $session_state_next - time;
+        $wait = $left if $left > 0 and ( not defined $wait or $left < $wait );
+    }
     my @ready
         = IO::Select->new( \*STDIN, ( $cube_sock // () ), @open_fh )
         ->can_read($wait);
@@ -1660,6 +1679,9 @@ while ( not $stdin_eof ) {
     }
     handle_request_line( substr( $stdin_buf, 0, length $stdin_buf, '' ) )
         if $stdin_eof and length $stdin_buf;
+    ## after the replies went out ##
+    next                  if $stdin_eof;
+    $session_activity = 0 if _session_report($session_activity);
 }
 _session_unregister();
 
@@ -1739,7 +1761,16 @@ sub handle_tools_call {
     my $args = $params->{'arguments'} // {};
 
     check_chat_pending($name);
-    $last_tool_name = $name;
+    $last_tool_name   = $name;
+    $session_activity = 1;
+
+    ## the registry has to know the session before it switches keep-alive ##
+    if ( $name eq 'p7_command'
+        and ( $args->{'command'} // '' )
+        =~ m{\A\s*(?:cube\.)?coding\.keepalive(?:-pending)?\s} ) {
+        $session_report_next = 0;
+        _session_report( 1, 1 );
+    }
 
     log_msg( 'tools/call: %s', $name );
 
@@ -3009,6 +3040,8 @@ sub _checklist_instruction {
 ## reachable DIRECT from this host [ env -i run ok ] — so the children get  ##
 ## no proxy vars at all                                                     ##
 sub _sanitize_agent_env {
+    ## a spawned agent is a dispatched run : no session registry report ##
+    $ENV{'P7_SESSION_REPORT'} = qw| no |;
     for my $var ( keys %ENV ) {
         delete $ENV{$var} if $var =~ m{^(?:https?|all|no)_proxy$}i;
     }
@@ -4840,6 +4873,7 @@ sub tool_external_command {
             ## post-processing below as a qx() result gets today            ##
             $output = $run->{'output'};
         } else {
+            $kimi_workers{ $run->{'gpid'} } = 1 if $run->{'gpid'};
             ## still running past the bounded window : reply immediately ##
             ## and let the caller poll kimi_check_status for the result  ##
             $run->{'thinking_note'} = $kimi_thinking_note;
@@ -5279,6 +5313,94 @@ sub _session_remind_target {
     return $command
         if ( $command =~ s{="(?:[^"\\]|\\.)*"}{=}gr ) =~ m{(?<!\S)to=};
     return $command =~ s{(coding\.remind)(?=\s)}{$1 $target}r;
+}
+
+## the session registry of the coding zenka [ coding.session-touch ] : who ##
+## this server runs under, undef when it is not to be reported             ##
+sub _session_report_identity {
+    return
+        if ( $ENV{'P7_SESSION_REGISTER'} // '' ) eq qw| no |
+        or ( $ENV{'P7_SESSION_REPORT'} // '' ) eq qw| no |;
+    my $agent = resolve_agent_auto('unknown');
+    if ( $agent eq qw| kimi | ) {
+        my $name = $ENV{'P7_SESSION_NAME'} // '';
+        $name = sprintf 'kimi-%d', getppid()
+            if $name !~ m|\A[\w.\-]{1,64}\z|;
+        return ( $name, qw| kimi-tui | );
+    }
+    ## claude code without an inbox socket cannot be reached : no report ##
+    my @live = _session_live_env();
+    return if not @live;
+    return ( _session_live_name(), qw| claude-live | );
+}
+
+## dispatched runs of this server still going ##
+sub _session_dispatch_count {
+    delete @kimi_workers{ grep { not kill 0, $ARG } keys %kimi_workers };
+    return
+        keys(%kimi_workers) + grep { defined $ARG->{'fh'} }
+        values %claude_runs;
+}
+
+## after tool calls, at most about once a minute [ jittered ] ; a changed   ##
+## dispatch count alone is a state report, no activity. the coding zenka is ##
+## not started for this, and a slow reply never holds the server up.  TRUE  ##
+## : this activity is done with [ sent, or not reportable now ]             ##
+sub _session_report {
+    my ( $activity, $forced ) = @ARG;
+    my $count   = _session_dispatch_count();
+    my $changed = $count != $session_report_count
+        && time >= $session_state_next;
+    return 0
+        if not $changed
+        and ( not $activity or time < $session_report_next );
+    my ( $name, $type ) = _session_report_identity();
+    if ( not defined $name ) {
+        $session_report_count = $count;
+        return 1;
+    }
+    my $delay = 53 + int rand 14;
+    $session_report_next = time + $delay if $activity;
+    ## until it arrived : a changed count is tried again after this ##
+    $session_state_next = time + $delay;
+    my $via     = $activity ? qw| tool | : qw| state |;
+    my $command = "coding.session-touch name=$name "
+        . "type=$type via=$via dispatches=$count";
+    my $ok;
+    if ($forced) {
+        ## the caller's own command starts the coding zenka anyway ##
+        ($ok) = cube_command($command);
+    } else {
+        ## `list users` : only the users with a session              ##
+        ## [ `present` stays false for one which ever disconnected ] ##
+        my ( $listed, $users ) = _session_report_call('list users');
+        return 1 if not $listed or $users !~ m{^\s*coding\s}m;
+        ($ok) = _session_report_call($command);
+    }
+    if ($ok) {
+        $session_report_count = $count;
+        $session_state_next   = 0;
+    }
+    return 1;
+}
+
+## one command, a short wait for its reply : a late one would corrupt the ##
+## next call, so the link is dropped then. ( ok, text )                   ##
+sub _session_report_call {
+    my $command = shift;
+    my $sock    = cube_connect() // return ( 0, '' );
+    my ( $line, $why, $data );
+    if ( defined sock_write( $sock, "$command\n" ) ) {
+        ( $line, $why ) = sock_readline_timed( $sock, 2.7 );
+        if ( defined $line and $line =~ m{\ASIZE\s+(\d+)} ) {
+            ( $data, $why ) = sock_read_bytes_timed( $sock, $1, 2.7 );
+            return ( 1, $data ) if defined $data;
+        } elsif ( defined $line and $line =~ m{\A(TRUE|FALSE)\b\s*(.*)} ) {
+            return ( $1 eq qw| TRUE | ? 1 : 0, $2 );
+        }
+    }
+    cube_disconnect();
+    return ( 0, '' );
 }
 
 sub _session_register {
@@ -7297,8 +7419,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,..,.,.,,,.,.,.,..,,,,.,,..,,,,,,..,.,.,,,.,..,,...,...,...,,..,,,,,..,,,.,,
-#N2XQJRO6NCIFSOQUVGRJZWWO33Q4JRCL7QRZENLUO7EBQ5HHHFFT4TNN5GN2JBKZBW3KKQLSA7ABA
-#\\\|EQOGBSYTVD52ZPDUSAD6C6NTBRYRNOROISS57MSUWFTCNC5XRZK \ / AMOS7 \ YOURUM ::
-#\[7]PD32P43ZGNLZLKHHXOORKB36TDSBH7PBWXOA3YE7BOZOI6E73WBA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,...,.,,,.,.,..,,.,.,.,,,,,,,..,,...,...,.,,,...,..,,...,..,,
+#QCG7ESXE5ITEHH4C4RI3BOBE3UFV6AIDLKHIN3FWH2W6RC7CKM7DWHSWQDJJMM4ZHDG7WD6QTZDBA
+#\\\|AODXFCYR7IDJD4ZRTXAYNG4LX2CCBVQOM2UTXH5EO4VGIXDMO5B \ / AMOS7 \ YOURUM ::
+#\[7]LZBVT2PTDG23JVU33LIBD472H6U7UUHZEBBJUAU6LNG4J5X6VOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

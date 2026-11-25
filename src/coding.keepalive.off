@@ -1,0 +1,21 @@
+## [:< ##
+
+# name   = coding.keepalive.off
+# descr  = switch a session's keep-alive off, say why
+# args   = name, reason [ the caller saves ]
+# return = TRUE when it was on
+
+my ( $name, $why ) = @ARG;
+my $r = <[coding.sessions.store]>->()->{$name} // return FALSE;
+return FALSE if $r->{'switch'} ne qw| on |;
+$r->{'switch'} = qw| off |;
+$r->{'note'}   = $why;
+delete $r->{'until'};
+<[base.logs]>->( 0, ':. keep-alive %s off : %s', $name, $why );
+return TRUE;
+
+#,,.,,.,,,...,,.,,,,.,.,,,.,.,.,,,,,,,,,.,..,,..,,...,..,,,..,..,,,.,,,..,,,,,
+#FDP2YTYJJZ7HLJXDRTHFLHF6CCIXZZJ3SO5UC3XG7PQCI3R7KJCTC45H6E3T5E7YZ376UXKJ7CM2E
+#\\\|BEKWWBY2EK4UVGDLR3WGPNK3CZVACD7XEF2UZXQAZ2OQAWPFJTQ \ / AMOS7 \ YOURUM ::
+#\[7]WYP4GPZTVQQAT5ROWZYSQY5Q6AXNGOKKG5KMTMHPMD6ONROT2OBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
