@@ -8,10 +8,9 @@ my $reply = shift              // {};
 my $in    = $reply->{'params'} // {};
 return FALSE if $in->{'off'};
 
-my @names
-    = ( $reply->{'mode'} // '' ) eq qw| size |
-    ? ( $reply->{'data'} // '' ) =~ m{^([\w.-]+) : since }mg
-    : ();
+## a SIZE reply carries 'data' as a scalar ref : read through mode_text ##
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+my @names = $mode eq qw| size | ? $text =~ m{^([\w.-]+) : since }mg : ();
 return FALSE if !@names;
 
 my $target = $in->{'to'} // '';
@@ -36,8 +35,8 @@ return <[protocol-7.route-send]>->(
 
 #,,,.,,,.,,,,,,,,,,,,,,.,,,,,,.,,,,,,,,,.,,,,,.,,..,,,.,,,,,,,,,.,,,.,,,,.,,,
 
-#,,.,,.,,,...,.,,,...,..,,,.,,,..,.,.,,..,,..,..,,...,..,,,..,.,.,,,,,,.,,,..,
-#UVRO2W5DLA3EBIZFKWNDKQKLTIGWUF47EQ6ZVU56KS2NXWJLIKJMRUQT4AT6YOW44T22YQNLUFZUY
-#\\\|CHDYZXBOAX4ENFMO6AZVLRNHEPH4TRNU6C6HI33HPRA7HXZ7NRK \ / AMOS7 \ YOURUM ::
-#\[7]YCSXWNE2LYO4VNVDWJ2RUK3AQR76VA6U6WSIUHJLPJCMU7I3JYBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,,.,.,.,.,.,,.,,.,.,,..,...,..,,...,...,,.,,,.,,.,,,,.,,.,,,
+#LDCBDKS55HRNCYVIJCEPLNWPFTFTH4HM6ZN4CJ275W3NGSEENZFG5S24LVA722HS47ZBFQNMXS5N6
+#\\\|FUIXLWO7HPJFVDSDDFYE4AN4HV4J3TY77DJHDDDMZ3EJVXCRZXN \ / AMOS7 \ YOURUM ::
+#\[7]U4A7YZSVRHZX7EJXDSAQOCAOWS2XGGKWHJM64CYZFBMRZV5T7WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
