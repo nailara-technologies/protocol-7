@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-native-hub-watchers](project-2026-11-25-handover-pm-native-hub-watchers.md) — NEWEST, START HERE 2026-11-25 pm : state is DERIVED [ p7c coding.handover ] ; decisions, lessons, next steps ; tier A place running on azurum
+- [session-handover-pulse-stage2-v7](project-2026-11-26-handover-pulse-stage2-v7.md) — NEWEST, START HERE 2026-11-26 : pulse for mpv, n7fs safe stop, watcher stage 2 LIVE, v7-zenki spin -> v7 root process draft [ design first, no code ]
+- [session-handover-native-hub-watchers](project-2026-11-25-handover-pm-native-hub-watchers.md) — 2026-11-25 pm : state is DERIVED [ p7c coding.handover ] ; decisions, lessons, next steps ; tier A place running on azurum
 - [session-handover-relay-parking-notify](project-2026-11-25-session-handover-relay-parking-notify.md) — 2026-11-25 am : parking, claude \ kimi zenki, chat relay into the live session, usage.plan, notify, coding handover ; tier A place pending ; read handover-live.md too
 - [dispatch-sign-session-lessons](feedback-2026-11-25-dispatch-sign-session-lessons.md) — dispatched runs never register as live sessions, never guess a session target ; AMOS modules join the sign ; /tmp tmpfs : TMPDIR elsewhere
 - [session-handover-net-dns-host-memory](project-2026-11-23-session-handover-net-dns-host-memory.md) — 2026-11-23 : net zenka 1-5c, dns policy + behaviour, sign agent queue, host-memory brief ; X220T import on azurum, then tier B place
@@ -108,8 +109,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,.,.,.,,,,,,,.,,,...,...,,..,.,.,,,.,..,,..,,...,...,,..,.,.,,.,,...,,..,
-#VZKXWDBGD354K2C3QTUINUJOM6LX4ZACQSVHQ2WHOBB3YPUICS3JUILE5KTKHFJIPT7LIIWIY2EK4
-#\\\|NLEQUUSGOPUJ5LVI3HOGRGSLEKCCZZJ3V7E3JKYPJSGTGQ7OM2N \ / AMOS7 \ YOURUM ::
-#\[7]5BIPGSYGTFVLAH3CJ5OQ53OBJOJJQVVRDVKGD2VCS7JQE7X2QGAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,.,.,,,,,,.,,,,,,,..,.,.,.,.,..,,...,...,..,,.,,,,.,,.,,,,,,,
+#GKKBTE7XPFQ6EQMBJAPMESDSOQGPK6FDVK67IMQUIKYJ3PMQVC5ZM4IUABUWSPLU6VWDKAI7VV26E
+#\\\|RMCWM5FHKMV7UUHZTR2GQFPJ6P4VGIDGYEHJNH6PVI3Z4NE44Q2 \ / AMOS7 \ YOURUM ::
+#\[7]DEPC3CVQ7APTZNJSQ543CNRZRKVNXIVICPNJLXPXGHRZW4JCRUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
