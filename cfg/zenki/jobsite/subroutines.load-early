@@ -58,6 +58,7 @@ ui.render.tree
 base.wrap_text
 base.swap_subs
 base.ssl.write
+base.sig_fault
 base.sig_NUM55
 base.sig_NUM53
 base.sig_NUM52
@@ -167,6 +168,7 @@ base.strm.pre_init
 base.reload_values
 base.reload_config
 base.parser.config
+base.interval.next
 base.handler.write
 base.handler.input
 base.handler.hooks
@@ -185,6 +187,8 @@ plugin.auth.twofish
 jobsite.stray.check
 jobsite.store.prune
 jobsite.stage.fetch
+jobsite.lease.start
+jobsite.lease.renew
 jobsite.cmd.approve
 jobsite.assert.init
 io.ip.tcp.init_code
@@ -209,6 +213,7 @@ base.diff.hash_keys
 base.calc_unix_path
 jobsite.stage.review
 jobsite.replica.pull
+jobsite.lease.failed
 jobsite.job.load_all
 jobsite.cmd.progress
 io.ip.tcp.input.open
@@ -220,9 +225,6 @@ clients.http.cleanup
 base.route.init_code
 base.root.drop_privs
 base.reply.mode_text
-base.interval.next
-base.interval.rhythm.lifetime
-base.interval.rhythm.non-linear
 base.read_proc_times
 base.prng.chars-anum
 base.prng.characters
@@ -286,6 +288,7 @@ jobsite.util.source-id
 jobsite.sync.push_soon
 jobsite.liveness.start
 jobsite.liveness.apply
+jobsite.lease.schedule
 jobsite.cmd.set-status
 jobsite.cmd.job-upsert
 jobsite.cmd.import-url
@@ -418,11 +421,6 @@ base.callback.delayed-log
 auth.client.distrust_list
 protocol.sftp.read_ssh_env
 jobsite.sync.token_for_url
-jobsite.lease.schedule
-jobsite.lease.start
-jobsite.lease.failed
-jobsite.lease.renew
-jobsite.handler.lease-renewed
 jobsite.sync.apply_reverse
 jobsite.report.render_html
 jobsite.removed_log.append
@@ -519,6 +517,7 @@ jobsite.replica.pull-response
 jobsite.replica.forward-retry
 jobsite.handler.sync-response
 jobsite.handler.rewire-assess
+jobsite.handler.lease-renewed
 jobsite.dispatch.release_slot
 jobsite.dispatch.reassess_now
 jobsite.dispatch.consume_slot
@@ -584,6 +583,7 @@ base.zenki.set_ondemand_timeout
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.interval.rhythm.non-linear
 base.handler.link-upgrade.input
 base.chk-sum.bmw384.arc-segment
 jobsite.replica.forward-response
@@ -700,8 +700,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,,.,,.,,,...,..,,.,,,,,.,.,.,,..,,,.,.,,,..,,...,...,...,,,,,,.,,.,,,,.,,
-#QWODX5MVP6GJHJWUJEBYSMDXBSL6RZJFLYHG3V2ADT34LJWQNZRXSEOG7BP5JDQB625OI7B3YAKOC
-#\\\|7X4FPC3YPA7IUQVSF2XR33JKKHR6MH5FXUD2MWNXUJXLKOW6KO3 \ / AMOS7 \ YOURUM ::
-#\[7]4CWWVN2RJWOQHCXM2FM637XZ2AEMQR5JL6JBNQY7KPC6YJPYRUCY 7  DATA SIGNATURE ::
+#,,..,..,,...,,,,,...,...,,,,,.,,,,.,,,..,.,.,..,,...,..,,,.,,.,.,.,.,..,,,,,,
+#F3A4VZ35DGETRWAIJ3JSWTXYF2YEZIBAX6OMX6PI2DCUGJNVOXLQ3OKGVLP4LH7UKUTGQUQDCVN3K
+#\\\|3DVMSVLNYBDOQNS7LJNOARI4M5MWOGUARXTBLGWCSVGYJJEAM73 \ / AMOS7 \ YOURUM ::
+#\[7]3VDTIB565DMXL6IKEYYMK6A4JOXCBDUMHXC5CANO2TFRQKUCMQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

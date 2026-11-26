@@ -42,6 +42,7 @@ devmod.cmd.get
 devmod.cmd.del
 base.wrap_text
 base.swap_subs
+base.sig_fault
 base.sig_NUM55
 base.sig_NUM53
 base.sig_NUM52
@@ -74,9 +75,7 @@ base.file.slurp
 base.event.once
 amos7.init_code
 source.sign_data
-source.sign_generated
 source.init_code
-sourcecode.signature_excluded
 jobqueue.add_job
 devmod.post_init
 devmod.init_code
@@ -168,6 +167,7 @@ base.buffer.add_line
 base.base32.pre_init
 sourcecode.agent.sign
 source.valid_src_name
+source.sign_generated
 jobqueue.get_next_job
 jobqueue.get_job_data
 crypt.C25519.pre_init
@@ -192,7 +192,6 @@ base.console.describe
 base.console.commands
 base.balanced-average
 source.signature_valid
-source.verify_and_strip
 devmod.cmd.switch-user
 crypt.C25519.sign_keys
 crypt.C25519.sign_data
@@ -208,6 +207,7 @@ base.path.resolved_abs
 base.host.trusted_file
 base.comp-int.is_valid
 sourcecode.console.sign
+source.verify_and_strip
 source.target_namespace
 source.extract_sig_body
 jobqueue.queue_template
@@ -251,6 +251,7 @@ base.check_cfg_cmd_alias
 base.buffer.erase_secure
 sourcecode.sign_file_list
 source.load_signature_key
+source.generated_envelope
 jobqueue.priorities_table
 devmod.cmd.test-strm-size
 crypt.C25519.root_key_dir
@@ -318,6 +319,7 @@ base.handler.heart_ack_reply
 base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 sourcecode.source_path_set_up
+sourcecode.signature_excluded
 sourcecode.console.test-cycle
 source.create_harmonic_footer
 devmod.cmd.keep-devmod-loaded
@@ -400,6 +402,7 @@ base.perlmod.register_loaded_module
 base.handler.counter_overflow_reset
 base.event.callback.io-idle-restart
 base.chk-sum.bmw.truth_template_L13
+sourcecode.console.verify-signatures
 sourcecode.console.update-signatures
 source.restore_payload_endline_state
 crypt.C25519.cmd.register-master-key
@@ -415,7 +418,6 @@ base.perlmod.unregister_loaded_module
 base.handler.ondemand_idle_term_reply
 base.handler.ondemand_idle_term_guard
 base.log.send-buffer.idle-callback-set
-sourcecode.console.verify-signatures
 sourcecode.console.test-sign-and-verify
 sourcecode.console.report-endline-state
 base.perlmods.blacklist_collision_index
@@ -436,8 +438,8 @@ base.log.send-buffer.reply-handler.send-reply
 source.signature.util.verify_signature_with_data
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,.,...,,..,,..,,.,,,..,,,,,,..,.,.,.,,,.,,,..,,...,..,,..,,,,.,.,.,.,.,.,,,
-#EPIK4M3UH64EGPNCRGN4QAX64M5XWITEPYKVIEKR64AQYDOS5OQFFDGKFYJJVIJ6OAZNR5ST2GGCC
-#\\\|FOZ2PGFDJTL7C24CBU6GKRY4VIK3HN4DKSCSKEGNMSXPKQCY6VE \ / AMOS7 \ YOURUM ::
-#\[7]KOA45PFGZUQ6SIOJMPMCTZSY7KVA5LRDVIDHFTRVRBIEGPVSOQCI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,..,...,...,,..,...,..,,,..,..,,..,,...,...,,..,.,.,,,,,,,.,.,,,
+#EPZHUD7Q5GQF3VO7FTT6MFBZ35HZX36VPN5V6OSXVFQEVZBJAECQJ2Z5UKKWJAGTYTUG6FWYIBYSK
+#\\\|7IDPV3ZR7WRY2XXBJGLETLS5GOHCKRCT7WERM2BUN6AIARAS6AD \ / AMOS7 \ YOURUM ::
+#\[7]FIOQQ5XSQM4TG7U5GJC7KN5D7F7TRS2T7PALPABUPTQ44AL256AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

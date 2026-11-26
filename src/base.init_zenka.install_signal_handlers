@@ -8,14 +8,19 @@ my @registered_signals
 <[base.load_runtime_modules]>->(
     qw| base.sig_NUM50 base.sig_NUM51 base.sig_NUM52 |,
     qw| base.devmod.safe_commands base.devmod.unsafe_commands |,
-    qw| base.devmod.unload_unsafe base.devmod.process_signal |
+    qw| base.devmod.unload_unsafe base.devmod.process_signal |,
+    qw| base.sig_fault |
 );
 
 ## [ setting logging signal handler for all others ]
 ##
 my %ignored_sig   = map { uc $ARG => 5 } keys %SIG;
 my %silent_signal = map { uc $ARG => 5 } qw| CLD WINCH |;
-foreach my $signal_name ( @registered_signals, qw|  KILL  STOP __WARN__  | ) {
+## synchronous fault signals never get an Event watcher : its handler      ##
+## returns, the faulting instruction runs again -- an endless SIGSEGV loop ##
+## at full cpu [ v7-zenki 2026-11-26 ]. base.sig_fault below               ##
+foreach my $signal_name ( @registered_signals,
+    qw|  KILL  STOP __WARN__  SEGV  BUS  FPE  ILL  | ) {
     $signal_name =~ s|^SIG|| if index( $signal_name, qw| SIG |, 0 ) == 0;
     delete $ignored_sig{ uc $signal_name };
 }
@@ -86,8 +91,14 @@ foreach
     );
 }
 
-#,,,.,,,,,,.,,,,,,...,.,.,,..,,,,,,,,,,,,,,.,,..,,...,...,...,..,,,..,,,.,,,,,
-#W55FWR57S77QPHF4ENV77U3KEJXQZVOHU2BFTLUXKPSKKKFW5UHAU6ZM76QCCL4XPUVZ6PFT5BERY
-#\\\|U4LSK6RYH4JYEF5WJOD5MUZ62BE7C5HW52IYF7J3D46YLWTVMLE \ / AMOS7 \ YOURUM ::
-#\[7]YO2GR74X5NUPEP2YXX7LVTNE5Q4JBAVE43FIDOGBAJP5GSNPS4AQ 7  DATA SIGNATURE ::
+## fault signals : plain %SIG, run at once inside the fault ##
+<[base.perlmod.load]>->('POSIX');
+foreach my $fault_sig (qw| SEGV BUS FPE ILL |) {
+    $SIG{$fault_sig} = sub { $code{'base.sig_fault'}->($fault_sig) };
+}
+
+#,,,.,.,.,,,.,..,,.,,,,.,,,.,,.,.,,..,.,.,.,.,..,,...,...,.,,,...,.,.,,.,,,..,
+#RSVJ4SUNZHGVWNSUVBMJQV5MGSS7DSQHZYSDICW77XYWFKZE4GBQOGXZTKIP75RC4D7V24JAXC5QO
+#\\\|FRDLBJQ74NLNFAPFSDTTQTHRVPWYDIGSKHZHWTEDSMSN7PC43E6 \ / AMOS7 \ YOURUM ::
+#\[7]VAQLZN5IR6PBXRVIYM4MGK7FP6ZJ6O3NXGMN5WRCPS4EKOT54EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

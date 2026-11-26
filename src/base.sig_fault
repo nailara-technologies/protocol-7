@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = base.sig_fault
+# param = <signal name>
+# descr = fatal fault signal [ SEGV BUS FPE ILL ] : emergency end, never a loop
+
+## a plain %SIG handler, not an Event watcher : perl runs it at once,     ##
+## inside the fault. Event's handler only counts and returns -- the       ##
+## faulting instruction ran again forever                                 ##
+## [ v7-zenki 2026-11-26, 9h spin at full cpu, children never reaped ].   ##
+## memory is corrupt from here on : the dispositions go back to default   ##
+## first, a second fault inside this handler then ends the process with a ##
+## core dump, never loops again                                           ##
+
+my $signal = shift // qw| SEGV |;
+
+map { $SIG{$ARG} = qw| DEFAULT | } qw| SEGV BUS FPE ILL |;
+
+say STDERR sprintf( '<< EMERGENCY SHUTDOWN >> [ fatal SIG%s : %s ]',
+    $signal, $PROGRAM_NAME );
+
+## the SIGTERM path, for every zenka : v7-zenki runs its synchronous        ##
+## teardown there [ TERM \ KILL of every zenka, exits itself ], others tell ##
+## their connections and end their kill list. exit code 2 : a fault is a    ##
+## failure [ systemd Restart=on-failure restarts v7-zenki ]                 ##
+<[base.sig_term]>->(
+    {   'reason'    => sprintf( 'fatal SIG%s [ memory fault ]', $signal ),
+        'exit_code' => 2
+    }
+);
+
+## sig_term returned : back to the fault, the default disposition now ends ##
+## the process with a core dump                                            ##
+kill( $signal, $PID );
+POSIX::_exit(2);
+
+#,,.,,,,,,...,...,,..,,.,,,,.,..,,.,,,...,,.,,..,,...,...,...,...,.,.,.,.,.,.,
+#EU6VPJPYA6DXSFNCPQIRS5WUGZFZJCSGESBRE52GQFN6STWIVBKMCYNTT7ZZMLA2D4TAWQEIUHUL2
+#\\\|LOYVDUFNG5WTG7K2UFKJZ464VF4HC3YHYRCQ6D2X3XW5HJ7FMFB \ / AMOS7 \ YOURUM ::
+#\[7]FHOOM5TTCI5AGDXRMUGEGVPQY4PXKKZXDFBVRPOJHPJ4J57IR2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

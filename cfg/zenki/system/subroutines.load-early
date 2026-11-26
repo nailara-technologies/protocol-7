@@ -60,6 +60,7 @@ ui.render.tree
 base.wrap_text
 base.swap_subs
 base.ssl.write
+base.sig_fault
 base.sig_NUM55
 base.sig_NUM53
 base.sig_NUM52
@@ -101,6 +102,7 @@ ui.estimate.cost
 trust.pin_decide
 system.init_code
 system.disk.poll
+stream_child.arm
 plugin.auth.unix
 jobqueue.add_job
 events.init_code
@@ -128,10 +130,13 @@ system.watch.path
 system.watch.load
 system.watch.gate
 system.watch.emit
+stream_child.note
 plugin.auth.zenka
 net.read_bytewise
 jobqueue.move_job
 jobqueue.exec_job
+events.remote.arm
+events.notify.map
 events.bucket.get
 base.stream.close
 base.session.user
@@ -157,6 +162,11 @@ ui.fields.fallback
 system.watch.value
 system.watch.sweep
 system.disk.mounts
+stream_child.start
+events.remote.poll
+events.remote.line
+events.remote.gone
+events.notify.send
 events.bucket.save
 events.bucket.path
 events.bucket.load
@@ -180,8 +190,13 @@ base.base32.encode
 ascii.frame.render
 system.disk.statvfs
 system.cmd.hostname
+stream_child.disarm
 plugin.auth.twofish
 io.ip.tcp.init_code
+events.signal.raise
+events.remote.state
+events.remote.start
+events.notify.apply
 events.bucket.start
 base.utf8.clean_str
 base.str.eval_error
@@ -206,6 +221,8 @@ system.watch.trigger
 io.ip.tcp.input.open
 events.signal.encode
 events.signal.decode
+events.remote.stderr
+events.notify.ticker
 events.bucket.finish
 base.route.init_code
 base.root.drop_privs
@@ -235,6 +252,7 @@ auth.binding.message
 ascii.frame.validate
 system.disk.post_init
 system.disk.init_code
+stream_child.user_env
 jobqueue.get_next_job
 jobqueue.get_job_data
 format.yaml.load_file
@@ -406,6 +424,7 @@ system.disk.cmd.disk-status
 system.admin_reboot_warning
 net.read_linewise_estimated
 io.unix.socket.output.close
+events.signal.journal_write
 events.bucket.handler.start
 crypt.C25519.sign_file_list
 crypt.C25519.key_is_virtual
@@ -469,6 +488,7 @@ auth.client.unix.authenticate
 ascii.frame.parse.border_line
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+events.handler.notify_sessions
 crypt.C25519.key_name_and_type
 crypt.C25519.chksum_cache.retr
 base.zenki.ondemand_registered
@@ -596,8 +616,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,,,,,,.,.,,,.,.,,,,,...,.,,,...,...,,,.,,.,,..,,...,...,.,,,...,,.,,...,..,,
-#XUG2PRVREWQCFGHMRWYBIB7NCR57PXLZ5F7ZQOX4O65BQMZZSXQR52B64YF2LNJLIQ6HXWLZSXP32
-#\\\|PQSVJ7EAF6UGV4RK3FVB772E7JVSGG6AEHAJGIUJ7HNIYHAM4XJ \ / AMOS7 \ YOURUM ::
-#\[7]6QHYC4KZTHWPACUTSRMY25LHGPVRHURJ2UPITFMQRXKZRZT6M2AY 7  DATA SIGNATURE ::
+#,,..,.,,,...,.,,,...,,..,.,,,.,.,,.,,,.,,,,.,..,,...,...,...,,,,,.,.,...,,..,
+#ZTLUFG2XZFUARBHPQD5BAQLTGW7ITZ6QVSAIWUKZNZKMTRC7X4ZMDRIG7XD5PHKPABZ4KYMNHIGHK
+#\\\|3YBI7EUXMBJSSEYJOORVCHPSJFXSPTT4F4FKV5ZFN3DQGJ4LMYU \ / AMOS7 \ YOURUM ::
+#\[7]7Q2MAJSZILUXQ2ZHRWSF5XIEZDLYMHOQZDQZS6OXGAPJ5I73BGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -63,6 +63,7 @@ devmod.cmd.del
 base.wrap_text
 base.swap_subs
 base.ssl.write
+base.sig_fault
 base.sig_NUM55
 base.sig_NUM53
 base.sig_NUM52
@@ -164,27 +165,6 @@ ascii.frame.parse
 ui.render.fallback
 ui.fields.fallback
 screen.setup.close
-screen.setup.dpi.apply
-screen.setup.dpi.change
-screen.setup.dpi.confirm
-screen.setup.dpi.exec
-screen.setup.dpi.handler.exec
-screen.setup.dpi.handler.windows
-screen.setup.dpi.persist
-screen.setup.dpi.place-windows
-screen.setup.dpi.report
-screen.setup.dpi.revert
-screen.setup.dpi.restore-original
-screen.setup.dpi.settings
-screen.setup.cmd.dpi-get
-screen.setup.cmd.dpi-set
-screen.setup.cmd.dpi-suggest
-screen.setup.cmd.dpi-confirm
-screen.setup.cmd.dpi-revert
-screen.setup.cmd.dpi-restore-original
-screen.setup.cmd.dpi-control
-base.interval.next
-base.interval.rhythm.non-linear
 devmod.cmd.elf-num
 devmod.cmd.elf-b32
 devmod.cmd.eat-mem
@@ -195,6 +175,7 @@ base.strm.pre_init
 base.reload_values
 base.reload_config
 base.parser.config
+base.interval.next
 base.handler.write
 base.handler.input
 base.handler.hooks
@@ -275,6 +256,7 @@ base.X-11.keep_above
 auth.binding.message
 ascii.frame.validate
 window.profile.delete
+screen.setup.dpi.exec
 jobqueue.get_next_job
 jobqueue.get_job_data
 format.yaml.load_file
@@ -305,6 +287,7 @@ base.X-11.move-window
 base.X-11.get_display
 window.place.init_code
 screen.setup.init_code
+screen.setup.dpi.apply
 devmod.cmd.switch-user
 crypt.C25519.sign_data
 base.session.init_code
@@ -322,6 +305,9 @@ base.cmd.cancel-stream
 base.cfg.profile.apply
 base.X-11.raise-window
 auth.client.owner_pins
+screen.setup.dpi.revert
+screen.setup.dpi.report
+screen.setup.dpi.change
 protocol.sftp.init_code
 jobqueue.queue_template
 io.unix.socket.end_code
@@ -356,6 +342,10 @@ window.profile.calculate
 window.gtk.profile.apply
 ui.caller.security-level
 screen.setup.open_window
+screen.setup.dpi.persist
+screen.setup.dpi.confirm
+screen.setup.cmd.dpi-set
+screen.setup.cmd.dpi-get
 protocol.https.init_code
 plugin.auth.auth-keypair
 io.unix.socket.init_code
@@ -388,6 +378,7 @@ window.profile.color.list
 ui.render.tree.invalidate
 screen.setup.layout-model
 screen.setup.handler.draw
+screen.setup.dpi.settings
 screen.setup.cmd.snapshot
 jobqueue.priorities_table
 io.unix.socket.input.open
@@ -436,6 +427,7 @@ base.devmod.process_signal
 base.check_dependency_dirs
 screen.setup.handler.motion
 screen.setup.ensure-display
+screen.setup.cmd.dpi-revert
 net.read_linewise_estimated
 io.unix.socket.output.close
 devmod.cmd.utf8-test-buffer
@@ -459,6 +451,9 @@ base.cmd.buffer-erase-level
 base.chk-sum.elf.vax-BASE32
 base.chk-sum.amos.init_code
 auth.client.zenka.init_code
+screen.setup.cmd.dpi-suggest
+screen.setup.cmd.dpi-control
+screen.setup.cmd.dpi-confirm
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
 io.unix.socket.input.connect
@@ -476,6 +471,7 @@ base.chk-sum.bmw.str-b32.L13
 base.access.special-user-map
 auth.client.server_pin.check
 screen.setup.monitor-at-point
+screen.setup.dpi.handler.exec
 protocol.protocol-7.init_code
 devmod.cmd.keep-devmod-loaded
 devmod.cmd.inline-subroutines
@@ -500,6 +496,7 @@ base.X-11.get_window_geometry
 auth.client.unix.authenticate
 ascii.frame.parse.border_line
 screen.setup.handler.key_press
+screen.setup.dpi.place-windows
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
 devmod.cmd.show-temp-heartbeat
@@ -523,8 +520,10 @@ crypt.C25519.decrypt_secret_key
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.interval.rhythm.non-linear
 base.handler.link-upgrade.input
 base.file.zenka_dir.unlink_file
+screen.setup.dpi.handler.windows
 screen.setup.cmd.display-layouts
 crypt.C25519.name_from_skey_name
 crypt.C25519.del_keys_hash_entry
@@ -542,6 +541,7 @@ base.config.load_proto_7_version
 base.cfg.profile.cmd.set-profile
 ascii.frame.parse.border_segment
 screen.setup.handler.button_press
+screen.setup.dpi.restore-original
 protocol.amos-chksum.ext-cmd.exit
 base.zenki.pause_ondemand_timeout
 base.sourcecode.in-mem.sub-source
@@ -596,6 +596,7 @@ base.handler.read.encryption-wrapper
 base.handler.command.route_to_target
 base.callback.clean_data_source_hash
 auth.client.zenka.process_auth_reply
+screen.setup.cmd.dpi-restore-original
 protocol.sftp.handler.write_to_server
 protocol.protocol-7.message-templates
 protocol.protocol-7.link-upgrade.init
@@ -632,8 +633,8 @@ protocol.protocol-7.protocol-version-path-set-up
 protocol.protocol-7.link-upgrade.client_activate
 base.log.send-buffer.reply-handler.notify-online
 
-#,,.,,...,,,,,..,,...,,..,,,.,,,,,,.,,..,,..,,..,,...,..,,,,.,.,.,.,.,,.,,...,
-#DEE4SLNUTHAZFNGBX2BLM54C3U7KW4DGQEB2VFIJ5IXTT575IGTIFZFRN64UHFNOGLVITS7OH7HP4
-#\\\|3TGK7X44SSYVZQJJG27JJWU4X4VGIHHPWHGHD2CWUK7PJ44NAVU \ / AMOS7 \ YOURUM ::
-#\[7]B4CDXIGDRLXZAAFAUQ4ME55JX6BNOUOZIEAEJRO3DVNZLAMVHGCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,..,,,,,,.,.,..,,,,,,,.,,,..,..,,...,..,,..,,,.,,,,.,.,,,.,.,
+#ZUU5JZ3EZJNOLT5GH2LEBX3PLMPJSQIYK7EFQNB6XTCZAROQ7NRQ57W3GD53MAIODNNKVBUVEWBMO
+#\\\|S7H7KFEHIYBYBG4N3LY5K6V3APKCMJWQKMGNR7K6XCUHLU4GIYN \ / AMOS7 \ YOURUM ::
+#\[7]5ZIIRCSZRMG4PZ2JEVWQRYV5LTPWWQ5BPZ46TSG43A76G2DB2ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

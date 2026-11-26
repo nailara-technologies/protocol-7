@@ -70,6 +70,7 @@ index.gen_path
 base.wrap_text
 base.swap_subs
 base.ssl.write
+base.sig_fault
 base.sig_NUM55
 base.sig_NUM53
 base.sig_NUM52
@@ -184,10 +185,9 @@ base.chk-sum.amos
 ascii.frame.parse
 web.scan_directory
 web.menu_generator
+web.cmd.auth-renew
 web.cmd.auth-login
 web.cmd.auth-issue
-web.cmd.auth-renew
-web.cmd.lease-renew
 ui.render.fallback
 ui.fields.fallback
 jobsite.state.load
@@ -198,6 +198,7 @@ base.strm.pre_init
 base.reload_values
 base.reload_config
 base.parser.config
+base.interval.next
 base.handler.write
 base.handler.input
 base.handler.hooks
@@ -214,18 +215,20 @@ base.clean_hashref
 base.base32.encode
 base.base32.decode
 ascii.frame.render
+web.cmd.lease-renew
 web.cmd.jobs-events
 web.cmd.auth-status
 web.cmd.auth-revoke
 web.cmd.auth-logout
 web.cmd.auth-bearer
-web.cmd.auth-activity
 web.assets.registry
 web.assets.register
 plugin.auth.twofish
 jobsite.stray.check
 jobsite.store.prune
 jobsite.stage.fetch
+jobsite.lease.start
+jobsite.lease.renew
 jobsite.assert.init
 io.ip.tcp.init_code
 devmod.console-dump
@@ -255,6 +258,7 @@ plugin.web.jobs.list
 plugin.web.jobs.data
 jobsite.stage.review
 jobsite.replica.pull
+jobsite.lease.failed
 jobsite.job.load_all
 io.ip.tcp.input.open
 format.yaml.pre_init
@@ -291,6 +295,7 @@ base.buffer.add_line
 base.base32.pre_init
 auth.binding.message
 ascii.frame.validate
+web.cmd.auth-activity
 plugin.web.space.grid
 plugin.web.jobs.stats
 plugin.web.auth.admit
@@ -337,6 +342,7 @@ jobsite.util.source-id
 jobsite.sync.push_soon
 jobsite.liveness.start
 jobsite.liveness.apply
+jobsite.lease.schedule
 jobsite.cmd.job-upsert
 jobsite.checksum.index
 format.yaml.write_file
@@ -559,8 +565,7 @@ plugin.web.space.cmd.context
 plugin.web.auth.store.set-up
 plugin.web.auth.session.read
 plugin.web.auth.session.path
-plugin.web.auth.rotate_session
-plugin.web.auth.admit.activity
+plugin.web.auth.lease_caller
 plugin.web.auth.admit.status
 plugin.web.auth.admit.source
 plugin.web.auth.admit.select
@@ -595,10 +600,10 @@ plugin.web.jobs.events.notify
 plugin.web.auth.session.write
 plugin.web.auth.session.prune
 plugin.web.auth.handler.login
-plugin.web.auth.ui_session.info
 jobsite.replica.pull-response
 jobsite.replica.forward-retry
 jobsite.handler.sync-response
+jobsite.handler.lease-renewed
 jobsite.dispatch.release_slot
 jobsite.dispatch.reassess_now
 jobsite.dispatch.consume_slot
@@ -636,12 +641,12 @@ plugin.web.space.orbital.fetch
 plugin.web.space.index.persist
 plugin.web.jobs.cache.read_all
 plugin.web.auth.verify_session
+plugin.web.auth.rotate_session
 plugin.web.auth.handler.status
 plugin.web.auth.handler.logout
 plugin.web.auth.create_session
-plugin.web.auth.ui_session.begin
-plugin.web.auth.lease_caller
 plugin.web.auth.admit.schedule
+plugin.web.auth.admit.activity
 plugin.web.attention.pop_state
 plugin.web.attention.init_code
 jobsite.replica.local-response
@@ -662,6 +667,7 @@ auth.client.zenka.authenticate
 ascii.frame.render.border_line
 plugin.web.space.grid.init_code
 plugin.web.jobs.events.trailing
+plugin.web.auth.ui_session.info
 plugin.web.auth.destroy_session
 plugin.web.attention.push_state
 jobsite.replica.pull_soon-fired
@@ -674,10 +680,12 @@ clients.https.handler.handshake
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.interval.rhythm.non-linear
 base.inotify.install_io_watcher
 base.handler.link-upgrade.input
 plugin.web.space.index.init_code
 plugin.web.jobs.events.heartbeat
+plugin.web.auth.ui_session.begin
 plugin.web.auth.secure_transport
 plugin.web.auth.refuse_plaintext
 plugin.web.auth.admit.wait_until
@@ -829,8 +837,8 @@ plugin.web.space.orbital.handler.gm_state_strm_open
 plugin.web.space.orbital.handler.external_strm_open
 plugin.web.space.orbital.handler.discover_strm_open
 
-#,,.,,,,.,,..,.,.,,.,,,..,.,,,,,,,,,.,...,...,..,,...,...,.,,,,.,,...,.,,,,..,
-#ZRQOWIJPFOTMJFVGDUKQC3O4BKY2TBOSJKKEFBNV5HZGHFP2HUFQHPKMP2NAHLPIPAVLQMWCCOZJS
-#\\\|HO7XWJV2GONMHPB4ODCN5HBPM2LNMGE6MGBEN33P5FZ2A54INIL \ / AMOS7 \ YOURUM ::
-#\[7]5YA5NKWX2RPMLHKCDDJTGDB7ZUL2FB7ID6ATH6X2LGJIUSV7XUCA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,,,..,,,..,..,,,.,,,,.,,,.,,,,,..,,...,...,.,,,.,.,..,,...,.,.,
+#FHE5FK7CG647IIDBVJYVG4FS67ODHLZM7N6R6BB25EJ4JPN6BR7VZEN4PKUHBPG2M644R4QWPWBXM
+#\\\|KVAZUUTOBCZDZWV3QMEEZFICZ7HQPYPZ5W2LF5BBUOMO7RTHQLW \ / AMOS7 \ YOURUM ::
+#\[7]SM4IT6MNKTQRHIFD7YG4HMIE45FAL5G2NXKNUWIKICA3SNC5FWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

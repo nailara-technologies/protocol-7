@@ -1,13 +1,22 @@
 ## [:< ##
 
-# name = base.sig_term
+# name  = base.sig_term
+# param = [ { reason => .., exit_code => .. } ]
+# descr = SIGTERM : end the zenka [ v7-zenki : teardown of all zenki ]
+
+## its default use is the SIGTERM watcher, called without arguments         ##
+## [ base.event.add_signal ] : options only from an explicit hash reference ##
+## [ base.sig_fault ], anything else keeps the defaults                     ##
+my $opts = ref $ARG[0] eq qw| HASH | ? shift : {};
 
 $PROGRAM_NAME .= ' :. shutdown in progress ., please wait .,';
 <[base.log]>->( 1, 'SIGTERM received. shutting down ..,' );
 
 <[base.code.call_expected]>->(
     <[base.mod.exists]>->(qw| v7-zenki |),
-    qw| v7-zenki.teardown |
+    qw| v7-zenki.teardown |,
+    $opts->{'reason'} // '',
+    undef, $opts->{'exit_code'}
 );
 
 <[base.net.send_to_all_initialized]>->('!TRM! zenka shutdown [ SIGTERM ]');
@@ -16,11 +25,11 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq qw| ARRAY | ) {
     map { kill( 9, $ARG ) } <system.kill_list>->@*;
 }
 
-<[base.log]>->( 1, ':. done' );
-exit(0);
+## logs, resets the terminal, exits ##
+<[base.exit]>->( $opts->{'exit_code'} // 0, ':. done', 1 );
 
-#,,,.,,.,,,,,,,,.,,.,,...,,,.,,,.,,..,.,.,..,,..,,...,...,.,,,.,,,..,,,,.,..,,
-#BGJU3HG443ZOCCQDMXNBAGML6X462V5PY5PZ7ZWZQTMYAW2HZVJ3KXCAUBRZF5DF5Z3RBPIAPW2BS
-#\\\|LDO6KTMGJ2OU4DNC3UZR35R2RQD675NIHFOY3MHLP42DA65WO3I \ / AMOS7 \ YOURUM ::
-#\[7]Y2KS3H2DTZB5GN7TDROX47BESRBV5CQB7CVDEIZ732DT7IESXQBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,.,,,.,,..,,,..,,,,,.,.,..,,,,,,..,,...,...,..,,.,.,.,.,.,,,,.,,
+#QMKK7NWYLB5MTX7IZKVYU7H3NUBN5KLUTBOCC2Q7RKHPNHLJLBD2QTNM6TJ3CE4QLXAR76XCEYNWU
+#\\\|B5SFY4QZM3AJEARUJ3NE6TNNOO4EKAFKZPJUABXWHHIGC6LSQTN \ / AMOS7 \ YOURUM ::
+#\[7]YS2I4DP35QVOBPE6LXUX7WDTVQ76NIWEPSOUNIXCINQV2GWJZ6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

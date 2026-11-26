@@ -13,6 +13,9 @@ return [ qw[
         vterm.shm
         ui.unfold
         pty.spawn
+        park.stop
+        park.show
+        park.send
         note.read
         note.list
         note.init
@@ -28,6 +31,8 @@ return [ qw[
         vterm.cell
         ssl.server
         ssl.client
+        park.start
+        park.clear
         note.write
         note.merge
         index.rank
@@ -50,6 +55,7 @@ return [ qw[
         form.escape
         form.chrome
         filter.init
+        events.fire
         devmod.dump
         branch.list
         base.squote
@@ -68,6 +74,7 @@ return [ qw[
         radio.ripper
         proxy.listen
         power.cmd.on
+        park.request
         note.history
         mpv.cmd.zoom
         mpv.cmd.stop
@@ -79,6 +86,7 @@ return [ qw[
         mpv.cmd.loop
         mpv.cmd.fade
         kimi.connect
+        kimi.acp.rpc
         keyring.sign
         index.search
         index.lookup
@@ -109,6 +117,7 @@ return [ qw[
         udev.open_adm
         task.end_code
         task.cmd.show
+        task.cmd.park
         task.cmd.next
         task.cmd.fail
         ssh.init_code
@@ -120,11 +129,15 @@ return [ qw[
         plan-9.server
         plan-9.client
         pcycle.switch
+        park.describe
         net.init_code
         net.calc_port
         ncode.cmd.doc
         mpv.init_code
         mpv.cmd.pause
+        kimi.end_code
+        kimi.acp.stop
+        kimi.acp.hold
         index.restore
         index.promote
         index.persist
@@ -167,6 +180,8 @@ return [ qw[
         vterm.shm.path
         vterm.instance
         valued.resolve
+        usage.home_dir
+        usage.cmd.plan
         usage.cmd.kimi
         ui.render.tree
         ui.cmd.ui-show
@@ -188,6 +203,9 @@ return [ qw[
         radio.cmd.skip
         radio.cmd.keep
         proxy.pre_init
+        power.cmd.wake
+        notify.cmd.dnd
+        notify.cmd.cue
         note.tree.view
         note.summarize
         ncode.cmd.sign
@@ -200,6 +218,10 @@ return [ qw[
         kimi.wire.send
         kimi.task.fail
         kimi.init_code
+        kimi.acp.write
+        kimi.acp.state
+        kimi.acp.spawn
+        kimi.acp.event
         keys.post_init
         keys.owned_dir
         keys.init_code
@@ -224,6 +246,8 @@ return [ qw[
         cube.post_init
         cube.init_code
         cube.cmd.close
+        coding.cmd.ask
+        claude.var_dir
         calc.init_code
         branch.resolve
         base.wrap_text
@@ -231,6 +255,7 @@ return [ qw[
         base.ssl.write
         base.slot.move
         base.slot.fold
+        base.sig_fault
         base.sig_NUM55
         base.sig_NUM53
         base.sig_NUM52
@@ -269,10 +294,13 @@ return [ qw[
         vterm.consensus
         vault-edit.quit
         users.init_code
+        usage.watch.arm
         usage.init_code
         udev.load_rules
         trust.statement
         thermal.verdict
+        task.park.store
+        task.cmd.unpark
         task.cmd.result
         task.cmd.create
         system.pre_init
@@ -292,8 +320,10 @@ return [ qw[
         proxy.log.visit
         proxy.init_code
         powershell.exec
+        power.wake.send
         power.init_code
         plugin.auth.pwd
+        park.parse_args
         pager.source.9p
         pager.init-code
         p7-log.anon.key
@@ -352,7 +382,12 @@ return [ qw[
         context.compact
         compton.startup
         coding.end_code
+        coding.cmd.park
+        coding.cmd.open
         coding.cmd.bury
+        claude.cmd.tail
+        claude.cmd.stop
+        claude.cmd.send
         chk-sum.md5.hex
         chk-sum.crc.b32
         build.init_code
@@ -391,6 +426,7 @@ return [ qw[
         users.group.read
         users.group.path
         users.cmd.remove
+        usage.pace.state
         usage.cmd.status
         usage.cmd.claude
         ui.estimate.cost
@@ -408,6 +444,8 @@ return [ qw[
         task.cmd.release
         task.claim_lease
         system.init_code
+        system.disk.poll
+        stream_child.arm
         storage.9p.wstat
         storage.9p.write
         storage.9p.mount
@@ -421,6 +459,7 @@ return [ qw[
         radio.cmd.status
         radio.cmd.listen
         radio.audio.init
+        power.wake.round
         power.set_states
         power.pin_driver
         povray.init_code
@@ -434,9 +473,11 @@ return [ qw[
         nshell.term_init
         nshell.init_code
         notify.init_code
+        notify.dnd.store
         notify.cmd.loves
         note.trash.stash
         note.trash.prune
+        network.cmd.macs
         nessus.init_code
         ncode.regex.save
         ncode.regex.load
@@ -460,6 +501,7 @@ return [ qw[
         kimi.task.status
         kimi.task.intake
         kimi.cmd.approve
+        kimi.acp.respond
         keys.backup.list
         keyring.distance
         keyring.cmd.show
@@ -508,6 +550,13 @@ return [ qw[
         coding.init_code
         coding.cmd.drain
         clients.http.get
+        claude.turn.next
+        claude.turn.done
+        claude.live.wire
+        claude.live.post
+        claude.init_code
+        claude.event.add
+        claude.cmd.start
         chk-sum.md5.b64u
         channels.cleanup
         branch.node.path
@@ -571,6 +620,7 @@ return [ qw[
         v7-zenki.call_cmd
         users.record.path
         users.group.build
+        usage.format.plan
         universal.startup
         udev.reload_rules
         transport.promote
@@ -587,6 +637,16 @@ return [ qw[
         task.cmd.continue
         task.cmd.complete
         task.claim_expire
+        system.watch.save
+        system.watch.path
+        system.watch.load
+        system.watch.gate
+        system.watch.emit
+        stream_child.stop
+        stream_child.step
+        stream_child.reap
+        stream_child.note
+        stream_child.gone
         storage.post_init
         storage.init_code
         storage.cmd.p7ref
@@ -602,9 +662,11 @@ return [ qw[
         sessions.cmd.stop
         sessions.cmd.sign
         sessions.cmd.hold
+        session_move.host
         radio.cmd.library
         proxy.auth.lookup
         powershell.notify
+        power.wake.decide
         power.save_config
         power.read_states
         power.load_config
@@ -626,12 +688,23 @@ return [ qw[
         nshell.state_init
         nshell.state.init
         nshell.shell_loop
+        notify.sound.play
+        notify.dnd.active
         note.util.safe_id
         note.trash.rescue
+        nodes.ifaces.save
+        nodes.ifaces.load
+        network.read_line
+        network.init_code
+        network.cmd.roles
+        network.cmd.event
         net.read_bytewise
         ncode.regex.apply
         ncode.cmd.suggest
         ncode.cmd.replace
+        nameserv.enc.pump
+        nameserv.enc.list
+        nameserv.enc.fail
         mpv.snapshot.save
         mpv.handler.event
         mpv.cmd.set-speed
@@ -650,6 +723,10 @@ return [ qw[
         link.records.list
         kimi.task.execute
         kimi.task.enqueue
+        kimi.cmd.acp-tail
+        kimi.cmd.acp-stop
+        kimi.cmd.acp-send
+        kimi.acp.dispatch
         keys.get_keyfiles
         keys.console.path
         keys.console.list
@@ -690,6 +767,10 @@ return [ qw[
         filter.del_filter
         filter.add_filter
         ext-pkg.init_code
+        events.remote.arm
+        events.notify.map
+        events.cmd.signal
+        events.bucket.get
         discover.pre_init
         decoder.cmd.reset
         data.list_entries
@@ -710,15 +791,26 @@ return [ qw[
         coding.task.queue
         coding.task.clear
         coding.state.save
+        coding.remind.arm
+        coding.remind.add
+        coding.park.store
         coding.idiom.scan
         coding.idiom.gate
+        coding.cmd.unpark
         coding.cmd.submit
         coding.cmd.status
+        coding.cmd.remind
         coding.cmd.failed
         coding.cmd.budget
+        coding.cmd.answer
         coding.abort.list
         clients.https.get
         clients.http.post
+        claude.parse_args
+        claude.cmd.status
+        claude.child.stop
+        claude.child.note
+        claude.child.gone
         chk-sum.init_code
         branch.space.rank
         branch.route.list
@@ -779,6 +871,8 @@ return [ qw[
         v7-zenki.init_code
         v7-zenki.child.add
         users.record.build
+        usage.signal.raise
+        usage.pace.observe
         universal.pre_init
         ui.render.fallback
         ui.fields.fallback
@@ -795,9 +889,16 @@ return [ qw[
         task.cmd.wait-done
         task.cmd.summarize
         task.cmd.subscribe
+        system.watch.value
+        system.watch.sweep
+        system.disk.mounts
         sys-deps.init_code
         sys-deps.cmd.state
         sys-deps.cmd.check
+        stream_child.write
+        stream_child.start
+        stream_child.flush
+        stream_child.alive
         storage.cmd.visual
         storage.9p.version
         storage.9p.readdir
@@ -812,6 +913,7 @@ return [ qw[
         signal.cancel.load
         sessions.init_code
         sessions.cmd.spawn
+        session_move.parse
         screen.setup.close
         proxy.client.close
         power.cmd.show_all
@@ -828,6 +930,13 @@ return [ qw[
         os-pkg.cmd.backend
         notify.cmd.message
         notify-osd.startup
+        nodes.ifaces.parse
+        network.wlan.iface
+        network.lease.save
+        network.lease.load
+        network.cmd.status
+        network.cmd.leases
+        netinfo.network_of
         ncode.util.run_cmd
         ncode.regex.expand
         ncode.regex.assess
@@ -837,6 +946,9 @@ return [ qw[
         nameserv.sync.sign
         nameserv.sync.reap
         nameserv.init_code
+        nameserv.enc.start
+        nameserv.enc.flush
+        nameserv.enc.close
         nameserv.cache.put
         nameserv.cache.key
         nameserv.cache.get
@@ -873,6 +985,8 @@ return [ qw[
         kimi.cmd.set-model
         kimi.cmd.ask-reply
         kimi.cmd.approvals
+        kimi.cmd.acp-start
+        kimi.acp.on_update
         kimi-web.init_code
         keys.distrust_file
         keys.checksum_href
@@ -911,6 +1025,15 @@ return [ qw[
         ffmpeg.frame_count
         external.link.open
         external.init_code
+        events.remote.poll
+        events.remote.line
+        events.remote.gone
+        events.notify.send
+        events.cmd.signals
+        events.cmd.plugins
+        events.bucket.save
+        events.bucket.path
+        events.bucket.load
         download.post_init
         download.init_code
         discover.post_init
@@ -936,11 +1059,20 @@ return [ qw[
         content.cmd.update
         coding.task.status
         coding.task.intake
+        coding.remind.tick
+        coding.remind.send
         coding.intake.work
         coding.image.label
         coding.idiom.rules
         coding.abort.count
         clients.https.post
+        claude.wire.encode
+        claude.wire.decode
+        claude.stream.line
+        claude.signal.done
+        claude.context.arm
+        claude.child.write
+        claude.child.start
         channels.init_code
         channels.heartbeat
         branch.space.shell
@@ -1023,19 +1155,25 @@ return [ qw[
         users.cmd.group-get
         users.cmd.group-add
         user-edit.init_code
+        usage.watch.observe
         usage.provider_list
         usage.format.report
         universal.init_code
         transport.init_code
         tile.merge_multiple
         tile.cmd.base-group
+        ticker.status.apply
         ticker.calc-col.RGB
         thermal.start.ready
         thermal.outdoor.amp
         thermal.idle.sample
         thermal.gate.sample
         thermal.gate.decide
+        system.disk.statvfs
         system.cmd.hostname
+        stream_child.status
+        stream_child.signal
+        stream_child.disarm
         storage.map-dirs.fs
         ssl.connect_handler
         ssh.disable_profile
@@ -1059,6 +1197,7 @@ return [ qw[
         sessions.cmd.pubkey
         sessions.cmd.detach
         sessions.cmd.attach
+        session_move.export
         select.region.start
         remote-cam.sdl_loop
         reenc-msg.init_code
@@ -1080,7 +1219,10 @@ return [ qw[
         openbox.cmd.version
         openbox.cmd.get_pid
         nshell.term_restore
+        nodes.ifaces.record
+        nodes.cmd.node-macs
         nodes.cmd.add-tronk
+        network.lease.parse
         nessus.cmd.scan-run
         ncode.transform.run
         ncode.cmd.transform
@@ -1090,6 +1232,8 @@ return [ qw[
         nameserv.sync.since
         nameserv.sync.apply
         nameserv.event.emit
+        nameserv.enc.detach
+        nameserv.enc.active
         nameserv.cmd.status
         mpv.cmd.append-play
         models.task.startup
@@ -1110,6 +1254,11 @@ return [ qw[
         letsencr.cmd.enroll
         kimi.session.create
         kimi.intake.process
+        kimi.cmd.acp-status
+        kimi.cmd.acp-cancel
+        kimi.acp.raise_done
+        kimi.acp.child_note
+        kimi.acp.child_gone
         keys.console.rename
         keys.console.remove
         keys.console.re-pin
@@ -1153,6 +1302,13 @@ return [ qw[
         form.addable_fields
         form.add_field_name
         forensics.init_code
+        events.signal.raise
+        events.remote.state
+        events.remote.start
+        events.plugin.known
+        events.notify.apply
+        events.bucket.start
+        events.bucket.cycle
         devmod.console-dump
         devmod.cmd.true-int
         devmod.cmd.free-mem
@@ -1188,12 +1344,27 @@ return [ qw[
         coding.task.dequeue
         coding.task.analyze
         coding.staged.clear
+        coding.remind.watch
+        coding.remind.store
+        coding.remind.lines
         coding.mode.setting
         coding.input.decode
+        coding.handover.git
+        coding.handover.arm
+        coding.cmd.sessions
         coding.cmd.restream
         coding.cmd.progress
+        coding.cmd.handover
         coding.abort.remove
         coding.abort.lookup
+        claude.signal.raise
+        claude.session.save
+        claude.session.load
+        claude.session.hold
+        claude.handler.reap
+        claude.context.tick
+        claude.cmd.sessions
+        claude.child.stderr
         channels.cmd.update
         branch.storage.sync
         branch.storage.list
@@ -1286,6 +1457,7 @@ return [ qw[
         thermal.gate.predict
         test.iteration.hello
         task.persist.archive
+        system.watch.trigger
         sys-deps.cmd.promote
         sys-deps.cmd.missing
         sys-deps.cmd.install
@@ -1353,6 +1525,8 @@ return [ qw[
         nshell.render.cursor
         nshell.display.cycle
         notify-osd.init_code
+        nodes.ifaces.age_out
+        network.wlan.request
         ncode.transform.wave
         ncode.cmd.sign-batch
         nameserv.zone.lookup
@@ -1360,6 +1534,8 @@ return [ qw[
         nameserv.sync.listen
         nameserv.sync.key.id
         nameserv.sync.accept
+        nameserv.enc.deliver
+        nameserv.enc.connect
         nameserv.cmd.add-txt
         mpv.snapshot.restore
         mpv.loop_plist_param
@@ -1394,6 +1570,9 @@ return [ qw[
         kimi.task.queue_fail
         kimi.cmd.new-session
         kimi.cmd.list-models
+        kimi.acp.on_response
+        kimi.acp.next_prompt
+        kimi.acp.flush_chunk
         kimi-web.cmd.enqueue
         keystore.trash.stash
         keys.console.removed
@@ -1439,8 +1618,17 @@ return [ qw[
         ffmpeg.extract_frame
         feline.teleportation
         external.cmd.connect
+        events.source.disarm
+        events.signal.grants
+        events.signal.encode
+        events.signal.decode
+        events.signal.access
         events.set_up_timers
+        events.remote.stderr
+        events.notify.ticker
         events.jitter_offset
+        events.bucket.finish
+        events.access.grants
         editor.control.reset
         discover.send_packet
         devmod.cmd.test-strm
@@ -1469,19 +1657,30 @@ return [ qw[
         coding.task.complete
         coding.system_prompt
         coding.self_test.run
+        coding.remind.failed
+        coding.keepalive.off
+        coding.keepalive.arm
         coding.idiom.resolve
         coding.gpu_sparkline
+        coding.decision.send
         coding.cmd.wait-done
         coding.cmd.tree-read
         coding.cmd.tree-list
         coding.cmd.task-info
         coding.cmd.stop-task
         coding.cmd.resurrect
+        coding.cmd.reminders
+        coding.cmd.keepalive
         coding.cmd.call-tool
         coding.cmd.ask-reply
         coding.async.request
         clients.http.request
         clients.http.cleanup
+        claude.live.sessions
+        claude.context.usage
+        claude.context.store
+        claude.context.check
+        claude.cmd.interrupt
         channels.memory-sync
         calc.val.eval_bigrat
         build.cmd.recipe-run
@@ -1574,19 +1773,29 @@ return [ qw[
         v7-zenki.cmd.teardown
         v7-zenki.cmd.pressure
         users.record.validate
+        usage.leak_check.line
+        usage.leak_check.gone
         usage.format.duration
+        usage.credential_load
         universal.start_zenka
         universal.hide_except
         transport.probe.timer
         tile.handler.sig_term
         tile.cmd.switch-group
         tile.cmd.get_geometry
+        ticker.status.compose
         ticker.select_monitor
         ticker.process_subcfg
+        ticker.cmd.status-set
         thermal.window.weight
         thermal.window.tariff
         thermal.gate.hot_mark
         thermal.feed.register
+        system.disk.post_init
+        system.disk.init_code
+        stream_child.user_env
+        stream_child.end_code
+        stream_child.close_in
         storchencam.init_code
         storage.map-dirs.tree
         storage.9p.write-file
@@ -1604,6 +1813,8 @@ return [ qw[
         set-up.json.init_code
         sessions.secret.child
         sessions.holder.child
+        session_move.transfer
+        session_move.manifest
         screen.setup.dpi.exec
         reenc-msg.open_window
         reenc-msg.cmd.refresh
@@ -1637,12 +1848,18 @@ return [ qw[
         nshell.register_hooks
         nshell.editor.process
         nshell.clear_terminal
+        notify.dnd.parse_span
         notify.cmd.msg_reload
         nodes.cmd.host-status
+        network.dns_probe.run
+        network.cmd.wlan-scan
         ncode.cmd.widen-scope
         ncode.cmd.format-code
         ncode.cmd.diff-staged
         nameserv.sync.request
+        nameserv.enc.load_cfg
+        nameserv.enc.dispatch
+        nameserv.enc.degraded
         mpv.init_settings_map
         mpv.cmd.stop-autoskip
         mpv.cmd.snapshot-save
@@ -1724,6 +1941,9 @@ return [ qw[
         filter.cmd.del_filter
         filter.cmd.add_filter
         fetch-files.init_code
+        events.source.arm_all
+        events.cmd.bucket-add
+        events.bucket.journal
         editor.input.next_key
         editor.control.submit
         editor.control.create
@@ -1762,10 +1982,22 @@ return [ qw[
         content.check_changes
         coding.tools.dispatch
         coding.task.resurrect
+        coding.sign_queue.cfg
+        coding.sign_queue.arm
+        coding.sessions.touch
+        coding.sessions.store
+        coding.sessions.carry
+        coding.remind.deliver
+        coding.keepalive.tick
+        coding.keepalive.send
         coding.intake.process
+        coding.handover.write
+        coding.handover.watch
+        coding.handover.start
         coding.gpu_lease.gate
         coding.cmd.tree-write
         coding.cmd.temp-boost
+        coding.cmd.sign-queue
         coding.cmd.round-time
         coding.cmd.redo-round
         coding.cmd.pause-task
@@ -1778,6 +2010,8 @@ return [ qw[
         clients.https.request
         clients.https.cleanup
         clients.http.pre_init
+        claude.cmd.permission
+        claude.child.end_code
         chk-sum.md5.init_code
         chk-sum.crc.init_code
         branch.ntime.relative
@@ -1887,6 +2121,7 @@ return [ qw[
         users.cmd.remote-fetch
         users.cmd.group-remove
         users.cmd.group-create
+        usage.watch.thresholds
         universal.switch_child
         universal.self_restart
         universal.lower_except
@@ -1905,6 +2140,9 @@ return [ qw[
         ticker.cmd.set-monitor
         thermal.window.current
         thermal.gate.k_trusted
+        system.watch.post_init
+        system.watch.init_code
+        system.watch.check.log
         system.process.cmd.top
         storage.cmd.plan9-scan
         storage.9p.resize-path
@@ -1925,6 +2163,9 @@ return [ qw[
         sessions.holder.parent
         sessions.holder.detach
         sessions.holder.attach
+        session_move.read_text
+        session_move.make_dirs
+        session_move.is_prefix
         screenshot.scale_image
         screenshot.pixel_color
         screenshot.grab_region
@@ -1940,6 +2181,7 @@ return [ qw[
         proxy.template.generic
         proxy.cmd.cred-rotated
         powershell.to_unc_path
+        powershell.pulse-start
         power.add_status_timer
         povray.finalize_render
         plugin.web.space.state
@@ -1947,6 +2189,7 @@ return [ qw[
         plugin.web.space.fetch
         plugin.web.jobs.events
         plan-9.client.list-dir
+        park.handler.add-reply
         pager.source.file-list
         pager.decode.direction
         pager.command-dispatch
@@ -1958,14 +2201,27 @@ return [ qw[
         nshell.history.page_up
         nodes.parser.node_pkey
         nodes.orbital.addr_b32
+        network.status.backend
+        network.lease.announce
+        network.dns_policy.get
+        network.cmd.interfaces
+        network.cmd.dns-policy
+        netinfo.role_overrides
+        netinfo.local_networks
         ncode.util.scope_match
         nameserv.zone.checksum
         nameserv.sync.peer.arm
         nameserv.handler.query
+        nameserv.enc.recovered
+        nameserv.enc.normalize
+        nameserv.enc.dot_frame
         nameserv.dns_tcp.close
+        nameserv.cmd.upstreams
         nameserv.cmd.sync-pull
         nameserv.cmd.sign-zone
         nameserv.cmd.show-zone
+        nameserv.cmd.dns-probe
+        nameserv.cache.targets
         nameserv.cache.forward
         mpv.snapshot.send_quit
         mpv.snapshot.cmd_reply
@@ -2006,6 +2262,9 @@ return [ qw[
         letsencr.base.pre_init
         kimi.watcher.ws_status
         kimi.task.queue_status
+        kimi.acp.session_store
+        kimi.acp.session_paths
+        kimi.acp.agent_request
         kimi-web.process_queue
         keystore.trash.restore
         keystore.trash.entries
@@ -2061,9 +2320,14 @@ return [ qw[
         form.chrome.set_status
         filter.cmd.mount_chain
         ffmpeg.cmd.frame_count
+        events.plugin.registry
         events.parser.next_run
         events.cmd.show-active
+        events.cmd.bucket-show
         events.calc_unix_table
+        events.bucket.gate.arm
+        events.bucket.evaluate
+        events.access.route_ok
         devmod.cmd.switch-user
         decoder.cmd.show-vterm
         debian.start.apt_child
@@ -2087,10 +2351,17 @@ return [ qw[
         coding.test.tool_write
         coding.task.queue_next
         coding.task.queue_fail
+        coding.sign_queue.tick
+        coding.sign_queue.stop
+        coding.sign_queue.head
         coding.scratchpad.scan
         coding.prompt.assemble
         coding.mode.task_model
         coding.last-compaction
+        coding.keepalive.watch
+        coding.keepalive.start
+        coding.keepalive.delay
+        coding.handover.render
         coding.handler.http_io
         coding.cmd.task-append
         coding.cmd.staged-diff
@@ -2098,14 +2369,20 @@ return [ qw[
         coding.cmd.show-backup
         coding.cmd.round-regen
         coding.cmd.resume-task
+        coding.cmd.remind-wake
+        coding.cmd.remind-fire
+        coding.cmd.remind-drop
         coding.cmd.lock-status
         coding.cmd.idiom-check
+        coding.cmd.commit-plan
         coding.cmd.clear-cache
         coding.async.fail_task
         coding.analyze.process
         coding.abort.task_bind
         clients.https.pre_init
         clients.http.init_code
+        claude.stream.describe
+        claude.session.running
         channels.mapping.apply
         channels.cmd.subscribe
         channels.cmd.strm-test
@@ -2226,6 +2503,7 @@ return [ qw[
         v7-zenki.devmod.request
         users.record.ensure_dir
         users.cmd.field-options
+        usage.leak_check.report
         universal.cmd.slow_down
         udev.handler.adm_stdout
         tree.sort.trunk.project
@@ -2242,11 +2520,15 @@ return [ qw[
         tile.cmd.get-tile-color
         ticker.handler.fade_out
         ticker.cmd.swap_profile
+        ticker.cmd.status-clear
         ticker.cmd.place_window
         ticker.cmd.next-monitor
         thermal.window.in_range
         thermal.override.active
         task.cmd.summarize-done
+        system.watch.unless.get
+        system.watch.check.proc
+        system.watch.check.file
         system.process.autokill
         system.cmd.pid_autokill
         system.cmd.abort-reboot
@@ -2269,6 +2551,8 @@ return [ qw[
         signal.cancel.init_code
         set-up.json.import_file
         sessions.holder.op.sign
+        session_move.write_text
+        session_move.lease.read
         select.region.init_code
         select.region.damp.tick
         screen.setup.dpi.revert
@@ -2286,7 +2570,10 @@ return [ qw[
         proxy.handler.post_auth
         proxy.client.send_error
         protocol.sftp.init_code
+        powershell.wsl-host-net
+        powershell.pulse-status
         powershell.cmd.mem-used
+        power.handler.wake_next
         power.cmd.remove_device
         povray.template.resolve
         plugin.usage.kimi.fetch
@@ -2295,6 +2582,7 @@ return [ qw[
         pdf.html.base.valid_pdf
         pdf.html.base.init_code
         pcycle.handler.shutdown
+        park.handler.show-reply
         pager.filter.preference
         p7-log.cmd.resolve-line
         osf-cache.peers.deliver
@@ -2305,6 +2593,10 @@ return [ qw[
         nshell.history.arrow_up
         nodes.orbital.init_code
         nodes.cmd.orbital-p7ref
+        network.wlan.scan_parse
+        network.dns_policy.save
+        network.dns_policy.load
+        network.cmd.wlan-status
         ncode.start.chmod_child
         ncode.cmd.parse-headers
         nameserv.zone.timestamp
@@ -2314,15 +2606,19 @@ return [ qw[
         nameserv.start_listener
         nameserv.name.normalize
         nameserv.entry.identity
+        nameserv.enc.handler.io
+        nameserv.dns_probe.done
         nameserv.cmd.set-record
         nameserv.cmd.remove-txt
         nameserv.cmd.list-zones
         nameserv.cmd.get-record
         nameserv.cmd.add-record
+        nameserv.cache.own_name
         nameserv.cache.complete
         mpv.startup.open_player
         mpv.set-up.import_rules
         mpv.set-up.export_rules
+        mpv.pulse.select_server
         mpv.open_control_socket
         mpv.handler.pipe_output
         mpv.handler.event.pause
@@ -2349,6 +2645,8 @@ return [ qw[
         letsencr.base.init_code
         kimi.task.queue_enqueue
         kimi.handler.ws_message
+        kimi.handler.acp_stdout
+        kimi.handler.acp_stderr
         keys.root_registry_note
         keys.list_incoming_keys
         keys.console.undistrust
@@ -2396,6 +2694,8 @@ return [ qw[
         ffmpeg.frame_count_slow
         fetch-files.cmd.hf-list
         events.cmd.show-enabled
+        events.cmd.bucket-clear
+        events.bucket.gate.wake
         devmod.cmd.deparse-code
         decoder.zenka.init_code
         decoder.cmd.stream-list
@@ -2432,19 +2732,27 @@ return [ qw[
         coding.task.queue_stats
         coding.task.queue_clear
         coding.task.failed.list
+        coding.sign_queue.store
+        coding.sign_queue.prune
+        coding.sessions.resolve
         coding.lora_train_spawn
+        coding.keepalive.decide
+        coding.handover.sources
+        coding.handover.refresh
         coding.cmd.vision-model
         coding.cmd.switch-model
         coding.cmd.staged-clear
         coding.cmd.rewind-round
         coding.cmd.list-backups
         coding.cmd.context-size
+        coding.cmd.commit-plans
         coding.cmd.apply-staged
         coding.async.stream_tps
         coding.async.lock_token
         coding.analyze.classify
         clients.https.init_code
         clients.http.handler.io
+        claude.cmd.session-post
         chk-sum.skein.init_code
         branch.route.key.verify
         branch.route.calc.shape
@@ -2562,6 +2870,7 @@ return [ qw[
         v7-zenki.autostart_zenki
         users.group.cube_records
         users.cmd.create-default
+        usage.handler.watch_tick
         universal.cmd.dump_state
         ui.caller.security-level
         udev.set-up.import_rules
@@ -2578,8 +2887,12 @@ return [ qw[
         ticker.content_substring
         ticker.cmd.reread_config
         ticker.cmd.list_monitors
+        system.watch.unless.pass
+        system.watch.send_outbox
+        system.watch.cmd.watches
         system.process.post_init
         system.process.init_code
+        system.disk.handler.poll
         system.cleanup.init_code
         storage.cmd.plan9-resize
         storage.cmd.plan9-rename
@@ -2605,15 +2918,19 @@ return [ qw[
         reasoning.branch.resolve
         proxy.handler.connection
         protocol.https.init_code
+        power.wake.schedule_next
         power.plugin.wol.outlets
         power.plugin.gembird.set
         power.plugin.gembird.get
+        power.handler.wake_reply
         power.cmd.get_device_ids
+        power.cmd.add-wol-device
         power-x11.cmd.set_states
         plugin.storage.inference
         plugin.auth.auth-keypair
         plan-9.client.disconnect
         pdf.html.child.init_code
+        park.handler.clear-reply
         pager.encode.division-13
         pager.editor.integration
         pager.decode.division-13
@@ -2628,6 +2945,8 @@ return [ qw[
         notify-warn.send_message
         notify-info.send_message
         nodes.cmd.add-group-user
+        network.interfaces.roles
+        network.cmd.wlan-connect
         ncode.cmd.pattern-review
         nameserv.sync.writer.own
         nameserv.sync.key.ensure
@@ -2635,6 +2954,10 @@ return [ qw[
         nameserv.sync.conn.write
         nameserv.sync.conn.flush
         nameserv.sync.conn.close
+        nameserv.enc.dot_unframe
+        nameserv.enc.doh_request
+        nameserv.dns_probe.start
+        nameserv.dns_probe.query
         nameserv.consistency.run
         nameserv.cmd.remove-zone
         nameserv.cmd.ensure-zone
@@ -2737,6 +3060,14 @@ return [ qw[
         ffmpeg.cmd.rescale_video
         external.cmd.revoke-link
         events.cmd.trigger_event
+        events.cmd.signals-since
+        events.cmd.bucket-remove
+        events.bucket.parse_args
+        events.bucket.gate.parse
+        events.bucket.gate.holds
+        events.bucket.gate.close
+        events.bucket.gate.check
+        events.action.tile_apply
         event.anyevent.init_code
         editor.control.menu.open
         editor.control.get_value
@@ -2779,7 +3110,9 @@ return [ qw[
         coding.task.queue_status
         coding.task.analyze_full
         coding.start.chmod_child
+        coding.sign_queue.detach
         coding.self_test.archive
+        coding.keepalive.pending
         coding.init_dependencies
         coding.image.select_refs
         coding.idiom.repair.auto
@@ -2787,11 +3120,14 @@ return [ qw[
         coding.helper.task_chain
         coding.helper.dry_last_n
         coding.gpu_lease.request
+        coding.cmd.session-touch
         coding.cmd.restart-round
         coding.cmd.clear-applied
         coding.buffer.task_write
         coding.async.http_client
         clients.https.handler.io
+        claude.handler.stop_kill
+        claude.cmd.session-lease
         channels.cmd.unsubscribe
         branch.route.key.request
         branch.route.calc.encode
@@ -2893,6 +3229,7 @@ return [ qw[
         v7-zenki.delegation.retry
         v7-zenki.delegation.issue
         v7-zenki.check_zenka_deps
+        usage.leak_check.end_code
         universal.stop_start-anim
         ui.render.tree.invalidate
         tree.sort.trunk.remainder
@@ -2905,6 +3242,8 @@ return [ qw[
         ticker.font.offsets_table
         ticker.cmd.select_monitor
         ticker.cmd.read-file-cont
+        system.disk.cmd.disk-done
+        stream_child.handler.reap
         storchencam.screen-change
         storage.map-dirs.tree.del
         storage.map-dirs.tree.add
@@ -2918,6 +3257,7 @@ return [ qw[
         site-yaml.cmd.queue-depth
         site-yaml.cmd.outbox-list
         set-up.cmd.create-profile
+        session_move.lease.update
         select.region.open_window
         screen.setup.layout-model
         screen.setup.handler.draw
@@ -2942,11 +3282,14 @@ return [ qw[
         plugin.web.auth.init_code
         plugin.web.auth.admit.cfg
         plugin.web.attention.json
+        plugin.usage.kimi.secrets
         plugin.usage.claude.fetch
         plan-9.server.handle_walk
         plan-9.server.client.data
         plan-9.server.buffer-stat
         pdf.html.parent.init_code
+        park.handler.repark-reply
+        park.handler.remove-reply
         pager.view.true-int-color
         osf-cache.merkle.leaf_add
         osf-cache.lookup.complete
@@ -2955,10 +3298,20 @@ return [ qw[
         nshell.history.arrow_down
         nshell.handler.strm_reply
         notify-loves.send_message
+        network.wlan.vault_secret
+        network.wlan.start_helper
+        network.lease.dns_handoff
+        network.dns_policy.expire
+        network.cmd.dns-behaviour
         nameserv.zone.trash.stash
+        nameserv.upstream_entries
+        nameserv.upstream_address
         nameserv.sync.peers.start
         nameserv.sync.peer.wakeup
         nameserv.sync.apply.entry
+        nameserv.enc.note_failure
+        nameserv.enc.doh_response
+        nameserv.dns_probe.finish
         nameserv.cmd.restore-zone
         nameserv.cmd.reload-zones
         nameserv.cmd.publish-node
@@ -3052,6 +3405,7 @@ return [ qw[
         fetch-files.cmd.hf-status
         fetch-files.cmd.hf-search
         fetch-files.cmd.hf-remove
+        events.plugin.check_setup
         editor.control.menu.close
         editor.control.load_field
         editor.control.get_cursor
@@ -3085,6 +3439,8 @@ return [ qw[
         coding.task.enqueue_round
         coding.task.classify_type
         coding.task.check_history
+        coding.sign_queue.read_rc
+        coding.sign_queue.enqueue
         coding.self_test.evaluate
         coding.round_chain.rewind
         coding.round_chain.append
@@ -3098,6 +3454,7 @@ return [ qw[
         coding.cmd.round-progress
         coding.cmd.match-template
         coding.cmd.inject-message
+        coding.cmd.handover-event
         coding.cmd.clear-registry
         coding.async.send_request
         coding.async.http_cleanup
@@ -3105,6 +3462,9 @@ return [ qw[
         coding.abort.check_stream
         clients.https.stall_reset
         clients.https.decode_body
+        claude.session.transcript
+        claude.cmd.session-import
+        claude.cmd.session-export
         channels.util.yaml_encode
         channels.util.yaml_decode
         channels.test-oscillation
@@ -3123,6 +3483,7 @@ return [ qw[
         base.log.auto_decay_check
         base.load_runtime_modules
         base.is_defined_recursive
+        base.interval.rhythm.disk
         base.handler.whoami_reply
         base.handler.link-upgrade
         base.handler.inotify_poll
@@ -3199,6 +3560,8 @@ return [ qw[
         user-edit.source.value_set
         user-edit.source.value_get
         user-edit.source.value_all
+        usage.handler.window_reset
+        usage.cmd.token-leak-check
         universal.reroute_commands
         universal.handler.sig_chld
         universal.cmd.get_geometry
@@ -3209,9 +3572,13 @@ return [ qw[
         ticker.set-up.import_rules
         ticker.handler.place_reply
         ticker.cmd.current_content
+        system.watch.unless.finish
+        system.watch.cmd.watch-add
         system.memory.cmd.mem-used
         system.cmd.reenable-reboot
         system.cleanup.check_tasks
+        stream_child.handler.timer
+        stream_child.handler.stdin
         storchencam.util.mask_scan
         storchencam.util.loop_wait
         storchencam.cmd.reposition
@@ -3235,6 +3602,7 @@ return [ qw[
         proxy.handler.cred_rotated
         protocol.sftp.read_ssh_env
         powershell.cmd.usbipd-list
+        powershell.cmd.pulse-start
         power-x11.handler.show_all
         povray.cmd.render-icon-set
         plugin.web.space.init_code
@@ -3265,6 +3633,11 @@ return [ qw[
         nshell.handler.term_resize
         nshell.handler.debug_input
         nodes.cmd.orbital-position
+        network.status.dns_servers
+        network.interfaces.collect
+        network.dns_probe.schedule
+        network.dns_policy.handoff
+        network.cmd.dns-policy-set
         ncode.chmod_child.readline
         nameserv.sync.peer.release
         nameserv.sync.handler.read
@@ -3272,7 +3645,10 @@ return [ qw[
         nameserv.sync.entry.encode
         nameserv.sync.entry.decode
         nameserv.sync.client.start
+        nameserv.dns_probe.address
         nameserv.consistency.query
+        nameserv.cmd.set-upstreams
+        nameserv.cmd.set-behaviour
         nameserv.cmd.remove-record
         nameserv.cache.forward.try
         mpv.snapshot.apply_pending
@@ -3310,6 +3686,7 @@ return [ qw[
         letsencr.child.acme.finish
         kimi.wire.question_respond
         kimi.wire.approval_respond
+        kimi.cmd.acp-session-lease
         kimi-web.cmd.list-sessions
         keystore.trash.offer_purge
         keys.console.split-keypair
@@ -3358,7 +3735,11 @@ return [ qw[
         form.multiline_field_names
         form.build_user_keys_field
         ext-pkg.cmd.package-ensure
+        events.signal.journal_read
         events.set-up.import_rules
+        events.bucket.unless.parse
+        events.bucket.unless.check
+        events.bucket.action_route
         editor.control.prompt.open
         editor.control.process_key
         editor.control.list.scroll
@@ -3391,6 +3772,9 @@ return [ qw[
         content.cmd.get_list_types
         content.callback.load_file
         coding.task.queue_complete
+        coding.sign_queue.read_out
+        coding.sign_queue.kill_run
+        coding.sign_queue.describe
         coding.self_test.follow_up
         coding.prompt.model_select
         coding.parser.query_prefix
@@ -3408,6 +3792,7 @@ return [ qw[
         coding.cmd.resume-analysis
         coding.cmd.oneline-summary
         coding.cmd.last-compaction
+        coding.cmd.keepalive-reset
         coding.cmd.gpu-lease-yield
         coding.cmd.abort-inference
         coding.catalog.track_write
@@ -3422,6 +3807,7 @@ return [ qw[
         coding.async.complete_task
         coding.async.chunk_handler
         clients.https.stream.chunk
+        claude.session.project_dir
         channels.memory-sync.fetch
         branch.space.trit.polarity
         branch.space.symmetry.list
@@ -3537,7 +3923,11 @@ return [ qw[
         task.cmd.summary-tree-query
         system.process.cmd.cpu-load
         system.handler.X-11_stopped
+        system.disk.cmd.disk-update
+        system.disk.cmd.disk-status
         system.admin_reboot_warning
+        stream_child.handler.stdout
+        stream_child.handler.stderr
         storchencam.cmd.enable_time
         storchencam.cmd.enable_temp
         storage.visual.util.extract
@@ -3552,6 +3942,7 @@ return [ qw[
         site-yaml.import.fetch_page
         site-yaml.async_fetch.reply
         set-up.handler.export_reply
+        session_move.lease.describe
         screen.setup.handler.motion
         screen.setup.ensure-display
         screen.setup.cmd.dpi-revert
@@ -3563,7 +3954,9 @@ return [ qw[
         reasoning.branch.checkpoint
         proxy.selector.zenka_assert
         powershell.notify_from_args
+        powershell.cmd.pulse-status
         powershell.cmd.mem-top-proc
+        power.cmd.remove-wol-device
         povray.cmd.template-resolve
         plugin.web.space.index.scan
         plugin.web.space.index.load
@@ -3577,7 +3970,10 @@ return [ qw[
         plugin.web.auth.admit.check
         plugin.web.attention.states
         plugin.usage.kimi.init_code
+        plugin.usage.claude.secrets
         plugin.storage.p7ref.search
+        plugin.events.source.signal
+        plugin.events.action.notify
         plan-9.server.realpath-read
         plan-9.server.handle_attach
         plan-9.server.export_buffer
@@ -3601,6 +3997,8 @@ return [ qw[
         nshell.handler.flash_expire
         nshell.handler.ctrl_o_cycle
         nshell.execute_cube_command
+        network.lease.reverse_zones
+        network.cmd.wlan-disconnect
         net.read_linewise_estimated
         nameserv.zone.tombstone.add
         nameserv.sync.writer.verify
@@ -3610,7 +4008,9 @@ return [ qw[
         nameserv.consistency.finish
         nameserv.cmd.discover-nodes
         nameserv.cache.forward.next
+        nameserv.cache.domain_route
         mpv.startup.job.fork_player
+        mpv.pulse.host_wait_expired
         mpv.handler.window_id_reply
         mpv.callback.reenc_finished
         models.trash.save_protected
@@ -3639,6 +4039,9 @@ return [ qw[
         letsencr.child.acme.cleanup
         kimi.event.on_task_complete
         kimi.connect.schedule_retry
+        kimi.cmd.acp-session-import
+        kimi.cmd.acp-session-export
+        kimi.acp.session_transcript
         kimi-web.is_auto_approvable
         kimi-web.cmd.resume-session
         keys.write_key_archive_file
@@ -3690,6 +4093,10 @@ return [ qw[
         fetch-files.cmd.hf-download
         external.cmd.orbital-status
         external.cmd.authorize-link
+        events.signal.journal_write
+        events.bucket.handler.start
+        events.bucket.gate.describe
+        events.action.overlay_apply
         editor.input.parse_key_spec
         editor.control.list.summary
         editor.buffer.memory.length
@@ -3733,16 +4140,20 @@ return [ qw[
         content.set-up.export_rules
         coding.thermal.boost_active
         coding.task.estimate_tokens
+        coding.sign_queue.step_plan
+        coding.sign_queue.file_sums
         coding.self_test.multiplier
         coding.round_chain.restream
         coding.parser.str.is_vision
         coding.parse.xml_tool_calls
+        coding.keepalive.reset_post
         coding.intake.validate_task
         coding.idiom.repair.request
         coding.helper.task_priority
         coding.helper.refund_tokens
         coding.helper.budget_status
         coding.handler.thermal_tick
+        coding.handler.remind_reply
         coding.handler.http_timeout
         coding.cmd.tree-query-reply
         coding.cmd.inference-status
@@ -3751,6 +4162,7 @@ return [ qw[
         clients.https.stream.finish
         clients.https.h2.handler.io
         clients.http.parse_response
+        claude.cmd.session-register
         channels.cmd.strm-size-test
         channels.cmd.channels-since
         branch.space.util.ref_count
@@ -3875,6 +4287,7 @@ return [ qw[
         task.handler.summarize-reply
         task.handler.gpu_temp_update
         task.cmd.summary-tree-notify
+        system.watch.check.threshold
         system.cmd.report-X-11-error
         system.cmd.reload_gfx_module
         storchencam.cmd.disable_time
@@ -3902,7 +4315,10 @@ return [ qw[
         reasoning.branch.stuck_score
         protocol.protocol-7.pre_init
         protocol.amos_term.init_code
+        protocol-7-menu.pending-save
+        protocol-7-menu.pending-load
         protocol-7-menu.dialog-types
+        powershell.host-tools.ensure
         powershell.cmd.usbipd-detach
         powershell.cmd.usbipd-attach
         powershell.cmd.get-event-log
@@ -3945,6 +4361,7 @@ return [ qw[
         os-pkg.handler.install_reply
         nshell.handler.command_reply
         nshell.editor.default_schema
+        network.status.default_route
         ncode.util.file_to_namespace
         ncode.transform.format_reply
         nameserv.sync.peer.sync_done
@@ -3954,6 +4371,7 @@ return [ qw[
         nameserv.sync.client.timeout
         nameserv.sync.client.process
         nameserv.reply.echo_question
+        nameserv.enc.handler.timeout
         mpv.startup.resolve_x11_info
         mpv.startup.request_geometry
         mpv.handler.reposition_reply
@@ -4072,6 +4490,8 @@ return [ qw[
         context.conversation.history
         content.cmd.entries_withheld
         coding.tools.definitions.git
+        coding.sign_queue.step_entry
+        coding.sign_queue.read_state
         coding.self_test.tier2_judge
         coding.self_test.async_probe
         coding.self_test.apply_tier2
@@ -4081,9 +4501,11 @@ return [ qw[
         coding.image.mime_from_magic
         coding.image.load_for_vision
         coding.image.expand_messages
+        coding.handler.remind_target
         coding.cmd.summarize-context
         coding.cmd.subscribe-session
         coding.cmd.safe-context-size
+        coding.cmd.keepalive-pending
         coding.cmd.gpu-lease-granted
         coding.cmd.complete-analysis
         coding.catalog.corpus.record
@@ -4193,8 +4615,10 @@ return [ qw[
         terminal.curses_ui.app.models
         task.handler.gpu_power_update
         task.handler.cold-queue-sweep
+        system.watch.cmd.watch-remove
         system.handler.X-11_restarted
         system.handler.X-11_pid_reply
+        system.disk.cmd.disk-register
         system.callback.xcrash_reboot
         storage.visual.util.proximity
         ssh.handler.heartbeat_timeout
@@ -4225,6 +4649,7 @@ return [ qw[
         protocol-7-menu.screen-change
         protocol-7-menu.position.save
         protocol-7-menu.position.load
+        protocol-7-menu.pending-lines
         powershell.cmd.pointer-stream
         powershell.cmd.notify-recover
         povray.handler.render_timeout
@@ -4291,6 +4716,7 @@ return [ qw[
         letsencr.child.validate_chain
         letsencr.child.send_to_parent
         kimi.handler.approval_request
+        kimi.handler.acp_signal_reply
         kimi-web.handler.stream_event
         kimi-web.handler.batch_result
         kimi-web.cmd.resolve_template
@@ -4380,6 +4806,7 @@ return [ qw[
         coding.tools.handler.checksum
         coding.tools.definitions.tree
         coding.spawn_inference_server
+        coding.sign_queue.check_paths
         coding.routing.select_backend
         coding.routing.decide_service
         coding.parser.model_selection
@@ -4391,13 +4818,17 @@ return [ qw[
         coding.helper.log_transaction
         coding.helper.category_mapper
         coding.handler.restart_server
+        coding.handler.keepalive_sent
+        coding.handler.handover_reply
         coding.handler.deferred_reply
+        coding.handler.decision_reply
         coding.event.on_task_complete
         coding.callback.retry_request
         coding.callback.http_complete
         coding.async.tool_args_decode
         clients.https.handler.timeout
         clients.https.h2.send_request
+        claude.cmd.session-unregister
         channels.subscription.mapping
         channels.subscription.manager
         channels.cmd.ai-review-submit
@@ -4533,8 +4964,10 @@ return [ qw[
         protocol.amos-chksum.init_code
         protocol-7-menu.load-menu-tree
         protocol-7-menu.graphical-init
+        protocol-7-menu.decision.raise
         protocol-7-menu.cmd.input-text
         powershell.pointer-stream-path
+        powershell.host-tools.save-pin
         powershell.handler.attach_poll
         powershell.cmd.notify-loves-it
         plugin.web.space.orbital.fetch
@@ -4556,6 +4989,10 @@ return [ qw[
         plugin.storage.inference.store
         plugin.storage.checksum.verify
         plugin.storage.checksum.lookup
+        plugin.events.source.timetable
+        plugin.events.action.tile-show
+        plugin.events.action.tile-hide
+        plugin.events.action.kimi-send
         plan-9.server.handle-io-remove
         plan-9.server.handle-io-create
         plan-9.server.export_directory
@@ -4584,7 +5021,9 @@ return [ qw[
         nameserv.consistency.soa-check
         nameserv.consistency.host-name
         nameserv.cmd.apply-zone-source
+        nameserv.cache.route_upstreams
         nameserv.cache.handler.timeout
+        mpv.pulse.handler.host_started
         mpv.pulse.disable_idle_suspend
         mpv.handler.scan_encoded_timer
         mpv.handler.reenc_notify_reply
@@ -4679,6 +5118,7 @@ return [ qw[
         form.submit_note_secret_result
         form.handler.secret_hold_reply
         forensics.event.rule-synthesis
+        events.handler.notify_sessions
         events.handler.event_triggered
         events.cmd.get_playlist_hidden
         events.callback.object.weekday
@@ -4840,6 +5280,7 @@ return [ qw[
         proxy.handler.passthrough_reply
         proxy.handler.auth_lookup_reply
         protocol-7-menu.cmd.menu-update
+        powershell.host-tools.load-pins
         plugin.web.space.grid.init_code
         plugin.web.jobs.events.trailing
         plugin.web.auth.ui_session.info
@@ -4866,9 +5307,12 @@ return [ qw[
         nshell.hook.unknown_reply_route
         nodes.send_host_details_request
         nodes.cmd.orbital-grid-fragment
+        network.interfaces.ip_addr_text
+        network.dns_probe.handler.timer
         nameserv.sync.peer.handler.read
         nameserv.sync.grants.zone_match
         nameserv.dns_tcp.handler.accept
+        nameserv.cmd.set-held-upstreams
         mpv.handler.rescale_video_reply
         models.test.api_limit_detection
         models.registry.list_by_context
@@ -4993,6 +5437,7 @@ return [ qw[
         coding.handler.system_mem_reply
         coding.handler.spawn_path_reply
         coding.handler.scratchpad_sweep
+        coding.handler.remind_delivered
         coding.handler.model_path_reply
         coding.handler.lora_train_watch
         coding.handler.gpu_stats_update
@@ -5103,6 +5548,7 @@ return [ qw[
         plugin.usage.kimi.refresh_finish
         plugin.usage.claude.refresh_reap
         plugin.storage.checksum.map-file
+        plugin.events.action.claude-send
         plan-9.protocol.codec.encode-qid
         plan-9.protocol.codec.decode-qid
         pdf.html.parent.cmd.check_format
@@ -5116,11 +5562,13 @@ return [ qw[
         openbox.callback.already_running
         nshell.no-tty-debug.cmd.char-add
         nshell.declare_strm_size_support
+        network.interfaces.ip_addr_parse
         nameserv.sync.client.apply_reply
         nameserv.dns_tcp.handler.timeout
         nameserv.consistency.zone-serial
         nameserv.consistency.evaluate-dn
         nameserv.cmd.last-data-timestamp
+        nameserv.cmd.encrypted-upstreams
         mpv.startup.handler.socket_ready
         mpv.startup.handler.coords_reply
         mpv.handler.snapshot_collect_pos
@@ -5171,6 +5619,9 @@ return [ qw[
         graphics-matrix.address.register
         form.handler.field_options_reply
         fetch.file.huggingface.lan-check
+        events.bucket.gate.handler.retry
+        events.bucket.gate.handler.reply
+        events.bucket.gate.handler.guard
         editor.control.multiline.summary
         editor.control.menu.selected_key
         editor.control.get_display_value
@@ -5231,6 +5682,7 @@ return [ qw[
         coding.handler.refresh_mem_stats
         coding.handler.lora_train_stdout
         coding.handler.lora_train_stderr
+        coding.handler.keepalive_pending
         coding.gpu_lease.cancel_activity
         channels.cmd.next-data-timestamp
         channels.cmd.last-data-timestamp
@@ -5304,6 +5756,7 @@ return [ qw[
         tile.handler.get-tile-color_reply
         tile.handler.check_playlist_reply
         tile.gpu_alerts.enable_auto_speed
+        system.watch.handler.signal_reply
         system.process.callback.send_kill
         start-anim.callback.report_online
         sourcecode.console.affected-zenki
@@ -5336,6 +5789,9 @@ return [ qw[
         plugin.usage.claude.refresh_retry
         plugin.storage.checksum.init_code
         plugin.host-edit.actions.tab_info
+        plugin.events.action.send-command
+        plugin.events.action.overlay-show
+        plugin.events.action.overlay-hide
         plugin.auth.zenka.no-keys-defined
         plan-9.protocol.codec.encode-stat
         plan-9.protocol.codec.decode-stat
@@ -5347,7 +5803,9 @@ return [ qw[
         osf-cache.holdings.scan_apt_cache
         nodes.orbital.format_strm_payload
         nameserv.sync.client.handler.read
+        nameserv.dns_probe.handler.answer
         nameserv.consistency.reverse-name
+        nameserv.cmd.set-domain-upstreams
         mpv.initialize.observe_properties
         mpv.handler.event.property-change
         models.storage.discover_directory
@@ -5544,9 +6002,12 @@ return [ qw[
         plugin.user-edit.example.init_code
         plugin.usage.kimi.refresh_watchdog
         plugin.usage.kimi.handler.response
+        plugin.usage.kimi.credential_files
         plugin.usage.claude.refresh_finish
         plugin.storage.inference.init_code
         plugin.host-edit.actions.init_code
+        plugin.events.action.zenka-present
+        plugin.events.action.task-continue
         plugin.auth.auth-keypair.init_code
         plan-9.server.buffer-read-root-dir
         plan-9.server.buffer-read-metadata
@@ -5562,6 +6023,7 @@ return [ qw[
         ncode.transform.handler.wave_reply
         nameserv.sync.peer.handler.timeout
         nameserv.sync.peer.handler.connect
+        nameserv.dns_probe.handler.timeout
         mpv.startup.handler.socket_timeout
         mpv.handler.snapshot_collect_error
         models.registry.populate_from_yaml
@@ -5612,6 +6074,8 @@ return [ qw[
         form.console.test-secret-roundtrip
         fetch.file.huggingface.resume_idle
         external.handler.reset_retry_delay
+        events.bucket.unless.handler.reply
+        events.bucket.unless.handler.guard
         editor.ui.ascii_frame.render_field
         editor.control.cycler.window_width
         discover.handler.anounce_host_addr
@@ -5885,6 +6349,7 @@ return [ qw[
         plugin.user-edit.example.handler.key
         plugin.usage.claude.refresh_watchdog
         plugin.usage.claude.handler.response
+        plugin.usage.claude.credential_files
         plugin.storage.visual.proximity-calc
         plugin.storage.visual.extract-floats
         plugin.nshell.coding-session.on_redo
@@ -5901,6 +6366,7 @@ return [ qw[
         nodes.handler.discover_details_reply
         nameserv.sync.client.handler.connect
         nameserv.consistency.handler.timeout
+        nameserv.cmd.set-encrypted-upstreams
         mpv.startup.handler.placement_online
         models.storage.adapter.invoke.repair
         models.storage.adapter.invoke.import
@@ -6150,6 +6616,7 @@ return [ qw[
         plugin.nshell.coding-session.on_submit
         plugin.nshell.coding-session.on_escape
         plugin.nshell.coding-session.on_ctrl_c
+        plugin.events.source.bucket-dependency
         pager.util.buffer.estimate_total_pages
         ncode.regex.expand.util.find_duplicate
         mpv.handler.event.property-change.path
@@ -6303,6 +6770,8 @@ return [ qw[
         plugin.storage.checksum.cluster.traverse
         plugin.storage.checksum.cache-invalidate
         plugin.httpd.radio.handler.radio_offline
+        plugin.events.action.playlist-show-entry
+        plugin.events.action.playlist-hide-entry
         mpv.handler.event.property-change.volume
         mpv.handler.event.property-change.height
         models.storage.adapter.lmstudio.discover
@@ -6354,6 +6823,7 @@ return [ qw[
         proxy.handler.subscribe_rotation_deferred
         protocol.protocol-7.auth.select-size-mode
         protocol-7-menu.cmd.pending-question-open
+        protocol-7-menu.cmd.pending-question-list
         plugin.user-edit.address-cluster.tab_info
         plugin.storage.checksum.cluster.init-code
         plugin.httpd.radio.handler.stream_request
@@ -6496,9 +6966,11 @@ return [ qw[
         X-11.callback.object.xvfb_resource_available
         web-browser.util.disconnect_swap_views_signal
         transport.handler.subscribe_rotation_deferred
+        protocol-7-menu.handler.decision_signal_reply
         plugin.web.space.orbital.synthetic-zenka-node
         plugin.web.space.orbital.schedule_nodes_retry
         plugin.user-edit.address-cluster.write_buffer
+        plugin.events.action.playlist-exclusive-entry
         letsencr.parent.install_certificate_to_httpsd
         letsencr.parent.determine_certificate_domains
         image2html.parent.handler.convert_image_reply
@@ -6621,8 +7093,8 @@ return [ qw[
     ]
 ];
 
-#,,..,...,.,,,..,,.,,,..,,,..,,.,,,.,,.,.,.,.,.,.,...,...,,..,,.,,..,,,.,,.,.,
-#DVAZIQZPMAMYOIWTWWCYNCEJ3PDMUX5GO3YRVUZHGAOZ7RG4JZ7AWVZ7LSAEL4U7IEQBVANBHNQT6
-#\\\|PIOCC26MECJPP66ZLI4V3KT6UWYAQFAXCLQY2NXC5EVAIRAVI35 \ / AMOS7 \ YOURUM ::
-#\[7]PDCIYJBWLA27QEYKOSGIVBRV5ZPFFJIVWEOSIZU4H33OM7YX4WCI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,..,,,,,,,,.,,,.,.,,,.,.,,..,.,,,.,.,...,...,...,,.,,,,,,,.,,,,.,
+#RNWVJ4TNT3723YHPUIORONE25XZ6XH3JAFZ62QLZIBCLTPFB4VL2EGPIL4TRXDRE342GOGYUAH4R2
+#\\\|QXZ5AL476LSXVE4K26HCA4HBGK4R6JJYDBKOPAGOOXLK3SOHCTH \ / AMOS7 \ YOURUM ::
+#\[7]6ECWBIQKE3LGDFUGUSQKTISQU2ZNXFIMUAUJ4XYVHCVP63BNS6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
