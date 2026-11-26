@@ -74,11 +74,21 @@ mpv.hwdec = auto         # [no|auto|nvdec|...]  [ ..more with mpv --hwdec=help ]
 
 mpv.ao = pulse,sdl
 
-## WSLg's native bridge -- no manual pulseaudio.exe needed ##
-[set_env:'PULSE_SERVER','unix:/mnt/wslg/PulseServer']      ##
-## [mpv.pulse.disable_idle_suspend] moved into mpv.init_code -- this runs ##
-## before [init_modules], too early for base.exec.with_timeout's POSIX/   ##
-## IPC::Open3 dependencies [see module descr]                             ##
+## selected before each mpv spawn : wslg first , windows host fallback ##
+## uncomment to pin an explicit server and bypass automatic selection  ##
+# mpv.pulse_server = unix:/mnt/wslg/PulseServer
+
+## wait for the powershell.pulse-start reply [ a first use downloads ] ##
+base.interval.cfg.type.mpv-pulse-host-wait.start      = 21
+base.interval.cfg.type.mpv-pulse-host-wait.factor     = 1.2
+base.interval.cfg.type.mpv-pulse-host-wait.cap        = 34
+base.interval.cfg.type.mpv-pulse-host-wait.cap_jitter = 3
+
+## mpv ipc socket deadline : a cold start took longer than the old 4.2 s ##
+base.interval.cfg.type.mpv-socket-wait.start      = 13
+base.interval.cfg.type.mpv-socket-wait.factor     = 1.2
+base.interval.cfg.type.mpv-socket-wait.cap        = 21
+base.interval.cfg.type.mpv-socket-wait.cap_jitter = 2
 
 mpv.xmode.xnest.vo  = x11
 mpv.xmode.nxagent.vo = sdl
@@ -205,8 +215,8 @@ mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
 
 [zenka.loop]
 
-#,,.,,...,..,,,,.,.,,,...,.,,,,.,,,,.,...,...,..,,...,.,.,.,.,.,.,...,.,.,,,,,
-#YER2Q3PORVSKMO4DYKAS53X5HS5VFXJQ6R7RM7ZRBEXZGETOKKP2N5FHBTKLFLS23UABHTA6OHJEI
-#\\\|5WF2F5YRBB5O4F5QH7MSMYV7GVBQF5J5NPRRXDJK3HNYIER2B7V \ / AMOS7 \ YOURUM ::
-#\[7]QINJETK547GO2LMEYIETXHS5BLDGCLZAUD5O74V53XSEOGNLECCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,,,,.,,..,,...,.,.,,,.,...,.,,,..,,...,...,..,,.,.,...,,..,.,,,
+#YOJOL24EDE5STP4WYNZ3NA4VDL3YBJZWNJVH4MBTIA3RMAN6ETLOHN5KAMBJMNAB2FMNGG4LQLJAQ
+#\\\|XPHR7BU3VJKMFYWI7OT7OPDVCVBWKUJR7IBYKQLRXDESPSZK5L4 \ / AMOS7 \ YOURUM ::
+#\[7]DI2RA6MHCVUHT7V7JYJD7C2IF74XVCNCE3MUD4D2I4375BI3PEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

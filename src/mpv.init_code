@@ -21,12 +21,6 @@ if ( <[base.cfg_bool]>->( <mpv.network.skip_proxy> //= FALSE ) ) {
 
 <mpv.json.parser> = JSON::XS->new->pretty(0);
 
-## WSLg pulse bridge cork/resume fix -- runs here [ not from start's own  ##
-## early [module] calls ] because base.exec.with_timeout needs POSIX's    ##
-## WNOHANG [ base.waitpid ] + IPC::Open3's open3, both only autoloaded by ##
-## base.init_code, which has already run by this point                    ##
-<[mpv.pulse.disable_idle_suspend]>;
-
 <mpv.bin_path> //= <[base.required_bin_path]>->('mpv');
 
 die "[!] mpv binary not found, aborting startup.,"
@@ -130,8 +124,8 @@ if (<mpv.snapshot_interval_seconds>) {
 
 0;
 
-#,,,,,,.,,,,.,..,,,..,,.,,,,.,,..,.,,,.,.,.,.,..,,...,...,.,,,,..,,.,,.,.,,..,
-#FJSSRZSLUKZVW4FAZACVCNOT4LVX3YXQXNH26GHVPHJGVVZWNRRXYQCOLK5BIPA44VEZWYOV7U7IC
-#\\\|A3VF2NRDG3AXUIMW6LR5UCDMYXE47IYXA7ZDMAWYTX6ZQH3ZMM6 \ / AMOS7 \ YOURUM ::
-#\[7]XCH7THWH5NT2XHWQAVQOL45G3WPWL7ABNNR7XJXPWADM7IO7LODY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,..,,,.,,,,.,.,,,.,,,,.,,.,.,.,,,..,,...,...,.,,,.,.,...,..,,.,,,
+#MRVF6ETLOSGQGZM3BBB2QVXG6XV27OPYJDQCTGUVLFKS4V73FIPE7KP7WMNSGP5II6RW3AUIBYHIE
+#\\\|FDKEPXFZXPP6ILNX2CIEQQWNXVIU4QVFPG2NC7VDNGNWLCLPNOA \ / AMOS7 \ YOURUM ::
+#\[7]ZVQHREY677H57ZFMVO55LSCIZ6K2XZNFV4NQOE6X724NQW2UP4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,17 @@
+## [:< ##
+
+# name = mpv.pulse.host_wait_expired
+# descr = powershell.pulse-start gave no reply in time : try the host anyway
+
+delete <mpv.pulse.host_wait_timer>;
+return if not defined <mpv.pulse.pending_host_server>;
+
+## same path as a failed reply : log it , set the server , start mpv ##
+<[mpv.pulse.handler.host_started]>
+    ->( { 'data' => 'no reply from powershell.pulse-start in time' } );
+
+#,,..,,..,,..,,,,,,.,,.,,,.,,,,..,.,,,.,.,..,,..,,...,...,,,.,.,.,,..,,.,,..,,
+#VHPI2Z7CZK6M77Y3BL753ETGPUU34TLZT6IA5237VSC7RC4ODFIQ3WF4C3GHJW3YW4SMPBFMUWQBO
+#\\\|F6C3AGKFPQVI4SBFJBAQWSEFM4EFMQYHHMXMHUJXKNYC7MY3BJA \ / AMOS7 \ YOURUM ::
+#\[7]ZCV4JOQVPR3AP2VNBWEIOAAVINDT4N4LEXPH7WJPVD5HMNN4NQAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

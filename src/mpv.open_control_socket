@@ -21,7 +21,9 @@ if ( not defined $socket_dir or not -d $socket_dir ) {
 }
 
 <mpv.startup.socket_deadline_timer> = <[event.add_timer]>->(
-    {   'after'   => 4.2,
+    {   'after' => <[base.interval.next]>->(
+            { 'type' => qw| mpv-socket-wait |, 'state' => {} }
+        ),
         'handler' => qw| mpv.startup.handler.socket_timeout |
     }
 );
@@ -44,8 +46,8 @@ if ( not defined $socket_dir or not -d $socket_dir ) {
 ## without risking a double dispatch                                       ##
 <[mpv.startup.handler.socket_ready]> if -e $socket_path;
 
-#,,,,,.,,,,.,,...,,..,,.,,.,.,...,,.,,..,,...,..,,...,...,...,.,,,,.,,,..,,,,,
-#3YIF75E6ARYVYO4UJKKDE3H3VWSQHBQCECIJHARBWEMCLQU2TJO6LA6TCQFXRMW533B3BBGQVFUGI
-#\\\|FSWJN2JQNHCY4CMKZRA6VOV374VSILXW43DL2KKQQ6ZTAONRQBF \ / AMOS7 \ YOURUM ::
-#\[7]ZRNHCQPCACOBIQOXORF2QCDZ6YNOWQXAVJB74DKBRBFOOGOBKOAI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,,.,,,,.,,..,.,.,,,.,,,.,,,.,..,,...,...,,.,,...,.,,,,.,,...,
+#ZJKF5VGUIRNHXMEOCPE352XGRXJU4EETGB2H3ZPXS4YRLDQRXOFRNSQNTUKEWOSX7FPE6TDHM5D6M
+#\\\|DTUHHES55SRFVQG2S3L4YEP3HBDIQKT6BHDGHFQMCAK7QSMRAY5 \ / AMOS7 \ YOURUM ::
+#\[7]4KAYSBPQECGTBOORJDTEGUGTVQG5YELXW2Y7PKRPVOQFIY7FXKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

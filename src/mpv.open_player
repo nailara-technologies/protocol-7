@@ -2,6 +2,12 @@
 
 # name = mpv.open_player
 
+if ( not <mpv.pulse.server_selected> ) {
+    <[mpv.pulse.select_server]>;
+    return;
+}
+delete <mpv.pulse.server_selected>;
+
 $SIG{'PIPE'} = sub {
     <[base.log]>->( 0, 'SIGPIPE received, shutting down..,' );
     <[base.exit]>->(qw| 0010 |);
@@ -197,8 +203,8 @@ close( delete <mpv.fh.stdin> );    # input fd not required
 ## 'player startup successful' log + fade_in + observe + get_playlist are
 ## deferred to mpv.startup.handler.socket_ready
 
-#,,..,,,,,...,..,,,.,,...,,,.,...,.,,,,,,,.,,,..,,...,...,,..,,..,.,,,,,,,...,
-#L5RL5C46HNE5FG62JENNQKVOORC5EYGE2KDRCM7IHDCU7XZY6LRG2E45EV4AYEE2MJM3364MROHK4
-#\\\|AKOBZQVDKFWBWHUNIJYB6B7TCFH2KWYYEI3GH4ZNDX7WUI2ZNVM \ / AMOS7 \ YOURUM ::
-#\[7]626E2CYMOELMZP4ENHLDB4HJJZVQ4YEZ6GN5ECAOES3BEMSREWCI 7  DATA SIGNATURE ::
+#,,..,...,.,,,,,.,,.,,.,.,.,.,.,,,.,.,..,,,..,..,,...,...,.,,,...,...,.,,,..,,
+#NRJ6E33POQ4P3NRXJ5LB2MZ5GBNTY5FUKUFXRREAZK65T2GX7URDQXKPLOTIW37PJWUHSHDR5ZYFY
+#\\\|VTAXAIVJJA5NVO2E4MFKEPPQEDZX27WAP7BZCZCN7JDUQJA7U7U \ / AMOS7 \ YOURUM ::
+#\[7]GEVFF42VO4NQG7GOK5EK4V5PAKUQ4ZAIYDH5N7S4565ASANVYYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = mpv.pulse.select_server
+# descr = select pulse server before every mpv process spawn : explicit cfg,
+#          responsive wslg, then the windows host via powershell reply
+
+if ( defined <mpv.pulse_server> and length <mpv.pulse_server> ) {
+    $ENV{'PULSE_SERVER'} = <mpv.pulse_server>;
+    <[base.logs]>->(
+        1, '[mpv.pulse] selected configured server : %s',
+        $ENV{'PULSE_SERVER'}
+    );
+    <[mpv.pulse.disable_idle_suspend]> if $ENV{'PULSE_SERVER'} =~ m|^unix:|;
+    <mpv.pulse.server_selected> = TRUE;
+    return <[mpv.open_player]>;
+}
+
+my $wslg_server = qw| unix:/mnt/wslg/PulseServer |;
+my $wslg_info;
+{
+    local $ENV{'PULSE_SERVER'} = $wslg_server;
+    $wslg_info = <[base.exec.with_timeout]>->( 2, [qw| pactl info |] );
+}
+
+if ( defined $wslg_info and length $wslg_info ) {
+    $ENV{'PULSE_SERVER'} = $wslg_server;
+    <[base.logs]>->(
+        1, '[mpv.pulse] selected responsive wslg server : %s', $wslg_server
+    );
+    <[mpv.pulse.disable_idle_suspend]>;
+    <mpv.pulse.server_selected> = TRUE;
+    return <[mpv.open_player]>;
+}
+
+my $ip_bin    = <[file.which]>->('ip') // qw| /usr/sbin/ip |;
+my $route     = qx|$ip_bin -4 route show default 2>/dev/null|;
+my ($host_ip) = $route =~ m|^default\s+via\s+([\d.]+)|m;
+
+if ( not defined $host_ip and -r qw| /etc/resolv.conf | ) {
+    my $conf_sref = <[file.slurp]>->( qw| /etc/resolv.conf |, qw| :raw | );
+    ($host_ip) = $conf_sref->$* =~ m|^nameserver\s+([\d.]+)|m
+        if defined $conf_sref;
+}
+
+if ( not defined $host_ip ) {
+    <[base.log]>->(
+        0, '[mpv.pulse] wslg unavailable and windows host ip not found'
+    );
+    <mpv.pulse.server_selected> = TRUE;
+    return <[mpv.open_player]>;
+}
+
+<mpv.pulse.pending_host_server> = sprintf qw| tcp:%s:4713 |, $host_ip;
+<[base.logs]>->(
+    1,
+    '[mpv.pulse] wslg unavailable ; requesting windows host server : %s',
+    <mpv.pulse.pending_host_server>
+);
+
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| powershell.pulse-start |,
+        'call_args' => { 'args'    => '' },
+        'reply'     => { 'handler' => qw| mpv.pulse.handler.host_started | }
+    }
+);
+
+## no reply [ powershell zenka down \ busy ] must not keep mpv from ##
+## starting : after the wait the host server is tried anyway        ##
+<mpv.pulse.host_wait_timer> = <[event.add_timer]>->(
+    {   'after' => <[base.interval.next]>->(
+            {   'type'  => qw| mpv-pulse-host-wait |,
+                'state' => {}
+            }
+        ),
+        'handler' => qw| mpv.pulse.host_wait_expired |,
+        'desc'    => 'mpv : windows host pulse reply wait'
+    }
+);
+
+return TRUE;
+
+#,,.,,..,,,,.,.,,,..,,,,,,.,,,...,..,,...,,,,,..,,...,..,,,,,,,..,,..,.,,,,..,
+#B6TAVKDV6GLEP3NJW7HA4LGZEE2VJSIUVTOILE2BC6IJFXEOKQJT3NL3W4RIH4LMEXTYLH4ZVMG32
+#\\\|FCUMBYP6XMNS25YB7IYOVFYE5DNBQPNR2MJQVBSZMY6RTBPVX45 \ / AMOS7 \ YOURUM ::
+#\[7]2TDCFKSQ4FUYJY44LXKIIMNKI2TOKH6YMPNKNOBCT73U2CZYZWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

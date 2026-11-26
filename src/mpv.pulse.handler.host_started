@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = mpv.pulse.handler.host_started
+# descr = continue deferred mpv spawn after powershell.pulse-start replies
+
+my $reply  = shift                                  // {};
+my $server = delete <mpv.pulse.pending_host_server> // return;
+
+my $wait_timer = delete <mpv.pulse.host_wait_timer>;
+$wait_timer->cancel if ref $wait_timer;
+
+$ENV{'PULSE_SERVER'} = $server;
+
+if ( ( $reply->{'cmd'} // '' ) eq qw| TRUE | ) {
+    <[base.logs]>->(
+        1, '[mpv.pulse] selected windows host server : %s', $server
+    );
+} else {
+    <[base.logs]>->(
+        0,
+        '[mpv.pulse] windows host start failed ; trying %s anyway : %s',
+        $server,
+        $reply->{'call_args'}->{'args'} // $reply->{'data'}
+            // 'no reply detail'
+    );
+}
+
+<mpv.pulse.server_selected> = TRUE;
+<[mpv.open_player]>;
+
+#,,.,,,..,,,.,,,,,,.,,,.,,...,..,,.,,,.,.,.,.,..,,...,...,...,,.,,,..,,,,,.,,,
+#64EFTWB5FRAYO4F26II73N7O5UYTBCB42PN7RSA3RX5AXQM5OK4W46C3CKTTT5YQ265BKFR7ME3JM
+#\\\|4H5D6SMX2ANEQPP436NJIRE7KRQUR4XAHUJ3E3IFVJMEQQ36AY3 \ / AMOS7 \ YOURUM ::
+#\[7]OHTR54SZOFKO54NXNMTJJ6RU2KO5QYEOED26QVKJPGWOH36F3CBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
