@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.UIF7KUY |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.MXYQQTI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -2064,6 +2064,7 @@ sub seal_nodes {
         ## a requested stop ends at a node boundary : the final flush and
         ## commit below still run, so every node sealed so far counts
         last if ref $opt{'stop'} and $opt{'stop'}->();
+        fault(qw| seal:node |);
         ## a node already mapped from another disk gains this disk's id ##
         if ( exists $map->{'nodes'}{$address} ) {
             my $entry = $map->{'nodes'}{$address};
@@ -3932,8 +3933,8 @@ sub shred_node {
 
 1;
 
-#,,,,,,,,,,,,,...,..,,.,.,..,,,.,,.,,,,.,,,,,,..,,...,...,..,,..,,,.,,.,.,...,
-#CAN27MP5IECJ6ND4WJLBFGI35RBHFEAWOIL3BBSSZ2MLG4HSEXFM6YVZBNGC4QYKPMLDCQYR7UC36
-#\\\|YJOZPG2RAIZ5ZGZM3CZHGRBVZ6DLSI763XB7PZXGSJSHIXA6ZSL \ / AMOS7 \ YOURUM ::
-#\[7]IX4WS2L7L2DOWX4BWIOJPXY44BZXEXO2E7IV6JXROHZW4XQH2GAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,..,,.,.,,,,,.,,,,,.,.,,,,,,,,..,..,,...,...,.,.,,.,,..,,,..,,..,
+#OVUHVQNKZA5IXIR43LECQVTOJJERBB7YIGEVWMJ5KBLQHHQG43EBPQIIGIGIZFWZHKMTLHY622ZIW
+#\\\|FX6P3O3X7AJ65XVRIEZ3BY5F2T64THAM7IZDPWRK664JOFGALZO \ / AMOS7 \ YOURUM ::
+#\[7]XXMLS24KRIA54DRRTXE3PSIMBQ653OHZOIW62GPJAIP55GQYIWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -130,6 +130,21 @@ ok( $rc == 0
     'plan uses two domains, owned first, skips the '
         . 'second holder in a domain and the intake holder'
 ) or say $out;
+## a TERM during the seal stops at the next node : the sealed node is
+## committed, the run says it is incomplete, the next place resumes
+{
+    local $ENV{'N7FS_TEST_FAULT'}        = qw| seal:node |;
+    local $ENV{'N7FS_TEST_FAULT_SIGNAL'} = qw| TERM |;
+    ( $rc, $out ) = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main' );
+}
+ok( $rc == 1
+        && $out =~ m|SIGTERM : stopping after the current node|
+        && $out =~ m|place : stopped by SIGTERM -- incomplete|
+        && $out !~ m|checked |
+        && $out =~ m|placed 1 nodes on |
+        && $out !~ m|injected fault|,
+    'a TERM stops place at a node boundary and reports it'
+) or say $out;
 ( $rc, $out ) = cli( ['vp'], 'place', $disk, '-root-key', 'vault:main' );
 ok( $rc == 0
         && $out =~ m|placed \d+ nodes on one|
@@ -806,8 +821,8 @@ ok( $rc == 0 && $out =~ m|would drop 5|,
 
 done();
 
-#,,,.,.,.,.,,,,..,,,.,,,.,,,.,.,.,,..,,,.,,,,,..,,...,.,.,.,.,..,,,,,,..,,,,.,
-#PRKV23CI5H5DSWZNAXRHO2DJJ3XTG5DTQMZFJR2RYN46AYALP257CIN357NFL4R7GG4ZNPBRW74RW
-#\\\|65VROA7AOHATQ2CBZAF7QPMLLAYO6BHGE3JUDDIG3ZE2I2CJPBF \ / AMOS7 \ YOURUM ::
-#\[7]BZCO26BGVWVB45DLUFBYYTRUDBAX6UOIYJUUGN5FMZTGTNNOTYCI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,,,.,...,,,.,,..,...,.,,,.,.,..,,..,,...,...,...,..,,,,,,.,,,,,.,
+#TITDLMRX75M6OTXLRNUP3CZ5KYFOMB4OYUP5REKIQBSW3TV62VVYAXXXY57MXR2AZRLUAMA4WPLFY
+#\\\|XXETBQ7ADK7UYFIV35DLSTQFBTDKKJ63R3B5DFMG77NQQA4FEFZ \ / AMOS7 \ YOURUM ::
+#\[7]D7LGEPW5TLPDCBZYLV6Y2PACVPXOVDSRDIYC45YUUF77TNSUBYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

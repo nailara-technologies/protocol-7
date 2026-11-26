@@ -273,10 +273,17 @@ use AMOS7::N7FS::Incoming qw| incoming_refs incoming_summary incoming_groups
 use AMOS7::N7FS::Console qw| console_configure console_say console_error
     console_progress |;
 
+## N7FS_TEST_FAULT_SIGNAL = TERM : the point sends that signal to this process
+## once instead of dying [ the safe stop path of place ]
+my $fault_signalled;
 $AMOS7::N7FS::FAULT = sub {
     my $point = shift;
-    die "n7fs : injected fault $point\n"
-        if ( $ENV{'N7FS_TEST_FAULT'} // '' ) eq $point;
+    return if ( $ENV{'N7FS_TEST_FAULT'} // '' ) ne $point;
+    if ( my $sig = $ENV{'N7FS_TEST_FAULT_SIGNAL'} ) {
+        kill( $sig, $PROCESS_ID ) if not $fault_signalled++;
+        return;
+    }
+    die "n7fs : injected fault $point\n";
     }
     if defined $ENV{'N7FS_TEST_FAULT'};
 
@@ -3234,8 +3241,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,..,,,.,,..,,.,,,,.,,,.,,,..,,.,,,,,,...,..,,...,...,,..,.,.,.,,,,.,,,..,
-#74VSWVQDGUC3YAI2BUXFAGYDUMU37LESHMB46XG7QWBS7OW2FROI2XR6RCRQLG5VNJI7WKCVYXVJC
-#\\\|H4X63O4YF4SXC2G7TRCIA5ZX3HXLNEZRVZBHMSNEOWXUDES4VNA \ / AMOS7 \ YOURUM ::
-#\[7]KJHXBGLDN2K3EQV4PESENA566WGYDHXVERHVG3SFEA2XDJALMWAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,...,.,,,.,.,,.,,,..,,.,,,.,,..,,..,,...,.,.,...,,,,,.,,,..,,,..,
+#BTLDWXA4GF4B72N2DKIYESX75DYJSEWPUJRWQE7PLK36GJ3ZZ7WPGFF5XCXB732PGFYRCQBCGMCZO
+#\\\|GX3RO3J4MQ54DILZAZQXNABF44QY2LSKFIRV7O5DAFSX44BCHXW \ / AMOS7 \ YOURUM ::
+#\[7]RJY24W53O2TBZQ4A4SE35M3YSKXB35CT5IREF35NT2AV47YFESAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
