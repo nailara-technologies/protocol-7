@@ -84,7 +84,9 @@ if ( ref $pending eq qw| HASH | ) {
 
     if ( $pending->{'unloaded'} ) {
         my $status = <[models.gpu_lease.vram_free]>->(
-            TRUE, $pending->{'need_mb'} // 0
+            TRUE,
+            $pending->{'need_mb'} // 0,
+            $pending->{'requester'}
         );
         $grant->($pending) if $status->{'ok'};
         if ( !$status->{'ok'} and ref $lease->{'pending'} eq qw| HASH | ) {
@@ -162,8 +164,8 @@ if ( not $sent ) {
 }
 return TRUE;
 
-#,,,.,,..,,,,,.,.,,,.,,.,,.,,,,,.,.,,,,..,,,.,..,,...,...,...,,.,,,..,,,.,.,,,
-#XGVDQDREJ4Q4L4P7S36XYN567XPSLKYTOJPAGDX3PP444MNN3SCPDJFDY5E5FRB3MNUNWNNRC4TFS
-#\\\|TDTTBM6DLUEAEGGOQNYSNZKEK7PWA24XBWC3WI7PAP54PO25QSJ \ / AMOS7 \ YOURUM ::
-#\[7]UQERD4ZYPXOBI3AIXBTGRD4A4IBVXV3ZH7Q3ZIRWLJDQN4JKQICQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,...,.,,,..,,.,,,,..,,,,,.,,,..,,...,...,...,..,,...,.,,,.,,,
+#DGPJ6IHVGKA6DQB7C7KU5F5WFEVQGRQHVBDWYAEADZQWFQ7HV7ZLVNIY4UVIB4WXXJQWVBAD6SM5I
+#\\\|I42HL3FZGJNAGZUZ6FLEGQ4J622NXTJLBTFPZKYO5YCUQTAVJJD \ / AMOS7 \ YOURUM ::
+#\[7]SJOGT5ABZPW7S5LVLEL5I5OETDL3TAE7IXGPV24GAYPIFZOGWUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

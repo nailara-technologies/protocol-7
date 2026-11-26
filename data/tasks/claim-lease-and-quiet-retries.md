@@ -27,6 +27,17 @@ owner : "the claim handling needs refinement anyway, was causing issues itself".
 4. **stale waiting entries** : `waiting : coding` stayed after coding was terminated ; harmless
    [ the grant route fails ] but the state lies.
 
+5. **lease expired while renewals were sent** [ 2026-11-27 ] : invoke-web renewed every 15 s
+   [ timeout / 3 ], models still expired it after 45 s ; the next renewal got 'not holder', the
+   render went on without a lease. hypothesis [ owner ] : a memory stall -- on wake-up models'
+   tick fires before its loop reads the queued renewals, the timeout then measures models' own
+   lateness, not the holder's silence. test : log the tick's gap since its last run ; an
+   expiry right after a late tick confirms it. fix then : a late tick expires nothing on that
+   pass, input first, expiry only on an on-time pass [ inside the lease feature ].
+   fixed the same night [ stop-gaps ] : a release drops a pending handover TO that owner
+   [ models waited for vram for the terminated coding ] ; invoke-web as requester is admitted
+   when no llama process is left [ its own render may hold the vram, free MB refused it ].
+
 ## quiet retries [ owner's list ]
 
 the owner terminated the external zenka by hand to get work done ; things kept restarting and
@@ -73,8 +84,8 @@ work ].
   SIGSEGV loop found the same evening [ fbd58a42de ] : worth re-reading its 'why'.
 - memory : feedback-busy-zenka-gdb-curcop-and-event-faults.md
 
-#,,,,,,,,,..,,,,,,.,.,.,,,,..,,.,,.,,,,,.,,,,,..,,...,...,...,,,.,.,.,,.,,,,.,
-#XY37IHNLEW7F3RZUCA4GSI566SAVKM2XU3NUJ57AKIWIM3SDBAGPCQDHVCSWCPAQSMIIX57MTLCGW
-#\\\|6IYMSOKIHHIEG7MQLKYNNBWYREEJQFJOIEPJKMGWNIV2VYFBLCI \ / AMOS7 \ YOURUM ::
-#\[7]TT7PLCCFYGMW5GRH43A3JI3GN6HOV2FKWWPBYTZWQCKDAE2QMUDY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,,,.,,..,.,,,.,.,,,.,.,.,,,,,..,,...,...,..,,..,,..,,..,,,..,
+#HPZFUV37ELDU3Q6W2HGPKSF4TSBA2B47LFI7FPJG5H36T2U5VT3FSI5CKPPGXL3S3KRCOIUK476Z4
+#\\\|XMW6B3BHK2WQ57XCPFJKSENDOXJZBPJLVJFSPXSKZ7VLZ6IQPP2 \ / AMOS7 \ YOURUM ::
+#\[7]QURJLBGDTTUYQG2LU7VIUQMTRLDPI45TKCZCKCXIR2I6XMBS2ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

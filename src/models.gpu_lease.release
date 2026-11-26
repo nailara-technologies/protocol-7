@@ -9,6 +9,21 @@ return FALSE if $owner ne qw| coding | and $owner ne qw| invoke-web |;
 
 my $lease = <models.gpu_lease> //= {};
 delete $lease->{'waiting'}->{$owner};
+
+## a pending handover TO this owner ends with it : otherwise models waits   ##
+## for vram on behalf of a zenka that is gone, and the other side's request ##
+## is never granted [ coding terminated 2026-11-27 : no holder, invoke-web  ##
+## rendering without a lease ]                                              ##
+if ( ref $lease->{'pending'} eq qw| HASH |
+    and ( $lease->{'pending'}->{'requester'} // '' ) eq $owner ) {
+    delete $lease->{'pending'};
+    <[base.logs]>->(
+        1, ': gpu lease handover to %s dropped [ released ]', $owner
+    );
+    <[models.gpu_lease.handler.tick]>;
+    return TRUE;
+}
+
 return FALSE if ( $lease->{'holder'} // '' ) ne $owner;
 
 delete $lease->{'holder'};
@@ -17,8 +32,8 @@ delete $lease->{'touched'};
 <[models.gpu_lease.handler.tick]>;
 return TRUE;
 
-#,,..,.,,,,,.,,,,,,,.,...,..,,..,,,.,,,..,...,..,,...,...,.,.,,.,,,.,,,,,,.,.,
-#V5XFWJMYQRVQFTVJ5LPSNWLX6KQTKE7Y23ILUAWJD44N2Z6KOL5HTTPXDT57TRPY3DRPGVANRA2SE
-#\\\|AASFZW4NADOHOL6LGZHSRT6ACRWYE6WB7A223YPI6KEQM5HZROY \ / AMOS7 \ YOURUM ::
-#\[7]XBAJDHNQEBEHMOUFY6YQ5TB3IPKCMEUX4I6VLSLIKI6CQYWO2CCY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,,,.,,,,,,,.,.,,.,,,,,,,,.,,.,,..,,...,...,,..,,..,,,,,.,.,,,,,
+#YM5ZFZYRUU7FLTXSYH2GZ5QJNZSW24JN2P3PJB7JL6RTRV6LGXDNBYD7PFAD5EGUEXZE3GCIKJREO
+#\\\|PXDUM6UYBMHAXYTSW7TFUFG5NHBXW5IVEECAKNMGD6ASEZTTOP2 \ / AMOS7 \ YOURUM ::
+#\[7]CA24ZV5QY66EE5YXIMEE4U3AWVK2WMBT6LH7HMLKKKCJ3FJJPOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

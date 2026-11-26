@@ -4,17 +4,23 @@
 # descr = check live llama processes and the requester's working-vram need
 # param = details flag, required free MB
 
-my ( $details, $need_mb ) = @ARG;
+my ( $details, $need_mb, $requester ) = @ARG;
 my $mem     = <[base.gpu.query_memory]>;
 my $minimum = <models.cfg.gpu_lease.min_free_mb> // 4096;
 $minimum = 4096     if $minimum          !~ m|^\d+$|;
 $need_mb = $minimum if ( $need_mb // 0 ) !~ m|^\d+$| or $need_mb < $minimum;
 my $llama = <[models.gpu_lease.llama_compute_pids]>;
+
+## invoke-web as requester : no llama process left IS the admission -- its ##
+## own render may already hold the vram                                    ##
+## [ a render that went on without a lease ], free MB would then refuse it ##
+## for ever [ 2026-11-27 ]                                                 ##
+my $own_vram = ( $requester // '' ) eq qw| invoke-web |;
 my $ok
     = ref $mem eq qw| HASH |
     && $mem->{'ok'}
     && !@{$llama}
-    && $mem->{'free_mb'} >= $need_mb ? TRUE : FALSE;
+    && ( $own_vram or $mem->{'free_mb'} >= $need_mb ) ? TRUE : FALSE;
 return $ok if not $details;
 return {
     'ok'       => $ok,
@@ -25,8 +31,8 @@ return {
     'query_ok' => ref $mem eq qw| HASH | && $mem->{'ok'} ? TRUE : FALSE,
 };
 
-#,,,,,,,.,.,,,...,,,,,,..,.,.,,,.,.,.,.,,,.,,,..,,...,...,,..,,,.,,,.,.,.,,,.,
-#YUSM2YJII64BCUTTHIGFYZFY5LRMQFKPVOZJOQ7LT6G22N2ETIKPUHKZV24XDTAUVJX3WH427PANS
-#\\\|EGJ5LES4NKVFRROGUFC2PXH5PXCMLQOK63BG4BDLWY6H2CHC7PK \ / AMOS7 \ YOURUM ::
-#\[7]OOV4XW3UAIQ4CYUMTXTCIXIQRUFNC5K5ZLW5K3V3ZX2WWEUEXICY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,,,,.,,...,.,,,,..,,..,.,,,.,.,..,,...,...,,,,,.,.,,.,,.,.,.,.,
+#CJ2HL5S7QKAMOHG7SMZYARNDDB77TSBR7UIEDD2TCK2UQABFU3EPFW2XHEYSN7ABKAHRFL2VGHEY4
+#\\\|B2NISSS6VH5KO2FRNWVO4LNAQIFQNYP4UFLE2AQXW4HIZSNPUZW \ / AMOS7 \ YOURUM ::
+#\[7]L37JXGJRMZ53WXKCBDYZ5QSNDLI4T6Z4RN4Y2MA3Y4GAOSDXK6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
