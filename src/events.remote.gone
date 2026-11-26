@@ -22,9 +22,34 @@ my $failed
     || ( $handle->{'exit'} // 0 ) ne 0
     || $run->{'invalid'}
     || $run->{'refused'};
-if ( $failed or @{ $run->{'stderr'} // [] } ) {
+my @stderr = @{ $run->{'stderr'} // [] };
+my @errors;
+while (@stderr) {
+    my $line = shift @stderr;
+    if ( $line
+        =~ m{\A: (?:pinned host-root|host-root ROTATED) \[ [A-Za-z0-9._-]+ \\ [A-Za-z0-9.-]+:\d+ \](?: \[ owner-certified \])?\z}
+        and @stderr >= 2
+        and $stderr[0] =~ m|\A :\. [A-Z2-7]{39}\z|
+        and $stderr[1] =~ m|\A :\. [A-Z2-7]{38}\z| ) {
+        splice @stderr, 0, 2;
+        next;
+    }
+    push @errors, $line;
+}
+if ( $failed or @errors ) {
     <[base.logs]>->(
         0,
+        'remote pull %s : %s [ %d new, %d refused, %d invalid ] : %s',
+        $alias,
+        $reason,
+        $run->{'hits'}    // 0,
+        $run->{'refused'} // 0,
+        $run->{'invalid'} // 0,
+        join( ' | ', @{ $run->{'stderr'} // [] } )
+    );
+} elsif ( @{ $run->{'stderr'} // [] } ) {
+    <[base.logs]>->(
+        $run->{'hits'} ? 1 : 2,
         'remote pull %s : %s [ %d new, %d refused, %d invalid ] : %s',
         $alias,
         $reason,
@@ -41,8 +66,8 @@ if ( $failed or @{ $run->{'stderr'} // [] } ) {
 }
 return <[events.remote.arm]>->( $alias, $run->{'hits'} ? TRUE : FALSE );
 
-#,,.,,.,,,.,,,,..,.,,,,,.,,..,,,.,,..,.,.,,,,,..,,...,...,,..,,.,,,.,,.,,,,,,,
-#PK4UJ2F2GAYRBCPYARYPR5HTITEIR7MUROPODTIUHYC3JCO76T5AR4EH7CNML5DMBGYU6ATMQDXA6
-#\\\|OFKO43PSKWYCYWP676SFD23BQV3PSDUKQKF37L7SZMIQL26MQW4 \ / AMOS7 \ YOURUM ::
-#\[7]XO5BJVIDU7SZRLBMFB3YMPSZOTA36MNX37W7MCZRIQYIKOSUL4AI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,.,.,.,,,,..,,,.,.,.,,,.,.,.,..,,...,..,,...,.,,,,.,,..,,..,,
+#OXJGAWSFQX2DXEM6DHJP7X3JL65JMIBHKC7XR2MCCPU4AM4IHMGJSQHUN6ET33BCDHNPJOFHPMHYC
+#\\\|KZ7YDEOXES5GCJL3J5GGY3I4CAAYTQBOXR6ZHNF7G2LURLBH5CE \ / AMOS7 \ YOURUM ::
+#\[7]3CRJDK62KKDKBQTONSR3FJCFIOMQZN44VRIVNGVWZPBNP6G2IQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

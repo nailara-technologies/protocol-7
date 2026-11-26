@@ -78,11 +78,23 @@ $code{'base.logs'} = sub { push @log_levels, $ARG[0]; return TRUE };
 $code{'protocol-7.route-send'} = sub { push @events, shift; return TRUE };
 
 load_src('system.disk.poll');
+load_src('system.disk.post_init');
 load_src('system.disk.cmd.disk-status');
 load_src('system.disk.cmd.disk-register');
 load_src('system.disk.cmd.disk-update');
 load_src('system.disk.cmd.disk-done');
 load_src('base.interval.rhythm.disk');
+
+my $poll_calls = 0;
+$code{'system.disk.handler.poll'} = sub { $poll_calls++; return TRUE };
+$code{'system.disk.post_init'}->();
+is $poll_calls, 0, 'startup does not poll before the cube session exists';
+is_deeply $data{'system'}{'callbacks'}{'initialized'},
+    ['system.disk.handler.poll'],
+    'startup defers the first poll to the initialized callback';
+$data{'system'}{'zenka'}{'initialized'} = TRUE;
+$code{'system.disk.post_init'}->();
+is $poll_calls, 1, 'an initialized zenka polls immediately';
 
 $free = 40;
 $code{'system.disk.poll'}->();
@@ -308,8 +320,8 @@ like $events[0]{'call_args'}{'args'}, qr|4\.0 % inodes free|,
 
 done_testing();
 
-#,,..,.,,,...,,,.,,,,,.,,,.,,,,,,,,..,,.,,,,.,..,,...,...,..,,...,,,,,,.,,,.,,
-#CBAMCQMTRYJ52FWKQNSX7YPYULLV2HGCGCFX5XERRDSAMHY3PLKTP6Y6U4OF4PHL6WYVSIQBLZYX6
-#\\\|JNYGS6NUM3G4R6C53SHMCW4QJ6GB5ZMMV33UJGFNMZPY3DKWWBT \ / AMOS7 \ YOURUM ::
-#\[7]5LDT3TXMFCLX3S5BDFCJF3QRU77UWZ6WV7JTNA27MH43IBFDR2DY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,,,..,,,..,,,.,.,,,...,.,.,.,,,..,,...,...,..,,,.,,...,,,,,,.,,
+#WL7DPKI3D3FI7QMBKJHQ67O3P2F35LJTEEPPMFCR4ONKMNYGRNPUV5ZEDV46XZHUFUSUBKL74PETM
+#\\\|RQUSEIHUUDEYSKPR47BRMCAN55BVOUWSGLPD5P4WYHJW6P3SL65 \ / AMOS7 \ YOURUM ::
+#\[7]I4KY2OJAGBFDZP4MJZIOR5V5VE7JQG7LFOLXNOYUI3GBMQCKIQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

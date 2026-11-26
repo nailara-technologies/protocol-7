@@ -77,7 +77,8 @@ sub load_module {
 my @logged;
 $code{'base.logs'} = sub {
     my ( $level, $format, @args ) = @ARG;
-    push @logged, sprintf $format, @args;
+    push @logged,
+        { 'level' => $level, 'message' => sprintf( $format, @args ) };
     return TRUE;
 };
 $code{'base.perlmod.load'}   = sub {TRUE};
@@ -270,11 +271,68 @@ ok( join( ' ', @{ $spawn->{'cmd'} } ) eq "::: azurum events.signals-since "
     'poll : async ::: child, overlap cursor and bounded kill timer'
 );
 
+my $finish_pull = sub {
+    my ( $stderr, $exit, $hits ) = @ARG;
+    $handle->{'exit'} = $exit;
+    $data{'events'}{'remote'}{'runs'}{'azurum'} = {
+        'handle'  => $handle,
+        'records' => 0,
+        'hits'    => $hits,
+        'stderr'  => $stderr
+    };
+    @logged = ();
+    $code{'events.remote.gone'}->( 'eof', $handle );
+    return $logged[0];
+};
+my @pin_lines = ( ' :. ' . ( 'A' x 39 ), ' :. ' . ( 'A' x 38 ) );
+foreach my $case (
+    [   ': pinned host-root [ azurum.cube \\ 10.0.110.8:42 ]', 0, 2,
+        'new pin'
+    ],
+    [   ': pinned host-root [ azurum.cube \\ '
+            . '10.0.110.8:42 ] [ owner-certified ]',
+        1,
+        1,
+        'owner-certified pin'
+    ],
+    [   ': host-root ROTATED [ azurum.cube \\ '
+            . '10.0.110.8:42 ] [ owner-certified ]',
+        0,
+        2,
+        'owner-certified rotation'
+    ],
+) {
+    my ( $header, $hits, $level, $name ) = @{$case};
+    my $log = $finish_pull->( [ $header, @pin_lines ], 0, $hits );
+    ok( ( $log->{'level'} // -1 ) == $level
+            && $log->{'message'} =~ m{\Q$header\E},
+        "completion : $name is informational, not an error"
+    );
+}
+my $log = $finish_pull->(
+    [   ': pinned host-root [ azurum.cube \\ 10.0.110.8:42 ]',
+        @pin_lines, '<< real remote error >>'
+    ],
+    0, 0
+);
+ok( ( $log->{'level'} // -1 ) == 0
+        && $log->{'message'} =~ m{<< real remote error >>},
+    'completion : real stderr stays level 0 with its text'
+);
+$log = $finish_pull->(
+    [ ': pinned host-root [ azurum.cube \\ 10.0.110.8:42 ]', @pin_lines ],
+    1, 0
+);
+ok( ( $log->{'level'} // -1 ) == 0
+        && $log->{'message'} =~ m{pinned host-root},
+    'completion : nonzero exit keeps informational stderr at level 0'
+);
+
 say "\n# $pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,.,,,,.,,..,.,.,...,.,.,,,,,.,,,...,,,,,,..,..,,...,...,.,.,,,,,.,.,,..,,..,
-#CYVOY3JCF6A6NOGM2BJAY43FGFPPOONGO5HAGWXDS2ZAXZ5DYHOMPFEOQWIMTVQXJSZ4WAK77U2Q2
-#\\\|JXZ3MXDAGZKRMD2AP6AWPIMK7BSY5SJ3L2LBU4FDCNPKMZY2XLB \ / AMOS7 \ YOURUM ::
-#\[7]I47NRUT3PB7YWLWAF5I7UDUBDCTQOQDUV2JL2SO3733YVFYFQKAY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,..,,.,.,...,.,,,,..,,..,,.,,..,,...,...,...,.,.,...,,.,,,,,,
+#B63JLNEVIJ5HUFEC37WQK6QDPEIADHSDOC443R3XWUAKPJRWZQ5NZAXUWX2IYSG2JCZ2RPQQKSGYE
+#\\\|LIOM3GHRVKL72JYJONJVOBCLVH74I2HZUD46L7CXYJZV7XF2AKK \ / AMOS7 \ YOURUM ::
+#\[7]B226UPA6HKFESUSJV7EKGQ7XXCF24L65JYECB7NASMP57FFZ3SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

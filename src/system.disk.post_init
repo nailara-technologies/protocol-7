@@ -4,11 +4,16 @@
 # descr = start local file system space monitoring
 
 <system.disk.timer>->cancel if defined <system.disk.timer>;
-<[system.disk.handler.poll]>;
+if ( not <system.zenka.initialized> ) {
+    push @{ <system.callbacks.initialized> //= [] },
+        qw| system.disk.handler.poll |;
+} else {
+    <[system.disk.handler.poll]>;
+}
 0;
 
-#,,,,,,,.,,..,.,.,,..,,..,,..,.,,,.,,,...,..,,..,,...,...,.,.,,..,,.,,.,.,..,,
-#2346PO7ZOZSPBSFUPT3RLTW6KOC22J6IH7QMG3KM5I4GCPTVU65S6TTEPNNUSE3OTDYTYJUSCV44E
-#\\\|3K7NV3ZT7CAWQSTF2Z66IVLXYWI4VUR4RLZ5RXMNPB27PDDEBRH \ / AMOS7 \ YOURUM ::
-#\[7]EXDEH6VDQMD7VXUCKJPUEDLCBISGLJUIXQAWDUBXGNC25PZ5EECY 7  DATA SIGNATURE ::
+#,,..,...,..,,.,.,..,,,..,,,,,..,,,..,,.,,.,,,..,,...,...,...,,..,,,,,,..,,..,
+#NOUFD4R5Y7LAUVJL4OMSJZCIE57WXDMRPUY6S2UIWKMLT34NNFYAHEQVFKDLM5T2E74YT3I4B5U2O
+#\\\|ZGRVRMYNB45BLBL4WT67R7SN3ROTJKMFHWJBR5ZLGR5W6BJEA4H \ / AMOS7 \ YOURUM ::
+#\[7]L5LX2RNNZFWUWYV73T4R6T4SHSYQPWASL5JQ7FYAJE6ZWE5ATMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

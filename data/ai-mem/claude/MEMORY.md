@@ -18,6 +18,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 - [no-sha-no-json-internal](feedback-no-sha-no-json-internal.md) — internal code : BMW \ AMOS checksums, no sha, no json ; sha only for external formats ; say it in every kimi prompt [ plan data/tasks/sha-to-amos-checksum-transition.md ]
 - [n7fs-go-live-and-terminal-follow-ups](project-2026-11-14-n7fs-go-live-and-terminal-follow-ups.md) — NEWEST : go-live DONE 2026-11-15, 4 holders full scrub, 4 copies ; pipelined holder sessions ; never edit the live n7fs tree [ broke it twice ]
 - [kimi-restores-files-it-did-not-touch](feedback-kimi-restores-files-it-did-not-touch.md) — kimi git-restored my notes twice + deleted a memory file : prompts forbid touching files it did not change ; commit notes first
+- [never-overwrite-other-users-files](feedback-never-overwrite-other-users-files.md) — set-up scripts for protocol-7 \ other users : append + check, never tee \ > into ~/.ssh \ ~/.n -- 2026-11-26 replaced known_hosts, the zulum link went down
 - [p7-config-style-not-json](feedback-p7-config-style-not-json.md) — NATIVE IS THE HUB : formats, ids, ntime native ; extend native, never a classic format inside ; json \ yaml \ xml .. = converters at the edges [ owner 2026-11-25 ]
 - [54m-timer-during-long-kimi-runs](feedback-54m-timer-during-long-kimi-runs.md) — long waits : 54 minute background timer keeps the one hour cache alive
 - [n7fs-host-migration-goal](project-2026-11-08-n7fs-host-migration-goal.md) — NEXT WORK : N7FS sync + blind remote replicas for the native linux move ; decisions, see design N7FS-SEALED-REPLICAS.md
@@ -107,8 +108,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,..,,,.,,.,.,.,,,,,.,.,,,..,,,,,,.,.,,,,,..,,...,...,..,,,..,,,,,,,,,,,,,
-#G2CWMECYLLNZICUEVYDF52JIYXO3LJZUQZESXDNOSYPNPXSO3LDGIG73CZ4DF6AD52NDYG2UFV4RM
-#\\\|7GWPM5JHBU5TMLRV44UKEKYU3APDLQ7PAZMLALTELFO3GTXTNSB \ / AMOS7 \ YOURUM ::
-#\[7]ITGPDB6P6EPFUBHZ7L3V6PDFDMLXBP4SC6ONN3ZDBZLCLJ72AUDA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,,,.,,,...,...,,..,.,.,,,.,..,,..,,...,...,,..,.,.,,.,,...,,..,
+#VZKXWDBGD354K2C3QTUINUJOM6LX4ZACQSVHQ2WHOBB3YPUICS3JUILE5KTKHFJIPT7LIIWIY2EK4
+#\\\|NLEQUUSGOPUJ5LVI3HOGRGSLEKCCZZJ3V7E3JKYPJSGTGQ7OM2N \ / AMOS7 \ YOURUM ::
+#\[7]5BIPGSYGTFVLAH3CJ5OQ53OBJOJJQVVRDVKGD2VCS7JQE7X2QGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
