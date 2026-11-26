@@ -7,6 +7,19 @@ my $wait_FLAGS = shift // WNOHANG();
 
 my $pid_result = waitpid( $wait_PID, $wait_FLAGS );
 
+## keep the status of a child reaped here [ base.sig_chld reaps with -1 ] : ##
+## its owner [ stream_child.reap ] finds the pid gone and takes it from     ##
+## here -- without it the exit status was lost, every clean eof of an       ##
+## events remote pull logged as a failure. kept small : the oldest drop     ##
+if ( $pid_result > 0 ) {
+    my $collected = <base.process.exit_status> //= {};
+    $collected->{$pid_result} = $CHILD_ERROR;
+    if ( keys %{$collected} > 89 ) {
+        my @oldest = ( sort { $a <=> $b } keys %{$collected} )[ 0 .. 33 ];
+        delete @{$collected}{@oldest};
+    }
+}
+
 if ( <system.zenka.name> eq qw| v7-zenki | and $pid_result > 0 )
 {    ## has terminated ##
     my $registry_handler = qw| v7-zenki.report_collected_child_pid |;
@@ -15,8 +28,8 @@ if ( <system.zenka.name> eq qw| v7-zenki | and $pid_result > 0 )
 
 return $pid_result;
 
-#,,..,..,,,..,,,.,..,,.,.,,,,,.,.,,.,,...,,,.,..,,...,...,.,.,..,,,,.,,,.,,..,
-#7O53RWVQE7UAL56LM5VCBGLSOCLL3NJNJXPRAZZRSHGBX7MUWTBLYWGQSCG433QK3OE37ZVRKHZC2
-#\\\|GF3WGN4WBQ55DP3PAEOB26U4XITNNQMM2F5HB75ENA6EEFQALSZ \ / AMOS7 \ YOURUM ::
-#\[7]N4HTL55QKVKX6WLK63BQEMDZTSRCF6OMCLEEZP6PXQSRPK4FVICI 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,,,.,.,,,,,.,..,,,..,..,,,.,,..,,...,...,,.,,..,,.,.,,..,.,.,
+#E2U64EL3NPDBN7L5Z4GCZVGRW52EGKT4CZ6XXBN7EPP4JSDXZOC3S5CEXMFYOVVPBSLK3CUIOHBCQ
+#\\\|GYMWVJSTB6P7RBS5S3ZPO2PRJ44VUKLTOZPPVCNO4MGLHKFMIGV \ / AMOS7 \ YOURUM ::
+#\[7]3FHLBRVCZWKGKUOVKCZCEZVB57FASR2M2TXG22F7FVZ2746YIIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

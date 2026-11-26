@@ -20,8 +20,20 @@ if ( $got == $handle->{'pid'} ) {
     );
     return TRUE;
 }
-if ( $got < 0 ) {    ## reaped elsewhere ##
-    $handle->{'exit'} = qw| ? |;
+if ( $got < 0 ) {    ## reaped elsewhere [ base.waitpid kept its status ] ##
+    my $status = delete(
+        ( <base.process.exit_status> // {} )->{ $handle->{'pid'} } );
+    if ( defined $status ) {
+        $handle->{'exit'}   = $status >> 8;
+        $handle->{'signal'} = $status & 127;
+        <[stream_child.note]>->(
+            $handle,
+            qw| exit |,
+            { 'exit' => $handle->{'exit'}, 'signal' => $handle->{'signal'} }
+        );
+    } else {
+        $handle->{'exit'} = qw| ? |;
+    }
     return TRUE;
 }
 my $type = $handle->{'interval'}{'reap'} // return FALSE;
@@ -38,8 +50,8 @@ return FALSE if not defined $delay;
 );
 return FALSE;
 
-#,,,,,,.,,.,.,,,.,,..,,,,,,.,,..,,...,..,,,..,..,,...,...,..,,,,,,.,.,...,,,.,
-#5M47BWR3M6YIZT6PKMR45U2JT34JGAUJTPA5IKS76L4X5LNHTZRER5DAHOFV6D2YDXZVCXHLPUPVA
-#\\\|UFM7EP3B3YD2KYA6WTW5GGLBJOJABJ2SC2MBJJFL5U52AJC6EZB \ / AMOS7 \ YOURUM ::
-#\[7]J6ZYYLEW3SFV2ZZYE66ZCG3RU6Q3DHDNY2A6NAH2LEYO3NM4R6AA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,,.,,..,,,,.,.,,,...,,..,,,,,..,,...,..,,.,,,,,,,,,.,...,,,,,
+#TF3JDXDWMTMQZTNAF73CGR5RFQEGNDVTSQTXVB6VZXNCXANM2P75O74I6B3IGRJIYHT4UG3IAHPMQ
+#\\\|EUKR3PJI5OAVYJYV4RYPJCHTPIHT55MWJDK6WISA2FVSVTBGCW2 \ / AMOS7 \ YOURUM ::
+#\[7]3QQPD4WCMJGIOUAI6LIFAZJS6EHTQX4EUN4ZHZI4E2NYD6LNHMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

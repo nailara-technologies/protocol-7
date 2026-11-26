@@ -11,6 +11,29 @@ return FALSE
     if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
 
 my $lease = <models.gpu_lease> //= {};
+
+## acquire from the current holder : a restarted owner                   ##
+## [ the lease is kept by name, not instance ]. it waits for a grant --  ##
+## refresh and send it again. without it tick dropped the request as     ##
+## 'already held', the new instance never renewed, the lease expired and ##
+## went to the other side                                                ##
+## [ invoke-web restart 2026-11-26 : coding took the gpu ]               ##
+if ( ( $lease->{'holder'} // '' ) eq $owner ) {
+    my $timeout = <models.cfg.gpu_lease.timeout> // 45;
+    $timeout = 45 if $timeout !~ m|^\d+$| or $timeout < 5;
+    $lease->{'touched'} = <[base.time]>;
+    delete $lease->{'waiting'}->{$owner};
+    <[protocol-7.route-send]>->(
+        {   'command'   => "$owner.gpu-lease-granted",
+            'call_args' => { 'args' => $timeout },
+        }
+    );
+    <[base.logs]>->(
+        1, ': gpu lease re-granted to %s [ re-acquire ]', $owner
+    );
+    return TRUE;
+}
+
 $lease->{'waiting'}->{$owner} = {
     'at'      => <[base.time]>,
     'need_mb' => $need_mb // 0,
@@ -19,8 +42,8 @@ $lease->{'waiting'}->{$owner} = {
 
 return ( $lease->{'holder'} // '' ) eq $owner ? TRUE : FALSE;
 
-#,,,,,.,,,..,,,,.,,,,,...,.,,,,,.,..,,,.,,.,.,..,,...,...,,.,,...,.,.,,,.,,,,,
-#DOESZNPU5JO7VE63M4QKWBJDPV2H4Y24IKEI644DXTLQW3KITEABXEJDZMVLEAJBUVOP5BUFDKOGY
-#\\\|QJDD6QB454UTP7C3LBEULWCQGUKOWRW6MTICUWMNAZAQ4HMJSVX \ / AMOS7 \ YOURUM ::
-#\[7]Y7YUQRGCVAACMFKDC7FIBGF6N5EOQFAZASL3LLJ3APUZUJRUG6DI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,.,,.,.,,,,,..,,.,.,,,.,..,,..,,..,,...,...,.,,,,..,,.,,..,,..,,
+#W4TNY7JZ4LE3RZUPE3XJKHZC2T45QFQYYIYQI6MWLRBDOPXRSJBE64CCTSIEPG6RDV3YDZIZPA2OK
+#\\\|ZLLOBGCMCS634ZIP2EQJOLZQX2ESJYG35KXX533V3H23YDPFPJV \ / AMOS7 \ YOURUM ::
+#\[7]QXH25V4EUXOO7ADDZA5KILZKRZ5WCM65GJSSUDI4HOS6MHFBWGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,7 +19,7 @@ if ( $run->{'records'} ) {
 
 my $failed
     = $reason ne qw| eof |
-    || ( $handle->{'exit'} // 0 ) ne 0
+    || ( ( $handle->{'exit'} // 0 ) =~ m|^\d+$| and $handle->{'exit'} != 0 )
     || $run->{'invalid'}
     || $run->{'refused'};
 my @stderr = @{ $run->{'stderr'} // [] };
@@ -66,8 +66,8 @@ if ( $failed or @errors ) {
 }
 return <[events.remote.arm]>->( $alias, $run->{'hits'} ? TRUE : FALSE );
 
-#,,,,,.,,,.,,,..,,.,.,.,,,,..,,,.,.,.,,,.,.,.,..,,...,..,,...,.,,,,.,,..,,..,,
-#OXJGAWSFQX2DXEM6DHJP7X3JL65JMIBHKC7XR2MCCPU4AM4IHMGJSQHUN6ET33BCDHNPJOFHPMHYC
-#\\\|KZ7YDEOXES5GCJL3J5GGY3I4CAAYTQBOXR6ZHNF7G2LURLBH5CE \ / AMOS7 \ YOURUM ::
-#\[7]3CRJDK62KKDKBQTONSR3FJCFIOMQZN44VRIVNGVWZPBNP6G2IQCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,,,,.,,,,,,.,.,,.,,,.,,,,.,,,.,..,,...,...,,,.,.,.,...,...,.,.,
+#XOOOVA43G6ND6VNLS6YMUQPNRABPKZDHKLMHAFDJGTDK6QTA5KRVQIV7GMWSX72SU4EKYT3BPFKO6
+#\\\|T3HKSTC277IMS4J6P36SBZAHGTKJOIAV64SVLV6LZWWXL6DNHXK \ / AMOS7 \ YOURUM ::
+#\[7]3ZNPZNSPODX3VXVXYHM4T7M4RR4QH477INZE5WUZIBS3MVBMI4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

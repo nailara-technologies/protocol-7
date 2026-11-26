@@ -6,6 +6,7 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
 
 ## CRITICAL
 - [session-handover-pulse-stage2-v7](project-2026-11-26-handover-pulse-stage2-v7.md) — NEWEST, START HERE 2026-11-26 : pulse for mpv, n7fs safe stop, watcher stage 2 LIVE, v7-zenki spin -> v7 root process draft [ design first, no code ]
+- [busy-zenka-gdb-curcop-and-event-faults](feedback-busy-zenka-gdb-curcop-and-event-faults.md) — 2026-11-26 : busy silent zenka = gdb PL_curcop samples ; SEGV Event loop fixed fbd58a42de ; silent re-ask loop in models claims f89cde7816 ; claim rework open
 - [session-handover-native-hub-watchers](project-2026-11-25-handover-pm-native-hub-watchers.md) — 2026-11-25 pm : state is DERIVED [ p7c coding.handover ] ; decisions, lessons, next steps ; tier A place running on azurum
 - [session-handover-relay-parking-notify](project-2026-11-25-session-handover-relay-parking-notify.md) — 2026-11-25 am : parking, claude \ kimi zenki, chat relay into the live session, usage.plan, notify, coding handover ; tier A place pending ; read handover-live.md too
 - [dispatch-sign-session-lessons](feedback-2026-11-25-dispatch-sign-session-lessons.md) — dispatched runs never register as live sessions, never guess a session target ; AMOS modules join the sign ; /tmp tmpfs : TMPDIR elsewhere
@@ -109,8 +110,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,.,,,,,,,..,..,,.,.,,,,,,.,,,,,,,..,.,.,.,.,..,,...,...,..,,.,,,,.,,.,,,,,,,
-#GKKBTE7XPFQ6EQMBJAPMESDSOQGPK6FDVK67IMQUIKYJ3PMQVC5ZM4IUABUWSPLU6VWDKAI7VV26E
-#\\\|RMCWM5FHKMV7UUHZTR2GQFPJ6P4VGIDGYEHJNH6PVI3Z4NE44Q2 \ / AMOS7 \ YOURUM ::
-#\[7]DEPC3CVQ7APTZNJSQ543CNRZRKVNXIVICPNJLXPXGHRZW4JCRUCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,,,...,,.,,..,,.,.,,.,,.,,,,..,..,,...,...,,,,,,,,,,.,,,..,,..,
+#IXMOOBMNPW4IXKU4WU7ZWGTDKOWO6VFRHSX4KSESFPW2IN4YQTWKCIJPS32PIMUCYICA4MDKEXXNO
+#\\\|LK2CGCWSORPM3LBIRLVPYGDF4UDINI5T2G7CTIL74BH3EF6ZU3W \ / AMOS7 \ YOURUM ::
+#\[7]KFV7VCRDJKDT4XIBMP34N2PSPQSXUS5PCOYHNMTPJGUEOKZXY6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
