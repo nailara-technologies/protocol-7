@@ -3074,6 +3074,21 @@ sub cmd_place {
     require AMOS7::N7FS::Placement;
     my $disk = disk_arg(shift);
     fail('place : unexpected arguments') if @ARG;
+    ## a signal asks for a safe stop : the seal loop ends at the next node,
+    ## commits what it sealed and the run reports [ a later place resumes ].
+    ## a second signal does not wait : the run ends at once
+    my $stop_sig;
+    local @SIG{qw| INT TERM HUP |} = map {
+        my $sig = $ARG;
+        sub {
+            fail(     "place : SIG$sig again -- stopped "
+                    . "at once, run place again to resume" )
+                if defined $stop_sig;
+            $stop_sig = $sig;
+            console_error( ": n7fs : SIG$sig : stopping "
+                    . "after the current node ..\n" );
+        }
+    } qw| INT TERM HUP |;
     my $r = AMOS7::N7FS::Placement::place_missing(
         _placement_opt($disk),
         qw| dry_run |        => $o{'dry-run'} ? TRUE : FALSE,
@@ -3082,6 +3097,7 @@ sub cmd_place {
         qw| samples |        => $o{'samples'},
         qw| check_coverage | => $o{'check-full'} ? qw| full | : qw| sampled |,
         qw| progress |       => console_progress( 'place', 'nodes/s' ),
+        qw| stop |           => sub { defined $stop_sig },
         qw| unreachable_grace | => defined $o{'unreachable-grace'}
         ? AMOS7::N7FS::Placement::parse_age( $o{'unreachable-grace'} )
         : AMOS7::N7FS::Placement::parse_age('1Y2'),
@@ -3136,8 +3152,36 @@ sub cmd_place {
         if $failed;
     say_line('run holder-check on each holder so the new copies count')
         if not $o{'dry-run'}
-        and $o{'no-check'}
+        and ( $o{'no-check'} or defined $stop_sig )
         and keys $r->{'plan'}->%*;
+    ## the closing line : a run that reached here says so , a missing line
+    ## means it never got here
+    my ( $placed, $planned ) = ( 0, 0 );
+    $placed += $ARG->{'sealed'} // 0
+        for grep { $ARG->{'ok'} } values( ( $r->{'results'} // {} )->%* );
+    $planned += $ARG for values $r->{'plan'}->%*;
+    my $count = $o{'dry-run'} ? $planned : $placed;
+    say_line(
+        sprintf(
+            'place : %s%s , %s%s%s',
+            $o{'dry-run'} ? 'dry-run ' : '',
+            defined $stop_sig
+            ? "stopped by SIG$stop_sig -- "
+                . "incomplete, run place again to resume"
+            : $failed ? 'finished with failures'
+            : 'complete',
+            $count
+            ? sprintf( '%u nodes %s',
+                $count, $o{'dry-run'} ? 'would be placed' : 'placed' )
+            : $failed || defined $stop_sig ? '0 nodes placed'
+            : 'nothing to place',
+            $r->{'unplaced'}
+            ? " , $r->{'unplaced'} still under-replicated"
+            : '',
+            $failed ? " , $failed failed" : ''
+        )
+    );
+    return 1 if defined $stop_sig;
     return $failed ? 1 : 0;
 }
 
@@ -3190,8 +3234,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,,,.,..,,,.,,,.,,,,,,,,,,,,.,..,,,..,..,,..,,...,...,.,,,,.,,.,.,...,,.,,
-#5CHIA4ZYAZVJTLDPOYE6WUYSRLVYWM6EKJKMLGBX6ZX2RWBL3JAMDXXDTRMEQPDLJ7NPR6KG2FATU
-#\\\|6LDNHVDR3JU34FX5GM4XC64L2XYZDAEVO4NT7RV5EW7RQXISQ2B \ / AMOS7 \ YOURUM ::
-#\[7]ZUEVMWCAPL7FJIJB6WM7QAHFKBBDHODNPSPSZMV27TCQ5J3A7SDA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,..,,.,,,,.,,,.,,,..,,.,,,,,,...,..,,...,...,,..,.,.,.,,,,.,,,..,
+#74VSWVQDGUC3YAI2BUXFAGYDUMU37LESHMB46XG7QWBS7OW2FROI2XR6RCRQLG5VNJI7WKCVYXVJC
+#\\\|H4X63O4YF4SXC2G7TRCIA5ZX3HXLNEZRVZBHMSNEOWXUDES4VNA \ / AMOS7 \ YOURUM ::
+#\[7]KJHXBGLDN2K3EQV4PESENA566WGYDHXVERHVG3SFEA2XDJALMWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.QINENII |;
+our $VERSION = qw| AMOS7::N7FS::Placement-VERSION.FGC6RNY |;
 
 @EXPORT_OK = qw| holders_load holders_save holders_config holders_parse
     registry_path holder_add holder_remove receipt_write receipt_fresh
@@ -1113,6 +1113,8 @@ sub place_missing {
         }
         $plan{$ARG} += scalar $chunk_plan{$ARG}->@* for keys %chunk_plan;
         return if $opt{'dry_run'};
+        ## a requested stop : no new chunk starts [ the plan still counts ]
+        return if ref $opt{'stop'} and $opt{'stop'}->();
         ## progress counts walked addresses : the total is known up front, and
         ## a chunk's seals share its addresses [ a node may go to several ]
         my $chunk_base  = $visited;
@@ -1169,6 +1171,7 @@ sub place_missing {
         next
             if not $cats->{$address}
             and not defined _tree_name( $tree_of, $address );
+        last if ref $opt{'stop'} and $opt{'stop'}->();
         push @chunk, $address;
         next if @chunk < $chunk_size;
         $execute->( \@chunk );
@@ -1180,7 +1183,9 @@ sub place_missing {
     ## every attempted holder is checked : a seal can fail after a commit, and
     ## one bad holder must not leave another holder's new copies pending
     my %checks;
-    if ( not $opt{'dry_run'} and not $opt{'no_check'} ) {
+    my $stopped = ( ref $opt{'stop'} and $opt{'stop'}->() ) ? TRUE : FALSE;
+    ## a stopped run ends fast : no holder checks [ holder-check later ]
+    if ( not $opt{'dry_run'} and not $opt{'no_check'} and not $stopped ) {
         my $coverage = $opt{'check_coverage'} // qw| sampled |;
         foreach my $name ( sort keys %results ) {
             my $r = eval {
@@ -1225,6 +1230,7 @@ sub place_missing {
         qw| results |  => \%results,
         qw| unplaced | => $unplaced,
         qw| checks |   => \%checks,
+        qw| stopped |  => $stopped,
     };
 }
 
@@ -1492,8 +1498,8 @@ sub holder_prune {
 
 1;
 
-#,,.,,,,.,,,,,,,.,...,,.,,.,,,.,.,.,,,,.,,..,,..,,...,...,...,,.,,..,,..,,..,,
-#4XGL63W3HGJPRBOAUHWBPRESHTKDTGJRL7MDBDXUJFB4MQP3YS4WK5NH3CED5ZEUM2TXGACSXPLDO
-#\\\|UB6QFOGIQ6YIUSUBDHEAC7U7JIZTOYCPFRGLYM3ARIWYMU7PKIF \ / AMOS7 \ YOURUM ::
-#\[7]OIVEUE5ATSY7TS3BTXZ5LDO35K3MIV7MHBIT6252TL7HEDVMWSAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,...,..,,..,,,,.,...,,,.,,..,,,,,..,,...,...,.,,,.,.,.,,,...,,..,
+#4OZH4KGSOUXDLBNZ4S3F4TOBI4VFXLIGUNKHYQIZBIT2MMOOR5MH7YQFNYLVY7AFZPOIOAPSIKOSA
+#\\\|OEAEJXSM22HH66TCVPLPFCAV63LJ6627KVTHOP7UEB4TSKRQ32B \ / AMOS7 \ YOURUM ::
+#\[7]XVEFUQRXUCRC2ELBXMN2KEVBRAJ2WBPELQTBJROQARA7AYIWI6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
