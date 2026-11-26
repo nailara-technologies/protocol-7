@@ -31,11 +31,18 @@ my $config_filename = sprintf qw| event-setup.%s |, $config_name;
     }
 };
 
-## the buckets start once the loop runs : the cube is connected and the ##
-## privileges are dropped by then [ missed entries send commands ]      ##
+## buckets and remote pulls start once the loop runs : the cube is ##
+## connected and privileges are dropped                            ##
+## [ missed entries send commands, ssh as the user ]               ##
 <events.bucket_start_timer> //= <[event.add_timer]>->(
     {   'at'      => time,
         'handler' => qw| events.bucket.handler.start |,
+        'data'    => {}
+    }
+);
+<events.remote_start_timer> //= <[event.add_timer]>->(
+    {   'after'   => 0,
+        'handler' => qw| events.remote.start |,
         'data'    => {}
     }
 );
@@ -192,8 +199,8 @@ foreach my $event_name ( keys %{ $config_data->{'events'} } ) {
 
 0;
 
-#,,.,,,,.,.,,,..,,...,...,,,,,..,,.,.,..,,.,.,..,,...,...,..,,.,,,..,,,,.,.,,,
-#D3HWE57KRR4NB47EQOBRHUEWQ2Q5SR3YNIY2PW2UEQX3ALJBMWUIE4VRQUW72CMREZNI2ZUAZD4PE
-#\\\|SQ2ZFMTBJV7TSLHD2MFFMYGFH6UJ3YDOCMRJLTAIMYB2ME5BGCF \ / AMOS7 \ YOURUM ::
-#\[7]FHPLOQQKNTWZFYSEYFQE3PBNT25SUZW3TOP6INQIFFAWAWEYFMDY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,,.,,...,,,.,,,,,..,,.,,,...,..,,...,...,...,..,,,,,,,.,,,.,,
+#3KSWS2BXRMPDMHPZC7CCTV5AEYUOR7MIMXFIZYAQHKU52H4E4I5DGFS3AI4K762ZG26EXOMGTWWY6
+#\\\|K4RMTHBM2ZYEM45AAGRHHITJVOAP3XZHO3PHRXAMWGXI26JHE47 \ / AMOS7 \ YOURUM ::
+#\[7]X3RZV6OMKFDLQ7UHGGUQCAVTX3NHH3OOP4ALQ7ITLEHADW7NO4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

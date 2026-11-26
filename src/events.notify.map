@@ -45,7 +45,7 @@ foreach my $record ( AMOS7::Config::normalize_lines( \@raw )->@* ) {
     my $line = $record->{'text'} // next;
     next
         if $line
-        !~ m{\Anotify\.(on|by|same|quiet)\.([a-z0-9][\w.-]*?)\s*[=:]\s*(.*)\z};
+        !~ m{\Anotify\.(on|by|same|quiet)\.([a-z0-9][\w.\@-]*?)\s*[=:]\s*(.*)\z};
     my ( $kind, $key, $value ) = ( $1, $2, $3 );
     $value =~ s{\s+\z}{};
     if ( $kind eq qw| by | or $kind eq qw| same | ) {
@@ -84,8 +84,8 @@ foreach my $record ( AMOS7::Config::normalize_lines( \@raw )->@* ) {
 );
 return \%map;
 
-#,,,.,...,.,,,,,,,,..,,,.,,,.,.,.,...,,,.,...,..,,...,...,,..,.,,,,,.,.,.,,..,
-#EBW7YASCIGGV3KDDFVTIVLYEAHTFPFGTWHQYZNO2CA37TYKVD6QJMA7PG3YTWI7TRWMOSPXB5VIOA
-#\\\|SMWFMBEUH7E7QZLPKYBS45N6L6UHPURI63ZOGIPAM7YCFB3WHAC \ / AMOS7 \ YOURUM ::
-#\[7]5DRTVSAKM5C7AY3XM4VAU2ZIHRZJ6IBIBLD6WYNYYVFSKPABX6AI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,...,,..,,,,,,,.,,.,,,..,,,,,...,..,,...,...,,..,.,.,,..,,..,...,
+#4YJFQS6AWOXAVFI3VOGJ3CNZKMUXNQSCZIZYUCDGMAKI2EIAHMCEV5EBS63LUGD6BKKMH6MNHVHSW
+#\\\|BLOLSSHLZEYORJVG6WEXOY4NZJFI7YNW4EX7B3TBHQQWXIA2PHI \ / AMOS7 \ YOURUM ::
+#\[7]2NWXCCYE6F3SSZB755R6YQHTEBITM74EEX55ACZRUCSCIPCSUSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

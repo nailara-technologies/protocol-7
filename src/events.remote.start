@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = events.remote.start
+# descr = load remote pull state and arm each configured alias
+
+<events.remote.runs>   //= {};
+<events.remote.states> //= {};
+
+foreach my $alias ( sort keys %{ <events.remote.pull> // {} } ) {
+    next if $alias !~ m|\A[a-z0-9][a-z0-9_-]{0,62}\z|;
+    my $names = <events.remote.pull>->{$alias};
+    next if ref $names or not defined $names or not length $names;
+    <events.remote.states>->{$alias} = <[events.remote.state]>->($alias);
+    <[events.remote.arm]>->( $alias, TRUE );
+}
+return TRUE;
+
+#,,,,,...,.,,,,,.,,..,,..,...,,,,,...,,,.,.,,,..,,...,...,.,,,.,,,.,.,.,.,,..,
+#DJNKITPRV5Y6GOSUF3U2TC26CHOSBQHBYDCMVGIU4ETFHNI3GVQE5XXS6AECKWZGBEGGWOX3UOX36
+#\\\|WLD6HRH6V6PEF3HU6JP4XK37A4CNYY3KXATTAJEY3GWXEZSWI2T \ / AMOS7 \ YOURUM ::
+#\[7]CQ5OWBNHH6TWVRSKA4WH22NT7EVZCREYKEYE7B4PCOXMQHLXDWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = events.remote.line
+# descr = validate and raise one received remote journal record
+# args  = native line [ octets ], stream child handle
+#
+# fail closed : only an exact alias + name pair from events.remote.pull.<alias>
+# is accepted. the remote host field belongs to the id, never to local routing
+
+my ( $line, $handle ) = @ARG;
+my $alias = $handle->{'data'}{'alias'}     // return FALSE;
+my $run   = <events.remote.runs>->{$alias} // return FALSE;
+return FALSE if ( $run->{'handle'} // '' ) ne $handle;
+
+utf8::decode($line);
+return $run->{'invalid'}++
+    if $line
+    !~ m|\Aremote\.([A-Z0-9]{13}) = host:(\S+) time:(\d+) name:(\S+) values:(\S+)\z|;
+my ( $id, $host, $unix, $name, $encoded_values ) = ( $1, $2, $3, $4, $5 );
+$name = <[events.signal.decode]>->($name);
+my %allow = map { $ARG => TRUE } grep {length}
+    split m{\s+}, <events.remote.pull>->{$alias} // '';
+return $run->{'refused'}++
+    if $name !~ m|\A[a-z0-9][a-z0-9._-]{0,79}\z|
+    or not $allow{$name};
+
+my $state = <events.remote.states>->{$alias}
+    //= <[events.remote.state]>->($alias);
+$run->{'records'}++;
+$run->{'max_time'} = $unix if $unix > ( $run->{'max_time'} // 0 );
+return TRUE                if exists $state->{'seen'}{$id};
+
+my %values;
+foreach
+    my $pair ( $encoded_values eq qw| - | ? () : split m{,}, $encoded_values )
+{
+    my ( $key, $value ) = split m{=}, $pair, 2;
+    $values{ <[events.signal.decode]>->($key) }
+        = <[events.signal.decode]>->( $value // '' );
+}
+$values{'from'} = $alias;
+
+$state->{'seen'}{$id} = $unix;
+push @{ $state->{'order'} }, $id;
+while ( @{ $state->{'order'} } > 500 ) {
+    my $old = shift @{ $state->{'order'} };
+    delete $state->{'seen'}{$old};
+}
+$run->{'hits'}++;
+<[events.signal.raise]>->( qw| events.remote |, "$name\@$alias", \%values );
+return TRUE;
+
+#,,.,,,..,.,.,,,.,,.,,,..,,,.,,.,,,.,,.,,,,..,..,,...,...,.,,,...,,.,,,.,,..,,
+#TMZVO446LZMZNT2MO6IJMOIHXRX6UMCESN7FJKZLDWX3PYI7QCENTPWAKVBJ7JZEVEYM7QMX5SVTE
+#\\\|RVQUN2UBAQPCJZ54QXFFDIAJTOSRPDWWYQ4S54IGKUZ47ZFT3RQ \ / AMOS7 \ YOURUM ::
+#\[7]NEWA7ZXF46GGVTO3GFVEHEK4LSASVTY4USC6ED7DXXNRZ7YVXIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

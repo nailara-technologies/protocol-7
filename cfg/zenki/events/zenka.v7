@@ -10,11 +10,29 @@ events.load_config  = base        ## [ ./cfg/zenki/events/event-setup.<name> ]
 [load_host_config]
 ##        available : letsencr | base  ## enable letsencr for 'remote-server'
 
-modules.load      = net protocol io.unix ui auth events set-up.json ## devmod
+modules.load      = net protocol io.unix ui auth events set-up.json stream_child ## devmod
 access.cmd.usr.cube  = verify-instance commands heart reload \
-                      signal signals plugins \
+                      signal signals signals-since plugins \
                       bucket-add bucket-remove bucket-show bucket-clear \
                       *  ## <-- refine
+
+## receiver-pulled remote journal records [ no transport registry ] : the ##
+## sender publishes exact names only. the receiver accepts only the exact ##
+## alias + name pairs listed here ; every unlisted pair fails closed      ##
+events.remote.publish       = place.complete placement.complete
+## the pulls belong to the receiving host only : its overlay ##
+## /etc/protocol-7/host-config/events.cfg sets them          ##
+## [ here every host would pull , the sender from itself ]   ##
+# events.remote.pull.azurum   = place.complete
+# events.remote.p7r_user      = events-pull
+base.interval.cfg.type.events-remote-pull.start      = 34
+base.interval.cfg.type.events-remote-pull.factor     = 1.2
+base.interval.cfg.type.events-remote-pull.cap        = 180
+base.interval.cfg.type.events-remote-pull.cap_jitter = 21
+base.interval.cfg.type.events-remote-pull-timeout.start      = 21
+base.interval.cfg.type.events-remote-pull-timeout.factor     = 1.2
+base.interval.cfg.type.events-remote-pull-timeout.cap        = 21
+base.interval.cfg.type.events-remote-pull-timeout.cap_jitter = 3
 
 ## buckets [ runtime timetables of the zenki, see events.bucket-add ] :     ##
 ## entries per bucket, and the rhythms of `after=<type>` -- fresh state per ##
@@ -66,8 +84,8 @@ plugins.load      = plugin.events
 
 [zenka.loop]
 
-#,,.,,,.,,.,,,.,.,,,,,...,,.,,.,,,,..,,,,,..,,..,,...,...,.,.,,,.,,.,,...,...,
-#ZHZ74N5T2SQP2ASRJWCOI3675SNWTKMHUSJPOIODWEPFUZE44FSEIXPBLGBE3SEJYDC3NKIEI2W76
-#\\\|DTG2PCHRCYJVZH5MBCUISEGVQIYI2CHRVD5D2BWKYYSD7COKTGY \ / AMOS7 \ YOURUM ::
-#\[7]3QJG5ZOMM7XKBNQMAJJEYWKYDFVC73MXN73PZKSCUINGR2DO4YCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,,,,.,,..,,..,,.,,,.,.,,..,,,.,..,,...,.,,,.,.,...,..,,,.,,.,,,
+#3JNXFFAS35JUA57PHZXO2LTGQIKHECB77YLHVJEIODGPCS67KW5GKHJMOTN6JSZ7X675SXM4VL7YE
+#\\\|BJMJQIZVK5JPNG5JI6NO6AA72MRLBQKK6IHTJHMCDBEC4ZQMMFY \ / AMOS7 \ YOURUM ::
+#\[7]GUEW36NYP43NMJE6MB5EXF6KPBAL4SJMBA75VCTNXASYWML2DUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

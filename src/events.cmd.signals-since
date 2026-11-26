@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = events.cmd.signals-since
+# descr = published journal signals newer than a unix time
+# param = <unix time>
+# return = native remote.<id> lines [ host, time, name, values ]
+#
+# events.remote.publish is a list of exact names. it fails closed : a signal
+# not listed there never leaves this host. the default publishes n7fs placement
+# completion only. the id is stable for host + name + unix time + sorted values
+
+my $since = $call->{'args'} // '';
+$since =~ s{\A\s+|\s+\z}{}g;
+return { 'mode' => qw| false |, 'data' => 'numerical unix time expected' }
+    if $since !~ m|\A\d{1,20}\z|;
+
+my $publish = <events.remote.publish> // 'place.complete placement.complete';
+my %publish = map { $ARG => TRUE } grep {length} split m{\s+}, $publish;
+my $host    = <system.node.name> // <system.host.hostname> // qw| unknown |;
+my $enc     = sub { <[events.signal.encode]>->(@ARG) };
+my @lines;
+
+foreach my $rec ( @{ <[events.signal.journal_read]>->(500) } ) {
+    my $name = $rec->{'name'} // '';
+    next if not $publish{$name};
+    my $unix = str2time( $rec->{'time'} // '' );
+    next if not defined $unix or $unix <= $since;
+
+    my $values = $rec->{'values'} // {};
+    my @pairs  = map { $ARG . '=' . ( $values->{$ARG} // '' ) }
+        sort keys %{$values};
+    my $canonical = join '',
+        map { length($ARG) . ':' . $ARG } $host, $name, $unix, @pairs;
+    utf8::encode($canonical) if utf8::is_utf8($canonical);
+    my $id = <[chk-sum.bmw.L13-str]>->($canonical);
+    next if not defined $id;
+
+    my $encoded_values = join ',',
+        map { $enc->($ARG) . '=' . $enc->( $values->{$ARG} // '' ) }
+        sort keys %{$values};
+    push @lines,
+        sprintf "remote.%s = host:%s time:%d name:%s values:%s\n",
+        $id, $enc->($host), $unix, $enc->($name),
+        length $encoded_values ? $encoded_values : qw| - |;
+}
+
+return { 'mode' => qw| size |, 'data' => join( '', @lines ) };
+
+#,,,,,.,.,.,,,.,,,..,,,..,...,,,,,,,.,,,.,,.,,..,,...,...,..,,..,,,,.,,..,..,,
+#EMTZGJSSLH2HPUBHJHTQ4WVSFCNJBRYO5YY5YODUIIZ4HDRG2AEJZEFZ6DDMANZAKFRBDBST4O4DI
+#\\\|C5457JA7EZVIGFHCLXIOXL2SSBKLN23YSMLUDCYBSDQ6BCHQ45E \ / AMOS7 \ YOURUM ::
+#\[7]SMM36B5OTADLBZ7F4IZFRASCN4A5R4DDBVWH7M56QTSG3V643CBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = events.remote.arm
+# descr = arm the next receiver-pulled remote signal poll
+# args  = alias, reset interval to start
+
+my ( $alias, $reset ) = @ARG;
+my $run = <events.remote.runs>->{$alias} //= { 'interval' => {} };
+return FALSE if defined $run->{'handle'} and not $run->{'handle'}{'gone'};
+return FALSE if ref $run->{'timer'} and eval { $run->{'timer'}->is_active };
+
+my $delay = <[base.interval.next]>->(
+    {   'type'  => qw| events-remote-pull |,
+        'state' => $run->{'interval'},
+        'reset' => $reset ? TRUE : FALSE
+    }
+);
+return FALSE if not defined $delay;
+
+$run->{'timer'} = <[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| events.remote.poll |,
+        'data'    => { 'alias' => $alias },
+        'desc'    => "events remote pull $alias"
+    }
+);
+return defined $run->{'timer'} ? TRUE : FALSE;
+
+#,,..,,,,,,.,,...,.,.,.,,,.,,,.,,,,.,,...,.,,,..,,...,...,...,,,.,,,,,,..,,..,
+#5LF4FPH4ZSPV6ESNVSHIYCZ57WBU6W7SMJH3HVL3OAAS4JCKTVFYPVLJJDZAXBUKGQOJ2LAS5V2UO
+#\\\|RRC64HOCK4TU3PTFN7TQBW3BIASHHFTGLLOADJDNUUMXBGQOAVE \ / AMOS7 \ YOURUM ::
+#\[7]KVWGBV7T6H4V2Y6ZEZ64N3E6KE2MQIMM67XNKLXJRRFNVGY2QGDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

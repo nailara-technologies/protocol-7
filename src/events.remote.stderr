@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = events.remote.stderr
+# descr = retain a bounded remote pull error for the completion log
+
+my ( $line, $handle ) = @ARG;
+my $alias = $handle->{'data'}{'alias'}     // return FALSE;
+my $run   = <events.remote.runs>->{$alias} // return FALSE;
+return FALSE if ( $run->{'handle'} // '' ) ne $handle;
+utf8::decode($line);
+$line =~ s{[^\x20-\x7e]}{?}g;
+push @{ $run->{'stderr'} }, substr( $line, 0, 400 );
+shift @{ $run->{'stderr'} } while @{ $run->{'stderr'} } > 13;
+return TRUE;
+
+#,,.,,...,.,.,.,,,,,.,..,,..,,,,,,.,.,,..,,..,..,,...,..,,,,,,,..,...,,..,,..,
+#6EK6WSB7EAJGOHF6BCDHWSBMJSTMC3Y66C6G6ZYMTGXJMK7RC4P526VJ6U76BMNMPUCHOTQWXX6LE
+#\\\|4KHRLVBZKAKU24LWEJREUCA6AYSDLKPAYTARW2YY7LZ2CTSW7LV \ / AMOS7 \ YOURUM ::
+#\[7]UNRGZLRF7WYWQXVHSVDWUVVJ2DKZTSQTT5GDMIGQBQW42KNSWSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

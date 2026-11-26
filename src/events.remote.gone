@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = events.remote.gone
+# descr = finish a remote pull, persist state and arm the next poll
+# args  = stream child gone reason, handle
+
+my ( $reason, $handle ) = @ARG;
+my $alias = $handle->{'data'}{'alias'}     // return FALSE;
+my $run   = <events.remote.runs>->{$alias} // return FALSE;
+return FALSE if ( $run->{'handle'} // '' ) ne $handle;
+delete $run->{'handle'};
+
+my $state = <events.remote.states>->{$alias}
+    //= <[events.remote.state]>->($alias);
+if ( $run->{'records'} ) {
+    $state->{'last_time'} = $run->{'max_time'} // $state->{'last_time'} // 0;
+    <[events.remote.state]>->( $alias, $state );
+}
+
+my $failed
+    = $reason ne qw| eof |
+    || ( $handle->{'exit'} // 0 ) ne 0
+    || $run->{'invalid'}
+    || $run->{'refused'};
+if ( $failed or @{ $run->{'stderr'} // [] } ) {
+    <[base.logs]>->(
+        0,
+        'remote pull %s : %s [ %d new, %d refused, %d invalid ] : %s',
+        $alias,
+        $reason,
+        $run->{'hits'}    // 0,
+        $run->{'refused'} // 0,
+        $run->{'invalid'} // 0,
+        join( ' | ', @{ $run->{'stderr'} // [] } )
+    );
+} elsif ( $run->{'hits'} ) {
+    <[base.logs]>->(
+        1, 'remote pull %s : %d new signal%s',
+        $alias, $run->{'hits'}, $run->{'hits'} == 1 ? '' : 's'
+    );
+}
+return <[events.remote.arm]>->( $alias, $run->{'hits'} ? TRUE : FALSE );
+
+#,,.,,.,,,.,,,,..,.,,,,,.,,..,,,.,,..,.,.,,,,,..,,...,...,,..,,.,,,.,,.,,,,,,,
+#PK4UJ2F2GAYRBCPYARYPR5HTITEIR7MUROPODTIUHYC3JCO76T5AR4EH7CNML5DMBGYU6ATMQDXA6
+#\\\|OFKO43PSKWYCYWP676SFD23BQV3PSDUKQKF37L7SZMIQL26MQW4 \ / AMOS7 \ YOURUM ::
+#\[7]XO5BJVIDU7SZRLBMFB3YMPSZOTA36MNX37W7MCZRIQYIKOSUL4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = events.remote.poll
+# descr = start one non-blocking p-7-r signals-since pull
+
+my $alias = ( shift->w->data // {} )->{'alias'} // return FALSE;
+my $run   = <events.remote.runs>->{$alias}      // return FALSE;
+delete $run->{'timer'};
+return FALSE if defined $run->{'handle'} and not $run->{'handle'}{'gone'};
+
+my $pull  = <events.remote.pull> // {};
+my $names = $pull->{$alias}      // return FALSE;
+return FALSE if ref $names or not length $names;
+
+my $state = <events.remote.states>->{$alias}
+    //= <[events.remote.state]>->($alias);
+my $last  = $state->{'last_time'} // 0;
+my $since = $last > 0 ? $last - 1 : 0;           ## same-second records too ##
+my $bin   = <events.remote.p7r_bin> // qw| ::: |;
+my $env   = <[stream_child.user_env]>->(qw| .local/bin |);
+$env->{'PROTOCOL_7_BIN_P7R_USER'} = <events.remote.p7r_user>
+    // qw| events-pull |;
+
+my $r = <[stream_child.start]>->(
+    {   'cmd'       => [ $bin, $alias, qw| events.signals-since |, $since ],
+        'env'       => $env,
+        'group'     => TRUE,
+        'on_line'   => qw| events.remote.line |,
+        'on_stderr' => qw| events.remote.stderr |,
+        'on_gone'   => qw| events.remote.gone |,
+        'stop'      => qw| KILL |,
+        'interval'  => { 'stop' => qw| events-remote-pull-timeout | },
+        'max_line'  => 65536,
+        'data'      => { 'alias' => $alias }
+    }
+);
+
+if ( not $r->{'ok'} ) {
+    <[base.logs]>->(
+        0,      'remote pull %s : spawn failed : %s',
+        $alias, $r->{'error'}
+    );
+    return <[events.remote.arm]>->( $alias, FALSE );
+}
+
+@{$run}{qw| handle records hits max_time stderr |}
+    = ( $r->{'handle'}, 0, 0, $last, [] );
+<[stream_child.arm]>->( $r->{'handle'} );    ## a hung child is killed ##
+return TRUE;
+
+#,,.,,.,,,,,.,,,.,.,,,,,.,,,.,...,,..,.,.,,.,,..,,...,...,...,..,,.,.,,.,,..,,
+#SYLSFMEASPBPYVZO2MMVESWQTWFVF5USOACYMEYDQWNGQPHPJ2KZ3GZNN4NTMAXVPDPCVIUSEUUMO
+#\\\|4OKXZNGNKTO3ATN3FBFA35BFZMBYOKE6LCCX7RJCQXV273YSBB6 \ / AMOS7 \ YOURUM ::
+#\[7]QLSRUCO656URBBOXYPOZUGPR375VZGDV4HR5OTDV5PXR6HRKYYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

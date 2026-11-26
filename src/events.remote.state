@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = events.remote.state
+# descr = load or atomically save one alias' cursor and seen record ids
+# args  = alias [ , state to save ]
+# return = loaded state, or TRUE \ FALSE when saving
+
+my ( $alias, $save ) = @ARG;
+return FALSE if $alias !~ m|\A[a-z0-9][a-z0-9_-]{0,62}\z|;
+my $dir = sprintf qw| %s/events/remote-pull |,
+    <system.path.zenka-dirs.var_P7> // qw| /var/protocol-7 |;
+my $path = "$dir/$alias.state";
+
+if ( defined $save ) {
+    if ( not -d $dir ) {
+        my ($parent) = $dir =~ m{\A(.*)/[^/]+\z};
+        mkdir $parent, 0750 if defined $parent and not -d $parent;
+        mkdir $dir,    0750 or return FALSE;
+    }
+    my $tmp = "$path.tmp";
+    return FALSE if not open my $fh, '>:encoding(UTF-8)', $tmp;
+    print {$fh} ".:[ events remote pull '$alias' ]:.\n";
+    printf {$fh} "last_time = %d\n", $save->{'last_time'} // 0;
+    foreach my $id ( @{ $save->{'order'} // [] } ) {
+        next if not exists $save->{'seen'}{$id};
+        printf {$fh} "seen.%s = %d\n", $id, $save->{'seen'}{$id};
+    }
+    return FALSE if not close $fh;
+    return CORE::rename( $tmp, $path ) ? TRUE : FALSE;
+}
+
+my $state = { 'last_time' => 0, 'seen' => {}, 'order' => [] };
+return $state if not -f $path;
+if ( open my $fh, '<:encoding(UTF-8)', $path ) {
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        if ( $line =~ m{\Alast_time = (\d+)\z} ) {
+            $state->{'last_time'} = $1;
+        } elsif ( $line =~ m|\Aseen\.([A-Z0-9]{13}) = (\d+)\z| ) {
+            $state->{'seen'}{$1} = $2;
+            push @{ $state->{'order'} }, $1;
+        }
+    }
+    close $fh;
+} else {
+    <[base.logs]>->(
+        0,      'remote pull %s : cannot read state : %s',
+        $alias, $OS_ERROR
+    );
+}
+return $state;
+
+#,,..,,.,,,,,,.,.,,,.,,.,,,,.,,,,,.,,,...,,,,,..,,...,...,...,.,.,..,,.,.,,,,,
+#OFH5AKEMRYECVICMNMTDQILKBWALTOI6PQ3DET4VAE5KALZUCWBBN7XVPTG2HP7ABUFE77NRQ5IBA
+#\\\|YQF2BBUQUKEX3O4BNK3NTM3LBOK524IWYQLOYRUIBYGAM2RHSNI \ / AMOS7 \ YOURUM ::
+#\[7]65KTO74WDESPUP3HL2QOV54RQABDGBZZVHXIMPGBXJMKPFTVX4DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
