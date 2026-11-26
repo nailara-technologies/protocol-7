@@ -50,10 +50,15 @@ if ( $task_models =~ m|\S|
     return FALSE;
 }
 
+## no idle time in a FRESH status                                          ##
+## [ no ready backend, eg. the gpu held by a render ] : no swap, FALSE --  ##
+## UNKNOWN here made peek-claim ask coding.inference-status again at once, ##
+## for ever [ models, coding and cube at full cpu, 2026-11-26 ]. the next  ##
+## poll asks after 60 s                                                    ##
 my $idle_secs = $local->{'idle_secs'};
 if ( not defined $idle_secs or $idle_secs !~ m|^\d+$| ) {
     delete $swap->{$pin_content};
-    return UNKNOWN;
+    return FALSE;
 }
 ## a model only loaded [ startup, switch ] gives way sooner than one that ##
 ## served requests                                                        ##
@@ -76,8 +81,8 @@ if ( not $swap->{$pin_content} ) {
 }
 return TRUE;
 
-#,,.,,,,.,,..,..,,...,...,.,,,.,.,,..,...,.,,,..,,...,...,..,,...,.,,,.,.,..,,
-#LJ27BANCYIQXYBZZMRSNOE7HCNINSE7VR3N4MMX6BFKTRBBDYDP3O6P2SAXJ3XQTDDETTMZDF7OPQ
-#\\\|4HPIJ52ITHZB6R4P6BKXEWECYS6CHPAML5I453RZAZRXZBNX7G4 \ / AMOS7 \ YOURUM ::
-#\[7]L2KLMX7JORH2ZRMTU45MYVLCZDID65LASC4G7YHZXHBGO262SABA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,.,,,,.,,,..,..,,.,.,,,,,,,,,..,,...,...,,..,,,,,,,.,..,,..,,
+#AUJZ3UOPBW5PMXSVHRDH2PSKCTMZY7EIWRBXONU3QJB4GJ4SPJTHTXN2JLK2AO5U4TBPR55XICDFI
+#\\\|F6BLMNKOXH7B45WY7GHFFH5KK2FCPD4ANPGI3ZAM6SWOXZQMKXS \ / AMOS7 \ YOURUM ::
+#\[7]NCB7FTOOIARF5Z46S2CCSR44D4FMHKBDTS4N3I5564LLVML33CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

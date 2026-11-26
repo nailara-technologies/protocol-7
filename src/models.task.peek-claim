@@ -35,14 +35,20 @@ if ( $source =~ m|\.|
     return FALSE;
 }
 
+## a re-run from the 'peek-models' step already holds a fresh answer : ##
+## still UNKNOWN then counts as FALSE, never a second ask [ no loop ]  ##
+my $asked = delete $peek->{'asked'};
+
 my $accepted = <[models.task.pin-accepted]>->($pin);
+$accepted = FALSE if $accepted == UNKNOWN and $asked;
 
 if ( $accepted == UNKNOWN ) {
     my $sent = <[protocol-7.route-send]>->(
         {   'command' => qw| coding.inference-status |,
             'reply'   => {
                 'handler' => 'models.handler.task-poll-step',
-                'params'  => { %{$peek}, 'step' => 'peek-models' }
+                'params'  =>
+                    { %{$peek}, 'step' => 'peek-models', 'asked' => TRUE }
             }
         }
     );
@@ -70,16 +76,18 @@ if ( not $accepted ) {
 ## pending for another host. backend count unknown : ask coding first, the  ##
 ## 'peek-models' reply re-runs this check with fresh data                   ##
 my $gate = <[models.task.claim-ok]>->( $pin // '' );
+$gate = FALSE if $gate == UNKNOWN and $asked;
 if ( $gate == UNKNOWN ) {
-    my $asked = <[protocol-7.route-send]>->(
+    my $gate_sent = <[protocol-7.route-send]>->(
         {   'command' => qw| coding.inference-status |,
             'reply'   => {
                 'handler' => 'models.handler.task-poll-step',
-                'params'  => { %{$peek}, 'step' => 'peek-models' }
+                'params'  =>
+                    { %{$peek}, 'step' => 'peek-models', 'asked' => TRUE }
             }
         }
     );
-    return TRUE if $asked and $asked > 0;
+    return TRUE if $gate_sent and $gate_sent > 0;
     return FALSE;    ## no answer : left pending, nothing claimed ##
 }
 
@@ -117,8 +125,8 @@ delete <models.task.claimed>->{$task_id} if not $sent;
 
 return TRUE;
 
-#,,,.,.,.,.,.,..,,.,,,,..,.,,,.,,,.,,,,,,,.,.,..,,...,..,,.,,,,,.,.,.,...,,..,
-#4OVW6ERRNBFI54WBIQDEFYI4SKF4M6FPSKXXJ3O6BT653F7ZQ63SSYGPC5AHUEQIFXFX4YA5LJJCY
-#\\\|XT2ST6WCMSL2SIEORYADDLCWTIYUQG44JQFOMGQ2E2M7N5FSZ5H \ / AMOS7 \ YOURUM ::
-#\[7]M47XAACUBTKYMEQAQYEPANQIOAGIO5HNG7CDXV33QJQVZHBMSMAA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,.,,,,,,..,,..,,..,.,,,,.,,,..,..,,...,...,,,.,,,,,,,,,..,,.,.,
+#TMTPSDDVPMO3L3ULPSTIJOMSYH5TH7BAJJMNGQQJCWZRKIQ3T2DTALGBWUBRBDJTRLCSHKIVS4WDU
+#\\\|5CRB4KKH7ZXRJSKKOYCMUG6CJDFPPOZSUHR7TQ6SX2WDHVXZET7 \ / AMOS7 \ YOURUM ::
+#\[7]KYOUJ5D3NIW3FPVMSGJGEYN2FJ5BUFEB4WFXPKHQY222WBKUQGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

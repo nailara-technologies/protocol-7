@@ -4,9 +4,16 @@
 
 my $event = shift;
 
-my $instance_id = $event->w->data;
+## an event whose watcher is already gone : nothing to time out. the croak ##
+## on undef ->data unwound into Event's loop eval and freed the dangling   ##
+## watcher -- SIGSEGV [ core of v7-zenki 2026-11-26 ]                      ##
+my $watcher = $event->w // return;
 
-return $event->w->cancel    ##  not a valid instance entry  ##
+my $instance_id = $watcher->data;
+
+## not a valid instance entry : a one-shot that fired is already done -- ##
+## never cancel the running watcher inside its own callback              ##
+return
     if not defined <v7-zenki.zenka.instance>->{$instance_id}
     or not defined <v7-zenki.zenka.instance>->{$instance_id}->{'status'};
 
@@ -132,8 +139,8 @@ if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
         ;    ##  retrying now [0]
 }
 
-#,,..,,..,,,.,.,,,,.,,.,,,,..,,.,,.,,,,,.,.,,,..,,...,...,...,,..,,..,,.,,,,,,
-#62GCP4MIDWOBCKYHPJMP2XNEYNXG7I72HMEJXBLGUIHWHMGXEDXSUX4FHNA6HZTZ4MEIZSCS5XPLM
-#\\\|N7XV4G7VWWQKGSY5MBEAO5XP47X3RWPUN67NTDURE677TMBQ5H4 \ / AMOS7 \ YOURUM ::
-#\[7]2L7K6AQEKX7X7PMOPOCF3AA5ZDWRMESMKMCPATCVWTSIYVIYDYDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,..,..,,,..,.,,,,.,,,..,.,.,..,,..,,...,...,...,.,,,,..,..,,.,.,
+#GMHQRPYO4HFX43R4FRAHDVBRLNUTXJLBTC77CXBFGDDHDGQSMEBVALVH35DRVQ6NBDV6NWITO3FBQ
+#\\\|DZZSKEXLMSCAKM4AHWOTN2GXYLOT6HW3PIENAPJCZUXPQBUP63X \ / AMOS7 \ YOURUM ::
+#\[7]Z4WICEDIP7LWSVK57JMCJ5OUP464FAIDFKYOPKD2RG7FZGLDOEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
