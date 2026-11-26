@@ -59,6 +59,9 @@ work ].
   never touches the core's timers. off = not loaded, not skipped inside shared code. [ the
   v7-zenki pressure branch inside heartbeat_response_timeout is the counter-example : the
   SIGSEGV path of 2026-11-26 ran through it ]
+- **promotion into the core** : the plugin stage is where a feature proves itself ; one that
+  ran reliably can move into the core later, as code with a record [ its run time, its errors,
+  whether auto-disable ever acted ], never as new code straight into a hot path.
 - **later : auto-disable failing sub-features** : once errors can be traced and categorized, a
   plugin that keeps failing can be switched off by itself -- decided by the installation's
   operation mode [ a production host disables and records, a development host stays loud ]. a
@@ -70,8 +73,8 @@ work ].
   SIGSEGV loop found the same evening [ fbd58a42de ] : worth re-reading its 'why'.
 - memory : feedback-busy-zenka-gdb-curcop-and-event-faults.md
 
-#,,.,,,,.,...,.,.,.,,,,..,...,,,,,.,,,,,,,..,,..,,...,..,,...,,.,,.,.,,.,,,,,,
-#TE2A3GNIITKBPRELPZCVH7AHK6AIHDQQ6XGZDZ27DBURPFUUVYJVR3PWHCXPOYSGWSFDUT23GMWC2
-#\\\|DK4OGV5R6GPTW2XHZXMZQVBGJTCY42QWQTZY65BISYR3GWNLFG2 \ / AMOS7 \ YOURUM ::
-#\[7]V3C5JSB5EQWTEQVLLTI3JDAWG5ALONYMS3JWXWILJM3JQGFWM6AY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,.,.,.,,,,..,,.,,.,,,,,.,,,,,..,,...,...,...,,,.,.,.,,.,,,,.,
+#XY37IHNLEW7F3RZUCA4GSI566SAVKM2XU3NUJ57AKIWIM3SDBAGPCQDHVCSWCPAQSMIIX57MTLCGW
+#\\\|6IYMSOKIHHIEG7MQLKYNNBWYREEJQFJOIEPJKMGWNIV2VYFBLCI \ / AMOS7 \ YOURUM ::
+#\[7]TT7PLCCFYGMW5GRH43A3JI3GN6HOV2FKWWPBYTZWQCKDAE2QMUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
