@@ -16,6 +16,32 @@ a CHILD of v7-zenki. cube can only drop the connection, which needs v7-zenki's e
 notice ; a stuck loop notices nothing. only kernel-handled signals reach such a process
 [ KILL, STOP ]. so the only clean place for supervision is above v7-zenki, as root.
 
+## what it turned out to be [ same evening, 2026-11-26 ]
+
+the regex theory above is SUPERSEDED. the spin was reproduced that evening and caught with
+strace, gdb and a core : a SIGSEGV loop. every signal had an Event watcher, SEGV included ;
+Event's handler only counts and returns, the faulting instruction ran again for ever -- 100 %
+cpu, an empty kernel stack, TERM and signal 53 recorded but never dispatched, children left as
+zombies. the fault itself : a heartbeat timeout callback croaked on a watcher already gone
+[ `$event->w` undef ], the unwind freed the dangling watcher. a code path added with the
+memory pressure work [ 2026-09-29 ] ; it needs a host stall [ an invoke render ] to trigger.
+fixed : fbd58a42de [ fault signals end the zenka ], f89cde7816 [ the watcher guard ]. the
+morning spin has no core -- unproven, but every symptom matches.
+
+before that, v7-zenki had not hung for years. 'it can happen' was not accepted, and rightly :
+it had become a regression with a cause, not a property of the system.
+
+so the anchor's reason changes. not 'v7-zenki may spin, restart it' -- a supervisor that only
+restarts would have hidden this bug [ occasional hiccups, the evidence gone with each restart ].
+the anchor is for what stays after causes are fixed [ a stuck event loop for any reason, a
+deadlock ], and it DIAGNOSES before it acts : notice [ no loop progress ], record evidence
+[ PL_curcop samples, a core, the children's state ], then restart. a restart without a record
+is the pattern to avoid.
+
+the anchor is built the same way it supervises : a small proven core [ notice, record,
+restart ], every further capability a plugin behind a narrow hook, selectively enabled, off
+without degrading the core. see the principles in data/tasks/claim-lease-and-quiet-retries.md.
+
 ## the shape
 
 1. `<anchor>` is the systemd unit's MAIN process, v7-zenki its child. systemd sees only the
@@ -125,8 +151,8 @@ do well :
 - the kill step : automatic after a long grace, or report only at first
 - children on recovery : full restart [ today ] or adoption later
 
-#,,,.,.,,,.,,,.,.,.,.,,.,,,,.,.,,,.,,,...,.,.,..,,...,...,..,,,,.,,,,,..,,,,,,
-#IV5OTGTVQT7HMKNLKYNYK5JZXJUQVK5P6SMR6WKWT6QGQOYZZ4ZOELBGCKUHCOGGTHLX6U6FAGH6Y
-#\\\|2FCNCJ5NU6ETOJTUSSQUQDRQ5Z6TRKWSCBI6Q5W4ZCDA5LISOO3 \ / AMOS7 \ YOURUM ::
-#\[7]ON52AYDZFQIKKDKHY5RN5TOHO26JGDXHVXOOLBNONKMYP5YSHGDA 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,.,,,.,.,,.,,,.,,...,,.,,..,,,,,,..,,...,...,,..,...,.,,,.,,,...,
+#HZCR5XHLKW5TK27EKTULUQXKBTIN3EPC6IPKJLKACPCNGSCDYJ27TQYXD6DLETZVIXW5TIS2274BI
+#\\\|F5V2O2QH3ZHCPVYA2AGKKWGW2VIQYVFB2NZVDKLAFAOCDJNWR2P \ / AMOS7 \ YOURUM ::
+#\[7]ZGN5HZUVC74B56653363UPIYVZXELE6QU3DLNOXTYBM3GN6IMMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
