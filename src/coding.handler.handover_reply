@@ -22,6 +22,26 @@ if ( $source =~ m{\Aarm-(\w+)\z} ) {
         if $mode ne qw| true |;
     return TRUE;
 }
+if ( $p->{'presence'} ) {
+    if ( $mode eq qw| true | ) {
+        my $sent = <[protocol-7.route-send]>->(
+            {   'command'   => $p->{'command'},
+                'call_args' => { 'args' => $p->{'args'} },
+                'reply'     => {
+                    'handler' => qw| coding.handler.handover_reply |,
+                    'params'  => { 'source' => $source }
+                }
+            }
+        );
+        ## the real answer arrives in this handler again : store nothing ##
+        ## yet                                                           ##
+        return TRUE if $sent;
+        $text = 'not reachable';
+        $mode = qw| false |;
+    } else {
+        $text = 'not running';
+    }
+}
 $text = 'not reachable' if $text =~ m{\Aclient not present};
 ## task.queue : no task at all is an empty answer, not a failure ##
 $mode = qw| true |
@@ -33,8 +53,8 @@ $state->{'source'}{$source} = {
 };
 return TRUE;
 
-#,,.,,,,.,.,,,,..,...,.,,,.,.,,..,,,,,,,,,..,,..,,...,..,,.,,,,,.,..,,,..,,..,
-#UP5HQAOQ6NER6HLNDOIS3AXZTQD7SWKIXBUBGOBH35DF6U2ZGGDFMGDOD3JYTSGQ3LMMYT6XCXUZ6
-#\\\|W7HGYPQW67RD4Q6ZOGACUUL2A4KZ45AHURVWOC2D7I4IJKO6SYM \ / AMOS7 \ YOURUM ::
-#\[7]J6LBWOGY52II2E6B2IW4TFJHNVJXIHQCQQQLNTWCRRD2MXQEUKAI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,,..,,,.,,.,,.,,,,,.,,..,,.,,..,,...,..,,..,,,..,.,,,.,.,..,,
+#634ZF3VXDH5PD5E7FBCFUVI4O2JRRBNUXFVT5FUDRV7T47RBJFSDHFBIW3KEJKXLDJ4LPMSSLDM4I
+#\\\|HWM27LNGGBX6S4UQSU3ZB437YIFGM4C6IACGN2XNIX2C5PDSR3O \ / AMOS7 \ YOURUM ::
+#\[7]IN3MPST5YWVGNHQ5ND26SMZ2HNKYCDZF6CEZQGJPF2EEITA7AUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

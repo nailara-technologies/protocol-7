@@ -4,9 +4,10 @@
 # descr  = keep-alive timer : ask what is pending
 # args   = the timer event [ not used ]
 #
-# route-send only buffers : coding.handler.keepalive_pending collects the
-# answers and decides. a round a source never answered is decided with
-# what came, at the next tick after coding.cfg.keepalive_round_seconds
+# route-send only buffers : coding.handler.keepalive_pending checks presence,
+# sends the source query from its reply handler and collects the answers. a
+# round a source never answered is decided with what came, at the next tick
+# after coding.cfg.keepalive_round_seconds
 
 undef <coding.keepalive.timer>;
 my $round = <coding.keepalive.round>;
@@ -52,13 +53,20 @@ my %query = (
     'got'   => {}
 };
 foreach my $source ( sort keys %query ) {
+    my ($zenka) = split m{\.}, $query{$source}->[0], 2;
     next
         if <[protocol-7.route-send]>->(
-        {   'command'   => $query{$source}->[0],
-            'call_args' => { 'args' => $query{$source}->[1] },
+        {   'command'   => qw| present |,
+            'call_args' => { 'args' => $zenka },
             'reply'     => {
                 'handler' => qw| coding.handler.keepalive_pending |,
-                'params'  => { 'round' => $id, 'source' => $source }
+                'params'  => {
+                    'round'    => $id,
+                    'source'   => $source,
+                    'presence' => TRUE,
+                    'command'  => $query{$source}->[0],
+                    'args'     => $query{$source}->[1]
+                }
             }
         }
         );
@@ -71,8 +79,8 @@ if ( not keys <coding.keepalive.round>->{'wait'}->%* ) {
 }
 return TRUE;
 
-#,,,,,.,.,..,,.,,,...,.,.,...,...,..,,..,,.,.,..,,...,...,...,,,,,,,,,,,,,,,,,
-#2ENGAE4LTQ6HHO2B2FF3VINAMJIDONVDIBXUF26644MOAL3TRMM2FLFHPNHODD5QQX32LULPUONSA
-#\\\|T6DRK25FS4XT2U57HIE5S2BZUJ2BKBKLRBJ24RAX63QCHS5R2JY \ / AMOS7 \ YOURUM ::
-#\[7]AXAN22WE2LPDV6MMULTQBVXISBTMC7OKRTEUVL2OTUKDYNKAOWAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,,,.,,,..,,,,.,...,...,..,,..,,..,,...,...,...,,..,.,.,.,,,,,,,
+#JJBAHWU7J4WKGWT6EEN2JDQYLAX2IEAPPLQIXIFJRTNGYWR3WCN6NXH7SWCBVCF6QMZVEVBPXPZXM
+#\\\|VKITMEZJ4EIAEVYQOOPMD46TBU353SW6VWCFM2ENDHWRQL352LF \ / AMOS7 \ YOURUM ::
+#\[7]UN7PUEZG4VDIT6MTMPP6WYBVTI5E3TZJ2FAAWGDZYPDELQMIZSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,21 +3,45 @@
 # name  = coding.handler.keepalive_pending
 # descr = a pending source answered ; the last one decides
 
-my $reply = shift              // {};
-my $p     = $reply->{'params'} // {};
-my $round = <coding.keepalive.round>;
+my $reply  = shift              // {};
+my $p      = $reply->{'params'} // {};
+my $round  = <coding.keepalive.round>;
+my $source = $p->{'source'} // '';
 return FALSE
     if not defined $round
-    or ( $p->{'round'} // '' ) ne $round->{'id'}
-    or not delete $round->{'wait'}{ $p->{'source'} // '' };
+    or ( $p->{'round'} // '' ) ne $round->{'id'};
+
+if ( $p->{'presence'} ) {
+    return FALSE if not exists $round->{'wait'}{$source};
+    my ($mode) = <[base.reply.mode_text]>->($reply);
+    if ( $mode ne qw| true | ) {
+        delete $round->{'wait'}{$source};
+    } else {
+        my $sent = <[protocol-7.route-send]>->(
+            {   'command'   => $p->{'command'},
+                'call_args' => { 'args' => $p->{'args'} },
+                'reply'     => {
+                    'handler' => qw| coding.handler.keepalive_pending |,
+                    'params'  =>
+                        { 'round' => $p->{'round'}, 'source' => $source }
+                }
+            }
+        );
+        delete $round->{'wait'}{$source} if not $sent;
+    }
+    <[coding.keepalive.decide]> if not keys $round->{'wait'}->%*;
+    return TRUE;
+}
+
+return FALSE if not delete $round->{'wait'}{$source};
 my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
 $text =~ s{\\n}{\n}g;    ## a true line arrives with newlines escaped ##
-$round->{'got'}{ $p->{'source'} } = $text if $mode ne qw| false |;
-<[coding.keepalive.decide]>               if not keys $round->{'wait'}->%*;
+$round->{'got'}{$source} = $text if $mode ne qw| false |;
+<[coding.keepalive.decide]>      if not keys $round->{'wait'}->%*;
 return TRUE;
 
-#,,,,,,,.,...,..,,..,,.,.,,.,,..,,...,,.,,,..,..,,...,...,...,.,.,,..,...,..,,
-#C7BGVYUD7SO5AM2PLP56HX4Y4LCMFDBAHQEVBEDBWOW2KN3VFZJZV7NFXPTI7FLP5D7IC3WL5GOIE
-#\\\|C3BKNIG2WNKFHXGDGPHM5UVYAT333YBY3W4BCD5FDB4EFPKOLPX \ / AMOS7 \ YOURUM ::
-#\[7]63DTQ2AUACYH32NYRV5CATSMV27U77B5TL47GU7B47EISXB4J2CY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,...,,,.,,..,...,,,,,,,.,...,,..,..,,...,...,...,,..,..,,..,,,,.,
+#OO4NW7H3ATVUMENM5B6YL5DPR7PGQIWOG4BOWJYRYDHFICF7QD7F62P5BXHDHAGCH5RUZTUDW4BFQ
+#\\\|5J66IEMSSXRDFLSLCNLYWJVGZBB2JWHNLUFUC2PG3ZE7WAK7T4C \ / AMOS7 \ YOURUM ::
+#\[7]V7B6XXV6GSP3LZMCNO5HOTKHTRY6LCZHTJJU7MGU4VF2L7X7TKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,30 +5,37 @@
 # args   = source names [ none : all ]
 # return = count of requests buffered
 #
-# route-send only buffers : coding.handler.handover_reply stores each
-# answer in <coding.handover.state> when the event loop has run
+# route-send only buffers : coding.handler.handover_reply checks presence,
+# sends the source query from its reply handler and stores each answer in
+# <coding.handover.state> when the event loop has run
 
 my @names   = @ARG;
 my $sources = <[coding.handover.sources]>;
 @names = sort keys %{$sources} if not @names;
 my $sent = 0;
 foreach my $name (@names) {
-    my $src = $sources->{$name} // next;
+    my $src     = $sources->{$name} // next;
+    my ($zenka) = split m{\.}, $src->[0], 2;
     $sent++
         if <[protocol-7.route-send]>->(
-        {   'command'   => $src->[0],
-            'call_args' => { 'args' => $src->[1] },
+        {   'command'   => qw| present |,
+            'call_args' => { 'args' => $zenka },
             'reply'     => {
                 'handler' => qw| coding.handler.handover_reply |,
-                'params'  => { 'source' => $name }
+                'params'  => {
+                    'source'   => $name,
+                    'presence' => TRUE,
+                    'command'  => $src->[0],
+                    'args'     => $src->[1]
+                }
             }
         }
         );
 }
 return $sent;
 
-#,,,.,,,.,,.,,..,,...,.,.,.,.,...,...,,.,,...,..,,...,...,...,,.,,,..,,..,.,,,
-#ACWLK7V6VPZX5IEVZGRSG52HKNKA26ND2SWGOVBJUJER2OCKCK6AAPYCQU7WREYGE77SM4JR52R6I
-#\\\|NYZGRT2MO3MU65SNPWCZNVPTGOGPON3DE56UW74I6NBRLMOZPAV \ / AMOS7 \ YOURUM ::
-#\[7]DFFCOA6NWU24FREIUQEJBVFMNCPELWLZVFGFNBLCL3YFKXVI64AQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,.,,,,..,,,,,,,.,.,,,.,,,.,,,..,,...,..,,..,,,..,..,,...,..,,
+#266NSGLNQBGZ2EFBH2S6FLQEEGPPSIT7B5FL3BVJBTD7PPAR3KO5EEKWMQGCWY7SR5QDFLL2PSIPW
+#\\\|TSZAQKO2LMCUOLLUJZWISBAULOZTW3WC6KUN4GVZHZPYFBKOI6I \ / AMOS7 \ YOURUM ::
+#\[7]JJUCL5UEGPMI52NEY3OJGBK4CLI7T5GVDSLD4MSZMYL5ML7WFQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

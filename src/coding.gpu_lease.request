@@ -5,9 +5,9 @@
 
 return TRUE
     if not <[base.cfg_bool]>->( <models.cfg.gpu_lease.enabled> // FALSE );
-return TRUE    if ( <coding.gpu_lease.holder> // '' ) eq qw| coding |;
-return UNKNOWN if <coding.gpu_lease.unavailable>;
-return FALSE   if <coding.gpu_lease.request_inflight>;
+return TRUE  if ( <coding.gpu_lease.holder> // '' ) eq qw| coding |;
+return FALSE if <coding.gpu_lease.unavailable>;
+return FALSE if <coding.gpu_lease.request_inflight>;
 
 my $need_mb    = <models.cfg.gpu_lease.min_free_mb> // 4096;
 my $model_path = <inference.model.path>             // '';
@@ -36,17 +36,23 @@ if ($sent) {
     );
 } else {
     <coding.gpu_lease.unavailable> = TRUE;
+    <[base.logs]>->(
+        1, ': models gpu lease request not sent : local gpu spawn held'
+    ) if not defined <coding.gpu_lease.retry_interval>;
+    my $state = <coding.gpu_lease.retry_interval> //= {};
+    my $after = <[base.interval.next]>
+        ->( { 'type' => qw| coding-gpu-lease-retry |, 'state' => $state } );
     <[event.add_timer]>->(
-        {   'after'   => 30,
+        {   'after'   => $after,
             'handler' => qw| coding.gpu_lease.handler.acquire_timeout |,
             'data'    => { 'stage' => qw| retry | },
         }
     );
 }
-return $sent ? FALSE : UNKNOWN;
+return FALSE;
 
-#,,.,,...,,..,,.,,,,.,,.,,,..,...,.,,,,,,,..,,..,,...,...,,..,..,,,,.,,.,,...,
-#X6ZU4MDQMVFKCP2NVRDITGEDCETTCEOSRC3OAL6CP7WB3O3KYVDFYB5DRSW4GZSD2V4YACQZBZK6M
-#\\\|UYAYEUAIHKPLBHTIASAFUZ4ZZBC34UODXKYXKVWABB4MMGT4YD4 \ / AMOS7 \ YOURUM ::
-#\[7]HN6DDDJCUOHGFLDH2NS4F3OPNOV4QKP75DGO5ZGJGJP7IAU5OCBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,..,...,...,,,,,.,.,.,.,.,,,,,,,..,,...,...,...,...,.,.,,,.,,..,
+#FAU56E3RTJ2EO75ITJLBQT64POFVKUIBQIL44WKQZNW7WIDBJOPNX2FW4ZLPQ5HSNJTCFHXUP3APW
+#\\\|LZSN4D37S5TQTDNEKIDPVB6QOENKKW56CYGMLK6WFOKRP3KTWB3 \ / AMOS7 \ YOURUM ::
+#\[7]CIV3VLONO3UGMS5HIWJH3HL57ZNGYJVU7XBPPHNHBJPHVXWIS4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

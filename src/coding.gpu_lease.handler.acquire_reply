@@ -8,11 +8,12 @@
 my ($mode) = <[base.reply.mode_text]>->( shift // {} );
 return TRUE if $mode eq qw| false |;
 <coding.gpu_lease.request_inflight> = FALSE;
-delete <coding.gpu_lease.retry_after>;
+<coding.gpu_lease.unavailable>      = FALSE;
+delete <coding.gpu_lease.retry_interval>;
 return TRUE;
 
-#,,.,,,.,,,..,.,,,.,.,,,.,.,,,,,.,.,.,,,,,,,.,..,,...,...,,,,,.,.,,.,,,,,,.,,,
-#4ZAOJOYLBF6CQXGAPQOQJLCN5P33QIR5VTJNSELUI4MLXRDYIS7E4CORDMHL3QBY35O4XHZGNOEFI
-#\\\|F4CNVS7NVM3NRGQTCVMAFUMTIDUHXRP5HPS5KTSZH5FREB75P3O \ / AMOS7 \ YOURUM ::
-#\[7]FWFXSDI7ZLENY3G4QRJQTO2KGLYRIXJUBIMSLYE4JG3GY2B7KIBA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,..,...,.,.,,.,,.,,,,..,,..,,.,,..,,...,...,..,,..,,,,,,,,.,,,,,
+#GXQASSAKK6UZIHGP33RUEW36TIZFFEH6NSYUHPVWDN5SDTXRJULJZHK5E5NMYPUA7WULLBUIFJIIK
+#\\\|CMGGEUP6MAXWRNM5ODQJ3ROGLBO3QIAJHGY6QSU7YVR4LOHMTF6 \ / AMOS7 \ YOURUM ::
+#\[7]VVIL7VCOF42PCRMQQWWBDEJOUCS5Y6OS6LEEN3T5AOSPFJWJ4QAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
