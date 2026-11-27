@@ -50,9 +50,10 @@ counted and sorted = a histogram. it worked without perl debug symbols on the de
 
 ## open points [ owner ]
 
-- servers' perl builds : does PL_curinterp resolve the same way without debug symbols ? test on
-  one server first [ ssh as root is allowed ; a non-threaded perl has no PL_curinterp -- the
-  expression differs ].
+- servers' perl builds : checked 2026-11-27 on srv-A -- perl 5.44, usethreads + multiplicity,
+  the binary exports PL_curinterp [ nm -D ] : the prototype's expression fits. gdb is NOT
+  installed there -- the p7-deps entry is required, not optional. a non-threaded perl would
+  need PL_curcop directly [ none seen yet ].
 - where cores go and how long they stay [ size : the v7-zenki core was 110 MB ].
 - `:core:` on cube or v7-zenki itself : v7-zenki cannot attach to itself -- the anchor's job.
 
@@ -63,8 +64,8 @@ bin/format-code -c for every changed src file ; a new command needs its zenka.v7
 gen-sub-whitelist and access entries [ verify with `v7-zenki.commands` ] ; no commit, no sign,
 no reload ; never touch files you did not change.
 
-#,,,,,,,,,..,,,..,,..,,.,,,..,,.,,.,,,,..,..,,..,,...,...,,.,,,..,,,,,,.,,,.,,
-#HIEZD7V5MUV7LUJYGBROWNNLF3ME2TYGMH37NB2NTPYIPUSJNEYMQA7XF3ZT6PLEIYQQZ7EV5CHPM
-#\\\|JYOX4DTGGD3NDV4E2GQUIV6IERMCQWIYJRSMJH6FQGOAZFVKO2Z \ / AMOS7 \ YOURUM ::
-#\[7]TFRKNUHKJ4RQ3DJYTO7FQVRNTVPZFQFZTW3AYLYZNXTEGQQ6N4AA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,.,,,.,,,..,,.,.,.,.,,,,,,..,,,.,..,,...,...,...,,,,,,,.,,,.,,,,,
+#BJKXBUOHNEKDNISC67ZUS6I7ONDCGZT2Z4H4C5NE6OOUSMQAMW2XEMMH6JB6BP67B5MJDUFYX3LFE
+#\\\|LW6ZRCW6EKT7H3XDIYTVWRYC4MBWJ6DRBVAYOUADMZ7WTB4EITS \ / AMOS7 \ YOURUM ::
+#\[7]5ADV4EKBUI36Q5RGD2YILSE5SI2AEPH7I23556CHUEO2VIYTCUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
