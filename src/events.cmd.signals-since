@@ -14,7 +14,8 @@ $since =~ s{\A\s+|\s+\z}{}g;
 return { 'mode' => qw| false |, 'data' => 'numerical unix time expected' }
     if $since !~ m|\A\d{1,20}\z|;
 
-my $publish = <events.remote.publish> // 'place.complete placement.complete';
+my $publish = <events.remote.publish>
+    // 'place.complete placement.complete drill.complete';
 my %publish = map { $ARG => TRUE } grep {length} split m{\s+}, $publish;
 my $host    = <system.node.name> // <system.host.hostname> // qw| unknown |;
 my $enc     = sub { <[events.signal.encode]>->(@ARG) };
@@ -46,8 +47,8 @@ foreach my $rec ( @{ <[events.signal.journal_read]>->(500) } ) {
 
 return { 'mode' => qw| size |, 'data' => join( '', @lines ) };
 
-#,,,,,.,.,.,,,.,,,..,,,..,...,,,,,,,.,,,.,,.,,..,,...,...,..,,..,,,,.,,..,..,,
-#EMTZGJSSLH2HPUBHJHTQ4WVSFCNJBRYO5YY5YODUIIZ4HDRG2AEJZEFZ6DDMANZAKFRBDBST4O4DI
-#\\\|C5457JA7EZVIGFHCLXIOXL2SSBKLN23YSMLUDCYBSDQ6BCHQ45E \ / AMOS7 \ YOURUM ::
-#\[7]SMM36B5OTADLBZ7F4IZFRASCN4A5R4DDBVWH7M56QTSG3V643CBA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,.,.,.,.,,,.,,..,.,.,.,.,,..,..,,...,...,...,..,,,..,,,,,,,,,
+#MDRPPWT6RZJJXBY5LARL5DR72AGNIUAZBMOWFRX3TS3P3JK4HYDGHXM7RRYRENJGQX7WEKQXSH24C
+#\\\|AVV5HNRVXNWQASYYYYBUFJOT7RHR5SVCOPETEXEVJJE7Y5WSTYA \ / AMOS7 \ YOURUM ::
+#\[7]2GEDZY64PIIPULCPB4L3MNASHTOMVTPAX6OM4TFMEEE45BS6BUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

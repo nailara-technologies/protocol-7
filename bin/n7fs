@@ -452,10 +452,18 @@ if ( not defined $code ) {
 exit $code;
 
 END {
-    if ( defined $command and $command =~ m{\A(?:place|placement)\z} ) {
+    if ( defined $command and $command =~ m{\A(?:place|placement|drill)\z} ) {
         my $rc = $CHILD_ERROR;
         local $CHILD_ERROR;
         my $target = $args[0] // $o{'disk'} // qw| unknown |;
+        ## a drill : the holder alias and the tree [ no paths in a signal ] ##
+        if ( $command eq qw| drill | ) {
+            my ($alias)
+                = ( $o{'from'} // '' ) =~ m{\Assh(?:-receiver)?:([^:]+):};
+            $target = join '.', $alias // qw| local |,
+                $o{'tree'} // qw| newest |;
+            $target =~ tr|A-Za-z0-9_.-|_|c;
+        }
         require Sys::Hostname;
         my $host = Sys::Hostname::hostname();
         if ( open( my $null, '>', '/dev/null' ) ) {
@@ -3241,8 +3249,8 @@ sub cmd_shred {
 #\[7]KWMRWJ5CFOMMXBQJNHJXCZ4TGBNUVWN5NZDUH7CVXG6ZSNK5V4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,.,.,,..,...,.,,,.,.,,.,,,..,,.,,,.,,..,,..,,...,.,.,...,,,,,.,,,..,,,..,
-#BTLDWXA4GF4B72N2DKIYESX75DYJSEWPUJRWQE7PLK36GJ3ZZ7WPGFF5XCXB732PGFYRCQBCGMCZO
-#\\\|GX3RO3J4MQ54DILZAZQXNABF44QY2LSKFIRV7O5DAFSX44BCHXW \ / AMOS7 \ YOURUM ::
-#\[7]RJY24W53O2TBZQ4A4SE35M3YSKXB35CT5IREF35NT2AV47YFESAY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,..,,,,.,..,,.,.,,,,,..,,,,.,,..,..,,...,...,...,,.,,,..,,,,,,,.,
+#PC2UJ5JB3NBTLN5XG3L3DW6DXB3XDSMDQQVIC7WESIL7XT7LUCTUGJZXLPTBQ4NAYOEL6E37UHFC4
+#\\\|AQZY7S3TLANMWUKJ7LCQWYMBM47BQ5HPGV36M2FICV3EOR2HOUQ \ / AMOS7 \ YOURUM ::
+#\[7]B37TIHPJFIVZZ4LYQ3IPKTK7VSLG4BUWMIEHRIJQKVJQVYXBN2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
