@@ -37,6 +37,16 @@ foreach my $instance_id (<[v7-zenki.instance_ids]>) {
         if defined $instance->{'timer'}->{'restart'}
         and $instance->{'timer'}->{'restart'}->is_active;
 
+    ## so does a restart in progress : instance.restart arms its timer as   ##
+    ## timer.restart_timeout.<id>, not timer.restart, and keeps the old pid ##
+    ## until the new process starts -- the sweep fed it through the restart ##
+    ## path a second time [ external \ dunst \ notify, 2026-11-27 ]         ##
+    next if ( $instance->{'status'} // '' ) eq qw| restart |;
+    next
+        if ref $instance->{'timer'}->{'restart_timeout'} eq qw| HASH |
+        and grep { defined $ARG and $ARG->is_active }
+        values %{ $instance->{'timer'}->{'restart_timeout'} };
+
     my $alive = <[v7-zenki.sub-process.pid_alive]>->($pid);
     if ($alive) {
         ## a zombie is dead too : /proc/<pid>/stat field 3 is 'Z' ##
@@ -108,8 +118,8 @@ foreach my $entry (@gone) {
 
 return $count;
 
-#,,..,,..,..,,.,.,.,,,,,.,,.,,,..,,.,,,,,,...,..,,...,...,,..,,,,,.,.,.,,,.,,,
-#SHYMR6FN5GNI3H3HKNUNJAQ2RWML3ZO4V3GO5N34MXSW6BUGXOIKFHOJC7VOVMGHHG7BT2WZ4NH6U
-#\\\|334QG3BH6RCPVEOX33T247EJ5ZDZT5XPRCJVXEBYE7RIEWCZCTA \ / AMOS7 \ YOURUM ::
-#\[7]Z3SAH56RVABGDQBNUZVTYWEL6POYII42VX7RNEI3HEJWIZX4L6BI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,,,,,.,.,,,,,,,.,,,...,,,,,,.,,..,,...,...,,.,,..,,.,,,..,,,,,,
+#74L3KAVX2YGQHMHD46ZRQ6BAK7VWBMQXIMNORNVKKVDLUT63ZIKKYT3A4YWK3GUWSLR3OAKR24ORU
+#\\\|XWDDBIFTCURERRE22ZSJNMHR5CJL66A7TRBD325WAGJPDQ7HI3N \ / AMOS7 \ YOURUM ::
+#\[7]O7DG2XPVMUWRBVIJHEDMBLZUKSKRTH3LU4NQIIFWHY27FLI7KSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
