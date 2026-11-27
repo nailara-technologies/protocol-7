@@ -3,7 +3,20 @@
 # name  = system.disk.statvfs
 # descr = byte and inode counts for one mount
 
-<[base.perlmod.autoload]>->(qw| Filesys::Statvfs |);
+## no Filesys::Statvfs [ libfilesys-statvfs-perl ] : one notice, then no ##
+## disk numbers -- the feature costs itself, never a line per poll       ##
+return undef if <system.disk.statvfs_missing>;
+<[base.perlmod.autoload]>->(qw| Filesys::Statvfs |)
+    if not defined &Filesys::Statvfs::statvfs;
+if ( not defined &Filesys::Statvfs::statvfs ) {
+    <system.disk.statvfs_missing> = TRUE;
+    <[base.log]>->(
+        0,
+        ': system.disk : Filesys::Statvfs missing, disk '
+            . 'numbers off [ apt : libfilesys-statvfs-perl ]'
+    );
+    return undef;
+}
 my @stat = Filesys::Statvfs::statvfs(shift);
 return undef if not @stat;
 return {
@@ -14,8 +27,8 @@ return {
     qw| files_free |  => $stat[7],
 };
 
-#,,..,..,,,..,,,,,,,.,,..,,.,,,..,..,,,,.,...,..,,...,...,,.,,,..,,,.,,..,.,.,
-#DPGTNUM5RC43XNCWUW336K27RLECBA2VHOSCPCBOXZKPIGO4AX2OQPSRT4TYXEAUQ6C5GCT2BH3ZK
-#\\\|NFAEQYUJSNQIK4E53MPFLFCTXQ5PE2UDIGSLSZSWBXLFQ66YO6I \ / AMOS7 \ YOURUM ::
-#\[7]4X6ILC74N2TXJDRYMTJMHBFM7ZFUQI6SS2JVOKM6NOULJV4GI2DY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,,,.,..,,...,.,.,,.,,.,.,.,.,..,,...,..,,..,,.,,,,..,,.,,,..,
+#XGZNKT27MRMRNS4ESGOSLHHTW7OI3AMX5VWO37ASWDFRBPPZBGFRGSBGXDLATVSH2LRK3LNQFKA34
+#\\\|6LZU63DXUT3WIUUQNNMTCQTE4LCZIHWYTPW4ENMU6UUKJ2HKNBU \ / AMOS7 \ YOURUM ::
+#\[7]63WTAHG5MFM3C6UNMFN4VRBYX3GDWEXXL6HCA2DY7UALJUI6FWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

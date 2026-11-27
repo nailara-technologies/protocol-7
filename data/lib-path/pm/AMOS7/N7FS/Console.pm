@@ -13,7 +13,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Console-VERSION.76O5X6I |;
+our $VERSION = qw| AMOS7::N7FS::Console-VERSION.COY4W4A |;
 
 @EXPORT_OK = qw| console_configure console_say console_error console_progress
     console_close_progress console_is_tty |;
@@ -102,8 +102,8 @@ sub console_progress {
 
 1;
 
-#,,.,,,,.,.,.,,,.,.,,,,..,,..,,.,,.,.,.,,,.,,,..,,...,...,..,,,.,,,.,,,.,,,.,,
-#DNSEMUUAQELHAQI7QFBH6HS7CBZRBM66J54OXKVBATNUO4P43GVR4WB4HPODFI43MT3CC4LRP5ADI
-#\\\|CFYXRANUSX5CWRKT6AYQTTT632GAT7ZKYVHI4QVG5LOKZKI5GI5 \ / AMOS7 \ YOURUM ::
-#\[7]W2VWEVKLFFUN2FBS3EPIOXMBRAIVSN6REBEPQT7DU3CI5PM4VODY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,.,..,,,,,,,.,,...,.,,,.,,,..,,..,,...,...,...,...,,,,,,..,,,.,
+#ZQM2Y72UBDV55KTGCDF32GPTEFADY6OVJ6HBPBRI47QV7FZNGPZBXVSXSM4CWZ2TPAFGVJIQ2ONCE
+#\\\|4O7EJY3DNVSYTUDH7CM5AWD2HCVBRDO7GKRL6ZCTYGBS7EPNJVL \ / AMOS7 \ YOURUM ::
+#\[7]4U7HEQ3KUQLCNGXX4I5IPZQKJ3MLTVR6PB4UHXRTFQMAT7VJU2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,7 +16,7 @@ use vars qw| @EXPORT_OK $VERSION |;
 use constant TRUE  => 5;
 use constant FALSE => 0;
 
-our $VERSION = qw| AMOS7::Console::Progress-VERSION.OPRLCXQ |;
+our $VERSION = qw| AMOS7::Console::Progress-VERSION.WDIDU3Q |;
 
 @EXPORT_OK = qw| console_progress_bar |;
 
@@ -85,8 +85,8 @@ sub console_progress_bar {
 
 1;
 
-#,,,,,,,.,.,,,,,.,,..,...,,,.,,,,,,,.,...,,.,,..,,...,...,,..,.,,,,,.,,,.,..,,
-#WS5FBZUJE67QV5QNXF2UWRITQSHBEQFUVCNBLZGOXVPRNUM3CQBMAZKGPX22LB2U2NSNVKXQVRCVS
-#\\\|JCXLWTSWKFTQGKG7N6SF3CROONQMQBNR3WWVL5EF7IT5JJYJ4DM \ / AMOS7 \ YOURUM ::
-#\[7]EAPF7LBZWITVM4L2I6XYMDIUKZSUI5X5S7PNE6RRZLN4QP27YKCA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,,.,,,..,..,,,.,,...,,,,,,,,,..,,...,..,,...,,.,,,..,,..,,.,,
+#VTBZEVR2QQKS3DXSMQVXUZYNULC6KI4YIODSHJ4LL4P76VYLFZO7EJUFZKOEK4XMNTAOXZ5XUOO2S
+#\\\|FV5WLIFOUKAVOLIRVLN3PB5IAT5GR2I7UKDNYBISEKYZV4PO4YC \ / AMOS7 \ YOURUM ::
+#\[7]6QSWRXFGS3K7KJ7TDXJYWVKPN6KVEMI7INVNKIR4BFL464XQC6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
