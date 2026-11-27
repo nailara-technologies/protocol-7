@@ -20,9 +20,13 @@ my ( $id, $host, $unix, $name, $encoded_values ) = ( $1, $2, $3, $4, $5 );
 $name = <[events.signal.decode]>->($name);
 my %allow = map { $ARG => TRUE } grep {length}
     split m{\s+}, <events.remote.pull>->{$alias} // '';
-return $run->{'refused'}++
-    if $name !~ m|\A[a-z0-9][a-z0-9._-]{0,79}\z|
-    or not $allow{$name};
+
+if ( $name !~ m|\A[a-z0-9][a-z0-9._-]{0,79}\z| or not $allow{$name} ) {
+    ## the names go into the completion line [ what was refused ] ##
+    my $shown = $name =~ m|\A[\x21-\x7e]{1,80}\z| ? $name : '?';
+    $run->{'refused_names'}{$shown}++;
+    return $run->{'refused'}++;
+}
 
 my $state = <events.remote.states>->{$alias}
     //= <[events.remote.state]>->($alias);
@@ -50,8 +54,8 @@ $run->{'hits'}++;
 <[events.signal.raise]>->( qw| events.remote |, "$name\@$alias", \%values );
 return TRUE;
 
-#,,.,,,..,.,.,,,.,,.,,,..,,,.,,.,,,.,,.,,,,..,..,,...,...,.,,,...,,.,,,.,,..,,
-#TMZVO446LZMZNT2MO6IJMOIHXRX6UMCESN7FJKZLDWX3PYI7QCENTPWAKVBJ7JZEVEYM7QMX5SVTE
-#\\\|RVQUN2UBAQPCJZ54QXFFDIAJTOSRPDWWYQ4S54IGKUZ47ZFT3RQ \ / AMOS7 \ YOURUM ::
-#\[7]NEWA7ZXF46GGVTO3GFVEHEK4LSASVTY4USC6ED7DXXNRZ7YVXIBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,,,.,..,,.,.,.,.,.,,,...,.,,,..,,...,..,,.,.,.,.,..,,,,.,.,.,
+#M2HZYG2FH53CY6QM6TLQDT54WEX5VXVCTTGXQ3W2ZJMN6BUPYAJC5KUUNIA2YCHSP2SJV3VIJ5UEI
+#\\\|TCXTHMBHW5NSILNYGUER4LSHTWXSAKGDQ2BXLDUXYLBCJAPFJ4B \ / AMOS7 \ YOURUM ::
+#\[7]BOQ56U5WFGSHJ623ZY7KULVJXA3NUEFU6DG4F5JX2SNHACSTKUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

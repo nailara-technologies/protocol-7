@@ -43,13 +43,16 @@ if ( not $r->{'ok'} ) {
     return <[events.remote.arm]>->( $alias, FALSE );
 }
 
-@{$run}{qw| handle records hits max_time stderr |}
-    = ( $r->{'handle'}, 0, 0, $last, [] );
+## every counter is per run : a kept 'refused' made each later pull a level ##
+## 0 failure [ 2026-11-27 ]                                                 ##
+@{$run}
+    {qw| handle records hits refused invalid max_time stderr refused_names |}
+    = ( $r->{'handle'}, 0, 0, 0, 0, $last, [], {} );
 <[stream_child.arm]>->( $r->{'handle'} );    ## a hung child is killed ##
 return TRUE;
 
-#,,.,,.,,,,,.,,,.,.,,,,,.,,,.,...,,..,.,.,,.,,..,,...,...,...,..,,.,.,,.,,..,,
-#SYLSFMEASPBPYVZO2MMVESWQTWFVF5USOACYMEYDQWNGQPHPJ2KZ3GZNN4NTMAXVPDPCVIUSEUUMO
-#\\\|4OKXZNGNKTO3ATN3FBFA35BFZMBYOKE6LCCX7RJCQXV273YSBB6 \ / AMOS7 \ YOURUM ::
-#\[7]QLSRUCO656URBBOXYPOZUGPR375VZGDV4HR5OTDV5PXR6HRKYYBQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,.,,..,,.,,,,.,,,.,,,..,.,.,.,.,..,,...,..,,..,,,,,,,,,,.,,,.,,,
+#CXCRACUHFLISKG6YOPVVMJAWT2GUOQTXHI5ONE5N2JPN7WPVPRCTH2KQQOMNW6AFVVXQ67UNNHDTU
+#\\\|ZWC5IV3KSE7W7MHY24N5JHAWTL53WSKNPX2XZCA5BRZVB6VKGIK \ / AMOS7 \ YOURUM ::
+#\[7]OYBYSTEWFFSKH6XLL3ZQCFFG3EDE4TZD5WBUTMUI43VSW77TLWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
