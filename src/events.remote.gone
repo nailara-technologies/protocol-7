@@ -17,8 +17,15 @@ if ( $run->{'records'} ) {
     <[events.remote.state]>->( $alias, $state );
 }
 
+## 'ended' : the child exited before its stdout end was read -- with exit 0 ##
+## a normal end ; a record not read yet comes with the next pull            ##
+## [ last_time moves only on records ]                                      ##
+my $clean_end
+    = $reason eq qw| ended |
+    && ( $handle->{'exit'} // '' ) =~ m|^\d+$|
+    && $handle->{'exit'} == 0;
 my $failed
-    = $reason ne qw| eof |
+    = ( $reason ne qw| eof | and not $clean_end )
     || ( ( $handle->{'exit'} // 0 ) =~ m|^\d+$| and $handle->{'exit'} != 0 )
     || $run->{'invalid'}
     || $run->{'refused'};
@@ -71,8 +78,8 @@ if ( $failed or @errors ) {
 }
 return <[events.remote.arm]>->( $alias, $run->{'hits'} ? TRUE : FALSE );
 
-#,,..,..,,,,,,,.,,,,.,,..,...,,,.,.,,,,,,,,,,,..,,...,..,,.,.,..,,,,.,...,,,,,
-#LUS53WNTFF7CBF5M5J7Y2O6YW2PU3PGXK2BLQPQZJPESC672XJLFPIJ74KN2FFOQGZ7RMQTYXYFCC
-#\\\|KQL2SQN7VD424HQP53GJBPBTTIRSBJ4Y3VFR23ASY5FS4CHPEBI \ / AMOS7 \ YOURUM ::
-#\[7]PGKB7IVSPNXXIC7H3ZYLUAIRD623Z2U4QH6CNXMYQPIKWWMBFUAI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,..,,.,,,..,,..,,..,...,,.,,.,,,..,,...,...,.,.,..,,..,,,.,,,..,
+#JGZZGNYSJRJ3GUGKV6A7LNUS5KIL4UYSDA4QNY3EZUGTVU54AX3WBDZNK5UUOFXDEL56A3BZRGFOM
+#\\\|QAOEPGQYWZAFTC7EJJXTEUK5IL4J4EQZYRDJGQIAVU2HPOE4JXO \ / AMOS7 \ YOURUM ::
+#\[7]63S5CGYPQFZVDL66IJEOYWVEPXCPIDATO4ACYWUVLPY4CV5RCCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
