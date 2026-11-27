@@ -22,20 +22,26 @@ if ( defined $payload ) {
     $headers{'Content-Type'} = 'application/json';
 }
 
+## invoke.ai answers slowly while it finishes a render : 20 s timed out ##
+## [ 2026-11-27 ] -- invoke-web.cfg.api_timeout, default 47             ##
+## [ the poll waits for its previous request, nothing piles up ]        ##
+my $timeout = <invoke-web.cfg.api_timeout> // 47;
+$timeout = 47 if $timeout !~ m|^\d+$| or $timeout < 5;
+
 return <[clients.http.request]>->(
     {   'method' => $method,
         'url'    => sprintf( '%s%s',
             <invoke-web.url> // 'http://127.0.0.1:4707', $path ),
         'body'    => $body,
         'headers' => \%headers,
-        'timeout' => 20,
+        'timeout' => $timeout,
         'on_done' => qw| invoke-web.handler.api_reply |,
         'params'  => { 'handler' => $handler, 'params' => $params },
     }
 );
 
-#,,..,.,,,...,.,,,.,.,.,.,..,,,,,,.,,,,,.,.,.,..,,...,..,,,..,,,,,.,,,,,,,..,,
-#X6B5DKEBCLM7PUN2YV55PULEPO34WQIZH3C2P77ESDOSNCCZMI75LDLATZMR5LOF3QDJZYEN2UQFO
-#\\\|OXZYGKTFECAZNTBW3RA5LB2KNBD2KNMVOOI2CEGVHFHRIKZEPY6 \ / AMOS7 \ YOURUM ::
-#\[7]VEFX2LBYXX7OKARW4ZMYUF63UFE5OUNCPLOV6E7SPLRC3CCHCKAA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,.,,...,...,,,,,,..,...,...,,..,..,,...,..,,,..,..,,,.,,,.,,..,,
+#Z3UPZ7NXRZE7M2CBVFRYQVYD6DE24W7NWKVRU4RZ77XROMP7O7H72WKIXEBJPXHBSD64UFPWFFEVE
+#\\\|XLREIICVYGVK4LTZIQTRBVQWIAREH3KVZW5HFQRTOR6M3WCY6LK \ / AMOS7 \ YOURUM ::
+#\[7]IOO3WPMMK2T2P6NLKZGGIUGBK6AU3AY5WWEXYPAM33Z2U4NP5WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
