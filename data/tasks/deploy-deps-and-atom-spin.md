@@ -81,6 +81,35 @@ status : OPEN 2026-11-27 -- found while deploying AMOS7-v6.91.4 to the four serv
   Crypt::PK::RSA, LWP::UserAgent, Net::SSLeay, IO::Socket::SSL and
   Protocol::HTTP2::Client. AMOS7 modules are internal and need no debian mapping.
 
+## 6. pull-git ended without a trace [ zulum 2026-11-27 ]
+
+- `v7-zenki.start_once :wait-down: pull-git` : v7-zenki logged `pull-git zenka started
+  [ pid : .. ]`, then nothing -- no `external binary .. completed`, no exit code, no state
+  change. the process was gone, the checkout unchanged ; the client gave up after 300 s. a
+  second run [ after a manual git fetch ] worked at once.
+- an exec-external zenka's end must always be seen : a non-zero rc sets the zenka state to
+  error [ checkable next time ] ; an end v7-zenki never observed is the gap here. check the
+  sig_chld \ waitpid path for exec-external children [ base.process.exit_status, the
+  ignore_child_pid map ] and a child reaped by someone else.
+- correction [ show-buffer, owner ] : the failed run took the PLAIN zenka path
+  [ `starting of pull-git zenka initiated` ], not exec-external -- `starting external
+  'pull-git' program as 'root'` and `starting --> extbin` are missing ; a working run has
+  both. so init_data had no start_mode at that start, and the wrongly started process's end
+  was not logged either [ the instance stayed 'starting' ].
+- checked, no cause found : zulum's live start setup [ devmod dump ] holds pull-git's
+  v7-init [ exec-external, p7-git-pull--rebase, root ] ; all four servers use remote-server ;
+  `v7-zenki.reload all` then pull-git on yourum works ; other zenki's state does not reach
+  v7-zenki's start path [ owner ]. the failed instance was gone before it could be dumped.
+- next time, while the instance exists : `v7-zenki.dump v7-zenki.zenka.instance.<id>`
+  [ devmod : signal 53 to v7-zenki ] -- its init_data and status show which branch ran.
+
+## 7. stale open item after a kimi dispatch
+
+- coding.session-cache-keepalive still listed `kimi dispatch [<pid>]` after the run ended :
+  the mcp server clears the item only on its next worker sweep. a stale item can trigger a
+  keep-alive for work that is done. wanted : clear on the worker's end [ the wrapper exit or
+  the kimi_check_status that sees it gone ].
+
 ## rules for the implementer
 
 no sha, no json internally ; lowercase comments with [ ] brackets ; perl floor 5.32 ;
@@ -89,8 +118,8 @@ bin/format-code -r then -c for every changed src file, read its whole output [ d
 no commit, no sign, no reload, no deploy ; never touch files you did not change, no git
 restore ; report every changed file.
 
-#,,,.,,.,,,..,.,,,,.,,,.,,...,.,,,...,..,,.,,,..,,...,..,,...,...,..,,,,.,...,
-#7PYKIHZ2AC7DATU7T6ESQWDM5AW66QH4IBMAWVUOGTA5F4XQW3YMJRHFX77WJRCIOTICWHFYIXASI
-#\\\|7RTALTU7U6R3BVODLO3Z6XPUDQXLJ6TRPO3KEXY64RA2F2IETMM \ / AMOS7 \ YOURUM ::
-#\[7]BSTPUIKSNOPNR3DJ64YCOQ72IBRFWAX33RLDJTDTHLDZOHUIGCAI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,..,,..,,...,,,,,,.,,,,.,..,,...,..,,...,...,..,,..,,,..,,.,,.,.,
+#TA3IBBYSQPTFXMVDJAZNEFUWLVMFE4D2PVJPMZRW4JK5RQOBB3CV5XJY6MSFLZC4KAXPHN73YZ676
+#\\\|YWZBRLZGX7IN2G474MLHGKC3VI2HWAQULKSOAVAUFATMLF7JVSO \ / AMOS7 \ YOURUM ::
+#\[7]3MH62BE4GCZILL6OAGK7DLR4AFBPGWKIFEXHD77HYNZGFZ5GUWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
