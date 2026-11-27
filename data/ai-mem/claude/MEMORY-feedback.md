@@ -283,3 +283,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|JWTZHUUB3BLB23MDZNN3FFB7HK3EVXIC6PD3DNGPG4F6XLUD4Q7 \ / AMOS7 \ YOURUM ::
 #\[7]F5EKVV3A7YANFZFXXYMT3RF6QJCFJTPU454XLBKMUH7PCBDGJ2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [sign-gate-and-pending-edits](feedback-sign-gate-and-pending-edits.md) — sign run aborts at format-code [ tidy, descr 55 ] after the version bump ; never edit files while a run awaits approval
+
+#,,..,..,,,,.,...,..,,,..,.,,,,..,,,,,,.,,,.,,..,,...,...,...,,,,,,..,..,,,,,,
+#WLIEOEMSZRXEBH2UFIMYS5YJJBPZBAY6MSDMBGUORMRW2LBTKLEOXNBWIXQQFEBS6WDOD3MJGKOTY
+#\\\|DEJLSG7BRSBBNLCW2Y4FLGVU5EIHEBD4R4HSXURDXB7WYM4JJIN \ / AMOS7 \ YOURUM ::
+#\[7]BSZ3L4DYDA66WCYG42PVGY2JFRMO7HR2H2UOCONDYISSNCU4CCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

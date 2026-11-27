@@ -266,10 +266,8 @@ if ($failed) {
 say sprintf '[ done ] %d checks, all passed', $checks;
 exit 0;
 
-#,,.,,,,,.,,,,,,,.,,,,,.,,,.,.,..,,,..,,,,.,,,..,,.,,,.,,,..,.,,,.,,,,..,,,,
-
-#,,,,,,,.,,.,,,,,,.,.,...,..,,...,..,,.,.,,.,,..,,...,..,,...,..,,,..,..,,...,
-#CYEPQBNYPPGCQY6GMC7T6C4QRKGNIC32CGXJVG4AP2DPNOPZWGMP2YX2ZGHTH2R6RCHD6PGDTP2SO
-#\\\|26KJ4VRTYMGYSGNZQET4LZHL2JCELXNOM7EGBMM3Q2SL5NCAXJI \ / AMOS7 \ YOURUM ::
-#\[7]UGJFMNZKWNNSUDVLR7SKTBGBH6WZHES4ANEMAEPU56J75J46MOAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,.,,,,,.,.,,,,.,,,..,,,,,.,,,,..,..,,...,...,.,.,.,.,,,.,..,,,,,,
+#3KAT3DVAPQOQ5HJVMFW6QOGSPMUYHE27MPOHEEBEIQOPT6AIA6OVOKFKGHHGBGM7F4MUJF7WEJPDI
+#\\\|WQ7ZHZG5BP2HIRVDAB6C4FBMVNZBSUHHX22IV3TOSD5NY46QPFN \ / AMOS7 \ YOURUM ::
+#\[7]YOMIMMANWZ7PC4QMDHLQ73FJTQUGF6BE2ETNLTG5W7MCCHMFNYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

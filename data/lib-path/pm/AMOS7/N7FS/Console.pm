@@ -102,10 +102,8 @@ sub console_progress {
 
 1;
 
-#,,,,,,.,,,.,,,..,,,.,,,,.,,,,..,,,..,,.,,,,..,,.,,,,,,..,,..,,,.,,,.,,
-
-#,,..,.,,,,,.,,..,.,,,.,.,,.,,.,.,.,,,,.,,,.,,..,,...,..,,.,.,,.,,,.,,,..,,..,
-#GHXHPYY4QE6BOY5VPQ3Y3GKSDPUUVXX7STSEKKS6LUZ5LAX4ISC72FJLBW5UQ2QKGND37PRL2QARW
-#\\\|2URX4X55EWZ2MWZH74VV7XR2CR3QUECBYQUOW6S665BM3I57XGK \ / AMOS7 \ YOURUM ::
-#\[7]LJH7QB3TVSOP2WSSYZJIAGX6DDKGCDFE4Z2JDKKUXFXRZJIF2UCA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,.,.,,,,..,,..,,.,,.,.,.,,,.,,,..,,...,...,..,,,.,,,.,,,.,,,.,,
+#DNSEMUUAQELHAQI7QFBH6HS7CBZRBM66J54OXKVBATNUO4P43GVR4WB4HPODFI43MT3CC4LRP5ADI
+#\\\|CFYXRANUSX5CWRKT6AYQTTT632GAT7ZKYVHI4QVG5LOKZKI5GI5 \ / AMOS7 \ YOURUM ::
+#\[7]W2VWEVKLFFUN2FBS3EPIOXMBRAIVSN6REBEPQT7DU3CI5PM4VODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -85,10 +85,8 @@ sub console_progress_bar {
 
 1;
 
-#,,,,,,.,,,.,.,,,.,,,.,,,,.,,,.,,,.,,,.,,,,.,,,,..,,.,,,.,,,.,,,.,,,,.,,,
-
-#,,.,,.,,,,,.,..,,..,,...,,,.,.,.,,.,,.,.,,,,,..,,...,..,,,..,,,.,,,,,,,.,.,.,
-#UWVXWISDMYXNYUJIQ2UOVINTGHLWQZNCJT6AJK3NUTLIDMZCVBBJT6V5F7YDYIY33IZPXRGTUGNYI
-#\\\|5T7OERTJ3PTWES2Q5IRHECXOIRQQBCH6Q6FGDR5TWCEMKNRTRK4 \ / AMOS7 \ YOURUM ::
-#\[7]6EYHCX47HCGY2I6ZPQ3H3E6664GQWRBLUSRMKRIXT4JQCLV2RGCA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,.,,..,...,,,.,,,,,,,.,...,,.,,..,,...,...,,..,.,,,,,.,,,.,..,,
+#WS5FBZUJE67QV5QNXF2UWRITQSHBEQFUVCNBLZGOXVPRNUM3CQBMAZKGPX22LB2U2NSNVKXQVRCVS
+#\\\|JCXLWTSWKFTQGKG7N6SF3CROONQMQBNR3WWVL5EF7IT5JJYJ4DM \ / AMOS7 \ YOURUM ::
+#\[7]EAPF7LBZWITVM4L2I6XYMDIUKZSUI5X5S7PNE6RRZLN4QP27YKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

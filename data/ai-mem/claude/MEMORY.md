@@ -5,7 +5,8 @@ lives in the category files below. when a topic surfaces in conversation that ma
 summary, OPEN that file — it is not auto-loaded, so it is only consulted when you go read it.
 
 ## CRITICAL
-- [session-handover-pulse-stage2-v7](project-2026-11-26-handover-pulse-stage2-v7.md) — NEWEST, START HERE 2026-11-26 : pulse for mpv, n7fs safe stop, watcher stage 2 LIVE, v7-zenki spin -> v7 root process draft [ design first, no code ]
+- [session-handover-hotspot-keepalive-drills](project-2026-11-27-handover-hotspot-keepalive-drills.md) — NEWEST, START HERE 2026-11-27 : hotspot plugin, cache keep-alive, drill notices, remote pull fixes, heartbeat 19 \ 27 ; tier A drills running
+- [session-handover-pulse-stage2-v7](project-2026-11-26-handover-pulse-stage2-v7.md) — 2026-11-26 : pulse for mpv, n7fs safe stop, watcher stage 2 LIVE, v7-zenki spin -> v7 root process draft [ design first, no code ]
 - [busy-zenka-gdb-curcop-and-event-faults](feedback-busy-zenka-gdb-curcop-and-event-faults.md) — 2026-11-26 : busy silent zenka = gdb PL_curcop samples ; SEGV Event loop fixed fbd58a42de ; silent re-ask loop in models claims f89cde7816 ; claim rework open
 - [session-handover-native-hub-watchers](project-2026-11-25-handover-pm-native-hub-watchers.md) — 2026-11-25 pm : state is DERIVED [ p7c coding.handover ] ; decisions, lessons, next steps ; tier A place running on azurum
 - [session-handover-relay-parking-notify](project-2026-11-25-session-handover-relay-parking-notify.md) — 2026-11-25 am : parking, claude \ kimi zenki, chat relay into the live session, usage.plan, notify, coding handover ; tier A place pending ; read handover-live.md too
@@ -110,8 +111,8 @@ summary, OPEN that file — it is not auto-loaded, so it is only consulted when 
   open for: past session summaries (topic-completed), next-steps queue/roadmap, resolved bugs,
   system live-status (letsencr, reasoning.branch.*, coding zenka).
 
-#,,,,,.,.,.,,,,,,,...,,.,,..,,.,.,,.,,.,,,,..,..,,...,...,,,,,,,,,,.,,,..,,..,
-#IXMOOBMNPW4IXKU4WU7ZWGTDKOWO6VFRHSX4KSESFPW2IN4YQTWKCIJPS32PIMUCYICA4MDKEXXNO
-#\\\|LK2CGCWSORPM3LBIRLVPYGDF4UDINI5T2G7CTIL74BH3EF6ZU3W \ / AMOS7 \ YOURUM ::
-#\[7]KFV7VCRDJKDT4XIBMP34N2PSPQSXUS5PCOYHNMTPJGUEOKZXY6BI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,...,,,,,..,,,,,,,..,,.,,.,.,...,..,,...,...,.,.,..,,,,,,,,.,,,,,
+#FE75NWQCNOH2HZ5LX5V5F3K2ZWMKBYI2DPMQMIGIEE7SGADFX5OV3GHYLY23JOJIZ5Z7H6PABQP5E
+#\\\|TPT6YAT6OSZC7775JUNLZAW6TMA4WFGYDU3Z46QOWJ5CJTYN4Q4 \ / AMOS7 \ YOURUM ::
+#\[7]TE4DXDZDTR6E3SOZA636N4SYO6GZTVHLJZUPBDLHEHDXNVKPTQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
