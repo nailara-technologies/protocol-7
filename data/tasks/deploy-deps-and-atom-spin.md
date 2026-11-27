@@ -62,6 +62,25 @@ status : OPEN 2026-11-27 -- found while deploying AMOS7-v6.91.4 to the four serv
 - wanted : the reinit path skips or defers the key-dir write when privileges are dropped
   [ see memory : init_code runs before drop_privs ].
 
+## findings [ kimi ]
+
+- section 4 : @zenki_pid could receive undef while an instance had no completed
+  process.id assignment [ start not finished \ failed \ stopped ]. the only direct writer
+  found is zenka.start's successful open2 pid assignment. collection now accepts numeric
+  pids only and logs each rejected instance once per calculation at level 0 with its
+  zenka name ; timer delays and prefix logic are unchanged.
+- event check : under local Event 1.28, a one-shot timer running `kill 41, undef` croaked
+  once and the watcher was inactive afterwards. with no other watcher the loop exited ;
+  it did not stay permanently due or reproduce the busy-poll. this does not exclude a
+  different watcher or library state in atom's older spinning process.
+- section 2 : resolve_install returns pm_src with dirs and no pkg [ e.g.
+  Crypt::Curve25519 ] ; sys_deps.probe sent that undef pkg to the cpan list. the resolver
+  now drops nameless packages and logs the affected module once per sys_deps state.
+- letsencr : the local dependency check reports everything installed. added certain apt
+  mappings for Crypt::OpenSSL::RSA, Crypt::OpenSSL::X509, Crypt::PK::Ed25519,
+  Crypt::PK::RSA, LWP::UserAgent, Net::SSLeay, IO::Socket::SSL and
+  Protocol::HTTP2::Client. AMOS7 modules are internal and need no debian mapping.
+
 ## rules for the implementer
 
 no sha, no json internally ; lowercase comments with [ ] brackets ; perl floor 5.32 ;
@@ -70,8 +89,8 @@ bin/format-code -r then -c for every changed src file, read its whole output [ d
 no commit, no sign, no reload, no deploy ; never touch files you did not change, no git
 restore ; report every changed file.
 
-#,,,,,...,,.,,..,,.,.,,..,..,,..,,.,.,,,.,.,,,..,,...,...,,,,,,,,,.,.,,,.,.,.,
-#QJPFJJ33WTUG5KOGCBYDP65UYV2VQKSTCHVYHLWPNZT4UPXM7MBMWCHIQU5BLVIOTHVT4GYJ6OKDQ
-#\\\|BB32KZDBNOI4DJQOL6Y26Z5I3D54KKKLPUQOOD3RHH4FAA6IALC \ / AMOS7 \ YOURUM ::
-#\[7]BLQ6SGIBP6J4NFZD4CDQCQDQGTPL65MSXWPCJRGB3KFGJCACDUAA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,,,,.,,,.,,...,.,,,...,..,,.,,,..,,...,..,,...,...,..,,,,.,...,
+#7PYKIHZ2AC7DATU7T6ESQWDM5AW66QH4IBMAWVUOGTA5F4XQW3YMJRHFX77WJRCIOTICWHFYIXASI
+#\\\|7RTALTU7U6R3BVODLO3Z6XPUDQXLJ6TRPO3KEXY64RA2F2IETMM \ / AMOS7 \ YOURUM ::
+#\[7]BSTPUIKSNOPNR3DJ64YCOQ72IBRFWAX33RLDJTDTHLDZOHUIGCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

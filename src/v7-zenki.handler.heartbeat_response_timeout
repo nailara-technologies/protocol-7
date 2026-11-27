@@ -35,6 +35,38 @@ return
 
 my $instance = <v7-zenki.zenka.instance>->{$instance_id};
 
+## v7-zenki's own stall : a timer that fired late measures v7-zenki, not    ##
+## the zenka -- its reply may sit unread. once per silence the timeout      ##
+## waits one short grace so the loop reads input first. a stall marks the   ##
+## wake-up : the other timers of the same burst get the grace too [         ##
+## 2026-11-27 : 10.4 s stall, five zenki timed out at once and all answered ##
+## on the retry ]                                                           ##
+my $now = eval { Event::time() } // time;
+<v7-zenki.heartbeat.stall_at> = $now if $late > $late_log;
+my $stall_wake = $now - ( <v7-zenki.heartbeat.stall_at> // 0 ) <= $late_log;
+my $hb_grace   = $instance->{'heartbeat'} //= {};
+
+if ( $stall_wake and not $hb_grace->{'stall_grace'} ) {
+    $hb_grace->{'stall_grace'} = TRUE;
+    my $grace = <[base.interval.next]>
+        ->( { 'type' => qw| heartbeat-stall-grace |, 'state' => {} } ) // 3;
+    <[base.logs]>->(
+        1,
+        'instance %d [ %s ] heartbeat timeout after a '
+            . 'v7-zenki stall : reading input first [ %.1f s grace ]',
+        $instance_id,
+        $instance->{'zenka_name'},
+        $grace
+    );
+    $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
+        {   'after'   => $grace,
+            'handler' => qw| v7-zenki.handler.heartbeat_response_timeout |,
+            'data'    => $instance_id,
+        }
+    );
+    return;
+}
+
 ## host memory \ io pressure [ v7-zenki.pressure ] : a stalled zenka is not ##
 ## necessarily hung -- restarting one stalled in reclaim adds memory demand ##
 ## and, for invoke-web, kills invoke.ai with it ; a disk stall passes too.  ##
@@ -155,8 +187,8 @@ if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
         ;    ##  retrying now [0]
 }
 
-#,,,.,..,,,,,,,,.,,.,,.,.,...,,,.,,,.,...,,,.,..,,...,...,,,,,.,,,.,.,,,.,..,,
-#PDU2E6VVNFBV6MPTJ7MC4UC6M6C7T55HVU7REDWT7BAD4KHJP3NQRTPK2TXU4M325ORYUXXAVRV7E
-#\\\|IZB2NF7PAMUCB4VUJ3PPCUXHNFWZGB4EWDGTPFH6OLH7LW2IST7 \ / AMOS7 \ YOURUM ::
-#\[7]YSLUUHQRAZCRJJGWHZLCA5VUL36EQ7WFEE2RQIX4VDSJPD7TOGDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,,,,..,...,.,,,,,.,,,,,..,,.,,,..,,...,...,..,,.,.,.,.,,,,,,,,,
+#6CSFASBJWOH7RORUMG43TA3ZDXN2GORSUUUL2CERMGWACPUKNXAYU762A2BGG6MDZBKIRXHC4OLK2
+#\\\|NVNRDMXSMEZ7SOYNP5TL55H4H3VVFXKN5ONDFBA2AU444UCJJDO \ / AMOS7 \ YOURUM ::
+#\[7]Z6462DWVXGLHU4EDEHN2QDO7BWZYKKFXWQYFN7J7TA43GP6CIABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

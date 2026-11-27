@@ -100,6 +100,7 @@ if (    $response->{'cmd'} eq qw| TRUE |
     and $response->{'call_args'}->{'args'} =~ m|^beating| ) {  # success again
     delete $instance->{'heartbeat'}->{'errors'};
     delete $instance->{'heartbeat'}->{'pressure_ext'};    ## answered again ##
+    delete $instance->{'heartbeat'}->{'stall_grace'};
 
     ## not yet known to cube's liveness probe                         ##
     ## [ zenki already online at a v7 reload, or a restarted cube ] : ##
@@ -208,8 +209,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,,,,.,,,,..,,,.,,,.,...,...,..,,.,.,..,,.,.,..,,...,...,...,,..,,.,,...,...,
-#YAKEKOE2GXPZZPZE32VRECHKSYBHSBSE54GDC6DHVBOFHHEIUN752EKON3DF5PA2RRTTHCIIYYI6A
-#\\\|NDY7AQQOU3B3HGA5IKLVQFDOUYP2EDAWW6TIEEAYC3HQMTITH7S \ / AMOS7 \ YOURUM ::
-#\[7]HIQWU7HE35657G62ZT7JPHXGK3TPPMX53GBBI2PYUGMZRQU3SKBA 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,,,..,,...,,,.,.,,,...,.,.,,..,..,,...,...,...,,.,,,..,,,.,.,,,
+#JMEH25BBTD34XV4XKBTYTKC6SSPJTCOGTKYXBRVDEJ3AHDVHUHV6XYZK4D5RWBFAHBW3F4BHWUBY4
+#\\\|WPEFAMLSLGLDECLX3E7AS3FF2WPPHDIIGU7R64FC36KN6ZOHI54 \ / AMOS7 \ YOURUM ::
+#\[7]EYQUGW5AJV3KCAJB2RGZOJG2MILKRTMV647NCSR4QE6C4QRDO2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

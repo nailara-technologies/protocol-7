@@ -18,9 +18,25 @@ foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
     next if $apw_href->{$zenka_name} == $max_len;
     my @zenki_pid;
     map {
-        push( @zenki_pid,
-            <v7-zenki.zenka.instance>->{$ARG}->{'process'}->{'id'} )
-            if $ARG =~ m|^\d+$|;
+        ## no next here : inside map it would leave the zenka loop ##
+        my $instance_id = $ARG;
+        my $pid
+            = $instance_id =~ m|^\d+$|
+            ? <v7-zenki.zenka.instance>->{$instance_id}->{'process'}->{'id'}
+            : undef;
+        if ( defined $pid and $pid =~ m|^\d+$| ) {
+            push( @zenki_pid, $pid );
+        } elsif ( $instance_id =~ m|^\d+$| ) {
+            ## a starting \ stopped instance has no pid yet : level 1 ##
+            <[base.logs]>->(
+                1,
+                'ignoring non-numeric process id for zenka '
+                    . "'%s' [ instance %d : %s ]",
+                $zenka_name,
+                $instance_id,
+                $pid // qw| <undef> |
+            );
+        }
     } <[v7-zenki.zenka-instances.get-ids]>->($zenka_name)
         if $zenka_name ne qw| v7-zenki |;
 
@@ -75,8 +91,8 @@ foreach my $zenka_name ( <[base.sort]>->($apw_href) ) {    ## keys ##
 map { $apw_href->{$ARG} = $max_len if $apw_href->{$ARG} != $max_len }
     ( keys $apw_href->%* );
 
-#,,..,,,.,..,,,.,,,,,,,..,..,,,..,.,,,...,..,,..,,...,.,.,...,.,,,,,.,.,,,,.,,
-#O3PPEMSAHMIVDNQJAOQG3EGEPWRH4HANW63FWZXQVZ4YDFC3HVF5UX6DI7HXP4OHRVIYBTGH2Y7RY
-#\\\|O7C24VV66C2UAJAYOZLYZTNOVLQ5ICGXUWNNHBQ3LVIN5T6TTPF \ / AMOS7 \ YOURUM ::
-#\[7]JH3WMLPGQF75UCQHI67KRHFOOSVD3RGF5KH4P4LM72KGA42GE2AI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,..,.,,,.,.,...,.,.,...,.,,,..,,..,,...,...,,,.,..,,,.,,.,,,,,.,
+#Y7XJZMTJIFKX4EQ4FUMYPDEGNC5Q2CQSXURSWU4KLW63BLANVWFV5FL4OWGS2GX3SSSLAV7ABME2G
+#\\\|5VTC3PCERJOUB2QXYPVFL2ELKZHLR4JMKHZJ5MCXVUISW5X7Z2O \ / AMOS7 \ YOURUM ::
+#\[7]ZGRAYSUFMH2ER4LELIIBZ47GEE3ENKBBHMH6JAJD4PCRXS3LREDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

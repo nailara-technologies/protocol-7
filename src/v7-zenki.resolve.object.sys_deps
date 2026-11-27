@@ -27,8 +27,27 @@ $state = <[v7-zenki.sys_deps.probe]>->($zenka_name) if not defined $state;
 return { 'mode' => qw| true |, 'data' => $state->{'status'} }
     if ( $state->{'status'} // qw| ok | ) ne qw| missing |;
 
-my @apt  = @{ $state->{'apt'}  // [] };
-my @cpan = @{ $state->{'cpan'} // [] };
+my @apt  = @{ $state->{'apt'} // [] };
+my @cpan = grep { defined $ARG and length $ARG } @{ $state->{'cpan'} // [] };
+
+my $unresolved_logged = $state->{'unresolved_logged'} //= {};
+my $known_pm_deps = AMOS7::deps::module::load_known_deps(<system.root_path>)
+    // {};
+for my $module ( @{ $state->{'missing_pm'} // [] } ) {
+    my $resolved
+        = AMOS7::deps::module::resolve_install( $module, $known_pm_deps );
+    next if defined $resolved->{'pkg'} and length $resolved->{'pkg'};
+    ## local sources [ pm_src ] carry no package by design ##
+    next if ( $resolved->{'method'} // '' ) eq qw| pm_src |;
+    next if $unresolved_logged->{$module}++;
+    <[base.logs]>->(
+        0,
+        "sys_deps: no install package resolved "
+            . "for perl module '%s' [ zenka '%s' ]",
+        $module,
+        $zenka_name
+    );
+}
 
 $state->{'status'}     = qw| installing |;
 $state->{'started_at'} = <[base.ntime]>;     ## install_timeout ##
@@ -103,8 +122,8 @@ if ( not $pending ) {
 
 return { 'mode' => qw| true |, 'data' => 'sys_deps install started' };
 
-#,,,.,..,,,..,.,,,,..,,,.,,.,,,.,,,.,,.,.,.,.,..,,...,...,,.,,.,,,,,,,,,.,,,.,
-#JX6JVM7OTLWGQ4PPROZZ7CTJQHH3GZUBWKBGV6X5TCZU2UR3STWXIF7ONIOKHFDNSAACVRJZT7VAG
-#\\\|J26ROAUDSMZZHR7H4MRZRPKVUC7WVH6GTPD4HVYWMOKMXTSWRGC \ / AMOS7 \ YOURUM ::
-#\[7]FFSQRLSAUWHRILD5MJKOFPZBWGKASQF26522RMLUFAM7FH22MUCA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,...,,,,,..,,...,.,.,,,.,..,,..,,...,...,.,,,,.,,.,,,...,..,,
+#Z4P5RULGSXAF5YGKALKG5NKCOJEYAM5OR6UDJPGLTOUE4IOOEUWJXEH3ZSTPRRRR4SNMABN37LBLE
+#\\\|QWFFES6GBO4I42UGINQEED4H3JYU5PE4ZQGCCEGNUR4NAFGYKYA \ / AMOS7 \ YOURUM ::
+#\[7]3SIBEORVWMTVACDR4XJHLHXT4TONCBTW3SDDLLRJRORINSJHK2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
