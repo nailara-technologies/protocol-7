@@ -1,14 +1,48 @@
 ## [:< ##
 
 # name  = coding.cmd.session-cache-keepalive
-# descr = open work and activity for cache keep-alive
+# param = [ on | off sid=<sid> ] -- none : the query
+# descr = keep-alive open work, or a session's switch
 # return = size : name, last, tab-separated descriptions with their item ids
 
 my $all = <[coding.sessions.store]>;
+
+## [ on | off ] sid=<sid> : the session switches its own keep-alive ##
+## [ eg. off while nothing it waits on needs its context ]          ##
+my $args = $call->{'args'} // '';
+if ( $args =~ m{\A\s*(on|off)\s+sid=([0-9a-f-]{36})\s*\z}i ) {
+    my ( $switch, $sid ) = ( lc $1, lc $2 );
+    my @named = grep { ( $all->{$ARG}->{'sid'} // '' ) eq $sid }
+        keys %{$all};
+    return {
+        'mode' => qw| false |,
+        'data' => 'no single session holds this sid'
+        }
+        if @named != 1;
+    if ( $switch eq qw| off | ) {
+        $all->{ $named[0] }->{'cache_keepalive'} = qw| off |;
+    } else {
+        delete $all->{ $named[0] }->{'cache_keepalive'};
+    }
+    <[coding.sessions.store]>->(qw| save |);
+    <[protocol-7.route-send]>
+        ->( { 'command' => qw| events.cache-keepalive-arm | } );
+    return {
+        'mode' => qw| true |,
+        'data' => "cache keep-alive $switch for $named[0]"
+    };
+}
+return {
+    'mode' => qw| false |,
+    'data' => 'expected : [ on | off ] sid=<sid>'
+    }
+    if $args =~ m|\S|;
+
 my @lines;
 foreach my $name ( sort keys %{$all} ) {
     my $r = $all->{$name};
     next if $r->{'parked'};
+    next if ( $r->{'cache_keepalive'} // '' ) eq qw| off |;
     my @open;
     foreach my $key ( sort keys %{$r} ) {
         next if $key !~ m{\Aopen\.(?:dispatch|wait)\.([\w-]+)\z};
@@ -26,8 +60,8 @@ foreach my $name ( sort keys %{$all} ) {
 }
 return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) };
 
-#,,..,..,,,,,,,..,,..,,,,,,.,,,.,,.,,,,,,,...,..,,...,...,..,,.,.,,,,,,,,,,.,,
-#6UMRWBKGMHDIFFUE6SKLEV7SJWSKXQN7HYL7Q2YMR6IH6BHXW65XTI65Y2ZK4NGTG2YVCYBH2GL7C
-#\\\|3WTWBKNXU7H42UTG6YTFRLPA2C5DIVVKB4GTJWAG6XGYYIMEOBV \ / AMOS7 \ YOURUM ::
-#\[7]5H6OR6AWEPLX55EV57BOAOEJC3JUZWB5TWQYEBCCYTH5ZQA5M2CY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,..,...,..,,,,,,,,,,.,.,,.,,,,.,..,,...,...,..,,,..,,,.,,,,,,,,,
+#M6KS65ZAPCENNGOBCFSYFLNFG32YO2BPBHILAILXBTPMZIMZUE2D447QXP3VJ3KPHAWS2PERE7YN2
+#\\\|DB7YKMQ3CKWBOBTE4VQDDIBGJZYDHWW6FA2Y3OQPM2KWO5CAYDW \ / AMOS7 \ YOURUM ::
+#\[7]Q6T7TYKY4UUAEMAMWY32327VW64MELOEHVBH3RSXSHD6G4OFHQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
