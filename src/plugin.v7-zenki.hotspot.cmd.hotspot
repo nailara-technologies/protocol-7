@@ -1,0 +1,140 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.cmd.hotspot
+# descr = where a busy \ stuck zenka is [ :core: mode ]
+# param = <zenka>[.<subname>] [ samples ] [ :core: ]
+
+## the pid comes from v7-zenki's own instance table, never from the caller ##
+## [ a caller-given pid could point at any process ]. gdb runs as a        ##
+## non-blocking stream_child per sample, spread on a base.interval.next    ##
+## rhythm [ type hotspot-sample ], the reply is deferred and goes out from ##
+## the handler that collects the last sample                               ##
+
+return { 'mode' => qw| false |, 'data' => 'gdb not installed' }
+    if not defined <v7-zenki.hotspot.gdb>;
+
+my @args      = grep {length} split( m{\s+}, $call->{'args'} // '' );
+my $mode_core = FALSE;
+@args = grep {
+    if ( $ARG eq qw| :core: | ) { $mode_core = TRUE; FALSE }
+    else                        {TRUE}
+} @args;
+
+my $target  = shift @args // '';
+my $samples = shift @args // <v7-zenki.cfg.hotspot.samples_default> // 13;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected : hotspot <zenka>[.<subname>] [ samples ] [ :core: ]'
+    }
+    if not length $target
+    or $target !~ m{^[A-Za-z0-9][\w.-]*$}
+    or @args;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'samples : expected a count [ 1 .. 144 ]'
+    }
+    if $samples !~ m|^\d{1,3}$|
+    or $samples < 1
+    or $samples > 144;
+
+## resolve the instance table by name [ .<subname> narrows to one ] ##
+
+my ( $zenka_name, $subname ) = split( m{\.}, $target, 2 );
+my $instances = <v7-zenki.zenka.instance> // {};
+
+my @match;
+foreach my $i_id ( sort { $a <=> $b } keys $instances->%* ) {
+    my $instance = $instances->{$i_id};
+    next if ref $instance ne qw| HASH |;
+    next if ( $instance->{'zenka_name'} // '' ) ne $zenka_name;
+    next
+        if defined $subname
+        and ( $instance->{'subname'} // '' ) ne $subname;
+    push @match, $i_id;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => "no running instance named '$target'"
+    }
+    if not @match;
+
+return {
+    'mode' => qw| false |,
+    'data' => "hotspot already running for '$zenka_name'"
+        . ' [ one run per zenka at a time ]'
+    }
+    if exists <v7-zenki.hotspot.jobs>->{$zenka_name};
+
+my $job = {
+    'zenka'     => $zenka_name,
+    'reply_id'  => $call->{'reply_id'} // '',
+    'mode_core' => $mode_core,
+    'samples'   => $samples,
+    'since'     => <[base.time]>->(3),
+    'instances' => {},
+    'notes'     => [],
+};
+<v7-zenki.hotspot.jobs>->{$zenka_name} = $job;
+
+foreach my $i_id (@match) {
+    my $instance = $instances->{$i_id};
+    my $pid      = $instance->{'process'}->{'id'} // 0;
+    my $label    = $zenka_name;
+    $label .= sprintf( '[%s]', $instance->{'subname'} )
+        if defined $instance->{'subname'};
+
+    ## v7-zenki cannot attach to itself [ the anchor's job, see the task ] ##
+    if ( not $pid or $pid == $PID ) {
+        push $job->{'notes'}->@*,
+            sprintf( ': instance %u [ %s ] : skipped [ %s ]',
+            $i_id, $label, $pid == $PID ? 'own pid' : 'no pid' );
+        next;
+    }
+
+    $job->{'instances'}->{$i_id} = {
+        'iid'          => $i_id,
+        'pid'          => $pid,
+        'label'        => $label,
+        'samples_left' => $samples,
+        'histogram'    => {},
+        'interval'     => {},
+        'ticks_start'  => <[plugin.v7-zenki.hotspot.proc_ticks]>->($pid),
+        'time_start'   => <[base.time]>->(3),
+        'handle'       => undef,
+        'core_path'    => undef,
+        'bt_path'      => undef,
+        'bt_lines'     => [],
+        'done'         => FALSE,
+    };
+    <[plugin.v7-zenki.hotspot.sample]>->( $zenka_name, $i_id );
+}
+
+if ( not keys $job->{'instances'}->%* ) {
+    delete <v7-zenki.hotspot.jobs>->{$zenka_name};
+    return {
+        'mode' => qw| false |,
+        'data' => "nothing to sample for '$target' : "
+            . join( ' ', map {s{^: +| +$}{}gr} $job->{'notes'}->@* )
+    };
+}
+
+<[base.logs]>->(
+    1,
+    'hotspot : %s [ %d instance%s, %d samples%s ]',
+    $target,
+    scalar keys $job->{'instances'}->%*,
+    keys $job->{'instances'}->%* == 1 ? '' : 's',
+    $samples,
+    $mode_core ? ', :core:' : ''
+);
+
+return { 'mode' => qw| deferred | };
+
+#,,,.,.,,,...,.,,,,,,,.,.,.,,,..,,...,...,,,.,..,,...,..,,.,.,.,,,,..,...,.,.,
+#6N7RAJOSHGOK53ZQI73YGEJCVS34QJBYWSPOPQCIXG7YGAHTOEK5Q7HBX5UA4KUBOZSRRC4UDFWTC
+#\\\|4VAJOISIX45BF44N7XQSD76A4JTX337PW7ARA5MWS747UMXTE3Y \ / AMOS7 \ YOURUM ::
+#\[7]DV3I3YAQ5CF2QQ3DBXB2KQIESMYBF5OZ7RUXIX5KDWC26N35KWBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.proc_ticks
+# descr = utime + stime [ clock ticks ] of a pid from /proc/<pid>/stat
+# param = <pid>  ->  ticks | undef
+
+my $pid = shift // return undef;
+return undef if $pid !~ m{^\d+$};
+
+open( my $fh, '<', "/proc/$pid/stat" ) or return undef;
+my $stat = <$fh>;
+close($fh);
+return undef if not defined $stat;
+
+## comm may hold spaces \ parens : fields resume after the last ')' ##
+
+my $rest = rindex( $stat, ')' );
+return undef if $rest < 0;
+my @field = split( m{ +}, substr( $stat, $rest + 2 ) );
+
+## field 14 \ 15 of stat = index 11 \ 12 here [ state was field 3 ] ##
+
+return undef if @field < 13;
+return $field[11] + $field[12];
+
+#,,..,,.,,,,.,,..,,..,..,,.,.,,,,,..,,.,,,.,,,..,,...,..,,.,,,,,,,,,.,..,,.,.,
+#KH3HWTEAYYOUEM22YNH7LJ7ZWWZE2OOMV56NQ5DYZ54RSG3JNPQRIP5AMPRRDBORXDNVS2UYOHVOC
+#\\\|DOXIYYVAM25H6IRZRWYUHC3K6C6J4A67O7KYK6ARJPS2WXQRGAN \ / AMOS7 \ YOURUM ::
+#\[7]JDHIQWUEYTRL6VLAIYOTZGTABWKALCKDNKSWKNWY7WPIGZHI6ICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

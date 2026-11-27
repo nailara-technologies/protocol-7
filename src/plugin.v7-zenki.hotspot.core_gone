@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.core_gone
+# descr = the :core: child ended : write the bt file, close the instance
+# args  = reason, handle
+
+my ( $reason, $handle ) = @ARG;
+return if ref $handle ne qw| HASH |;
+my $data     = $handle->{'data'}                           // return;
+my $job_name = $data->{'job'}                              // return;
+my $job      = <v7-zenki.hotspot.jobs>->{$job_name}        // return;
+my $inst     = $job->{'instances'}{ $data->{'iid'} // '' } // return;
+return if not defined $inst->{'handle'} or $inst->{'handle'} != $handle;
+
+$inst->{'handle'} = undef;
+
+## backtrace to its own file, 0600 like the core [ both may hold keys ] ##
+
+if ( defined $inst->{'bt_path'} and @{ $inst->{'bt_lines'} } ) {
+    if ( open( my $fh, '>', $inst->{'bt_path'} ) ) {
+        print {$fh} join( '', map {"$ARG\n"} $inst->{'bt_lines'}->@* );
+        close($fh);
+        chmod( 0600, $inst->{'bt_path'} );
+    } else {
+        push $job->{'notes'}->@*,
+            sprintf( ': instance %u [ %s ] : bt not written : %s',
+            $inst->{'iid'}, $inst->{'label'}, $OS_ERROR );
+        $inst->{'bt_path'} = undef;
+    }
+}
+$inst->{'bt_lines'} = [];
+
+if ( defined $inst->{'core_path'} and -e $inst->{'core_path'} ) {
+    chmod( 0600, $inst->{'core_path'} );
+} else {
+    push $job->{'notes'}->@*,
+        sprintf( ': instance %u [ %s ] : gcore wrote no core [ %s ]',
+        $inst->{'iid'}, $inst->{'label'}, $reason // 'child ended' );
+    $inst->{'core_path'} = undef;
+}
+
+$inst->{'done'} = TRUE;
+<[plugin.v7-zenki.hotspot.gone_check]>->($job_name);
+return;
+
+#,,..,,,.,...,.,.,.,.,.,.,,..,.,,,,,,,,,.,,..,..,,...,...,...,,,,,..,,.,.,.,,,
+#EW3ZLE3XZAOQQPUZZX7SFO7JUY6RJJTCEFXRQAJILHS3ARGGQQU3WOPZ24AAEJTPDZGY3KVQ4VYWA
+#\\\|WRBN4J35WYR6GYRBX2WX4SUTLEX3EH6G4YGQYBBXFGK67PSNV45 \ / AMOS7 \ YOURUM ::
+#\[7]2SXB4QSDGZX34FEWAPL3FOXWU2MGGPASPYLMP6C2YYOHBRUV2YDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

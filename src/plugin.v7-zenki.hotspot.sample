@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.sample
+# descr = spawn one gdb sample child for one instance [ non-blocking ]
+# args  = ( job name, instance id )  |  timer event with { job, iid } data
+
+## one sample : gdb attaches for a few ms, prints the interpreter's current ##
+## position [ works without debug symbols on threaded perl ] and detaches.  ##
+## lines are collected by plugin.v7-zenki.hotspot.line, the child's end by  ##
+## plugin.v7-zenki.hotspot.gone                                             ##
+
+my ( $job_name, $i_id );
+if ( ref $ARG[0] ) {    ## named timer handler : reload-safe, data via ->w ##
+    my $data = shift->w->data // {};
+    ( $job_name, $i_id ) = @{$data}{qw| job iid |};
+} else {
+    ( $job_name, $i_id ) = @ARG;
+}
+return if not defined $job_name or not defined $i_id;
+
+my $job  = <v7-zenki.hotspot.jobs>->{$job_name} // return;
+my $inst = $job->{'instances'}->{$i_id}         // return;
+return if $inst->{'done'};
+
+if ( not kill( 0, $inst->{'pid'} ) ) {
+    push $job->{'notes'}->@*,
+        sprintf( ': instance %u [ %s ] : pid %d gone',
+        $i_id, $inst->{'label'}, $inst->{'pid'} );
+    $inst->{'done'} = TRUE;
+    <[plugin.v7-zenki.hotspot.gone_check]>->($job_name);
+    return;
+}
+
+my $result = <[stream_child.start]>->(
+    {   'cmd' => [
+            <v7-zenki.hotspot.gdb>,
+            '-p',
+            $inst->{'pid'},
+            qw| -batch -nx |,
+            '-ex',
+            join( ' ',
+                'printf "%s:%d\n",',
+                '((PerlInterpreter*)PL_curinterp)->Icurcop->cop_file,',
+                '((PerlInterpreter*)PL_curinterp)->Icurcop->cop_line' )
+        ],
+        'on_line' => qw| plugin.v7-zenki.hotspot.line |,
+        'on_gone' => qw| plugin.v7-zenki.hotspot.gone |,
+        'group'   => TRUE,
+        'data'    => { 'job' => $job_name, 'iid' => $i_id },
+    }
+);
+
+if ( not $result->{'ok'} ) {
+    push $job->{'notes'}->@*,
+        sprintf( ': instance %u [ %s ] : sample child : %s',
+        $i_id, $inst->{'label'}, $result->{'error'} // 'spawn failed' );
+    $inst->{'done'} = TRUE;
+    <[plugin.v7-zenki.hotspot.gone_check]>->($job_name);
+    return;
+}
+
+$inst->{'handle'} = $result->{'handle'};
+
+## a hotspot child is no zenka : v7-zenki's sig_chld skips it silently      ##
+## [ otherwise a level 0 'missing instance id' per sample ] -- the existing ##
+## mechanism instance.restart uses                                          ##
+<v7-zenki.sig_chld.ignore_child_pid>->{ $result->{'handle'}->{'pid'} } = TRUE
+    if defined $result->{'handle'}->{'pid'};
+return;
+
+#,,,,,...,,.,,,.,,,,,,,,.,,,,,,.,,.,,,,,.,,..,..,,...,...,.,.,..,,,..,,.,,.,.,
+#DAHW47LMFAVLKYGHKSE7YNY52OK2PTEGBY7NHKIRAWKI3YGOIWLFAQ4FX7O6DYQWHLXST7HMDOKCE
+#\\\|FADPFNHIBXEE5NNCJO3MZIDYXADEWUTCUSGYFWL3SNWLGUHK6TU \ / AMOS7 \ YOURUM ::
+#\[7]6YMNYCFA55UD63HYL67CLKU6GKBOL5JUMQIM7JT4S5C44W5LRMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

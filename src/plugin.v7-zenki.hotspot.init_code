@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.init_code
+# descr = hotspot sampler plugin : gdb detection and run state set-up
+
+## evidence before action : sample a busy \ stuck zenka's perl interpreter ##
+## position [ PL_curinterp->Icurcop ] with gdb, never a caller-given pid.  ##
+## without gdb the plugin stays inactive : the command answers 'gdb not    ##
+## installed' and nothing else in v7-zenki changes                         ##
+
+my $reinit = shift;
+
+<v7-zenki.hotspot.jobs> //= {};    ## one active job per zenka name ##
+
+my $gdb = <[file.which]>->(qw| gdb |);
+if ( defined $gdb and length $gdb and -x $gdb ) {
+    <v7-zenki.hotspot.gdb> = $gdb;
+    <[base.log]>->( 1, ': hotspot plugin : gdb at %s', $gdb );
+} else {
+    <v7-zenki.hotspot.gdb> = undef;
+    <[base.log]>->(
+        1,
+        ': hotspot plugin inactive : gdb not installed '
+            . '[ p7-deps profile : v7-zenki-hotspot ]'
+    );
+}
+
+## re-detect only : in-flight jobs keep their own resolved state ##
+
+0;
+
+#,,..,.,,,,..,...,.,.,,,.,.,,,,.,,,..,,..,..,,..,,...,...,,..,,..,,,,,..,,..,,
+#PR7SQ4XAXDUFJIBHP6BWHJHEV5JUCCDGVEYRQ7SEZR6LWBX64TGMWWT62NWPN4T3JNYLXBD6ASIL6
+#\\\|A63COVGQPYTFJNWCQYL57LIL6V4VKZJL7GCMXOIPJILVVF6FTV3 \ / AMOS7 \ YOURUM ::
+#\[7]4JTAY4MRKVJGJ5NZBDVMRCI3C633FQWQUMI55TNFKCKHZR3CMCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.core
+# descr = :core: mode : gcore + thread apply all bt below the state dir
+# args  = job name, instance id
+
+## a core holds keys : the directory and both files stay 0700 \ 0600. the ##
+## reply names the path ; the anchor calls this before a restart          ##
+
+my ( $job_name, $i_id ) = @ARG;
+my $job  = <v7-zenki.hotspot.jobs>->{$job_name} // return;
+my $inst = $job->{'instances'}->{$i_id}         // return;
+my $gdb  = <v7-zenki.hotspot.gdb>;
+if ( not defined $gdb ) {    ## went away mid-run : finish without a core ##
+    $inst->{'done'} = TRUE;
+    <[plugin.v7-zenki.hotspot.gone_check]>->($job_name);
+    return;
+}
+
+my $var      = ( <system.path.zenka-dirs> // {} )->{'var_P7'};
+my $root     = <system.root_path>              // '';
+my $core_dir = <v7-zenki.cfg.hotspot.core_dir> // (
+    defined $var && length $var
+    ? "$var/v7-zenki/hotspot"
+    : "$root/data/state/hotspot"
+);
+
+if ( not -d $core_dir ) {
+    <[file.make_path]>->( $core_dir, 0700 )
+        if defined $code{'file.make_path'};
+    mkdir( $core_dir, 0700 ) if not -d $core_dir;
+}
+if ( not -d $core_dir ) {
+    push $job->{'notes'}->@*,
+        sprintf( ': instance %u [ %s ] : no core dir [ %s ]',
+        $i_id, $inst->{'label'}, $core_dir );
+    $inst->{'done'} = TRUE;
+    <[plugin.v7-zenki.hotspot.gone_check]>->($job_name);
+    return;
+}
+
+my $stamp = sprintf '%d', time;
+my $base  = sprintf '%s.%u.%s.%d',
+    $inst->{'label'}, $i_id, $job->{'zenka'}, $stamp;
+$base =~ s{[^\w.-]+}{-}g;
+$inst->{'core_path'} = "$core_dir/$base.core";
+$inst->{'bt_path'}   = "$core_dir/$base.bt";
+$inst->{'bt_lines'}  = [];
+
+my $result = <[stream_child.start]>->(
+    {   'cmd' => [
+            $gdb,           '-p',
+            $inst->{'pid'}, qw| -batch -nx |,
+            '-ex',          "gcore $inst->{'core_path'}",
+            '-ex',          'thread apply all bt'
+        ],
+        'on_line' => qw| plugin.v7-zenki.hotspot.core_line |,
+        'on_gone' => qw| plugin.v7-zenki.hotspot.core_gone |,
+        'group'   => TRUE,
+        'data'    => { 'job' => $job_name, 'iid' => $i_id },
+    }
+);
+
+if ( not $result->{'ok'} ) {
+    push $job->{'notes'}->@*,
+        sprintf( ': instance %u [ %s ] : core child : %s',
+        $i_id, $inst->{'label'}, $result->{'error'} // 'spawn failed' );
+    $inst->{'done'} = TRUE;
+    <[plugin.v7-zenki.hotspot.gone_check]>->($job_name);
+    return;
+}
+
+$inst->{'handle'} = $result->{'handle'};
+
+## a hotspot child is no zenka : v7-zenki's sig_chld skips it silently      ##
+## [ otherwise a level 0 'missing instance id' per sample ] -- the existing ##
+## mechanism instance.restart uses                                          ##
+<v7-zenki.sig_chld.ignore_child_pid>->{ $result->{'handle'}->{'pid'} } = TRUE
+    if defined $result->{'handle'}->{'pid'};
+return;
+
+#,,.,,..,,,,.,,..,..,,,,.,,,,,..,,.,,,.,,,..,,..,,...,...,.,,,,.,,.,,,,,,,..,,
+#4NXDTLHTLB7LVXKL62HPGP2OZTZSPL6QL3DLN24NI47Q5JMAMPD6B2RIUHMRQHOK3WERIWDXCRCEK
+#\\\|M5DFK3WCMH7WDM6HZLLJNT2CIN6ZWDNE6FL4J3VIURGQLZFESAQ \ / AMOS7 \ YOURUM ::
+#\[7]6DMLUWALCGF34GB22DALKLJMZRC2TZTAG7B7NZUBLTHLLP43D6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

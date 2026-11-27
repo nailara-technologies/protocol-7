@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.gone_check
+# descr = finish the job once every instance of it is done
+# args  = job name
+
+my $job_name = shift                                // return;
+my $job      = <v7-zenki.hotspot.jobs>->{$job_name} // return;
+
+return
+    if grep { ref $ARG ne qw| HASH | or not $ARG->{'done'} }
+    values $job->{'instances'}->%*;
+
+delete <v7-zenki.hotspot.jobs>->{$job_name};
+
+my $reply = <[plugin.v7-zenki.hotspot.report]>->($job);
+
+if ( length $job->{'reply_id'} ) {
+    <[base.callback.cmd_reply]>->( $job->{'reply_id'}, $reply );
+} else {
+    <[base.logs]>->( 1, "hotspot %s :\n%s", $job_name, $reply->{'data'} );
+}
+return;
+
+#,,,,,.,.,.,.,,,.,,.,,.,,,,,.,,,,,,,,,..,,...,..,,...,...,.,,,.,.,,..,...,,,.,
+#6H7HA5NXDCVWZXMQHN2IG7KXGZXMIIXQVTGV7PYJOKCCGN4JYKJJZNNHXXH74S7IGO243UDPMHYAK
+#\\\|3BOCHCHTSNH3I3Q4C34U4DULAF6F2L2BBWOZ66PMZHN3WITPWDI \ / AMOS7 \ YOURUM ::
+#\[7]ZH7ZIKMCLSSCRGQAUOYU5IGICZDVEFCTWMOGSP4RSXKOBJM6WGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

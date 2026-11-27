@@ -107,6 +107,7 @@ base.calc_gauss
 ascii.frame.bar
 ui.estimate.cost
 trust.pin_decide
+stream_child.arm
 plugin.auth.unix
 jobqueue.add_job
 devmod.post_init
@@ -139,6 +140,11 @@ ascii.frame.load
 v7-zenki.teardown
 v7-zenki.pre_init
 v7-zenki.call_cmd
+stream_child.stop
+stream_child.step
+stream_child.reap
+stream_child.note
+stream_child.gone
 plugin.auth.zenka
 net.read_bytewise
 jobqueue.pre_init
@@ -152,6 +158,7 @@ base.reverse-sort
 base.resolve_hash
 base.perlmod.load
 base.parser.align
+base.load_plugins
 base.load_modules
 base.list_matches
 base.init_modules
@@ -172,6 +179,10 @@ v7-zenki.init_code
 v7-zenki.child.add
 ui.render.fallback
 ui.fields.fallback
+stream_child.write
+stream_child.start
+stream_child.flush
+stream_child.alive
 jobqueue.init_code
 jobqueue.find_jobs
 base.stdout.raw_fh
@@ -179,6 +190,7 @@ base.slot.register
 base.reload_values
 base.reload_config
 base.parser.config
+base.interval.next
 base.handler.write
 base.handler.input
 base.handler.hooks
@@ -195,6 +207,9 @@ base.clean_hashref
 base.center_string
 base.base32.encode
 ascii.frame.render
+stream_child.status
+stream_child.signal
+stream_child.disarm
 plugin.auth.twofish
 jobqueue.remove_job
 io.ip.tcp.init_code
@@ -263,6 +278,9 @@ v7-zenki.zenka.get_id
 v7-zenki.instance_ids
 v7-zenki.cmd.teardown
 v7-zenki.cmd.pressure
+stream_child.user_env
+stream_child.end_code
+stream_child.close_in
 jobqueue.get_next_job
 jobqueue.get_job_data
 io.ip.tcp.output.open
@@ -415,6 +433,7 @@ v7-zenki.delegation.retry
 v7-zenki.delegation.issue
 v7-zenki.check_zenka_deps
 ui.render.tree.invalidate
+stream_child.handler.reap
 jobqueue.priorities_table
 jobqueue.joblist_template
 io.unix.socket.input.open
@@ -446,6 +465,8 @@ v7-zenki.parser.process_id
 v7-zenki.parser.latency_ms
 v7-zenki.parser.hold_until
 v7-zenki.cleanup_pid_files
+stream_child.handler.timer
+stream_child.handler.stdin
 protocol.sftp.read_ssh_env
 keystore.trash.offer_purge
 io.unix.socket.output.open
@@ -490,6 +511,8 @@ v7-zenki.cleanup_temp_paths
 v7-zenki.cleanup_temp_files
 v7-zenki.check_service_unit
 v7-zenki.backend.read_small
+stream_child.handler.stdout
+stream_child.handler.stderr
 net.read_linewise_estimated
 jobqueue.check_dependencies
 io.unix.socket.output.close
@@ -537,6 +560,9 @@ v7-zenki.bin_p7r_comp_chksum
 v7-zenki.bin_p7c_comp_chksum
 protocol.protocol-7.pre_init
 protocol.amos_term.init_code
+plugin.v7-zenki.hotspot.line
+plugin.v7-zenki.hotspot.gone
+plugin.v7-zenki.hotspot.core
 io.unix.socket.input.connect
 crypt.C25519.keystr_is_valid
 crypt.C25519.delegation_file
@@ -606,6 +632,8 @@ v7-zenki.cmd.forced-mod-reload
 v7-zenki.callback.object.zenka
 protocol.sftp.connect_callback
 protocol.amos-chksum.init_code
+plugin.v7-zenki.hotspot.sample
+plugin.v7-zenki.hotspot.report
 jobqueue.handler.queue_counter
 crypt.C25519.keys.version_info
 crypt.C25519.key_name_and_type
@@ -653,6 +681,7 @@ crypt.C25519.cmd.get-public-key
 base.zenki.resolve_routing_sids
 base.warnings.compact_statehash
 base.p7refs.gen_template_chksum
+base.interval.rhythm.non-linear
 base.handler.link-upgrade.input
 v7-zenki.zenka.push_routing_mode
 v7-zenki.zenka.cmd.notify_online
@@ -709,6 +738,9 @@ v7-zenki.callback.object.sys_deps
 v7-zenki.callback.get_x11_display
 v7-zenki.callback.connect_to_cube
 protocol.amos-chksum.ext-cmd.exit
+plugin.v7-zenki.hotspot.init_code
+plugin.v7-zenki.hotspot.core_line
+plugin.v7-zenki.hotspot.core_gone
 base.zenki.pause_ondemand_timeout
 base.sourcecode.in-mem.sub-source
 base.session.cancel_source_routes
@@ -742,6 +774,8 @@ protocol.amos-chksum.ext-cmd.modes
 protocol.amos-chksum.ext-cmd.close
 protocol.amos-chksum.ext-cmd.clear
 protocol.amos-chksum.ext-cmd.bytes
+plugin.v7-zenki.hotspot.proc_ticks
+plugin.v7-zenki.hotspot.gone_check
 jobqueue.event.register_job_queues
 crypt.C25519.load_keys_from_secret
 crypt.C25519.get_type_from_key_str
@@ -774,6 +808,7 @@ v7-zenki.callback.object.unix_group
 protocol.sftp.handler.session_close
 protocol.protocol-7.encryption.init
 protocol.amos-chksum.ext-cmd.select
+plugin.v7-zenki.hotspot.cmd.hotspot
 base.zenki.resolve_primary_sid.pick
 base.session.register_authenticated
 base.perlmod.register_loaded_module
@@ -877,8 +912,8 @@ v7-zenki.handler.stdio_multiplex_demux.route_to_slot
 v7-zenki.handler.stdio_multiplex_demux.encode_payload_hex
 v7-zenki.handler.stdio_multiplex_demux.decode_payload_text
 
-#,,.,,.,.,..,,...,.,,,,.,,..,,...,..,,.,,,..,,..,,...,.,.,..,,.,.,...,,,.,,,.,
-#6HXWNZWZBGZ5QZX4ZC4CN7GOBVNCRUD7L337YVXKKX6OPM4YC57A3EZQBU4V6BSX3RRKWSNRZANDQ
-#\\\|GBZ6XTDR2Q6ZD3RZO3YFPP6AX2JA2NGMYP3LB4ZTPVQAW3NCNTA \ / AMOS7 \ YOURUM ::
-#\[7]WMI3XMA2C64ASPO6PFNNEK2WUTHGRITYVZOHGSTXV6ONRSU6XGBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,...,,,.,,..,,..,,..,,..,..,,..,,...,...,.,.,,.,,,,,,,,.,...,
+#RNWQRF6KAEWGU7OO2AXWTXFE6ME2D4ZVCCWQUO5A4ZWPSZUFULCZ5EX2GIO32UZORAFVWMJCNTXHS
+#\\\|AIJDKXZ2VTHZR24MI2BU2XYSWQIWNW4DQAVS377VASJTCXGTXDR \ / AMOS7 \ YOURUM ::
+#\[7]BXMUVTXCM7USB2KWZPZDVVUMJOZNXM2HULYJLXR5GCKWJ4AN4KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

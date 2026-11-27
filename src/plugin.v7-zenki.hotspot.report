@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.report
+# descr = build the reply : count module:line histogram + cpu share
+# args  = job hash
+
+use POSIX qw| sysconf _SC_CLK_TCK |;
+
+my $job = shift // return { 'mode' => qw| false |, 'data' => 'no job' };
+
+my $now = <[base.time]>->(3);
+my $hz  = eval { sysconf(_SC_CLK_TCK) } // 100;
+
+my $text = ":\n";
+$text .= sprintf ": hotspot : %s [ %d samples, %.1f s%s ]\n",
+    $job->{'zenka'},
+    $job->{'samples'},
+    $now - $job->{'since'},
+    $job->{'mode_core'} ? ', :core:' : '';
+
+foreach my $i_id ( sort { $a <=> $b } keys $job->{'instances'}->%* ) {
+    my $inst = $job->{'instances'}->{$i_id};
+
+    $text .= ":\n";
+    $text .= sprintf ": instance %u [ %s, pid %d ] :\n",
+        $i_id, $inst->{'label'}, $inst->{'pid'};
+
+    ## cpu share over the sampling time [ /proc/<pid>/stat ] ##
+    my $ticks_end
+        = <[plugin.v7-zenki.hotspot.proc_ticks]>->( $inst->{'pid'} );
+    if (    defined $ticks_end
+        and defined $inst->{'ticks_start'}
+        and $now > $inst->{'time_start'} ) {
+        my $share
+            = ( $ticks_end - $inst->{'ticks_start'} )
+            / $hz
+            / ( $now - $inst->{'time_start'} )
+            * 100;
+        $text .= sprintf ":   cpu share over the sampling time : %.1f %%\n",
+            $share;
+    } else {
+        $text .= ":   cpu share over the sampling time : ?\n";
+    }
+
+    my @rows = sort {
+               $inst->{'histogram'}->{$b} <=> $inst->{'histogram'}->{$a}
+            || $a cmp $b
+    } keys $inst->{'histogram'}->%*;
+    if (@rows) {
+        foreach my $row (@rows) {
+            $text .= sprintf ":   %5d  %s\n",
+                $inst->{'histogram'}->{$row}, $row;
+        }
+    } else {
+        $text .= ":   no samples collected\n";
+    }
+
+    $text .= sprintf( ":   core : %s\n", $inst->{'core_path'} )
+        if defined $inst->{'core_path'};
+    $text .= sprintf( ":   bt   : %s\n", $inst->{'bt_path'} )
+        if defined $inst->{'bt_path'};
+}
+
+if ( $job->{'notes'}->@* ) {
+    $text .= ":\n";
+    $text .= sprintf( "%s\n", $ARG ) foreach $job->{'notes'}->@*;
+}
+$text .= ":\n";
+
+return { 'mode' => qw| size |, 'data' => $text };
+
+#,,..,,,,,.,.,...,,,.,.,,,.,,,...,...,,,.,,,.,..,,...,...,,..,.,.,,.,,,.,,..,,
+#3BVXTYWNVM7RQHNDZDNBFBEGUKTXSDYK4LN44DXPZ3XZIEQSHJNUUIQZPB2FV46HOM3JECIP6BGWC
+#\\\|HP3G5IIEVLE6E2EBFNONDFTWFXL3UGBDJLJKZO7UXJCGKORHSEY \ / AMOS7 \ YOURUM ::
+#\[7]SEIIV2E6VSPW3TAONRGWGMPFR4XXIGAYCNKLLXLLJXRFYIHOC6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

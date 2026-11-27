@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.core_line
+# descr = one output line of a :core: child : keep the backtrace
+# args  = line [ octets ], handle
+
+my ( $line, $handle ) = @ARG;
+return if ref $handle ne qw| HASH |;
+my $data = $handle->{'data'} // return;
+my $job  = <v7-zenki.hotspot.jobs> { $data->{'job'} // '' } // return;
+my $inst = $job->{'instances'}{ $data->{'iid'} // '' } // return;
+return if not defined $inst->{'handle'} or $inst->{'handle'} != $handle;
+
+push $inst->{'bt_lines'}->@*, $line;
+return;
+
+#,,,,,,..,.,,,.,,,,,,,,..,,,.,,..,,.,,,,.,,..,..,,...,..,,...,.,,,,.,,.,,,,,.,
+#I2YIV46Y6CCWWLDWO6IPUBOUYHJZB7M46QKDZL2DC6YNQRSIZNOUZEOH4CWBLOTIN4LIESZOJYNCC
+#\\\|AQNRBAB2KOQSPFY2UYF3CCCEJD5P4R4MMFFQALWWSAUJFW26EYO \ / AMOS7 \ YOURUM ::
+#\[7]3EDXMQKBPZLAZKFHIFQI5F3ZKMVN6ZRQMURQEX75PAV7J6QZQECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

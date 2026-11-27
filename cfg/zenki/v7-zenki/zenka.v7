@@ -13,12 +13,26 @@ crypt.C25519.auto_load_keys  = 0  ## prevent base key auto-loading ..,
 ## Load debian dependency manager for automatic dependency installation
 modules.load = v7-zenki jobqueue net protocol io.unix io.ip ui ascii format.yaml \
                            crypt.C25519 auth.zenka auth.client trust \
+                           stream_child \
                            keystore   ## debian
 
 load.start_setup = base          #    <--   [ ,../zenki/v7-zenki/start-set-up.base ]
                               ## [ additional : local-models + remote-server ]
 access.cmd.usr.cube          = *
-access.cmd.usr.system        = v7-zenki.teardown
+access.cmd.usr.system        = v7-zenki.teardown v7-zenki.hotspot
+
+### HOTSPOT SAMPLER [ plugin.v7-zenki.hotspot, owner only ] ###
+## evidence before action : where a busy \ stuck zenka's interpreter is ##
+## [ needs gdb : p7-deps profile 'v7-zenki-hotspot' ]                   ##
+plugins.load = plugin.v7-zenki.hotspot
+v7-zenki.cfg.hotspot.samples_default          = 13
+#v7-zenki.cfg.hotspot.core_dir                =   ## default : state dir ##
+## sample spacing : start small, grow gently ##
+## [ phase drift, no fixed sleep ]           ##
+base.interval.cfg.type.hotspot-sample.start        = 0.377
+base.interval.cfg.type.hotspot-sample.factor       = 1.2
+base.interval.cfg.type.hotspot-sample.cap          = 2.1
+base.interval.cfg.type.hotspot-sample.cap_jitter   = 0.8
 
 v7-zenki.host-reboot.enabled        = 1
 v7-zenki.host-reboot.term-delay     = 1.3787
@@ -90,6 +104,7 @@ v7-zenki.cfg.zenka_stdout_redir = yes # ::enabled::
 [root.check_system_user:<system.amos-zenka-user>]
 
 [load_modules:<modules.load>]
+[load_plugins:<plugins.load>]
 [init_modules]
 
 [init-done] ## declare initialization completed ##
@@ -102,8 +117,8 @@ v7-zenki.cfg.zenka_stdout_redir = yes # ::enabled::
 
 [zenka.loop]
 
-#,,,.,,.,,,.,,,,.,.,,,,..,...,..,,.,,,,.,,.,.,..,,...,...,.,.,,,,,,,,,,,,,,.,,
-#GJQ2IQQNYQOYJR347RYE2XBFACRHZJ7FYCTIIWOLZQQAVOIQJBOW3SPRY64YUQOCN32DNJZZDXH4U
-#\\\|GIJ4LWOZWLQJVOP6CAXROTXEDMDWNVLEQG2H7ZS3LMHIDWI5MUD \ / AMOS7 \ YOURUM ::
-#\[7]6CTJI6QIZTYATLNYTDJ7ZK766K7WO6KWAP7PDCIJEKUALCSLAOAY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,,,...,...,,.,,,.,,..,,.,,,,,.,..,,...,..,,,,,,.,,,..,,,,,,,,.,
+#6V2EVUF5L6RJ3STUKVDPZRQWIJECIEYOYGRXQYLFQ6PEES2HA3H74VRZSZ7LAETPXZTG225UCSYUO
+#\\\|JIUU7X6TPN7ZTYOYLO7352ZIEW7RLKKK7XE45QCDPOTMB5FWFRE \ / AMOS7 \ YOURUM ::
+#\[7]OADFFQ5OIW7RIPRQXT3DAZNKP7D7F7ED4A5RSEAFNQQKRBDRDWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

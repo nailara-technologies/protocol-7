@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.gone
+# descr = a sample child ended : arm the next sample or move the run on
+# args  = reason, handle
+
+my ( $reason, $handle ) = @ARG;
+return if ref $handle ne qw| HASH |;
+my $data     = $handle->{'data'}                           // return;
+my $job_name = $data->{'job'}                              // return;
+my $job      = <v7-zenki.hotspot.jobs>->{$job_name}        // return;
+my $inst     = $job->{'instances'}{ $data->{'iid'} // '' } // return;
+return if not defined $inst->{'handle'} or $inst->{'handle'} != $handle;
+
+$inst->{'handle'} = undef;
+$inst->{'samples_left'}--;
+
+if ( $inst->{'samples_left'} > 0 and kill( 0, $inst->{'pid'} ) ) {
+
+    ## spread on a base.interval.next rhythm, never a fixed sleep : a ##
+    ## periodic loop must not be caught at the same phase each time   ##
+    <[event.add_timer]>->(
+        {   'after' => <[base.interval.next]>->(
+                {   'type'  => qw| hotspot-sample |,
+                    'state' => $inst->{'interval'}
+                }
+            ),
+            'handler' => qw| plugin.v7-zenki.hotspot.sample |,
+            'data'    => { 'job' => $job_name, 'iid' => $inst->{'iid'} },
+            'desc'    =>
+                sprintf( 'hotspot : next sample [ %s ]', $inst->{'label'} ),
+        }
+    );
+    return;
+}
+
+if ( $job->{'mode_core'} ) {
+    <[plugin.v7-zenki.hotspot.core]>->( $job_name, $inst->{'iid'} );
+    return;
+}
+
+$inst->{'done'} = TRUE;
+<[plugin.v7-zenki.hotspot.gone_check]>->($job_name);
+return;
+
+#,,..,...,,..,,..,,,,,...,,,.,...,,.,,,..,,.,,..,,...,...,,..,.,,,.,.,,.,,,,.,
+#KO3RYBISTON4FWYIBC5CBT6JTMWFVNTLWYDAJYZ2O2ZWPZD5BASWOZE4G6YPFWKKSEYDBKIKAWOCI
+#\\\|XQDDUJF6L2EA6LZYJONRJOHTSFWRVDGPLMTSRQDSBVJ3SB7YJSV \ / AMOS7 \ YOURUM ::
+#\[7]F2J7RBA2CMQPN5HCNCQRQ3ZEDWLOB2XN3UCEQXBCKG3QCJWEGEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

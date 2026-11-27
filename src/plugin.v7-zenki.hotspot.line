@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = plugin.v7-zenki.hotspot.line
+# descr = one output line of a sample child : count the module:line
+# args  = line [ octets ], handle
+
+my ( $line, $handle ) = @ARG;
+return if ref $handle ne qw| HASH |;
+my $data = $handle->{'data'} // return;
+my $job  = <v7-zenki.hotspot.jobs> { $data->{'job'} // '' } // return;
+my $inst = $job->{'instances'}{ $data->{'iid'} // '' } // return;
+return if not defined $inst->{'handle'} or $inst->{'handle'} != $handle;
+
+## cop_file is the p7 module name [ models.handler.task-poll-step:197 ], ##
+## perl and xs files keep their path                                     ##
+
+$inst->{'histogram'}->{$1}++
+    if $line =~ m{^(\S+:\d+)\s*$};
+return;
+
+#,,,.,,,.,,.,,...,...,...,,.,,..,,,..,,..,.,.,..,,...,...,.,,,.,.,.,,,,,.,,,,,
+#HLVPZZHFMUJGDTAJYJNMZ457M23AIS6JPJ7SFAVA3EXNLFUMITTZKAJ54UP4FEZATBJYDOF5RFN3A
+#\\\|55RMLJRREFGZ2I3DI4TXOXTT2FYGAUP5ENBDIC355AJN76ZLSDR \ / AMOS7 \ YOURUM ::
+#\[7]4ANQUANGZDEIEV64LXMWSMV6CPE76L5NVF6TARFRNSEWBLRSMABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
