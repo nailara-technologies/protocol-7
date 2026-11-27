@@ -48,10 +48,14 @@ if ( $via ne qw| state | ) {
 delete <coding.sessions.aliases>->{$name};
 <[coding.sessions.store]>->(qw| save |);
 <[coding.keepalive.arm]> if $moved or $r->{'switch'} eq qw| on |;
+if ( grep {m{\Aopen\.(?:dispatch|wait)\.}} keys %{$r} ) {
+    <[protocol-7.route-send]>
+        ->( { 'command' => qw| events.cache-keepalive-arm | } );
+}
 return $r;
 
-#,,,,,.,.,...,...,..,,.,.,,,.,..,,,,,,...,,,,,..,,...,...,...,.,,,...,..,,...,
-#F5RFICBDEKYXGBVPV34QUNO7BMWYPTVOITKXNBDI4637AZH7T5QNOKA4GOU5TWFGJAXUBA6NCK4IW
-#\\\|3KPIH3QV32OJH7Q5VBTTL46SEQOV6TTQUVIKKKKQ2XY5F6LAN4W \ / AMOS7 \ YOURUM ::
-#\[7]FGPIQ44ZQ7S272OQ2NDDXT5EYDMWW7XMXXKTE5KHLA3FPYURZADQ 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,.,,..,,,..,..,,,,,,..,,,,,,,,.,..,,...,...,.,,,..,,.,.,.,.,,.,,
+#QW6LBRVZZBADU7T7QQVT73R3XIZQEPAA2NWUZUL7N65IYAKWEAAUM25WD3JZEYZ6XJ5AIEBBFD62I
+#\\\|TWAUZC2VYSDVKFLZKPVWPBDHFR45RLKUMW4AK3IYFPRCM6ZPDMM \ / AMOS7 \ YOURUM ::
+#\[7]YJDC7DESXH7JWV7WQRSEJHIBNDWGJJJGPSSOCJ6LLER53GRFJSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

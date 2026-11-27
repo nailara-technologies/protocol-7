@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = plugin.events.cache-keepalive.arm
+# descr = one narrow registry query, then the earliest open session's timer
+
+eval { <events.cache_keepalive.timer>->cancel }
+    if defined <events.cache_keepalive.timer>;
+undef <events.cache_keepalive.timer>;
+my $seq = ++<events.cache_keepalive.seq>;
+return <[protocol-7.route-send]>->(
+    {   'command'   => qw| coding.session-cache-keepalive |,
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => qw| plugin.events.cache-keepalive.handler.reply |,
+            'params'  => { 'seq' => $seq }
+        }
+    }
+);
+
+#,,,,,.,.,.,,,...,.,.,..,,,,,,.,,,.,,,,.,,,,,,..,,...,...,.,.,...,...,,.,,.,.,
+#T2ISC3QYWKUBTM2Z2YWTS2P5P4CMYX644XKRYYRUCEH5JHOOC6OVYSD6JGQTKXBQBSSEFKEOMPRPK
+#\\\|Z5KEMYNYKIGFYHLR6KZ7E4UVOAKXMRWJDR34BSZHAPTU3MPQTSY \ / AMOS7 \ YOURUM ::
+#\[7]U6PYPYK3F4BZHCIZYOU4RCN4R3BF3D4J3RQCCAADHU3JD7ARGCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

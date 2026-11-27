@@ -1,6 +1,6 @@
 # session cache keep-alive + sensible reset notices
 
-status : OPEN 2026-11-27 -- plan agreed with the owner, not built.
+status : PART 2 BUILT 2026-11-27 -- narrowed owner-agreed scope, not loaded live.
 
 ## why
 
@@ -99,8 +99,23 @@ to `last` ; activity and open-work changes re-arm it. no open items means no tim
 notice. keep this independent of the opt-in `coding.keepalive.*` switch until the owner
 chooses whether that older mechanism is replaced.
 
-#,,,,,...,..,,,,.,,,,,,.,,,,,,,..,...,.,.,.,,,..,,...,...,...,.,.,,.,,.,.,.,.,
-#LEHBORXQIBI5FCGMIYQ7XQOAX4XTOVWIDPI45BASWN2PMAL6CWQUN4GIJEBX4D7AKWUYPPJHODUQ4
-#\\\|2TXEK4JQBVSM5EIOMHNNPMO6ES3OXMRO3KTKGTLEGG5CJRJDXDR \ / AMOS7 \ YOURUM ::
-#\[7]ZMTKBLSL4TTRN2YUK6DYUWQDQDKOWWJGPLGLG5ZFFHWRVIKO4MAY 7  DATA SIGNATURE ::
+## implementation status [ 2026-11-27 ]
+
+- `coding.session-open` stores only `open.dispatch.<id>` and `open.wait.<id>`
+  descriptions in the existing registry. updates and clears require the session sid and
+  item id. the mcp server reports its local kimi \ claude dispatch start and finish ;
+  `p7-sign-wait` registers sign jobs only and clears them in an exit-status-preserving
+  guard. no other open-work source was added.
+- the loaded events feature queries `coding.session-cache-keepalive`, keeps no session
+  copy, sends the agreed silent notice and re-arms from `session-cache-keepalive` at 54
+  minutes. activity and item changes re-arm ; no open items leaves no timer. command,
+  access and generated whitelist entries are included. `coding.keepalive.*` is unchanged.
+- focused existing-script tests cover persistence, sid-matched clearing, one-query
+  delivery, timer removal and sign-wait registration. no commit, sign or reload was done ;
+  live `<zenka>.commands` verification therefore remains for the later reload.
+
+#,,,.,,..,.,.,,,.,,.,,.,.,.,,,.,,,...,.,.,,,,,..,,...,...,,..,,,,,,,.,,,.,..,,
+#2GK57N6E2XRRFCJIQYSUNHK2VHVPQV4GADOCGM35J3IDPNPC44WX5WZECBB2NTMZWWTNYEEGI2VN6
+#\\\|LAZW3KVXQOUIJ6IZWMC4NX4V2B5TFRBXLYNB7YEQU6H65PBG25O \ / AMOS7 \ YOURUM ::
+#\[7]FNJCHAICGO3MOCDJG5M45QE56VCBJ2F4MCUOLVCLGWGW3OFJVSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

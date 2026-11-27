@@ -15,6 +15,7 @@
 # switch went off ], pending [ the agent's marker ], dispatches, sid [ the
 # stable session id : the name is only its label ], was [ the name before,
 # until listed once ], parked [ another sid took its name ]
+# open.dispatch.<id> and open.wait.<id> hold descriptions only
 #
 # `alias.<old name>.sid \ until` lines : an old name of a sid, kept for the
 # coding-session-alias interval [ <coding.sessions.aliases> ]
@@ -32,7 +33,11 @@ if ( ref $all ne qw| HASH | ) {
         AMOS7::Switch::parse_state( ref $sref eq 'SCALAR' ? $sref->$* : '' ) )
     {
         my ( $kind, $name, $key )
-            = $pair->[0] =~ m{\A(session|alias)\.([\w.\-]+)\.(\w+)\z};
+            = $pair->[0]
+            =~ m{\A(session)\.(.+)\.(open\.(?:dispatch|wait)\.[\w-]+)\z};
+        ( $kind, $name, $key )
+            = $pair->[0] =~ m{\A(session|alias)\.([\w.\-]+)\.(\w+)\z}
+            if not defined $key;
         next if not defined $key;
         ( $kind eq qw| alias | ? $alias : $all )->{$name}{$key}
             = AMOS7::Switch::unescape_value( $pair->[1] );
@@ -81,8 +86,8 @@ my $text
     );
 return $all;
 
-#,,,.,.,.,,..,.,.,,..,..,,.,,,.,,,,..,,..,.,.,..,,...,...,...,...,.,.,,,,,...,
-#ZHSIVBKBYTO4SR72JWAAXIPOF72WEXDQSBZ66O6NHQJWESZRDH3VHPL4TYG2JMD6WSWXDU4OI5MWS
-#\\\|45RNEAQ6H2PQIAA3QOVGQL6HXCQXSJLEJEBLPREZYBMTEEH2EXR \ / AMOS7 \ YOURUM ::
-#\[7]4WGWRRW522XPJ56TLKWJM6VPIS4NRAOMM6HV25WTGRTHRODGJIAY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,,.,,...,..,,,,.,...,,.,,,,.,..,,...,..,,,..,..,,.,,,..,,..,,
+#5ZQTWYODWCPKW4FHTEKOHJ7G62HLRIVTUJRYBDETQ4CSQMCEZOJOVRTKVDYGRHIYN6M435YJRMGSG
+#\\\|Q2X7PSGPO472OXPYFV6HTCM6NUMTVW42FCK4BQXQTQDPZGMWSZR \ / AMOS7 \ YOURUM ::
+#\[7]FJNIQWTYMZYEB4AJH2KKALQH6D6GAQLTZX2LSH6Y7VHDCWRRPSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

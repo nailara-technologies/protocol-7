@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = plugin.events.cache-keepalive.handler.reply
+# descr = notify due open sessions and arm the earliest next activity anchor
+
+my $reply = shift              // {};
+my $in    = $reply->{'params'} // {};
+return FALSE
+    if ( $in->{'seq'} // 0 ) != ( <events.cache_keepalive.seq> // 0 );
+my ( $mode, $text ) = <[base.reply.mode_text]>->($reply);
+return FALSE if $mode ne qw| size |;
+
+my $now   = time;
+my $delay = <[base.interval.next]>
+    ->( { 'type' => qw| session-cache-keepalive |, 'state' => {} } );
+return FALSE if not defined $delay;
+my $next;
+foreach my $line ( split m{\n}, $text ) {
+    my ( $name, $last, $what ) = split m{\t}, $line, 3;
+    next
+        if $name !~ m|\A[\w.\-]{1,64}\z|
+        or $last !~ m|\A\d+(?:\.\d+)?\z|
+        or not length( $what // '' );
+    my $due = $now - $last >= $delay;
+    if ($due) {
+        <[events.notify.send]>->(
+            {   'to'    => "session:$name",
+                'sound' => qw| none |,
+                'text'  => "cache keep-alive : still waiting on $what"
+            }
+        );
+    }
+    my $at = $due ? $now + $delay : $last + $delay;
+    $next = $at if not defined $next or $at < $next;
+}
+return FALSE if not defined $next;
+<events.cache_keepalive.timer> = <[event.add_timer]>->(
+    {   'after'   => $next > $now ? $next - $now : 1,
+        'handler' => qw| plugin.events.cache-keepalive.tick |,
+        'desc'    => 'cache keep-alive : the next open session'
+    }
+);
+return TRUE;
+
+#,,..,,.,,.,,,,..,,,,,...,..,,..,,,,.,,..,,.,,..,,...,...,,,,,...,,,.,,..,..,,
+#MJWYFPTTXJBPGMCWQOIHUYEI62EY6ZN6YRE4KSFE6LWEYOFZWMZ3BH7DUD6HOR3C2L5PFUT5WACPM
+#\\\|NAC5V2EF2KLRSYHGCGV7YSEWEIUM3X5QBNVIIC35LBNNVK7SMJZ \ / AMOS7 \ YOURUM ::
+#\[7]EBVEG4TUHGXXA4O65A4Z2DYVKYNMVGGVRHBXWL4RZ6DH72GGIECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

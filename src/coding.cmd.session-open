@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = coding.cmd.session-open
+# param = name sid kind id what [ clear=1 ]
+# kinds = dispatch wait
+# descr = update one open-work item of a known session
+
+my %in;
+foreach my $word ( split m{\s+}, $call->{'args'} // '' ) {
+    next if not length $word;
+    my ( $key, $value ) = $word =~ m{\A(name|sid|kind|id|what|clear)=(.*)\z};
+    return { 'mode' => qw| false |, 'data' => "unexpected '$word'" }
+        if not defined $key;
+    $in{$key} = $value;
+}
+my $fail = sub { return { 'mode' => qw| false |, 'data' => shift } };
+return $fail->('sid : a uuid')
+    if ( $in{'sid'} = lc( $in{'sid'} // '' ) )
+    !~ m|\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z|;
+## no name [ a helper below the session, eg. p7-sign-wait ] : the one ##
+## record holding this sid                                            ##
+if ( not length( $in{'name'} // '' ) ) {
+    my $known = <[coding.sessions.store]>;
+    my @named = grep { ( $known->{$ARG}->{'sid'} // '' ) eq $in{'sid'} }
+        keys %{$known};
+    return $fail->('no single session holds this sid') if @named != 1;
+    $in{'name'} = $named[0];
+}
+return $fail->('name=<name> expected')
+    if $in{'name'} !~ m|\A[\w.\-]{1,64}\z|;
+return $fail->('kind : dispatch or wait')
+    if ( $in{'kind'} // '' ) !~ m{\A(?:dispatch|wait)\z};
+return $fail->('id : a short identifier')
+    if ( $in{'id'} // '' ) !~ m|\A[\w\-]{1,96}\z|;
+return $fail->('what : a short description')
+    if not $in{'clear'}
+    and ( $in{'what'} // '' ) !~ m|\A[a-z0-9_.\-]{1,64}\z|;
+return $fail->('clear : 0 or 1')
+    if ( $in{'clear'} // 0 ) !~ m|\A[01]\z|;
+
+my $moved = <[coding.sessions.carry]>->( @in{qw| name sid |}, qw| state | );
+my $all   = <[coding.sessions.store]>;
+my $r     = $all->{ $in{'name'} };
+return $fail->('not registered for this sid')
+    if not defined $r
+    or ( $r->{'sid'} // '' ) ne $in{'sid'};
+
+my $key = sprintf 'open.%s.%s', @in{qw| kind id |};
+my $old = $r->{$key};
+if ( $in{'clear'} ) {
+    delete $r->{$key};
+} else {
+    $r->{$key} = $in{'what'};
+}
+my $changed = ( $old // '' ) ne ( $r->{$key} // '' );
+<[coding.sessions.store]>->(qw| save |) if $changed or $moved;
+if ( $changed or $moved ) {
+    <[protocol-7.route-send]>
+        ->( { 'command' => qw| events.cache-keepalive-arm | } );
+}
+return {
+    'mode' => qw| true |,
+    'data' => $in{'clear'} ? 'open item cleared' : 'open item noted'
+};
+
+#,,.,,,..,,.,,,,.,...,..,,,,,,...,...,.,.,,,,,..,,...,..,,...,,.,,,,.,..,,...,
+#V6ZU5ZVZYPZDN2USZAXIMGXOFONLO6O46X4WAFVBYC54DWVYAGARGZI4BD5IFN22P3NIJYUT6CSG6
+#\\\|74ZBF2DUDG2XP4SREIHB4KO5U5IYUGIZ3JPAVJSA7AIWP33AUBY \ / AMOS7 \ YOURUM ::
+#\[7]VFHMWZY3H4UWUQVHNMFJSXITLVIS6NVH5TLB4N4PGLZHOBWSC4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

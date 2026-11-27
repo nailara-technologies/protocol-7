@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = coding.cmd.session-cache-keepalive
+# descr = open work and activity for cache keep-alive
+# return = size : name, last, tab-separated descriptions with their item ids
+
+my $all = <[coding.sessions.store]>;
+my @lines;
+foreach my $name ( sort keys %{$all} ) {
+    my $r = $all->{$name};
+    next if $r->{'parked'};
+    my @open;
+    foreach my $key ( sort keys %{$r} ) {
+        next if $key !~ m{\Aopen\.(?:dispatch|wait)\.([\w-]+)\z};
+        my $id   = $1;
+        my $what = $r->{$key} // 'work';
+        $what =~ tr|_| |;
+        push @open, "$what [$id]";
+    }
+    next if not @open;
+    push @lines,
+        join( "\t",
+        $name,
+        $r->{'last'} // $r->{'since'} // 0,
+        join( ', ', @open ) );
+}
+return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) };
+
+#,,..,..,,,,,,,..,,..,,,,,,.,,,.,,.,,,,,,,...,..,,...,...,..,,.,.,,,,,,,,,,.,,
+#6UMRWBKGMHDIFFUE6SKLEV7SJWSKXQN7HYL7Q2YMR6IH6BHXW65XTI65Y2ZK4NGTG2YVCYBH2GL7C
+#\\\|3WTWBKNXU7H42UTG6YTFRLPA2C5DIVVKB4GTJWAG6XGYYIMEOBV \ / AMOS7 \ YOURUM ::
+#\[7]5H6OR6AWEPLX55EV57BOAOEJC3JUZWB5TWQYEBCCYTH5ZQA5M2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

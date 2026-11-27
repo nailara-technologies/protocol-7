@@ -171,7 +171,14 @@ sub pump {
         my $cmd = $c->{'command'} =~ s{\Acube\.}{}r;
         my ( $target, $sub ) = $cmd =~ m{\A([\w-]+)\.(.+)\z};
         my $rv;
-        if ( $down{$target} ) {
+        if ( $cmd eq 'present' ) {
+            $rv = {
+                  'mode' => $down{ $c->{'call_args'}{'args'} // '' }
+                ? 'false'
+                : 'true',
+                'data' => 'presence'
+            };
+        } elsif ( $down{$target} ) {
             $rv = { 'mode' => 'false', 'data' => 'client not present' };
         } elsif ( $target eq 'events' ) {
             $rv = run_cmd( 'events', "events.cmd.$sub",
@@ -224,7 +231,7 @@ opendir my $dh, $src or die "cannot open src : $OS_ERROR";
 my @src = readdir $dh;
 closedir $dh;
 load_module($ARG) for grep {
-    m{\A(?:park\.|events\.(?:plugin|source|fire|handler\.event_triggered|calc_unix|set_up_timers|action\.|access\.|signal\.|cmd\.signal\z|bucket\.|cmd\.bucket-)|plugin\.events\.(?:action|source)\.|base\.interval\.next\z|base\.interval\.rhythm\.|base\.reply\.mode_text\z|coding\.handover\.|coding\.remind\.|coding\.keepalive\.|coding\.sessions\.|coding\.handler\.(?:handover|remind|keepalive)_|coding\.cmd\.(?:handover|remind|keepalive|session))}
+    m{\A(?:park\.|events\.(?:plugin|source|fire|handler\.event_triggered|calc_unix|set_up_timers|action\.|access\.|signal\.|cmd\.signal\z|cmd\.cache-keepalive-arm\z|bucket\.|cmd\.bucket-)|plugin\.events\.(?:(?:action|source)\.|cache-keepalive\.)|base\.interval\.next\z|base\.interval\.rhythm\.|base\.reply\.mode_text\z|coding\.handover\.|coding\.remind\.|coding\.keepalive\.|coding\.sessions\.|coding\.handler\.(?:handover|remind|keepalive)_|coding\.cmd\.(?:handover|remind|keepalive|session))}
 } @src;
 load_module($ARG) for qw|
     coding.park.store coding.sign_queue.store
@@ -239,8 +246,10 @@ sub fake_reset {
         'kimi'   => "phase   : ready\npid     : 42\nqueued  : 0\n",
         'refuse' => {}
     );
-    %got = ();
+    %got      = ();
+    @notified = ();
 }
+$code{'events.notify.send'} = sub { push @notified, shift; TRUE };
 $code{'claude.cmd.status'}
     = sub { { 'mode' => 'size', 'data' => $fake{'claude'} } };
 $code{'kimi.cmd.acp-status'}
@@ -270,9 +279,12 @@ sub delivered {    ## 'path=count ..' of what arrived ##
 my $access_file = "$root_path/cfg/zenki/cube/access.zenki";
 my $grants_file = "$root_path/cfg/zenki/events/access.signals";
 my %interval    = ();
-foreach ( split m{\n}, read_file("$root_path/cfg/zenki/coding/zenka.v7") ) {
-    $interval{$1}{$2} = $3
-        if m{\Abase\.interval\.cfg\.type\.([\w-]+)\.(\w+)\s*=\s*(\S+)};
+foreach my $zenka_name (qw| coding events |) {
+    foreach ( split m{\n},
+        read_file("$root_path/cfg/zenki/$zenka_name/zenka.v7") ) {
+        $interval{$1}{$2} = $3
+            if m{\Abase\.interval\.cfg\.type\.([\w-]+)\.(\w+)\s*=\s*(\S+)};
+    }
 }
 
 sub fresh_events {
@@ -589,7 +601,7 @@ sub signal {
 signal('usage.window.reset provider=kimi window=5h');
 signal('usage.window.reset provider=claude window=7d');
 ok( delivered() eq '', 'reset : other providers and windows are ignored' );
-my $rv = signal('usage.window.reset provider=claude window=5h');
+my $rv = signal('usage.window.reset provider=claude window=5h activity=used');
 ok( $rv->{'mode'} eq 'true', 'reset : the real signal grants' );
 ok( delivered() eq 'claude.cmd.session-post=1'
         && $got{'claude.cmd.session-post'}[0] =~ m{\Ato=lead from=coding },
@@ -602,11 +614,11 @@ ok( scalar $got{'claude.cmd.session-post'}[0]
 ok( -f "$tmp/repo/data/ai-mem/claude/handover-live.md",
     'reset : the handover written first' );
 ok( rec('lead')->{'count'} == 0, 'reset : the post is not counted' );
-signal('usage.window.reset provider=claude window=5h');
+signal('usage.window.reset provider=claude window=5h activity=used');
 ok( @{ $got{'claude.cmd.session-post'} } == 2, 'reset : the watch re-armed' );
 delete $data{'coding'}{'sessions'}{'records'}{$_} for qw| kimi-old kimi-acp |;
 $data{'coding'}{'cfg'}{'handover_root'} = "$tmp/nowhere";
-signal('usage.window.reset provider=claude window=5h');
+signal('usage.window.reset provider=claude window=5h activity=used');
 ok( scalar $got{'claude.cmd.session-post'}[2]
         =~ m{no kimi session is leading ; handover not written : },
     'reset : no leader, a failed write is said so'
@@ -641,6 +653,51 @@ ok( join( ' ; ', @touch ) eq
         . 'type=claude-zenka via=turn ; name=kimi-acp type=kimi-acp '
         . 'via=keepalive',
     'reporters : claude turns and kimi acp prompts, keep-alives tagged'
+);
+
+## 9b. open-work cache keep-alive : one query, sid-matched clear ##
+reset_all();
+my $cache_sid = '12345678-1234-4234-8234-123456789abc';
+cmd( 'session-touch',
+    "name=cache-live type=claude-live via=tool sid=$cache_sid" );
+ok( cmd( 'session-open',
+              "name=cache-live sid=$cache_sid kind=dispatch "
+            . "id=cr-1 what=claude_dispatch" )->{'mode'} eq 'true'
+        && rec('cache-live')->{'open.dispatch.cr-1'} eq 'claude_dispatch'
+        && defined $data{'events'}{'cache_keepalive'}{'timer'},
+    'open dispatch : stored in the session record and the timer armed'
+);
+delete $data{'coding'}{'sessions'};
+ok( scalar cmd('session-cache-keepalive')->{'data'}
+        =~ m{\Acache-live\t\d+\tclaude dispatch \[cr-1\]\z},
+    'open item : dotted key survives the registry file'
+);
+ok( cmd( 'session-open',
+              'name=cache-live sid=99999999-9999-4999-8999-999999999999 '
+            . 'kind=dispatch id=cr-1 clear=1' )->{'mode'} eq 'false'
+        && rec('cache-live')->{'open.dispatch.cr-1'} eq 'claude_dispatch',
+    'clear : another sid cannot remove the item'
+);
+rec('cache-live')->{'last'} -= 3300;
+@cube_log = ();
+run_cmd( 'events', 'events.cmd.cache-keepalive-arm', '' );
+pump();
+ok( @notified == 1
+        && $notified[0]->{'to'} eq 'session:cache-live'
+        && $notified[0]->{'sound'} eq 'none'
+        && $notified[0]->{'text'} eq
+        'cache keep-alive : still waiting on claude dispatch [cr-1]',
+    'idle open session : the exact silent session notice'
+);
+ok( scalar( grep {m{coding\.session-cache-keepalive}} @cube_log ) == 1
+        && !exists $data{'events'}{'sessions'},
+    'events : one narrow query and no copied session registry'
+);
+cmd( 'session-open',
+    "name=cache-live sid=$cache_sid kind=dispatch id=cr-1 clear=1" );
+ok( !defined rec('cache-live')->{'open.dispatch.cr-1'}
+        && !defined $data{'events'}{'cache_keepalive'}{'timer'},
+    'last open item cleared : no timer remains'
 );
 
 ## 10. the mcp server reporter, against a fake cube ##
@@ -960,8 +1017,8 @@ ok( @{ touches($seen) } && $seen !~ m{sid=},
 say "\n# pass $pass fail $fail";
 exit( $fail ? 1 : 0 );
 
-#,,,.,..,,,.,,,,.,,,,,.,.,,..,,,.,,,,,.,.,,..,..,,...,...,,.,,,..,,..,,.,,.,.,
-#HFUX354VH2FYMHITQKTP5VFZRHKQWG3GXDXBGPB2O3PROHVZPF54QDOHBW3D56QJHJC2SGPDSA5K4
-#\\\|RNFFF63J2XEK4VQWII7BDL5KN3HDZJJARTEK65LHTSFYE7RO4O5 \ / AMOS7 \ YOURUM ::
-#\[7]DMNNA4FDM5SECSCVRGR27AZB2QCHCRXPDMBI6UB5KME26E7RQMCY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,.,,,.,,,.,...,,.,,.,,,...,,..,..,,...,...,,..,..,,.,.,,,,,.,.,
+#SDMSHIX7ZDT2VIU2RXYM76XQIVKGDWCTKGYTYUPL4KOENXIVAVKNFM7F3QCQFAWKVW6IJHOKGLLVU
+#\\\|6LURLWUDSDMZADT2OKZHUD2YGVMXGF6X7C5ZZ6JQ6DUWEET2VCZ \ / AMOS7 \ YOURUM ::
+#\[7]5RUXSLBJPHSY5BBDKP4QIXMUB4CUFI2BJD7H53UKMWL5DNNYFYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

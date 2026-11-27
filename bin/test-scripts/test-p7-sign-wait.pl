@@ -107,6 +107,38 @@ put( 'p7-commit-AAAAAAA-1', '{"status":"committed"}' );
 ( $rc, $out ) = run_wait( 'p7-commit-AAAAAAA-1', 5 );
 check( 'base32 ntime commit id -> committed rc 0', $rc == 0 );
 
+## a live session registers the wait and its exit guard clears it ##
+mkdir "$dir/bin";
+my $p7c = "$dir/bin/p7c";
+open( my $mock, '>:raw', $p7c ) or die $OS_ERROR;
+print {$mock} "#!/bin/sh\nprintf '%s\\n' \"\$*\" >> \"\$P7_OPEN_LOG\"\n";
+close $mock;
+chmod 0700, $p7c;
+$ENV{'P7_OPEN_LOG'} = "$dir/open.log";
+local $ENV{'PATH'}                   = "$dir/bin:$ENV{'PATH'}";
+local $ENV{'P7_SESSION_NAME'}        = 'sign-live';
+local $ENV{'P7_SESSION_REPORT'}      = 'yes';
+local $ENV{'CLAUDE_CODE_SESSION_ID'} = '12345678-1234-4234-8234-123456789abc';
+put( $j, '{"status":"approved"}' );
+( $rc, $out ) = run_wait( $j, 5 );
+open( my $open_log, '<:raw', "$dir/open.log" ) or die $OS_ERROR;
+my @open_calls = <$open_log>;
+close $open_log;
+check(
+    'sign wait : start registers and exit clears the same sid and id',
+    @open_calls == 2
+        && $open_calls[0] =~ m{kind=wait id=p7-sign-1-1 clear=0 what=sign_job}
+        && $open_calls[1] =~ m{kind=wait id=p7-sign-1-1 clear=1}
+        && !grep { !m{sid=12345678-1234-4234-8234-123456789abc} } @open_calls
+);
+put( 'p7-commit-1-1', '{"status":"committed"}' );
+( $rc, $out ) = run_wait( 'p7-commit-1-1', 5 );
+open( $open_log, '<:raw', "$dir/open.log" ) or die $OS_ERROR;
+my @after_commit = <$open_log>;
+close $open_log;
+check( 'commit wait : outside the narrow sign-work registration',
+    @after_commit == 2 );
+
 ## unknown job : rc 2 ##
 ( $rc, $out ) = run_wait( 'p7-sign-9-9', 10 );
 check( 'unknown job -> rc 2', $rc == 2 && $out =~ m|unknown job| );
@@ -114,8 +146,8 @@ check( 'unknown job -> rc 2', $rc == 2 && $out =~ m|unknown job| );
 say "$ok of $n";
 exit( $ok == $n ? 0 : 1 );
 
-#,,,,,,,.,,,,,..,,,,.,.,,,,.,,...,,,,,.,.,.,,,..,,...,.,.,,,.,,,,,,.,,..,,.,,,
-#GQ25PEFNBWZM5R3AW3BSVK2AA22DQS26Z7BEJQ77NS5LXAWEOECVK4JX3R76PDRQGGFTKYGSI6ZNI
-#\\\|PAL264ZSV5644HZSLETILQSOPWCRXGN6RNZXI2XMRV66BSVK3LH \ / AMOS7 \ YOURUM ::
-#\[7]Y5YE6WIMVIVX22GHD5EA4V7SSC6NAHJCAEWJQF5HKQ77V33JCKCY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,,,,,.,..,,.,,,,,.,.,.,.,,,,,.,..,,...,...,.,,,...,.,,,,,,,.,.,
+#3LHHBQUHU2RG3K6WFMXO2CMHDX6G5A4EGVCFOD3WIB2CIGJZ4IIX32VN5S3SC2NRQY6SKOFNF7OZS
+#\\\|LFNUJ4H6XWNBGMLLPNZO53DFUETC7MYGCW4PGU6JWDAQPFJKWNC \ / AMOS7 \ YOURUM ::
+#\[7]AUCZ7C27NDXD5MBA4AG6FQZ6BMFBS3D6THVKW6RRKYYEQKUUPECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

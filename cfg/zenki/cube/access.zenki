@@ -304,6 +304,7 @@
                                      v7-zenki.terminate-implicit v7-zenki.restart \
                                      coding.handover-event coding.remind-fire \
                                      coding.remind-wake coding.sign-queue \
+                                     coding.session-cache-keepalive \
                                      coding.keepalive-reset task.show \
                                      notify.cue ticker.status-set ticker.status-clear
 
@@ -382,6 +383,7 @@
 ## what `task-continue` entries send                                       ##
            access.cmd.usr.coding  =  events.bucket-add events.bucket-remove \
                                      events.bucket-show events.bucket-clear \
+                                     events.cache-keepalive-arm \
                                      task.continue \
                                      protocol-7-menu.pending-question-add \
                                      protocol-7-menu.pending-question-answer \
@@ -450,11 +452,11 @@
             access.cmd.usr.usage  =  events.signal
 
            access.cmd.usr.claude  =  v7-zenki.register_child events.signal \
-                                     coding.session-touch \
+                                     coding.session-touch coding.session-open \
                                      v7-zenki.gone_child
 
              access.cmd.usr.kimi  =  v7-zenki.register_child events.signal \
-                                     coding.session-touch \
+                                     coding.session-touch coding.session-open \
                                      task.queue task.show task.claim \
                                      task.complete task.fail task.reset \
                                      kimi-web.list_agents kimi-web.spawn_agent
@@ -642,8 +644,8 @@
       access.cmd.usr.screen-setup  =   X-11.move-window \
                                        X-11.raise-window X-11.keep_above
 
-#,,..,..,,,.,,,..,.,,,,.,,.,.,...,...,,.,,...,.,.,...,...,.,,,,,.,,.,,,,,,,,,,
-#F5XDI6V4ENEI5AGLQEPAKTEPD7P3LSNONAFWMLCKRJZWX6GHAS34EXV6KK4R2KFYVAJ2ZQRNUZXL4
-#\\\|BMZ6VP2RPPGRXCQSQA6755K25CARGKAYOB7FPEUQW4FBX4IO3RR \ / AMOS7 \ YOURUM ::
-#\[7]NOKODYQJNO3OR4WEOQ6RADOD7JUPRQRPVC3FB3W7G2OMG2MVHCBA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,..,,,,,,,..,,,.,..,,,,.,.,,,.,.,...,...,.,,,...,.,,,.,,,..,,
+#AFTD56KWQ5QM7XX5J6A5OAWQV46AWXEJKXPZOU5N3ZDLATLSO52WWKTWNXV35XVTCUBAIXELCM272
+#\\\|LI3EC7NBDB5CYNP2EFUC75A4NCLFETCIEJC6XX4TCE24KQRUYLD \ / AMOS7 \ YOURUM ::
+#\[7]43R64BW6UAU5O6OSIK3QESY3WCSVXD3Q3Q27PARP2O4J6CUIICAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -39,6 +39,42 @@ my $last       = 'no state yet';
 my $pause      = $fast ? 0.05 : 0.5;
 my $deadline   = time() + $timeout;
 
+my $session_name = $ENV{'P7_SESSION_NAME'} // '';
+my $session_sid  = lc( $ENV{'CLAUDE_CODE_SESSION_ID'} // '' );
+my $registered   = 0;
+
+sub report_open {
+    my $clear = shift // 0;
+    return 0
+        if ( $ENV{'P7_SESSION_REPORT'} // '' ) eq 'no'
+        or $job !~ m|\Ap7-sign-|
+        or ( length $session_name
+        and $session_name !~ m|\A[\w.\-]{1,64}\z| )
+        or $session_sid !~ m|\A[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\z|;
+    my @args = (
+        'p7c',
+        'coding.session-open',
+        ( length $session_name ? "name=$session_name" : () ),
+        "sid=$session_sid",
+        'kind=wait',
+        "id=$job",
+        "clear=$clear"
+    );
+    push @args, 'what=sign_job' if not $clear;
+    open( my $null, '+>', '/dev/null' ) or return 0;
+    local *STDOUT = $null;
+    local *STDERR = $null;
+    return system(@args) == 0;
+}
+
+$registered = report_open(0);
+
+END {
+    my $status = $?;
+    report_open(1) if $registered;
+    $? = $status;
+}
+
 sub read_state {
     return eval {
         open( my $fh, '<:raw', $state_path ) or die "$OS_ERROR\n";
@@ -114,8 +150,8 @@ while (1) {
     $pause = $fast ? 0.2 : 5 if $pause > ( $fast ? 0.2 : 5 );
 }
 
-#,,,.,,.,,.,.,,,,,..,,,,.,,,,,.,,,.,.,,,,,...,..,,...,...,..,,..,,,,.,...,,,.,
-#N2BCG4G6BEVORUHV3WK3EEQ5FR6NILQT4EA6IJMOIMEEDXUQDOHR7CAWB7UCCJ2FLFOBFCB6UFUKQ
-#\\\|Q4SCJ2TOVVA4MYDZNJQ2VCD25OYF7VEUJJEIBXRSDFBKIGKVZAT \ / AMOS7 \ YOURUM ::
-#\[7]6HEN4XVFWXKANS6OECUZTZV5YHV44RV6GIVJI5ZTEJFV6U2R5MCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,..,,.,.,,,,,...,.,.,,,.,.,.,..,,...,..,,...,..,,.,,,.,.,...,
+#FE4IXUZT5GF54ZKUYIXUFLREENPATKVPSDUVEZJKG63XPGX7AQJGPIOJSCP4IBKXW2TSQ2CK7TTZQ
+#\\\|2RPSCVVQR6UNG5AHIZ73UOV4Z55URL66ATPRI7IHZBLBJKLTHUL \ / AMOS7 \ YOURUM ::
+#\[7]ZBAXPY5IS7SU65GMDNW6B2VHBEMQV2UDXWAQ6IXEWWJXJ3QRZGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

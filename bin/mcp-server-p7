@@ -4882,6 +4882,9 @@ sub tool_external_command {
             $output = $run->{'output'};
         } else {
             $kimi_workers{ $run->{'gpid'} } = 1 if $run->{'gpid'};
+            _session_report( 1, 1 );
+            _session_open_report( 'dispatch', $run->{'gpid'},
+                $ext->{'name'}, 0 );
             ## still running past the bounded window : reply immediately ##
             ## and let the caller poll kimi_check_status for the result  ##
             $run->{'thinking_note'} = $kimi_thinking_note;
@@ -5135,6 +5138,8 @@ sub _claude_run_start {
     };
     log_msg( 'claude run %s started [ pid %d, %s ]',
         $run_id, $pid, $args->{'model'} // '' );
+    _session_report( 1, 1 );
+    _session_open_report( 'dispatch', $run_id, $ext->{'name'}, 0 );
 
     return send_tool_result(
         $id,
@@ -5217,6 +5222,7 @@ sub _claude_run_read {
     }
     log_msg( 'claude run %s %s [ exit %d ]',
         $run->{'id'}, $run->{'status'}, $run->{'exit'} );
+    _session_open_report( 'dispatch', $run->{'id'}, '', 1 );
     ## wake the session : a run ended [ under claude code only ] ##
     _session_inbox_post(
         sprintf "claude run %s %s [ exit %d, "
@@ -5360,7 +5366,10 @@ sub _session_report_identity {
 
 ## dispatched runs of this server still going ##
 sub _session_dispatch_count {
-    delete @kimi_workers{ grep { not kill 0, $ARG } keys %kimi_workers };
+    foreach my $gpid ( grep { not kill 0, $ARG } keys %kimi_workers ) {
+        delete $kimi_workers{$gpid};
+        _session_open_report( 'dispatch', $gpid, '', 1 );
+    }
     return
         keys(%kimi_workers) + grep { defined $ARG->{'fh'} }
         values %claude_runs;
@@ -5427,6 +5436,24 @@ sub _session_report_call {
     }
     cube_disconnect();
     return ( 0, '' );
+}
+
+## one open dispatch of this server, matched by sid and item id when ##
+## cleared                                                           ##
+sub _session_open_report {
+    my ( $kind, $item_id, $what, $clear ) = @ARG;
+    return 0 if not defined $item_id or $item_id !~ m|\A[\w-]+\z|;
+    my ( $name, undef ) = _session_report_identity();
+    my ($sid) = _session_sid();
+    return 0 if not defined $name or not defined $sid;
+    my ( $listed, $users ) = _session_report_call('list users');
+    return 0 if not $listed or $users !~ m{^\s*coding\s}m;
+    my $command = "coding.session-open name=$name sid=$sid "
+        . "kind=$kind id=$item_id clear=$clear";
+    $command .= " what=$what" if not $clear;
+    my ( $ok, $reply ) = _session_report_call($command);
+    log_msg( 'open dispatch report failed : %s', $reply // '-' ) if not $ok;
+    return $ok;
 }
 
 sub _session_register {
@@ -7448,8 +7475,8 @@ sub log_msg {
     printf STDERR "[mcp-server-p7] %s\n", $msg;
 }
 
-#,,,,,,,.,.,.,..,,..,,..,,..,,.,,,.,.,...,.,.,..,,...,...,.,,,.,,,,.,,...,,..,
-#VTVLTEUW3ABQB6UQKWFGYBD66MG657ZD4C2WAYLB5SJ7ILEWPFMNGA6OUSLPXKPLYSK3VKVM4CVCG
-#\\\|TN7F2HPLMALAGO6JHYEBXVKGVQA64O5MCNMD6O7ZPD2D34STBNZ \ / AMOS7 \ YOURUM ::
-#\[7]26QPCITOWN4LHD3WQSHGQAC45PEAKSUX2JBOAA7EO5VH6GCIRWBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,,,.,,,,..,..,,,,.,..,,.,,,...,..,,...,...,..,,...,,..,,,.,.,,,
+#F5BRWE25OJBZIQ64732FUPRXCHOOE4UT5AJS7BKFEQPDNMGHRCLZM2FTPEWH6FRWKGDX6YDBRDVPE
+#\\\|55ELO43WLVARAMGSX7RXLCL2OISNAQTC7ZWLRPNELGUEFH2YAOT \ / AMOS7 \ YOURUM ::
+#\[7]45ZXIDVQDWTTP2FARJZGVV75IBOEN3JWYG43AOONIDNMNS4CI6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

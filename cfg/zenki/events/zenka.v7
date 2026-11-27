@@ -12,7 +12,7 @@ events.load_config  = base        ## [ ./cfg/zenki/events/event-setup.<name> ]
 
 modules.load      = net protocol io.unix ui auth events set-up.json stream_child ## devmod
 access.cmd.usr.cube  = verify-instance commands heart reload \
-                      signal signals signals-since plugins \
+                      signal signals signals-since plugins cache-keepalive-arm \
                       bucket-add bucket-remove bucket-show bucket-clear \
                       *  ## <-- refine
 
@@ -44,6 +44,10 @@ base.interval.cfg.type.notify-repeat.start      = 55
 base.interval.cfg.type.notify-repeat.factor     = 1.2
 base.interval.cfg.type.notify-repeat.cap        = 233
 base.interval.cfg.type.notify-repeat.cap_jitter = 21
+
+## only sessions with keyed open work, anchored to their last activity ##
+base.interval.cfg.type.session-cache-keepalive.minutes = 54
+base.interval.cfg.type.session-cache-keepalive.jitter  = 0.03
 
 base.interval.cfg.type.bucket-wait-short.start   = 34
 base.interval.cfg.type.bucket-wait-short.factor  = 1.2
@@ -84,8 +88,8 @@ plugins.load      = plugin.events
 
 [zenka.loop]
 
-#,,,,,,.,,...,,,,,,.,,..,,..,,.,,,.,.,,..,,,.,..,,...,.,,,.,.,...,..,,,.,,.,,,
-#3JNXFFAS35JUA57PHZXO2LTGQIKHECB77YLHVJEIODGPCS67KW5GKHJMOTN6JSZ7X675SXM4VL7YE
-#\\\|BJMJQIZVK5JPNG5JI6NO6AA72MRLBQKK6IHTJHMCDBEC4ZQMMFY \ / AMOS7 \ YOURUM ::
-#\[7]GUEW36NYP43NMJE6MB5EXF6KPBAL4SJMBA75VCTNXASYWML2DUAY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,...,,,,,,,,,.,.,,,.,.,.,.,.,.,,,..,,...,...,,..,,,.,,,.,,,,,..,,
+#RPMG3BVNTYM3C2HKFNDHQYUTJLW7MK454KSLK5EBTMNK6B6J24XNWU6KU4S6STUXCQ2HV47HHWQ3W
+#\\\|DIE7YLHTZI25KJOBN55LZKUS5PJUNALWMF4RMWGNKPY2MHYGIYD \ / AMOS7 \ YOURUM ::
+#\[7]S3BAFY35MTOYON6OFLWL2VPCCRMJ7RKGEGNZYDXH6XSSNT325KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
