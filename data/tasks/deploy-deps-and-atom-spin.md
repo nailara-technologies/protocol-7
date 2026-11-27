@@ -110,6 +110,21 @@ status : OPEN 2026-11-27 -- found while deploying AMOS7-v6.91.4 to the four serv
   keep-alive for work that is done. wanted : clear on the worker's end [ the wrapper exit or
   the kimi_check_status that sees it gone ].
 
+## 8. n7fs exit codes and the completion signal [ azurum 2026-11-27 ]
+
+- a place as root [ sudo forgotten ] : the vault was not found, n7fs exited with rc 0 and
+  raised `place.complete rc=0`. a missing vault \ root key is a failure : non-zero rc.
+  check every early return of the vault \ root-key open path.
+- Ctrl-C : the notices said `rc=110` [ an errno, ETIMEDOUT ] and `rc=1` -- an interrupted run
+  must say so [ eg. `rc=int` or `signal=INT` ], not look like a timeout.
+- `-dry-run` is not in the signal : a dry run and a real place send the same line. add
+  `dry_run=1`.
+- the END block's p7c output reaches the terminal [ `signal place.complete raised, 0 woken` ] :
+  `local *STDOUT` + open makes a new handle, the child keeps fd 1. redirect the real fds
+  [ open STDOUT dup in place, or an exec with fds closed ].
+- a drill started before an update keeps the old code : the 15:06 drill had no drill.complete
+  [ the update came 15:19 ] -- expected, no fix needed.
+
 ## rules for the implementer
 
 no sha, no json internally ; lowercase comments with [ ] brackets ; perl floor 5.32 ;
@@ -118,8 +133,8 @@ bin/format-code -r then -c for every changed src file, read its whole output [ d
 no commit, no sign, no reload, no deploy ; never touch files you did not change, no git
 restore ; report every changed file.
 
-#,,..,,..,.,,,..,,..,,...,,,,,,.,,,,.,..,,...,..,,...,...,..,,..,,,..,,.,,.,.,
-#TA3IBBYSQPTFXMVDJAZNEFUWLVMFE4D2PVJPMZRW4JK5RQOBB3CV5XJY6MSFLZC4KAXPHN73YZ676
-#\\\|YWZBRLZGX7IN2G474MLHGKC3VI2HWAQULKSOAVAUFATMLF7JVSO \ / AMOS7 \ YOURUM ::
-#\[7]3MH62BE4GCZILL6OAGK7DLR4AFBPGWKIFEXHD77HYNZGFZ5GUWCA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,.,.,,,,.,,.,,,...,.,,,,.,,...,..,,...,..,,..,,...,,..,.,.,,,,,
+#5JRLEKXDV2VVDKLHVCXUJM3JXDF6LYA2UYQEKAD5NR2U763A4VDDS7QNXF4JRMLWURQVC6LRFNARM
+#\\\|JDW5RMHO2BU4FEPCDSZO7BDRGXMRFOGXKI6KCV4VARPLNV5UBFC \ / AMOS7 \ YOURUM ::
+#\[7]ETHVP6OQUAWJUOE5QP3OPNL5RVMW2PRYAANAY6EDEDBHJNIZPYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
