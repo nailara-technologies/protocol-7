@@ -22,7 +22,7 @@ return FALSE if ( $st->{'epoch'} // 0 ) > $epoch;    ## moved on ##
 my $idle_below = <usage.cfg.reset_idle_below> // 1;
 $idle_below = 1 if $idle_below !~ m|^\d+(?:\.\d+)?$|;
 my $activity
-    = not defined $st->{'used'}   ? qw| unknown |
+    = !defined $st->{'used'}      ? qw| unknown |
     : $st->{'used'} < $idle_below ? qw| idle |
     :                               qw| used |;
 
@@ -54,8 +54,8 @@ my $delay
 );
 return TRUE;
 
-#,,,.,.,.,,,.,...,.,,,,,.,...,,,,,,.,,,..,,.,,..,,...,.,.,..,,.,,,,.,,,.,,.,.,
-#DMNKKF2IZVPTKBHMILW56EA452IOH5DWFXRBX2CV3PCS5OAXTK3I23ECRN7M3UUIPOERM4MJIXFF2
-#\\\|FP5WG6TIPFXTWBD3O7HA5YDECEMNSBLICGWKY5GXEXJH45QQEDK \ / AMOS7 \ YOURUM ::
-#\[7]6PRSAO4GAP2H5RDSB7IQS6E5ZOXNZ2YZBFBZGUBW2BVTUTX2QKBA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,,,.,.,,,,,.,,..,,,,,..,,,,,,..,,...,...,..,,,.,,,,,,.,.,,,.,
+#GZNCYSUXNUUECLIQZNWMPYMRVH2GTFLWBOKON3ORE24L7Y4ZQK4QTS6QD7BAZYW4CGAARMJUFA77M
+#\\\|YB2VOIE4ZFN5JD6S7SC4W2KJJ67M6UQ2VSSY6IXFZGWB5EJB66O \ / AMOS7 \ YOURUM ::
+#\[7]TCY2MDBLW26DL7Q2MS4BXUBHBTEY2CWJ5QLQJ7Z7OC4XHXYQEABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

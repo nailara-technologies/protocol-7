@@ -66,7 +66,7 @@ foreach my $row ( @{ $result->{'rows'} // [] } ) {
         my $idle_below = <usage.cfg.reset_idle_below> // 1;
         $idle_below = 1 if $idle_below !~ m|^\d+(?:\.\d+)?$|;
         my $activity
-            = not defined $prev->{'used'}   ? qw| unknown |
+            = !defined $prev->{'used'}      ? qw| unknown |
             : $prev->{'used'} < $idle_below ? qw| idle |
             :                                 qw| used |;
         <[usage.signal.raise]>->(
@@ -88,8 +88,8 @@ foreach my $row ( @{ $result->{'rows'} // [] } ) {
 }
 return $raised;
 
-#,,,,,.,.,,..,...,,,,,..,,,,.,,,,,,,.,,..,,,.,..,,...,...,..,,.,.,,,,,.,.,,.,,
-#KSM3SFTRG6E3IY54X7WT4ZEL3KICF36B6M6TDNOGJX75K5WYLASXKMLZKUXB5LKT5Q2GHCIFRNIKE
-#\\\|KBFYGXNKFAZC3R7O46ZFW3OQINJ5RZAZ7P5DMAFEQXPZS5MWWJR \ / AMOS7 \ YOURUM ::
-#\[7]SIIQ4MIKJKAVETUI37THL3Q2OSAJNMAR7FUZE4J5R3NWHZMHT2BQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,,.,,,,.,,,.,,.,,.,.,.,,,,,.,..,,...,.,.,..,,,,,,.,.,.,,,,,.,
+#ZNADI6Q35VTPUF6PZQ7C2V4FE2PU2USCVE4VONV2JWUA7OBT7TZBRCVD2VVQ26BSCKNJCSYOMCOYY
+#\\\|Y3ESL2QL7PL26HNYZUOGKMDZC3NHFSUWX66C7W5NAP74HPH3ZNM \ / AMOS7 \ YOURUM ::
+#\[7]F3WFGX4E6CVB35MR3NNQCBVMBHOZN2AK2J24KTQBTRCLGINNK4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -223,6 +223,17 @@ $r = $apply->(
     { 'provider' => 'kimi', 'window' => '7d' }, $noon
 );
 ok( $r->{'text'} eq 'kimi 7d window reset', 'map : usage.window.reset' );
+$r = $apply->(
+    'usage',
+    'usage.window.reset',
+    {   'provider' => 'kimi',
+        'window'   => '5h',
+        'activity' => 'unknown'
+    },
+    $noon
+);
+ok( $r->{'level'} eq 'none',
+    'map : unknown usage.window.reset wakes nothing' );
 ok( !defined $apply->( 'x', 'decision.answered', {}, $noon ),
     'map : a signal with no entry notifies nothing'
 );
@@ -699,8 +710,8 @@ my $ws_dir = File::Temp::tempdir(
 say "\n$pass passed, $fail failed";
 exit( $fail ? 1 : 0 );
 
-#,,..,..,,.,.,,,,,,..,..,,.,.,,.,,...,,,,,...,..,,...,...,,..,..,,.,.,.,,,,,.,
-#QP63Z4BNXHXXFEOK6BOHXWERSYIWJYIDOKCR6WLHIMVXAS7U64JNSPCBIAG5JYKPBQROBDYXPW4OM
-#\\\|CDZH6XAWO24UAGXOS5VFZ4JVWMXDBOZGLSIVR5GUPVZ6UW63OIB \ / AMOS7 \ YOURUM ::
-#\[7]ZORDFMX2UOMPOZOZKGI6RX72LDH4DULS45MCFGOOPTOAEBBM5SDA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,.,.,,,,,,,.,,,..,,,,,,..,,..,,..,,...,.,.,.,.,,,.,.,.,,,,,,,.,
+#EDZVF3UAWZ5SSGQLP64VUSAA4RYCE4LNKFMQ74J6RXBKYTU4OIFTAJ5JHR7VII22ECUOHGCKIZ54G
+#\\\|SBZBCW4CTLQVST6O32IQPMMSPHBTTQPI6TNXVDKXXSTO7CTRIFF \ / AMOS7 \ YOURUM ::
+#\[7]POXHPDQTP45UJKAKFJ6LTHC23TRMFMPLGE5HZPIEQCKYJBFYRMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

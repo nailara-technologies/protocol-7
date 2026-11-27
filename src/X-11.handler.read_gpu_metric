@@ -44,6 +44,18 @@ while ( $m->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     ## a value the gpu cannot report right now : skip, keep the feed ##
     next if $output_line =~ m{\[N/A\]|Not Supported}i;
 
+    ## a field this driver never reports [ wsl : temperature answers ##
+    ## '[Invalid Argument]' on every line ] : one notice, feed ends  ##
+    if ( $output_line =~ m{^\s*\[Invalid Argument\]\s*$}i ) {
+        <[base.logs]>->(
+            1, "nvidia-smi %s : not reported by this driver, monitor ended",
+            $metric
+        );
+        $watcher->cancel if $watcher->is_active;
+        delete <X-11.gpu_top.metric>->{$metric};
+        return undef;
+    }
+
     my ( $time, $load );
     if ( $output_line =~ m|^\s*(\d+(?:\.\d+)?)\s*$| ) {
         ( $time, $load ) = ( ++$m->{'sample_seq'}, 0 + $LAST_PAREN_MATCH );
@@ -104,8 +116,8 @@ while ( $m->{'output_buffer'} =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,.,,..,,,,,,,,.,..,,...,.,.,...,,..,,,,,,,,,..,,...,...,,,.,,..,,,.,,..,,,.,
-#EGHF36VDLAC26MCJPYH2F4I7G76ZQA2YLPSTZADVRFD2TTPH3MRYGD7D2KOPBWATHYTXXLGSPASUE
-#\\\|YG6466ZNEQ37WVAU4S2HMRUWIPDMBRKA4JJSCXKEG5GKZERP3BM \ / AMOS7 \ YOURUM ::
-#\[7]Q4GELVFCG6WHPBQSVR2RBWJG4UPU3EN3E6WGRB5AUAR7KWEZLCCY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,,..,,,,,.,.,,.,,..,,,..,.,.,..,,...,...,...,.,.,..,,,..,,,,,
+#AQAZPYYPRAUSAMKFFE2WUJOZKUTZUYP4GH4ZQIBWJ54LYBTYRAOREV2FN54X5PMYPLEVOMAFCFSFW
+#\\\|CNMTP75P37FXDOTGUVZW4THICA4X6DDYYQPNUH5FA5ITYA5ETSP \ / AMOS7 \ YOURUM ::
+#\[7]26F2HXPUVZFONZG6XI6RJAPHVMCV76THPGDNR4FHSXQ6QCEBWABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
