@@ -13,7 +13,7 @@ use warnings;
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
-our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.MJLZ4UI |;
+our $VERSION = qw| AMOS7::N7FS::Holder-VERSION.WP2AFLY |;
 
 @EXPORT_OK = qw| holder_parse holder_canonical holder_mkdir holder_read
     holder_sizes holder_stats holder_now holder_free holder_isdir holder_sub_spec
@@ -1385,6 +1385,9 @@ sub _session_put_batch {
             push @read, [ "get $remote[$i]", $data, $name ];
         }
     }
+    ## confirmed uploads and their full bytes end before readback begins ##
+    @put   = ();
+    %bytes = ();
     my $back = _session_call( $h, [ map { $ARG->[0] } @read ] )
         or refuse( 'holder session readback failed : %s', $h->{'alias'} );
     foreach my $i ( 0 .. $#read ) {
@@ -1506,8 +1509,8 @@ sub holder_put {
 
 1;
 
-#,,..,.,.,...,,.,,,,.,.,,,.,.,.,,,,..,,,,,,..,..,,...,...,...,,.,,.,,,.,.,,.,,
-#LFLMUUW7MFWAEHAH7B6Y25TIBX3HQ3XB5SUMAQYVSRJQWIYLFJKERB42HDEDDNRAZGQNGT3C4WDOS
-#\\\|ZE6CJSAAQZJJT7PRK4BYE2FOF75PGGJSR3LLMBSRBOZOVMPQSPU \ / AMOS7 \ YOURUM ::
-#\[7]423QVTJQTYWVWM3OW54RZTL2MR6MN5CPQHKLTQAVNMYJLVNQR4CI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,..,.,,,.,.,,.,,,,,,,..,,.,,.,.,..,,...,...,,,.,,,.,,,.,.,,,.,.,
+#PRUVXKF4KCC4JHZPJWXPWXFGXML5FQL5VHLGGFVO6V3ECYQDD673732PXPEFYQZ24D4XXUZTEJYBW
+#\\\|7UUOTEI44KP72J5IBIWSX7SXU2NCWW43RWPVT7TCTPDV77TAPFU \ / AMOS7 \ YOURUM ::
+#\[7]6GZDOXAKT2G53AHWZA7S365M4IIANK2R4A3PSHE4RJEJAHDO2OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,7 +4,7 @@ use strict;
 use English;
 use warnings;
 
-## bounded place : 10,000 and 50,000 nodes, peak rss, growth and resume
+## bounded place : small and 2 MiB nodes, peak rss, growth and resume
 
 use FindBin;
 BEGIN { unshift @INC, "$FindBin::RealBin/../../data/lib-path/pm" }
@@ -21,25 +21,46 @@ my @scales
     = defined $ENV{'N7FS_TEST_PLACE_NODES'}
     ? ( $ENV{'N7FS_TEST_PLACE_NODES'} )
     : ( 10_000, 50_000 );
-my $limit        = 640 * 1024;
-my $growth_limit = 2;
+my @large_scales
+    = ( $ENV{'N7FS_TEST_PLACE_LARGE'} // 1 ) eq '0' ? ()
+    : defined $ENV{'N7FS_TEST_PLACE_LARGE_NODES'}   ? split m|,|,
+    $ENV{'N7FS_TEST_PLACE_LARGE_NODES'}
+    : ( 256, 768 );
+my $large_bytes        = 2 * 1024**2;
+my $limit              = 640 * 1024;
+my $growth_limit       = 2;
+my $large_growth_limit = 12;
 
 if ( @ARGV and $ARGV[0] eq qw| place-child | ) {
-    my ( $base, $disk ) = @ARGV[ 1, 2 ];
+    my ( $base, $disk, $check ) = @ARGV[ 1, 2, 3 ];
     open( my $pass, '<:raw', "$base/pass" ) or die $OS_ERROR;
     my $root = root_open(
         qw| path |    => "$base/root.key",
         qw| pass_fd | => fileno($pass),
     );
-    my $r = AMOS7::N7FS::Placement::place_missing(
+    my $trace_next = 0;
+    my $r          = AMOS7::N7FS::Placement::place_missing(
         qw| root |       => $root,
         qw| disk |       => $disk,
         qw| disk_root |  => "$base/root",
         qw| host_dir |   => "$base/host",
-        qw| no_check |   => 0,
+        qw| no_check |   => !$check,
         qw| dry_run |    => 0,
         qw| samples |    => 1,
         qw| commit_age | => '99Y0',
+        qw| progress |   => sub {
+            my ( $visited, $total, $finished ) = @ARG;
+            return if not $ENV{'N7FS_TEST_PLACE_TRACE'};
+            my $step = $ENV{'N7FS_TEST_PLACE_TRACE_STEP'} // 64;
+            return if not $finished and $visited < $trace_next;
+            $trace_next = int( $visited / $step + 1 ) * $step;
+            my $status = read_file('/proc/self/status')
+                // die 'no proc status';
+            my ($rss) = $status =~ m|^VmRSS:\s+(\d+) kB|m;
+            say "chunk visited=$visited total=$total finished=$finished "
+                . 'rss_kib='
+                . ( $rss // 'unknown' );
+        },
     );
     my $status = read_file('/proc/self/status') // die 'no proc status';
     my ($peak) = $status =~ m|^VmHWM:\s+(\d+) kB|m;
@@ -55,9 +76,12 @@ if ( @ARGV and $ARGV[0] eq qw| place-child | ) {
 }
 
 sub run_scale {
-    my $nodes = shift;
-    my $box   = sandbox();
-    my $base  = $box->{'base'};
+    my ( $nodes, $blob_bytes, $chunk, $check ) = @ARG;
+    $blob_bytes //= 0;
+    $chunk      //= 2048;
+    $check      //= 1;
+    my $box  = sandbox();
+    my $base = $box->{'base'};
     write_new_file( "$base/pass", "pw\npw\n" );
     open( my $pass_in, '<:raw', "$base/pass" ) or die $OS_ERROR;
     root_init(
@@ -88,7 +112,18 @@ sub run_scale {
     );
     my $tree = "$box->{'src'}/tree";
     make_dirs($tree);
-    write_new_file( "$tree/node-$ARG", "node $ARG\n" ) for 0 .. $nodes - 1;
+    my $filler
+        = $blob_bytes
+        ? 'protocol-7-large-node' x int( $blob_bytes / 21 + 1 )
+        : '';
+
+    for my $index ( 0 .. $nodes - 1 ) {
+        write_new_file( "$tree/node-$index", "node $index\n" ), next
+            if not $blob_bytes;
+        my $body = pack( 'Q>', $index ) . $filler;
+        write_new_file( "$tree/node-$index",
+            substr( $body, 0, $blob_bytes ) );
+    }
     my $import = assimilate(
         qw| root |           => $box->{'root'},
         qw| host_dir |       => $box->{'host'},
@@ -115,7 +150,9 @@ sub run_scale {
         },
         qw| root | => $root,
     );
-    $ENV{'N7FS_TEST_PLACE_CHUNK'} = 2048;
+    local $ENV{'N7FS_TEST_PLACE_CHUNK'} = $chunk;
+    local $ENV{'N7FS_TEST_PLACE_TRACE'} = $blob_bytes ? 1 : 0;
+    local $ENV{'N7FS_TEST_PACK_LIMIT'}  = 0 if $blob_bytes;
 
     my $place = sub {
         my $out = "$base/place.out";
@@ -124,7 +161,7 @@ sub run_scale {
             open( STDOUT, '>:raw', $out )     or exit 98;
             open( STDERR, '>&',    \*STDOUT ) or exit 98;
             exec( $EXECUTABLE_NAME, $PROGRAM_NAME, 'place-child', $base,
-                $disk )
+                $disk, $check )
                 or exit 99;
         }
         waitpid $pid, 0;
@@ -135,9 +172,10 @@ sub run_scale {
     my ( $rc, $out ) = $place->();
     say $out;
     my ($peak) = $out =~ m|peak_kib=(\d+)|;
+    my @rss = $out =~ m|^chunk .*rss_kib=(\d+)|mg;
     ok( $rc == 0 && $out =~ m|plan=$nodes sealed=$nodes unplaced=0|,
-        'first run places every synthetic node' )
-        or say $out;
+        "first run places every one of $nodes synthetic nodes"
+    ) or say $out;
     ok( defined $peak && $peak < $limit,
         "peak rss stays below $limit KiB [ measured "
             . ( $peak // 'unknown' )
@@ -146,6 +184,7 @@ sub run_scale {
     ( $rc, $out ) = $place->();
     say $out;
     my ($resume_peak) = $out =~ m|peak_kib=(\d+)|;
+    my @resume_rss = $out =~ m|^chunk .*rss_kib=(\d+)|mg;
     ok( $rc == 0 && $out =~ m|plan=0 sealed=0 unplaced=0|,
         'second run resumes with nothing to do'
     ) or say $out;
@@ -155,8 +194,10 @@ sub run_scale {
             . ' KiB ]'
     );
     return {
-        qw| first |  => $peak        // 0,
-        qw| resume | => $resume_peak // 0,
+        qw| first |      => $peak        // 0,
+        qw| resume |     => $resume_peak // 0,
+        qw| first_rss |  => @rss        ? $rss[-1]        : undef,
+        qw| resume_rss | => @resume_rss ? $resume_rss[-1] : undef,
     };
 }
 
@@ -180,10 +221,42 @@ if ( @scales == 2 ) {
         "resume rss growth stays below $growth_limit KiB per node" );
 }
 
+my %large_peaks;
+$large_peaks{$ARG} = run_scale( $ARG, $large_bytes, 2048, 0 )
+    for @large_scales;
+if ( @large_scales == 2 ) {
+    my $delta = $large_scales[1] - $large_scales[0];
+    my $first = sprintf '%.3f',
+        ( ( $large_peaks{ $large_scales[1] }{'first_rss'} // 0 )
+        - ( $large_peaks{ $large_scales[0] }{'first_rss'} // 0 ) )
+        / $delta;
+    my $resume = sprintf '%.3f',
+        ( ( $large_peaks{ $large_scales[1] }{'resume_rss'} // 0 )
+        - ( $large_peaks{ $large_scales[0] }{'resume_rss'} // 0 ) )
+        / $delta;
+    say "large steady growth first_kib_per_node=$first "
+        . "resume_kib_per_node=$resume "
+        . "bound_kib_per_node=$large_growth_limit";
+    ## 12 KiB bounds retained map state at 160k nodes without hiding a run ##
+    ## whose live map or upload buffers grow with every sealed node        ##
+    ok( defined $large_peaks{ $large_scales[0] }{'first_rss'}
+            && defined $large_peaks{ $large_scales[1] }{'first_rss'}
+            && $first <= $large_growth_limit,
+        "large-node initial rss growth stays "
+            . "below $large_growth_limit KiB per node"
+    );
+    ok( defined $large_peaks{ $large_scales[0] }{'resume_rss'}
+            && defined $large_peaks{ $large_scales[1] }{'resume_rss'}
+            && $resume <= $large_growth_limit,
+        "large-node resume rss growth stays "
+            . "below $large_growth_limit KiB per node"
+    );
+}
+
 done();
 
-#,,,,,.,.,,,,,,,,,..,,.,,,...,.,.,,.,,,.,,,..,..,,...,...,...,,..,,,,,,.,,.,,,
-#ONUJ742V5RED76DRYI7CW7WAL363YKFG5UDD6R7FRVRKY5J7Z4DJ3I53XK6CKSRFQD2FKVPX6SGYU
-#\\\|7PF337LAPRUJXKFD36RZA7ETYGL3HAJ3NOAOEXTGKVML5Z35UD3 \ / AMOS7 \ YOURUM ::
-#\[7]TWSTOLFJBGAFVMJF4RSS6PFNQVIA6WSBRDQCB7N2DGTOVXAYMOCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,...,..,,,,,,.,,,...,,,.,,,.,.,.,..,,...,...,,,.,,..,..,,...,,.,,
+#LU4ZIKDOR233QNUGZYBPFYFRLOKCFOQ52S4SDTE33VRVEDIENXK7OMETB5IM322PGMSJMBT3IQLJW
+#\\\|4X3YEGCVTEXQDSBTPDUIPPTHCW2B4MN76TTH26IVY5K4WJOF75C \ / AMOS7 \ YOURUM ::
+#\[7]37LHUB2LTLELSMZKM7HKXFNDAWLXCICETTOJPG7HUM5FR6EX7QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

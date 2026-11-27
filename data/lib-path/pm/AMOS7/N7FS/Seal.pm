@@ -17,7 +17,7 @@ use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT_OK $VERSION |;
 
-our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.MXYQQTI |;
+our $VERSION = qw| AMOS7::N7FS::Seal-VERSION.QZA3WBI |;
 
 @EXPORT_OK = qw| new_keypair seal_nodes unseal_address seal_recover shred_node
     relay_nodes holder_check holder_gc holder_trash_purge holder_trash_restore
@@ -932,6 +932,15 @@ sub _load {
     return $self->{'cache'}{$shard} = _decode( $self, $shard );
 }
 
+## a confirmed head makes every dirty cached shard reloadable from its blob ##
+sub _committed {
+    my $self = shift;
+    delete @{ $self->{'cache'} }{ keys %{ $self->{'dirty'} } };
+    $self->{'dirty'} = {};
+    delete $self->{'iteration'};
+    return;
+}
+
 ## a shard for one pass : the cached copy, or one decoded and not kept ##
 sub _peek {
     my ( $self, $shard ) = @_;
@@ -1293,6 +1302,7 @@ sub _commit {
         or refuse( 'cannot remove version reservation %s', $ARG )
         for @expired;
     fault(qw| seal:after-head |);
+    $nodes->_committed();
     return $version;
 }
 
@@ -3933,8 +3943,8 @@ sub shred_node {
 
 1;
 
-#,,,.,.,.,,,.,..,,.,.,,,,,.,,,,,.,.,,,,,,,,..,..,,...,...,.,.,,.,,..,,,..,,..,
-#OVUHVQNKZA5IXIR43LECQVTOJJERBB7YIGEVWMJ5KBLQHHQG43EBPQIIGIGIZFWZHKMTLHY622ZIW
-#\\\|FX6P3O3X7AJ65XVRIEZ3BY5F2T64THAM7IZDPWRK664JOFGALZO \ / AMOS7 \ YOURUM ::
-#\[7]XXMLS24KRIA54DRRTXE3PSIMBQ653OHZOIW62GPJAIP55GQYIWDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,..,..,,...,,,.,,..,,..,.,.,..,,..,,...,...,,,.,...,,,.,,.,,.,,,
+#AUDL25SHZGPIINYDNRXJW5CQU5AUCEL6432FXRE74EQVOUID5AGLSIP6COXDCE5L4BYVMQNZORLY6
+#\\\|NVQLTE7NLWYAW7EM5T6ID2BGZHC7RLHAWNO7CRIISIZ6SAJ4OZH \ / AMOS7 \ YOURUM ::
+#\[7]PPDDD2BCRAP4SOKXCL2TAGR2TRZ27565QAAWIIGBB3EDKGVCT6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

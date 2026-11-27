@@ -125,6 +125,53 @@ status : OPEN 2026-11-27 -- found while deploying AMOS7-v6.91.4 to the four serv
 - a drill started before an update keeps the old code : the 15:06 drill had no drill.complete
   [ the update came 15:19 ] -- expected, no fix needed.
 
+## 9. n7fs place killed by the oom killer [ azurum 2026-11-27 ]
+
+- `n7fs place JXO355A -root-key vault:main -only-category rescue -only-holder yourum` :
+  kernel `Out of memory: Killed process (n7fs place) total-vm:17546460kB,
+  anon-rss:12484776kB` on a 16 GB host, at ~97 % of the walk. twice the same : the bar stops,
+  no error line, no summary [ SIGKILL ], the 3560 nodes for yourum never commit -- the next
+  dry-run still says 3560. the tier A drill on yourum fails on a missing address because of it.
+- the plan side is optimized [ c74acdbd80 : packed address sets, 16-shard holder map cache,
+  50k nodes peak 292 MB ; 7712fa91b2 : bounded plan chunks ] -- test-n7fs-place-memory covers
+  local holders with small nodes. 12.5 GB is outside that : a path the test does not measure.
+- candidates : [ a ] dirty holder-map shards kept until the commit [ c74acdbd80's own note ]
+  -- with one commit at the end they pile up for every chunk ; [ b ] the ssh-receiver upload
+  path holding sealed pack bytes or per-chunk results until the end.
+- wanted : reproduce with real blob sizes and an ssh-receiver-like holder [ or a local holder
+  with large nodes ], log rss per chunk, find what grows ; bound it [ flush \ commit dirty
+  shards every n chunks, free per-chunk upload state after its confirmation ] ; extend
+  test-n7fs-place-memory to that path with a growth bound. a run killed mid-way must keep the
+  chunks it already confirmed [ resume, not restart from zero ].
+- workaround until then : place per tree [ -tree <name> ].
+
+## findings 9 [ kimi ]
+
+- reproduction : a local holder, 512 unique 2 MiB nodes, one 512-node place chunk,
+  the existing 64 MiB seal commit limit, and rss samples every 64 nodes. a 64-node
+  place chunk stayed flat both before and after and was too small to expose this.
+- before : rss 64,660 KiB at node 64, 64,708 at 320, 66,756 at 384 and 66,756
+  at 512 ; peak 288,564 KiB. after : 64,648 at 64, 64,648 at 320, 64,692 at 384
+  and 64,692 at 512 ; peak 288,148 KiB. the final live rss difference is 2,064 KiB.
+- cause : the lazy node map evicts only clean shards from its 16-shard cache. dirty
+  shards stay cached through every mid-chunk commit until seal_nodes returns, so a
+  real 2,048-node place chunk retains every shard it touched. placement's results
+  and done maps are per holder, not per node ; the upload worker queue is bounded.
+- bound : after its head is confirmed, _commit drops the dirty cached shards and
+  their iteration state. clean cached shards stay ; later reads use the published
+  descriptors. receiver put state and full upload bytes are released after upload
+  confirmation, once the readback expectations have been built.
+- regression : test-n7fs-place-memory now uses 256 and 768 real 2 MiB nodes, the
+  real 2,048-node place chunk, rss samples every 64 nodes, and a 12 KiB per-node
+  steady-rss growth bound for the first run and resume. final rss was 57,760 and
+  62,764 KiB ; growth 9.773 first and 5.992 resume, with all 17 checks passed.
+- crash : SIGKILL after a logged chunk boundary left 128 committed nodes at holder
+  version 4. a fresh process planned and sealed exactly the remaining 384 nodes,
+  with no unplaced nodes and no reseal of the confirmed 128.
+- checks : place-memory 17, seal 166, placement 81, receiver 28 and sharded-map 11
+  tests passed ; both changed modules and the memory test pass perl -c with the
+  repo lib path.
+
 ## rules for the implementer
 
 no sha, no json internally ; lowercase comments with [ ] brackets ; perl floor 5.32 ;
@@ -133,8 +180,8 @@ bin/format-code -r then -c for every changed src file, read its whole output [ d
 no commit, no sign, no reload, no deploy ; never touch files you did not change, no git
 restore ; report every changed file.
 
-#,,.,,...,,.,,.,.,.,,,,.,,.,,,...,.,,,,.,,...,..,,...,..,,..,,...,,..,.,.,,,,,
-#5JRLEKXDV2VVDKLHVCXUJM3JXDF6LYA2UYQEKAD5NR2U763A4VDDS7QNXF4JRMLWURQVC6LRFNARM
-#\\\|JDW5RMHO2BU4FEPCDSZO7BDRGXMRFOGXKI6KCV4VARPLNV5UBFC \ / AMOS7 \ YOURUM ::
-#\[7]ETHVP6OQUAWJUOE5QP3OPNL5RVMW2PRYAANAY6EDEDBHJNIZPYDA 7  DATA SIGNATURE ::
+#,,..,...,...,...,,.,,.,.,,.,,.,,,,.,,.,,,.,.,..,,...,...,,,,,,..,,,,,.,.,..,,
+#3YGECLUCVZOUAGVAKOG4PQ46QJ3JE32OUOOHGAK4Z5RHQFT42P4KWUUYVD7JP7WDSNJOTQWNYGE2A
+#\\\|U3PQHTB5KHHOP4APX7VYS6JVEKA47CH32JOL7IE5ZHQYZLMOZTH \ / AMOS7 \ YOURUM ::
+#\[7]E5XOF63EZJ4GNFFQKIXRMS4QMWQ6N4XBUGPBXBYZRW75OK7ARADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
