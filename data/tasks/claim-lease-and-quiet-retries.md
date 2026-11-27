@@ -34,6 +34,15 @@ owner : "the claim handling needs refinement anyway, was causing issues itself".
    lateness, not the holder's silence. test : log the tick's gap since its last run ; an
    expiry right after a late tick confirms it. fix then : a late tick expires nothing on that
    pass, input first, expiry only on an on-time pass [ inside the lease feature ].
+   evidence 2026-11-27 [ late-timer log, fd650aaab4 ] : during a render v7-zenki logged
+   `heartbeat timeout timer of instance .. fired 4.2 s late [ v7-zenki loop stalled ]`,
+   then `[ dunst ] heartbeat late under critical memory pressure : waiting [ 1 \ 6 ]` -- the
+   supervisor's own loop stalls too ; only the pressure branch kept the late timer from
+   counting against dunst. plan [ owner agreed ] : a late timer reads queued input first
+   or extends its deadline by the measured lateness -- one rule for the lease tick and
+   the heartbeat timeout. first collect more lines : late firings WITHOUT critical
+   pressure decide whether this belongs in the core or in the pressure plugin [ the
+   pressure branch moves out of heartbeat_response_timeout either way ].
    fixed the same night [ stop-gaps ] : a release drops a pending handover TO that owner
    [ models waited for vram for the terminated coding ] ; invoke-web as requester is admitted
    when no llama process is left [ its own render may hold the vram, free MB refused it ].
@@ -84,8 +93,8 @@ work ].
   SIGSEGV loop found the same evening [ fbd58a42de ] : worth re-reading its 'why'.
 - memory : feedback-busy-zenka-gdb-curcop-and-event-faults.md
 
-#,,,,,,..,...,,..,,,.,,..,.,,,.,.,,,.,.,.,,,,,..,,...,...,..,,..,,..,,..,,,..,
-#HPZFUV37ELDU3Q6W2HGPKSF4TSBA2B47LFI7FPJG5H36T2U5VT3FSI5CKPPGXL3S3KRCOIUK476Z4
-#\\\|XMW6B3BHK2WQ57XCPFJKSENDOXJZBPJLVJFSPXSKZ7VLZ6IQPP2 \ / AMOS7 \ YOURUM ::
-#\[7]QURJLBGDTTUYQG2LU7VIUQMTRLDPI45TKCZCKCXIR2I6XMBS2ECA 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,.,,,,,..,,.,,,,,,,.,,,.,,,.,,,..,,...,..,,,..,...,...,,,,,,..,
+#NNZINMXCHBVHXJHNHKCKPZ6YJIODKFXAVTRMPVUADUYOH7VVPNNJYS4YFTQL6IAURZFWV4XG4KOL4
+#\\\|SYSBREFYRGI4FDL6GHBLGO4OVLWJH3263PC6GXXJFM4FINYNVXA \ / AMOS7 \ YOURUM ::
+#\[7]G4JEQTN2GJ4I6YKPEUDX2MGGAHQLMEVQHSNNJURO3MNKU2TWT4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
