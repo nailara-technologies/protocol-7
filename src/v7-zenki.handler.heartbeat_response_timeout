@@ -11,6 +11,22 @@ my $watcher = $event->w // return;
 
 my $instance_id = $watcher->data;
 
+## the timer's own lateness [ evidence only, no behaviour change ] : a     ##
+## burst of timeouts in one second looked like v7-zenki itself stalled and ##
+## fired its overdue timers on wake [ 2026-11-27 ] -- the timeout then     ##
+## measures v7-zenki, not the zenka. logged above                          ##
+## v7-zenki.cfg.heartbeat.late_log_secs [ default 2 ]                      ##
+my $late     = eval { Event::time() - $watcher->at }  // 0;
+my $late_log = <v7-zenki.cfg.heartbeat.late_log_secs> // 2;
+$late_log = 2 if $late_log !~ m|^\d+(?:\.\d+)?$|;
+<[base.logs]>->(
+    0,
+    'heartbeat timeout timer of instance %d '
+        . 'fired %.1f s late [ v7-zenki loop stalled ]',
+    $instance_id,
+    $late
+) if $late > $late_log;
+
 ## not a valid instance entry : a one-shot that fired is already done -- ##
 ## never cancel the running watcher inside its own callback              ##
 return
@@ -139,8 +155,8 @@ if ( $retry_count <= 0 ) {    ## [ no further retries., ] ##
         ;    ##  retrying now [0]
 }
 
-#,,..,,,,,,.,,,..,..,,,..,.,,,,.,,,..,.,.,..,,..,,...,...,...,.,,,,..,..,,.,.,
-#GMHQRPYO4HFX43R4FRAHDVBRLNUTXJLBTC77CXBFGDDHDGQSMEBVALVH35DRVQ6NBDV6NWITO3FBQ
-#\\\|DZZSKEXLMSCAKM4AHWOTN2GXYLOT6HW3PIENAPJCZUXPQBUP63X \ / AMOS7 \ YOURUM ::
-#\[7]Z4WICEDIP7LWSVK57JMCJ5OUP464FAIDFKYOPKD2RG7FZGLDOEDI 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,.,,.,,.,.,...,,,.,,,.,...,,,.,..,,...,...,,,,,.,,,.,.,,,.,..,,
+#PDU2E6VVNFBV6MPTJ7MC4UC6M6C7T55HVU7REDWT7BAD4KHJP3NQRTPK2TXU4M325ORYUXXAVRV7E
+#\\\|IZB2NF7PAMUCB4VUJ3PPCUXHNFWZGB4EWDGTPFH6OLH7LW2IST7 \ / AMOS7 \ YOURUM ::
+#\[7]YSLUUHQRAZCRJJGWHZLCA5VUL36EQ7WFEE2RQIX4VDSJPD7TOGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
