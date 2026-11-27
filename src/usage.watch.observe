@@ -59,9 +59,22 @@ foreach my $row ( @{ $result->{'rows'} // [] } ) {
         and $prev->{'epoch'} <= $now
         and $cur->{'epoch'} > $prev->{'epoch'}
         and ( $prev->{'raised'} // 0 ) != $prev->{'epoch'} ) {
+        ## activity of the window that ended : its last reading. idle =     ##
+        ## below usage.cfg.reset_idle_below percent [ default 1 ] -- notify ##
+        ## \ bucket entries match on it, an unused window wakes no session  ##
+        ## [ 2026-11-27 ]                                                   ##
+        my $idle_below = <usage.cfg.reset_idle_below> // 1;
+        $idle_below = 1 if $idle_below !~ m|^\d+(?:\.\d+)?$|;
+        my $activity
+            = not defined $prev->{'used'}   ? qw| unknown |
+            : $prev->{'used'} < $idle_below ? qw| idle |
+            :                                 qw| used |;
         <[usage.signal.raise]>->(
             qw| usage.window.reset |,
-            { 'provider' => $provider, 'window' => $window }
+            {   'provider' => $provider,
+                'window'   => $window,
+                'activity' => $activity
+            }
         );
         $cur->{'raised'} = $prev->{'epoch'};
         $raised++;
@@ -75,8 +88,8 @@ foreach my $row ( @{ $result->{'rows'} // [] } ) {
 }
 return $raised;
 
-#,,..,..,,...,.,,,,.,,,..,,,,,,.,,..,,,.,,,..,..,,...,...,...,..,,..,,..,,,,.,
-#2CEKDQJZB4ZWIZH2VA5GYG5EJTYRMGV5CV64H7UEMY6KZVFJMNK2KC23FFGGFA2DJZ7AOHGDNAHMM
-#\\\|B42SYZPVLTHG6SEQ2DDCUDFAJJUCDYA75LDXTZFSKGQH35C4O4V \ / AMOS7 \ YOURUM ::
-#\[7]4CZOFAJIZ75QDAAIDZDDC2NQIU4WIOCMDE2UO5GDOQ6US4LHRCDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,,,,..,,,,.,,,,,,,.,,..,,,.,..,,...,...,..,,.,.,,,,,.,.,,.,,
+#KSM3SFTRG6E3IY54X7WT4ZEL3KICF36B6M6TDNOGJX75K5WYLASXKMLZKUXB5LKT5Q2GHCIFRNIKE
+#\\\|KBFYGXNKFAZC3R7O46ZFW3OQINJ5RZAZ7P5DMAFEQXPZS5MWWJR \ / AMOS7 \ YOURUM ::
+#\[7]SIIQ4MIKJKAVETUI37THL3Q2OSAJNMAR7FUZE4J5R3NWHZMHT2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

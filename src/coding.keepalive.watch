@@ -11,15 +11,16 @@ return <[park.send]>->(
     qw| bucket-add |,
     join( ' ',
         qw| keepalive-reset on=usage.window.reset |,
-        qw| match.provider=claude match.window=5h action=send-command |,
+        qw| match.provider=claude match.window=5h match.activity=used |,
+        qw| action=send-command |,
         "command=\x22coding.keepalive-reset\x22",
         "reason=\x22keep-alive : hand over at the 5h reset\x22" ),
     qw| coding.handler.handover_reply |,
     { 'source' => qw| arm-keepalive | }
 );
 
-#,,,.,,,.,...,,.,,...,,..,.,,,..,,.,.,,..,,.,,..,,...,...,.,.,,..,.,,,...,,,.,
-#2XFAT7WQ46T6SITKKWHYM5PIKA47O3MKFCHDSHHBVDXYJMMPUHFL2GWPOAGC3TBSESFH4ISPH2EUU
-#\\\|TWUVMROOF4SRKG24KQKZSIXTT7DJE2SMT2OTRYCCM5O2TE36QWF \ / AMOS7 \ YOURUM ::
-#\[7]4Q7KUBTFIAB53MPGI7VGLV7UGC2KYTWBZNJ756ATFUN2SZMGBICA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,.,.,.,.,,.,,,,.,..,,.,.,.,,,..,,...,...,,..,,..,,,.,,.,,..,,
+#5VDLYNTCNJBDULG7NE3MN564KTCNCYCGIPX3ET77ZFI2PCF7O5E253I6OXS2LN3JUZBVBR3HX5GBC
+#\\\|VBP227F4OUIZQOBQASW2IPEPYIB4MOOKKV6YQQDS3Y7YTPH32OT \ / AMOS7 \ YOURUM ::
+#\[7]NMXFTO3OQAU4H47RTK6WBGMSDAKFL3OLPYWN2U5VCWRUACPG42DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
