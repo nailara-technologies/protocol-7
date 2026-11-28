@@ -14,7 +14,7 @@ return { 'ok' => FALSE, 'status' => 'image not readable' } if not -f $path;
 
 my $url = sprintf '%s/api/v1/images/upload?%s',
     <invoke-web.url> // 'http://127.0.0.1:9090',
-    'image_category=general&is_intermediate=false';
+    'image_category=user&is_intermediate=false';
 my $request = HTTP::Request::Common::POST(
     $url,
     'Content_Type' => 'form-data',
@@ -36,8 +36,8 @@ return {
     'data'   => $data,
 };
 
-#,,.,,,,,,,,,,...,...,...,,,,,...,,..,...,...,..,,...,.,.,.,,,,..,..,,..,,,,.,
-#IDUHBA5IS7VOILJ3DDRB75DQ5QDMCAGCGTVE7PSY4P36HBS5UBGXFNCEGOJMKT72KYVX5GXERBCPI
-#\\\|OFEUOP6BB5G2JNTA2I3GKQYOURFP2PBGDMLNX5QSTEIDH3HQNXG \ / AMOS7 \ YOURUM ::
-#\[7]65QUKQG6BMCONTS4TJP67XZOOWN5UMY6LEE3DJW2KIXJUGBL4QCI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,..,,.,.,.,,,,..,,..,...,,..,..,,..,,...,..,,...,,,,,.,.,,,,,,.,,
+#GSFCQL62M24XTI2QHU32RLAIZ3TNRVF5GCYR2DH3CPIWAGHOUKLRP4RKXKGOVV4PIC2FHEE6Q7NJA
+#\\\|JVX7CORZD2BKLPAXRCQFAAIBOCLLE3POVJOL7ANNSH4STJAVNOL \ / AMOS7 \ YOURUM ::
+#\[7]VU2CMRWA43ES2UU2K3NJNMCIU63FPFGGW7KIOAWO3M34SN6LCKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
