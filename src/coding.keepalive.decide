@@ -36,6 +36,15 @@ foreach my $name ( @{ $round->{'names'} } ) {
             ? $own !~ m{^pid\s*:\s*\d}m
             : $own =~ m{^phase\s*:\s*stopped\b}m;
     }
+    ## a small context : rebuilt cheaply, no keep-alive -- a compaction ##
+    ## [ auto or by hand ] leaves ~57-78K                               ##
+    ## [ coding.cfg.keepalive_min_context ]                             ##
+    if ( defined $r->{'sid'} and defined $got->{'context'} ) {
+        my ($tokens) = $got->{'context'} =~ m|^\Q$r->{'sid'}\E (\d+)$|m;
+        next
+            if defined $tokens
+            and $tokens < ( <coding.cfg.keepalive_min_context> // 97000 );
+    }
     my @pending = <[coding.keepalive.pending]>->( $name, $got );
     next if not @pending;
 
@@ -68,8 +77,8 @@ $sent += <[coding.keepalive.send]>->($ARG) ? 1 : 0 foreach @send;
 <[coding.keepalive.arm]>;
 return $sent;
 
-#,,..,...,...,,,.,..,,,,.,..,,.,,,...,,.,,,,,,..,,...,..,,.,,,.,,,...,,,.,.,.,
-#JF26HFYCGHMUIHRAALHQVXF662SYJHUT2M3KW56YSPK3ERYHWUL6PK72ADGQSJMTE473MKC5QNYGW
-#\\\|YLA4IUCC3DPJWIVDLY7HLQ4ZIQQKBTXIXBAUNDOKRCCUJDUSOUE \ / AMOS7 \ YOURUM ::
-#\[7]ZGL6S2T4ZV7FNCA5FNYF24TCXCLUSKN2OK2EYMPP5YGJJ6GMDICQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,...,,.,,.,.,,.,,,..,,.,,..,,..,,...,...,,,,,..,,,.,,...,,,,,
+#PJRF4DGUMLLSH7IVXSXVDLZZOZTCYM3G5QAALFNXIBIHUXKGCMISHI6IO7VQ2HHRYCATKVH7CQZAG
+#\\\|K3QK77XASPAAJRQGHMTFG5E2UE5Y26TX3U4QNKCUSER4HIM6TQ2 \ / AMOS7 \ YOURUM ::
+#\[7]IZ3ZYXRDRLP3YYVULJOVCXIFL65MTQUEBEOZXJSB7FS4LEKTBKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

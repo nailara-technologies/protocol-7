@@ -54,6 +54,9 @@ coding.cfg.context-auto-compact-threshold = 84
 ## passed, a refused delivery ; resume : the first look after a start       ##
 base.interval.cfg.type.coding-keepalive.minutes           = 54
 base.interval.cfg.type.coding-keepalive.jitter            = 0.03
+## below this context [ tokens ] a claude session gets no keep-alive : it ##
+## rebuilds cheaply -- a compaction leaves ~57-78K [ 2026-11-28 ]         ##
+coding.cfg.keepalive_min_context                          = 97000
 ## how long an old session name still points to the new one [ 13 days ]  ##
 base.interval.cfg.type.coding-session-alias.minutes       = 18720
 base.interval.cfg.type.coding-session-alias.jitter        = 0.03
@@ -669,8 +672,8 @@ plugins.load = plugin.storage.inference plugin.storage.util.inference
 
 [zenka.loop]
 
-#,,,.,,..,.,,,,,.,.,.,,.,,,.,,.,,,...,,,.,.,,,.,.,...,...,,.,,.,,,..,,.,,,,,.,
-#SJHEU5RVPMXSVQ6XDYFLGMYDNWNZRKBAHS5DJEDHN3MAJCHIHM4BFYH7IM5NGROWPY7IMESOOHXUG
-#\\\|NQ5V53JDESIWW3X4MYOAEHCR55MAK2PAT3FNAE2WC7MS67UIC7P \ / AMOS7 \ YOURUM ::
-#\[7]2J2DBDR5FZHE7YQLTOA6SG3NPWPVXNUL6KIXDBFFHHH43KBP2IBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,..,,,,,,,,,,..,.,,,,,,,,,,,.,.,.,.,...,.,.,..,,,.,,,,.,.,.,.,,,
+#MPU7STSBCNK2B3KUJH7HFZ32HJEZTVAIBZ34CA6HBJW3B3VUXNWK5YKEJ3LK6SPJ7H63PX2ZUSDEG
+#\\\|BSSPI6V22IWVPMCUSHSLV63IT7FLBY2OU2ZHLNDHVHRSF4CHCDZ \ / AMOS7 \ YOURUM ::
+#\[7]OWOM63JTJCDTIWGQFPDWCZMDGX6ELSMKBX6SIG5FQAPWUT3LKGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

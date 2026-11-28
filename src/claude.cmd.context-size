@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = claude.cmd.context-size
+# param = <sid> [ <sid> .. ]
+# descr = context tokens per session, 0 after a compaction
+
+## one line per session : sid tokens [ '-' unknown ] -- the keep-alive ##
+## round skips small contexts, cheap to rebuild [ coding, 2026-11-28 ] ##
+my @sids = grep {length} split m{\s+}, $call->{'args'} // '';
+return { 'mode' => qw| false |, 'data' => 'sid : one or more expected' }
+    if not @sids;
+my @out;
+foreach my $sid (@sids) {
+    my $tokens = <[claude.context.usage]>->($sid);
+    push @out, sprintf '%s %s', $sid, $tokens // '-';
+}
+return { 'mode' => qw| size |, 'data' => join( "\n", @out ) . "\n" };
+
+#,,..,..,,,,,,.,.,,..,...,,,,,.,,,,,,,...,,,.,..,,...,..,,.,,,,,,,,..,,.,,.,.,
+#BEF4R274ZNZSF65GQOEI2Y6DUFPWYVRACPNYHB3G3KSOHXLRIKVOCB2Y32BNMBGIHP4RJWY34TIDW
+#\\\|3DVDEY6VUV7IB2BCBKZFGTFZRHZKXAY75KAJV7JOZVIVYSW6Z2E \ / AMOS7 \ YOURUM ::
+#\[7]2M26GV6VG6VJKR3H4PCINFH6H6ZIGDSZM63EKJ2VP6HTJG4L4UCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

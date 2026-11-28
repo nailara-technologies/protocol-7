@@ -3,7 +3,7 @@
 # name   = claude.context.usage
 # descr  = context size of a session, from its transcript's tail
 # args   = session id
-# return = tokens of the last assistant turn, or undef
+# return = tokens of the last turn, 0 after a compaction, or undef
 #
 # the jsonl is claude code's own format : parsed here only, a plain number
 # leaves. context = input + cache read + cache creation of that turn
@@ -45,6 +45,14 @@ while ( not defined $tokens ) {
     my @lines = CORE::split m{\n}, $tail;
     shift @lines if $from;    ## cut in its middle ##
     foreach my $line ( reverse @lines ) {
+        ## a compaction after the last turn : its size is gone, the next    ##
+        ## turn starts small [ any trigger ; 0 until that turn reports ] -- ##
+        ## the record is unescaped, quoted inside a message it is escaped   ##
+        ## json                                                             ##
+        if ( CORE::index( $line, '"subtype":"compact_boundary"' ) >= 0 ) {
+            $tokens = 0;
+            last;
+        }
         next if CORE::index( $line, '"usage"' ) < 0;
         ## a line still being written does not decode ##
         my $turn = eval { JSON::XS::decode_json($line) };
@@ -74,8 +82,8 @@ while ( not defined $tokens ) {
 CORE::close($fh);
 return $tokens;
 
-#,,.,,,.,,,,,,,,,,...,,.,,..,,,.,,..,,.,,,.,.,..,,...,...,...,,,.,...,,..,,..,
-#KGQHLSS3JLEUVJFIESSM2BPJGAFV6MJRLWW63IRDV2FZSLTO2ZTMCZMDB4XFGJ2FA4JV7GPITV7HK
-#\\\|IQI4PU3T6GNWOH4SJM476N4QIO337XC2CCY2E7OF3LERNLZ75C4 \ / AMOS7 \ YOURUM ::
-#\[7]FSKEAQI4BE44MULFRNRUSHPPEZIKZ3IWEOTLXHNKVDLRDFTCPCAY 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,,,.,,,.,,,.,.,.,,.,,,,.,,,,,..,,...,...,,..,...,...,,.,,,.,,
+#DROPEKMVVXPXQASDXFUEIKWIPMZUWRODWW2F2Q5P74HT4QFQAEQWSJHOISPALX7HKGZF6J3YAC4C4
+#\\\|H4X274BXMT5XGGBVN7JUDBCZ2XVAYMLAKA6ZCEJG7GCQRSIASGQ \ / AMOS7 \ YOURUM ::
+#\[7]NYMB3I4FKSD2FBAIBUEFBWECHAIFC5LS6DW6TGSLE2CXBHOKTIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

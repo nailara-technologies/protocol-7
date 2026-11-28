@@ -45,6 +45,12 @@ my %query = (
     'kimi'     => [ qw| kimi.acp-status |,    '' ],
     'reminder' => [ qw| events.bucket-show |, '' ]
 );
+## context sizes of the due claude sessions : a small one is cheap to ##
+## rebuild, no keep-alive [ coding.keepalive.decide ]                 ##
+my @sids = grep { defined and m|\A[0-9a-f-]{36}\z| }
+    map { $all->{$ARG}{'sid'} }
+    grep { ( $all->{$ARG}{'type'} // '' ) =~ m{\Aclaude-} } @due;
+$query{'context'} = [ qw| claude.context-size |, join ' ', @sids ] if @sids;
 <coding.keepalive.round> = {
     'id'    => $id,
     'at'    => time,
@@ -79,8 +85,8 @@ if ( not keys <coding.keepalive.round>->{'wait'}->%* ) {
 }
 return TRUE;
 
-#,,,.,,,.,.,,,.,,,.,,,..,,,,.,...,...,..,,..,,..,,...,...,...,,..,.,.,.,,,,,,,
-#JJBAHWU7J4WKGWT6EEN2JDQYLAX2IEAPPLQIXIFJRTNGYWR3WCN6NXH7SWCBVCF6QMZVEVBPXPZXM
-#\\\|VKITMEZJ4EIAEVYQOOPMD46TBU353SW6VWCFM2ENDHWRQL352LF \ / AMOS7 \ YOURUM ::
-#\[7]UN7PUEZG4VDIT6MTMPP6WYBVTI5E3TZJ2FAAWGDZYPDELQMIZSCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,..,,.,.,...,.,.,.,.,,.,,.,.,.,.,..,,...,..,,,,.,,,.,..,,,,,,..,,
+#WMVKHCXRAKF2IVD36BNQVLIF56UBPKD7JQYIP5A2V5YQ4JNSYB426AW6FCISJVJ7XKGLFYK2BHKZQ
+#\\\|BNUI65Z6LEPVLELSNN4UFCX6WB2GQ5DJSUYSV6CLV5O3EPDKWNQ \ / AMOS7 \ YOURUM ::
+#\[7]JTHCTJRYRNXMMRAY7XRMNBPXR53JMZXNVYS3GQS3C6PXW3OUTCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
