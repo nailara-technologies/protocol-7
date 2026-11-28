@@ -5,15 +5,15 @@
 # param  = <steps|cfg_scale|lora_weight|seed_offset>=<value> ..
 #          [ items=<id,..> ] [ batch=<id> ] [ model=<text> ] [ lora=<text> ]
 #          [ where <steps|cfg_scale|lora_weight|seed>=<current> .. ]
-#          [ -dry-run ]
+#          [ :dry-run: ]
 # return = command reply hashref
 
 my $args = shift // '';
-my $dry  = $args =~ s{\s*-dry-run\b}{}g;
+my $dry  = $args =~ s{\s*:dry-run:}{}g;
 my $usage
     = 'queue-set <steps|cfg_scale|lora_weight|seed_offset>=<value> .. [ '
     . 'items=<id,..> ] [ batch=<id> ] [ model=<text> ] [ lora=<text> ] '
-    . '[ where <key>=<current> .. ] [ -dry-run ]';
+    . '[ where <key>=<current> .. ] [ :dry-run: ]';
 
 my ( %assign, %current, %select );
 my $where = FALSE;
@@ -267,8 +267,8 @@ push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
     @updates == 1 ? '' : 's', $backup;
 return { mode => qw| size |, data => join '', @output };
 
-#,,..,..,,...,.,.,.,,,...,,..,...,,,.,,,.,,..,..,,...,...,,.,,,,,,.,,,..,,...,
-#ZUNDBHCXLITD24A7QFKILV5KRKHMYQZY7Q5CIGWYJHEIS4K246B6SAA4LHPSPJUI2IYWHAI4UKTTY
-#\\\|UWFIX3WLJF5QSIYJ3UJWBYD3J64J5P6PACBA26II73QYABVWSC5 \ / AMOS7 \ YOURUM ::
-#\[7]GL5K2G5OQHXZOVUVBR4JQKGNKJR3OPMOOAEDGOQ2AUJVYWDK4YAI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,,,.,.,..,,,,,,.,,,,.,,,..,..,,..,,...,...,...,.,,,.,.,..,,,..,
+#JKLH4KMS5XVTJOGXGL5KCMDO5BN3U5VXDGPIVB5KEAJB27VYEZY73DAYB4SXRMG5OQQL4ODCQUKZU
+#\\\|L32DW4FUUZRV5KSI26DWK3X6ACBJHL6BQW2LLYIXSIPWDDX3X35 \ / AMOS7 \ YOURUM ::
+#\[7]2IXZMSVPASUZZ6557S55IPJ5XHBOO6EPBWZHLRW2XFUVCXCL6CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

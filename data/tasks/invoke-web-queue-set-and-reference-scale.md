@@ -62,7 +62,7 @@ entries ; no commit, no sign, no reload ; never touch files you did not change.
     `:185-203` creates a new image and returns its DTO [ including the new `image_name` ].
 - entry point chosen : a pending-job rewrite command, not an automatic queue-time option.
   `invoke-web.ref-scale <id ..> [ refs=<n,..|image_name|all> ] <ref_scale=f|ref_max=px>
-  [ -dry-run ]`. repeat with another `refs=<n>` for a different scale on another reference.
+  [ :dry-run: ]`. repeat with another `refs=<n>` for a different scale on another reference.
   no invocation means the original. this fits queued workflows and shares queue-set's safety
   model.
 - ref-scale uses the already-loaded `Imager`, BMW-L13 of the original content, and a persistent
@@ -71,7 +71,7 @@ entries ; no commit, no sign, no reload ; never touch files you did not change.
   fields, their metadata dimensions, and the connected `qwen_image_i2l` dimensions. dry-run does
   no cache writes, uploads, backups, or db writes.
 - queue-set syntax : `invoke-web.queue-set steps=13 items=3033,3034 where steps=8
-  [ -dry-run ]`. assignments : `steps`, `cfg_scale`, `lora_weight`, `seed_offset` [ signed,
+  [ :dry-run: ]`. assignments : `steps`, `cfg_scale`, `lora_weight`, `seed_offset` [ signed,
   modulo 2^32 ]. selectors : `items`, exact `batch`, substring `model` and `lora`. `where`
   filters current `steps`, `cfg_scale`, `lora_weight`, or `seed`.
 - both commands select and update `status = 'pending'` only, create a named sqlite-api backup,
@@ -86,8 +86,8 @@ entries ; no commit, no sign, no reload ; never touch files you did not change.
   reuse, and uncapped originals. `bin/format-code -r` then `-c` passed for all six new src files.
   no live invokeai.db write, state-changing api call, reload, restart, sign, or commit was done.
 
-#,,,,,...,.,,,.,.,.,.,,,,,,,,,.,,,...,,,,,..,,..,,...,..,,,..,,,.,,..,...,,.,,
-#2I3K7Y25OONYSYP3PRIPXVHNCLNT35RJZAGFC7BOTNJ7Q6QBEL4BBG6S62BC74DFFRKFXLH644ALI
-#\\\|537IUWRU2JRYD3Y4BNFY62PKTI747BWKTLS464OYMYEPQOKZKLJ \ / AMOS7 \ YOURUM ::
-#\[7]ZFZT2UUY3IPVFMARHFEKIQZOXLTWWOA7QFJB3J4UBXFUD4OY3AAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,,,.,.,.,.,.,,,,,,..,..,,,,.,..,,...,...,...,,,.,...,.,,,,..,
+#KRTRZBHZ5FYEIBDBFS5BJTWXCBZJ3VD4EPXDBD2RXGO3RKPE2ITESZ5YGY5NAXWZC77TNXNO2XHTG
+#\\\|FK7NGVPOS23AY374PHPNGOYQ6GWBZ4Z2NVIDQ55UCFBJJRNGTDO \ / AMOS7 \ YOURUM ::
+#\[7]5SVZ5S26EWAUCEXJ7EA25BXJJKDBKWJDDGZP5QB3HOSU5ZGYAYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

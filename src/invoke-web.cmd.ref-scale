@@ -3,14 +3,14 @@
 # name  = invoke-web.cmd.ref-scale
 # descr = scale references in pending jobs and upload copies
 # param = <id ..> [ refs=<n,..|image_name|all> ]
-#         <ref_scale=f|ref_max=px> [ -dry-run ]
+#         <ref_scale=f|ref_max=px> [ :dry-run: ]
 # note  = repeat with refs=<n> for a different scale on another reference ;
 #         without this command every reference stays at its original size
 
 my $args  = $call->{'args'} // '';
-my $dry   = $args =~ s{\s*-dry-run\b}{}g;
+my $dry   = $args =~ s{\s*:dry-run:}{}g;
 my $usage = 'ref-scale <id ..> [ refs=<n,..|image_name|all> '
-    . '] <ref_scale=f|ref_max=px> [ -dry-run ]';
+    . '] <ref_scale=f|ref_max=px> [ :dry-run: ]';
 
 my ( $scale, $max, $selector, @item_ids );
 foreach my $token ( grep {length} split m{\s+}, $args ) {
@@ -239,8 +239,8 @@ push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
     @updates == 1 ? '' : 's', $backup;
 return { mode => qw| size |, data => join '', @output };
 
-#,,.,,,,,,,,,,,,,,,..,,,,,...,,..,,,,,.,.,..,,..,,...,.,.,,,.,.,,,,.,,,,.,,,,,
-#X6P4P34HSGJP6LD6TQI7WPANC42VWFVRLZAWPCQ35GVDRMNXRVDFLVZRGM4B7DBRZSVUX4SNFTW4S
-#\\\|DIF2RVIQJTJSHUQIBFW57J25WML3VU4PDGFIU6UXB7TMF2BPBI2 \ / AMOS7 \ YOURUM ::
-#\[7]INVMYCMCQ4SLRSA3TADYFJ7X6FKP6XEBHDIXHYY2PSN5EAX7CMDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,...,.,.,,,.,...,.,.,..,,.,.,,,.,..,,...,...,.,.,,.,,..,,.,.,,,,,
+#7623LE5DARA37QXEJRCCAAMUELXCCSKWB5MNGVCU4LKWLI4MDFXMCW66JZ6U3CQWJVUBTAOHVUMAC
+#\\\|YT3N6NWA74PN7UQU2MSF6VDO5Y2AY3AJNNMXC4UX5RN4NPKZYWL \ / AMOS7 \ YOURUM ::
+#\[7]PH274A2D3YWP44RRJLVDSXQNTTRQDEYFPLOBG5MBKION35P2NAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
