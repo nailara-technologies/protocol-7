@@ -1,0 +1,26 @@
+diff --git a/invokeai/backend/architectures/defs/flux2.py b/invokeai/backend/architectures/defs/flux2.py
+index 0239667..b4f9acf 100644
+--- a/invokeai/backend/architectures/defs/flux2.py
++++ b/invokeai/backend/architectures/defs/flux2.py
+@@ -45,7 +45,7 @@ register(
+         scheduler_applies_to_graph=True,
+         # The Fun-ControlNet-Union is FLUX.2 [dev]'s; `flux2_denoise` refuses it on Klein.
+         control_kinds=frozenset({"flux2_control"}),
+-        max_reference_images=5,
++        max_reference_images=10,  # flux.2 reads up to 10 [ protocol-7 patch, 2026-11-28 ]
+         supports_regional_guidance=True,
+     ),
+     VariantFacet(
+diff --git a/invokeai/backend/architectures/defs/qwen_image_2_1.py b/invokeai/backend/architectures/defs/qwen_image_2_1.py
+index 42d565f..5f661fe 100644
+--- a/invokeai/backend/architectures/defs/qwen_image_2_1.py
++++ b/invokeai/backend/architectures/defs/qwen_image_2_1.py
+@@ -35,7 +35,7 @@ register(
+         guidance_label="CFG",
+         scheduler_set="flow",
+         # Each reference holds ~1 megapixel of latents in the prefix the cache keeps: ~2 GiB per guidance branch.
+-        max_reference_images=4,
++        max_reference_images=10,  # qwen-image 2.1 reads up to 10 [ protocol-7 patch, 2026-11-28 ]
+         reference_images_require_vision_tower=True,
+     ),
+     # Values are qwen_image_21_* because variant strings resolve without the base and must be unique.
