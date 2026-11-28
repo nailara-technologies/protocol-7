@@ -290,3 +290,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|DEJLSG7BRSBBNLCW2Y4FLGVU5EIHEBD4R4HSXURDXB7WYM4JJIN \ / AMOS7 \ YOURUM ::
 #\[7]BSZ3L4DYDA66WCYG42PVGY2JFRMO7HR2H2UOCONDYISSNCU4CCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [2026-11-28-session-lessons](feedback-2026-11-28-session-lessons.md) — never print config files whole [ token leak ], format-code -r = regex-style, pgrep -f self-match, v7 model DELETE deletes files
+
+#,,,,,,..,,,.,.,,,,..,.,.,,,.,.,.,.,,,...,,..,..,,...,...,..,,,,.,..,,.,,,.,,,
+#4EJHUMH4R52RNWZ6ZALCCBRPSUZEBX5HJNCHE3RFCLEQ4UE3SXD47ZCED2KYX55SNQ2TYBQK7SGJ6
+#\\\|IFWIU5TKBW3BIEIHI6IXDYR6C4XMRRWPQAI7S6X4KN5HHOKAROW \ / AMOS7 \ YOURUM ::
+#\[7]PTGOQG7UY577WFFKPS66RVKITQPWYOHKDBKFV6UEGDBLGRH2XACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
