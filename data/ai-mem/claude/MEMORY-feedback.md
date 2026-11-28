@@ -297,3 +297,10 @@ memory-management timing, git-log false-duplication, webkit-vs-firefox css blind
 #\\\|IFWIU5TKBW3BIEIHI6IXDYR6C4XMRRWPQAI7S6X4KN5HHOKAROW \ / AMOS7 \ YOURUM ::
 #\[7]PTGOQG7UY577WFFKPS66RVKITQPWYOHKDBKFV6UEGDBLGRH2XACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+- [push-base-freely](feedback-push-base-freely.md) — committed base work may be pushed to the hub without asking [ owner 2026-11-28 ] ; force push \ rewrites still ask
+
+#,,..,,.,,,,.,,.,,,,.,...,...,..,,.,.,,,.,..,,..,,...,...,..,,..,,,..,..,,.,.,
+#7EBRPGGKFYA4L7HGQDLVZ3OX5BKXM4S4BAJEEJRL6UNIPDB2KFF4SINBQR6MKEPBKHXGFM4L6454Y
+#\\\|MMP6RGYWZXPGUWHYNS36OADW26BZTYP6KV7ZIC7AMAPXBMBRPC5 \ / AMOS7 \ YOURUM ::
+#\[7]BFWZHNM5PD37DHJ7SJQ4IY25HVC3AX7IEJMHZYWXPEU6A2FUN6BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

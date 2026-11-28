@@ -1,0 +1,312 @@
+## [:< ##
+
+# name  = invoke-web.cmd.ref-transform
+# descr = flip, rotate, or scale references in pending jobs
+# param = <id ..|*|last=n|items=..>
+#         [ refs=<n,..|image_name|all> ] [ flip=h|v|hv ]
+#         [ rotate=90|180|270 ]
+#         [ ref_max=<px> | ref_scale=<f> ] [ :dry-run: ] [ :resume: ]
+# note  = at least one operation ; fixed order : rotate, flip, scale
+
+my $args   = $call->{'args'} // '';
+my $dry    = $args =~ s{\s*:dry-run:}{}g;
+my $resume = $args =~ s{\s*:resume:}{}g;
+my $usage
+    = 'ref-transform <id ..|*|last=n|items=..> [ refs=<n,..|image_name|all> '
+    . '] [ flip=h|v|hv ] [ rotate=90|180|270 ] [ ref_max=<px> | '
+    . 'ref_scale=<f> ] [ :dry-run: ] [ :resume: ]';
+
+my ( $flip, $rotate, $scale, $max, $selector, @item_ids, $every, $last );
+foreach my $token ( grep {length} split m{\s+}, $args ) {
+    if ( $token =~ m{^flip=(.+)$} ) {
+        $flip = $1;
+    } elsif ( $token =~ m{^rotate=(.+)$} ) {
+        $rotate = $1;
+    } elsif ( $token =~ m{^ref_scale=(.+)$} ) {
+        $scale = $1;
+    } elsif ( $token =~ m{^ref_max=(.+)$} ) {
+        $max = $1;
+    } elsif ( $token =~ m{^refs=(.+)$} ) {
+        $selector = $1;
+    } elsif ( $token =~ m{^items?=([\d,]+)$} ) {
+        push @item_ids, split m{,}, $1;
+    } elsif ( $token =~ m{^\d+$} ) {
+        push @item_ids, $token;
+    } elsif ( $token eq qw| * | ) {    ## every pending job ##
+        $every = TRUE;
+    } elsif ( $token =~ m|^last=([1-9]\d{0,4})$| ) {    ## the newest n ##
+        $last = $1;
+    } else {
+        return { mode => qw| false |, data => $usage };
+    }
+}
+return { mode => qw| false |, data => $usage }
+    if ( not @item_ids and not $every and not defined $last )
+    or (not defined $flip
+    and not defined $rotate
+    and defined $scale == defined $max )
+    or defined $scale && defined $max;
+$selector //= qw| all |;
+my %seen_id;
+@item_ids = sort { $a <=> $b } grep { not $seen_id{$ARG}++ } @item_ids;
+
+my $dbh = <[invoke-web.queue.db]>
+    // return { mode => qw| false |, data => 'queue db not available' };
+my %select = ( 'every' => $every // FALSE );
+$select{'items'} = \@item_ids if @item_ids;
+$select{'last'}  = $last      if defined $last;
+my $selection = <[invoke-web.queue.select]>->( $dbh, \%select );
+return { mode => qw| false |, data => $selection->{'error'} }
+    if exists $selection->{'error'};
+my $rows = $selection->{'rows'};
+
+my ( @plans, %wanted_name );
+foreach my $row (@$rows) {
+    my $session = $row->{'decoded_session'};
+    my $nodes   = $session->{'graph'}->{'nodes'};
+
+    my @ref_nodes = map { $nodes->{$ARG} } sort grep {
+        ## fork \ v7 ##
+                $ARG =~ m{^(?:qwen_ref_img:|qwen21_ref_img_)}
+            and ( $nodes->{$ARG}->{'type'} // '' ) eq qw| image |
+            and defined $nodes->{$ARG}->{'image'}->{'image_name'}
+    } keys %$nodes;
+    @ref_nodes = map { $nodes->{$ARG} } sort grep {
+        $ARG =~ m{^qwen_ref_img_for_vae:}
+            and defined $nodes->{$ARG}->{'image'}->{'image_name'}
+        } keys %$nodes
+        if not @ref_nodes;
+    return {
+        mode => qw| false |,
+        data => "item $row->{'item_id'} : no qwen reference images"
+        }
+        if not @ref_nodes;
+
+    ## the model decides the rule : v7 swaps images alone, the fork keeps   ##
+    ## qwen-image 2.1 dimensions except for quarter turns, older qwen-image ##
+    ## follows the transformed image, and other models are refused          ##
+    my ($loader) = grep {
+        ( $ARG->{'type'} // '' ) =~ m{^qwen_image(?:_2_1)?_model_loader$}
+    } values %$nodes;
+    my $model_name
+        = lc( ( ( $loader // {} )->{'model'} // {} )->{'name'} // '' );
+    my $v7 = defined $loader
+        && $loader->{'type'} eq qw| qwen_image_2_1_model_loader |;
+    return {
+        mode => qw| false |,
+        data => "item $row->{'item_id'} : not a qwen-image job [ refused ]"
+        }
+        if not defined $loader
+        or ( not $v7 and $model_name !~ m{qwen} );
+    my $qwen21
+        = $v7 || $model_name =~ m{(?:^|[^\d])2[._-]?1(?:[^\d]|$)}
+        ? TRUE
+        : FALSE;
+
+    my ( @references, %by_name );
+    foreach my $node (@ref_nodes) {
+        my $name = $node->{'image'}->{'image_name'};
+        next if $by_name{$name};
+        $by_name{$name} = TRUE;
+        push @references,
+            {
+            'index' => scalar(@references) + 1,
+            'name'  => $name,
+            };
+    }
+    my @selected;
+    if ( $selector eq qw| all | ) {
+        @selected = @references;
+    } else {
+        my %wanted = map { $ARG => TRUE } split m{,}, $selector;
+        @selected
+            = grep { $wanted{ $ARG->{'index'} } or $wanted{ $ARG->{'name'} } }
+            @references;
+        return {
+            mode => qw| false |,
+            data => "item $row->{'item_id'} : no matching references"
+            }
+            if not @selected;
+    }
+    push @plans,
+        {
+        'item_id'    => $row->{'item_id'},
+        'session'    => $session,
+        'references' => \@selected,
+        'qwen21'     => $qwen21,
+        'v7'         => $v7,
+        };
+    $wanted_name{ $ARG->{'name'} } = TRUE for @selected;
+}
+
+my %transformed;
+foreach my $name ( sort keys %wanted_name ) {
+    my $result = <[invoke-web.ref.transform]>->(
+        {   'image_name' => $name,
+            'dbh'        => $dbh,
+            'flip'       => $flip,
+            'rotate'     => $rotate,
+            'ref_scale'  => $scale,
+            'ref_max'    => $max,
+            'dry_run'    => $dry,
+        }
+    );
+    return {
+        mode => qw| false |,
+        data => $result->{'error'} // "reference transform failed [ $name ]"
+        }
+        if not $result->{'ok'};
+    $transformed{$name} = $result;
+}
+
+my $ops = join ' ',
+    map  { $ARG->[0] . '=' . $ARG->[1] }
+    grep { defined $ARG->[1] } (
+    [ 'rotate'    => $rotate ],
+    [ 'flip'      => $flip ],
+    [ 'ref_scale' => $scale ],
+    [ 'ref_max'   => $max ]
+    );
+my @output;
+foreach my $plan (@plans) {
+    foreach my $reference ( $plan->{'references'}->@* ) {
+        my $name   = $reference->{'name'};
+        my $result = $transformed{$name};
+        push @output,
+            sprintf(
+            "item %d ref %d : %s  %dx%d -> %dx%d [ %s%s ]\n",
+            $plan->{'item_id'},
+            $reference->{'index'},
+            $name,
+            $result->@{qw| width height new_width new_height |},
+            $ops,
+            $dry                     ? " ; $result->{'key'}"
+            : $result->{'unchanged'} ? ' ; original'
+            :                          " ; $result->{'image_name'}"
+            );
+    }
+}
+
+my @updates;
+if ( not $dry ) {
+    my ( $replace_images, $keep_dims );
+    $replace_images = sub {
+        my ($value) = @_;
+        if ( ref $value eq qw| HASH | ) {
+            my $old_name = $value->{'image_name'} // '';
+            if ( exists $transformed{$old_name}
+                and not $transformed{$old_name}->{'unchanged'} ) {
+                my $result = $transformed{$old_name};
+                $value->{'image_name'} = $result->{'image_name'};
+                if (not $keep_dims
+                    and
+                    ( exists $value->{'width'} or exists $value->{'height'} )
+                ) {
+                    $value->{'width'}  = $result->{'new_width'};
+                    $value->{'height'} = $result->{'new_height'};
+                }
+            }
+            $replace_images->($ARG) for values %$value;
+        } elsif ( ref $value eq qw| ARRAY | ) {
+            $replace_images->($ARG) for @$value;
+        }
+    };
+
+    foreach my $plan (@plans) {
+        my $session = $plan->{'session'};
+        my $nodes   = $session->{'graph'}->{'nodes'};
+        my $changed = FALSE;
+        foreach my $name ( map { $ARG->{'name'} } $plan->{'references'}->@* )
+        {
+            $changed = TRUE if not $transformed{$name}->{'unchanged'};
+        }
+        next if not $changed;
+
+        ## v7 has no i2l dimensions. the fork's qwen-image 2.1 keeps them,  ##
+        ## except that a quarter turn swaps width and height at equal area. ##
+        ## older qwen-image follows the transformed reference dimensions.   ##
+        $keep_dims = $plan->{'qwen21'};
+        my $quarter_turn = defined $rotate && $rotate != 180;
+        foreach my $edge ( ( $session->{'graph'}->{'edges'} // [] )->@* ) {
+            last if $plan->{'v7'};
+            my $source = $edge->{'source'}->{'node_id'}      // '';
+            my $target = $edge->{'destination'}->{'node_id'} // '';
+            next
+                if not exists $nodes->{$source}
+                or not exists $nodes->{$target}
+                or ref $nodes->{$source}->{'image'} ne qw| HASH |;
+            my $name = $nodes->{$source}->{'image'}->{'image_name'} // '';
+            next
+                if not exists $transformed{$name}
+                or $transformed{$name}->{'unchanged'}
+                or ( $nodes->{$target}->{'type'} // '' ) ne
+                qw| qwen_image_i2l |;
+            if ( $plan->{'qwen21'} ) {
+                next if not $quarter_turn;
+                (   $nodes->{$target}->{'width'},
+                    $nodes->{$target}->{'height'}
+                    )
+                    = (
+                    $nodes->{$target}->{'height'},
+                    $nodes->{$target}->{'width'}
+                    );
+            } else {
+                $nodes->{$target}->{'width'}
+                    = $transformed{$name}->{'new_width'};
+                $nodes->{$target}->{'height'}
+                    = $transformed{$name}->{'new_height'};
+            }
+        }
+        $replace_images->($session);
+        push @updates,
+            {
+            'item_id' => $plan->{'item_id'},
+            'session' => <[format.json.encode]>->($session),
+            };
+    }
+}
+
+if ($dry) {
+    push @output, sprintf "[ dry run : %d item%s, no uploads or writes ]\n",
+        scalar @plans, @plans == 1 ? '' : 's';
+    return { mode => qw| size |, data => join '', @output };
+}
+return { mode => qw| size |, data => join( '', @output, "no changes\n" ) }
+    if not @updates;
+
+my $written = <[invoke-web.queue.write]>->(
+    $dbh,
+    \@updates,
+    qw| ref-transform |,
+    {   'backup'   => 'reference backup failed',
+        'rollback' => 'reference update rolled back',
+    }
+);
+return { mode => qw| false |, data => $written->{'error'} }
+    if exists $written->{'error'};
+my $backup = $written->{'backup'};
+<[base.logs]>->(
+    1,
+    'queue : transformed references [ %d items, %d refs, backup %s ]',
+    scalar @updates,
+    scalar @output, $backup
+);
+push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
+    @updates == 1 ? '' : 's', $backup;
+## :resume: : the queue processor runs again once the change is written ##
+if ($resume) {
+    my $resumed = <[invoke-web.api]>->(
+        'PUT', '/api/v1/queue/defau' . 'lt/processor/resume'
+    );
+    push @output, $resumed->{'ok'}
+        ? "queue resumed\n"
+        : sprintf( "queue NOT resumed [ %s ]\n",
+        $resumed->{'status'} // '-' );
+}
+return { mode => qw| size |, data => join '', @output };
+
+#,,,,,...,,.,,,.,,,,.,,.,,,,.,,,,,...,.,.,,,,,..,,...,...,,..,,..,,,.,.,.,...,
+#OAIZ4JP27S5D2ZP4LSPOBJGVIXFGIRT2OHMUY4MDYKPFWXD6F4S4HOLONSSHZQV5DQSSMXOHY2PCY
+#\\\|H2YE3QPX5NMT5AIUO6IW7ZPBMQAW4566JO5GXKYLTJYTCGOOA6Q \ / AMOS7 \ YOURUM ::
+#\[7]JDU2OU34NXNOXVO3PM5XUQCYI3C7SY2ZG7X4LQJT7YJ2IN3MBKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

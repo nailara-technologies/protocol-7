@@ -1,0 +1,236 @@
+## [:< ##
+
+# name   = invoke-web.ref.transform
+# descr  = cache and upload one transformed reference
+# param  = { image_name, dbh, flip | rotate | ref_scale | ref_max }
+# return = { ok, image_name, dimensions, cache key } | { ok, error }
+# note   = rotate clockwise, then flip, then scale ; originals stay intact
+
+my $param = shift // return {
+    'ok'    => FALSE,
+    'error' => 'parameters missing'
+};
+my $name   = $param->{'image_name'} // '';
+my $flip   = $param->{'flip'};
+my $rotate = $param->{'rotate'};
+my $scale  = $param->{'ref_scale'};
+my $max    = $param->{'ref_max'};
+my $dry    = $param->{'dry_run'} // FALSE;
+
+return { 'ok' => FALSE, 'error' => 'invalid reference image name' }
+    if $name !~ m{^[^/\\]+$} or $name eq '..';
+return {
+    'ok'    => FALSE,
+    'error' => 'choose at least one of flip, rotate, ref_scale, ref_max'
+    }
+    if not defined $flip
+    and not defined $rotate
+    and not defined $scale
+    and not defined $max;
+return { 'ok' => FALSE, 'error' => 'flip must be h, v, or hv' }
+    if defined $flip and $flip !~ m{^(?:h|v|hv)$};
+return { 'ok' => FALSE, 'error' => 'rotate must be 90, 180, or 270' }
+    if defined $rotate and $rotate !~ m{^(?:90|180|270)$};
+return {
+    'ok'    => FALSE,
+    'error' => 'choose exactly one of ref_scale, ref_max'
+    }
+    if defined $scale == defined $max
+    and ( defined $scale or defined $max );
+return { 'ok' => FALSE, 'error' => 'ref_scale must be a positive number' }
+    if defined $scale
+    and ( $scale !~ m{^\d+(?:\.\d+)?$|^\.\d+$} or $scale <= 0 );
+return { 'ok' => FALSE, 'error' => 'ref_max must be a positive integer' }
+    if defined $max and ( $max !~ m{^\d+$} or $max < 1 );
+
+my $root      = <invoke-web.root> // '';
+my $subfolder = '';
+if ( defined $param->{'dbh'} ) {
+    ($subfolder)
+        = $param->{'dbh'}->selectrow_array(
+        'SELECT image_subfolder FROM images WHERE image_name = ?',
+        undef, $name );
+    $subfolder //= '';
+}
+return { 'ok' => FALSE, 'error' => 'unsafe image subfolder' }
+    if $subfolder =~ m{(?:^/|(?:^|/)\.\.(?:/|$))};
+my $path = sprintf '%s/outputs/images/%s%s', $root,
+    length $subfolder ? "$subfolder/" : '', $name;
+return { 'ok' => FALSE, 'error' => "reference not readable [ $name ]" }
+    if not -f $path;
+
+my $content = '';
+if ( open my $fh, '<:raw', $path ) {
+    while ( sysread( $fh, my $chunk, 262144 ) ) { $content .= $chunk }
+    close $fh;
+} else {
+    return { 'ok' => FALSE, 'error' => "reference read failed [ $name ]" };
+}
+my $checksum = <[chk-sum.bmw.L13-str]>->($content)
+    // return { 'ok' => FALSE, 'error' => 'BMW checksum failed' };
+
+<[base.perlmod.autoload]>->('Imager') if not defined &Imager::new;
+my $image = Imager->new;
+return { 'ok' => FALSE, 'error' => $image->errstr }
+    if not $image->read( 'data' => $content );
+my ( $width, $height ) = ( $image->getwidth, $image->getheight );
+
+my $transformed = $image;
+if ( defined $rotate ) {
+    $transformed = $transformed->rotate( 'degrees' => $rotate );
+    return {
+        'ok'    => FALSE,
+        'error' => 'reference rotate failed [ ' . $image->errstr . ' ]'
+        }
+        if not $transformed;
+}
+if ( defined $flip ) {
+    my $flipped = $transformed->flip( 'dir' => $flip );
+    return {
+        'ok'    => FALSE,
+        'error' => 'reference flip failed [ ' . $transformed->errstr . ' ]'
+        }
+        if not $flipped;
+    $transformed = $flipped;
+}
+my ( $new_width, $new_height )
+    = ( $transformed->getwidth, $transformed->getheight );
+
+my $factor = $scale;
+if ( defined $max ) {
+    my $long_edge = $new_width > $new_height ? $new_width : $new_height;
+    $factor = $long_edge > $max ? $max / $long_edge : 1;
+}
+$factor     = 1 if not defined $factor or $factor == 1;
+$new_width  = int( $new_width * $factor + 0.5 )  || 1;
+$new_height = int( $new_height * $factor + 0.5 ) || 1;
+
+my @tags;
+push @tags, "r$rotate" if defined $rotate;
+push @tags, "f$flip"   if defined $flip;
+if ( defined $scale ) {
+    my $tag = sprintf 's%.6f', $scale;
+    $tag =~ s{(\.\d*?[1-9])0+$}{$1};
+    $tag =~ s{\.0+$}{};
+    push @tags, $tag;
+} elsif ( defined $max ) {
+    push @tags, "m$max";
+}
+my $key    = $checksum . '-' . join( '-', @tags );
+my $result = {
+    'ok'            => TRUE,
+    'original_name' => $name,
+    'image_name'    => $name,
+    'checksum'      => $checksum,
+    'key'           => $key,
+    'width'         => $width,
+    'height'        => $height,
+    'new_width'     => $new_width,
+    'new_height'    => $new_height,
+};
+$result->{'unchanged'} = TRUE
+    if not defined $rotate
+    and not defined $flip
+    and $new_width == $width
+    and $new_height == $height;
+return $result if $dry or $result->{'unchanged'};
+
+my $cache_dir = <invoke-web.ref_scale.cache_dir>
+    // sprintf( '%s/state/ref-scale', <[file.zenka_dir.data_path]> );
+if ( not -d $cache_dir and not mkdir $cache_dir ) {
+    $result->{'ok'}    = FALSE;
+    $result->{'error'} = "cache directory failed [ $cache_dir : $OS_ERROR ]";
+    return $result;
+}
+$result->{'cache_path'} = "$cache_dir/$key.png";
+
+my $map_path = "$cache_dir/uploads";
+my $uploads  = <invoke-web.ref_scale.uploads>;
+if ( not defined $uploads ) {
+    $uploads = {};
+    if ( open my $fh, '<', $map_path ) {
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            my ( $saved_key, $saved_name, $saved_w, $saved_h ) = split m{\t},
+                $line;
+            $uploads->{$saved_key} = {
+                'image_name' => $saved_name,
+                'new_width'  => $saved_w,
+                'new_height' => $saved_h,
+                }
+                if defined $saved_h;
+        }
+        close $fh;
+    }
+    <invoke-web.ref_scale.uploads> = $uploads;
+}
+if ( exists $uploads->{$key} ) {
+    @$result{qw| image_name new_width new_height cached |}
+        = ( $uploads->{$key}->@{qw| image_name new_width new_height |},
+        TRUE );
+    return $result;
+}
+
+if ( not -f $result->{'cache_path'} ) {
+    my $scaled = $transformed->scale(
+        'xpixels' => $new_width,
+        'ypixels' => $new_height,
+        'type'    => 'nonprop',
+        'qtype'   => 'mixing',
+    );
+    if ( not $scaled ) {
+        $result->{'ok'} = FALSE;
+        $result->{'error'}
+            = 'reference scale failed [ ' . $transformed->errstr . ' ]';
+        return $result;
+    }
+    my $temporary = "$cache_dir/.$key.$PROCESS_ID.tmp";
+    if (   not $scaled->write( 'file' => $temporary, 'type' => 'png' )
+        or not rename $temporary,
+        $result->{'cache_path'}
+    ) {
+        unlink $temporary;
+        $result->{'ok'} = FALSE;
+        $result->{'error'}
+            = 'transformed cache write failed [ '
+            . $scaled->errstr
+            . "$OS_ERROR ]";
+        return $result;
+    }
+}
+
+my $upload
+    = <[invoke-web.ref.upload]>->( $result->{'cache_path'}, "$key.png" );
+if (   not $upload->{'ok'}
+    or ref $upload->{'data'} ne qw| HASH |
+    or not defined $upload->{'data'}->{'image_name'}
+    or not length $upload->{'data'}->{'image_name'} ) {
+    $result->{'ok'}    = FALSE;
+    $result->{'error'} = 'reference upload failed [ '
+        . ( $upload->{'status'} // 'no image_name' ) . ' ]';
+    return $result;
+}
+
+my $new_name = $upload->{'data'}->{'image_name'};
+$uploads->{$key} = {
+    'image_name' => $new_name,
+    'new_width'  => $new_width,
+    'new_height' => $new_height,
+};
+if ( open my $fh, '>>', $map_path ) {
+    print {$fh} join( "\t", $key, $new_name, $new_width, $new_height ) . "\n";
+    close $fh;
+} else {
+    $result->{'ok'}    = FALSE;
+    $result->{'error'} = "upload cache write failed [ $OS_ERROR ]";
+    return $result;
+}
+
+@$result{qw| image_name cached |} = ( $new_name, FALSE );
+return $result;
+
+#,,..,,.,,,..,,..,,,,,,.,,,.,,,.,,,,.,,,.,.,,,..,,...,...,...,.,.,...,,..,,.,,
+#FPDXRXDJZZLI3N7TBOA6XNGEV4HPSLR4SMLE4RWPDSSB67MNPGBBKKGIXE2FOZWSUHTAFJOB6FN26
+#\\\|NE6M3QXIQEQF7EICL65CDY5JKKFXBGVCZE2ADBONV5XBQ232PX2 \ / AMOS7 \ YOURUM ::
+#\[7]4VL4JJR7CWJZIAGXQ6QQMTVMUJQDLXTATKRRRJXL6XGCNE3OAMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

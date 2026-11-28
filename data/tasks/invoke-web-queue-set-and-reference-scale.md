@@ -86,6 +86,25 @@ entries ; no commit, no sign, no reload ; never touch files you did not change.
   reuse, and uncapped originals. `bin/format-code -r` then `-c` passed for all six new src files.
   no live invokeai.db write, state-changing api call, reload, restart, sign, or commit was done.
 
+## findings ref-transform [ kimi ]
+
+- added `invoke-web.ref-transform` with per-reference clockwise rotation, horizontal / vertical
+  flip, and optional scaling. operations always run rotate, flip, scale ; dry-run reports every
+  reference's dimensions and ordered operations. item selection, reference selection, pending-only
+  transaction backups, rollback, and explicit `:resume:` reuse the existing queue path.
+- `invoke-web.ref.scale` is now a compatibility wrapper around `invoke-web.ref.transform` ; its
+  options, scale cache tags, result fields, and command output are unchanged. checksum, original
+  file reads, cache, upload map, and user-category upload exist only in the shared helper. operation
+  suffixes follow the original BMW checksum [ eg. `-r90-fh-m384` ] and originals are never written.
+- graph rules : v7 swaps only image names ; fork qwen-image 2.1 retains i2l dimensions except for
+  swapping width / height on 90 and 270 degree turns ; older qwen-image follows transformed image
+  dimensions. non-qwen models are refused.
+- 34 checks passed against copied v7 and fork sqlite databases under `var/tmp-kimi`, a real small
+  Imager image, persistent cache reuse, and stubbed uploads / resume. covered combined operations,
+  dry-run output, scale compatibility, all three graph rules, model and option refusals, named
+  backups, original byte preservation, and cache reuse. no live invokeai.db write, real api
+  mutation, reload, restart, sign, or commit was done.
+
 ## findings prompt-replace [ kimi ]
 
 - added literal positive / negative prompt replacement with end-only selectors, optional quotes,
@@ -96,8 +115,8 @@ entries ; no commit, no sign, no reload ; never touch files you did not change.
 - 24 checks passed on sqlite-api copies under `var/tmp-kimi` ; `bin/format-code -r` then `-c`
   passed for all seven changed src files. no live db / api mutation, reload, sign, or commit.
 
-#,,..,,,.,,.,,...,,,.,,..,.,,,,..,...,..,,.,.,..,,...,...,.,,,..,,,..,..,,,.,,
-#X7UIEY7Y77OBFSM3DJ7J6QEAA6XKIG3PY2FQ6XE6YHHHS5ID5ZVQ5YLOJI6MV2B4CR423NIU7ZM6Y
-#\\\|D43HZMSTYAU3V62AIUT7WLSNIW5K546IBRKSMG4SHWBSAORTTVV \ / AMOS7 \ YOURUM ::
-#\[7]ENTLSXMK7QP474GNQV3JOQJZ7PMQLVWTKM563O7ARNO7TRHSXIDI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,.,.,.,,,.,.,,,,,.,..,,,,.,,.,,..,,...,...,..,,.,,,...,.,.,,..,
+#57X24TAVIZYXMXV25M7KTZNA56EEOVNVHMRG2O7HW6KV4EBNKGJCKHIHJCQ77BUCGVBBZ7XYRMFTA
+#\\\|PKWRHGJURTRE4IXRWWGWF3PDHDRRTJKVHHRG4ZKQIFT345WPWRB \ / AMOS7 \ YOURUM ::
+#\[7]C4EYOSF4OS5IP53HJGOZNZEFMRTWRTOUPYL2OCLDTPJO2IZHGODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
