@@ -10,7 +10,9 @@
 my $args   = $call->{'args'} // '';
 my $dry    = $args =~ s{\s*:dry-run:}{}g;
 my $resume = $args =~ s{\s*:resume:}{}g;
-my $usage  = 'ref-scale <id ..|*|last=n> [ refs=<n,..|image_name|all> '
+## a bare 'last' is the newest pending job [ last=1 ] ##
+$args =~ s{(^|\s)last(?=\s|$)}{${1}last=1}g;
+my $usage = 'ref-scale <id ..|*|last=n> [ refs=<n,..|image_name|all> '
     . '] <ref_scale=f|ref_max=px> [ :dry-run: ] [ :resume: ]';
 
 my ( $scale, $max, $selector, @item_ids, $every, $last );
@@ -269,8 +271,8 @@ if ($resume) {
 }
 return { mode => qw| size |, data => join '', @output };
 
-#,,,,,,.,,,,.,.,.,..,,..,,.,.,.,,,,,,,,,.,...,..,,...,...,...,.,.,...,,,,,.,,,
-#D3H6PMTHWQZLDKF5WRZMMNVP6ZDFGXMLF5WYYCA4ADHYTT36IMG23TDHLRQ5SR4LEV245UIZUFATS
-#\\\|YXQUTSDV4RPROEG76COPEBVCGXUS6LJK2SP6TEXCSFU7SW65UBU \ / AMOS7 \ YOURUM ::
-#\[7]3GKPDAMNX2M3IRTJQA2FKA2RZ5GSLTHN7IATKDROYQ647RQFJKDA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,,.,,,..,...,,.,,,.,,,..,,.,,,,.,..,,...,...,..,,.,.,...,..,,,.,,
+#VQXTC6IBMK5ATISZV6DTYPESURFFRKTLI7NCBABISCV3AGMUL42ZPWUI5TRNOCWLXJSX4QYD2OUTC
+#\\\|XPBGDMFQQTRGR4Y5ZBVT3ZZ7VACQVEVO3EQ4PONFZKH4ZZAWAJK \ / AMOS7 \ YOURUM ::
+#\[7]GFIYY4N7QTXZBXPMOKIKHS6GYCNVLCAZT5XRUMXWI6HD2RLN7UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

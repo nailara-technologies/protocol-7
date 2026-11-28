@@ -20,7 +20,8 @@ my $tail = substr $args, $separator + 4;
 my ( %select, $dry, $negative, $resume );
 ## a token may stand alone [ an empty new text : 'old :. last=5' ] ##
 while ( $tail =~ m{(?:^|\s+)(\S+)\s*$} ) {
-    my $token       = $1;
+    my $token = $1;
+    $token = qw| last=1 | if $token eq qw| last |;    ## bare 'last' ##
     my $token_start = $-[0];
     last
         if $token ne qw| * |
@@ -198,8 +199,8 @@ if ($resume) {
 }
 return { mode => qw| size |, data => join '', @output };
 
-#,,,.,,,.,,,.,..,,,,,,...,,,.,,,.,..,,,,.,,,,,..,,...,..,,...,..,,,..,...,,..,
-#2XUABGQYKLGLIHS2E3NLN3LS4BIF433LCEAWLFFSZA67SZQ4ILM2QW7JOLWFSX7X7UMXTIZECYUIU
-#\\\|J3SGDD4FP6U6F5MP6MEA4JCE4O4ZX3E72ZHS76FQ7PT3CBGMO4B \ / AMOS7 \ YOURUM ::
-#\[7]XNYYUK7JKU6DFZZLDAQGNKV6DVLBAFDCCWR4ABS5OHNLSSTAA2AY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,..,.,.,,,.,,,,,,..,,,.,,,,,,,.,..,,...,...,..,,..,,.,,,,.,,,.,,
+#3BRXULCURFCLHY624DYQAENQAAFYUPRHXHEBCD5724P2M3J63CZ6KF5MGGRCGJQA2JT54HQPHMR6M
+#\\\|73IV25PD62JBR5Z2Y22GY45LEPDD2SJ6HUIEQ4VW3KXAU7YVRMR \ / AMOS7 \ YOURUM ::
+#\[7]R42IXNHEOZ7PLJZ75ZXBTAKKF6RVBK5T7PAZAYJEIYWRMYSU5OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

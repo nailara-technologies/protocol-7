@@ -11,6 +11,8 @@
 my $args   = $call->{'args'} // '';
 my $dry    = $args =~ s{\s*:dry-run:}{}g;
 my $resume = $args =~ s{\s*:resume:}{}g;
+## a bare 'last' is the newest pending job [ last=1 ] ##
+$args =~ s{(^|\s)last(?=\s|$)}{${1}last=1}g;
 my $usage
     = 'ref-transform <id ..|*|last=n|items=..> [ refs=<n,..|image_name|all> '
     . '] [ flip=h|v|hv ] [ rotate=90|180|270 ] [ ref_max=<px> | '
@@ -305,8 +307,8 @@ if ($resume) {
 }
 return { mode => qw| size |, data => join '', @output };
 
-#,,,,,...,,.,,,.,,,,.,,.,,,,.,,,,,...,.,.,,,,,..,,...,...,,..,,..,,,.,.,.,...,
-#OAIZ4JP27S5D2ZP4LSPOBJGVIXFGIRT2OHMUY4MDYKPFWXD6F4S4HOLONSSHZQV5DQSSMXOHY2PCY
-#\\\|H2YE3QPX5NMT5AIUO6IW7ZPBMQAW4566JO5GXKYLTJYTCGOOA6Q \ / AMOS7 \ YOURUM ::
-#\[7]JDU2OU34NXNOXVO3PM5XUQCYI3C7SY2ZG7X4LQJT7YJ2IN3MBKDI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,...,,.,,,,.,.,,,,,.,,..,,,,,.,.,..,,...,.,.,..,,...,.,.,,,.,.,.,
+#AKEEJOK32VXQ26WHLR6O3S3MEMQMDJUZCAFKZRN3BH66KAJ6TOHG6RKSFJFT4NZYPCI7ZGVKP4BOI
+#\\\|Y5QUAMBGQS6JP6XPH4TXQ3SXVTMKSZM4P7HSVMNJ35HCTJTC7KA \ / AMOS7 \ YOURUM ::
+#\[7]6QLGTCP7QCQEINK2O7SYGDKR7LGA2FGLWCHMBFWD65U4Y6B5Q4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

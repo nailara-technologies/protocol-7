@@ -11,6 +11,8 @@
 my $args   = shift // '';
 my $dry    = $args =~ s{\s*:dry-run:}{}g;
 my $resume = $args =~ s{\s*:resume:}{}g;
+## a bare 'last' is the newest pending job [ last=1 ] ##
+$args =~ s{(^|\s)last(?=\s|$)}{${1}last=1}g;
 my $usage
     = 'queue-set <steps|cfg_scale|lora_weight|seed_offset>=<value> .. [ '
     . 'items=<id,..> ] [ last=<n> ] [ batch=<id> ] [ model=<text> ] [ '
@@ -247,8 +249,8 @@ if ($resume) {
 }
 return { mode => qw| size |, data => join '', @output };
 
-#,,..,,.,,.,.,,,,,...,.,,,.,.,,,,,,..,,.,,..,,..,,...,...,,.,,,..,..,,,,.,,.,,
-#OUHG5TIHNZTXUYUSBIG4PVRNG3U3Y4DGCVRNQE4KBWN3ZXURCPJVAYNDMU4YCGS3I5WVOVM7ZRZFE
-#\\\|YME5N4W7XTM22HKQQDLD3EQC7SZALJXJBLZD3JXRZBTZXDIS6GU \ / AMOS7 \ YOURUM ::
-#\[7]73RMXFRUP5SGL6LDWYRI6WTUJJ5FTBO7N577LTKMUZT52OH3L4CI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,..,,.,,,.,.,..,,.,.,,..,,,,,.,,,..,,...,...,,..,,..,,,.,.,,,.,.,
+#3GNVVP346SBB4MCY56BDISUFNFFQL2PBEN772WU4EH746ACVYXGMDJO2DEEFOCEW2NFQVKJUJAIP6
+#\\\|OKSMBJ2U6OSDSA3R275UT4LAKZ3FX3JFBA43LANO2QAD4BMB4TA \ / AMOS7 \ YOURUM ::
+#\[7]O644E4BIMFWNBAYRGQG3FYBMH7XCQZRLZ2SLTDN46HB7Z4JQYQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
