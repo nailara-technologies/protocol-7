@@ -3,14 +3,15 @@
 # name  = invoke-web.cmd.ref-scale
 # descr = scale references in pending jobs and upload copies
 # param = <id ..|*|last=n> [ refs=<n,..|image_name|all> ]
-#         <ref_scale=f|ref_max=px> [ :dry-run: ]
+#         <ref_scale=f|ref_max=px> [ :dry-run: ] [ :resume: ]
 # note  = repeat with refs=<n> for a different scale on another reference ;
 #         without this command every reference stays at its original size
 
-my $args  = $call->{'args'} // '';
-my $dry   = $args =~ s{\s*:dry-run:}{}g;
-my $usage = 'ref-scale <id ..|*|last=n> [ refs=<n,..|image_name|all> '
-    . '] <ref_scale=f|ref_max=px> [ :dry-run: ]';
+my $args   = $call->{'args'} // '';
+my $dry    = $args =~ s{\s*:dry-run:}{}g;
+my $resume = $args =~ s{\s*:resume:}{}g;
+my $usage  = 'ref-scale <id ..|*|last=n> [ refs=<n,..|image_name|all> '
+    . '] <ref_scale=f|ref_max=px> [ :dry-run: ] [ :resume: ]';
 
 my ( $scale, $max, $selector, @item_ids, $every, $last );
 foreach my $token ( grep {length} split m{\s+}, $args ) {
@@ -41,34 +42,18 @@ my %seen_id;
 
 my $dbh = <[invoke-web.queue.db]>
     // return { mode => qw| false |, data => 'queue db not available' };
-## ids, '*' or last=n : the newest pending jobs by item id ##
-my ( $sql, @bind )
-    = (   'SELECT item_id, session FROM session_queue '
-        . "WHERE status = 'pending'" );
-if ( @item_ids and not $every ) {
-    $sql .= ' AND item_id IN ( ' . join( ', ', ('?') x @item_ids ) . ' )';
-    push @bind, @item_ids;
-}
-if ( defined $last ) {
-    $sql = "SELECT * FROM ( $sql ORDER BY item_id DESC LIMIT ? )";
-    push @bind, $last;
-}
-$sql .= ' ORDER BY item_id';
-my $rows = $dbh->selectall_arrayref( $sql, { 'Slice' => {} }, @bind );
-return { mode => qw| false |, data => 'queue db read failed' }
-    if not defined $rows;
-return { mode => qw| false |, data => 'no matching pending items' }
-    if not @$rows;
+my %select = ( 'every' => $every // FALSE );
+$select{'items'} = \@item_ids if @item_ids;
+$select{'last'}  = $last      if defined $last;
+my $selection = <[invoke-web.queue.select]>->( $dbh, \%select );
+return { mode => qw| false |, data => $selection->{'error'} }
+    if exists $selection->{'error'};
+my $rows = $selection->{'rows'};
 
 my ( @plans, %wanted_name );
 foreach my $row (@$rows) {
-    my $session = eval { <[format.json.decode]>->( $row->{'session'} ) };
+    my $session = $row->{'decoded_session'};
     my $nodes   = $session->{'graph'}->{'nodes'};
-    return {
-        mode => qw| false |,
-        data => "item $row->{'item_id'} : session graph not readable"
-        }
-        if ref $nodes ne qw| HASH |;
 
     my @ref_nodes = map { $nodes->{$ARG} } sort grep {
                 $ARG =~ m{^qwen_ref_img:}
@@ -85,6 +70,21 @@ foreach my $row (@$rows) {
         data => "item $row->{'item_id'} : no qwen reference images"
         }
         if not @ref_nodes;
+
+    ## the model decides the rule : qwen-image 2.1 keeps its reference ##
+    ## dimensions, older qwen-image shrinks them, others are refused   ##
+    my ($loader)
+        = grep { ( $ARG->{'type'} // '' ) eq qw| qwen_image_model_loader | }
+        values %$nodes;
+    my $model_name
+        = lc( ( ( $loader // {} )->{'model'} // {} )->{'name'} // '' );
+    return {
+        mode => qw| false |,
+        data => "item $row->{'item_id'} : not a qwen-image job [ refused ]"
+        }
+        if not defined $loader;
+    my $qwen21
+        = $model_name =~ m{(?:^|[^\d])2[._-]?1(?:[^\d]|$)} ? TRUE : FALSE;
 
     my ( @references, %by_name );
     foreach my $node (@ref_nodes) {
@@ -116,6 +116,7 @@ foreach my $row (@$rows) {
         'item_id'    => $row->{'item_id'},
         'session'    => $session,
         'references' => \@selected,
+        'qwen21'     => $qwen21,
         };
     $wanted_name{ $ARG->{'name'} } = TRUE for @selected;
 }
@@ -159,7 +160,7 @@ foreach my $plan (@plans) {
 
 my @updates;
 if ( not $dry ) {
-    my $replace_images;
+    my ( $replace_images, $keep_dims );
     $replace_images = sub {
         my ($value) = @_;
         if ( ref $value eq qw| HASH | ) {
@@ -168,7 +169,10 @@ if ( not $dry ) {
                 and not $scaled{$old_name}->{'unchanged'} ) {
                 my $result = $scaled{$old_name};
                 $value->{'image_name'} = $result->{'image_name'};
-                if ( exists $value->{'width'} or exists $value->{'height'} ) {
+                if (not $keep_dims
+                    and
+                    ( exists $value->{'width'} or exists $value->{'height'} )
+                ) {
                     $value->{'width'}  = $result->{'new_width'};
                     $value->{'height'} = $result->{'new_height'};
                 }
@@ -189,9 +193,15 @@ if ( not $dry ) {
         }
         next if not $changed;
 
-        ## the i2l dimensions must shrink too : otherwise it scales the new ##
-        ## copy back up before vae encoding and the token cost stays high   ##
+        ## per model : qwen-image 2.1 sizes every reference to the text \  ##
+        ## vision encoder's ~1024x1024 area and its pad tokens must match  ##
+        ## the vae latents -- shrunk i2l dimensions fail with a shape      ##
+        ## mismatch [ 2026-11-28 ]. there only the image is swapped        ##
+        ## [ a softer reference, no speed-up ]. older qwen-image caps at   ##
+        ## 1024 and keeps smaller sizes : dimensions shrink with the image ##
+        $keep_dims = $plan->{'qwen21'};
         foreach my $edge ( ( $session->{'graph'}->{'edges'} // [] )->@* ) {
+            last if $keep_dims;
             my $source = $edge->{'source'}->{'node_id'}      // '';
             my $target = $edge->{'destination'}->{'node_id'} // '';
             next
@@ -224,34 +234,39 @@ if ($dry) {
 return { mode => qw| size |, data => join( '', @output, "no changes\n" ) }
     if not @updates;
 
-my $backup = <[invoke-web.queue.backup]>->( $dbh, qw| ref-scale | )
-    // return { mode => qw| false |, data => 'reference backup failed' };
-my $sth = $dbh->prepare( 'UPDATE session_queue SET session = ? '
-        . "WHERE item_id = ? AND status = 'pending'" );
-$dbh->begin_work;
-foreach my $update (@updates) {
-    my $count = $sth->execute( $update->{'session'}, $update->{'item_id'} );
-    if ( not defined $count or $count != 1 ) {
-        $dbh->rollback;
-        return {
-            mode => qw| false |,
-            data => 'reference update rolled back [ item '
-                . "$update->{'item_id'} no longer pending ]"
-        };
+my $written = <[invoke-web.queue.write]>->(
+    $dbh,
+    \@updates,
+    qw| ref-scale |,
+    {   'backup'   => 'reference backup failed',
+        'rollback' => 'reference update rolled back',
     }
-}
-$dbh->commit;
+);
+return { mode => qw| false |, data => $written->{'error'} }
+    if exists $written->{'error'};
+my $backup = $written->{'backup'};
 <[base.logs]>->(
     1,
-    'queue : scaled references [ %d items, backup %s ]',
-    scalar @updates, $backup
+    'queue : scaled references [ %d items, %d refs, backup %s ]',
+    scalar @updates,
+    scalar @output, $backup
 );
 push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
     @updates == 1 ? '' : 's', $backup;
+## :resume: : the queue processor runs again once the change is written ##
+if ($resume) {
+    my $resumed = <[invoke-web.api]>->(
+        'PUT', '/api/v1/queue/defau' . 'lt/processor/resume'
+    );
+    push @output, $resumed->{'ok'}
+        ? "queue resumed\n"
+        : sprintf( "queue NOT resumed [ %s ]\n",
+        $resumed->{'status'} // '-' );
+}
 return { mode => qw| size |, data => join '', @output };
 
-#,,,.,,..,.,,,,,,,.,,,..,,.,.,,,.,,..,...,,,.,..,,...,...,,..,,.,,,..,,.,,,,,,
-#2UQCOEMESZPWZK4CUDVUQXK7SFKSTBSOY3AL2JPVT7MZ3ZBNNLHLSWYJ3UQRR65MLEF5HNQSE63CW
-#\\\|7WQ4M67HZQED3GHVEZLP3MO6LU2WX6KTLBLROWGBBY65U5TGHWW \ / AMOS7 \ YOURUM ::
-#\[7]AWUTKLPGZNFM2VK7MRB5M4UTZFT6TBKQLLMP7556BCCIQKIXNMBI 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,,.,,.,,,.,.,,..,.,,,,.,,,,,,..,,...,...,.,.,,,.,,.,,..,,,..,
+#Q5FZIPHZP7C3RTFGSI4Z6TGCYZVXKQJGFNJ35IF7X2YSYQ5ZEAGTGJG5JHLRG2ZIF5FBQVCMVMJ34
+#\\\|C7U4F4XZY77PIOP53EZT5SQP2OMN3WDNZNRYLWNOOVJEMKUHX7B \ / AMOS7 \ YOURUM ::
+#\[7]Y6232GR64OXK6HHYZIJNR57CT6Q2XMQLC3WZ5FEG4C6FPTX5ZCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

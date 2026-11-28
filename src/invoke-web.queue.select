@@ -1,0 +1,84 @@
+## [:< ##
+
+# name   = invoke-web.queue.select
+# descr  = select and decode pending queue sessions by shared selectors
+# param  = dbh, selector hashref, match lora flag [ default true ]
+# return = { rows => [ .. ] } | { error => <message> }
+
+my $dbh        = shift // return { 'error' => 'queue db not available' };
+my $select     = shift // {};
+my $match_lora = shift // TRUE;
+
+my ( $sql, @bind )
+    = (   'SELECT item_id, batch_id, session FROM session_queue '
+        . "WHERE status = 'pending'" );
+if ( exists $select->{'items'} and not $select->{'every'} ) {
+    my @ids = $select->{'items'}->@*;
+    $sql .= ' AND item_id IN ( ' . join( ', ', ('?') x @ids ) . ' )';
+    push @bind, @ids;
+}
+if ( exists $select->{'last'} ) {
+    $sql = "SELECT * FROM ( $sql ORDER BY item_id DESC LIMIT ? )";
+    push @bind, $select->{'last'};
+}
+$sql .= ' ORDER BY item_id';
+my $rows = $dbh->selectall_arrayref( $sql, { 'Slice' => {} }, @bind );
+return { 'error' => 'queue db read failed' }      if not defined $rows;
+return { 'error' => 'no matching pending items' } if not @$rows;
+
+my $lora_name = sub {
+    my ($entry) = @_;
+    my $model   = $entry->{'lora'} // $entry->{'model'} // {};
+    return ref $model eq qw| HASH | ? $model->{'name'} // '' : '';
+};
+
+my @selected;
+foreach my $row (@$rows) {
+    next
+        if exists $select->{'batch'}
+        and $row->{'batch_id'} ne $select->{'batch'};
+    my $session = eval { <[format.json.decode]>->( $row->{'session'} ) };
+    my $nodes   = $session->{'graph'}->{'nodes'};
+    return {
+        'error' => "item $row->{'item_id'} : session graph not readable" }
+        if ref $nodes ne qw| HASH |;
+
+    if ( exists $select->{'model'} ) {
+        my $found = FALSE;
+        foreach my $node ( values %$nodes ) {
+            my $model = $node->{'model'};
+            next if ref $model ne qw| HASH |;
+            $found = TRUE
+                if
+                index( lc( $model->{'name'} // '' ), lc $select->{'model'} )
+                >= 0;
+        }
+        next if not $found;
+    }
+    if ( $match_lora and exists $select->{'lora'} ) {
+        my $found = FALSE;
+        foreach my $node ( values %$nodes ) {
+            my @entries = ( ( $node->{'type'} // '' ) =~ m{lora}
+                    && defined $node->{'weight'} ) ? ($node) : ();
+            push @entries,
+                grep { ref $ARG eq qw| HASH | and defined $ARG->{'weight'} }
+                $node->{'loras'}->@*
+                if ref $node->{'loras'} eq qw| ARRAY |;
+            $found = TRUE
+                if grep {
+                index( lc $lora_name->($ARG), lc $select->{'lora'} ) >= 0
+                } @entries;
+            last if $found;
+        }
+        next if not $found;
+    }
+    $row->{'decoded_session'} = $session;
+    push @selected, $row;
+}
+return { 'rows' => \@selected };
+
+#,,.,,,.,,...,,.,,.,,,,,.,,.,,,,.,,.,,.,.,.,,,..,,...,...,..,,,.,,,,,,,.,,,,.,
+#EESRS7SSH7U7F6HNKU4N2VESJ5QOROFNYMKOXZZPLVSJVKMGF4VVNO6UCZMHKMVB6UZNSDPTJ3L6A
+#\\\|PCGAWHOYOMSNBKH7PRAEEWMLXWLLDQIE6UZJASIULXAF2WVKCHL \ / AMOS7 \ YOURUM ::
+#\[7]L7N3G57E7MRXFCSUAGFKQIKDJHCASYB5NTXNAJ67GBEP5LZDKODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

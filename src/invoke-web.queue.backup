@@ -2,7 +2,7 @@
 
 # name   = invoke-web.queue.backup
 # descr  = named sqlite backup of the active queue db
-# param  = dbh, operation name [ queue-set | ref-scale ]
+# param  = dbh, operation name [ queue-set | ref-scale | prompt-replace ]
 # return = backup path | undef [ error, logged ]
 
 my $dbh       = shift // return undef;
@@ -43,8 +43,8 @@ unlink $backups[$_] for $keep .. $#backups;
 
 return $target;
 
-#,,,,,,,,,.,,,...,,..,..,,,,,,.,,,,,.,..,,,,,,..,,...,...,,,.,.,.,,..,,.,,..,,
-#HIKHQ5XSX54YCV2UHVFIK7UDORVT7K4LY76LORWWJJWIR2E6MHJK4VV62H2K2SNCDPBX6IQXA6FJY
-#\\\|SSNJEJ4FZWJSGJOZ2IUBYSVBETWMCBAKX56KZWMKUG2ZKKXRR6E \ / AMOS7 \ YOURUM ::
-#\[7]3EVKMOBEI4R3Y67HS4TH5B5COT55FLDPBTP2WAQSWECB2Q3C3SBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,.,.,...,.,,,.,.,,,,,..,,,,,,.,.,..,,...,...,...,.,,,.,,,...,..,,
+#WE5E5ZF5OQBTPDSOA3SE2AOA6KPVPENJBLR4ZTIJA5JSZQKUNZKXRAIZZHL4YLMV4CZMLNYLYNWYE
+#\\\|HET7JWKWVLBIAZYLENDNVPCPWCGSBHTOOLY367NDC7HNTCXT5JM \ / AMOS7 \ YOURUM ::
+#\[7]MIXZ25R6EA2KLUB3MCBEAN4XPHQMZQ2UIPPPMI7ZRB6ATWFF52CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

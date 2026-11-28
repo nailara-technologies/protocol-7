@@ -1,0 +1,35 @@
+## [:< ##
+
+# name   = invoke-web.queue.write
+# descr  = back up and update pending sessions in one transaction
+# param  = dbh, updates, operation name, error label hashref
+# return = { backup => <path> } | { error => <message> }
+
+my $dbh       = shift // return { 'error' => 'queue db not available' };
+my $updates   = shift // [];
+my $operation = shift // qw| queue-edit |;
+my $labels    = shift // {};
+
+my $backup = <[invoke-web.queue.backup]>->( $dbh, $operation )
+    // return {
+    'error' => ( $labels->{'backup'} // "$operation backup failed" ) };
+my $sth = $dbh->prepare( 'UPDATE session_queue SET session = ? '
+        . "WHERE item_id = ? AND status = 'pending'" );
+$dbh->begin_work;
+foreach my $update (@$updates) {
+    my $count = $sth->execute( $update->{'session'}, $update->{'item_id'} );
+    if ( not defined $count or $count != 1 ) {
+        $dbh->rollback;
+        return {
+            'error' => ( $labels->{'rollback'} // "$operation rolled back" )
+                . " [ item $update->{'item_id'} no longer pending ]" };
+    }
+}
+$dbh->commit;
+return { 'backup' => $backup };
+
+#,,..,.,.,,,.,..,,,.,,,.,,,,.,...,,,,,,.,,.,,,..,,...,..,,,,.,.,.,,,.,.,.,..,,
+#HP4BJJBODLQJ6JAKCWQVTF446MDB57UTAU6KOEPABXWQTDXEBJKYIRNE75R7N3KPEAUJIXTHIHMUE
+#\\\|AZBBMLUCDZFU54IXYZ4C3S6BBJYICPK5R5VLNXIJBXA7T6EKVBS \ / AMOS7 \ YOURUM ::
+#\[7]IPW3PYI52SFHR7L63W7RHJDQNW4R2A5XBFWIRFKUDHH4QTLZTODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

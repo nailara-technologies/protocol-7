@@ -1,0 +1,205 @@
+## [:< ##
+
+# name   = invoke-web.queue.prompt-replace
+# descr  = replace literal text in pending qwen prompts and metadata
+# param  = <old text> :. <new text> [ items=<id,..> | last=<n> | * ]
+#          [ batch=<id> ] [ model=<text> ] [ lora=<text> ]
+#          [ :dry-run: ] [ :resume: ] [ :neg: ]
+# return = command reply hashref
+
+my $args = shift // '';
+my $usage
+    = 'prompt-replace <old text> :. <new text> [ items=<id,..> | last=<n> | '
+    . '* | batch=<id> | model=<text> | lora=<text> ] [ :dry-run: ] [ '
+    . ':neg: ]';
+my $separator = index $args, ' :. ';
+return { mode => qw| false |, data => $usage } if $separator < 0;
+my $old  = substr $args, 0, $separator;
+my $tail = substr $args, $separator + 4;
+
+my ( %select, $dry, $negative, $resume );
+## a token may stand alone [ an empty new text : 'old :. last=5' ] ##
+while ( $tail =~ m{(?:^|\s+)(\S+)\s*$} ) {
+    my $token       = $1;
+    my $token_start = $-[0];
+    last
+        if $token ne qw| * |
+        and $token ne qw| :dry-run: |
+        and $token ne qw| :neg: |
+        and $token ne qw| :resume: |
+        and $token !~ m{^(?:items?|last|batch|model|lora)=};
+    $tail = substr $tail, 0, $token_start;
+    if ( $token eq qw| :dry-run: | ) {
+        $dry = TRUE;
+    } elsif ( $token eq qw| :neg: | ) {
+        $negative = TRUE;
+    } elsif ( $token eq qw| :resume: | ) {
+        $resume = TRUE;
+    } elsif ( $token eq qw| * | ) {
+        $select{'every'} = TRUE;
+    } elsif ( $token =~ m{^([a-z_]+)=(.*)$} ) {
+        my ( $key, $value ) = ( $1, $2 );
+        return { mode => qw| false |, data => $usage }
+            if not length $value
+            or exists $select{$key};
+        if ( $key =~ m{^items?$} ) {
+            return { mode => qw| false |, data => $usage }
+                if $value !~ m{^\d+(?:,\d+)*$};
+            return { mode => qw| false |, data => $usage }
+                if exists $select{'items'};
+            $select{'items'} = [ split m{,}, $value ];
+        } elsif ( $key eq qw| last | ) {
+            return { mode => qw| false |, data => $usage }
+                if $value !~ m|^[1-9]\d{0,4}$|;
+            $select{'last'} = $value;
+        } else {
+            $select{$key} = $value;
+        }
+    }
+}
+
+foreach my $text ( $old, $tail ) {
+    my $length = length $text;
+    next if $length < 2;
+    my $first = substr $text, 0, 1;
+    if ( ( $first eq qw| ' | or $first eq qw| " | )
+        and substr( $text, -1, 1 ) eq $first ) {
+        substr $text,  0, 1, '';
+        substr $text, -1, 1, '';
+    }
+}
+return { mode => qw| false |, data => 'old prompt text must not be empty' }
+    if not length $old;
+
+my $dbh = <[invoke-web.queue.db]>
+    // return { mode => qw| false |, data => 'queue db not available' };
+my $selection = <[invoke-web.queue.select]>->( $dbh, \%select );
+return { mode => qw| false |, data => $selection->{'error'} }
+    if exists $selection->{'error'};
+my $rows = $selection->{'rows'};
+
+my $excerpt = sub {
+    my ( $text, $position, $changed_length ) = @_;
+    my $start  = $position > 24 ? $position - 24 : 0;
+    my $length = $position - $start + $changed_length + 32;
+    my $part   = substr $text, $start, $length;
+    $part = '...' . $part if $start;
+    $part .= '...' if $start + $length < length $text;
+    $part =~ s{\s+}{ }g;
+    return "'$part'";
+};
+
+## where the prompt text lives : the ui wires a string node into the text ##
+## encoder [ prompt ] and the metadata [ positive_prompt ] -- an inline   ##
+## prompt on those nodes is covered too. the side is the encoder's        ##
+## conditioning edge into the denoise node                                ##
+my $cond_field
+    = $negative ? qw| negative_conditioning | : qw| positive_conditioning |;
+my $meta_field = $negative ? qw| negative_prompt | : qw| positive_prompt |;
+my ( @output, @updates );
+foreach my $row (@$rows) {
+    my $session = $row->{'decoded_session'};
+    my $nodes   = $session->{'graph'}->{'nodes'};
+    my $edges   = $session->{'graph'}->{'edges'} // [];
+    my %encoder;    ## text encoders of the chosen side ##
+    foreach my $edge (@$edges) {
+        my $source = $edge->{'source'}->{'node_id'}        // '';
+        my $dest   = $edge->{'destination'}->{'field'}     // '';
+        my $type   = ( $nodes->{$source} // {} )->{'type'} // '';
+        $encoder{$source} = TRUE
+            if $type eq qw| qwen_image_text_encoder |
+            and $dest eq $cond_field;
+    }
+    my %target;     ## node id -> field holding the text ##
+    foreach my $edge (@$edges) {
+        my $source = $edge->{'source'}->{'node_id'}      // '';
+        my $dest   = $edge->{'destination'}->{'node_id'} // '';
+        my $field  = $edge->{'destination'}->{'field'}   // '';
+        my $node   = $nodes->{$source}                   // next;
+        next if ( $node->{'type'} // '' ) ne qw| string |;
+        my $dest_type = ( $nodes->{$dest} // {} )->{'type'} // '';
+        $target{$source} = qw| value |
+            if ( $encoder{$dest} and $field eq qw| prompt | )
+            or
+            ( $dest_type eq qw| core_metadata | and $field eq $meta_field );
+    }
+    foreach my $id ( keys %$nodes ) {
+        my $type = $nodes->{$id}->{'type'} // '';
+        $target{$id} = qw| prompt |
+            if $encoder{$id} and defined $nodes->{$id}->{'prompt'};
+        $target{$id} = $meta_field
+            if $type eq qw| core_metadata |
+            and defined $nodes->{$id}->{$meta_field};
+    }
+    my $changed = FALSE;
+    my ( $before, $after );
+    foreach my $id ( sort keys %target ) {
+        my $node  = $nodes->{$id};
+        my $field = $target{$id};
+        next if ref $node->{$field};
+        my $original = $node->{$field} // '';
+        my $position = index $original, $old;
+        next if $position < 0;
+        my $replaced = $original;
+        $replaced =~ s{\Q$old\E}{$tail}g;
+        $node->{$field} = $replaced;
+        $changed = TRUE;
+
+        if ( not defined $before ) {
+            $before = $excerpt->( $original, $position, length $old );
+            $after  = $excerpt->( $replaced, $position, length $tail );
+        }
+    }
+    next if not $changed;
+    push @output, sprintf "item %d : %s -> %s\n", $row->{'item_id'}, $before,
+        $after;
+    push @updates,
+        {
+        'item_id' => $row->{'item_id'},
+        'session' => <[format.json.encode]>->($session),
+        };
+}
+
+return { mode => qw| false |, data => 'no matching pending changes' }
+    if not @updates;
+if ($dry) {
+    push @output, sprintf "[ dry run : %d item%s, no backup or writes ]\n",
+        scalar @updates, @updates == 1 ? '' : 's';
+    return { mode => qw| size |, data => join '', @output };
+}
+
+my $written = <[invoke-web.queue.write]>->(
+    $dbh,
+    \@updates,
+    qw| prompt-replace |,
+    {   'backup'   => 'prompt-replace backup failed',
+        'rollback' => 'prompt-replace rolled back',
+    }
+);
+return { mode => qw| false |, data => $written->{'error'} }
+    if exists $written->{'error'};
+my $backup = $written->{'backup'};
+<[base.logs]>->(
+    1,
+    'queue : prompts replaced [ %d items, backup %s ]',
+    scalar @updates, $backup
+);
+push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
+    @updates == 1 ? '' : 's', $backup;
+## :resume: : the queue processor runs again once the change is written ##
+if ($resume) {
+    my $resumed = <[invoke-web.api]>->(
+        'PUT', '/api/v1/queue/defau' . 'lt/processor/resume'
+    );
+    push @output, $resumed->{'ok'}
+        ? "queue resumed\n"
+        : sprintf( "queue NOT resumed [ %s ]\n",
+        $resumed->{'status'} // '-' );
+}
+return { mode => qw| size |, data => join '', @output };
+
+#,,..,,.,,.,,,.,.,...,..,,..,,,,.,...,.,.,,..,..,,...,...,,..,..,,.,,,,.,,...,
+#E6Y6OFS7RRPAQFLPDLB46SI46JCVBWBL7PJR7YVOR6GSJOOKWM4YSAV6AB5R4MMJP5TXMWOU2CNSU
+#\\\|XOVGUPMY5YWUONZEAGVMH4NBSGO2MXS7XYDPBQWN7N5GEDWRS6D \ / AMOS7 \ YOURUM ::
+#\[7]IS7KV2267PUPXJ3S3HFL66ACDISY6HZAMVATQKJLOER3YRR7PKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,15 +5,17 @@
 # param  = <steps|cfg_scale|lora_weight|seed_offset>=<value> ..
 #          [ items=<id,..> ] [ last=<n> ] [ batch=<id> ] [ model=<text> ] [ lora=<text> ]
 #          [ where <steps|cfg_scale|lora_weight|seed>=<current> .. ]
-#          [ :dry-run: ]
+#          [ :dry-run: ] [ :resume: ]
 # return = command reply hashref
 
-my $args = shift // '';
-my $dry  = $args =~ s{\s*:dry-run:}{}g;
+my $args   = shift // '';
+my $dry    = $args =~ s{\s*:dry-run:}{}g;
+my $resume = $args =~ s{\s*:resume:}{}g;
 my $usage
     = 'queue-set <steps|cfg_scale|lora_weight|seed_offset>=<value> .. [ '
     . 'items=<id,..> ] [ last=<n> ] [ batch=<id> ] [ model=<text> ] [ '
-    . 'lora=<text> ] [ where <key>=<current> .. ] [ :dry-run: ]';
+    . 'lora=<text> ] [ where <key>=<current> .. ] [ :dry-run: ] [ '
+    . ':resume: ]';
 
 my ( %assign, %current, %select );
 my $where = FALSE;
@@ -83,24 +85,10 @@ $assign{$ARG} += 0 for keys %assign;
 
 my $dbh = <[invoke-web.queue.db]>
     // return { mode => qw| false |, data => 'queue db not available' };
-my ( $sql, @bind )
-    = (   'SELECT item_id, batch_id, session FROM session_queue '
-        . "WHERE status = 'pending'" );
-if ( exists $select{'items'} ) {
-    my @ids = $select{'items'}->@*;
-    $sql .= ' AND item_id IN ( ' . join( ', ', ('?') x @ids ) . ' )';
-    push @bind, @ids;
-}
-if ( exists $select{'last'} ) {
-    $sql = "SELECT * FROM ( $sql ORDER BY item_id DESC LIMIT ? )";
-    push @bind, $select{'last'};
-}
-$sql .= ' ORDER BY item_id';
-my $rows = $dbh->selectall_arrayref( $sql, { 'Slice' => {} }, @bind );
-return { mode => qw| false |, data => 'queue db read failed' }
-    if not defined $rows;
-return { mode => qw| false |, data => 'no matching pending items' }
-    if not @$rows;
+my $selection = <[invoke-web.queue.select]>->( $dbh, \%select, FALSE );
+return { mode => qw| false |, data => $selection->{'error'} }
+    if exists $selection->{'error'};
+my $rows = $selection->{'rows'};
 
 my $lora_entries = sub {
     my ($node) = @_;
@@ -128,27 +116,8 @@ my $lora_wanted = sub {
 
 my ( @output, @updates );
 foreach my $row (@$rows) {
-    next
-        if exists $select{'batch'} and $row->{'batch_id'} ne $select{'batch'};
-    my $session = eval { <[format.json.decode]>->( $row->{'session'} ) };
+    my $session = $row->{'decoded_session'};
     my $nodes   = $session->{'graph'}->{'nodes'};
-    return {
-        mode => qw| false |,
-        data => "item $row->{'item_id'} : session graph not readable"
-        }
-        if ref $nodes ne qw| HASH |;
-
-    if ( exists $select{'model'} ) {
-        my $found = FALSE;
-        foreach my $node ( values %$nodes ) {
-            my $model = $node->{'model'};
-            next if ref $model ne qw| HASH |;
-            $found = TRUE
-                if index( lc( $model->{'name'} // '' ), lc $select{'model'} )
-                >= 0;
-        }
-        next if not $found;
-    }
 
     my @denoise
         = grep { ( $ARG->{'type'} // '' ) =~ m{denoise} } values %$nodes;
@@ -249,23 +218,16 @@ if ($dry) {
     return { mode => qw| size |, data => join '', @output };
 }
 
-my $backup = <[invoke-web.queue.backup]>->( $dbh, qw| queue-set | )
-    // return { mode => qw| false |, data => 'queue-set backup failed' };
-my $sth = $dbh->prepare( 'UPDATE session_queue SET session = ? '
-        . "WHERE item_id = ? AND status = 'pending'" );
-$dbh->begin_work;
-foreach my $update (@updates) {
-    my $count = $sth->execute( $update->{'session'}, $update->{'item_id'} );
-    if ( not defined $count or $count != 1 ) {
-        $dbh->rollback;
-        return {
-            mode => qw| false |,
-            data => 'queue-set rolled back [ item '
-                . "$update->{'item_id'} no longer pending ]"
-        };
-    }
-}
-$dbh->commit;
+my $labels = {
+    'backup'   => 'queue-set backup failed',
+    'rollback' => 'queue-set rolled back',
+};
+my $written
+    = <[invoke-web.queue.write]>
+    ->( $dbh, \@updates, qw| queue-set |, $labels );
+return { mode => qw| false |, data => $written->{'error'} }
+    if exists $written->{'error'};
+my $backup = $written->{'backup'};
 <[base.logs]>->(
     1,
     'queue : parameters changed [ %d items, backup %s ]',
@@ -273,10 +235,20 @@ $dbh->commit;
 );
 push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
     @updates == 1 ? '' : 's', $backup;
+## :resume: : the queue processor runs again once the change is written ##
+if ($resume) {
+    my $resumed = <[invoke-web.api]>->(
+        'PUT', '/api/v1/queue/defau' . 'lt/processor/resume'
+    );
+    push @output, $resumed->{'ok'}
+        ? "queue resumed\n"
+        : sprintf( "queue NOT resumed [ %s ]\n",
+        $resumed->{'status'} // '-' );
+}
 return { mode => qw| size |, data => join '', @output };
 
-#,,..,.,.,,,.,,,.,,,.,,,.,,.,,...,.,,,,.,,,,,,..,,...,..,,...,,,,,.,.,.,.,..,,
-#E5233FUHG7YUDSD4Q6VX35O6VU4HUL44RUS7F2QXKPMHJR6ODYJYQ6V343EZOFGCOCDE7QBJ7RXJQ
-#\\\|LXPED2SBEBXRRCVA4BFL2N5W62ITY7YXG7VKZBJCFV4O42OY7XY \ / AMOS7 \ YOURUM ::
-#\[7]WCZAMH7XLJ6CLM366KXJKBMZF5OGFHT7SN2WQP5OVZ6RPFAX5OAA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,...,.,,,.,.,,,,,,..,,.,,..,,..,,...,...,,.,,,..,..,,,,.,,.,,
+#OUHG5TIHNZTXUYUSBIG4PVRNG3U3Y4DGCVRNQE4KBWN3ZXURCPJVAYNDMU4YCGS3I5WVOVM7ZRZFE
+#\\\|YME5N4W7XTM22HKQQDLD3EQC7SZALJXJBLZD3JXRZBTZXDIS6GU \ / AMOS7 \ YOURUM ::
+#\[7]73RMXFRUP5SGL6LDWYRI6WTUJJ5FTBO7N577LTKMUZT52OH3L4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

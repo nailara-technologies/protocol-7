@@ -86,8 +86,18 @@ entries ; no commit, no sign, no reload ; never touch files you did not change.
   reuse, and uncapped originals. `bin/format-code -r` then `-c` passed for all six new src files.
   no live invokeai.db write, state-changing api call, reload, restart, sign, or commit was done.
 
-#,,,.,,,.,,,.,..,,,,.,.,.,.,.,,,,,,..,..,,,,.,..,,...,...,...,,,.,...,.,,,,..,
-#KRTRZBHZ5FYEIBDBFS5BJTWXCBZJ3VD4EPXDBD2RXGO3RKPE2ITESZ5YGY5NAXWZC77TNXNO2XHTG
-#\\\|FK7NGVPOS23AY374PHPNGOYQ6GWBZ4Z2NVIDQ55UCFBJJRNGTDO \ / AMOS7 \ YOURUM ::
-#\[7]5SVZ5S26EWAUCEXJ7EA25BXJJKDBKWJDDGZP5QB3HOSU5ZGYAYBY 7  DATA SIGNATURE ::
+## findings prompt-replace [ kimi ]
+
+- added literal positive / negative prompt replacement with end-only selectors, optional quotes,
+  deletion, qwen text encoder + core_metadata parity, and shortened per-item dry-run output.
+- shared pending selection and one-transaction backup / write / rollback now serve queue-set,
+  ref-scale, and prompt-replace ; queue-set's lora behavior and existing replies are preserved.
+- ref-scale's level 1 log now reports items, references, and backup. whitelist regenerated.
+- 24 checks passed on sqlite-api copies under `var/tmp-kimi` ; `bin/format-code -r` then `-c`
+  passed for all seven changed src files. no live db / api mutation, reload, sign, or commit.
+
+#,,..,,,.,,.,,...,,,.,,..,.,,,,..,...,..,,.,.,..,,...,...,.,,,..,,,..,..,,,.,,
+#X7UIEY7Y77OBFSM3DJ7J6QEAA6XKIG3PY2FQ6XE6YHHHS5ID5ZVQ5YLOJI6MV2B4CR423NIU7ZM6Y
+#\\\|D43HZMSTYAU3V62AIUT7WLSNIW5K546IBRKSMG4SHWBSAORTTVV \ / AMOS7 \ YOURUM ::
+#\[7]ENTLSXMK7QP474GNQV3JOQJZ7PMQLVWTKM563O7ARNO7TRHSXIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
