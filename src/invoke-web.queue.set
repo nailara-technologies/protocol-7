@@ -3,7 +3,7 @@
 # name   = invoke-web.queue.set
 # descr  = edit pending queue sessions with backup and one transaction
 # param  = <steps|cfg_scale|lora_weight|seed_offset>=<value> ..
-#          [ items=<id,..> ] [ batch=<id> ] [ model=<text> ] [ lora=<text> ]
+#          [ items=<id,..> ] [ last=<n> ] [ batch=<id> ] [ model=<text> ] [ lora=<text> ]
 #          [ where <steps|cfg_scale|lora_weight|seed>=<current> .. ]
 #          [ :dry-run: ]
 # return = command reply hashref
@@ -12,8 +12,8 @@ my $args = shift // '';
 my $dry  = $args =~ s{\s*:dry-run:}{}g;
 my $usage
     = 'queue-set <steps|cfg_scale|lora_weight|seed_offset>=<value> .. [ '
-    . 'items=<id,..> ] [ batch=<id> ] [ model=<text> ] [ lora=<text> ] '
-    . '[ where <key>=<current> .. ] [ :dry-run: ]';
+    . 'items=<id,..> ] [ last=<n> ] [ batch=<id> ] [ model=<text> ] [ '
+    . 'lora=<text> ] [ where <key>=<current> .. ] [ :dry-run: ]';
 
 my ( %assign, %current, %select );
 my $where = FALSE;
@@ -25,7 +25,7 @@ foreach my $token ( grep {length} split m{\s+}, $args ) {
     return { mode => qw| false |, data => $usage }
         if $token !~ m{^([a-z_]+)=(.*)$};
     my ( $key, $value ) = ( $1, $2 );
-    if ( $key =~ m{^(?:items?|batch|model|lora)$} ) {
+    if ( $key =~ m{^(?:items?|batch|model|lora|last)$} ) {
         return { mode => qw| false |, data => $usage }
             if not length $value
             or exists $select{$key};
@@ -33,6 +33,10 @@ foreach my $token ( grep {length} split m{\s+}, $args ) {
             return { mode => qw| false |, data => $usage }
                 if $value !~ m{^\d+(?:,\d+)*$};
             $select{'items'} = [ split m{,}, $value ];
+        } elsif ( $key eq qw| last | ) {    ## the newest n pending jobs ##
+            return { mode => qw| false |, data => $usage }
+                if $value !~ m|^[1-9]\d{0,4}$|;
+            $select{'last'} = $value;
         } else {
             $select{$key} = $value;
         }
@@ -86,6 +90,10 @@ if ( exists $select{'items'} ) {
     my @ids = $select{'items'}->@*;
     $sql .= ' AND item_id IN ( ' . join( ', ', ('?') x @ids ) . ' )';
     push @bind, @ids;
+}
+if ( exists $select{'last'} ) {
+    $sql = "SELECT * FROM ( $sql ORDER BY item_id DESC LIMIT ? )";
+    push @bind, $select{'last'};
 }
 $sql .= ' ORDER BY item_id';
 my $rows = $dbh->selectall_arrayref( $sql, { 'Slice' => {} }, @bind );
@@ -267,8 +275,8 @@ push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
     @updates == 1 ? '' : 's', $backup;
 return { mode => qw| size |, data => join '', @output };
 
-#,,.,,...,.,.,,,,,.,.,..,,,,,,.,,,,.,,,..,..,,..,,...,...,...,.,,,.,.,..,,,..,
-#JKLH4KMS5XVTJOGXGL5KCMDO5BN3U5VXDGPIVB5KEAJB27VYEZY73DAYB4SXRMG5OQQL4ODCQUKZU
-#\\\|L32DW4FUUZRV5KSI26DWK3X6ACBJHL6BQW2LLYIXSIPWDDX3X35 \ / AMOS7 \ YOURUM ::
-#\[7]2IXZMSVPASUZZ6557S55IPJ5XHBOO6EPBWZHLRW2XFUVCXCL6CDY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,,.,,,.,,,.,,.,,...,.,,,,.,,,,,,..,,...,..,,...,,,,,.,.,.,.,..,,
+#E5233FUHG7YUDSD4Q6VX35O6VU4HUL44RUS7F2QXKPMHJR6ODYJYQ6V343EZOFGCOCDE7QBJ7RXJQ
+#\\\|LXPED2SBEBXRRCVA4BFL2N5W62ITY7YXG7VKZBJCFV4O42OY7XY \ / AMOS7 \ YOURUM ::
+#\[7]WCZAMH7XLJ6CLM366KXJKBMZF5OGFHT7SN2WQP5OVZ6RPFAX5OAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

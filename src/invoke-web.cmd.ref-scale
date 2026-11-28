@@ -2,17 +2,17 @@
 
 # name  = invoke-web.cmd.ref-scale
 # descr = scale references in pending jobs and upload copies
-# param = <id ..> [ refs=<n,..|image_name|all> ]
+# param = <id ..|*|last=n> [ refs=<n,..|image_name|all> ]
 #         <ref_scale=f|ref_max=px> [ :dry-run: ]
 # note  = repeat with refs=<n> for a different scale on another reference ;
 #         without this command every reference stays at its original size
 
 my $args  = $call->{'args'} // '';
 my $dry   = $args =~ s{\s*:dry-run:}{}g;
-my $usage = 'ref-scale <id ..> [ refs=<n,..|image_name|all> '
+my $usage = 'ref-scale <id ..|*|last=n> [ refs=<n,..|image_name|all> '
     . '] <ref_scale=f|ref_max=px> [ :dry-run: ]';
 
-my ( $scale, $max, $selector, @item_ids );
+my ( $scale, $max, $selector, @item_ids, $every, $last );
 foreach my $token ( grep {length} split m{\s+}, $args ) {
     if ( $token =~ m{^ref_scale=(.+)$} ) {
         $scale = $1;
@@ -24,12 +24,16 @@ foreach my $token ( grep {length} split m{\s+}, $args ) {
         push @item_ids, split m{,}, $1;
     } elsif ( $token =~ m{^\d+$} ) {
         push @item_ids, $token;
+    } elsif ( $token eq qw| * | ) {    ## every pending job ##
+        $every = TRUE;
+    } elsif ( $token =~ m|^last=([1-9]\d{0,4})$| ) {    ## the newest n ##
+        $last = $1;
     } else {
         return { mode => qw| false |, data => $usage };
     }
 }
 return { mode => qw| false |, data => $usage }
-    if not @item_ids
+    if ( not @item_ids and not $every and not defined $last )
     or defined $scale == defined $max;
 $selector //= qw| all |;
 my %seen_id;
@@ -37,13 +41,20 @@ my %seen_id;
 
 my $dbh = <[invoke-web.queue.db]>
     // return { mode => qw| false |, data => 'queue db not available' };
-my $rows = $dbh->selectall_arrayref(
-    'SELECT item_id, session FROM session_queue WHERE item_id IN ( '
-        . join( ', ', ('?') x @item_ids )
-        . " ) AND status = 'pending' ORDER BY item_id",
-    { 'Slice' => {} },
-    @item_ids
-);
+## ids, '*' or last=n : the newest pending jobs by item id ##
+my ( $sql, @bind )
+    = (   'SELECT item_id, session FROM session_queue '
+        . "WHERE status = 'pending'" );
+if ( @item_ids and not $every ) {
+    $sql .= ' AND item_id IN ( ' . join( ', ', ('?') x @item_ids ) . ' )';
+    push @bind, @item_ids;
+}
+if ( defined $last ) {
+    $sql = "SELECT * FROM ( $sql ORDER BY item_id DESC LIMIT ? )";
+    push @bind, $last;
+}
+$sql .= ' ORDER BY item_id';
+my $rows = $dbh->selectall_arrayref( $sql, { 'Slice' => {} }, @bind );
 return { mode => qw| false |, data => 'queue db read failed' }
     if not defined $rows;
 return { mode => qw| false |, data => 'no matching pending items' }
@@ -239,8 +250,8 @@ push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
     @updates == 1 ? '' : 's', $backup;
 return { mode => qw| size |, data => join '', @output };
 
-#,,,.,.,.,.,,,...,.,.,,,.,...,.,.,..,,.,.,,,.,..,,...,...,.,.,,.,,..,,.,.,,,,,
-#7623LE5DARA37QXEJRCCAAMUELXCCSKWB5MNGVCU4LKWLI4MDFXMCW66JZ6U3CQWJVUBTAOHVUMAC
-#\\\|YT3N6NWA74PN7UQU2MSF6VDO5Y2AY3AJNNMXC4UX5RN4NPKZYWL \ / AMOS7 \ YOURUM ::
-#\[7]PH274A2D3YWP44RRJLVDSXQNTTRQDEYFPLOBG5MBKION35P2NAAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,.,,,..,,.,.,,,.,,..,...,,,.,..,,...,...,,..,,.,,,..,,.,,,,,,
+#2UQCOEMESZPWZK4CUDVUQXK7SFKSTBSOY3AL2JPVT7MZ3ZBNNLHLSWYJ3UQRR65MLEF5HNQSE63CW
+#\\\|7WQ4M67HZQED3GHVEZLP3MO6LU2WX6KTLBLROWGBBY65U5TGHWW \ / AMOS7 \ YOURUM ::
+#\[7]AWUTKLPGZNFM2VK7MRB5M4UTZFT6TBKQLLMP7556BCCIQKIXNMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
