@@ -56,7 +56,8 @@ foreach my $row (@$rows) {
     my $nodes   = $session->{'graph'}->{'nodes'};
 
     my @ref_nodes = map { $nodes->{$ARG} } sort grep {
-                $ARG =~ m{^qwen_ref_img:}
+        ## fork \ v7 ##
+                $ARG =~ m{^(?:qwen_ref_img:|qwen21_ref_img_)}
             and ( $nodes->{$ARG}->{'type'} // '' ) eq qw| image |
             and defined $nodes->{$ARG}->{'image'}->{'image_name'}
     } keys %$nodes;
@@ -71,11 +72,13 @@ foreach my $row (@$rows) {
         }
         if not @ref_nodes;
 
-    ## the model decides the rule : qwen-image 2.1 keeps its reference ##
-    ## dimensions, older qwen-image shrinks them, others are refused   ##
-    my ($loader)
-        = grep { ( $ARG->{'type'} // '' ) eq qw| qwen_image_model_loader | }
-        values %$nodes;
+    ## the model decides the rule : qwen-image 2.1 keeps its reference      ##
+    ## dimensions, older qwen-image shrinks them, others are refused fork : ##
+    ## qwen_image_model_loader [ 2.1 by model name ] ; v7 :                 ##
+    ## qwen_image_2_1_model_loader [ 2.1 by its type ]                      ##
+    my ($loader) = grep {
+        ( $ARG->{'type'} // '' ) =~ m{^qwen_image(?:_2_1)?_model_loader$}
+    } values %$nodes;
     my $model_name
         = lc( ( ( $loader // {} )->{'model'} // {} )->{'name'} // '' );
     return {
@@ -84,7 +87,8 @@ foreach my $row (@$rows) {
         }
         if not defined $loader;
     my $qwen21
-        = $model_name =~ m{(?:^|[^\d])2[._-]?1(?:[^\d]|$)} ? TRUE : FALSE;
+        = ( $loader // {} )->{'type'} eq qw| qwen_image_2_1_model_loader |
+        || $model_name =~ m{(?:^|[^\d])2[._-]?1(?:[^\d]|$)} ? TRUE : FALSE;
 
     my ( @references, %by_name );
     foreach my $node (@ref_nodes) {
@@ -265,8 +269,8 @@ if ($resume) {
 }
 return { mode => qw| size |, data => join '', @output };
 
-#,,..,.,.,,,.,.,.,,.,,.,,,.,.,,..,.,,,,.,,,,,,..,,...,...,.,.,,,.,,.,,..,,,..,
-#Q5FZIPHZP7C3RTFGSI4Z6TGCYZVXKQJGFNJ35IF7X2YSYQ5ZEAGTGJG5JHLRG2ZIF5FBQVCMVMJ34
-#\\\|C7U4F4XZY77PIOP53EZT5SQP2OMN3WDNZNRYLWNOOVJEMKUHX7B \ / AMOS7 \ YOURUM ::
-#\[7]Y6232GR64OXK6HHYZIJNR57CT6Q2XMQLC3WZ5FEG4C6FPTX5ZCCA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,.,..,,..,,.,.,.,,,,,,,,,.,...,..,,...,...,...,.,.,...,,,,,.,,,
+#D3H6PMTHWQZLDKF5WRZMMNVP6ZDFGXMLF5WYYCA4ADHYTT36IMG23TDHLRQ5SR4LEV245UIZUFATS
+#\\\|YXQUTSDV4RPROEG76COPEBVCGXUS6LJK2SP6TEXCSFU7SW65UBU \ / AMOS7 \ YOURUM ::
+#\[7]3GKPDAMNX2M3IRTJQA2FKA2RZ5GSLTHN7IATKDROYQ647RQFJKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

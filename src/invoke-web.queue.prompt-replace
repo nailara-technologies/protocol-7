@@ -107,7 +107,7 @@ foreach my $row (@$rows) {
         my $dest   = $edge->{'destination'}->{'field'}     // '';
         my $type   = ( $nodes->{$source} // {} )->{'type'} // '';
         $encoder{$source} = TRUE
-            if $type eq qw| qwen_image_text_encoder |
+            if $type =~ m{^qwen_image(?:_2_1)?_text_encoder$}
             and $dest eq $cond_field;
     }
     my %target;     ## node id -> field holding the text ##
@@ -198,8 +198,8 @@ if ($resume) {
 }
 return { mode => qw| size |, data => join '', @output };
 
-#,,..,,.,,.,,,.,.,...,..,,..,,,,.,...,.,.,,..,..,,...,...,,..,..,,.,,,,.,,...,
-#E6Y6OFS7RRPAQFLPDLB46SI46JCVBWBL7PJR7YVOR6GSJOOKWM4YSAV6AB5R4MMJP5TXMWOU2CNSU
-#\\\|XOVGUPMY5YWUONZEAGVMH4NBSGO2MXS7XYDPBQWN7N5GEDWRS6D \ / AMOS7 \ YOURUM ::
-#\[7]IS7KV2267PUPXJ3S3HFL66ACDISY6HZAMVATQKJLOER3YRR7PKBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,,,,,...,,,.,,,.,..,,,,.,,,,,..,,...,..,,...,..,,,..,...,,..,
+#2XUABGQYKLGLIHS2E3NLN3LS4BIF433LCEAWLFFSZA67SZQ4ILM2QW7JOLWFSX7X7UMXTIZECYUIU
+#\\\|J3SGDD4FP6U6F5MP6MEA4JCE4O4ZX3E72ZHS76FQ7PT3CBGMO4B \ / AMOS7 \ YOURUM ::
+#\[7]XNYYUK7JKU6DFZZLDAQGNKV6DVLBAFDCCWR4ABS5OHNLSSTAA2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
