@@ -1,0 +1,274 @@
+## [:< ##
+
+# name   = invoke-web.queue.set
+# descr  = edit pending queue sessions with backup and one transaction
+# param  = <steps|cfg_scale|lora_weight|seed_offset>=<value> ..
+#          [ items=<id,..> ] [ batch=<id> ] [ model=<text> ] [ lora=<text> ]
+#          [ where <steps|cfg_scale|lora_weight|seed>=<current> .. ]
+#          [ -dry-run ]
+# return = command reply hashref
+
+my $args = shift // '';
+my $dry  = $args =~ s{\s*-dry-run\b}{}g;
+my $usage
+    = 'queue-set <steps|cfg_scale|lora_weight|seed_offset>=<value> .. [ '
+    . 'items=<id,..> ] [ batch=<id> ] [ model=<text> ] [ lora=<text> ] '
+    . '[ where <key>=<current> .. ] [ -dry-run ]';
+
+my ( %assign, %current, %select );
+my $where = FALSE;
+foreach my $token ( grep {length} split m{\s+}, $args ) {
+    if ( $token eq qw| where | ) {
+        $where = TRUE;
+        next;
+    }
+    return { mode => qw| false |, data => $usage }
+        if $token !~ m{^([a-z_]+)=(.*)$};
+    my ( $key, $value ) = ( $1, $2 );
+    if ( $key =~ m{^(?:items?|batch|model|lora)$} ) {
+        return { mode => qw| false |, data => $usage }
+            if not length $value
+            or exists $select{$key};
+        if ( $key =~ m{^items?$} ) {
+            return { mode => qw| false |, data => $usage }
+                if $value !~ m{^\d+(?:,\d+)*$};
+            $select{'items'} = [ split m{,}, $value ];
+        } else {
+            $select{$key} = $value;
+        }
+        next;
+    }
+    if ( not $where
+        and $key =~ m{^(?:steps|cfg_scale|lora_weight|seed_offset)$} ) {
+        return { mode => qw| false |, data => $usage }
+            if exists $assign{$key};
+        $assign{$key} = $value;
+    } elsif ( $where and $key =~ m{^(?:steps|cfg_scale|lora_weight|seed)$} ) {
+        return { mode => qw| false |, data => $usage }
+            if exists $current{$key};
+        $current{$key} = $value;
+    } else {
+        return { mode => qw| false |, data => $usage };
+    }
+}
+return { mode => qw| false |, data => $usage } if not keys %assign;
+return { mode => qw| false |, data => 'steps must be a positive integer' }
+    if exists $assign{'steps'}
+    and $assign{'steps'} !~ m{^\d+$} || $assign{'steps'} < 1;
+return { mode => qw| false |, data => 'cfg_scale must be non-negative' }
+    if exists $assign{'cfg_scale'}
+    and $assign{'cfg_scale'} !~ m{^\d+(?:\.\d+)?$|^\.\d+$}
+    || $assign{'cfg_scale'} < 0;
+return { mode => qw| false |, data => 'lora_weight must be non-negative' }
+    if exists $assign{'lora_weight'}
+    and $assign{'lora_weight'} !~ m{^\d+(?:\.\d+)?$|^\.\d+$}
+    || $assign{'lora_weight'} < 0;
+return {
+    mode => qw| false |,
+    data => 'seed_offset must be a signed integer'
+    }
+    if exists $assign{'seed_offset'}
+    and $assign{'seed_offset'} !~ m{^-?\d+$};
+
+my $number = qr{^-?\d+(?:\.\d+)?$|^-?\.\d+$};
+foreach my $key ( keys %current ) {
+    return { mode => qw| false |, data => "invalid current $key" }
+        if $current{$key} !~ $number;
+}
+$assign{$ARG} += 0 for keys %assign;
+
+my $dbh = <[invoke-web.queue.db]>
+    // return { mode => qw| false |, data => 'queue db not available' };
+my ( $sql, @bind )
+    = (   'SELECT item_id, batch_id, session FROM session_queue '
+        . "WHERE status = 'pending'" );
+if ( exists $select{'items'} ) {
+    my @ids = $select{'items'}->@*;
+    $sql .= ' AND item_id IN ( ' . join( ', ', ('?') x @ids ) . ' )';
+    push @bind, @ids;
+}
+$sql .= ' ORDER BY item_id';
+my $rows = $dbh->selectall_arrayref( $sql, { 'Slice' => {} }, @bind );
+return { mode => qw| false |, data => 'queue db read failed' }
+    if not defined $rows;
+return { mode => qw| false |, data => 'no matching pending items' }
+    if not @$rows;
+
+my $lora_entries = sub {
+    my ($node) = @_;
+    my @entries;
+    push @entries, $node
+        if ( $node->{'type'} // '' ) =~ m{lora}
+        and defined $node->{'weight'};
+    if ( ref $node->{'loras'} eq qw| ARRAY | ) {
+        push @entries,
+            grep { ref $ARG eq qw| HASH | and defined $ARG->{'weight'} }
+            $node->{'loras'}->@*;
+    }
+    return @entries;
+};
+my $lora_name = sub {
+    my ($entry) = @_;
+    my $model   = $entry->{'lora'} // $entry->{'model'} // {};
+    return ref $model eq qw| HASH | ? $model->{'name'} // '' : '';
+};
+my $lora_wanted = sub {
+    my ($entry) = @_;
+    return TRUE if not exists $select{'lora'};
+    return index( lc $lora_name->($entry), lc $select{'lora'} ) >= 0;
+};
+
+my ( @output, @updates );
+foreach my $row (@$rows) {
+    next
+        if exists $select{'batch'} and $row->{'batch_id'} ne $select{'batch'};
+    my $session = eval { <[format.json.decode]>->( $row->{'session'} ) };
+    my $nodes   = $session->{'graph'}->{'nodes'};
+    return {
+        mode => qw| false |,
+        data => "item $row->{'item_id'} : session graph not readable"
+        }
+        if ref $nodes ne qw| HASH |;
+
+    if ( exists $select{'model'} ) {
+        my $found = FALSE;
+        foreach my $node ( values %$nodes ) {
+            my $model = $node->{'model'};
+            next if ref $model ne qw| HASH |;
+            $found = TRUE
+                if index( lc( $model->{'name'} // '' ), lc $select{'model'} )
+                >= 0;
+        }
+        next if not $found;
+    }
+
+    my @denoise
+        = grep { ( $ARG->{'type'} // '' ) =~ m{denoise} } values %$nodes;
+    my @loras = grep { $lora_wanted->($ARG) }
+        map { $lora_entries->($ARG) } values %$nodes;
+    my $matches = TRUE;
+    foreach my $key ( keys %current ) {
+        my @values
+            = $key eq qw| lora_weight |
+            ? map { $ARG->{'weight'} } @loras
+            : map { $ARG->{$key} } @denoise;
+        $matches = FALSE
+            if not grep { defined $ARG and $ARG == $current{$key} } @values;
+    }
+    next if not $matches;
+
+    my ( %old, %changed );
+    if ( exists $assign{'steps'} or exists $assign{'cfg_scale'} ) {
+        foreach
+            my $key ( grep { exists $assign{$ARG} } qw| steps cfg_scale | ) {
+            foreach my $node ( values %$nodes ) {
+                my $type = $node->{'type'} // '';
+                next if $type !~ m{denoise} and $type ne qw| core_metadata |;
+                next if not exists $node->{$key};
+                $old{$key}->{ $node->{$key} } = TRUE
+                    if $type =~ m{denoise};
+                next if $node->{$key} == $assign{$key};
+                $node->{$key} = $assign{$key};
+                $changed{$key}++;
+            }
+        }
+    }
+    if ( exists $assign{'seed_offset'} ) {
+        my $first_seed;
+        foreach my $id ( sort keys %$nodes ) {
+            my $node = $nodes->{$id};
+            next
+                if ( $node->{'type'} // '' ) !~ m{denoise}
+                or not defined $node->{'seed'};
+            my $new_seed
+                = ( $node->{'seed'} + $assign{'seed_offset'} ) % 4294967296;
+            $new_seed += 4294967296 if $new_seed < 0;
+            $old{'seed_offset'}->{ $node->{'seed'} } = TRUE;
+            $first_seed //= $new_seed;
+            if ( $node->{'seed'} != $new_seed ) {
+                $node->{'seed'} = $new_seed;
+                $changed{'seed_offset'}++;
+            }
+        }
+        if ( defined $first_seed ) {
+            foreach my $node ( values %$nodes ) {
+                next if ( $node->{'type'} // '' ) ne qw| core_metadata |;
+                $changed{'seed_offset'}++
+                    if !defined $node->{'seed'}
+                    or $node->{'seed'} != $first_seed;
+                $node->{'seed'} = $first_seed;
+            }
+        }
+    }
+    if ( exists $assign{'lora_weight'} ) {
+        foreach my $entry (@loras) {
+            $old{'lora_weight'}->{ $entry->{'weight'} } = TRUE;
+            next if $entry->{'weight'} == $assign{'lora_weight'};
+            $entry->{'weight'} = $assign{'lora_weight'};
+            $changed{'lora_weight'}++;
+        }
+    }
+
+    my @item_changes;
+    foreach my $key (qw| steps cfg_scale lora_weight seed_offset |) {
+        next if not $changed{$key};
+        my $new_value
+            = $key eq qw| seed_offset |
+            ? sprintf '%+d', $assign{$key}
+            : $assign{$key};
+        push @item_changes,
+            sprintf(
+            'item %d : %s %s -> %s [ %d nodes ]',
+            $row->{'item_id'}, $key,
+            join( '/', sort { $a <=> $b } keys $old{$key}->%* ),
+            $new_value, $changed{$key}
+            );
+    }
+    next if not @item_changes;
+    push @output, map {"$ARG\n"} @item_changes;
+    push @updates,
+        {
+        'item_id' => $row->{'item_id'},
+        'session' => <[format.json.encode]>->($session),
+        };
+}
+
+return { mode => qw| false |, data => 'no matching pending changes' }
+    if not @updates;
+if ($dry) {
+    push @output, sprintf "[ dry run : %d item%s, no backup or writes ]\n",
+        scalar @updates, @updates == 1 ? '' : 's';
+    return { mode => qw| size |, data => join '', @output };
+}
+
+my $backup = <[invoke-web.queue.backup]>->( $dbh, qw| queue-set | )
+    // return { mode => qw| false |, data => 'queue-set backup failed' };
+my $sth = $dbh->prepare( 'UPDATE session_queue SET session = ? '
+        . "WHERE item_id = ? AND status = 'pending'" );
+$dbh->begin_work;
+foreach my $update (@updates) {
+    my $count = $sth->execute( $update->{'session'}, $update->{'item_id'} );
+    if ( not defined $count or $count != 1 ) {
+        $dbh->rollback;
+        return {
+            mode => qw| false |,
+            data => 'queue-set rolled back [ item '
+                . "$update->{'item_id'} no longer pending ]"
+        };
+    }
+}
+$dbh->commit;
+<[base.logs]>->(
+    1,
+    'queue : parameters changed [ %d items, backup %s ]',
+    scalar @updates, $backup
+);
+push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
+    @updates == 1 ? '' : 's', $backup;
+return { mode => qw| size |, data => join '', @output };
+
+#,,..,..,,...,.,.,.,,,...,,..,...,,,.,,,.,,..,..,,...,...,,.,,,,,,.,,,..,,...,
+#ZUNDBHCXLITD24A7QFKILV5KRKHMYQZY7Q5CIGWYJHEIS4K246B6SAA4LHPSPJUI2IYWHAI4UKTTY
+#\\\|UWFIX3WLJF5QSIYJ3UJWBYD3J64J5P6PACBA26II73QYABVWSC5 \ / AMOS7 \ YOURUM ::
+#\[7]GL5K2G5OQHXZOVUVBR4JQKGNKJR3OPMOOAEDGOQ2AUJVYWDK4YAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

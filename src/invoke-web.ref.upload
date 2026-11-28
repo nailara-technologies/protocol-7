@@ -1,0 +1,43 @@
+## [:< ##
+
+# name   = invoke-web.ref.upload
+# descr  = upload one scaled reference through invoke.ai's api
+# param  = image path, upload file name
+# return = { ok, status, data } [ data : decoded api response ]
+
+my $path = shift // return { 'ok' => FALSE, 'status' => 'path missing' };
+my $name = shift // 'reference.png';
+return { 'ok' => FALSE, 'status' => 'image not readable' } if not -f $path;
+
+<[base.perlmod.autoload]>->('HTTP::Request::Common')
+    if not defined &HTTP::Request::Common::POST;
+
+my $url = sprintf '%s/api/v1/images/upload?%s',
+    <invoke-web.url> // 'http://127.0.0.1:9090',
+    'image_category=general&is_intermediate=false';
+my $request = HTTP::Request::Common::POST(
+    $url,
+    'Content_Type' => 'form-data',
+    'Content'      =>
+        [ 'file' => [ $path, $name, 'Content-Type' => 'image/png' ], ]
+);
+
+my $timeout = <invoke-web.cfg.api_timeout> // 47;
+my $ua      = LWP::UserAgent->new( timeout => $timeout );
+$ua->no_proxy( 'localhost', '127.0.0.1' );
+my $response = $ua->request($request);
+my $body     = $response->decoded_content( charset => qw| none | ) // '';
+my $data     = $body;
+$data = <[format.json.decode]>->($body) if $body =~ m|^\s*[\[{]|;
+
+return {
+    'ok'     => $response->is_success ? TRUE : FALSE,
+    'status' => $response->status_line,
+    'data'   => $data,
+};
+
+#,,.,,,,,,,,,,...,...,...,,,,,...,,..,...,...,..,,...,.,.,.,,,,..,..,,..,,,,.,
+#IDUHBA5IS7VOILJ3DDRB75DQ5QDMCAGCGTVE7PSY4P36HBS5UBGXFNCEGOJMKT72KYVX5GXERBCPI
+#\\\|OFEUOP6BB5G2JNTA2I3GKQYOURFP2PBGDMLNX5QSTEIDH3HQNXG \ / AMOS7 \ YOURUM ::
+#\[7]65QUKQG6BMCONTS4TJP67XZOOWN5UMY6LEE3DJW2KIXJUGBL4QCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

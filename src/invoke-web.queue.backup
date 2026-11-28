@@ -1,0 +1,50 @@
+## [:< ##
+
+# name   = invoke-web.queue.backup
+# descr  = named sqlite backup of the active queue db
+# param  = dbh, operation name [ queue-set | ref-scale ]
+# return = backup path | undef [ error, logged ]
+
+my $dbh       = shift // return undef;
+my $operation = shift // qw| queue-edit |;
+$operation =~ s{[^a-z0-9_-]+}{-}g;
+
+my $db_path = <external.models.invokeai.db>
+    // sprintf( '%s/databases/invokeai.db', <invoke-web.root> // '' );
+( my $backup_dir = $db_path ) =~ s{/[^/]+$}{/queue-backups};
+$backup_dir = <invoke-web.queue_backup_dir> // $backup_dir;
+
+if ( not -d $backup_dir and not mkdir $backup_dir ) {
+    <[base.logs]>->(
+        0,           'queue backup : directory failed [ %s : %s ]',
+        $backup_dir, "$OS_ERROR"
+    );
+    return undef;
+}
+
+my $stamp  = POSIX::strftime( '%Y%m%d-%H%M%S', CORE::localtime );
+my $serial = <invoke-web.queue_backup_serial>
+    = ( <invoke-web.queue_backup_serial> // 0 ) + 1;
+my $target = sprintf '%s/invokeai.%s-%s-%d-%d.db',
+    $backup_dir, $operation, $stamp, $PROCESS_ID, $serial;
+if ( not $dbh->sqlite_backup_to_file($target) ) {
+    <[base.logs]>->(
+        0,       'queue backup : sqlite backup failed [ %s : %s ]',
+        $target, $dbh->errstr // 'unknown error'
+    );
+    return undef;
+}
+
+## keep a bounded run of named backups for each operation ##
+my $keep = <invoke-web.queue_backup_keep> // 13;
+$keep = 13 if $keep !~ m{^\d+$} or $keep < 1;
+my @backups = reverse sort glob "$backup_dir/invokeai.$operation-*.db";
+unlink $backups[$_] for $keep .. $#backups;
+
+return $target;
+
+#,,,,,,,,,.,,,...,,..,..,,,,,,.,,,,,.,..,,,,,,..,,...,...,,,.,.,.,,..,,.,,..,,
+#HIKHQ5XSX54YCV2UHVFIK7UDORVT7K4LY76LORWWJJWIR2E6MHJK4VV62H2K2SNCDPBX6IQXA6FJY
+#\\\|SSNJEJ4FZWJSGJOZ2IUBYSVBETWMCBAKX56KZWMKUG2ZKKXRR6E \ / AMOS7 \ YOURUM ::
+#\[7]3EVKMOBEI4R3Y67HS4TH5B5COT55FLDPBTP2WAQSWECB2Q3C3SBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

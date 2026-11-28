@@ -1,6 +1,6 @@
 # invoke-web : change waiting jobs, reference scale per image
 
-status : IDEA 2026-11-28 -- owner agreed to note both, nothing built.
+status : IMPLEMENTED 2026-11-28 -- copied db + stubbed api verified, not live run.
 
 ## 1. queue-set : change parameters of waiting jobs
 
@@ -37,8 +37,57 @@ only inside the db step ] ; lowercase comments with [ ] brackets ; perl floor 5.
 bin/format-code -r then -c ; new commands need their zenka.v7 list, gen-sub-whitelist and access
 entries ; no commit, no sign, no reload ; never touch files you did not change.
 
-#,,..,,,.,,,,,.,.,.,.,.,.,,,.,,,,,.,,,,..,...,..,,...,...,,.,,,..,.,,,,,.,...,
-#OX4LILIG7FBXFDZY75K7TSJS3IOMX5QA2ZPP5RLK46E7OGHH64OLBMZAYAML6AQI4LUCYVSVORT26
-#\\\|MU5VCHSB3EELMKPM67XK4I6YQBVKQOJ5GPFLCDEQT2C4P57M2HJ \ / AMOS7 \ YOURUM ::
-#\[7]FU7Y3B6KNUIJC3Q323GWRHETT7GVKUCUOTCNWYKP6RUHVEPDZYCI 7  DATA SIGNATURE ::
+## findings [ kimi ]
+
+- installed fork read-only investigation [ python 3.11 env `invokeai-qwen21`, package root
+  `/home/taeki/miniconda3/envs/invokeai-qwen21/lib/python3.11/site-packages/invokeai` ] :
+  - `app/invocations/fields.py:251-254` : `ImageField` is exactly `{ image_name }`.
+  - `app/invocations/qwen_image_text_encoder.py:128-131` : the text node takes
+    `reference_images: list[ImageField]` ; `:175-176` passes each `image_name` to
+    `context.images.get_pil`.
+  - `app/invocations/qwen_image_image_to_latents.py:41-58` : the VAE node takes `image` plus
+    optional `width` / `height` ; `:142-161` reads `self.image.image_name`, resizes only when
+    both dimensions are positive, then snaps to the model grid.
+  - references ARE resized internally in the text/vision path :
+    `qwen_image_text_encoder.py:143-168` is the resize, `:172-185` applies 1024x1024 pixels
+    for qwen-image 2.1 and 512x512 for older qwen-image. this is separate from the VAE path.
+  - older qwen-image also clamps VAE reference latents to 1024x1024 pixels in latent space :
+    `qwen_image_denoise.py:232-261`, used at `:423-439`.
+  - qwen-image 2.1 does NOT use that clamp : `:661-674` loads and concatenates every reference
+    latent at its supplied size, and `:713-715` joins them to the target tokens at every step.
+    therefore the queued i2l width / height must shrink with the uploaded image ; replacing only
+    `image_name` would resize the small copy back up and lose the latency benefit.
+  - upload route : `app/api/routers/images.py:87-117` accepts multipart `file` at
+    `POST /api/v1/images/upload`, with `image_category` and `is_intermediate` query parameters ;
+    `:185-203` creates a new image and returns its DTO [ including the new `image_name` ].
+- entry point chosen : a pending-job rewrite command, not an automatic queue-time option.
+  `invoke-web.ref-scale <id ..> [ refs=<n,..|image_name|all> ] <ref_scale=f|ref_max=px>
+  [ -dry-run ]`. repeat with another `refs=<n>` for a different scale on another reference.
+  no invocation means the original. this fits queued workflows and shares queue-set's safety
+  model.
+- ref-scale uses the already-loaded `Imager`, BMW-L13 of the original content, and a persistent
+  text upload map under `state/ref-scale` [ override : `invoke-web.ref_scale.cache_dir` ]. the
+  original file is never written. the new upload replaces all matching reference `image_name`
+  fields, their metadata dimensions, and the connected `qwen_image_i2l` dimensions. dry-run does
+  no cache writes, uploads, backups, or db writes.
+- queue-set syntax : `invoke-web.queue-set steps=13 items=3033,3034 where steps=8
+  [ -dry-run ]`. assignments : `steps`, `cfg_scale`, `lora_weight`, `seed_offset` [ signed,
+  modulo 2^32 ]. selectors : `items`, exact `batch`, substring `model` and `lora`. `where`
+  filters current `steps`, `cfg_scale`, `lora_weight`, or `seed`.
+- both commands select and update `status = 'pending'` only, create a named sqlite-api backup,
+  retain 13 per operation by default [ `invoke-web.queue_backup_keep` ], and commit every changed
+  item in one transaction. an item that leaves pending before update rolls the transaction back.
+  steps / cfg / seed update denoise and core_metadata together ; lora weight updates the loader
+  and core_metadata together.
+- verification : 30 checks passed against sqlite-api copies under `var/tmp-kimi`, real Imager
+  output, and stubbed uploads [ including the real multipart request builder with fake LWP ].
+  covered dry-run, filters, running-item exclusion, backup contents, denoise / metadata parity,
+  lora parity, seed offset, reference dimensions, original preservation, persistent BMW cache
+  reuse, and uncapped originals. `bin/format-code -r` then `-c` passed for all six new src files.
+  no live invokeai.db write, state-changing api call, reload, restart, sign, or commit was done.
+
+#,,,,,...,.,,,.,.,.,.,,,,,,,,,.,,,...,,,,,..,,..,,...,..,,,..,,,.,,..,...,,.,,
+#2I3K7Y25OONYSYP3PRIPXVHNCLNT35RJZAGFC7BOTNJ7Q6QBEL4BBG6S62BC74DFFRKFXLH644ALI
+#\\\|537IUWRU2JRYD3Y4BNFY62PKTI747BWKTLS464OYMYEPQOKZKLJ \ / AMOS7 \ YOURUM ::
+#\[7]ZFZT2UUY3IPVFMARHFEKIQZOXLTWWOA7QFJB3J4UBXFUD4OY3AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

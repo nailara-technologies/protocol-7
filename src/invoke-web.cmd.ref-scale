@@ -1,0 +1,246 @@
+## [:< ##
+
+# name  = invoke-web.cmd.ref-scale
+# descr = scale references in pending jobs and upload copies
+# param = <id ..> [ refs=<n,..|image_name|all> ]
+#         <ref_scale=f|ref_max=px> [ -dry-run ]
+# note  = repeat with refs=<n> for a different scale on another reference ;
+#         without this command every reference stays at its original size
+
+my $args  = $call->{'args'} // '';
+my $dry   = $args =~ s{\s*-dry-run\b}{}g;
+my $usage = 'ref-scale <id ..> [ refs=<n,..|image_name|all> '
+    . '] <ref_scale=f|ref_max=px> [ -dry-run ]';
+
+my ( $scale, $max, $selector, @item_ids );
+foreach my $token ( grep {length} split m{\s+}, $args ) {
+    if ( $token =~ m{^ref_scale=(.+)$} ) {
+        $scale = $1;
+    } elsif ( $token =~ m{^ref_max=(.+)$} ) {
+        $max = $1;
+    } elsif ( $token =~ m{^refs=(.+)$} ) {
+        $selector = $1;
+    } elsif ( $token =~ m{^items?=([\d,]+)$} ) {
+        push @item_ids, split m{,}, $1;
+    } elsif ( $token =~ m{^\d+$} ) {
+        push @item_ids, $token;
+    } else {
+        return { mode => qw| false |, data => $usage };
+    }
+}
+return { mode => qw| false |, data => $usage }
+    if not @item_ids
+    or defined $scale == defined $max;
+$selector //= qw| all |;
+my %seen_id;
+@item_ids = sort { $a <=> $b } grep { not $seen_id{$ARG}++ } @item_ids;
+
+my $dbh = <[invoke-web.queue.db]>
+    // return { mode => qw| false |, data => 'queue db not available' };
+my $rows = $dbh->selectall_arrayref(
+    'SELECT item_id, session FROM session_queue WHERE item_id IN ( '
+        . join( ', ', ('?') x @item_ids )
+        . " ) AND status = 'pending' ORDER BY item_id",
+    { 'Slice' => {} },
+    @item_ids
+);
+return { mode => qw| false |, data => 'queue db read failed' }
+    if not defined $rows;
+return { mode => qw| false |, data => 'no matching pending items' }
+    if not @$rows;
+
+my ( @plans, %wanted_name );
+foreach my $row (@$rows) {
+    my $session = eval { <[format.json.decode]>->( $row->{'session'} ) };
+    my $nodes   = $session->{'graph'}->{'nodes'};
+    return {
+        mode => qw| false |,
+        data => "item $row->{'item_id'} : session graph not readable"
+        }
+        if ref $nodes ne qw| HASH |;
+
+    my @ref_nodes = map { $nodes->{$ARG} } sort grep {
+                $ARG =~ m{^qwen_ref_img:}
+            and ( $nodes->{$ARG}->{'type'} // '' ) eq qw| image |
+            and defined $nodes->{$ARG}->{'image'}->{'image_name'}
+    } keys %$nodes;
+    @ref_nodes = map { $nodes->{$ARG} } sort grep {
+        $ARG =~ m{^qwen_ref_img_for_vae:}
+            and defined $nodes->{$ARG}->{'image'}->{'image_name'}
+        } keys %$nodes
+        if not @ref_nodes;
+    return {
+        mode => qw| false |,
+        data => "item $row->{'item_id'} : no qwen reference images"
+        }
+        if not @ref_nodes;
+
+    my ( @references, %by_name );
+    foreach my $node (@ref_nodes) {
+        my $name = $node->{'image'}->{'image_name'};
+        next if $by_name{$name};
+        $by_name{$name} = TRUE;
+        push @references,
+            {
+            'index' => scalar(@references) + 1,
+            'name'  => $name,
+            };
+    }
+    my @selected;
+    if ( $selector eq qw| all | ) {
+        @selected = @references;
+    } else {
+        my %wanted = map { $ARG => TRUE } split m{,}, $selector;
+        @selected
+            = grep { $wanted{ $ARG->{'index'} } or $wanted{ $ARG->{'name'} } }
+            @references;
+        return {
+            mode => qw| false |,
+            data => "item $row->{'item_id'} : no matching references"
+            }
+            if not @selected;
+    }
+    push @plans,
+        {
+        'item_id'    => $row->{'item_id'},
+        'session'    => $session,
+        'references' => \@selected,
+        };
+    $wanted_name{ $ARG->{'name'} } = TRUE for @selected;
+}
+
+my %scaled;
+foreach my $name ( sort keys %wanted_name ) {
+    my $result = <[invoke-web.ref.scale]>->(
+        {   'image_name' => $name,
+            'dbh'        => $dbh,
+            'ref_scale'  => $scale,
+            'ref_max'    => $max,
+            'dry_run'    => $dry,
+        }
+    );
+    return {
+        mode => qw| false |,
+        data => $result->{'error'} // "reference scale failed [ $name ]"
+        }
+        if not $result->{'ok'};
+    $scaled{$name} = $result;
+}
+
+my @output;
+foreach my $plan (@plans) {
+    foreach my $reference ( $plan->{'references'}->@* ) {
+        my $name   = $reference->{'name'};
+        my $result = $scaled{$name};
+        push @output,
+            sprintf(
+            "item %d ref %d : %s  %dx%d -> %dx%d%s\n",
+            $plan->{'item_id'},
+            $reference->{'index'},
+            $name,
+            $result->@{qw| width height new_width new_height |},
+            $dry                     ? " [ $result->{'key'} ]"
+            : $result->{'unchanged'} ? ' [ original ]'
+            :                          " [ $result->{'image_name'} ]"
+            );
+    }
+}
+
+my @updates;
+if ( not $dry ) {
+    my $replace_images;
+    $replace_images = sub {
+        my ($value) = @_;
+        if ( ref $value eq qw| HASH | ) {
+            my $old_name = $value->{'image_name'} // '';
+            if ( exists $scaled{$old_name}
+                and not $scaled{$old_name}->{'unchanged'} ) {
+                my $result = $scaled{$old_name};
+                $value->{'image_name'} = $result->{'image_name'};
+                if ( exists $value->{'width'} or exists $value->{'height'} ) {
+                    $value->{'width'}  = $result->{'new_width'};
+                    $value->{'height'} = $result->{'new_height'};
+                }
+            }
+            $replace_images->($ARG) for values %$value;
+        } elsif ( ref $value eq qw| ARRAY | ) {
+            $replace_images->($ARG) for @$value;
+        }
+    };
+
+    foreach my $plan (@plans) {
+        my $session = $plan->{'session'};
+        my $nodes   = $session->{'graph'}->{'nodes'};
+        my $changed = FALSE;
+        foreach my $name ( map { $ARG->{'name'} } $plan->{'references'}->@* )
+        {
+            $changed = TRUE if not $scaled{$name}->{'unchanged'};
+        }
+        next if not $changed;
+
+        ## the i2l dimensions must shrink too : otherwise it scales the new ##
+        ## copy back up before vae encoding and the token cost stays high   ##
+        foreach my $edge ( ( $session->{'graph'}->{'edges'} // [] )->@* ) {
+            my $source = $edge->{'source'}->{'node_id'}      // '';
+            my $target = $edge->{'destination'}->{'node_id'} // '';
+            next
+                if not exists $nodes->{$source}
+                or not exists $nodes->{$target}
+                or ref $nodes->{$source}->{'image'} ne qw| HASH |;
+            my $name = $nodes->{$source}->{'image'}->{'image_name'} // '';
+            next
+                if not exists $scaled{$name}
+                or $scaled{$name}->{'unchanged'}
+                or ( $nodes->{$target}->{'type'} // '' ) ne
+                qw| qwen_image_i2l |;
+            $nodes->{$target}->{'width'}  = $scaled{$name}->{'new_width'};
+            $nodes->{$target}->{'height'} = $scaled{$name}->{'new_height'};
+        }
+        $replace_images->($session);
+        push @updates,
+            {
+            'item_id' => $plan->{'item_id'},
+            'session' => <[format.json.encode]>->($session),
+            };
+    }
+}
+
+if ($dry) {
+    push @output, sprintf "[ dry run : %d item%s, no uploads or writes ]\n",
+        scalar @plans, @plans == 1 ? '' : 's';
+    return { mode => qw| size |, data => join '', @output };
+}
+return { mode => qw| size |, data => join( '', @output, "no changes\n" ) }
+    if not @updates;
+
+my $backup = <[invoke-web.queue.backup]>->( $dbh, qw| ref-scale | )
+    // return { mode => qw| false |, data => 'reference backup failed' };
+my $sth = $dbh->prepare( 'UPDATE session_queue SET session = ? '
+        . "WHERE item_id = ? AND status = 'pending'" );
+$dbh->begin_work;
+foreach my $update (@updates) {
+    my $count = $sth->execute( $update->{'session'}, $update->{'item_id'} );
+    if ( not defined $count or $count != 1 ) {
+        $dbh->rollback;
+        return {
+            mode => qw| false |,
+            data => 'reference update rolled back [ item '
+                . "$update->{'item_id'} no longer pending ]"
+        };
+    }
+}
+$dbh->commit;
+<[base.logs]>->(
+    1,
+    'queue : scaled references [ %d items, backup %s ]',
+    scalar @updates, $backup
+);
+push @output, sprintf "%d item%s updated\nbackup : %s\n", scalar @updates,
+    @updates == 1 ? '' : 's', $backup;
+return { mode => qw| size |, data => join '', @output };
+
+#,,.,,,,,,,,,,,,,,,..,,,,,...,,..,,,,,.,.,..,,..,,...,.,.,,,.,.,,,,.,,,,.,,,,,
+#X6P4P34HSGJP6LD6TQI7WPANC42VWFVRLZAWPCQ35GVDRMNXRVDFLVZRGM4B7DBRZSVUX4SNFTW4S
+#\\\|DIF2RVIQJTJSHUQIBFW57J25WML3VU4PDGFIU6UXB7TMF2BPBI2 \ / AMOS7 \ YOURUM ::
+#\[7]INVMYCMCQ4SLRSA3TADYFJ7X6FKP6XEBHDIXHYY2PSN5EAX7CMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
